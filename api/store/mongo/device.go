@@ -5,10 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,7 +14,7 @@ import (
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
-func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -44,21 +41,10 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 		},
 	}
 
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
-	}
-
-	if status != "" {
-		query = append([]bson.M{{
-			"$match": bson.M{
-				"status": status,
-			},
-		}}, query...)
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
 	}
 
 	// When the listing mode is [store.DeviceListModeMaxDeviceReached], we should evaluate the `removed_devices`
@@ -92,25 +78,10 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 		})
 	}
 
-	queryMatch, err := queries.FromFilters(&filters)
+	count, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), query)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-	query = append(query, queryMatch...)
-
-	queryCount := query
-	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := AggregateCount(ctx, s.db.Collection("devices"), queryCount)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	if sorter.By == "" {
-		sorter.By = "last_seen"
-	}
-
-	query = append(query, queries.FromSorter(&sorter)...)
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	query = append(query, []bson.M{
 		{

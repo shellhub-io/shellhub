@@ -94,7 +94,12 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 }
 
 func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
-	return s.store.APIKeyList(ctx, req.TenantID, req.Paginator, req.Sorter)
+	return s.store.APIKeyList(
+		ctx,
+		s.store.Options().InNamespace(req.TenantID),
+		s.store.Options().Sort(&req.Sorter),
+		s.store.Options().Paginate(&req.Paginator),
+	)
 }
 
 func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {

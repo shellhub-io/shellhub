@@ -22,6 +22,8 @@ import (
 
 func TestListDevices(t *testing.T) {
 	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
 		devices []models.Device
@@ -45,8 +47,24 @@ func TestListDevices(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -66,8 +84,24 @@ func TestListDevices(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -96,6 +130,8 @@ func TestListDevices(t *testing.T) {
 
 func TestListDevices_status_removed(t *testing.T) {
 	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
 		devices []models.Device
@@ -119,8 +155,28 @@ func TestListDevices_status_removed(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusRemoved).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved).
+					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -140,8 +196,28 @@ func TestListDevices_status_removed(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusRemoved).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved).
+					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{{Name: "dev"}}, 1, nil).
 					Once()
 			},
@@ -174,6 +250,8 @@ func TestListDevices_status_removed(t *testing.T) {
 
 func TestListDevices_tenant_not_empty(t *testing.T) {
 	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	type Expected struct {
 		devices []models.Device
@@ -197,6 +275,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
@@ -218,6 +316,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2, DevicesRemovedCount: 1}, nil).
@@ -227,7 +345,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved).
+					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -247,6 +365,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2, DevicesRemovedCount: 1}, nil).
@@ -256,7 +394,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved).
+					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -276,6 +414,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2, DevicesRemovedCount: 0}, nil).
@@ -285,7 +443,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -305,6 +463,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2, DevicesRemovedCount: 0}, nil).
@@ -314,7 +492,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -334,6 +512,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
@@ -347,7 +545,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -367,6 +565,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
@@ -380,7 +598,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -400,6 +618,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
@@ -413,7 +651,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -433,6 +671,26 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2}, nil).
@@ -446,7 +704,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Filters{}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted).
+					On("DeviceList", ctx, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},

@@ -35,17 +35,19 @@ func TestGetSessionList(t *testing.T) {
 	cases := []struct {
 		description   string
 		paginator     query.Paginator
-		requiredMocks func(paginator query.Paginator)
+		headers       map[string]string
+		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails when try to searching a session list of a existing session",
-			paginator: query.Paginator{
-				Page:    1,
-				PerPage: 10,
-			},
-			requiredMocks: func(paginator query.Paginator) {
-				mock.On("ListSessions", gomock.Anything, paginator).Return(nil, 0, svc.ErrNotFound).Once()
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func() {
+				mock.
+					On("ListSessions", gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
+					Return(nil, 0, svc.ErrNotFound).
+					Once()
 			},
 			expected: Expected{
 				expectedSession: nil,
@@ -54,13 +56,13 @@ func TestGetSessionList(t *testing.T) {
 		},
 		{
 			description: "success when try to searching a session list of a existing session",
-			paginator: query.Paginator{
-				Page:    1,
-				PerPage: 10,
-			},
-			requiredMocks: func(paginator query.Paginator) {
-				ss := []models.Session{}
-				mock.On("ListSessions", gomock.Anything, paginator).Return(ss, 1, nil).Once()
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func() {
+				mock.
+					On("ListSessions", gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
+					Return([]models.Session{}, 1, nil).
+					Once()
 			},
 			expected: Expected{
 				expectedSession: []models.Session{},
@@ -71,7 +73,7 @@ func TestGetSessionList(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks(tc.paginator)
+			tc.requiredMocks()
 
 			jsonData, err := json.Marshal(tc.paginator)
 			if err != nil {
@@ -81,6 +83,10 @@ func TestGetSessionList(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/api/sessions", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
+
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)

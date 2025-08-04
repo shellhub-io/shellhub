@@ -249,17 +249,13 @@ func TestAPIKeyList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		tenantID    string
-		paginator   query.Paginator
-		sorter      query.Sorter
+		opts        []store.QueryOption
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when there are no api keys",
-			tenantID:    "nonexistent",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
+			opts:        []store.QueryOption{s.Options().InNamespace("non-existent"), s.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}), s.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10})},
 			fixtures:    []string{fixtureAPIKeys},
 			expected: Expected{
 				apiKeys: []models.APIKey{},
@@ -269,9 +265,7 @@ func TestAPIKeyList(t *testing.T) {
 		},
 		{
 			description: "succeeds when there are api keys",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
+			opts:        []store.QueryOption{s.Options().InNamespace("00000000-0000-4000-0000-000000000000"), s.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}), s.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10})},
 			fixtures:    []string{fixtureAPIKeys},
 			expected: Expected{
 				apiKeys: []models.APIKey{
@@ -302,9 +296,7 @@ func TestAPIKeyList(t *testing.T) {
 		},
 		{
 			description: "succeeds when there are api keys and pagination",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			paginator:   query.Paginator{Page: 1, PerPage: 1},
-			sorter:      query.Sorter{By: "expires_in", Order: query.OrderAsc},
+			opts:        []store.QueryOption{s.Options().InNamespace("00000000-0000-4000-0000-000000000000"), s.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}), s.Options().Paginate(&query.Paginator{Page: 1, PerPage: 1})},
 			fixtures:    []string{fixtureAPIKeys},
 			expected: Expected{
 				apiKeys: []models.APIKey{
@@ -325,9 +317,7 @@ func TestAPIKeyList(t *testing.T) {
 		},
 		{
 			description: "succeeds when there are api keys and sorter",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			sorter:      query.Sorter{By: "expires_in", Order: query.OrderDesc},
+			opts:        []store.QueryOption{s.Options().InNamespace("00000000-0000-4000-0000-000000000000"), s.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderDesc}), s.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10})},
 			fixtures:    []string{fixtureAPIKeys},
 			expected: Expected{
 				apiKeys: []models.APIKey{
@@ -365,7 +355,7 @@ func TestAPIKeyList(t *testing.T) {
 			require.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
 
-			apiKeys, count, err := s.APIKeyList(ctx, tc.tenantID, tc.paginator, tc.sorter)
+			apiKeys, count, err := s.APIKeyList(ctx, tc.opts...)
 			require.Equal(t, tc.expected, Expected{apiKeys, count, err})
 		})
 	}

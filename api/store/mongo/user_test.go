@@ -26,16 +26,17 @@ func TestUserList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		page        query.Paginator
-		filters     query.Filters
+		opts        []store.QueryOption
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when users are found",
-			page:        query.Paginator{Page: -1, PerPage: -1},
-			filters:     query.Filters{},
-			fixtures:    []string{fixtureUsers},
+			opts: []store.QueryOption{
+				s.Options().Match(&query.Filters{}),
+				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+			},
+			fixtures: []string{fixtureUsers},
 			expected: Expected{
 				users: []models.User{
 					{
@@ -124,18 +125,9 @@ func TestUserList(t *testing.T) {
 		},
 		{
 			description: "succeeds with filters",
-			page:        query.Paginator{Page: -1, PerPage: -1},
-			filters: query.Filters{
-				Data: []query.Filter{
-					{
-						Type: "property",
-						Params: &query.FilterProperty{
-							Name:     "max_namespaces",
-							Operator: "gt",
-							Value:    "3",
-						},
-					},
-				},
+			opts: []store.QueryOption{
+				s.Options().Match(&query.Filters{Data: []query.Filter{{Type: "property", Params: &query.FilterProperty{Name: "max_namespaces", Operator: "gt", Value: "3"}}}}),
+				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
 			},
 			fixtures: []string{fixtureUsers},
 			expected: Expected{
@@ -196,7 +188,7 @@ func TestUserList(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			users, count, err := s.UserList(ctx, tc.page, tc.filters)
+			users, count, err := s.UserList(ctx, tc.opts...)
 
 			sort(tc.expected.users)
 			sort(users)
