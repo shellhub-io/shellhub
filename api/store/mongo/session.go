@@ -217,6 +217,7 @@ func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*mod
 	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
+	session.Seats = []models.SessionSeat{}
 
 	device, err := s.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {
@@ -329,15 +330,28 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 
 	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (any, error) {
 		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
-			bson.M{"uid": uid},
+			bson.M{"uid": uid, "seats.id": bson.M{"$ne": event.Seat}},
 			bson.M{
-				"$addToSet": bson.M{
-					"events.types": event.Type,
-					"events.seats": event.Seat,
+				"$push": bson.M{
+					"seats": bson.M{
+						"id":     event.Seat,
+						"events": bson.A{},
+					},
 				},
 			},
 		); err != nil {
-			return nil, err
+			return nil, FromMongoError(err)
+		}
+
+		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
+			bson.M{"uid": uid, "seats.id": event.Seat},
+			bson.M{
+				"$addToSet": bson.M{
+					"seats.$.events": event.Type,
+				},
+			},
+		); err != nil {
+			return nil, FromMongoError(err)
 		}
 
 		if _, err := s.db.Collection("sessions_events").InsertOne(ctx, event); err != nil {
