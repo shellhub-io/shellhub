@@ -1,5 +1,6 @@
 import { Buffer } from "buffer";
 import Process from "process";
 
-globalThis.process = Process;
+const { env } = process;
+globalThis.process = { ...Process, env };
 globalThis.Buffer = Buffer;
