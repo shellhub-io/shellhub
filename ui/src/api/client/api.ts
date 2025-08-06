@@ -1226,6 +1226,37 @@ export interface CreateTunnelRequest {
 /**
  * 
  * @export
+ * @interface CreateWebEndpointRequest
+ */
+export interface CreateWebEndpointRequest {
+    /**
+     * Device\'s UID
+     * @type {string}
+     * @memberof CreateWebEndpointRequest
+     */
+    'uid': string;
+    /**
+     * Tunnel\'s agent host address
+     * @type {string}
+     * @memberof CreateWebEndpointRequest
+     */
+    'host': string;
+    /**
+     * Tunnel\'s agent port number
+     * @type {number}
+     * @memberof CreateWebEndpointRequest
+     */
+    'port': number;
+    /**
+     * Tunnel\'s time to live in seconds
+     * @type {number}
+     * @memberof CreateWebEndpointRequest
+     */
+    'ttl': number;
+}
+/**
+ * 
+ * @export
  * @interface Device
  */
 export interface Device {
@@ -2912,6 +2943,12 @@ export interface Tunnel {
      * @memberof Tunnel
      */
     'address'?: string;
+    /**
+     * Full tunnel address including domain
+     * @type {string}
+     * @memberof Tunnel
+     */
+    'full_address'?: string;
     /**
      * Namespace\'s tenant ID
      * @type {string}
@@ -8159,6 +8196,7 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
          * @param {string} uid Device\&#39;s UID
          * @param {CreateTunnelRequest} createTunnelRequest 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         createTunnel: async (uid: string, createTunnelRequest: CreateTunnelRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -8292,6 +8330,7 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
          * @param {string} uid Device\&#39;s UID
          * @param {string} address Tunnel\&#39;s address
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         deleteTunnel: async (uid: string, address: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -8483,6 +8522,7 @@ export const DevicesApiAxiosParamCreator = function (configuration?: Configurati
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         listTunnels: async (uid: string, page?: number, perPage?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -8813,6 +8853,7 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          * @param {string} uid Device\&#39;s UID
          * @param {CreateTunnelRequest} createTunnelRequest 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tunnel>> {
@@ -8848,6 +8889,7 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          * @param {string} uid Device\&#39;s UID
          * @param {string} address Tunnel\&#39;s address
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async deleteTunnel(uid: string, address: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
@@ -8898,6 +8940,7 @@ export const DevicesApiFp = function(configuration?: Configuration) {
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async listTunnels(uid: string, page?: number, perPage?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
@@ -9022,6 +9065,7 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          * @param {string} uid Device\&#39;s UID
          * @param {CreateTunnelRequest} createTunnelRequest 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: any): AxiosPromise<Tunnel> {
@@ -9054,6 +9098,7 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          * @param {string} uid Device\&#39;s UID
          * @param {string} address Tunnel\&#39;s address
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         deleteTunnel(uid: string, address: string, options?: any): AxiosPromise<void> {
@@ -9100,6 +9145,7 @@ export const DevicesApiFactory = function (configuration?: Configuration, basePa
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         listTunnels(uid: string, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Tunnel>> {
@@ -9226,6 +9272,7 @@ export class DevicesApi extends BaseAPI {
      * @param {string} uid Device\&#39;s UID
      * @param {CreateTunnelRequest} createTunnelRequest 
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof DevicesApi
      */
@@ -9264,6 +9311,7 @@ export class DevicesApi extends BaseAPI {
      * @param {string} uid Device\&#39;s UID
      * @param {string} address Tunnel\&#39;s address
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof DevicesApi
      */
@@ -9318,6 +9366,7 @@ export class DevicesApi extends BaseAPI {
      * @param {number} [page] Page number
      * @param {number} [perPage] Items per page
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof DevicesApi
      */
@@ -16051,6 +16100,7 @@ export const TunnelsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {string} uid Device\&#39;s UID
          * @param {CreateTunnelRequest} createTunnelRequest 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         createTunnel: async (uid: string, createTunnelRequest: CreateTunnelRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -16098,6 +16148,7 @@ export const TunnelsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {string} uid Device\&#39;s UID
          * @param {string} address Tunnel\&#39;s address
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         deleteTunnel: async (uid: string, address: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -16144,6 +16195,7 @@ export const TunnelsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         listTunnels: async (uid: string, page?: number, perPage?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
@@ -16204,6 +16256,7 @@ export const TunnelsApiFp = function(configuration?: Configuration) {
          * @param {string} uid Device\&#39;s UID
          * @param {CreateTunnelRequest} createTunnelRequest 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tunnel>> {
@@ -16216,6 +16269,7 @@ export const TunnelsApiFp = function(configuration?: Configuration) {
          * @param {string} uid Device\&#39;s UID
          * @param {string} address Tunnel\&#39;s address
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async deleteTunnel(uid: string, address: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
@@ -16229,6 +16283,7 @@ export const TunnelsApiFp = function(configuration?: Configuration) {
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         async listTunnels(uid: string, page?: number, perPage?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
@@ -16251,6 +16306,7 @@ export const TunnelsApiFactory = function (configuration?: Configuration, basePa
          * @param {string} uid Device\&#39;s UID
          * @param {CreateTunnelRequest} createTunnelRequest 
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         createTunnel(uid: string, createTunnelRequest: CreateTunnelRequest, options?: any): AxiosPromise<Tunnel> {
@@ -16262,6 +16318,7 @@ export const TunnelsApiFactory = function (configuration?: Configuration, basePa
          * @param {string} uid Device\&#39;s UID
          * @param {string} address Tunnel\&#39;s address
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         deleteTunnel(uid: string, address: string, options?: any): AxiosPromise<void> {
@@ -16274,6 +16331,7 @@ export const TunnelsApiFactory = function (configuration?: Configuration, basePa
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
+         * @deprecated
          * @throws {RequiredError}
          */
         listTunnels(uid: string, page?: number, perPage?: number, options?: any): AxiosPromise<Array<Tunnel>> {
@@ -16295,6 +16353,7 @@ export class TunnelsApi extends BaseAPI {
      * @param {string} uid Device\&#39;s UID
      * @param {CreateTunnelRequest} createTunnelRequest 
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof TunnelsApi
      */
@@ -16308,6 +16367,7 @@ export class TunnelsApi extends BaseAPI {
      * @param {string} uid Device\&#39;s UID
      * @param {string} address Tunnel\&#39;s address
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof TunnelsApi
      */
@@ -16322,6 +16382,7 @@ export class TunnelsApi extends BaseAPI {
      * @param {number} [page] Page number
      * @param {number} [perPage] Items per page
      * @param {*} [options] Override http request option.
+     * @deprecated
      * @throws {RequiredError}
      * @memberof TunnelsApi
      */
@@ -17985,6 +18046,301 @@ export class UsersApi extends BaseAPI {
      */
     public updateUserPassword(id?: string, updateUserPasswordRequest?: UpdateUserPasswordRequest, options?: AxiosRequestConfig) {
         return UsersApiFp(this.configuration).updateUserPassword(id, updateUserPasswordRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+/**
+ * WebEndpointsApi - axios parameter creator
+ * @export
+ */
+export const WebEndpointsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Creates a new web-endpoint for a device.
+         * @summary Create a web-endpoint
+         * @param {CreateWebEndpointRequest} createWebEndpointRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createWebEndpoint: async (createWebEndpointRequest: CreateWebEndpointRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createWebEndpointRequest' is not null or undefined
+            assertParamExists('createWebEndpoint', 'createWebEndpointRequest', createWebEndpointRequest)
+            const localVarPath = `/api/web-endpoints`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createWebEndpointRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Deletes a web-endpoint by address.
+         * @summary Delete a web-endpoint
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteWebEndpoint: async (address: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'address' is not null or undefined
+            assertParamExists('deleteWebEndpoint', 'address', address)
+            const localVarPath = `/api/web-endpoints/{address}`
+                .replace(`{${"address"}}`, encodeURIComponent(String(address)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * List all web-endpoints in the namespace.
+         * @summary List web-endpoints
+         * @param {string} [filter] Web endpoint\&#39;s filter  Filter field receives a base64 enconded JSON object for limit a search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {'created_at' | 'updated_at' | 'address' | 'uid'} [sortBy] Field to sort by
+         * @param {'asc' | 'desc'} [orderBy] Sort order (asc or desc)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listWebEndpoints: async (filter?: string, page?: number, perPage?: number, sortBy?: 'created_at' | 'updated_at' | 'address' | 'uid', orderBy?: 'asc' | 'desc', options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/web-endpoints`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sort_by'] = sortBy;
+            }
+
+            if (orderBy !== undefined) {
+                localVarQueryParameter['order_by'] = orderBy;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * WebEndpointsApi - functional programming interface
+ * @export
+ */
+export const WebEndpointsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = WebEndpointsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Creates a new web-endpoint for a device.
+         * @summary Create a web-endpoint
+         * @param {CreateWebEndpointRequest} createWebEndpointRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createWebEndpoint(createWebEndpointRequest: CreateWebEndpointRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tunnel>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createWebEndpoint(createWebEndpointRequest, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Deletes a web-endpoint by address.
+         * @summary Delete a web-endpoint
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteWebEndpoint(address: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteWebEndpoint(address, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * List all web-endpoints in the namespace.
+         * @summary List web-endpoints
+         * @param {string} [filter] Web endpoint\&#39;s filter  Filter field receives a base64 enconded JSON object for limit a search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {'created_at' | 'updated_at' | 'address' | 'uid'} [sortBy] Field to sort by
+         * @param {'asc' | 'desc'} [orderBy] Sort order (asc or desc)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listWebEndpoints(filter?: string, page?: number, perPage?: number, sortBy?: 'created_at' | 'updated_at' | 'address' | 'uid', orderBy?: 'asc' | 'desc', options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tunnel>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listWebEndpoints(filter, page, perPage, sortBy, orderBy, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * WebEndpointsApi - factory interface
+ * @export
+ */
+export const WebEndpointsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = WebEndpointsApiFp(configuration)
+    return {
+        /**
+         * Creates a new web-endpoint for a device.
+         * @summary Create a web-endpoint
+         * @param {CreateWebEndpointRequest} createWebEndpointRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createWebEndpoint(createWebEndpointRequest: CreateWebEndpointRequest, options?: any): AxiosPromise<Tunnel> {
+            return localVarFp.createWebEndpoint(createWebEndpointRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Deletes a web-endpoint by address.
+         * @summary Delete a web-endpoint
+         * @param {string} address Tunnel\&#39;s address
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteWebEndpoint(address: string, options?: any): AxiosPromise<void> {
+            return localVarFp.deleteWebEndpoint(address, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * List all web-endpoints in the namespace.
+         * @summary List web-endpoints
+         * @param {string} [filter] Web endpoint\&#39;s filter  Filter field receives a base64 enconded JSON object for limit a search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {'created_at' | 'updated_at' | 'address' | 'uid'} [sortBy] Field to sort by
+         * @param {'asc' | 'desc'} [orderBy] Sort order (asc or desc)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listWebEndpoints(filter?: string, page?: number, perPage?: number, sortBy?: 'created_at' | 'updated_at' | 'address' | 'uid', orderBy?: 'asc' | 'desc', options?: any): AxiosPromise<Array<Tunnel>> {
+            return localVarFp.listWebEndpoints(filter, page, perPage, sortBy, orderBy, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * WebEndpointsApi - object-oriented interface
+ * @export
+ * @class WebEndpointsApi
+ * @extends {BaseAPI}
+ */
+export class WebEndpointsApi extends BaseAPI {
+    /**
+     * Creates a new web-endpoint for a device.
+     * @summary Create a web-endpoint
+     * @param {CreateWebEndpointRequest} createWebEndpointRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WebEndpointsApi
+     */
+    public createWebEndpoint(createWebEndpointRequest: CreateWebEndpointRequest, options?: AxiosRequestConfig) {
+        return WebEndpointsApiFp(this.configuration).createWebEndpoint(createWebEndpointRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Deletes a web-endpoint by address.
+     * @summary Delete a web-endpoint
+     * @param {string} address Tunnel\&#39;s address
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WebEndpointsApi
+     */
+    public deleteWebEndpoint(address: string, options?: AxiosRequestConfig) {
+        return WebEndpointsApiFp(this.configuration).deleteWebEndpoint(address, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * List all web-endpoints in the namespace.
+     * @summary List web-endpoints
+     * @param {string} [filter] Web endpoint\&#39;s filter  Filter field receives a base64 enconded JSON object for limit a search. 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {'created_at' | 'updated_at' | 'address' | 'uid'} [sortBy] Field to sort by
+     * @param {'asc' | 'desc'} [orderBy] Sort order (asc or desc)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WebEndpointsApi
+     */
+    public listWebEndpoints(filter?: string, page?: number, perPage?: number, sortBy?: 'created_at' | 'updated_at' | 'address' | 'uid', orderBy?: 'asc' | 'desc', options?: AxiosRequestConfig) {
+        return WebEndpointsApiFp(this.configuration).listWebEndpoints(filter, page, perPage, sortBy, orderBy, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

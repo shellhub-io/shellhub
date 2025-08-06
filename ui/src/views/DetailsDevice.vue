@@ -34,11 +34,21 @@
               data-test="device-rename-component"
             />
 
-            <TunnelCreate
-              v-if="envVariables.hasTunnels && envVariables.isEnterprise"
-              :uid="device.uid"
-              @update="getTunnels"
-            />
+            <div v-if="envVariables.hasWebEndpoints && envVariables.isEnterprise">
+              <v-list-item
+                v-bind="$attrs"
+                @click="showWebEndpointCreate = true"
+                data-test="tunnel-create-dialog-btn"
+                :disabled="!hasAuthorizationCreateWebEndpoint"
+              >
+                <div class="d-flex align-center">
+                  <div class="mr-2" data-test="create-icon">
+                    <v-icon>mdi-web-plus</v-icon>
+                  </div>
+                  <v-list-item-title> Create Web Endpoint </v-list-item-title>
+                </div>
+              </v-list-item>
+            </div>
 
             <TagFormUpdate
               :device-uid="device.uid"
@@ -122,37 +132,39 @@
           <p>{{ formatFullDateTime(device.last_seen) }}</p>
         </div>
       </div>
-      <div v-if="envVariables.hasTunnels && envVariables.isEnterprise">
-        <div class="text-overline mt-3" data-test="tunnel-list">Tunnel List:</div>
-        <TunnelList :deviceUid />
-      </div>
 
     </v-card-text>
   </v-card>
   <v-card class="mt-2 pa-4 bg-v-theme-surface" v-else>
     <p class="text-center">Something is wrong, try again !</p>
   </v-card>
+
+  <WebEndpointCreate
+    v-model="showWebEndpointCreate"
+    :uid="device.uid"
+    :useDevicesList="false"
+    @update="getWebEndpoints"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "../store";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
-import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
-import TunnelList from "../components/Tunnels/TunnelList.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
 import DeviceRename from "../components/Devices/DeviceRename.vue";
 import TerminalConnectButton from "../components/Terminal/TerminalConnectButton.vue";
 import { formatFullDateTime } from "@/utils/date";
+import hasPermission from "@/utils/permission";
+import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
-import TunnelCreate from "@/components/Tunnels/TunnelCreate.vue";
 import useSnackbar from "@/helpers/snackbar";
+import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
 
 type DeviceResolver = "uid" | "hostname";
 
@@ -163,6 +175,7 @@ const { identifier } = route.params;
 const resolver = route.query.resolver as DeviceResolver || "uid";
 const device = computed(() => store.getters["devices/get"]);
 const deviceUid = computed(() => device.value.uid);
+const showWebEndpointCreate = ref(false);
 
 const sshidAddress = (item) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
@@ -180,7 +193,12 @@ const deviceIsEmpty = computed(
         && Object.keys(store.getters["devices/get"]).length === 0,
 );
 
-const getTunnels = async () => {
+const hasAuthorizationCreateWebEndpoint = () => {
+  const role = store.getters["auth/role"];
+  return role !== "" && hasPermission(authorizer.role[role], actions.tunnel.create);
+};
+
+const getWebEndpoints = async () => {
   await store.dispatch("tunnels/get", deviceUid.value);
 };
 

@@ -1,4 +1,4 @@
-export interface ITunnel {
+export interface IWebEndpoints {
   address: string,
   full_address: string,
   expires_in: string,
@@ -7,14 +7,13 @@ export interface ITunnel {
   port: number
 }
 
-export interface ITunnelCreate {
+export interface IWebEndpointsCreate {
   uid: string,
   host: string,
   port: number,
   ttl: number
 }
 
-export interface ITunnelDelete {
-  uid: string,
+export interface IWebEndpointsDelete {
   address: string,
 }

@@ -193,6 +193,7 @@ onMounted(() => {
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
 const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
+const hideWebEndpoints = computed(() => !envVariables.hasWebEndpoints);
 const namespacedInstance = computed(() => localStorage.getItem("tenant") !== "");
 
 const items = reactive([
@@ -210,6 +211,12 @@ const items = reactive([
     icon: "mdi-docker",
     title: "Containers",
     path: "/containers",
+  },
+  {
+    icon: "mdi-web",
+    title: "Web Endpoints",
+    path: "/webendpoints",
+    hidden: hideWebEndpoints.value,
   },
   {
     icon: "mdi-server",

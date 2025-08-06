@@ -69,7 +69,7 @@ const mfaApi = new axiosTs.MfaApi(
   undefined,
   newAxiosInstance(),
 );
-const tunnelApi = new axiosTs.TunnelsApi(
+const webEndpointsApi = new axiosTs.WebEndpointsApi(
   configuration,
   undefined,
   newAxiosInstance(),
@@ -132,7 +132,7 @@ const reloadConfiguration = () => {
     tagsApi,
     usersApi,
     mfaApi,
-    tunnelApi,
+    webEndpointsApi,
     billingApi,
     rulesApi,
   ].forEach((api) => {
@@ -153,7 +153,7 @@ export {
   tagsApi,
   usersApi,
   mfaApi,
-  tunnelApi,
+  webEndpointsApi,
   billingApi,
   rulesApi,
   announcementApi,

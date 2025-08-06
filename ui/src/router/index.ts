@@ -57,6 +57,7 @@ const ContainerList = () => import("@/components/Containers/ContainerList.vue");
 const ContainerPendingList = () => import("@/components/Containers/ContainerPendingList.vue");
 const ContainerRejectedList = () => import("@/components/Containers/ContainerRejectedList.vue");
 const Connectors = () => import("@/views/Connectors.vue");
+const WebEndpoints = () => import("@/views/WebEndpoints.vue");
 const ConnectorDetails = () => import("@/views/ConnectorDetails.vue");
 const DeviceDetails = () => import("@/views/DetailsDevice.vue");
 const Sessions = () => import("@/views/Sessions.vue");
@@ -292,6 +293,21 @@ export const routes: Array<RouteRecordRaw> = [
         component: ContainerRejectedList,
       },
     ],
+  },
+  {
+    path: "/webendpoints",
+    name: "WebEndpoints",
+    component: WebEndpoints,
+    beforeEnter: async (to, from, next) => {
+      await store.dispatch("webEndpoints/get", {
+        page: store.getters["webEndpoints/getPage"],
+        perPage: store.getters["webEndpoints/getPerPage"],
+        filter: store.getters["webEndpoints/getFilter"],
+        sortBy: store.getters["webEndpoints/getSortBy"],
+        orderBy: store.getters["webEndpoints/getOrderBy"],
+      });
+      next();
+    },
   },
   {
     path: "/connectors",

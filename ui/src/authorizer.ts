@@ -26,10 +26,10 @@ const {
   deviceRename,
   deviceChooser,
   deviceDetails,
-  // Tunnel
-  tunnelCreate,
-  tunnelDelete,
-  //Connector,
+  // Web Endpoint
+  webEndpointCreate,
+  webEndpointDelete,
+  // Connector,
   connectorAdd,
   connectorEdit,
   connectorRemove,
@@ -80,9 +80,9 @@ export const actions: { [key: string]: any } = {
     chooser: deviceChooser,
     details: deviceDetails,
   },
-  tunnel: {
-    create: tunnelCreate,
-    delete: tunnelDelete,
+  webEndpoint: {
+    create: webEndpointCreate,
+    delete: webEndpointDelete,
   },
   connector: {
    add: connectorAdd,
@@ -146,9 +146,9 @@ export const authorizer : { [key: string]: any } = {
       actions.device.rename,
       actions.device.chooser,
       actions.device.details,
-      // Tunnel
-      actions.tunnel.create,
-      actions.tunnel.delete,
+      // Web Endpoint
+      actions.webEndpoint.create,
+      actions.webEndpoint.delete,
       // Connectors
       actions.connector.add,
       actions.connector.remove,
@@ -196,9 +196,9 @@ export const authorizer : { [key: string]: any } = {
       actions.device.connect,
       actions.device.rename,
       actions.device.details,
-      // Tunnel
-      actions.tunnel.create,
-      actions.tunnel.delete,
+      // Web Endpoint
+      actions.webEndpoint.create,
+      actions.webEndpoint.delete,
       // Connectors
       actions.connector.add,
       actions.connector.remove,

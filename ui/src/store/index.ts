@@ -18,7 +18,7 @@ import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { devices, DevicesState } from "./modules/devices";
 import { container, ContainerState } from "./modules/container";
 import { namespaces, NamespacesState } from "./modules/namespaces";
-import { tunnels, TunnelsState } from "./modules/tunnels";
+import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 import { billing } from "./modules/billing";
 import { customer, CustomerState } from "./modules/customer";
 import { announcement, AnnouncementState } from "./modules/announcement";
@@ -36,7 +36,7 @@ export interface State {
   firewallRules: FirewallRulesState;
   layout: LayoutState;
   namespaces: NamespacesState;
-  tunnels: TunnelsState;
+  webEndpoints: WebEndpointsState;
   notifications: NotificationsState;
   privateKey: PrivateKeyState;
   publicKeys: PublicKeysState;
@@ -64,7 +64,7 @@ export const store = createStore<State>({
     firewallRules,
     layout,
     namespaces,
-    tunnels,
+    webEndpoints,
     notifications,
     privateKey,
     publicKeys,
