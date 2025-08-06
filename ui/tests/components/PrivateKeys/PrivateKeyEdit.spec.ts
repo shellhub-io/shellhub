@@ -120,7 +120,7 @@ describe("Private Key Edit", () => {
   });
 
   it("Checks if the private key data is valid", () => {
-    wrapper.vm.setPrivateKey();
+    wrapper.vm.initializeFormData();
     const privateKeyData = wrapper.vm.keyLocal;
     expect(privateKeyData).toBeDefined();
   });
@@ -138,7 +138,7 @@ describe("Private Key Edit", () => {
 
   it("Checks if the edit function updates the store on success", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
-    wrapper.vm.setPrivateKey();
+    wrapper.vm.initializeFormData();
     const privateKeyPayload = {
       name: wrapper.vm.name,
       data: wrapper.vm.keyLocal,
@@ -152,7 +152,7 @@ describe("Private Key Edit", () => {
   });
 
   it("Checks if the edit function handles error on failure", async () => {
-    wrapper.vm.setPrivateKey();
+    wrapper.vm.initializeFormData();
     await wrapper.vm.edit();
     await flushPromises();
     expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update private key.");

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-list-item @click="showDialog = true" data-test="privatekey-edit-btn">
+    <v-list-item @click="open" data-test="privatekey-edit-btn">
       <div class="d-flex align-center">
         <div data-test="privatekey-icon" class="mr-2">
           <v-icon>mdi-pencil</v-icon>
@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
@@ -132,16 +132,18 @@ const validatePrivateKeyData = () => {
   }
 };
 
-const setPrivateKey = () => {
+const initializeFormData = () => {
+  name.value = privateKey.name ?? "";
   keyLocal.value = privateKey.data ?? "";
+  setKeyLocalError("");
 };
 
-onMounted(() => {
-  setPrivateKey();
-});
+const open = () => {
+  showDialog.value = true;
+  initializeFormData();
+};
 
 const close = () => {
-  setPrivateKey();
   resetPassphrase();
   hasPassphrase.value = privateKey.hasPassphrase;
   showDialog.value = false;
@@ -203,6 +205,5 @@ const edit = async () => {
     handleEditError(error as Error);
   }
 };
-
-defineExpose({ keyLocal, name, hasPassphrase, update, edit, handleError, setPrivateKey });
+defineExpose({ keyLocal, name, hasPassphrase, update, edit, handleError, initializeFormData });
 </script>
