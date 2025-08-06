@@ -6,8 +6,8 @@
     density="comfortable"
     size="default"
     icon="mdi-delete"
-    :disabled="!hasAuthorizationDeleteTunnel"
-    data-test="tunnel-delete-dialog-btn"
+    :disabled="!hasAuthorizationDeleteWebEndpoint"
+    data-test="web-endpoint-delete-dialog-btn"
   />
   <BaseDialog v-model="showDialog">
     <v-card class="bg-v-theme-surface">
@@ -18,7 +18,7 @@
 
       <v-card-text class="mt-4 mb-0 pb-1" data-test="text">
         <p class="text-body-2 mb-2">
-          You are about to remove this tunnel from the device.
+          You are about to remove this Web Endpoint.
         </p>
       </v-card-text>
 
@@ -28,7 +28,7 @@
         <v-btn variant="text" @click="showDialog = false" data-test="close-btn"> Close </v-btn>
 
         <v-btn color="red darken-1" variant="text" @click="remove()" data-test="delete-btn">
-          Delete Tunnel
+          Delete Web Endpoint
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -47,10 +47,12 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps<{
-  uid: string;
-  address: string;
-}>();
+const props = defineProps({
+  address: {
+    type: String,
+    required: true,
+  },
+});
 
 const emit = defineEmits(["update"]);
 const showDialog = defineModel({ default: false });
@@ -62,21 +64,26 @@ const update = () => {
   showDialog.value = false;
 };
 
-const hasAuthorizationDeleteTunnel = () => {
+const hasAuthorizationDeleteWebEndpoint = () => {
   const role = store.getters["auth/role"];
-  return !!role && hasPermission(authorizer.role[role], actions.tunnel.delete);
+  if (role !== "") {
+    return hasPermission(
+      authorizer.role[role],
+      actions.webendpoint.delete,
+    );
+  }
+  return false;
 };
 
 const remove = async () => {
   try {
-    await store.dispatch("tunnels/delete", {
-      uid: props.uid,
+    await store.dispatch("webEndpoints/delete", {
       address: props.address,
     });
     update();
-    snackbar.showSuccess("Tunnel deleted successfully.");
+    snackbar.showSuccess("Web Endpoint deleted successfully.");
   } catch (error: unknown) {
-    snackbar.showError("Failed to delete tunnel.");
+    snackbar.showError("Failed to delete Web Endpoint.");
     handleError(error);
   }
 };

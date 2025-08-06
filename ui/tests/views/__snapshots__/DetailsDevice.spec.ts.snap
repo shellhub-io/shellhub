@@ -83,7 +83,6 @@ exports[`Details Device > Renders the component 1`] = `
         <p></p>
       </div>
     </div>
-    <!--v-if-->
   </div>
   <!---->
   <!----><span class="v-card__underlay"></span>
@@ -173,7 +172,6 @@ exports[`Details Device > Renders the component when device has no last seen dat
         <p></p>
       </div>
     </div>
-    <!--v-if-->
   </div>
   <!---->
   <!----><span class="v-card__underlay"></span>
@@ -263,7 +261,6 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
         <p></p>
       </div>
     </div>
-    <!--v-if-->
   </div>
   <!---->
   <!----><span class="v-card__underlay"></span>
@@ -353,7 +350,6 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
         <p></p>
       </div>
     </div>
-    <!--v-if-->
   </div>
   <!---->
   <!----><span class="v-card__underlay"></span>
@@ -427,7 +423,6 @@ exports[`Details Device > Renders the component when device status is not accept
         <p></p>
       </div>
     </div>
-    <!--v-if-->
   </div>
   <!---->
   <!----><span class="v-card__underlay"></span>

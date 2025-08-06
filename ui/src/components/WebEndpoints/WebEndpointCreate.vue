@@ -1,22 +1,8 @@
 <template>
-  <v-list-item
-    v-bind="$attrs"
-    @click="showDialog = true"
-    :disabled="!hasAuthorizationCreateTunnel"
-    data-test="tunnel-create-dialog-btn"
-  >
-    <div class="d-flex align-center">
-      <div class="mr-2" data-test="create-icon">
-        <v-icon>mdi-web-plus</v-icon>
-      </div>
-      <v-list-item-title> Create Tunnel </v-list-item-title>
-    </div>
-  </v-list-item>
-
-  <BaseDialog v-model="showDialog" @click:outside="close()">
+  <BaseDialog v-model="dialog" max-width="450" @click:outside="close()">
     <v-card data-test="tunnel-create-dialog" class="bg-v-theme-surface">
       <v-card-title class="bg-primary" data-test="create-dialog-title">
-        Create Device Tunnel
+        Create Device Web Endpoint
       </v-card-title>
       <v-container>
         <v-alert
@@ -51,6 +37,52 @@
               />
             </v-col>
           </v-row>
+
+          <v-row class="mt-1" v-if="props.useDevicesList">
+            <v-col>
+              <v-autocomplete
+                v-model="selectedDevice"
+                :items="deviceOptions"
+                :loading="loadingDevices"
+                item-title="info.pretty_name"
+                item-value="uid"
+                label="Select Device"
+                variant="outlined"
+                return-object
+                hide-details
+                @click:control="() => fetchDevices()"
+                @update:search="fetchDevices"
+                data-test="web-endpoint-autocomplete"
+              >
+                <template #item="{ item, props }">
+                  <v-list-item
+                    v-bind="props"
+                  >
+                    <div>
+                      <DeviceIcon
+                        :icon="item.raw.info.id"
+                        class="mr-2"
+                      />
+                      <span class="text-body-1">{{ item.raw.name }}</span>
+                    </div>
+
+                  </v-list-item>
+                </template>
+
+                <template #selection="{ item }">
+                  <div class="d-flex align-center">
+                    <DeviceIcon
+                      :icon="item.raw.info.id"
+                      class="mr-2"
+                    />
+                    <span class="text-body-1">{{ item.raw.name }}</span>
+                  </div>
+                </template>
+              </v-autocomplete>
+
+            </v-col>
+          </v-row>
+
           <v-row>
             <v-col>
               <v-select
@@ -81,8 +113,8 @@
       <v-card-actions>
         <v-spacer />
         <v-btn data-test="close-btn" @click="close()"> Close </v-btn>
-        <v-btn :disabled="hasErrors()" color="primary" data-test="create-tunnel-btn" @click="addTunnel()">
-          Create Tunnel
+        <v-btn :disabled="hasErrors" color="primary" data-test="create-tunnel-btn" @click="addWebEndpoint()">
+          Create Web Endpoint
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -94,19 +126,39 @@ import { ref, computed } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
+import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 
-const props = defineProps<{ uid: string }>();
+interface DeviceOption {
+  uid: string;
+  name: string;
+  info: {
+    id: string;
+    pretty_name: string;
+  };
+  [key: string]: unknown;
+}
+
+const props = defineProps({
+  uid: { type: String, required: false, default: "" },
+  useDevicesList: {
+    type: Boolean,
+    required: true,
+  },
+});
+
 const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
-const showDialog = ref(false);
+const dialog = defineModel({ default: false });
 const alertText = ref();
+
+const selectedDevice = ref<DeviceOption | null>(null);
+const deviceOptions = ref<DeviceOption[]>([]);
+const loadingDevices = ref(false);
 
 const predefinedTimeouts = ref([
   { value: -1, text: "Unlimited Timeout" },
@@ -152,33 +204,79 @@ const { value: customTimeout, errorMessage: customTimeoutError, resetField: rese
 const selectedTimeout = ref<number | "custom">(-1);
 const timeout = computed(() => (selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value));
 
-const hasAuthorizationCreateTunnel = () => {
-  const role = store.getters["auth/role"];
-  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
-};
+const hasErrors = computed(() => {
+  const formInvalid = !!portError.value
+    || !!hostError.value
+    || !!customTimeoutError.value
+    || !port.value
+    || !host.value
+    || !timeout.value;
 
-const hasErrors = () => !!(portError.value || hostError.value || customTimeoutError.value || !port.value || !host.value || !timeout.value);
+  if (props.useDevicesList) {
+    return formInvalid || !selectedDevice.value;
+  }
+
+  return formInvalid;
+});
 
 const resetFields = () => { resetPort(); resetHost(); selectedTimeout.value = -1; resetCustomTimeout(); };
-const close = () => { resetFields(); showDialog.value = false; };
+const close = () => { resetFields(); dialog.value = false; };
 const update = () => { emit("update"); close(); };
 
-const addTunnel = async () => {
-  if (!hasErrors()) {
-    try {
-      await store.dispatch("tunnels/create", { uid: props.uid, host: host.value, port: port.value, ttl: timeout.value });
-      snackbar.showSuccess("Tunnel created successfully.");
-      update();
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        if ((error as AxiosError).response?.status === 403) {
-          alertText.value = "This device has reached the maximum allowed number of tunnels";
-        } else {
-          snackbar.showError("Failed to create tunnel.");
-          handleError(error);
-        }
+const fetchDevices = async (val?: string) => {
+  if (!val && deviceOptions.value.length > 0) return;
+
+  loadingDevices.value = true;
+
+  const filter = val
+    ? btoa(JSON.stringify([
+      { type: "property", params: { name: "name", operator: "contains", value: val } },
+    ]))
+    : "";
+
+  try {
+    await store.dispatch("devices/search", {
+      page: 1,
+      perPage: 10,
+      filter,
+      status: "accepted",
+    });
+
+    deviceOptions.value = store.getters["devices/list"];
+  } catch {
+    snackbar.showError("Failed to load devices.");
+  } finally {
+    loadingDevices.value = false;
+  }
+};
+
+const addWebEndpoint = async () => {
+  if (hasErrors.value) return;
+
+  const deviceUid = props.useDevicesList
+    ? selectedDevice.value?.uid
+    : props.uid;
+
+  try {
+    await store.dispatch("webEndpoints/create", {
+      uid: deviceUid,
+      host: host.value,
+      port: port.value,
+      ttl: timeout.value,
+    });
+
+    snackbar.showSuccess("Web Endpoint created successfully.");
+    update();
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if ((error as AxiosError).response?.status === 403) {
+        alertText.value = "This device has reached the maximum allowed number of Web Endpoints";
+      } else {
+        snackbar.showError("Failed to create Web Endpoint.");
+        handleError(error);
       }
     }
   }
 };
+
 </script>
