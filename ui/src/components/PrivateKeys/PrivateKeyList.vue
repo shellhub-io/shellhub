@@ -17,7 +17,7 @@
           {{ privateKey.name }}
         </td>
         <td class="text-center" data-test="privateKey-fingerprint">
-          {{ convertToFingerprint(privateKey.data) }}
+          {{ getKeyFingerprint(privateKey) }}
         </td>
         <td class="text-center">
           <v-menu
@@ -60,10 +60,11 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useStore } from "@/store";
-import { convertToFingerprint } from "@/utils/validate";
 import PrivateKeyDelete from "./PrivateKeyDelete.vue";
 import PrivateKeyEdit from "./PrivateKeyEdit.vue";
 import handleError from "@/utils/handleError";
+import { IPrivateKey } from "@/interfaces/IPrivateKey";
+import { convertToFingerprint } from "@/utils/validate";
 
 const store = useStore();
 const headers = [
@@ -94,6 +95,15 @@ const getPrivateKeys = async () => {
   } catch (error: unknown) {
     handleError(error);
   }
+};
+
+const getKeyFingerprint = (privateKey: IPrivateKey) => {
+  if (privateKey.fingerprint) {
+    return privateKey.fingerprint;
+  }
+
+  const fingerprint = convertToFingerprint(privateKey.data);
+  return fingerprint || "Fingerprint not available";
 };
 
 onMounted(() => {

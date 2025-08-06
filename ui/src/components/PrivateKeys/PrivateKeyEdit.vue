@@ -33,12 +33,24 @@
               label="Private key data"
               required
               messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-              :error-messages="keyLocalDataError"
-              :update:modelValue="validatePrivateKeyData"
-              @change="validatePrivateKeyData"
+              :error-messages="keyLocalError"
+              @update:model-value="validatePrivateKeyData"
               variant="underlined"
               data-test="private-key-field"
               rows="5"
+            />
+
+            <v-text-field
+              v-if="hasPassphrase"
+              v-model="passphrase"
+              :error-messages="passphraseError"
+              label="Passphrase"
+              class="mt-4"
+              hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
+              persistent-hint
+              placeholder="Enter passphrase for encrypted key"
+              variant="underlined"
+              data-test="passphrase-field"
             />
           </v-card-text>
 
@@ -47,7 +59,12 @@
             <v-btn @click="close" data-test="pk-edit-cancel-btn">
               Cancel
             </v-btn>
-            <v-btn color="primary" type="submit" data-test="pk-edit-save-btn" :disabled="!!keyLocalDataError || !!nameError">
+            <v-btn
+              color="primary"
+              type="submit"
+              data-test="pk-edit-save-btn"
+              :disabled="!!keyLocalError || !!nameError || (hasPassphrase && !!passphraseError)"
+            >
               Save
             </v-btn>
           </v-card-actions>
@@ -63,7 +80,7 @@ import { ref, onMounted } from "vue";
 import * as yup from "yup";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
-import { parsePrivateKeySsh } from "@/utils/validate";
+import { createKeyFingerprint, parsePrivateKeySsh, validateKey } from "@/utils/validate";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
@@ -74,36 +91,44 @@ const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const store = useStore();
 const snackbar = useSnackbar();
+const hasPassphrase = ref(privateKey.hasPassphrase || false);
 const {
   value: keyLocal,
-  errorMessage: keyLocalDataError,
-  setErrors: setKeyLocalDataError,
-} = useField<string>("privateKey", yup.string().required(), {
+  errorMessage: keyLocalError,
+  setErrors: setKeyLocalError,
+} = useField<string>("keyLocal", yup.string().required(), {
   initialValue: privateKey.data,
 });
 
 const {
   value: name,
   errorMessage: nameError,
-} = useField<string>("name", yup.string().required(), {
-  initialValue: privateKey.name ?? "", // Ensure name is a string
+  setErrors: setNameError,
+} = useField<string>("name", yup.string().required("Name is required"), {
+  initialValue: privateKey.name ?? "",
 });
 
-const isValid = ref(true);
+const {
+  value: passphrase,
+  errorMessage: passphraseError,
+  setErrors: setPassphraseError,
+  resetField: resetPassphrase,
+} = useField<string>("passphrase", yup.string().required("Passphrase is required"), {
+  initialValue: "",
+});
 
 const validatePrivateKeyData = () => {
   try {
-    parsePrivateKeySsh(keyLocal.value);
-    isValid.value = true;
-    keyLocalDataError.value = "";
+    parsePrivateKeySsh(keyLocal.value, passphrase.value || undefined);
+    setKeyLocalError("");
+    hasPassphrase.value = false;
   } catch (err: unknown) {
     const typedErr = err as { name: string };
     if (typedErr.name === "KeyEncryptedError") {
-      setKeyLocalDataError("Private key with passphrase is not supported");
-    } else {
-      setKeyLocalDataError("Invalid private key data");
+      hasPassphrase.value = true;
+      return;
     }
-    isValid.value = false;
+    setKeyLocalError("Invalid private key data");
   }
 };
 
@@ -117,7 +142,28 @@ onMounted(() => {
 
 const close = () => {
   setPrivateKey();
+  resetPassphrase();
+  hasPassphrase.value = privateKey.hasPassphrase;
   showDialog.value = false;
+};
+
+const hasValidationError = () => {
+  if (name.value === "") {
+    setNameError("Name is required");
+    return true;
+  }
+
+  if (keyLocal.value === "") {
+    setKeyLocalError("Private key data is required");
+    return true;
+  }
+
+  if (hasPassphrase.value && passphrase.value === "") {
+    setPassphraseError("Passphrase is required");
+    return true;
+  }
+
+  return false;
 };
 
 const update = () => {
@@ -125,21 +171,38 @@ const update = () => {
   close();
 };
 
-const edit = async () => {
-  if (!nameError.value && isValid.value) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const keySend = { name: name.value, data: keyLocal.value };
+const handleEditError = (error: Error) => {
+  if (error.name === "KeyParseError") {
+    setPassphraseError("Passphrase is incorrect or missing.");
+    return;
+  }
 
-    try {
-      await store.dispatch("privateKey/edit", keySend);
-      snackbar.showSuccess("Private key updated successfully.");
-      update();
-    } catch (error: unknown) {
-      snackbar.showError("Failed to update private key.");
-    }
+  if (!validateKey("private", keyLocal.value, passphrase.value || undefined)) {
+    setKeyLocalError("Invalid private key data");
+    return;
+  }
+
+  snackbar.showError("Failed to update private key.");
+};
+
+const edit = async () => {
+  if (hasValidationError()) return;
+
+  try {
+    const fingerprint = createKeyFingerprint(keyLocal.value, passphrase.value);
+    await store.dispatch("privateKey/edit", {
+      id: privateKey.id,
+      name: name.value,
+      data: keyLocal.value,
+      hasPassphrase: hasPassphrase.value,
+      fingerprint,
+    });
+    snackbar.showSuccess("Private key updated successfully.");
+    update();
+  } catch (error) {
+    handleEditError(error as Error);
   }
 };
 
-defineExpose({ keyLocal, isValid, name, update, edit, handleError, setPrivateKey });
+defineExpose({ keyLocal, name, hasPassphrase, update, edit, handleError, setPrivateKey });
 </script>

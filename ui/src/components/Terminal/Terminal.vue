@@ -28,15 +28,16 @@ import {
 // SSH signing utilities
 import {
   parsePrivateKeySsh,
-  createSignatureOfPrivateKey,
-  createSignerPrivateKey,
+  generateSignature,
 } from "@/utils/validate";
+
 import handleError from "@/utils/handleError";
 
 // Props passed to the component
-const { token, privateKey } = defineProps<{
+const { token, privateKey, passphrase } = defineProps<{
   token: string;
   privateKey?: string | null;
+  passphrase?: string;
 }>();
 
 // References and reactive state
@@ -112,11 +113,8 @@ const signWebSocketChallenge = async (
   base64Challenge: Base64URLString,
 ): Promise<Base64URLString> => {
   const challengeBuffer = Buffer.from(base64Challenge, "base64");
-  const parsedKey = parsePrivateKeySsh(key);
-
-  return parsedKey.type === "ed25519"
-    ? createSignerPrivateKey(parsedKey, challengeBuffer)
-    : createSignatureOfPrivateKey(key, challengeBuffer);
+  const parsedKey = parsePrivateKeySsh(key, passphrase);
+  return generateSignature(parsedKey, challengeBuffer);
 };
 
 // Parses and handles JSON-structured WebSocket messages (e.g., challenge-response).

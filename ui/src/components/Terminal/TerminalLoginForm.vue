@@ -15,6 +15,7 @@
     <v-select
       class="mt-2"
       v-model="authenticationMethod"
+      @update:model-value="togglePassphraseField"
       :items="[TerminalAuthMethods.Password, TerminalAuthMethods.PrivateKey]"
       label="Authentication method"
       data-test="auth-method-select"
@@ -22,6 +23,7 @@
 
     <v-select
       v-model="selectedPrivateKeyName"
+      @update:model-value="togglePassphraseField"
       v-if="authenticationMethod === TerminalAuthMethods.PrivateKey"
       :items="privateKeysNames"
       item-text="name"
@@ -44,6 +46,23 @@
       persistent-hint
       persistent-placeholder
       data-test="password-field"
+      :type="showPassword ? 'text' : 'password'"
+      @click:append-inner="showPassword = !showPassword"
+      @keydown.enter.prevent="submitForm"
+    />
+
+    <v-text-field
+      color="primary"
+      v-if="showPassphraseField"
+      :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+      v-model="passphrase"
+      :error-messages="passphraseError"
+      label="Passphrase"
+      required
+      hint="Enter the key's passphrase"
+      persistent-hint
+      persistent-placeholder
+      data-test="passphrase-field"
       :type="showPassword ? 'text' : 'password'"
       @click:append-inner="showPassword = !showPassword"
       @keydown.enter.prevent="submitForm"
@@ -85,6 +104,7 @@ const showPassword = ref(false);
 const privateKeys: Array<IPrivateKey> = useStore().getters["privateKey/list"];
 const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
 const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
+const showPassphraseField = ref(false);
 
 const {
   value: username,
@@ -100,7 +120,25 @@ const {
   initialValue: "",
 });
 
-const getSelectedPrivateKeyData = () => privateKeys.find((item: IPrivateKey) => item.name === selectedPrivateKeyName.value)?.data;
+const {
+  value: passphrase,
+  errorMessage: passphraseError,
+  resetField: resetPassphraseField,
+} = useField<string>("passphrase", yup.string().required(), {
+  initialValue: "",
+});
+
+const getSelectedPrivateKey = () => privateKeys.find((item: IPrivateKey) => item.name === selectedPrivateKeyName.value);
+
+const togglePassphraseField = () => {
+  if (authenticationMethod.value === TerminalAuthMethods.PrivateKey) {
+    const hasPassphrase = getSelectedPrivateKey()?.hasPassphrase || false;
+    showPassphraseField.value = hasPassphrase;
+  } else showPassphraseField.value = false;
+
+  showPassword.value = false;
+  resetPassphraseField();
+};
 
 const submitForm = () => {
   if (usernameError.value || passwordError.value) {
@@ -110,17 +148,18 @@ const submitForm = () => {
     return;
   }
 
-  const privateKey = authenticationMethod.value === TerminalAuthMethods.PrivateKey ? getSelectedPrivateKeyData() : undefined;
+  const privateKey = authenticationMethod.value === TerminalAuthMethods.PrivateKey ? getSelectedPrivateKey()?.data : undefined;
 
   const formData: LoginFormData = {
     username: username.value,
     password: password.value,
     authenticationMethod: authenticationMethod.value,
     privateKey,
+    passphrase: showPassphraseField.value ? passphrase.value : undefined,
   };
 
   emit("submit", formData);
 };
 
-defineExpose({ authenticationMethod });
+defineExpose({ authenticationMethod, togglePassphraseField });
 </script>

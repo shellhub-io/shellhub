@@ -2,6 +2,7 @@ export interface IConnectToTerminal {
   username: string;
   password?: string;
   privateKey?: string;
+  passphrase?: string;
   signature?: string;
   fingerprint?: string;
 }
@@ -16,6 +17,7 @@ export interface LoginFormData {
   password: string;
   authenticationMethod: TerminalAuthMethods;
   privateKey?: string;
+  passphrase?: string;
 }
 
 export interface WebTermDimensions {

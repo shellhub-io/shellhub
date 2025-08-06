@@ -31,11 +31,23 @@
             required
             messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
             :error-messages="privateKeyDataError"
-            :update:modelValue="validatePrivateKeyData"
-            @change="validatePrivateKeyData"
+            @update:model-value="validatePrivateKeyData"
             variant="underlined"
             data-test="private-key-field"
             rows="5"
+          />
+
+          <v-text-field
+            v-if="hasPassphrase"
+            v-model="passphrase"
+            :error-messages="passphraseError"
+            label="Passphrase"
+            class="mt-4"
+            hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
+            persistent-hint
+            placeholder="Enter passphrase for encrypted key"
+            variant="underlined"
+            data-test="passphrase-field"
           />
         </v-card-text>
         <v-card-actions>
@@ -50,7 +62,7 @@
             color="primary"
             type="submit"
             data-test="private-key-save-btn"
-            :disabled="!!privateKeyDataError || !!nameError"
+            :disabled="!!privateKeyDataError || !!nameError || (hasPassphrase && !!passphraseError)"
           >
             Save
           </v-btn>
@@ -61,10 +73,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { useStore } from "@/store";
-import { parsePrivateKeySsh, validateKey } from "@/utils/validate";
+import { createKeyFingerprint, parsePrivateKeySsh, validateKey } from "@/utils/validate";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
@@ -73,13 +86,14 @@ const emit = defineEmits(["update"]);
 const store = useStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
+const hasPassphrase = ref(false);
 
 const {
   value: name,
   errorMessage: nameError,
   setErrors: setNameError,
   resetField: resetName,
-} = useField<string>("name", yup.string().required(), {
+} = useField<string>("name", yup.string().required("Name is required"), {
   initialValue: "",
 });
 
@@ -88,11 +102,20 @@ const {
   errorMessage: privateKeyDataError,
   setErrors: setPrivateKeyDataError,
   resetField: resetPrivateKeyData,
-} = useField<string>("privateKeyData", yup.string().required(), {
+} = useField<string>("privateKeyData", yup.string().required("Private key data is required"), {
   initialValue: "",
 });
 
-const hasError = () => {
+const {
+  value: passphrase,
+  errorMessage: passphraseError,
+  setErrors: setPassphraseError,
+  resetField: resetPassphrase,
+} = useField<string>("passphrase", yup.string().required("Passphrase is required"), {
+  initialValue: "",
+});
+
+const hasValidationError = () => {
   if (name.value === "") {
     setNameError("Name is required");
     return true;
@@ -103,8 +126,13 @@ const hasError = () => {
     return true;
   }
 
-  if (!validateKey("private", privateKeyData.value)) {
-    setPrivateKeyDataError("Not is a valid private key");
+  if (hasPassphrase.value && passphrase.value === "") {
+    setPassphraseError("Passphrase is required");
+    return true;
+  }
+
+  if (!validateKey("private", privateKeyData.value, passphrase.value || undefined)) {
+    setPrivateKeyDataError("Invalid private key data");
     return true;
   }
 
@@ -113,22 +141,22 @@ const hasError = () => {
 
 const validatePrivateKeyData = () => {
   try {
-    parsePrivateKeySsh(privateKeyData.value);
-    return true;
-  } catch (err: unknown) {
-    const typedErr = err as {name: string};
-    if (typedErr.name === "KeyEncryptedError") {
-      setPrivateKeyDataError("Private key with passphrase is not supported");
-    } else {
-      setPrivateKeyDataError("Invalid private key data");
+    parsePrivateKeySsh(privateKeyData.value, passphrase.value || undefined);
+  } catch (err) {
+    if ((err as { name: string }).name === "KeyEncryptedError") {
+      hasPassphrase.value = true;
+      return;
     }
-    return false;
+
+    setPrivateKeyDataError("Invalid private key data");
   }
 };
 
 const resetFields = () => {
   resetName();
   resetPrivateKeyData();
+  resetPassphrase();
+  hasPassphrase.value = false;
 };
 
 const close = () => {
@@ -136,38 +164,49 @@ const close = () => {
   showDialog.value = false;
 };
 
-const create = async () => {
-  if (!hasError()) {
-    try {
-      await store.dispatch("privateKey/set", {
-        name: name.value,
-        data: privateKeyData.value,
-      });
-      snackbar.showSuccess("Private key created successfully.");
-      emit("update");
-      close();
-    } catch (error) {
-      const pkError = error as Error;
-      switch (pkError.message) {
-        case "both": {
-          setNameError("Name is already used");
-          setPrivateKeyDataError("Private key data is already used");
-          break;
-        }
-        case "name": {
-          setNameError("Name is already used");
-          break;
-        }
-        case "private_key": {
-          setPrivateKeyDataError("Private key data is already used");
-          break;
-        }
-        default: {
-          snackbar.showError("Failed to create private key.");
-          handleError(error);
-        }
-      }
+const handleCreationError = (error: Error) => {
+  if (error.name === "KeyParseError") {
+    setPassphraseError("Passphrase is incorrect or missing.");
+    return;
+  }
+
+  switch (error.message) {
+    case "both": {
+      setNameError("Name is already used");
+      setPrivateKeyDataError("Private key data is already used");
+      break;
     }
+    case "name": {
+      setNameError("Name is already used");
+      break;
+    }
+    case "private_key": {
+      setPrivateKeyDataError("Private key data is already used");
+      break;
+    }
+    default: {
+      snackbar.showError("Failed to create private key.");
+      handleError(error);
+    }
+  }
+};
+
+const create = async () => {
+  if (hasValidationError()) return;
+
+  try {
+    const fingerprint = createKeyFingerprint(privateKeyData.value, passphrase.value);
+    await store.dispatch("privateKey/set", {
+      name: name.value,
+      data: privateKeyData.value,
+      hasPassphrase: hasPassphrase.value,
+      fingerprint,
+    });
+    snackbar.showSuccess("Private key created successfully.");
+    emit("update");
+    close();
+  } catch (error) {
+    handleCreationError(error as Error);
   }
 };
 
