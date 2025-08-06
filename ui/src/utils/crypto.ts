@@ -1,24 +1,35 @@
 import NodeRSA from "node-rsa";
 import * as sshpk from "sshpk";
 
-const createSignatureOfPrivateKey = (
+const generateRsaKeySignature = (
   privateKeyData,
-  username,
+  challenge,
 ) => {
   const key = new NodeRSA(privateKeyData);
   key.setOptions({ signingScheme: "pkcs1-sha1" });
-  const signature = key.sign(username, "base64");
+  const signature = key.sign(challenge, "base64");
   return signature;
 };
 
-const createKeyFingerprint = (privateKeyData) => {
-  const key = sshpk.parsePrivateKey(privateKeyData);
+const generateSignature = (privateKey, challenge) => {
+  if (privateKey.type === "rsa") {
+    const decryptedPem = privateKey.toString("pem");
+    return generateRsaKeySignature(decryptedPem, challenge);
+  }
+
+  const signer = privateKey.createSign("sha512");
+  signer.update(challenge);
+  return signer.sign().toString();
+};
+
+const createKeyFingerprint = (privateKeyData: string, passphrase?: string) => {
+  const key = sshpk.parsePrivateKey(privateKeyData, "auto", { passphrase });
   const fingerprint = key.fingerprint("md5").toString("hex");
   return fingerprint;
 };
 
-const parsePrivateKey = (privateKey) => {
-  const key = sshpk.parsePrivateKey(privateKey);
+const parsePrivateKey = (privateKey, passphrase) => {
+  const key = sshpk.parsePrivateKey(privateKey, "auto", { passphrase });
   return key;
 };
 
@@ -42,24 +53,18 @@ const validateCertificate = (certificate: string): boolean => {
   }
 };
 
-const convertKeyToFingerprint = (privateKey) => {
-  const fingerprint = sshpk.parsePrivateKey(privateKey).fingerprint("md5");
+const convertKeyToFingerprint = (privateKey, passphrase) => {
+  const fingerprint = sshpk.parsePrivateKey(privateKey, "auto", { passphrase }).fingerprint("md5");
   return fingerprint;
 };
 
-const createSignerAndUpdate = (privateKey, username) => {
-  const signer = privateKey.createSign("sha512");
-  signer.update(username);
-  return signer.sign().toString();
-};
-
 export default {
-  createSignatureOfPrivateKey,
+  generateRsaKeySignature,
   createKeyFingerprint,
   parsePrivateKey,
   parseKey,
   parseCertificate,
   validateCertificate,
   convertKeyToFingerprint,
-  createSignerAndUpdate,
+  generateSignature,
 };

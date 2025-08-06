@@ -14,8 +14,8 @@ describe("Terminal Login Form", async () => {
   const vuetify = createVuetify();
 
   const mockPrivateKeys: Array<IPrivateKey> = [
-    { id: 1, name: "test-key-1", data: "private-key-data-1" },
-    { id: 2, name: "test-key-2", data: "private-key-data-2" },
+    { id: 1, name: "test-key-1", data: "private-key-data-1", hasPassphrase: true, fingerprint: "fingerprint-1" },
+    { id: 2, name: "test-key-2", data: "private-key-data-2", hasPassphrase: false, fingerprint: "fingerprint-2" },
   ];
 
   const store = createStore({
@@ -52,10 +52,12 @@ describe("Terminal Login Form", async () => {
     expect(wrapper.find('[data-test="submit-btn"]').exists()).toBe(true);
 
     wrapper.vm.authenticationMethod = TerminalAuthMethods.PrivateKey;
+    wrapper.vm.togglePassphraseField();
     await nextTick();
 
     expect(wrapper.find('[data-test="password-field"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="private-keys-select"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="passphrase-field"]').exists()).toBe(true);
   });
 
   it("toggles password visibility when eye icon is clicked", async () => {
@@ -97,8 +99,10 @@ describe("Terminal Login Form", async () => {
 
     await wrapper.find('[data-test="username-field"] input').setValue(username);
     wrapper.vm.authenticationMethod = TerminalAuthMethods.PrivateKey;
+    wrapper.vm.togglePassphraseField();
     await nextTick();
     await wrapper.find('[data-test="private-keys-select"] input').setValue(privateKey.name);
+    await wrapper.find('[data-test="passphrase-field"] input').setValue("testpassphrase");
     await wrapper.find("form").trigger("submit");
     await nextTick();
 
@@ -107,6 +111,7 @@ describe("Terminal Login Form", async () => {
       password,
       authenticationMethod: TerminalAuthMethods.PrivateKey,
       privateKey: privateKey.data,
+      passphrase: "testpassphrase",
     }]);
   });
 

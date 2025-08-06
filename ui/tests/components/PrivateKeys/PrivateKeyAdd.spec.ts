@@ -96,7 +96,7 @@ describe("Setting Private Keys", () => {
     expect(dialog.find('[data-test="private-key-save-btn"]').exists()).toBe(true);
   });
 
-  it("Sets private key data error message", async () => {
+  it("Sets private key name error message", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
 
@@ -106,7 +106,7 @@ describe("Setting Private Keys", () => {
 
     await flushPromises();
 
-    expect(wrapper.vm.nameError).toEqual("this is a required field");
+    expect(wrapper.vm.nameError).toEqual("Name is required");
   });
 
   it("Sets private key data error message", async () => {
@@ -119,6 +119,6 @@ describe("Setting Private Keys", () => {
 
     await flushPromises();
 
-    expect(wrapper.vm.privateKeyDataError).toEqual("this is a required field");
+    expect(wrapper.vm.privateKeyDataError).toEqual("Private key data is required");
   });
 });

@@ -22,6 +22,7 @@
         :key="terminalKey"
         :token="token"
         :privateKey="privateKey ?? null"
+        :passphrase="passphrase"
       />
 
     </v-card>
@@ -42,10 +43,10 @@ import {
 // Components used in this dialog
 import TerminalLoginForm from "./TerminalLoginForm.vue";
 import Terminal from "./Terminal.vue";
+import BaseDialog from "../BaseDialog.vue";
 
 // Utility to create key fingerprint for private key auth
 import { createKeyFingerprint } from "@/utils/validate";
-import BaseDialog from "../BaseDialog.vue";
 
 // Props: Device UID to connect the terminal session to
 const { deviceUid } = defineProps<{
@@ -60,6 +61,7 @@ const showDialog = defineModel<boolean>({ required: true }); // controls visibil
 // Token and private key values for terminal connection
 const token = ref("");
 const privateKey = ref<LoginFormData["privateKey"]>("");
+const passphrase = ref(); // Passphrase for private key if needed
 
 // Connect to terminal via password or key
 const connect = async (params: IConnectToTerminal) => {
@@ -74,8 +76,8 @@ const connect = async (params: IConnectToTerminal) => {
 
 // Handles private key-based connection
 const connectWithPrivateKey = async (params: IConnectToTerminal) => {
-  const { username, privateKey } = params;
-  const fingerprint = await createKeyFingerprint(privateKey);
+  const { username, privateKey, passphrase } = params;
+  const fingerprint = createKeyFingerprint(privateKey, passphrase);
   await connect({ username, fingerprint });
 };
 
@@ -88,6 +90,7 @@ const handleSubmit = async (params: LoginFormData) => {
 
   await connectWithPrivateKey(params);
   privateKey.value = params.privateKey;
+  passphrase.value = params.passphrase || undefined;
   showLoginForm.value = false;
 };
 

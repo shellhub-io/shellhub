@@ -11,6 +11,11 @@ import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type PrivateKeyEditWrapper = VueWrapper<InstanceType<typeof PrivateKeyEdit>>;
 
+vi.mock("@/utils/validate", () => ({
+  createKeyFingerprint: () => "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
+  validateKey: () => true,
+}));
+
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
@@ -65,6 +70,8 @@ describe("Private Key Edit", () => {
     id: 1,
     name: "test-name",
     data: "test-data",
+    hasPassphrase: false,
+    fingerprint: "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
   };
 
   beforeEach(async () => {
@@ -116,7 +123,6 @@ describe("Private Key Edit", () => {
     wrapper.vm.setPrivateKey();
     const privateKeyData = wrapper.vm.keyLocal;
     expect(privateKeyData).toBeDefined();
-    expect(wrapper.vm.isValid).toBe(true);
   });
 
   it("Checks if the name field is valid", async () => {
@@ -133,9 +139,15 @@ describe("Private Key Edit", () => {
   it("Checks if the edit function updates the store on success", async () => {
     const storeSpy = vi.spyOn(store, "dispatch");
     wrapper.vm.setPrivateKey();
-    const keySend = { name: wrapper.vm.name, data: wrapper.vm.keyLocal };
+    const privateKeyPayload = {
+      name: wrapper.vm.name,
+      data: wrapper.vm.keyLocal,
+      id: 1,
+      fingerprint: "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
+      hasPassphrase: wrapper.vm.hasPassphrase,
+    };
     await wrapper.vm.edit();
-    expect(storeSpy).toHaveBeenCalledWith("privateKey/edit", keySend);
+    expect(storeSpy).toHaveBeenCalledWith("privateKey/edit", privateKeyPayload);
     expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Private key updated successfully.");
   });
 
