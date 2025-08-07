@@ -3,6 +3,7 @@
     v-model="showDialog"
     :forceFullscreen="!showLoginForm"
     @click:outside="close"
+    @keydown.esc="close"
   >
     <v-card data-test="terminal-card" class="bg-v-theme-surface">
       <v-card-title
@@ -24,7 +25,6 @@
         :privateKey="privateKey ?? null"
         :passphrase="passphrase"
       />
-
     </v-card>
   </BaseDialog>
 </template>
@@ -33,7 +33,7 @@
 import { ref, watch } from "vue";
 import axios from "axios";
 import { useEventListener } from "@vueuse/core";
-import { useRoute } from "vue-router";
+import { useRoute, onBeforeRouteLeave } from "vue-router";
 import {
   IConnectToTerminal,
   LoginFormData,
@@ -117,6 +117,12 @@ const handleEscKey = (event: KeyboardEvent) => {
 
 // Bind ESC key listener
 useEventListener("keyup", handleEscKey);
+
+// Close terminal and log out when navigating away
+onBeforeRouteLeave(() => {
+  close();
+  return false;
+});
 
 // Auto-open terminal when navigating to specific device route
 watch(
