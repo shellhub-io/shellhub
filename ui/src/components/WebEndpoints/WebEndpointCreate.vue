@@ -13,17 +13,17 @@
         />
         <v-card-text>
           <p class="mb-2" data-test="tunnel-create-text">
-            Configure the address and port to create a tunnel to your device.
+            Configure the host and port to create a tunnel to your device.
           </p>
           <v-row>
             <v-col sm="8" class="pb-0">
               <v-text-field
                 v-model="host"
                 class="mt-1"
-                label="Address"
+                label="Host"
                 :error-messages="hostError"
                 variant="underlined"
-                data-test="address-text"
+                data-test="host-text"
               />
             </v-col>
             <p class="mt-7 pa-0"> : </p>

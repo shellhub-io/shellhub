@@ -40,7 +40,7 @@ describe("WebEndpointCreate.vue", () => {
 
     expect(dialog.find('[data-test="tunnel-create-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="create-dialog-title"]').text()).toContain("Create Device Web Endpoint");
-    expect(dialog.find('[data-test="address-text"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="host-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="port-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="timeout-combobox"]').exists()).toBe(true);
     expect(dialog.find('[data-test="custom-timeout"]').exists()).toBe(false);
@@ -52,7 +52,7 @@ describe("WebEndpointCreate.vue", () => {
 
     const spy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="address-text"]').setValue("127.0.0.1");
+    await wrapper.findComponent('[data-test="host-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue("8080");
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
 
@@ -71,7 +71,7 @@ describe("WebEndpointCreate.vue", () => {
 
     const spy = vi.spyOn(store, "dispatch");
 
-    await wrapper.findComponent('[data-test="address-text"]').setValue("127.0.0.1");
+    await wrapper.findComponent('[data-test="host-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue("8080");
 
     await wrapper.findComponent('[data-test="timeout-combobox"]').setValue(600);
@@ -90,7 +90,7 @@ describe("WebEndpointCreate.vue", () => {
   it("shows alert on 403 error", async () => {
     mockWebEndpoints.onPost("http://localhost:3000/api/web-endpoints").reply(403);
 
-    await wrapper.findComponent('[data-test="address-text"]').setValue("127.0.0.1");
+    await wrapper.findComponent('[data-test="host-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue("8080");
 
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
@@ -129,7 +129,7 @@ describe("WebEndpointCreate.vue", () => {
       },
     });
 
-    await wrapper.findComponent('[data-test="address-text"]').setValue("127.0.0.1");
+    await wrapper.findComponent('[data-test="host-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue(8080);
 
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
