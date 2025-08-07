@@ -11,6 +11,7 @@ import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { devicesApi, containersApi } from "@/api/http";
+import { envVariables } from "@/envVariables";
 
 let mockDevices: MockAdapter;
 let mockContainers: MockAdapter;
@@ -35,6 +36,7 @@ describe("App Layout Component", () => {
   beforeEach(() => {
     vi.useFakeTimers();
 
+    envVariables.hasWebEndpoints = true;
     store.dispatch("spinner/setStatus", true);
 
     mockDevices = new MockAdapter(devicesApi.getAxios());
@@ -112,5 +114,19 @@ describe("App Layout Component", () => {
     const item = layoutWrapper.vm.items[0];
     await layoutWrapper.find(`[data-test="${item.icon}-listItem"]`).trigger("click");
     expect(router.currentRoute.value.path).toBe(item.path);
+  });
+
+  it("renders BETA chip for Web Endpoints item", async () => {
+    const layoutWrapper = wrapper.findComponent(AppLayout);
+    await flushPromises();
+
+    const webEndpointsItem = layoutWrapper.find('[data-test="mdi-web-listItem"]');
+
+    expect(webEndpointsItem.exists()).toBe(true);
+
+    const betaChip = layoutWrapper.find('[data-test="isBeta-chip"]');
+
+    expect(betaChip.exists()).toBe(true);
+    expect(betaChip.text().toLowerCase()).toBe("beta");
   });
 });
