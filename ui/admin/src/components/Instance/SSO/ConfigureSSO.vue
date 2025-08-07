@@ -252,15 +252,27 @@ const isCertificateValid = computed(() => {
 });
 
 const handleCertificateChange = (value: string) => {
-  x509Certificate.value = value;
+  x509Certificate.value = value.trim();
 
-  if (!value.trim()) {
+  if (!x509Certificate.value) {
     x509CertificateErrorMessage.value = "The certificate field is required.";
-  } else if (!validateX509Certificate(value)) {
-    x509CertificateErrorMessage.value = "Invalid X.509 certificate.";
-  } else {
-    x509CertificateErrorMessage.value = "";
+    return;
   }
+
+  const beginCertificate = "-----BEGIN CERTIFICATE-----";
+  const endCertificate = "-----END CERTIFICATE-----";
+
+  if (!x509Certificate.value.includes(beginCertificate) || !x509Certificate.value.includes(endCertificate)) {
+    x509CertificateErrorMessage.value = `Certificate must include ${beginCertificate} and ${endCertificate} blocks.`;
+    return;
+  }
+
+  if (!validateX509Certificate(x509Certificate.value)) {
+    x509CertificateErrorMessage.value = "Invalid X.509 certificate.";
+    return;
+  }
+
+  x509CertificateErrorMessage.value = "";
 };
 
 const isAtLeastOneUrlValid = (): boolean => {
@@ -343,5 +355,5 @@ const updateSAMLConfiguration = async (): Promise<void> => {
   }
 };
 
-defineExpose({ IdPMetadataURL, useMetadataUrl, mappings, showDialog });
+defineExpose({ IdPMetadataURL, useMetadataUrl, mappings, showDialog, handleCertificateChange, x509CertificateErrorMessage });
 </script>
