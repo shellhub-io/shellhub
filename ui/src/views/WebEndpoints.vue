@@ -92,7 +92,7 @@ const searchWebEndpoints = () => {
     const filterToEncodeBase64 = [
       {
         type: "property",
-        params: { name: "full_address", operator: "contains", value: filter.value },
+        params: { name: "address", operator: "contains", value: filter.value },
       },
     ];
     encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));

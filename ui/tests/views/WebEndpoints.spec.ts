@@ -97,7 +97,7 @@ describe("WebEndpoints.vue", () => {
       page: 1,
       perPage: 10,
       // eslint-disable-next-line vue/max-len
-      filter: "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJmdWxsX2FkZHJlc3MiLCJvcGVyYXRvciI6ImNvbnRhaW5zIiwidmFsdWUiOiJsb2NhbGhvc3QifX1d",
+      filter: "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhZGRyZXNzIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoibG9jYWxob3N0In19XQ==",
     }));
   });
 
