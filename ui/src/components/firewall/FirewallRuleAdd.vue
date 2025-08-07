@@ -29,7 +29,7 @@
             <v-row>
               <v-col>
                 <v-select
-                  :model-value="active"
+                  v-model="active"
                   :items="activeSelectOptions"
                   label="Rule status"
                   variant="underlined"
@@ -50,7 +50,7 @@
 
               <v-col>
                 <v-select
-                  :model-value="action"
+                  v-model="action"
                   :items="actionSelectOptions"
                   label="Rule policy"
                   variant="underlined"
@@ -293,6 +293,8 @@ const hasErrors = computed(() => (
 ));
 
 const resetForm = () => {
+  active.value = true;
+  action.value = "allow";
   selectedFilterOption.value = FormFilterOptions.All;
   selectedIPOption.value = "all";
   selectedUsernameOption.value = "all";
