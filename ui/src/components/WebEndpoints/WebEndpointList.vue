@@ -123,10 +123,10 @@ const isExpired = (date: string) => date !== "0001-01-01T00:00:00Z" && moment().
 const formatDate = (expiresIn: string) => {
   if (expiresIn === "0001-01-01T00:00:00Z") return "Never Expires";
   const expirationDate = moment(expiresIn);
-  const format = "MMM D YYYY, h:mm:ss";
+  const format = "MMM D YYYY, h:mm:ss a";
   return isExpired(expiresIn)
-    ? `Expired on ${expirationDate.format(format)}.`
-    : `Expires on ${expirationDate.format(format)}.`;
+    ? `Expired on ${expirationDate.format(format)}`
+    : `Expires on ${expirationDate.format(format)}`;
 };
 
 const handleClick = () => {
