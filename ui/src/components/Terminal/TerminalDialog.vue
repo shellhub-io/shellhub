@@ -120,8 +120,12 @@ useEventListener("keyup", handleEscKey);
 
 // Close terminal and log out when navigating away
 onBeforeRouteLeave(() => {
-  close();
-  return false;
+  if (showDialog.value) {
+    close();
+    return false; // Prevent navigation if dialog is open
+  }
+
+  return true;
 });
 
 // Auto-open terminal when navigating to specific device route
