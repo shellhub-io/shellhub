@@ -101,6 +101,16 @@
               icon="mdi-crown"
               data-test="icon"
             />
+            <v-chip
+              v-if="item.isBeta"
+              label
+              color="yellow"
+              size="x-small"
+              data-test="isBeta-chip"
+            >
+              BETA
+            </v-chip>
+
           </template>
           <v-list-item-title :data-test="item.icon + '-listItem'">
             {{ item.title }}
@@ -217,6 +227,7 @@ const items = reactive([
     title: "Web Endpoints",
     path: "/webendpoints",
     hidden: hideWebEndpoints.value,
+    isBeta: true,
   },
   {
     icon: "mdi-server",

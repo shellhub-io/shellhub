@@ -52,6 +52,7 @@ exports[`App Layout Component > Renders the component 1`] = `
             </div>
             <div class="v-list-item__append">
               <!--v-if-->
+              <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
           </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/devices" data-test="list-item">
@@ -65,6 +66,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-cellphone-link-listItem">Devices</div>
             </div>
             <div class="v-list-item__append">
+              <!--v-if-->
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
@@ -80,6 +82,26 @@ exports[`App Layout Component > Renders the component 1`] = `
             </div>
             <div class="v-list-item__append">
               <!--v-if-->
+              <!--v-if-->
+              <div class="v-list-item__spacer"></div>
+            </div>
+          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/webendpoints" data-test="list-item">
+            <!----><span class="v-list-item__underlay"></span>
+            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-web mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+              <div class="v-list-item__spacer"></div>
+            </div>
+            <div class="v-list-item__content" data-no-activator="">
+              <!---->
+              <!---->
+              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-web-listItem">Web Endpoints</div>
+            </div>
+            <div class="v-list-item__append">
+              <!--v-if--><span data-v-e7291ef4="" class="v-chip v-chip--label v-theme--dark text-yellow v-chip--density-default v-chip--size-x-small v-chip--variant-tonal" draggable="false" data-test="isBeta-chip"><!----><span class="v-chip__underlay"></span>
+              <!---->
+              <!---->
+              <div class="v-chip__content" data-no-activator=""> BETA </div>
+              <!---->
+              <!----></span>
               <div class="v-list-item__spacer"></div>
             </div>
           </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/sessions" data-test="list-item">
@@ -93,6 +115,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-history-listItem">Sessions</div>
             </div>
             <div class="v-list-item__append">
+              <!--v-if-->
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
@@ -108,6 +131,7 @@ exports[`App Layout Component > Renders the component 1`] = `
             </div>
             <div class="v-list-item__append">
               <!--v-if-->
+              <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
           </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" href="/sshkeys/public-keys" data-test="list-item">
@@ -121,6 +145,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-key-listItem">Public Keys</div>
             </div>
             <div class="v-list-item__append">
+              <!--v-if-->
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
@@ -255,7 +280,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </ul>
-        <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-v-6" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-v-7" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-help-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
@@ -263,11 +288,11 @@ exports[`App Layout Component > Renders the component 1`] = `
         <!--teleport start-->
         <!--teleport end-->
         <div class="v-badge ml-3 mr-2" size="x-small" data-test="notifications-badge">
-          <div class="v-badge__wrapper"><i class="mdi-bell mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-8" aria-label="Open notifications menu"></i>
+          <div class="v-badge__wrapper"><i class="mdi-bell mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9" aria-label="Open notifications menu"></i>
             <transition-stub name="scale-rotate-transition" appear="false" persisted="false" css="true"><span class="v-badge__badge v-theme--light bg-success" style="bottom: calc(100% - 7px); left: calc(100% - 12px); display: none;" aria-atomic="true" aria-label="Badge" aria-live="polite" role="status">0</span></transition-stub>
           </div>
         </div>
-        <!----><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-10" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
       </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!----></button>
