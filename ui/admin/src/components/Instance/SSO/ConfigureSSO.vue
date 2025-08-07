@@ -283,7 +283,7 @@ const isAtLeastOneUrlValid = (): boolean => {
 };
 
 const hasErrors = computed((): boolean => {
-  // ✅ If using metadata URL, validate only it and stop.
+  // If using metadata URL, validate only it and stop.
   if (useMetadataUrl.value) {
     return IdPMetadataURL.value.trim() === "" || !!IdPMetadataURLError.value;
   }
@@ -311,6 +311,12 @@ const hasErrors = computed((): boolean => {
   return false;
 });
 
+// Trim linebreaks on the certificate
+const normalizeCertificate = (c: string) => c.replace(
+  /-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/,
+  (m) => m.replace(/\s+/g, "\n").replace(/\n+/g, "\n").trim(),
+);
+
 const updateSAMLConfiguration = async (): Promise<void> => {
   const idpConfig: IAdminSAMLConfig["idp"] = useMetadataUrl.value
     ? { metadata_url: IdPMetadataURL.value }
@@ -320,7 +326,7 @@ const updateSAMLConfiguration = async (): Promise<void> => {
         post: postUrl.value,
         redirect: redirectUrl.value,
       },
-      certificate: x509Certificate.value,
+      certificate: normalizeCertificate(x509Certificate.value),
     };
 
   const validMappings = mappings.value.filter(
