@@ -85,7 +85,7 @@ const hasAuthorizationCreateWebEndpoint = () => {
   return role !== "" && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 
-const searchWebEndpoints = () => {
+const searchWebEndpoints = async () => {
   let encodedFilter = "";
 
   if (filter.value) {
@@ -99,7 +99,7 @@ const searchWebEndpoints = () => {
   }
 
   try {
-    store.dispatch("webEndpoints/search", {
+    await store.dispatch("webEndpoints/search", {
       page: store.getters["webEndpoints/getPage"],
       perPage: store.getters["webEndpoints/getPerPage"],
       filter: encodedFilter,
