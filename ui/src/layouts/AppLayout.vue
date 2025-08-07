@@ -102,7 +102,7 @@
               data-test="icon"
             />
             <v-chip
-              v-if="item.isBeta"
+              v-if="item.isBeta && envVariables.isCloud"
               label
               color="yellow"
               size="x-small"

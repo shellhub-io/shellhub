@@ -37,6 +37,7 @@ describe("App Layout Component", () => {
     vi.useFakeTimers();
 
     envVariables.hasWebEndpoints = true;
+    envVariables.isCloud = true;
     store.dispatch("spinner/setStatus", true);
 
     mockDevices = new MockAdapter(devicesApi.getAxios());
