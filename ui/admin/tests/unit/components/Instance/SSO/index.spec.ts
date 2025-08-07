@@ -97,4 +97,30 @@ describe("Configure SSO", () => {
     await wrapper.findComponent("[data-test='advanced-settings-title']").trigger("click");
     expect(wrapper.findComponent("[data-test='saml-mappings-table']").exists()).toBe(true);
   });
+
+  it("shows an error if X.509 certificate does not include BEGIN/END blocks", async () => {
+    wrapper.vm.useMetadataUrl = false;
+
+    await wrapper.findComponent("[data-test='advanced-settings-title']").trigger("click");
+
+    const certificateWithoutBlocks = "MIIDdzCCAl+gAwIBAgIEb1Yc...";
+    wrapper.vm.handleCertificateChange(certificateWithoutBlocks);
+
+    expect(wrapper.vm.x509CertificateErrorMessage)
+      .toBe("Certificate must include -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- blocks.");
+  });
+
+  it("shows an error if X.509 certificate has BEGIN/END blocks but is invalid", async () => {
+    wrapper.vm.useMetadataUrl = false;
+
+    const invalidCert = `
+    -----BEGIN CERTIFICATE-----
+    INVALIDCERTIFICATEDATA
+    -----END CERTIFICATE-----
+  `;
+
+    await wrapper.vm.handleCertificateChange(invalidCert);
+
+    expect(wrapper.vm.x509CertificateErrorMessage).toBe("Invalid X.509 certificate.");
+  });
 });
