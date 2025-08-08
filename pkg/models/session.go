@@ -26,6 +26,7 @@ type Session struct {
 	Term          string          `json:"term" bson:"term"`
 	Position      SessionPosition `json:"position" bson:"position"`
 	Events        SessionEvents   `json:"events" bson:"events"`
+	Seats         []SessionSeat   `json:"seats" bson:"seats"`
 }
 
 type ActiveSession struct {
@@ -109,5 +110,7 @@ type SessionEvents struct {
 // SessionSeat stores a session's seat.
 type SessionSeat struct {
 	// ID is the identifier of session's seat.
-	ID int `json:"id" bson:"id,omitempty"`
+	ID int `json:"id" bson:"id"`
+	// Events is a list of events registered in the session's seat.
+	Events []string `json:"events" bson:"events"`
 }
