@@ -16,59 +16,59 @@ import (
 // TestTunnelsCertificate_generateProviderCredentialsFile ensures the provider
 // credentials file is generated correctly for various DNS providers.
 func TestTunnelsCertificate_generateProviderCredentialsFile(t *testing.T) {
-   cases := []struct {
-       name        string
-       provider    DNSProvider
-       token       string
-       wantFile    string
-       wantContent string
-   }{
-       {
-           name:        "DigitalOcean",
-           provider:    DigitalOceanDNSProvider,
-           token:       "test-do",
-           wantFile:    "/etc/shellhub-gateway/digitalocean.ini",
-           wantContent: "dns_digitalocean_token = test-do",
-       },
-       {
-           name:        "Cloudflare",
-           provider:    CloudflareDNSProvider,
-           token:       "test-cf",
-           wantFile:    "/etc/shellhub-gateway/cloudflare.ini",
-           wantContent: "dns_cloudflare_api_token = test-cf",
-       },
-   }
-   for _, tc := range cases {
-       t.Run(tc.name, func(t *testing.T) {
-           cert := TunnelsCertificate{
-               Domain:   "localhost",
-               Provider: tc.provider,
-               Token:    tc.token,
-           }
-           cert.fs = afero.NewMemMapFs()
+	cases := []struct {
+		name        string
+		provider    DNSProvider
+		token       string
+		wantFile    string
+		wantContent string
+	}{
+		{
+			name:        "DigitalOcean",
+			provider:    DigitalOceanDNSProvider,
+			token:       "test-do",
+			wantFile:    "/etc/shellhub-gateway/digitalocean.ini",
+			wantContent: "dns_digitalocean_token = test-do",
+		},
+		{
+			name:        "Cloudflare",
+			provider:    CloudflareDNSProvider,
+			token:       "test-cf",
+			wantFile:    "/etc/shellhub-gateway/cloudflare.ini",
+			wantContent: "dns_cloudflare_api_token = test-cf",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cert := WebEndpointsCertificate{
+				Domain:   "localhost",
+				Provider: tc.provider,
+				Token:    tc.token,
+			}
+			cert.fs = afero.NewMemMapFs()
 
-           file, err := cert.generateProviderCredentialsFile()
-           assert.NoError(t, err)
-           assert.Equal(t, tc.wantFile, file.Name())
+			file, err := cert.generateProviderCredentialsFile()
+			assert.NoError(t, err)
+			assert.Equal(t, tc.wantFile, file.Name())
 
-           data, err := afero.ReadFile(cert.fs, tc.wantFile)
-           assert.NoError(t, err)
-           assert.Equal(t, tc.wantContent, string(data))
-       })
-   }
+			data, err := afero.ReadFile(cert.fs, tc.wantFile)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.wantContent, string(data))
+		})
+	}
 }
 
 func TestTunnelsCertificate_generate(t *testing.T) {
 	tests := []struct {
 		name        string
-		config      TunnelsCertificate
+		config      WebEndpointsCertificate
 		staging     bool
 		expected    error
 		expectCalls func(*gatewayMocks.Executor)
 	}{
 		{
 			name: "failed to run the command",
-			config: TunnelsCertificate{
+			config: WebEndpointsCertificate{
 				Domain:   "localhost",
 				Provider: "digitalocean",
 				Token:    "test",
@@ -94,7 +94,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 		},
 		{
 			name: "successful certificate generation",
-			config: TunnelsCertificate{
+			config: WebEndpointsCertificate{
 				Domain:   "localhost",
 				Provider: "digitalocean",
 				Token:    "test",
@@ -120,7 +120,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 		},
 		{
 			name: "successful certificate generation in staging",
-			config: TunnelsCertificate{
+			config: WebEndpointsCertificate{
 				Domain:   "localhost",
 				Provider: "digitalocean",
 				Token:    "test",
@@ -149,7 +149,7 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 		{
 			// Cloudflare provider invocation
 			name: "cloudflare provider",
-			config: TunnelsCertificate{
+			config: WebEndpointsCertificate{
 				Domain:   "localhost",
 				Provider: "cloudflare",
 				Token:    "test",

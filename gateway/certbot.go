@@ -136,6 +136,8 @@ type Config struct {
 type Certificate interface {
 	// String returns a string representation of the certificate, typically the domain name.
 	String() string
+	// Check checks if the environment is ready for certificate generation or renewal.
+	Check() error
 	// Generate creates the SSL certificate using CertBot.
 	// The staging parameter determines whether to use Let's Encrypt's staging server.
 	Generate(staging bool) error
@@ -155,9 +157,10 @@ type DefaultCertificate struct {
 }
 
 // NewDefaultCertificate creates a new DefaultCertificate instance for the given domain.
-func NewDefaultCertificate(domain string) Certificate {
+func NewDefaultCertificate(rootdir string, domain string) Certificate {
 	return &DefaultCertificate{
-		Domain: domain,
+		RootDir: rootdir,
+		Domain:  domain,
 
 		ex: NewExecutor(),
 		fs: afero.NewOsFs(),
@@ -179,11 +182,11 @@ func (d *DefaultCertificate) startACMEServer() *http.Server {
 		),
 	)
 
-	server := &http.Server{
+	server := &http.Server{ //nolint:gosec
 		Handler: mux,
 	}
 
-	listener, err := net.Listen("tcp", ":80")
+	listener, err := net.Listen("tcp", ":80") //nolint:gosec
 	if err != nil {
 		log.WithError(err).Fatal("failed to start ACME server listener")
 	}
@@ -202,6 +205,26 @@ func (d *DefaultCertificate) stopACMEServer(server *http.Server) {
 	if err := server.Close(); err != nil {
 		log.WithError(err).Fatal("could not stop ACME server")
 	}
+}
+
+func (d *DefaultCertificate) Check() error {
+	if d.Domain == "" {
+		return errors.New("domain is required for certificate generation")
+	}
+
+	if d.RootDir == "" {
+		return errors.New("root directory is required for certificate generation")
+	}
+
+	if _, err := d.fs.Stat(d.RootDir); os.IsNotExist(err) {
+		if err := d.fs.MkdirAll(d.RootDir, 0o755); err != nil {
+			log.WithError(err).Error("failed to create root directory for certificate generation")
+
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Generate creates an SSL certificate for the domain using HTTP-01 challenge.
@@ -267,10 +290,10 @@ func (d *DefaultCertificate) String() string {
 	return d.Domain
 }
 
-// TunnelsCertificate represents a wildcard SSL certificate that uses DNS-01 challenge
+// WebEndpointsCertificate represents a wildcard SSL certificate that uses DNS-01 challenge
 // for domain validation. This is suitable for wildcard certificates (*.example.com)
 // where you have control over the DNS records.
-type TunnelsCertificate struct {
+type WebEndpointsCertificate struct {
 	// Domain is the base domain used to generate wildcard certificates.
 	Domain string
 	// Provider is the DNS provider used for DNS-01 challenges.
@@ -285,7 +308,7 @@ type TunnelsCertificate struct {
 // NewWebEndpointsCertificate creates a new TunnelsCertificate instance for generating
 // wildcard certificates using DNS-01 challenges.
 func NewWebEndpointsCertificate(domain string, provider DNSProvider, token string) Certificate {
-	return &TunnelsCertificate{
+	return &WebEndpointsCertificate{
 		Domain: domain,
 
 		Provider: provider,
@@ -298,7 +321,7 @@ func NewWebEndpointsCertificate(domain string, provider DNSProvider, token strin
 
 // generateProviderCredentialsFile creates a credentials file for the DNS provider.
 // This file contains the API token needed for DNS-01 challenges.
-func (d *TunnelsCertificate) generateProviderCredentialsFile() (afero.File, error) {
+func (d *WebEndpointsCertificate) generateProviderCredentialsFile() (afero.File, error) {
 	tokenLine := fmt.Sprintf("dns_%s_token = %s", d.Provider, d.Token)
 
 	// Certbot Cloudflare plugin expects dns_cloudflare_api_token
@@ -322,10 +345,40 @@ func (d *TunnelsCertificate) generateProviderCredentialsFile() (afero.File, erro
 	return file, nil
 }
 
+func (d *WebEndpointsCertificate) Check() error {
+	if d.Domain == "" {
+		return errors.New("domain is required for certificate generation")
+	}
+
+	if d.Provider == "" {
+		return errors.New("DNS provider is required for certificate generation")
+	}
+
+	if d.Token == "" {
+		return errors.New("DNS provider token is required for certificate generation")
+	}
+
+	if _, err := d.fs.Stat("/etc/shellhub-gateway"); os.IsNotExist(err) {
+		if err := d.fs.MkdirAll("/etc/shellhub-gateway", 0o755); err != nil {
+			log.WithError(err).Error("failed to create /etc/shellhub-gateway directory")
+
+			return err
+		}
+	}
+
+	if _, err := d.generateProviderCredentialsFile(); err != nil {
+		log.WithError(err).Error("failed to generate provider credentials file")
+
+		return err
+	}
+
+	return nil
+}
+
 // Generate creates a wildcard SSL certificate for the domain using DNS-01 challenge.
 // It creates a credentials file for the DNS provider, runs CertBot with DNS plugin,
 // and generates a wildcard certificate.
-func (d *TunnelsCertificate) Generate(staging bool) error {
+func (d *WebEndpointsCertificate) Generate(staging bool) error {
 	log.Info("generating SSL certificate with DNS")
 
 	// Create the DNS provider credentials file
@@ -376,7 +429,7 @@ func (d *TunnelsCertificate) Generate(staging bool) error {
 }
 
 // String returns the domain name as the string representation of the certificate.
-func (d *TunnelsCertificate) String() string {
+func (d *WebEndpointsCertificate) String() string {
 	return d.Domain
 }
 
@@ -427,6 +480,14 @@ func (cb *CertBot) executeRenewCertificates() error {
 		log.Info("running renew with staging")
 
 		args = append(args, "--staging")
+	}
+
+	for _, certificate := range cb.Certificates {
+		if err := certificate.Check(); err != nil {
+			log.WithError(err).Error("certificate check failed")
+
+			return err
+		}
 	}
 
 	cmd := cb.ex.Command( //nolint:gosec
