@@ -124,14 +124,15 @@ func (c *client) GetDevice(uid string) (*models.Device, error) {
 }
 
 type WebEndpoint struct {
-	Address    string    `json:"address"`
-	Namespace  string    `json:"namespace"`
-	Device     string    `json:"device"`
-	Host       string    `json:"host"`
-	Port       int       `json:"port"`
-	TimeToLive int       `json:"ttl"`
-	ExpiresIn  time.Time `json:"expires_in"`
-	CreatedAt  time.Time `json:"time" bson:"time"`
+	Address    string         `json:"address"`
+	Namespace  string         `json:"namespace"`
+	DeviceUID  string         `json:"device_uid"`
+	Device     *models.Device `json:"device"`
+	Host       string         `json:"host"`
+	Port       int            `json:"port"`
+	TimeToLive int            `json:"ttl"`
+	ExpiresIn  time.Time      `json:"expires_in"`
+	CreatedAt  time.Time      `json:"time" bson:"time"`
 }
 
 func (c *client) LookupWebEndpoints(address string) (*WebEndpoint, error) {
