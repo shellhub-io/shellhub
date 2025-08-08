@@ -6,18 +6,25 @@ enum ApiKeyExpireList {
   NUMBER_MINUS_1 = -1,
 }
 export interface IApiKey {
+  id: string,
   tenant_id: string,
   name: string,
   role: string,
-  expires_at: ApiKeyExpireList,
+  expires_in: ApiKeyExpireList,
 }
 
-export interface ApiKeyEdit {
-  key: string,
+export interface IApiKeyCreate {
   name: string,
+  role: string,
+  expires_in: ApiKeyExpireList,
+}
+
+export interface IApiKeyEdit {
+  key: string,
+  name?: string,
   role: string,
 }
 
-export interface ApiKeyRemove {
+export interface IApiKeyRemove {
   key: string,
 }

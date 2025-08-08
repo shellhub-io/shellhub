@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
@@ -43,16 +44,14 @@ const mockEndpoints = [
 describe("WebEndpointList.vue", () => {
   let wrapper: WebEndpointListWrapper;
   let mockWebEndpoints: MockAdapter;
-  let router;
-
+  const router = createRouter({
+    history: createWebHistory(),
+    routes,
+  });
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(async () => {
-    router = createRouter({
-      history: createWebHistory(),
-      routes,
-    });
-
     router.push("/");
     await router.isReady();
 
@@ -68,7 +67,7 @@ describe("WebEndpointList.vue", () => {
 
     wrapper = mount(WebEndpointList, {
       global: {
-        plugins: [[store, key], vuetify, [router], SnackbarPlugin],
+        plugins: [[store, key], vuetify, router, SnackbarPlugin],
       },
     });
   });

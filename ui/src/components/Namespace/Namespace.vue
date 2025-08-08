@@ -72,9 +72,7 @@ const isAddNamespaceDialogVisible = ref(false);
 // Change the current namespace
 const changeNamespace = async (tenantId: string) => {
   try {
-    await store.dispatch("namespaces/switchNamespace", {
-      tenant_id: tenantId,
-    });
+    await store.dispatch("namespaces/switchNamespace", tenantId);
     window.location.reload();
   } catch (error: unknown) {
     snackbar.showError("An error occurred while switching namespaces.");

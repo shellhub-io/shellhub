@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
@@ -11,13 +12,11 @@ type WebEndpointCreateWrapper = VueWrapper<InstanceType<typeof WebEndpointCreate
 
 describe("WebEndpointCreate.vue", () => {
   let wrapper: WebEndpointCreateWrapper;
-  let mockWebEndpoints: MockAdapter;
-
+  const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(() => {
-    mockWebEndpoints = new MockAdapter(webEndpointsApi.getAxios());
-
     wrapper = mount(WebEndpointCreate, {
       attachTo: document.body,
       global: {
@@ -48,7 +47,7 @@ describe("WebEndpointCreate.vue", () => {
   });
 
   it("successfully creates a Web Endpoint", async () => {
-    mockWebEndpoints.onPost("http://localhost:3000/api/web-endpoints").reply(200);
+    mockWebEndpointsApi.onPost("http://localhost:3000/api/web-endpoints").reply(200);
 
     const spy = vi.spyOn(store, "dispatch");
 
@@ -67,7 +66,7 @@ describe("WebEndpointCreate.vue", () => {
   });
 
   it("successfully creates a Web Endpoint with custom timeout", async () => {
-    mockWebEndpoints.onPost("http://localhost:3000/api/web-endpoints").reply(200);
+    mockWebEndpointsApi.onPost("http://localhost:3000/api/web-endpoints").reply(200);
 
     const spy = vi.spyOn(store, "dispatch");
 
@@ -88,11 +87,10 @@ describe("WebEndpointCreate.vue", () => {
   });
 
   it("shows alert on 403 error", async () => {
-    mockWebEndpoints.onPost("http://localhost:3000/api/web-endpoints").reply(403);
+    mockWebEndpointsApi.onPost("http://localhost:3000/api/web-endpoints").reply(403);
 
     await wrapper.findComponent('[data-test="host-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue("8080");
-
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
     await flushPromises();
 
@@ -102,7 +100,7 @@ describe("WebEndpointCreate.vue", () => {
   });
 
   it("successfully creates a Web Endpoint using device selector", async () => {
-    mockWebEndpoints.onPost("http://localhost:3000/api/web-endpoints").reply(200);
+    mockWebEndpointsApi.onPost("http://localhost:3000/api/web-endpoints").reply(200);
 
     const spy = vi.spyOn(store, "dispatch");
 

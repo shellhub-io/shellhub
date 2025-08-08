@@ -116,6 +116,7 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{
   isEditing: boolean;
@@ -126,6 +127,7 @@ const props = defineProps<{
   initialSecure?: boolean;
 }>();
 
+const authStore = useAuthStore();
 const showDialog = defineModel<boolean>({ default: false });
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
@@ -136,7 +138,7 @@ const store = useStore();
 const ipAddressRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})$/;
 
 const hasAuthorizationAdd = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.add);
 };
 
@@ -193,11 +195,11 @@ const keyError = ref<string>("");
 // eslint-disable-next-line vue/max-len
 const hasError = computed(() => !!addressError.value || !!portError.value || !!keyError.value || !!certificateError.value || !!caCertificateError.value || !hasAuthorizationAdd() || (isSecure.value && (!caCertificate.value || !certificate.value || !key.value)));
 
-const readFile = async (file) => new Promise((resolve, reject) => {
+const readFile = async (file) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
 
   reader.onload = () => {
-    resolve(reader.result);
+    resolve(reader.result as string);
   };
 
   reader.onerror = () => {

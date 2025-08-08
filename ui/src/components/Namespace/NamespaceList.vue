@@ -34,9 +34,7 @@ const namespaces = computed(() => store.getters["namespaces/list"].filter(
 
 const switchIn = async (tenant: string) => {
   try {
-    await store.dispatch("namespaces/switchNamespace", {
-      tenant_id: tenant,
-    });
+    await store.dispatch("namespaces/switchNamespace", tenant);
 
     window.location.reload();
   } catch (error: unknown) {

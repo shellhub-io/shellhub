@@ -131,6 +131,7 @@ import PublicKeyDelete from "./PublicKeyDelete.vue";
 import PublicKeyEdit from "./PublicKeyEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
 
 const headers = [
   {
@@ -159,6 +160,7 @@ const headers = [
   },
 ];
 const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
@@ -168,12 +170,12 @@ const publicKeysCount = computed(
   () => store.getters["publicKeys/getNumberPublicKeys"],
 );
 const hasAuthorizationFormDialogEdit = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.publicKey.edit);
 });
 
 const hasAuthorizationFormDialogRemove = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.publicKey.remove);
 });
 

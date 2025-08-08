@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { vi, expect, describe, it, beforeEach } from "vitest";
@@ -8,15 +9,13 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Not Found Page", () => {
   let wrapper: VueWrapper<InstanceType<typeof NotFound>>;
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(async () => {
     wrapper = mount(NotFound, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });

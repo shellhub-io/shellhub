@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -5,7 +6,12 @@ import { createStore } from "vuex";
 import BillingWarning from "@/components/Billing/BillingWarning.vue";
 import { key } from "@/store";
 import { router } from "@/router";
+import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
+setActivePinia(createPinia());
+const authStore = useAuthStore();
+const billingStore = useBillingStore();
 const statusUpdateAccountDialog = true;
 const statusUpdateAccountDialogByDeviceAction = false;
 
@@ -17,25 +23,25 @@ const stats = {
   rejected_devices: 0,
 };
 
-const store = (statsData: typeof stats, billingEnabled: boolean, role: string) => createStore({
-  state: {
-    stateBilling: billingEnabled,
-    role,
-    stats: statsData,
-    statusUpdateAccountDialog,
-    statusUpdateAccountDialogByDeviceAction,
-  },
-  getters: {
-    "billing/active": (state) => state.stateBilling,
-    "stats/stats": (state) => state.stats,
-    "auth/role": (state) => state.role,
-    "users/statusUpdateAccountDialog": (state) => state.statusUpdateAccountDialog,
-    "users/statusUpdateAccountDialogByDeviceAction": (state) => state.statusUpdateAccountDialogByDeviceAction,
-  },
-  actions: {
-    "users/setStatusUpdateAccountDialog": vi.fn(),
-  },
-});
+const store = (statsData: typeof stats, billingEnabled: boolean, role: string) => {
+  authStore.role = role;
+  billingStore.billing.active = billingEnabled;
+  return createStore({
+    state: {
+      stats: statsData,
+      statusUpdateAccountDialog,
+      statusUpdateAccountDialogByDeviceAction,
+    },
+    getters: {
+      "stats/stats": (state) => state.stats,
+      "users/statusUpdateAccountDialog": (state) => state.statusUpdateAccountDialog,
+      "users/statusUpdateAccountDialogByDeviceAction": (state) => state.statusUpdateAccountDialogByDeviceAction,
+    },
+    actions: {
+      "users/setStatusUpdateAccountDialog": vi.fn(),
+    },
+  });
+};
 
 const tests = [
   {
@@ -146,10 +152,6 @@ describe("BillingWarning", () => {
           shallow: true,
         });
       });
-
-      ///////
-      // Component Rendering
-      //////
 
       it("Is a Vue instance", () => {
         expect(wrapper).toBeTruthy();

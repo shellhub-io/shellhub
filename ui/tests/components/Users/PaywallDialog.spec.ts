@@ -1,51 +1,11 @@
+import { setActivePinia, createPinia } from "pinia";
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { nextTick } from "vue";
 import { store, key } from "@/store";
 import PaywallDialog from "@/components/User/PaywallDialog.vue";
-import { router } from "@/router";
-import { namespacesApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-
-const members = [
-  {
-    id: "xxxxxxxx",
-    username: "test",
-    role: "owner",
-  },
-];
-
-const namespaceData = {
-  name: "test",
-  owner: "xxxxxxxx",
-  tenant_id: "fake-tenant-data",
-  members,
-  max_devices: 3,
-  devices_count: 3,
-  devices: 2,
-  created_at: "",
-};
-
-const authData = {
-  status: "",
-  token: "",
-  user: "test",
-  name: "test",
-  tenant: "fake-tenant-data",
-  email: "test@test.com",
-  id: "xxxxxxxx",
-  role: "owner",
-};
-
-const stats = {
-  registered_devices: 3,
-  online_devices: 1,
-  active_sessions: 0,
-  pending_devices: 0,
-  rejected_devices: 0,
-};
 
 const cards = [
   {
@@ -77,31 +37,17 @@ const cards = [
 
 describe("PaywallDialog", async () => {
   let wrapper: VueWrapper<InstanceType<typeof PaywallDialog>>;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-  let mockDevices: MockAdapter;
 
   vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
     json: async () => (cards),
   })));
 
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-
     wrapper = mount(PaywallDialog, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, SnackbarPlugin],
       },
     });
   });

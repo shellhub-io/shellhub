@@ -2,13 +2,13 @@
   <div class="d-flex pa-0 align-center">
     <h1>Connector Details</h1>
   </div>
-  <v-card class="mt-2 bg-v-theme-surface" v-if="!connectorEmpty">
+  <v-card class="mt-2 bg-v-theme-surface" v-if="connector">
     <v-card-title class="pa-4 d-flex align-center justify-space-between">
       <div>
         <v-row>
           <v-col class="pr-0">
             <v-switch
-              @click="switchConnector(connector.uid, connector.enable)"
+              @click="toggleConnectorState()"
               v-model="connector.enable"
               inset
               hide-details
@@ -31,8 +31,7 @@
                     > {{ connector.address + ":" + connector.port }}
                     </span>
                   </template>
-                  <span v-if="connector.secure">Secure Connetion</span>
-                  <span v-else>Insecure Connetion</span>
+                  <span>{{ connector.secure ? 'Secure' : 'Insecure' }} Connection</span>
                 </v-tooltip>
               </v-chip>
             </code>
@@ -94,7 +93,7 @@
     <v-divider />
 
     <div class="pa-4 pt-0">
-      <div class="text-overline mt-3" v-if="connector.status.message">
+      <div class="text-overline mt-3" v-if="connector.status?.message">
         <v-alert
           variant="tonal"
           type="error"
@@ -157,21 +156,23 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStore } from "../store";
+import { storeToRefs } from "pinia";
 import ConnectorDelete from "../components/Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../components/Connector/ConnectorEdit.vue";
 import hasPermission from "../utils/permission";
 import { actions, authorizer } from "../authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useConnectorStore from "@/store/modules/connectors";
 
-const store = useStore();
+const authStore = useAuthStore();
+const connectorStore = useConnectorStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
-const connectorUid = computed(() => route.params.id);
-const connector = computed(() => store.getters["connectors/get"]);
-const connectorInfo = computed(() => store.getters["connectors/getInfo"]);
+const connectorUid = computed(() => route.params.id as string);
+const { connector, connectorInfo } = storeToRefs(connectorStore);
 
 const filteredItems = [
   {
@@ -221,18 +222,18 @@ const redirectContainers = async () => {
 };
 
 const hasAuthorizationEdit = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
 };
 
 const hasAuthorizationRemove = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
 };
 
 const getConnector = async () => {
   try {
-    await store.dispatch("connectors/get", connectorUid.value);
+    await connectorStore.fetchConnectorById(connectorUid.value);
   } catch (error: unknown) {
     snackbar.showError("Error loading the connector.");
     handleError(error);
@@ -241,7 +242,7 @@ const getConnector = async () => {
 
 const getConnectorInfo = async () => {
   try {
-    await store.dispatch("connectors/getConnectorInfo", connectorUid.value);
+    await connectorStore.getConnectorInfo(connectorUid.value);
   } catch (error: unknown) {
     snackbar.showError("Failed to load the connector info.");
     handleError(error);
@@ -253,13 +254,13 @@ const refresh = async () => {
   await getConnectorInfo();
 };
 
-const switchConnector = async (uid: string, enable: boolean) => {
+const toggleConnectorState = async () => {
   try {
     const payload = {
-      uid,
-      enable: !enable,
+      ...connector.value,
+      enable: !connector.value.enable,
     };
-    await store.dispatch("connectors/edit", payload);
+    await connectorStore.updateConnector(payload);
     snackbar.showSuccess("The connector has been updated.");
     refresh();
   } catch (error) {
@@ -267,11 +268,6 @@ const switchConnector = async (uid: string, enable: boolean) => {
     handleError(error);
   }
 };
-
-const connectorEmpty = computed(
-  () => store.getters["connectors/get"]
-        && Object.keys(store.getters["connectors/get"]).length === 0,
-);
 
 onMounted(async () => {
   await getConnector();
