@@ -1,8 +1,11 @@
+import { IDevice } from "./IDevice";
+
 export interface IWebEndpoints {
   address: string,
   full_address: string,
+  device: IDevice
   expires_in: string,
-  device: string,
+  device_uid: string,
   host: string,
   port: number
 }

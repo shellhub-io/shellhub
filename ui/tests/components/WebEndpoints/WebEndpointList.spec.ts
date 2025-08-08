@@ -15,7 +15,24 @@ const mockEndpoints = [
   {
     address: "abc123",
     namespace: "namespace",
-    device: "device-1",
+    device: {
+      uid: "a582b47a42d",
+      name: "39-5e-2a",
+      identity: {
+        mac: "00:00:00:00:00:00",
+      },
+      info: {
+        id: "linuxmint",
+        pretty_name: "Linux Mint 19.3",
+        version: "",
+      },
+      public_key: "----- PUBLIC KEY -----",
+      tenant_id: "fake-tenant-data",
+      last_seen: "2020-05-20T18:58:53.276Z",
+      online: false,
+      namespace: "user",
+      status: "accepted",
+    },
     host: "192.168.0.1",
     port: 8080,
     full_address: "192.168.0.1:8080",
@@ -66,12 +83,13 @@ describe("WebEndpointList.vue", () => {
 
   it("renders table headers correctly", () => {
     const headers = wrapper.findAll('[data-test="web-endpoints-table"] thead th');
-    expect(headers.length).toBe(5);
-    expect(headers[0].text()).toContain("Address");
-    expect(headers[1].text()).toContain("Host");
-    expect(headers[2].text()).toContain("Port");
-    expect(headers[3].text()).toContain("Expiration Date");
-    expect(headers[4].text()).toContain("Actions");
+    expect(headers.length).toBe(6);
+    expect(headers[0].text()).toContain("Device");
+    expect(headers[1].text()).toContain("Address");
+    expect(headers[2].text()).toContain("Host");
+    expect(headers[3].text()).toContain("Port");
+    expect(headers[4].text()).toContain("Expiration Date");
+    expect(headers[5].text()).toContain("Actions");
   });
 
   it("renders table rows with web endpoints", () => {
