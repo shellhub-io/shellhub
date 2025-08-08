@@ -19,6 +19,14 @@ const mockedSystemInfo = {
 const systemApiMock = new MockAdapter(systemApi.getAxios());
 systemApiMock.onGet("http://localhost:3000/info").reply(200, mockedSystemInfo);
 
+vi.mock("vue-router", async (importOriginal) => {
+  const original = await importOriginal<typeof import("vue-router")>();
+  return {
+    ...original,
+    onBeforeRouteLeave: vi.fn(),
+  };
+});
+
 vi.stubGlobal("visualViewport", new EventTarget());
 
 global.CSS = { supports: () => false } as never;
