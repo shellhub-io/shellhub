@@ -77,7 +77,7 @@ func NewGateway(config *GatewayConfig, controller *NginxController, features []s
 
 		g.Certbot.Certificates = append(
 			g.Certbot.Certificates,
-			NewDefaultCertificate(g.Config.Domain),
+			NewDefaultCertificate(defaultCertBotRootDir, g.Config.Domain),
 		)
 	}
 
