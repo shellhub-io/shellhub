@@ -55,7 +55,7 @@ type DeviceService interface {
 
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
 	if req.DeviceStatus == models.DeviceStatusRemoved {
-		return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
+		return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Sorter, store.DeviceAcceptableFromRemoved, s.store.Options().Match(&req.Filters))
 	}
 
 	if req.TenantID != "" {
@@ -68,19 +68,19 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 			switch {
 			case envs.IsCloud():
 				if ns.HasLimitDevicesReached() {
-					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableFromRemoved)
+					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Sorter, store.DeviceAcceptableFromRemoved, s.store.Options().Match(&req.Filters))
 				}
 			case envs.IsEnterprise():
 				fallthrough
 			case envs.IsCommunity():
 				if ns.HasMaxDevicesReached() {
-					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableAsFalse)
+					return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Sorter, store.DeviceAcceptableAsFalse, s.store.Options().Match(&req.Filters))
 				}
 			}
 		}
 	}
 
-	return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Filters, req.Sorter, store.DeviceAcceptableIfNotAccepted)
+	return s.store.DeviceList(ctx, req.DeviceStatus, req.Paginator, req.Sorter, store.DeviceAcceptableIfNotAccepted, s.store.Options().Match(&req.Filters))
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {

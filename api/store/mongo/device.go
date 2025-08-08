@@ -7,8 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
@@ -19,7 +17,7 @@ import (
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
-func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, paginator query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
+func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
@@ -94,11 +92,11 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 		})
 	}
 
-	queryMatch, err := queries.FromFilters(&filters)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
 	}
-	query = append(query, queryMatch...)
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
@@ -106,13 +104,6 @@ func (s *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagi
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
-	if sorter.By == "" {
-		sorter.By = "last_seen"
-	}
-
-	query = append(query, queries.FromSorter(&sorter)...)
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	query = append(query, []bson.M{
 		{
@@ -165,12 +156,6 @@ func (s *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver
 		matchStage["identity"] = bson.M{"mac": value}
 	}
 
-	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
-			return nil, err
-		}
-	}
-
 	query := []bson.M{
 		{
 			"$match": matchStage,
@@ -207,6 +192,12 @@ func (s *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver
 		{
 			"$unwind": "$namespace",
 		},
+	}
+
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, err
+		}
 	}
 
 	cursor, err := s.db.Collection("devices").Aggregate(ctx, query)
