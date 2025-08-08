@@ -217,7 +217,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 				"device":     endpoint.Device,
 			})
 
-			in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", endpoint.Namespace, endpoint.Device))
+			in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", endpoint.Namespace, endpoint.DeviceUID))
 			if err != nil {
 				logger.WithError(err).Error("failed to dial to device")
 
