@@ -12,10 +12,25 @@
   >
     <template #rows>
       <tr
-        v-for="(endpoint) in items"
+        v-for="endpoint in items"
         :key="endpoint.address"
         :class="isExpired(endpoint.expires_in) ? 'text-warning' : ''"
       >
+        <td class="d-flex align-center justify-center text-center">
+          <DeviceIcon
+            :icon="endpoint.device?.info?.id"
+            class="mr-2"
+          />
+          <div class="d-flex flex-column align-center">
+            <p
+              @click="redirectDevice(endpoint.device_uid)"
+              @keyup="redirectDevice(endpoint.device_uid)"
+              class="link"
+            >{{ endpoint.device?.name }}</p>
+            <small class="text-medium-emphasis">{{ endpoint.device?.info?.pretty_name }}</small>
+          </div>
+        </td>
+
         <td data-test="web-endpoint-url">
           <a
             :href="`${urlProtocol}//${endpoint.full_address}`"
@@ -26,12 +41,13 @@
             {{ `${urlProtocol}//${endpoint.full_address}` }}
           </a>
         </td>
+
         <td class="text-center">{{ endpoint.host }}</td>
         <td class="text-center">{{ endpoint.port }}</td>
         <td class="text-center">{{ formatDate(endpoint.expires_in) }}</td>
         <td class="text-center">
           <WebEndpointDelete
-            :uid="endpoint.device"
+            :uid="endpoint.device_uid"
             :address="endpoint.address"
             @update="refresh"
           />
@@ -44,14 +60,17 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from "vue";
 import moment from "moment";
+import { useRouter } from "vue-router";
 import { useStore } from "@/store";
 import DataTable from "@/components/DataTable.vue";
 import WebEndpointDelete from "@/components/WebEndpoints/WebEndpointDelete.vue";
+import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
 import { IWebEndpoints } from "@/interfaces/IWebEndpoints";
 
 type SortField = "created_at" | "updated_at" | "address" | "uid";
 
 const store = useStore();
+const router = useRouter();
 
 const items = computed<IWebEndpoints[]>(() => store.getters["webEndpoints/listWebEndpoints"]);
 const totalCount = computed(() => store.getters["webEndpoints/getTotalCount"]);
@@ -64,6 +83,7 @@ const sortBy = ref<SortField>(store.getters["webEndpoints/getSortBy"]);
 const sortDesc = ref<boolean>(store.getters["webEndpoints/getOrderBy"] === "desc");
 
 const headers = [
+  { text: "Device", value: "device", sortable: false },
   { text: "Address", value: "address", sortable: true },
   { text: "Host", value: "host", sortable: true },
   { text: "Port", value: "port", sortable: true },
@@ -133,5 +153,17 @@ const handleClick = () => {
   setTimeout(() => fetchWebEndpoints(), 30000);
 };
 
+const redirectDevice = (deviceUid: string) => {
+  router.push({ name: "DeviceDetails", params: { identifier: deviceUid } });
+};
+
 onMounted(fetchWebEndpoints);
 </script>
+
+<style scoped>
+
+.link {
+  text-decoration: underline;
+  cursor: pointer;
+}
+</style>
