@@ -46,10 +46,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useConnectorStore from "@/store/modules/connectors";
 
 const props = defineProps<{
   uid: string;
@@ -58,11 +58,12 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const connectorStore = useConnectorStore();
 const snackbar = useSnackbar();
+
 const remove = async () => {
   try {
-    await store.dispatch("connectors/remove", props.uid);
+    await connectorStore.deleteConnector(props.uid);
     snackbar.showSuccess("Successfully removed connector.");
     showDialog.value = false;
     emit("update");

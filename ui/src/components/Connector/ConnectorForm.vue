@@ -195,11 +195,11 @@ const keyError = ref<string>("");
 // eslint-disable-next-line vue/max-len
 const hasError = computed(() => !!addressError.value || !!portError.value || !!keyError.value || !!certificateError.value || !!caCertificateError.value || !hasAuthorizationAdd() || (isSecure.value && (!caCertificate.value || !certificate.value || !key.value)));
 
-const readFile = async (file) => new Promise((resolve, reject) => {
+const readFile = async (file) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
 
   reader.onload = () => {
-    resolve(reader.result);
+    resolve(reader.result as string);
   };
 
   reader.onerror = () => {

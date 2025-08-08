@@ -28,21 +28,21 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import ConnectorList from "../components/Connector/ConnectorList.vue";
 import ConnectorAdd from "../components/Connector/ConnectorAdd.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useConnectorStore from "@/store/modules/connectors";
 
 const router = useRouter();
-const store = useStore();
+const connectorStore = useConnectorStore();
 const snackbar = useSnackbar();
 
 const getConnectors = async () => {
   try {
-    await store.dispatch("connectors/fetch", {
-      page: store.getters["connectors/getPage"],
-      perPage: store.getters["connectors/getPerPage"],
+    await connectorStore.fetchConnectorList({
+      page: 1,
+      perPage: 10,
     });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
