@@ -3,11 +3,11 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
 import ConnectorList from "@/components/Connector/ConnectorList.vue";
 import { router } from "@/router";
 import { namespacesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { key, store } from "@/store";
 
 type ConnectorListWrapper = VueWrapper<InstanceType<typeof ConnectorList>>;
 
@@ -28,8 +28,8 @@ describe("Connector List", () => {
         secure: false,
         status:
         {
-          State: "connected",
-          Message: "",
+          state: "connected",
+          message: "",
         },
         tls: null,
 
@@ -52,8 +52,7 @@ describe("Connector List", () => {
       dispatchEvent: vi.fn(),
     }));
 
-    mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(200, connectors);
-    store.commit("connectors/setConnectors", connectors);
+    mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(200, connectors.data, connectors.headers);
 
     wrapper = mount(ConnectorList, {
       global: {

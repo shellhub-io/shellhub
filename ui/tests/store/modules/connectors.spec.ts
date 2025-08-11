@@ -1,137 +1,142 @@
-import { createStore, Store } from "vuex";
-import axios from "axios";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
 import { namespacesApi } from "@/api/http";
-import { connectors, ConnectorState } from "@/store/modules/connectors";
-import { State } from "@/store";
-import { IConnector } from "@/interfaces/IConnector";
+import useConnectorStore from "@/store/modules/connectors";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let mockNamespaces: MockAdapter;
-
-// Mock axios
-const mock = new MockAdapter(axios);
-
-// Define initial state
-const initialState: ConnectorState = {
-  connectors: [],
-  connector: {} as IConnector,
-  info: {},
-  page: 1,
-  perPage: 10,
-  numberConnectors: 0,
-};
-
-const createVuexStore = (state = initialState) => createStore<State>({
-  modules: {
-    connectors: {
-      ...connectors,
-      state,
-    },
-  },
-});
-
-describe("Connectors Vuex Module", () => {
-  let store: Store<State>;
+describe("Connectors Pinia Store", () => {
+  setActivePinia(createPinia());
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+  let connectorStore: ReturnType<typeof useConnectorStore>;
 
   beforeEach(() => {
-    store = createVuexStore();
-    mockNamespaces = new MockAdapter(namespacesApi.getAxios());
+    connectorStore = useConnectorStore();
   });
 
   afterEach(() => {
-    mock.reset();
+    mockNamespacesApi.reset();
   });
 
-  describe("state", () => {
-    it("should have initial state", () => {
-      expect(store.state.connectors.connectors).toEqual([]);
-      expect(store.state.connectors.connector).toEqual({});
-      expect(store.state.connectors.info).toEqual({});
-      expect(store.state.connectors.page).toBe(1);
-      expect(store.state.connectors.perPage).toBe(10);
-      expect(store.state.connectors.numberConnectors).toBe(0);
-    });
-  });
-
-  describe("getters", () => {
-    it("should return connectors list", () => {
-      expect(store.getters["connectors/list"]).toEqual([]);
-    });
-
-    it("should return a connector", () => {
-      expect(store.getters["connectors/get"]).toEqual({});
-    });
-
-    it("should return connector info", () => {
-      expect(store.getters["connectors/getInfo"]).toEqual({});
-    });
-
-    it("should return page number", () => {
-      expect(store.getters["connectors/getPage"]).toBe(1);
-    });
-
-    it("should return perPage value", () => {
-      expect(store.getters["connectors/getPerPage"]).toBe(10);
-    });
-
-    it("should return number of connectors", () => {
-      expect(store.getters["connectors/getNumberConnectors"]).toBe(0);
+  describe("initial state", () => {
+    it("should have initial state values", () => {
+      expect(connectorStore.connectors).toEqual([]);
+      expect(connectorStore.connector).toEqual({});
+      expect(connectorStore.connectorInfo).toEqual({});
+      expect(connectorStore.connectorCount).toBe(0);
     });
   });
 
-  describe("mutations", () => {
-    it("should set connectors", () => {
+  describe("actions", () => {
+    it("should fetch connector list successfully", async () => {
       const connectorsData = [
-        { id: 1, name: "Connector 1" },
-        { id: 2, name: "Connector 2" },
+        { uid: "1", name: "Connector 1", enable: true, address: "127.0.0.1", port: 8080, secure: false },
+        { uid: "2", name: "Connector 2", enable: false, address: "127.0.0.2", port: 8081, secure: true },
       ];
-      const headers = { "x-total-count": "2" };
 
-      store.commit("connectors/setConnectors", { data: connectorsData, headers });
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(200, connectorsData, {
+        "x-total-count": "2",
+      });
 
-      expect(store.state.connectors.connectors).toEqual(connectorsData);
-      expect(store.state.connectors.numberConnectors).toBe(2);
+      await connectorStore.fetchConnectorList({ page: 1, perPage: 10 });
+
+      expect(connectorStore.connectors).toEqual(connectorsData);
+      expect(connectorStore.connectorCount).toBe(2);
     });
 
-    it("should set page and perPage", () => {
-      const data = { page: 2, perPage: 20 };
+    it("should handle empty connector list", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(200, [], {
+        "x-total-count": "0",
+      });
 
-      store.commit("connectors/setPagePerpage", data);
+      await connectorStore.fetchConnectorList({ page: 1, perPage: 10 });
 
-      expect(store.state.connectors.page).toBe(2);
-      expect(store.state.connectors.perPage).toBe(20);
+      expect(connectorStore.connectors).toEqual([]);
+      expect(connectorStore.connectorCount).toBe(0);
     });
 
-    it("should set a connector", () => {
-      const connectorData = { id: 1, name: "Connector 1" };
+    it("should fetch connector by ID", async () => {
+      const connectorData = { uid: "1", name: "Connector 1", enable: true, address: "127.0.0.1", port: 8080, secure: false };
 
-      store.commit("connectors/setConnector", connectorData);
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1").reply(200, connectorData);
 
-      expect(store.state.connectors.connector).toEqual(connectorData);
+      await connectorStore.fetchConnectorById("1");
+
+      expect(connectorStore.connector).toEqual(connectorData);
     });
 
-    it("should set connector info", () => {
-      const infoData = { info: "Some info" };
+    it("should get connector info", async () => {
+      const infoData = { status: "connected", message: "Connection successful" };
 
-      store.commit("connectors/setInfoConnector", infoData);
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1/info").reply(200, infoData);
 
-      expect(store.state.connectors.info).toEqual(infoData);
+      await connectorStore.getConnectorInfo("1");
+
+      expect(connectorStore.connectorInfo).toEqual(infoData);
     });
 
-    it("should clear connectors list", () => {
-      store.commit("connectors/clearListConnector");
+    it("should create connector", async () => {
+      const createData = { name: "New Connector", enable: true, address: "127.0.0.3", port: 8082, secure: false };
 
-      expect(store.state.connectors.connectors).toEqual([]);
-      expect(store.state.connectors.numberConnectors).toBe(0);
+      mockNamespacesApi.onPost("http://localhost:3000/api/connector").reply(201);
+
+      await expect(connectorStore.createConnector(createData)).resolves.not.toThrow();
     });
 
-    it("should clear a connector", () => {
-      store.commit("connectors/clearConnector");
+    it("should update connector", async () => {
+      const updateData = { uid: "1", name: "Updated Connector", enable: false, address: "127.0.0.1", port: 8080, secure: true };
 
-      expect(store.state.connectors.connector).toEqual({});
-      expect(store.state.connectors.info).toEqual({});
+      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/1").reply(200);
+
+      await expect(connectorStore.updateConnector(updateData)).resolves.not.toThrow();
+    });
+
+    it("should delete connector", async () => {
+      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/1").reply(200);
+
+      await expect(connectorStore.deleteConnector("1")).resolves.not.toThrow();
+    });
+
+    it("should handle fetch connector list error", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(500);
+
+      await expect(connectorStore.fetchConnectorList({ page: 1, perPage: 10 })).rejects.toThrow();
+
+      expect(connectorStore.connectors).toEqual([]);
+      expect(connectorStore.connectorCount).toBe(0);
+    });
+
+    it("should handle fetch connector by ID error", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1").reply(404);
+
+      await expect(connectorStore.fetchConnectorById("1")).rejects.toThrow();
+    });
+
+    it("should handle get connector info error", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1/info").reply(500);
+
+      await expect(connectorStore.getConnectorInfo("1")).rejects.toThrow();
+    });
+
+    it("should handle create connector error", async () => {
+      const createData = { name: "New Connector", enable: true, address: "127.0.0.3", port: 8082, secure: false };
+
+      mockNamespacesApi.onPost("http://localhost:3000/api/connector").reply(400);
+
+      await expect(connectorStore.createConnector(createData)).rejects.toThrow();
+    });
+
+    it("should handle update connector error", async () => {
+      const updateData = { uid: "1", name: "Updated Connector", enable: false, address: "127.0.0.1", port: 8080, secure: true };
+
+      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/1").reply(400);
+
+      await expect(connectorStore.updateConnector(updateData)).rejects.toThrow();
+    });
+
+    it("should handle delete connector error", async () => {
+      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/1").reply(500);
+
+      await expect(connectorStore.deleteConnector("1")).rejects.toThrow();
     });
   });
 });
