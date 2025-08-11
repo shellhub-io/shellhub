@@ -1,6 +1,6 @@
 import { Module } from "vuex";
 import { fetchDevices } from "../api/devices";
-import { fetchContainers } from "../api/container";
+import { fetchContainers } from "../api/containers";
 import { State } from "..";
 import { deviceToNotification, containerToNotification } from "@/utils/notificationAdapters";
 import { IDevice } from "@/interfaces/IDevice";
@@ -43,7 +43,7 @@ export const notifications: Module<NotificationsState, State> = {
       try {
         const [deviceRes, containerRes] = await Promise.all([
           fetchDevices(1, 10, "", "pending", undefined, ""),
-          fetchContainers(1, 10, "", "pending", undefined, ""),
+          fetchContainers(1, 10, "pending"),
         ]);
 
         const devices = deviceRes.data as IDevice[];

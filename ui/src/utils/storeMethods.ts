@@ -1,33 +1,41 @@
+import { ref } from "vue";
 import { useStore } from "@/store";
 import { FetchContainerParams, IContainerMethods, SortContainersParams } from "@/interfaces/IContainer";
 import { FetchDevicesParams, IDeviceMethods, SortDevicesParams } from "@/interfaces/IDevice";
+import useContainersStore from "@/store/modules/containers";
 
 export function getContainerStoreMethods(): IContainerMethods {
-  const store = useStore();
+  const containersStore = useContainersStore();
 
-  const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, sortStatusString }: FetchContainerParams) => {
-    await store.dispatch("container/fetch", {
+  const currentFilter = ref("");
+  const sortStatusField = ref<string>("");
+  const sortStatusString = ref<"asc" | "desc" | undefined>("asc");
+
+  const fetchDevices = async ({ perPage, page, filter, status, sortField, sortOrder }: FetchContainerParams) => {
+    currentFilter.value = filter || "";
+    sortStatusField.value = sortField || "";
+    sortStatusString.value = sortOrder;
+
+    await containersStore.fetchContainerList({
       perPage,
       page,
       filter,
       status,
-      sortStatusField,
-      sortStatusString,
+      sortField,
+      sortOrder,
     });
   };
 
-  const setSort = ({ sortStatusField, sortStatusString }: SortContainersParams) => {
-    store.dispatch("container/setSortStatus", {
-      sortStatusField,
-      sortStatusString,
-    });
+  const setSort = ({ sortField, sortOrder }: SortContainersParams) => {
+    sortStatusField.value = sortField || "";
+    sortStatusString.value = sortOrder;
   };
 
-  const getFilter = () => store.getters["container/getFilter"];
-  const getList = () => store.getters["container/list"];
-  const getSortStatusField = () => store.getters["container/getSortStatusField"];
-  const getSortStatusString = () => store.getters["container/getSortStatusString"];
-  const getNumber = () => store.getters["container/getNumberContainers"];
+  const getFilter = () => currentFilter.value;
+  const getList = () => containersStore.containers;
+  const getSortStatusField = () => sortStatusField.value;
+  const getSortStatusString = () => sortStatusString.value;
+  const getNumber = () => containersStore.containerCount;
 
   return {
     fetchDevices,
@@ -43,21 +51,21 @@ export function getContainerStoreMethods(): IContainerMethods {
 export function getDeviceStoreMethods(): IDeviceMethods {
   const store = useStore();
 
-  const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, sortStatusString }: FetchDevicesParams) => {
+  const fetchDevices = async ({ perPage, page, filter, status, sortField, sortOrder }: FetchDevicesParams) => {
     await store.dispatch("devices/fetch", {
       perPage,
       page,
       filter,
       status,
-      sortStatusField,
-      sortStatusString,
+      sortField,
+      sortOrder,
     });
   };
 
-  const setSort = ({ sortStatusField, sortStatusString }: SortDevicesParams) => {
+  const setSort = ({ sortField, sortOrder }: SortDevicesParams) => {
     store.dispatch("devices/setSortStatus", {
-      sortStatusField,
-      sortStatusString,
+      sortField,
+      sortOrder,
     });
   };
 
