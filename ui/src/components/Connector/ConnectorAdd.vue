@@ -22,13 +22,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ConnectorForm from "./ConnectorForm.vue";
-import { useStore } from "@/store";
+import useConnectorStore from "@/store/modules/connectors";
+import { IConnectorPayload } from "@/interfaces/IConnector";
 
 defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const { createConnector } = useConnectorStore();
 
-const addConnector = async (payload) => {
-  await store.dispatch("connectors/post", payload);
+const addConnector = async (payload: Omit<IConnectorPayload, "uid">) => {
+  await createConnector(payload);
 };
 </script>

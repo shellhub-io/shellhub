@@ -1,7 +1,7 @@
-import { IConnectorCreate, IConnectorUpdate } from "@/interfaces/IConnector";
+import { IConnectorPayload } from "@/interfaces/IConnector";
 import { namespacesApi } from "@/api/http";
 
-export const createConnector = async (data: IConnectorCreate) => namespacesApi.connectorCreate({
+export const createConnector = async (data: Omit<IConnectorPayload, "uid">) => namespacesApi.connectorCreate({
   enable: data.enable,
   secure: data.secure,
   address: data.address,
@@ -9,9 +9,9 @@ export const createConnector = async (data: IConnectorCreate) => namespacesApi.c
   tls: data.tls,
 });
 
-export const listConnector = async (enable: boolean, page: number, perPage: number) => namespacesApi.connectorList(enable, page, perPage);
+export const getConnectorList = async (page: number, perPage: number) => namespacesApi.connectorList(undefined, page, perPage);
 
-export const updateConnector = async (data: IConnectorUpdate) => namespacesApi.connectorUpdate(data.uid, {
+export const updateConnector = async (data: IConnectorPayload) => namespacesApi.connectorUpdate(data.uid, {
   enable: data.enable,
   secure: data.secure,
   address: data.address,
