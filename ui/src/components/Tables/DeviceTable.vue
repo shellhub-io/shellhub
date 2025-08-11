@@ -356,8 +356,6 @@ onMounted(async () => {
       page: page.value,
       filter: filter.value,
       status: status.value,
-      sortStatusField: "",
-      sortStatusString: "",
     });
   } catch (error: unknown) {
     handleError(error);
@@ -374,8 +372,8 @@ const getDevices = async (perPageValue: number, pageValue: number, filter: strin
       page: pageValue,
       status: props.status,
       filter,
-      sortStatusField: getSortStatusField(),
-      sortStatusString: getSortStatusString(),
+      sortField: getSortStatusField(),
+      sortOrder: getSortStatusString(),
     });
     loading.value = false;
   } catch (error: unknown) {
@@ -391,8 +389,8 @@ const getSortOrder = () => {
 
 const sortByItem = async (field: string) => {
   setSort({
-    sortStatusField: field,
-    sortStatusString: getSortOrder(),
+    sortField: field,
+    sortOrder: getSortOrder(),
   });
   await getDevices(itemsPerPage.value, page.value, filter.value);
 };

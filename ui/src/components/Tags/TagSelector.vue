@@ -56,19 +56,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, PropType } from "vue";
+import { computed, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useContainersStore from "@/store/modules/containers";
 
-const props = defineProps({
-  variant: {
-    type: String as PropType<"device" | "container">,
-    required: true,
-  },
-});
+const props = defineProps<{ variant: "device" | "container" }>();
+
 const store = useStore();
+const containersStore = useContainersStore();
 const snackbar = useSnackbar();
 const prevSelectedLength = ref(0);
 
@@ -83,33 +81,22 @@ const getTags = async () => {
 };
 
 const getItems = async (item: Array<string>) => {
-  let encodedFilter : string | null = null;
-
   const filter = [
     {
       type: "property",
       params: { name: "tags", operator: "contains", value: item },
     },
   ];
-  encodedFilter = btoa(JSON.stringify(filter));
 
-  switch (props.variant) {
-    case "device":
-      await store.dispatch("devices/setFilter", encodedFilter);
-      break;
-    case "container":
-      await store.dispatch("container/setFilter", encodedFilter);
-      break;
-    default:
-      break;
-  }
+  const encodedFilter = btoa(JSON.stringify(filter));
+
   try {
     switch (props.variant) {
       case "device":
         await store.dispatch("devices/refresh", encodedFilter);
         break;
       case "container":
-        await store.dispatch("container/refresh", encodedFilter);
+        await containersStore.fetchContainerList({ filter: encodedFilter });
         break;
       default:
         break;
@@ -130,8 +117,8 @@ const getItems = async (item: Array<string>) => {
 
 const fetchDevices = async () => {
   const data = {
-    perPage: props.variant === "device" ? store.getters["devices/getPerPage"] : store.getters["container/getPerPage"],
-    page: props.variant === "device" ? store.getters["devices/getPage"] : store.getters["container/getPage"],
+    perPage: store.getters["devices/getPerPage"],
+    page: store.getters["devices/getPage"],
     status: "accepted",
     search: null,
     filter: "",
@@ -143,7 +130,7 @@ const fetchDevices = async () => {
       await store.dispatch("devices/fetch", data);
       break;
     case "container":
-      await store.dispatch("container/fetch", data);
+      await containersStore.fetchContainerList();
       break;
     default:
       break;

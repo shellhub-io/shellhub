@@ -23,7 +23,7 @@ export interface IDevice {
   identity: Identity;
   info: InfoDetails;
   public_key: string;
-  tenant_id:string;
+  tenant_id: string;
   last_seen: string;
   online: boolean;
   namespace: string;
@@ -49,18 +49,16 @@ export interface IDevicePostTag {
   name: CreateDeviceTagRequest;
 }
 
-export interface FetchDevicesParams {
+export interface SortDevicesParams {
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface FetchDevicesParams extends SortDevicesParams {
   perPage?: number;
   page?: number;
   filter?: string;
   status?: "accepted" | "pending" | "rejected";
-  sortStatusField: string;
-  sortStatusString: string;
-}
-
-export interface SortDevicesParams {
-  sortStatusField: string;
-  sortStatusString: string;
 }
 
 export interface IDeviceMethods {
@@ -69,6 +67,6 @@ export interface IDeviceMethods {
   getFilter: () => string;
   getList: () => IDevice[];
   getSortStatusField: () => string;
-  getSortStatusString: () => string;
+  getSortStatusString: () => SortDevicesParams["sortOrder"];
   getNumber: () => number;
 }
