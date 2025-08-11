@@ -14,7 +14,6 @@ import { privateKey, PrivateKeyState } from "./modules/private_key";
 import { notifications, NotificationsState } from "./modules/notifications";
 import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { devices, DevicesState } from "./modules/devices";
-import { container, ContainerState } from "./modules/container";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 import { customer, CustomerState } from "./modules/customer";
@@ -23,7 +22,6 @@ export interface State {
   billing: NamespacesState;
   customer: CustomerState;
   devices: DevicesState;
-  container: ContainerState;
   firewallRules: FirewallRulesState;
   layout: LayoutState;
   namespaces: NamespacesState;
@@ -44,7 +42,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {
-    container,
     customer,
     devices,
     firewallRules,

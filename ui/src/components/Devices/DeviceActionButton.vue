@@ -97,14 +97,8 @@ const close = () => {
 
 const refreshDevices = async () => {
   try {
-    emit("update");
-
-    const { pathname } = window.location;
-    if (pathname.startsWith("/devices")) await store.dispatch("devices/refresh");
-    else if (pathname.startsWith("/containers")) await store.dispatch("container/refresh");
-
     await store.dispatch("notifications/fetch");
-
+    emit("update");
     close();
   } catch (error: unknown) {
     snackbar.showError("Failed to refresh devices.");
@@ -115,7 +109,6 @@ const refreshDevices = async () => {
 const removeDevice = async () => {
   try {
     await store.dispatch("devices/remove", props.uid);
-    refreshDevices();
   } catch (error: unknown) {
     close();
     snackbar.showError("Failed to remove device.");
@@ -126,7 +119,6 @@ const removeDevice = async () => {
 const rejectDevice = async () => {
   try {
     await store.dispatch("devices/reject", props.uid);
-    refreshDevices();
   } catch (error: unknown) {
     close();
     snackbar.showError("Failed to reject device.");
@@ -137,7 +129,6 @@ const rejectDevice = async () => {
 const acceptDevice = async () => {
   try {
     await store.dispatch("devices/accept", props.uid);
-    refreshDevices();
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     switch (axiosError.response?.status) {
@@ -161,7 +152,7 @@ const acceptDevice = async () => {
   }
 };
 
-const doAction = () => {
+const doAction = async () => {
   if (hasAuthorization.value) {
     const currentDeviceAction = {
       accept: acceptDevice,
@@ -169,7 +160,8 @@ const doAction = () => {
       remove: removeDevice,
     }[props.action];
 
-    currentDeviceAction();
+    await currentDeviceAction();
+    refreshDevices();
   } else {
     snackbar.showError("You don't have this kind of authorization.");
   }
