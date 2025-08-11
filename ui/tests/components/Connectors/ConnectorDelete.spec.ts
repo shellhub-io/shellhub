@@ -5,9 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import ConnectorDelete from "@/components/Connector/ConnectorDelete.vue";
 import { namespacesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useConnectorStore from "@/store/modules/connectors";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -19,6 +19,7 @@ type ConnectorDeleteWrapper = VueWrapper<InstanceType<typeof ConnectorDelete>>;
 describe("Connector Delete", () => {
   let wrapper: ConnectorDeleteWrapper;
   setActivePinia(createPinia());
+  const connectorStore = useConnectorStore();
   const vuetify = createVuetify();
 
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
@@ -26,7 +27,7 @@ describe("Connector Delete", () => {
   beforeEach(async () => {
     wrapper = mount(ConnectorDelete, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
@@ -61,9 +62,9 @@ describe("Connector Delete", () => {
     await wrapper.setProps({ uid: "fake-fingerprint" });
     await wrapper.findComponent('[data-test="connector-remove-btn"]').trigger("click");
     mockNamespacesApi.onDelete("http://localhost:3000/api/connector/fake-fingerprint").reply(200);
-    const removeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(connectorStore, "deleteConnector");
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
-    expect(removeSpy).toHaveBeenCalledWith("connectors/remove", "fake-fingerprint");
+    expect(storeSpy).toHaveBeenCalledWith("fake-fingerprint");
   });
 
   it("Shows error snackbar if removing a connector fails", async () => {
