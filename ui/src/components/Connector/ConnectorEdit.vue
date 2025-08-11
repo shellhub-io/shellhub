@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import ConnectorForm from "./ConnectorForm.vue";
-import { useStore } from "@/store";
+import useConnectorStore from "@/store/modules/connectors";
 
 const props = defineProps<{
   secure: boolean;
@@ -38,9 +38,9 @@ const props = defineProps<{
 
 defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const { updateConnector } = useConnectorStore();
 
 const editConnector = async (payload) => {
-  await store.dispatch("connectors/edit", payload);
+  await updateConnector(payload);
 };
 </script>

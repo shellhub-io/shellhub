@@ -1,102 +1,65 @@
-import { Module } from "vuex";
-import { State } from "..";
-import { IConnector } from "@/interfaces/IConnector";
-import * as apiConnector from "../api/connectors";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { IConnector, IConnectorPayload } from "@/interfaces/IConnector";
+import * as connectorApi from "../api/connectors";
 
-export interface ConnectorState {
-  connectors: Array<IConnector>;
-  connector: IConnector;
-  info: object;
-  page: number;
-  perPage: number;
-  numberConnectors: number;
-}
+const useConnectorStore = defineStore("connectors", () => {
+  const connectors = ref<IConnector[]>([]);
+  const connector = ref<IConnector>({} as IConnector);
+  const connectorInfo = ref<object>({});
+  const connectorCount = ref(0);
 
-export const connectors: Module<ConnectorState, State> = {
-  namespaced: true,
-  state: {
-    connectors: [],
-    connector: {} as IConnector,
-    info: {},
-    page: 1,
-    perPage: 10,
-    numberConnectors: 0,
-  },
-
-  getters: {
-    list: (state) => state.connectors,
-    get: (state) => state.connector,
-    getInfo: (state) => state.info,
-    getPage: (state) => state.page,
-    getPerPage: (state) => state.perPage,
-    getNumberConnectors: (state) => state.numberConnectors,
-  },
-
-  mutations: {
-    setConnectors: (state, res) => {
-      state.connectors = res.data;
-      state.numberConnectors = parseInt(res.headers["x-total-count"], 10);
-    },
-    setPagePerpage: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-    },
-    setConnector: (state, data) => {
-      state.connector = data;
-    },
-    setInfoConnector: (state, data) => {
-      state.info = data;
-    },
-    clearListConnector: (state) => {
-      state.connectors = [];
-      state.numberConnectors = 0;
-    },
-    clearConnector: (state) => {
-      state.connector = {} as IConnector;
-      state.info = {};
-    },
-  },
-
-  actions: {
-    fetch: async ({ commit }, data) => {
-      try {
-        const res = await apiConnector.listConnector(
-          data.enable,
-          data.page,
-          data.perPage,
-        );
-        if (res.data.length) {
-          commit("setConnectors", res);
-          commit("setPagePerpage", data);
-          return res;
-        }
-
-        commit("clearListConnector");
-        return false;
-      } catch (error) {
-        commit("clearListConnector");
-        throw error;
+  const fetchConnectorList = async (data: { page: number; perPage: number }) => {
+    try {
+      const res = await connectorApi.getConnectorList(data.page, data.perPage);
+      if (res.data.length) {
+        connectors.value = res.data as IConnector[];
+        connectorCount.value = parseInt(res.headers["x-total-count"], 10);
+        return;
       }
-    },
-    get: async (context, uid) => {
-      const res = await apiConnector.getConnector(uid);
-      context.commit("setConnector", res.data);
-    },
-    getConnectorInfo: async (context, uid) => {
-      const res = await apiConnector.getConnectorInfo(uid);
-      context.commit("setInfoConnector", res.data);
-    },
-    post: async (context, data) => {
-      await apiConnector.createConnector(data);
-    },
-    edit: async (context, data) => {
-      await apiConnector.updateConnector(data);
-    },
-    remove: async (context, data) => {
-      await apiConnector.deleteConnector(data);
-    },
-    setStatus: async (context, status) => {
-      context.commit("setStatus", status);
-    },
-  },
-};
+      connectors.value = [];
+      connectorCount.value = 0;
+    } catch (error) {
+      connectors.value = [];
+      connectorCount.value = 0;
+      throw error;
+    }
+  };
+
+  const fetchConnectorById = async (uid: string) => {
+    const res = await connectorApi.getConnector(uid);
+    connector.value = res.data as IConnector;
+  };
+
+  const getConnectorInfo = async (uid: string) => {
+    const res = await connectorApi.getConnectorInfo(uid);
+    connectorInfo.value = res.data;
+  };
+
+  const createConnector = async (data: Omit<IConnectorPayload, "uid">) => {
+    await connectorApi.createConnector(data);
+  };
+
+  const updateConnector = async (data: IConnectorPayload) => {
+    await connectorApi.updateConnector(data);
+  };
+
+  const deleteConnector = async (uid: string) => {
+    await connectorApi.deleteConnector(uid);
+  };
+
+  return {
+    connectors,
+    connector,
+    connectorInfo,
+    connectorCount,
+    fetchConnectorList,
+    fetchConnectorById,
+    getConnectorInfo,
+    createConnector,
+    updateConnector,
+    deleteConnector,
+  };
+});
+
+export default useConnectorStore;
