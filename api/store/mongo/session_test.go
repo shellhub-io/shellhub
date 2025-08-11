@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestSessionList(t *testing.T) {
@@ -551,6 +553,488 @@ func TestSessionDeleteActives(t *testing.T) {
 
 			err := s.SessionDeleteActives(ctx, tc.UID)
 			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestSessionListEvents(t *testing.T) {
+	type Expected struct {
+		events []models.SessionEvent
+		count  int
+		err    error
+	}
+
+	cases := []struct {
+		description string
+		uid         string
+		paginator   query.Paginator
+		sorter      query.Sorter
+		filters     query.Filters
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "succeeds when sessions are not found",
+			uid:         "nonexistent",
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "timestamp", Order: query.OrderAsc},
+			filters:     query.Filters{},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureActiveSessions,
+				fixtureSessionsEvents,
+			},
+			expected: Expected{
+				events: []models.SessionEvent{},
+				count:  0,
+				err:    nil,
+			},
+		},
+		{
+			description: "succeeds when sessions are found",
+			uid:         "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			sorter:      query.Sorter{By: "timestamp", Order: query.OrderAsc},
+			filters:     query.Filters{},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureActiveSessions,
+				fixtureSessionsEvents,
+			},
+			expected: Expected{
+				events: []models.SessionEvent{
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "pty-req",
+						Timestamp: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						Data: models.SSHPty{
+							Term:     "screen-256color",
+							Columns:  211,
+							Rows:     47,
+							Width:    1899,
+							Height:   940,
+							Modelist: []byte{},
+						},
+						Seat: 0,
+					},
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "shell",
+						Timestamp: time.Date(2023, 1, 2, 12, 1, 0, 0, time.UTC),
+						Data:      "",
+						Seat:      0,
+					},
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "exit-status",
+						Timestamp: time.Date(2023, 1, 2, 12, 2, 0, 0, time.UTC),
+						Data:      "AAAAAA==",
+						Seat:      0,
+					},
+				},
+				count: 3,
+				err:   nil,
+			},
+		},
+		{
+			description: "succeeds when sessions are found by page are limited",
+			uid:         "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+			paginator:   query.Paginator{Page: 1, PerPage: 2},
+			sorter:      query.Sorter{By: "timestamp", Order: query.OrderAsc},
+			filters:     query.Filters{},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureActiveSessions,
+				fixtureSessionsEvents,
+			},
+			expected: Expected{
+				events: []models.SessionEvent{
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "pty-req",
+						Timestamp: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						Data: models.SSHPty{
+							Term:     "screen-256color",
+							Columns:  211,
+							Rows:     47,
+							Width:    1899,
+							Height:   940,
+							Modelist: []byte{},
+						},
+						Seat: 0,
+					},
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "shell",
+						Timestamp: time.Date(2023, 1, 2, 12, 1, 0, 0, time.UTC),
+						Data:      "",
+						Seat:      0,
+					},
+				},
+				count: 3,
+				err:   nil,
+			},
+		},
+		{
+			description: "succeeds when filtering by event type",
+			uid:         "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "timestamp", Order: query.OrderAsc},
+			filters: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "type",
+							Operator: "eq",
+							Value:    "pty-req",
+						},
+					},
+				},
+			},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureActiveSessions,
+				fixtureSessionsEvents,
+			},
+			expected: Expected{
+				events: []models.SessionEvent{
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "pty-req",
+						Timestamp: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						Data: models.SSHPty{
+							Term:     "screen-256color",
+							Columns:  211,
+							Rows:     47,
+							Width:    1899,
+							Height:   940,
+							Modelist: []byte{},
+						},
+						Seat: 0,
+					},
+				},
+				count: 1,
+				err:   nil,
+			},
+		},
+		{
+			description: "succeeds when filtering by seat",
+			uid:         "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			sorter:      query.Sorter{By: "timestamp", Order: query.OrderAsc},
+			filters: query.Filters{
+				Data: []query.Filter{
+					{
+						Type: "property",
+						Params: &query.FilterProperty{
+							Name:     "seat",
+							Operator: "eq",
+							Value:    0, // Use integer instead of string
+						},
+					},
+				},
+			},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureActiveSessions,
+				fixtureSessionsEvents,
+			},
+			expected: Expected{
+				events: []models.SessionEvent{
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "pty-req",
+						Timestamp: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
+						Data: models.SSHPty{
+							Term:     "screen-256color",
+							Columns:  211,
+							Rows:     47,
+							Width:    1899,
+							Height:   940,
+							Modelist: []byte{},
+						},
+						Seat: 0,
+					},
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "shell",
+						Timestamp: time.Date(2023, 1, 2, 12, 1, 0, 0, time.UTC),
+						Data:      "",
+						Seat:      0,
+					},
+					{
+						Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+						Type:      "exit-status",
+						Timestamp: time.Date(2023, 1, 2, 12, 2, 0, 0, time.UTC),
+						Data:      "AAAAAA==",
+						Seat:      0,
+					},
+				},
+				count: 3,
+				err:   nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			events, count, err := s.SessionListEvents(ctx, models.UID(tc.uid), tc.paginator, tc.filters, tc.sorter)
+
+			assert.Equal(t, tc.expected, Expected{events: events, count: count, err: err})
+		})
+	}
+}
+
+func TestSessionEvent(t *testing.T) {
+	cases := []struct {
+		description string
+		uid         models.UID
+		event       *models.SessionEvent
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "succeeds when creating a new session event",
+			uid:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			event: &models.SessionEvent{
+				Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+				Type:      models.SessionEventTypePtyRequest,
+				Timestamp: time.Date(2023, 1, 2, 12, 3, 0, 0, time.UTC),
+				Data: models.SSHPty{
+					Term:     "xterm-256color",
+					Columns:  80,
+					Rows:     24,
+					Width:    640,
+					Height:   480,
+					Modelist: []byte{},
+				},
+				Seat: 0,
+			},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when creating a window change event",
+			uid:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			event: &models.SessionEvent{
+				Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+				Type:      models.SessionEventTypeWindowChange,
+				Timestamp: time.Date(2023, 1, 2, 12, 4, 0, 0, time.UTC),
+				Data: models.SSHWindowChange{
+					Columns: 120,
+					Rows:    30,
+					Width:   960,
+					Height:  720,
+				},
+				Seat: 0,
+			},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when creating an exit status event",
+			uid:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			event: &models.SessionEvent{
+				Session:   "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+				Type:      models.SessionEventTypeExitStatus,
+				Timestamp: time.Date(2023, 1, 2, 12, 5, 0, 0, time.UTC),
+				Data:      "0",
+				Seat:      0,
+			},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when session does not exist",
+			uid:         models.UID("nonexistent"),
+			event: &models.SessionEvent{
+				Session:   "nonexistent",
+				Type:      models.SessionEventTypePtyRequest,
+				Timestamp: time.Date(2023, 1, 2, 12, 3, 0, 0, time.UTC),
+				Data:      "",
+				Seat:      0,
+			},
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			err := s.SessionEvent(ctx, tc.uid, tc.event)
+			assert.Equal(t, tc.expected, err)
+
+			// Verify the event was created in sessions_events collection
+			if tc.expected == nil {
+				var event models.SessionEvent
+				store := s.(*mongo.Store)
+				err := store.GetDB().Collection("sessions_events").FindOne(ctx, bson.M{
+					"session":   tc.event.Session,
+					"type":      tc.event.Type,
+					"timestamp": tc.event.Timestamp,
+					"seat":      tc.event.Seat,
+				}).Decode(&event)
+				assert.NoError(t, err)
+				assert.Equal(t, tc.event.Session, event.Session)
+				assert.Equal(t, tc.event.Type, event.Type)
+				assert.Equal(t, tc.event.Seat, event.Seat)
+			}
+		})
+	}
+}
+
+func TestSessionDeleteEvents(t *testing.T) {
+	cases := []struct {
+		description string
+		uid         models.UID
+		seat        int
+		eventType   models.SessionEventType
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "succeeds when deleting existing events",
+			uid:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			seat:        0,
+			eventType:   models.SessionEventTypePtyRequest,
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureSessionsEvents,
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when deleting shell events",
+			uid:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			seat:        0,
+			eventType:   models.SessionEventTypeShell,
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureSessionsEvents,
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when deleting exit status events",
+			uid:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			seat:        0,
+			eventType:   models.SessionEventTypeExitStatus,
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureSessionsEvents,
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when no events match criteria",
+			uid:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			seat:        1,
+			eventType:   models.SessionEventTypePtyRequest,
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureSessionsEvents,
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when session does not exist",
+			uid:         models.UID("nonexistent"),
+			seat:        0,
+			eventType:   models.SessionEventTypePtyRequest,
+			fixtures: []string{
+				fixtureNamespaces,
+				fixtureDevices,
+				fixtureSessions,
+				fixtureSessionsEvents,
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			store := s.(*mongo.Store)
+			countBefore, err := store.GetDB().Collection("sessions_events").CountDocuments(ctx, bson.M{
+				"session": tc.uid,
+				"seat":    tc.seat,
+				"type":    tc.eventType,
+			})
+			assert.NoError(t, err)
+
+			totalBefore, err := store.GetDB().Collection("sessions_events").CountDocuments(ctx, bson.M{})
+			assert.NoError(t, err)
+
+			err = s.SessionDeleteEvents(ctx, tc.uid, tc.seat, tc.eventType)
+			assert.Equal(t, tc.expected, err)
+
+			countAfter, err := store.GetDB().Collection("sessions_events").CountDocuments(ctx, bson.M{
+				"session": tc.uid,
+				"seat":    tc.seat,
+				"type":    tc.eventType,
+			})
+			assert.NoError(t, err)
+			assert.Equal(t, int64(0), countAfter)
+
+			totalAfter, err := store.GetDB().Collection("sessions_events").CountDocuments(ctx, bson.M{})
+			assert.NoError(t, err)
+
+			assert.Equal(t, totalBefore-countBefore, totalAfter)
 		})
 	}
 }

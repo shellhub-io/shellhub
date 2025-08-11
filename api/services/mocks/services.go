@@ -728,24 +728,6 @@ func (_m *Service) EvaluateKeyUsername(ctx context.Context, key *models.PublicKe
 	return r0, r1
 }
 
-// EventSession provides a mock function with given fields: ctx, uid, event
-func (_m *Service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	ret := _m.Called(ctx, uid, event)
-
-	if len(ret) == 0 {
-		panic("no return value specified for EventSession")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.SessionEvent) error); ok {
-		r0 = rf(ctx, uid, event)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetDevice provides a mock function with given fields: ctx, uid
 func (_m *Service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
 	ret := _m.Called(ctx, uid)
@@ -1141,6 +1123,43 @@ func (_m *Service) ListDevices(ctx context.Context, req *requests.DeviceList) ([
 	return r0, r1, r2
 }
 
+// ListEventsSession provides a mock function with given fields: ctx, uid, paginator, filters, sorter
+func (_m *Service) ListEventsSession(ctx context.Context, uid models.UID, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.SessionEvent, int, error) {
+	ret := _m.Called(ctx, uid, paginator, filters, sorter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListEventsSession")
+	}
+
+	var r0 []models.SessionEvent
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) ([]models.SessionEvent, int, error)); ok {
+		return rf(ctx, uid, paginator, filters, sorter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) []models.SessionEvent); ok {
+		r0 = rf(ctx, uid, paginator, filters, sorter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.SessionEvent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) int); ok {
+		r1 = rf(ctx, uid, paginator, filters, sorter)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, models.UID, query.Paginator, query.Filters, query.Sorter) error); ok {
+		r2 = rf(ctx, uid, paginator, filters, sorter)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // ListNamespaces provides a mock function with given fields: ctx, req
 func (_m *Service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
 	ret := _m.Called(ctx, req)
@@ -1450,6 +1469,24 @@ func (_m *Service) ResolveDevice(ctx context.Context, req *requests.ResolveDevic
 	}
 
 	return r0, r1
+}
+
+// SaveEventSession provides a mock function with given fields: ctx, uid, event
+func (_m *Service) SaveEventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
+	ret := _m.Called(ctx, uid, event)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveEventSession")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.SessionEvent) error); ok {
+		r0 = rf(ctx, uid, event)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Setup provides a mock function with given fields: ctx, req
