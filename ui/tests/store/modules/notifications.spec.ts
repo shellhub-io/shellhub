@@ -68,7 +68,7 @@ describe("Notifications Vuex Module", () => {
 
   it("Successfully fetches and combines notifications from API", async () => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=pending").reply(200, [mockDevice]);
-    mockContainersApi.onGet("http://localhost:3000/api/containers?filter=&page=1&per_page=10&status=pending").reply(200, [mockContainer]);
+    mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending").reply(200, [mockContainer]);
 
     await store.dispatch("notifications/fetch");
 

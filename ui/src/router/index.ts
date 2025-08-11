@@ -4,6 +4,7 @@ import { envVariables } from "../envVariables";
 import { store } from "@/store";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 import useAuthStore from "@/store/modules/auth";
+import useContainersStore from "@/store/modules/containers";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   try {
@@ -267,13 +268,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Containers",
     component: Containers,
     beforeEnter: async (to, from, next) => {
-      await store.dispatch("container/fetch", {
-        page: store.getters["container/getPage"],
-        perPage: store.getters["container/getPerPage"],
-        filter: store.getters["container/getFilter"],
-        status: "",
-        committable: false,
-      });
+      await useContainersStore().fetchContainerList();
       next();
     },
     redirect: { name: "ContainerList" },
