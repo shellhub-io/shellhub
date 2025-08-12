@@ -148,13 +148,13 @@ snap_install() {
     echo "📥 Downloading ShellHub snap package..."
 
     {
-        sudo snap install shellhub-agent --channel=$AGENT_VERSION
+        sudo snap install shellhub --channel=$AGENT_VERSION
     } || { echo "❌ Failed to download and install ShellHub snap package."; exit 1; }
 
     echo "🚀 Starting ShellHub snap service..."
 
     {
-        sudo snap start shellhub-agent
+        sudo snap start shellhub
     } || { echo "❌ Failed to start ShellHub snap service."; exit 1; }
 }
 
