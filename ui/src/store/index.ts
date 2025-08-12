@@ -16,11 +16,9 @@ import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { devices, DevicesState } from "./modules/devices";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
-import { customer, CustomerState } from "./modules/customer";
 
 export interface State {
   billing: NamespacesState;
-  customer: CustomerState;
   devices: DevicesState;
   firewallRules: FirewallRulesState;
   layout: LayoutState;
@@ -42,7 +40,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {
-    customer,
     devices,
     firewallRules,
     layout,
