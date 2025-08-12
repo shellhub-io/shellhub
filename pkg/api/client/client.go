@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
+	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -55,6 +57,13 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 		return nil, errors.Join(ErrParseAddress, err)
 	}
 
+	const RetryAfterHeader string = "Retry-After"
+
+	// DefaultMaxRetryWaitTime is the default value for wait time between retries.
+	const DefaultMaxRetryWaitTime time.Duration = 1 * time.Hour
+	// DefaultRetryAfterTime is the retry default time when the header [RetryAfterHeader] isn't defined on the response.
+	const DefaultRetryAfterTime time.Duration = 5 * time.Second
+
 	client := new(client)
 	client.http = resty.New()
 	client.http.SetRetryCount(math.MaxInt32)
@@ -62,13 +71,27 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	client.http.SetBaseURL(uri.String())
 	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok {
+			log.WithFields(log.Fields{
+				"url": r.Request.URL,
+			}).WithError(err).Error("network error")
+
 			return true
 		}
 
-		if r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented {
+		switch {
+		case r.StatusCode() == http.StatusTooManyRequests:
 			log.WithFields(log.Fields{
 				"status_code": r.StatusCode(),
 				"url":         r.Request.URL,
+				"data":        r.String(),
+			}).Warn("too many requests")
+
+			return true
+		case r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented:
+			log.WithFields(log.Fields{
+				"status_code": r.StatusCode(),
+				"url":         r.Request.URL,
+				"data":        r.String(),
 			}).Warn("failed to achieve the server")
 
 			return true
@@ -76,6 +99,34 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 
 		return false
 	})
+	client.http.SetRetryAfter(func(c *resty.Client, r *resty.Response) (time.Duration, error) {
+		switch r.StatusCode() {
+		case http.StatusTooManyRequests, http.StatusServiceUnavailable:
+			retryAfterHeader := r.Header().Get(RetryAfterHeader)
+			if retryAfterHeader == "" {
+				return DefaultRetryAfterTime, nil
+			}
+
+			// NOTE: The `Retry-After` supports delay in seconds and and a date time, but currently we will support only
+			// one of them.
+			// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After
+			retryAfterSeconds, err := strconv.Atoi(retryAfterHeader)
+			if err != nil {
+				return DefaultRetryAfterTime, err
+			}
+
+			log.WithFields(log.Fields{
+				"status":      r.StatusCode(),
+				"retry_after": retryAfterSeconds,
+				"url":         r.Request.URL,
+			}).Debug("retrying request after a defined time period")
+
+			return time.Duration(retryAfterSeconds) * time.Second, nil
+		default:
+			return DefaultRetryAfterTime, nil
+		}
+	})
+	client.http.SetRetryMaxWaitTime(DefaultMaxRetryWaitTime)
 
 	if client.logger != nil {
 		client.http.SetLogger(&LeveledLogger{client.logger})
