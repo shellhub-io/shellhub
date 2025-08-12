@@ -148,7 +148,7 @@ snap_install() {
     echo "📥 Downloading ShellHub snap package..."
 
     {
-        sudo snap install shellhub --channel=$AGENT_VERSION
+        sudo snap install --classic --channel=latest/stable shellhub
     } || { echo "❌ Failed to download and install ShellHub snap package."; exit 1; }
 
     echo "🚀 Starting ShellHub snap service..."
