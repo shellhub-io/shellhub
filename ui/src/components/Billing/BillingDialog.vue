@@ -102,11 +102,11 @@ import BillingLetter from "./BillingLetter.vue";
 import BillingPayment from "./BillingPayment.vue";
 import BillingCheckout from "./BillingCheckout.vue";
 import BillingSuccesful from "./BillingSuccessful.vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import BaseDialog from "../BaseDialog.vue";
+import useCustomerStore from "@/store/modules/customer";
 
-const store = useStore();
+const customerStore = useCustomerStore();
 const showCheckoutDialog = defineModel({ default: false });
 const el = ref(1);
 const existingDefaultCard = ref(true);
@@ -133,7 +133,7 @@ const goToNextStep = () => {
 
 const subscribe = async () => {
   try {
-    await store.dispatch("customer/createSubscription");
+    await customerStore.createSubscription();
     el.value = 4;
   } catch (status) {
     switch (status) {

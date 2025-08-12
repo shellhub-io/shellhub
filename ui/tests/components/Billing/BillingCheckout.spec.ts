@@ -1,15 +1,18 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store } from "@/store";
 import BillingCheckout from "@/components/Billing/BillingCheckout.vue";
 import { billingApi } from "@/api/http";
+import useCustomerStore from "@/store/modules/customer";
 
 describe("Billing Checkout", () => {
   let wrapper: VueWrapper<InstanceType<typeof BillingCheckout>>;
+  setActivePinia(createPinia());
+  const customerStore = useCustomerStore();
   const vuetify = createVuetify();
-  let mock: MockAdapter;
+  const mockBillingApi = new MockAdapter(billingApi.getAxios());
 
   const customerData = {
     id: "cus_test123",
@@ -37,12 +40,12 @@ describe("Billing Checkout", () => {
     ],
   };
   beforeEach(async () => {
-    mock = new MockAdapter(billingApi.getAxios());
-    mock.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-    store.commit("customer/setCustomer", customerData);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
+    customerStore.customer = customerData;
+
     wrapper = mount(BillingCheckout, {
       global: {
-        plugins: [[store], vuetify],
+        plugins: [vuetify],
       },
     });
   });

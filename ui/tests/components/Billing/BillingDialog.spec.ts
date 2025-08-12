@@ -9,12 +9,14 @@ import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useCustomerStore from "@/store/modules/customer";
 
 type BillingDialogWrapper = VueWrapper<InstanceType<typeof BillingDialog>>;
 
 describe("Billing Dialog", () => {
   let wrapper: BillingDialogWrapper;
   setActivePinia(createPinia());
+  const customerStore = useCustomerStore();
   const vuetify = createVuetify();
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
   const mockBillingApi = new MockAdapter(billingApi.getAxios());
@@ -121,9 +123,9 @@ describe("Billing Dialog", () => {
 
     mockBillingApi.onPost("http://localhost:3000/api/billing/subscription").reply(200);
 
-    const subscribeSpy = vi.spyOn(store, "dispatch");
+    const subscribeSpy = vi.spyOn(customerStore, "createSubscription");
     await wrapper.findComponent('[data-test="checkout-button"]').trigger("click");
 
-    expect(subscribeSpy).toHaveBeenCalledWith("customer/createSubscription");
+    expect(subscribeSpy).toHaveBeenCalled();
   });
 });
