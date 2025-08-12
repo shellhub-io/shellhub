@@ -59,21 +59,20 @@
 import { onMounted, reactive, computed } from "vue";
 import { IPaymentMethod } from "@/interfaces/ICustomer";
 import BillingIcon from "@/components/Billing/BillingIcon.vue";
-import { store } from "@/store";
+import useCustomerStore from "@/store/modules/customer";
 
-const filter: IPaymentMethod = { brand: "", cvc: "", default: false, exp_year: 0, exp_month: 0, id: "", number: "" };
-const paymentMethod = reactive(filter);
-const consumerData = computed(() => store.getters["customer/getCustomer"]);
+const customerStore = useCustomerStore();
+const paymentMethod = reactive<IPaymentMethod>({ brand: "", cvc: "", default: false, exp_year: 0, exp_month: 0, id: "", number: "" });
+const customer = computed(() => customerStore.customer);
 
 onMounted(async () => {
-  await store.dispatch("customer/fetchCustomer");
-  const customerDetails = consumerData.value.data;
-  const pm = customerDetails.payment_methods?.filter((value: IPaymentMethod) => value.default === true)[0];
-  paymentMethod.brand = pm?.brand || "";
-  paymentMethod.cvc = pm?.cvc || "";
-  paymentMethod.exp_year = pm?.exp_year || 0;
-  paymentMethod.exp_month = pm?.exp_month || 0;
-  paymentMethod.number = pm?.number || "";
-  paymentMethod.default = pm?.default || false;
+  await customerStore.fetchCustomer();
+  const defaultPaymentMethod = customer.value.payment_methods?.filter((value: IPaymentMethod) => value.default === true)[0];
+  paymentMethod.brand = defaultPaymentMethod?.brand || "";
+  paymentMethod.cvc = defaultPaymentMethod?.cvc || "";
+  paymentMethod.exp_year = defaultPaymentMethod?.exp_year || 0;
+  paymentMethod.exp_month = defaultPaymentMethod?.exp_month || 0;
+  paymentMethod.number = defaultPaymentMethod?.number || "";
+  paymentMethod.default = defaultPaymentMethod?.default || false;
 });
 </script>

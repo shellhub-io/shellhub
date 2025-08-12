@@ -93,7 +93,7 @@
 </template>
 
 <script lang='ts' setup>
-import { onBeforeMount, onMounted, ref, reactive, computed } from "vue";
+import { onBeforeMount, onMounted, ref, computed } from "vue";
 import { loadStripe } from "@stripe/stripe-js";
 import { StripeElements, StripeElement } from "vue-stripe-js";
 import type { StripeConstructorOptions, StripeElementsOptions, StripeCardElementOptions } from "@stripe/stripe-js";
@@ -101,16 +101,14 @@ import BillingIcon from "./BillingIcon.vue";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
-import { ICustomer } from "@/interfaces/ICustomer";
-
-type CustomerInfo = Omit<ICustomer, "id">;
+import useCustomerStore from "@/store/modules/customer";
 
 const emit = defineEmits(["no-payment-methods", "has-default-payment", "customer-id-created"]);
 const stripeKey = computed(() => envVariables.stripeKey);
 const stripeLoaded = ref(false);
-const customer: CustomerInfo = reactive({ name: "", email: "", payment_methods: [] });
 const store = useStore();
-const consumerData = computed(() => store.getters["customer/getCustomer"]);
+const customerStore = useCustomerStore();
+const customer = computed(() => customerStore.customer);
 const card = ref();
 const elms = ref();
 const errorMessage = ref();
@@ -161,16 +159,9 @@ const cardOptions = ref<StripeCardElementOptions>({
 
 const fetchData = async () => {
   try {
-    await store.dispatch("customer/fetchCustomer");
-    const customerDetails = consumerData.value.data;
+    await customerStore.fetchCustomer();
 
-    Object.assign(customer, {
-      name: customerDetails?.name || "",
-      email: customerDetails?.email || "",
-      payment_methods: customerDetails?.payment_methods,
-    });
-
-    if (customerDetails.payment_methods?.length === 0 || customerDetails.payment_methods === null) {
+    if (customer.value.payment_methods?.length === 0 || customer.value.payment_methods === null) {
       emit("no-payment-methods");
     } else {
       emit("has-default-payment");
@@ -200,7 +191,7 @@ const savePayment = async () => {
     .then(async (result: { paymentMethod: { id: string; }; }) => {
       try {
         const id: string = result.paymentMethod.id || "";
-        await store.dispatch("customer/attachPaymentMethod", id);
+        await customerStore.attachPaymentMethod(id);
         await fetchData();
         alertRender.value = false;
         addNewCard.value = false;
@@ -223,7 +214,7 @@ const savePayment = async () => {
 
 const setDefaultPayment = async (id: string) => {
   try {
-    await store.dispatch("customer/setDefaultPaymentMethod", id).then(async () => {
+    await customerStore.setDefaultPaymentMethod(id).then(async () => {
       await fetchData();
     });
   } catch (error) {
@@ -233,7 +224,7 @@ const setDefaultPayment = async (id: string) => {
 
 const deletePaymentMethod = async (id: string) => {
   try {
-    await store.dispatch("customer/detachPaymentMethod", id).then(async () => {
+    await customerStore.detachPaymentMethod(id).then(async () => {
       await fetchData();
     });
   } catch (error) {
@@ -246,7 +237,7 @@ onMounted(async () => {
   await store.dispatch("namespaces/get", tenant.value);
   if (namespace.value.billing == null || namespace.value.billing.customer_id === "") {
     try {
-      await store.dispatch("customer/createCustomer");
+      await customerStore.createCustomer();
       emit("customer-id-created");
     } catch (error) {
       handleError(error);

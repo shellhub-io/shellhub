@@ -1,3 +1,4 @@
+import { setActivePinia, createPinia } from "pinia";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
@@ -7,15 +8,15 @@ import { store, key } from "@/store";
 import BillingPayment from "@/components/Billing/BillingPayment.vue";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useCustomerStore from "@/store/modules/customer";
 
 describe("Billing Payment", () => {
   let wrapper: VueWrapper<InstanceType<typeof BillingPayment>>;
-
+  setActivePinia(createPinia());
+  const customerStore = useCustomerStore();
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockCustomer: MockAdapter;
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+  const mockBillingApi = new MockAdapter(billingApi.getAxios());
 
   const members = [
     {
@@ -78,15 +79,11 @@ describe("Billing Payment", () => {
   };
 
   beforeEach(() => {
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
 
-    mockCustomer = new MockAdapter(billingApi.getAxios());
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockCustomer.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
 
     store.commit("namespaces/setNamespace", namespaceData);
 
@@ -127,41 +124,41 @@ describe("Billing Payment", () => {
 
   it("Detach payment method", async () => {
     await flushPromises();
-    mockCustomer.onPost("http://localhost:3000/api/billing/paymentmethod/detach").reply(200);
+    mockBillingApi.onPost("http://localhost:3000/api/billing/paymentmethod/detach").reply(200);
 
-    const detachPaymentMethodSpy = vi.spyOn(store, "dispatch");
+    const detachPaymentMethodSpy = vi.spyOn(customerStore, "detachPaymentMethod");
 
     await wrapper.findComponent('[data-test="payment-methods-delete-btn"]').trigger("click");
 
-    expect(detachPaymentMethodSpy).toHaveBeenCalledWith("customer/detachPaymentMethod", "pm_test123");
+    expect(detachPaymentMethodSpy).toHaveBeenCalledWith("pm_test123");
   });
 
   it("Set default payment method", async () => {
     await flushPromises();
-    mockCustomer.onPost("http://localhost:3000/api/billing/paymentmethod/default").reply(200);
+    mockBillingApi.onPost("http://localhost:3000/api/billing/paymentmethod/default").reply(200);
 
-    const defaultPaymentMethodSpy = vi.spyOn(store, "dispatch");
+    const defaultPaymentMethodSpy = vi.spyOn(customerStore, "setDefaultPaymentMethod");
 
     await wrapper.findComponent('[data-test="payment-methods-item"]').trigger("click");
 
-    expect(defaultPaymentMethodSpy).toHaveBeenCalledWith("customer/setDefaultPaymentMethod", "pm_test123");
+    expect(defaultPaymentMethodSpy).toHaveBeenCalledWith("pm_test123");
   });
 
   // TODO STRIPE TEST SAVE PAYMENT METHOD
   // it("Saves the payment method", async () => {
-  //   mockCustomer.onPost("http://localhost:3000/api/billing/paymentmethod/attach", { stripeTestCard }).reply(200);
-  //   const addPaymentMethodSpy = vi.spyOn(store, "dispatch");
+  //   mockBillingApi.onPost("http://localhost:3000/api/billing/paymentmethod/attach", { stripeTestCard }).reply(200);
+  //   const addPaymentMethodSpy = vi.spyOn(customerStore, "attachPaymentMethod");
   //   wrapper.vm.addNewCard = true;
   //   await wrapper.find('[data-test="add-card-btn"]').trigger("click");
   //   vi.runOnlyPendingTimers();
-  //   expect(addPaymentMethodSpy).toHaveBeenCalledWith("customer/attachPaymentMethod", stripeTestCard);
+  //   expect(addPaymentMethodSpy).toHaveBeenCalledWith(stripeTestCard);
   // });
 
   // it("Fails to save the payment method", async () => {
   //   await flushPromises();
-  //   mockCustomer.onPost("http://localhost:3000/api/billing/paymentmethod/attach").reply(424);
+  //   mockBillingApi.onPost("http://localhost:3000/api/billing/paymentmethod/attach").reply(424);
   //   wrapper.vm.addNewCard = true;
-  //   const addPaymentMethodSpy = vi.spyOn(store, "dispatch");
+  //   const addPaymentMethodSpy = vi.spyOn(customerStore, "attachPaymentMethod");
   //   await wrapper.findComponent('[data-test="payment-methods-item"]').trigger("click");
   // });
 });
