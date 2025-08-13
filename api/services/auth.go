@@ -159,7 +159,19 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 	} else {
-		if err := s.store.DeviceUpdate(ctx, req.TenantID, uid, &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil}); err != nil {
+		changes := &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil}
+
+		if req.Info != nil {
+			changes.Info = &models.DeviceInfo{
+				ID:         req.Info.ID,
+				PrettyName: req.Info.PrettyName,
+				Version:    req.Info.Version,
+				Arch:       req.Info.Arch,
+				Platform:   req.Info.Platform,
+			}
+		}
+
+		if err := s.store.DeviceUpdate(ctx, req.TenantID, uid, changes); err != nil {
 			log.WithError(err).Error("failed to updated device to online")
 
 			return nil, err

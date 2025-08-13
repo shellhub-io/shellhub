@@ -96,6 +96,7 @@ func NewDeviceTag(tag string) DeviceTag {
 }
 
 type DeviceChanges struct {
+	Info           *DeviceInfo  `bson:"info,omitempty"`
 	Name           string       `bson:"name,omitempty"`
 	LastSeen       time.Time    `bson:"last_seen,omitempty"`
 	DisconnectedAt *time.Time   `bson:"disconnected_at"`
