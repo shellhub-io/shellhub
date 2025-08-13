@@ -155,6 +155,53 @@ func TestAuthDevice(t *testing.T) {
 			},
 		},
 		{
+			description: "[device exists] fails when cannot update device with info",
+			req: requests.DeviceAuth{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Hostname: "hostname",
+				Identity: &requests.DeviceIdentity{MAC: ""},
+				Info: &requests.DeviceInfo{
+					ID:         "test",
+					PrettyName: "Test",
+					Version:    "v0.20.0",
+					Arch:       "arch64",
+					Platform:   "native",
+				},
+				PublicKey: "",
+				RealIP:    "127.0.0.1",
+			},
+			requiredMocks: func(ctx context.Context) {
+				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Once()
+				cacheMock.
+					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{Info: &models.DeviceInfo{
+						ID:         "test",
+						PrettyName: "Test",
+						Version:    "v0.20.0",
+						Arch:       "arch64",
+						Platform:   "native",
+					}, LastSeen: now, DisconnectedAt: nil}).
+					Return(errors.New("error", "store", 0)).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: errors.New("error", "store", 0),
+			},
+		},
+		{
 			description: "[device exists] fails when cannot set device as online",
 			req: requests.DeviceAuth{
 				TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -270,6 +317,63 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("SessionSetLastSeen", ctx, models.UID("session_2")).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.DeviceAuthResponse{
+					UID:       toUID("00000000-0000-4000-0000-000000000000", "hostname", "", ""),
+					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")),
+					Name:      "hostname",
+					Namespace: "test",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "[device exists] succeeds to authenticate device with info",
+			req: requests.DeviceAuth{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Hostname: "hostname",
+				Identity: &requests.DeviceIdentity{MAC: ""},
+				Info: &requests.DeviceInfo{
+					ID:         "test",
+					PrettyName: "Test",
+					Version:    "v0.20.0",
+					Arch:       "arch64",
+					Platform:   "native",
+				},
+				PublicKey: "",
+				Sessions:  []string{},
+				RealIP:    "127.0.0.1",
+			},
+			requiredMocks: func(ctx context.Context) {
+				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Once()
+				cacheMock.
+					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{Info: &models.DeviceInfo{
+						ID:         "test",
+						PrettyName: "Test",
+						Version:    "v0.20.0",
+						Arch:       "arch64",
+						Platform:   "native",
+					}, LastSeen: now, DisconnectedAt: nil}).
 					Return(nil).
 					Once()
 				cacheMock.
