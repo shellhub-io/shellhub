@@ -154,9 +154,14 @@ snap_install() {
     echo "🚀 Starting ShellHub snap service..."
 
     {
+        if [ -n "${PREFERRED_HOSTNAME}" ]; then
+            sudo snap set shellhub preferred-hostname="${PREFERRED_HOSTNAME}"
+        fi
+
         sudo snap set shellhub server-address="$SERVER_ADDRESS"
         sudo snap set shellhub tenant-id="$TENANT_ID"
         sudo snap set shellhub private-key="${PRIVATE_KEY:-/etc/shellhub.key}"
+
         sudo snap start shellhub
     } || { echo "❌ Failed to start ShellHub snap service."; exit 1; }
 }
