@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"net/url"
@@ -59,10 +60,21 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 
 	const RetryAfterHeader string = "Retry-After"
 
-	// DefaultMaxRetryWaitTime is the default value for wait time between retries.
-	const DefaultMaxRetryWaitTime time.Duration = 1 * time.Hour
-	// DefaultRetryAfterTime is the retry default time when the header [RetryAfterHeader] isn't defined on the response.
-	const DefaultRetryAfterTime time.Duration = 5 * time.Second
+	// MaxRetryWaitTime is the default value for wait time between retries.
+	const MaxRetryWaitTime time.Duration = 1 * time.Hour
+
+	randomWaitTimeSecs := func() time.Duration {
+		const MinRetryAfterSecs int = 5
+		const MaxRetryAfterSecs int = 65
+
+		t := time.Duration(rand.IntN(MaxRetryAfterSecs-MinRetryAfterSecs)+MinRetryAfterSecs) * time.Second //nolint:gosec
+
+		log.WithFields(log.Fields{
+			"retry_after": t,
+		}).Warn("retrying request after a random time period")
+
+		return t
+	}
 
 	client := new(client)
 	client.http = resty.New()
@@ -104,7 +116,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 		case http.StatusTooManyRequests, http.StatusServiceUnavailable:
 			retryAfterHeader := r.Header().Get(RetryAfterHeader)
 			if retryAfterHeader == "" {
-				return DefaultRetryAfterTime, nil
+				return randomWaitTimeSecs(), nil
 			}
 
 			// NOTE: The `Retry-After` supports delay in seconds and and a date time, but currently we will support only
@@ -112,21 +124,21 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After
 			retryAfterSeconds, err := strconv.Atoi(retryAfterHeader)
 			if err != nil {
-				return DefaultRetryAfterTime, err
+				return randomWaitTimeSecs(), err
 			}
 
 			log.WithFields(log.Fields{
 				"status":      r.StatusCode(),
 				"retry_after": retryAfterSeconds,
 				"url":         r.Request.URL,
-			}).Debug("retrying request after a defined time period")
+			}).Warn("retrying request after a defined time period")
 
 			return time.Duration(retryAfterSeconds) * time.Second, nil
 		default:
-			return DefaultRetryAfterTime, nil
+			return randomWaitTimeSecs(), nil
 		}
 	})
-	client.http.SetRetryMaxWaitTime(DefaultMaxRetryWaitTime)
+	client.http.SetRetryMaxWaitTime(MaxRetryWaitTime)
 
 	if client.logger != nil {
 		client.http.SetLogger(&LeveledLogger{client.logger})
