@@ -56,6 +56,46 @@ func (_m *QueryOptions) Match(fs *query.Filters) store.QueryOption {
 	return r0
 }
 
+// Paginate provides a mock function with given fields: paginator
+func (_m *QueryOptions) Paginate(paginator *query.Paginator) store.QueryOption {
+	ret := _m.Called(paginator)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Paginate")
+	}
+
+	var r0 store.QueryOption
+	if rf, ok := ret.Get(0).(func(*query.Paginator) store.QueryOption); ok {
+		r0 = rf(paginator)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+
+	return r0
+}
+
+// Sort provides a mock function with given fields: sorter
+func (_m *QueryOptions) Sort(sorter *query.Sorter) store.QueryOption {
+	ret := _m.Called(sorter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Sort")
+	}
+
+	var r0 store.QueryOption
+	if rf, ok := ret.Get(0).(func(*query.Sorter) store.QueryOption); ok {
+		r0 = rf(sorter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.QueryOption)
+		}
+	}
+
+	return r0
+}
+
 // WithDeviceStatus provides a mock function with given fields: _a0
 func (_m *QueryOptions) WithDeviceStatus(_a0 models.DeviceStatus) store.QueryOption {
 	ret := _m.Called(_a0)

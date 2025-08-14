@@ -8,8 +8,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
@@ -18,7 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, opts ...store.QueryOption) ([]models.Namespace, int, error) {
+func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	query := []bson.M{}
 
 	// Only match for the respective tenant if requested
@@ -125,8 +123,6 @@ func (s *Store) NamespaceList(ctx context.Context, paginator query.Paginator, op
 	if err != nil {
 		return nil, 0, err
 	}
-
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	namespaces := make([]models.Namespace, 0)
 	cursor, err := s.db.Collection("namespaces").Aggregate(ctx, query)

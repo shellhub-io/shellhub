@@ -20,4 +20,12 @@ type QueryOptions interface {
 
 	// Match applies the provided query filters to match records
 	Match(fs *query.Filters) QueryOption
+
+	// Paginate applies pagination to limit the number of records returned.
+	// If paginator is nil, no pagination is applied.
+	Paginate(paginator *query.Paginator) QueryOption
+
+	// Sort applies sorting criteria to order the returned records.
+	// If sorter is nil, no specific sorting is applied.
+	Sort(sorter *query.Sorter) QueryOption
 }

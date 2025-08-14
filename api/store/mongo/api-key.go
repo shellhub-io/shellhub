@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -80,13 +78,19 @@ func (s *Store) APIKeyConflicts(ctx context.Context, tenantID string, target *mo
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (s *Store) APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
+func (s *Store) APIKeyList(ctx context.Context, tenantID string, opts ...store.QueryOption) ([]models.APIKey, int, error) {
 	query := []bson.M{
 		{
 			"$match": bson.M{
 				"tenant_id": tenantID,
 			},
 		},
+	}
+
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
 	}
 
 	queryCount := append(query, bson.M{"$count": "count"})
@@ -98,9 +102,6 @@ func (s *Store) APIKeyList(ctx context.Context, tenantID string, paginator query
 	if count == 0 {
 		return []models.APIKey{}, 0, nil
 	}
-
-	query = append(query, queries.FromSorter(&sorter)...)
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	cursor, err := s.db.Collection("api_keys").Aggregate(ctx, query)
 	if err != nil {

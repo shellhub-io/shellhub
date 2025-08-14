@@ -137,7 +137,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 }
 
 func (s *service) ListPublicKeys(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
-	return s.store.PublicKeyList(ctx, paginator)
+	return s.store.PublicKeyList(ctx, s.store.Options().Paginate(&paginator))
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {

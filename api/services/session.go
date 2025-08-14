@@ -20,7 +20,7 @@ type SessionService interface {
 }
 
 func (s *service) ListSessions(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
-	return s.store.SessionList(ctx, paginator)
+	return s.store.SessionList(ctx, s.store.Options().Paginate(&paginator))
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {

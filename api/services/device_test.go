@@ -51,8 +51,16 @@ func TestListDevices(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -76,8 +84,16 @@ func TestListDevices(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -135,8 +151,16 @@ func TestListDevices_status_removed(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "", 0)).
 					Once()
 			},
@@ -160,8 +184,16 @@ func TestListDevices_status_removed(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{{Name: "dev"}}, 1, nil).
 					Once()
 			},
@@ -219,6 +251,18 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				Filters:      query.Filters{},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error", "", 0)).
@@ -252,8 +296,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -285,8 +337,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -318,8 +378,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -351,8 +419,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -388,8 +464,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -425,8 +509,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -462,8 +554,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -499,8 +599,16 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					On("Match", &query.Filters{}).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusAccepted, query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "created_at", Order: "asc"}, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, models.DeviceStatusAccepted, store.DeviceAcceptableIfNotAccepted, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
