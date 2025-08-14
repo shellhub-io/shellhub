@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -25,7 +24,7 @@ type APIKeyStore interface {
 
 	// APIKeyList retrieves a list of API keys for the specified tenant using the given paginator and sorter values.
 	// Returns the list of API keys, the total count of matched documents, and an error if any.
-	APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) (apiKeys []models.APIKey, count int, err error)
+	APIKeyList(ctx context.Context, tenantID string, opts ...QueryOption) (apiKeys []models.APIKey, count int, err error)
 
 	// APIKeyUpdate updates an API key with the specified name and tenant ID using the given changes.
 	// Any zero values in the changes (e.g., empty strings) will be ignored during the update.

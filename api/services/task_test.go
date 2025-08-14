@@ -95,8 +95,8 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 func TestService_DeviceCleanup(t *testing.T) {
 	ctx := context.Background()
 
-	matchFilterWithTime := func(expectedOperator string) func(query.Filters) bool {
-		return func(filters query.Filters) bool {
+	matchFilterWithTime := func(expectedOperator string) func(*query.Filters) bool {
+		return func(filters *query.Filters) bool {
 			if len(filters.Data) != 1 {
 				return false
 			}
@@ -138,6 +138,9 @@ func TestService_DeviceCleanup(t *testing.T) {
 	now := time.Now()
 	clockMock.On("Now").Return(now)
 
+	queryOptionsMock := new(storemocks.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
+
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 	sorter := query.Sorter{
 		By:    "status_updated_at",
@@ -152,8 +155,12 @@ func TestService_DeviceCleanup(t *testing.T) {
 		{
 			description: "fails when cannot get total count of removed devices",
 			requiredMocks: func() {
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("database error")).
 					Once()
 			},
@@ -162,8 +169,12 @@ func TestService_DeviceCleanup(t *testing.T) {
 		{
 			description: "succeeds with no removed devices to cleanup",
 			requiredMocks: func() {
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -172,12 +183,32 @@ func TestService_DeviceCleanup(t *testing.T) {
 		{
 			description: "fails when cannot list devices for a page",
 			requiredMocks: func() {
-				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
-					Return([]models.Device{}, 1000, nil).
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 0, PerPage: 1000}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					Return([]models.Device{}, 1000, nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("page error")).
 					Once()
 			},
@@ -186,12 +217,28 @@ func TestService_DeviceCleanup(t *testing.T) {
 		{
 			description: "fails when cannot delete some devices",
 			requiredMocks: func() {
-				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
-					Return([]models.Device{}, 2, nil).
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 0, PerPage: 1000}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					Return([]models.Device{}, 2, nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
@@ -215,12 +262,28 @@ func TestService_DeviceCleanup(t *testing.T) {
 		{
 			description: "fails when cannot update counters",
 			requiredMocks: func() {
-				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
-					Return([]models.Device{}, 3, nil).
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 0, PerPage: 1000}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					Return([]models.Device{}, 3, nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
@@ -257,12 +320,28 @@ func TestService_DeviceCleanup(t *testing.T) {
 		{
 			description: "succeeds deleting all old removed devices and updates counters",
 			requiredMocks: func() {
-				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
-					Return([]models.Device{}, 3, nil).
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 0, PerPage: 1000}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					Return([]models.Device{}, 3, nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
@@ -299,12 +378,28 @@ func TestService_DeviceCleanup(t *testing.T) {
 		{
 			description: "succeeds with multiple pages and updates counters correctly",
 			requiredMocks: func() {
-				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
-					Return([]models.Device{}, 2001, nil).
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 0, PerPage: 1000}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption")).
+					Return([]models.Device{}, 2001, nil).
+					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
@@ -317,8 +412,20 @@ func TestService_DeviceCleanup(t *testing.T) {
 					On("DeviceDelete", ctx, models.UID("device-1")).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 1, PerPage: 1000}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
 							{UID: "device-2", TenantID: "tenant-2", StatusUpdatedAt: thirtyDaysAgo},
@@ -331,8 +438,20 @@ func TestService_DeviceCleanup(t *testing.T) {
 					On("DeviceDelete", ctx, models.UID("device-2")).
 					Return(nil).
 					Once()
+				queryOptionsMock.
+					On("Match", mock.MatchedBy(matchFilterWithTime("lt"))).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &sorter).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 2, PerPage: 1000}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceList", ctx, models.DeviceStatusRemoved, query.Paginator{Page: 2, PerPage: 1000}, mock.MatchedBy(matchFilterWithTime("lt")), sorter, store.DeviceAcceptableAsFalse).
+					On("DeviceList", ctx, models.DeviceStatusRemoved, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 2001, nil).
 					Once()
 				storeMock.

@@ -8,7 +8,7 @@ import (
 	goerrors "errors"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mocks"
+	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
@@ -16,10 +16,13 @@ import (
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestListSessions(t *testing.T) {
-	mock := new(mocks.Store)
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	ctx := context.TODO()
 
@@ -39,7 +42,11 @@ func TestListSessions(t *testing.T) {
 			description: "fails",
 			paginator:   query.Paginator{Page: 1, PerPage: 10},
 			requiredMocks: func(paginator query.Paginator) {
-				mock.On("SessionList", ctx, paginator).
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption")).
 					Return(nil, 0, goerrors.New("error")).Once()
 			},
 			expected: Expected{
@@ -57,7 +64,11 @@ func TestListSessions(t *testing.T) {
 					{UID: "uid2"},
 					{UID: "uid3"},
 				}
-				mock.On("SessionList", ctx, paginator).
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption")).
 					Return(sessions, len(sessions), nil).Once()
 			},
 			expected: Expected{
@@ -80,17 +91,17 @@ func TestListSessions(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks(tc.paginator)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			returnedSessions, count, err := service.ListSessions(ctx, tc.paginator)
 			assert.Equal(t, tc.expected, Expected{returnedSessions, count, err})
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestGetSession(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -148,7 +159,7 @@ func TestGetSession(t *testing.T) {
 }
 
 func TestCreateSession(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -217,7 +228,7 @@ func TestCreateSession(t *testing.T) {
 }
 
 func TestDeactivateSession(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -280,7 +291,7 @@ func TestDeactivateSession(t *testing.T) {
 }
 
 func TestUpdateSession(t *testing.T) {
-	mockStore := new(mocks.Store)
+	mockStore := new(storemock.Store)
 	ctx := context.Background()
 	uid := models.UID("test-uid")
 	updateModel := models.SessionUpdate{}

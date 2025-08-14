@@ -6,15 +6,13 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
+func (s *Store) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
 	query := []bson.M{}
 
 	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
@@ -46,11 +44,11 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters
 		},
 	}...)
 
-	queryMatch, err := queries.FromFilters(&filters)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
 	}
-	query = append(query, queryMatch...)
 
 	queryCount := query
 	queryCount = append(queryCount, bson.M{"$count": "count"})
@@ -58,8 +56,6 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	users := make([]models.User, 0)
 	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
@@ -121,13 +117,14 @@ func (s *Store) UserResolve(ctx context.Context, resolver store.UserResolver, va
 		matchStage["username"] = value
 	}
 
+	query := []bson.M{{"$match": matchStage}}
 	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
 			return nil, err
 		}
 	}
 
-	cursor, err := s.db.Collection("users").Aggregate(ctx, []bson.M{{"$match": matchStage}})
+	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
