@@ -109,7 +109,7 @@
                 <CopyWarning :copied-item="'Recovery codes'">
                   <template #default="{ copyText }">
                     <v-btn
-                      @click="copyText(recoveryCodes.value.join('\n'))"
+                      @click="copyText(recoveryCodes.join('\n'))"
                       color="primary"
                       tabindex="0"
                       variant="elevated"
