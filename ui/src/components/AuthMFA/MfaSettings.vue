@@ -258,7 +258,7 @@
 <script setup lang="ts">
 import * as yup from "yup";
 import { useField } from "vee-validate";
-import { ref, computed, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
 import QrcodeVue from "qrcode.vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
@@ -275,7 +275,7 @@ const showDialog = defineModel({ default: false });
 const value = computed(() => store.getters["auth/link_mfa"]);
 const secret = computed(() => store.getters["auth/secret"]);
 const recoveryCodes = computed(() => store.getters["auth/recoveryCodes"]);
-const hasRecoverMail = computed(() => store.getters["auth/recoveryEmail"]);
+const hasRecoveryEmail = computed(() => store.getters["auth/recoveryEmail"]);
 const verificationCode = ref("");
 const checkbox = ref(false);
 const errorAlert = ref(false);
@@ -302,6 +302,20 @@ const {
   },
 );
 
+const generateMfa = async () => {
+  try {
+    await store.dispatch("auth/generateMfa");
+    checkbox.value = false;
+  } catch (error) {
+    handleError(error);
+  }
+};
+
+const goToNextStep = async () => {
+  el.value++;
+  if (el.value === 2) await generateMfa();
+};
+
 const updateUserData = async () => {
   const data = {
     id: store.getters["auth/id"],
@@ -313,6 +327,7 @@ const updateUserData = async () => {
     store.dispatch("auth/changeRecoveryEmail", data.recovery_email);
     snackbar.showSuccess("Recovery email updated successfully.");
     emit("resetForm");
+    goToNextStep();
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -329,28 +344,6 @@ const updateUserData = async () => {
     }
   }
 };
-
-watch(
-  () => showDialog.value,
-  async (newValue) => {
-    if (newValue) {
-      if (!hasRecoverMail.value) {
-        el.value = 1;
-        return;
-      }
-      el.value = 2;
-    }
-  },
-);
-
-watch(() => el.value === 2, async () => {
-  try {
-    await store.dispatch("auth/generateMfa");
-    checkbox.value = false;
-  } catch (error) {
-    handleError(error);
-  }
-});
 
 const downloadRecoveryCodes = () => {
   const codesText = recoveryCodes.value.join("\n");
@@ -396,9 +389,12 @@ const close = () => {
   errorAlert.value = false;
 };
 
-const goToNextStep = () => {
-  el.value++;
-};
+onMounted(async () => {
+  if (hasRecoveryEmail.value) {
+    await generateMfa();
+    el.value = 2;
+  }
+});
 
 defineExpose({
   goToNextStep,
