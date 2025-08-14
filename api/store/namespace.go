@@ -14,6 +14,17 @@ const (
 	NamespaceNameResolver
 )
 
+func (r NamespaceResolver) String() string {
+	switch r {
+	case NamespaceTenantIDResolver:
+		return "id"
+	case NamespaceNameResolver:
+		return "name"
+	default:
+		return "" // TODO: error
+	}
+}
+
 type NamespaceStore interface {
 	// NamespaceList retrieves a list of namespaces based on the provided filters and pagination settings.
 	// If the user ID is available in the context, it will only match namespaces that the user is a member

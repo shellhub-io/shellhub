@@ -15,6 +15,19 @@ const (
 	UserUsernameResolver
 )
 
+func (r UserResolver) String() string {
+	switch r {
+	case UserIDResolver:
+		return "id"
+	case UserEmailResolver:
+		return "email"
+	case UserUsernameResolver:
+		return "username"
+	default:
+		return "" // TODO: error
+	}
+}
+
 type UserStore interface {
 	UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error)
 

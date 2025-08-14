@@ -27,6 +27,19 @@ const (
 	DeviceMACResolver
 )
 
+func (r DeviceResolver) String() string {
+	switch r {
+	case DeviceUIDResolver:
+		return "id"
+	case DeviceMACResolver:
+		return "mac"
+	case DeviceHostnameResolver:
+		return "name"
+	default:
+		return "" // TODO: error
+	}
+}
+
 type DeviceStore interface {
 	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
 	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)
