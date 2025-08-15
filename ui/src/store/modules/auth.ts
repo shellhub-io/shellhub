@@ -1,6 +1,5 @@
 import { Module } from "vuex";
 import { AxiosError } from "axios";
-import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import * as apiAuth from "../api/auth";
 import * as apiNamespace from "../api/namespaces";
 import { IUserLogin } from "@/interfaces/IUserLogin";
@@ -348,12 +347,6 @@ export const auth: Module<AuthState, State> = {
       localStorage.removeItem("role");
       localStorage.removeItem("mfa");
       localStorage.removeItem("recovery_email");
-      const chatIsCreated = context.rootGetters["support/getCreatedStatus"];
-      if (chatIsCreated) {
-        const { reset, toggle } = useChatWoot();
-        toggle("close");
-        reset();
-      }
     },
 
     changeUserData(context, data) {

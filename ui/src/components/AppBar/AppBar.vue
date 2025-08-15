@@ -100,7 +100,6 @@ import {
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
-import { useEventListener } from "@vueuse/core";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
@@ -126,6 +125,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
+const { setUser, setConversationCustomAttributes, toggle, reset } = useChatWoot();
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
@@ -133,6 +133,7 @@ const snackbar = useSnackbar();
 const getStatusDarkMode = computed(
   () => store.getters["layout/getStatusDarkMode"],
 );
+const isChatCreated = computed(() => store.getters["support/getCreatedStatus"]);
 const tenant = computed(() => store.getters["auth/tenant"]);
 const userEmail = computed(() => store.getters["auth/email"]);
 const userId = computed(() => store.getters["auth/id"]);
@@ -161,6 +162,11 @@ const logout = async () => {
     await store.dispatch("auth/logout");
     await store.dispatch("stats/clear");
     await store.dispatch("namespaces/clearNamespaceList");
+    if (isChatCreated.value) {
+      toggle("close");
+      reset();
+      store.commit("support/setCreatedStatus", false);
+    }
     await router.push({ name: "Login" });
   } catch (error: unknown) {
     handleError(error);
@@ -174,8 +180,6 @@ const toggleDarkMode = () => {
 
 const openChatwoot = async (): Promise<void> => {
   try {
-    const { setUser, setConversationCustomAttributes, toggle } = useChatWoot();
-
     await store.dispatch("support/get", tenant.value);
 
     setUser(userId.value, {
@@ -184,13 +188,22 @@ const openChatwoot = async (): Promise<void> => {
       identifier_hash: identifier.value,
     });
 
-    useEventListener(window, "chatwoot:on-message", () => {
-      setConversationCustomAttributes({
-        namespace: store.getters["namespaces/get"].name,
-        tenant: tenant.value,
-        domain: window.location.hostname,
-      });
-    });
+    window.addEventListener(
+      "chatwoot:on-message",
+      () => {
+        setConversationCustomAttributes({
+          namespace: store.getters["namespaces/get"].name,
+          tenant: tenant.value,
+          domain: window.location.hostname,
+        });
+      },
+      { once: true },
+    );
+
+    const holder = document.querySelector(".woot-widget-holder");
+    if (holder) {
+      window.dispatchEvent(new CustomEvent("chatwoot:ready"));
+    }
 
     store.commit("support/setCreatedStatus", true);
     toggle("open");
