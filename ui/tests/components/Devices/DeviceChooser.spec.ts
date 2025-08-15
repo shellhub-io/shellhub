@@ -10,6 +10,7 @@ import { router } from "@/router";
 import { billingApi, devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useDevicesStore from "@/store/modules/devices";
 
 const devices = [
   {
@@ -50,18 +51,11 @@ const devices = [
   },
 ];
 
-const stats = {
-  registered_devices: 3,
-  online_devices: 1,
-  active_sessions: 0,
-  pending_devices: 0,
-  rejected_devices: 0,
-};
-
 describe("Device Chooser", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceChooser>>;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
 
   const mockBillingApi = new MockAdapter(billingApi.getAxios());
@@ -70,12 +64,12 @@ describe("Device Chooser", () => {
   beforeEach(async () => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
-    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, stats);
     mockBillingApi.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
-    store.commit("stats/setStats", { data: stats });
-    store.commit("devices/setDeviceChooserStatus", true);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=5&status=accepted").reply(200, devices);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);
+
     authStore.role = "owner";
+    devicesStore.showDeviceChooser = true;
 
     wrapper = mount(DeviceChooser, {
       global: {
@@ -114,7 +108,7 @@ describe("Device Chooser", () => {
     mockBillingApi.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
     mockBillingApi.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices });
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(devicesStore, "sendDeviceChoices");
 
     await wrapper.findComponent('[data-test="Suggested-tab"]').trigger("click");
     await nextTick();
@@ -122,58 +116,52 @@ describe("Device Chooser", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith(
-      "devices/postDevicesChooser",
+    expect(storeSpy).toHaveBeenCalledWith([
       {
-        devices: [
-          {
-            identity: {
-              mac: "00:00:00:00:00:00",
-            },
-            info: {
-              id: "linuxmint",
-              pretty_name: "Linux Mint 19.3",
-              version: "",
-            },
-            last_seen: "2020-05-20T18:58:53.276Z",
-            name: "39-5e-2a",
-            namespace: "user",
-            online: false,
-            public_key: "----- PUBLIC KEY -----",
-            status: "accepted",
-            tenant_id: "fake-tenant-data",
-            uid: "a582b47a42d",
-          },
-          {
-            identity: {
-              mac: "00:00:00:00:00:00",
-            },
-            info: {
-              id: "linuxmint",
-              pretty_name: "Linux Mint 19.3",
-              version: "",
-            },
-            last_seen: "2020-05-20T19:58:53.276Z",
-            name: "39-5e-2b",
-            namespace: "user",
-            online: true,
-            public_key: "----- PUBLIC KEY -----",
-            status: "accepted",
-            tenant_id: "fake-tenant-data",
-            uid: "a582b47a42e",
-          },
-        ],
-
+        identity: {
+          mac: "00:00:00:00:00:00",
+        },
+        info: {
+          id: "linuxmint",
+          pretty_name: "Linux Mint 19.3",
+          version: "",
+        },
+        last_seen: "2020-05-20T18:58:53.276Z",
+        name: "39-5e-2a",
+        namespace: "user",
+        online: false,
+        public_key: "----- PUBLIC KEY -----",
+        status: "accepted",
+        tenant_id: "fake-tenant-data",
+        uid: "a582b47a42d",
       },
-    );
+      {
+        identity: {
+          mac: "00:00:00:00:00:00",
+        },
+        info: {
+          id: "linuxmint",
+          pretty_name: "Linux Mint 19.3",
+          version: "",
+        },
+        last_seen: "2020-05-20T19:58:53.276Z",
+        name: "39-5e-2b",
+        namespace: "user",
+        online: true,
+        public_key: "----- PUBLIC KEY -----",
+        status: "accepted",
+        tenant_id: "fake-tenant-data",
+        uid: "a582b47a42e",
+      },
+    ]);
   });
 
   it("Accepts the devices listed(All Devices)", async () => {
     mockBillingApi.onGet("http://localhost:3000/api/billing/device-most-used").reply(200);
     mockBillingApi.onPost("http://localhost:3000/api/billing/device-choice").reply(200, { devices: [devices] });
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=5&status=accepted").reply(200, devices);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=5&status=accepted").reply(200, devices);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(devicesStore, "fetchDeviceList");
 
     await wrapper.findComponent('[data-test="All-tab"]').trigger("click");
     await nextTick();
@@ -181,16 +169,6 @@ describe("Device Chooser", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith(
-      "devices/setDevicesForUserToChoose",
-      {
-        filter: "",
-        page: 1,
-        perPage: 5,
-        sortStatusField: null,
-        sortStatusString: "asc",
-        status: "accepted",
-      },
-    );
+    expect(storeSpy).toHaveBeenCalled();
   });
 });

@@ -5,9 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import Devices from "@/views/Devices.vue";
 import { devicesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
+import useDevicesStore from "@/store/modules/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
 type DevicesWrapper = VueWrapper<InstanceType<typeof Devices>>;
 
@@ -15,9 +16,10 @@ describe("Devices View", () => {
   let wrapper: DevicesWrapper;
   setActivePinia(createPinia());
   const vuetify = createVuetify();
-  const mockDevices = new MockAdapter(devicesApi.getAxios());
+  const devicesStore = useDevicesStore();
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
-  const devices = [
+  const mockDevices = [
     {
       uid: "a582b47a42d",
       name: "39-5e-2a",
@@ -57,16 +59,16 @@ describe("Devices View", () => {
   ];
 
   beforeEach(async () => {
-    mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(
       200,
-      { data: devices, headers: { "x-total-count": 2 } },
+      { data: mockDevicesApi, headers: { "x-total-count": 2 } },
     );
 
-    store.commit("devices/setDevices", { data: devices, headers: { "x-total-count": 2 } });
+    devicesStore.devices = mockDevices as IDevice[];
 
     wrapper = mount(Devices, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -93,8 +95,8 @@ describe("Devices View", () => {
   });
 
   it("Shows the no items message when there are no public keys", async () => {
-    mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(200, []);
-    store.commit("devices/setDevices", { data: [], headers: { "x-total-count": 0 } });
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(200, []);
+    devicesStore.devices = [];
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Devices");
   });

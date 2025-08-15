@@ -3,16 +3,17 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
-import { store, key } from "@/store";
 import DeviceRename from "@/components/Devices/DeviceRename.vue";
 import { devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useDevicesStore from "@/store/modules/devices";
 
 type DeviceRenameWrapper = VueWrapper<InstanceType<typeof DeviceRename>>;
 
 describe("Device Rename", () => {
   let wrapper: DeviceRenameWrapper;
   setActivePinia(createPinia());
+  const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
 
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
@@ -20,10 +21,11 @@ describe("Device Rename", () => {
   beforeEach(async () => {
     wrapper = mount(DeviceRename, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         uid: "a582b47a42d",
+        name: "39-5e-2a",
       },
     });
   });
@@ -61,14 +63,14 @@ describe("Device Rename", () => {
 
     mockDevicesApi.onPut("http://localhost:3000/api/devices/a582b47a42d").reply(200);
 
-    const deviceSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(devicesStore, "renameDevice");
 
     await wrapper.findComponent('[data-test="rename-field"]').setValue("renamed-device");
     await wrapper.findComponent('[data-test="rename-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(deviceSpy).toHaveBeenCalledWith("devices/rename", {
+    expect(storeSpy).toHaveBeenCalledWith({
       uid: "a582b47a42d",
       name: { name: "renamed-device" },
     });
@@ -81,14 +83,14 @@ describe("Device Rename", () => {
 
     mockDevicesApi.onPut("http://localhost:3000/api/devices/a582b47a42d").reply(400);
 
-    const deviceSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(devicesStore, "renameDevice");
 
     await wrapper.findComponent('[data-test="rename-field"]').setValue("badly renamed device");
     await wrapper.findComponent('[data-test="rename-btn"]').trigger("click");
 
     await flushPromises();
 
-    expect(deviceSpy).toHaveBeenCalledWith("devices/rename", {
+    expect(storeSpy).toHaveBeenCalledWith({
       uid: "a582b47a42d",
       name: { name: "badly renamed device" },
     });

@@ -5,7 +5,7 @@
       v-model:itemsPerPage="itemsPerPage"
       :headers
       :items="devices"
-      :totalCount="numberDevices"
+      :totalCount="devices.length"
       :loading
       data-test="devices-dataTable"
     >
@@ -14,10 +14,10 @@
           <td class="pa-0 text-center">
             <v-checkbox
               v-if="props.isSelectable"
-              v-model="selected"
+              v-model="selectedDevices"
               class="mt-5 ml-5"
               density="compact"
-              :value="item.uid"
+              :value="item"
             />
           </td>
           <td class="text-center">
@@ -41,7 +41,7 @@
               <span
                 class="hover-text"
               >
-                {{ address(item) }}
+                {{ getSshid(item) }}
               </span>
             </v-chip>
           </td>
@@ -54,16 +54,16 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
+import useDevicesStore from "@/store/modules/devices";
 
 const props = defineProps(["isSelectable"]);
 const snackbar = useSnackbar();
-const store = useStore();
+const devicesStore = useDevicesStore();
 
 const headers = [
   {
@@ -85,50 +85,26 @@ const headers = [
 ];
 
 const loading = ref(false);
-
-const filter = ref("");
-
 const itemsPerPage = ref(5);
-
 const page = ref(1);
-
-const devices = computed(
-  () => store.getters["devices/getDevicesForUserToChoose"],
-);
-
-const numberDevices = computed(
-  () => store.getters["devices/getNumberForUserToChoose"],
-);
-
-const selected = computed({
+const devices = computed(() => devicesStore.devices);
+const selectedDevices = computed({
   get() {
-    return store.getters["devices/getDevicesSelected"];
+    return devicesStore.selectedDevices;
   },
   set(value) {
-    store.commit("devices/setDevicesSelected", value);
+    devicesStore.selectedDevices = value;
   },
 });
 
-const getDevices = async (perPageValue: number, pageValue: number) => {
+const getDevices = async () => {
   try {
     loading.value = true;
 
-    const hasDevices = await store.dispatch(
-      "devices/setDevicesForUserToChoose",
-      {
-        perPage: perPageValue,
-        page: pageValue,
-        filter: filter.value,
-        sortStatusField: store.getters["devices/getSortStatusField"],
-        sortStatusString: store.getters["devices/getSortStatusString"],
-      },
-    );
-
-    if (!hasDevices) {
-      page.value--;
-    }
-
-    loading.value = false;
+    await devicesStore.fetchDeviceList({
+      perPage: itemsPerPage.value,
+      page: page.value,
+    });
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     switch (axios.isAxiosError(error)) {
@@ -143,17 +119,18 @@ const getDevices = async (perPageValue: number, pageValue: number) => {
     }
     handleError(error);
   }
+  loading.value = false;
 };
 
 watch([page, itemsPerPage], async () => {
-  await getDevices(itemsPerPage.value, page.value);
+  await getDevices();
 });
 
-watch(selected, (newValue, oldValue) => {
+watch(selectedDevices, (newValue, oldValue) => {
   if (newValue.length > 3) {
-    selected.value = oldValue;
+    selectedDevices.value = oldValue;
   }
 });
 
-const address = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+const getSshid = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 </script>

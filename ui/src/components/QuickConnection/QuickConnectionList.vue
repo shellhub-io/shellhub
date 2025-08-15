@@ -41,7 +41,7 @@
                       ref="copyRef"
                       :copied-item="'Device SSHID'"
                       :bypass="shouldOpenTerminalHelper()"
-                      :macro="sshidAddress(item)"
+                      :macro="getSshid(item)"
                     >
                       <template #default="{ copyText }">
                         <span
@@ -52,7 +52,7 @@
                           @keypress.enter.stop="handleSshidClick(item, copyText)"
                           data-test="copy-id-button"
                         >
-                          {{ sshidAddress(item) }}
+                          {{ getSshid(item) }}
                         </span>
                       </template>
                     </CopyWarning>
@@ -107,7 +107,6 @@ import { useMagicKeys } from "@vueuse/core";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
 import TerminalHelper from "../Terminal/TerminalHelper.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
-import { useStore } from "@/store";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
@@ -115,94 +114,55 @@ import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useDevicesStore from "@/store/modules/devices";
 
-interface Device {
-  online: boolean
-}
+const props = defineProps<{ filter?: string; }>();
 
-const store = useStore();
 const authStore = useAuthStore();
+const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
-const itemsPerPage = ref(10);
-const page = ref();
 const rootEl = ref<VList>();
 const selectedDeviceUid = ref("");
 const showDialog = ref(false);
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
 const userId = authStore.id;
+const onlineDevices = computed(() => devicesStore.onlineDevices);
 
-defineExpose({ rootEl });
-
-let encodedFilter = "";
-
-const filterToEncodeBase64 = [
+const filter = computed(() => btoa(JSON.stringify([
   {
     type: "property",
     params: { name: "online", operator: "eq", value: true },
   },
-];
-encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-
-const filter = ref(encodedFilter);
-
-const devices = computed(() => store.getters["devices/listQuickConnection"]);
-
-const onlineDevices = computed(() => devices.value.filter((item: Device) => item.online));
+  {
+    type: "property",
+    params: { name: "name", operator: "contains", value: props.filter },
+  },
+  { type: "operator", params: { name: "and" } },
+])));
 
 const openDialog = (deviceUid: string) => {
   selectedDeviceUid.value = deviceUid;
   showDialog.value = true;
 };
 
-onMounted(async () => {
+const getDevices = async () => {
   try {
     loading.value = true;
-    await store.dispatch("devices/fetchQuickDevices", {
-      perPage: itemsPerPage.value,
-      page: page.value,
-      status: "accepted",
-      filter: filter.value,
-      sortStatusField: "",
-      sortStatusString: "",
-    });
-  } catch (error: unknown) {
-    snackbar.showError("An error occurred while loading devices.");
-    handleError(error);
-  } finally {
-    loading.value = false;
-  }
-});
-
-const getDevices = async (perPageValue: number, pageValue: number) => {
-  try {
-    loading.value = true;
-
-    await store.dispatch("devices/fetchQuickDevices", {
-      perPage: perPageValue,
-      page: pageValue,
-      status: "accepted",
-      filter: filter.value,
-      sortStatusField: store.getters["devices/getSortStatusField"],
-      sortStatusString: store.getters["devices/getSortStatusString"],
-    });
-
-    loading.value = false;
+    await devicesStore.fetchOnlineDevices(filter.value);
   } catch (error: unknown) {
     snackbar.showError("An error occurred while loading devices.");
     handleError(error);
   }
+
+  loading.value = false;
 };
 
-watch(itemsPerPage, async () => {
-  await getDevices(itemsPerPage.value, page.value);
-});
-
-const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+const getSshid = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
 const openTerminalHelper = (item: IDevice) => {
-  selectedSshid.value = sshidAddress(item);
+  selectedSshid.value = getSshid(item);
   showTerminalHelper.value = true;
 };
 
@@ -220,7 +180,7 @@ const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
     openTerminalHelper(item);
     return;
   }
-  copyFn(sshidAddress(item));
+  copyFn(getSshid(item));
 };
 
 const openTerminalMacro = (value: IDevice) => {
@@ -237,6 +197,12 @@ const openTerminalMacro = (value: IDevice) => {
     },
   });
 };
+
+watch(filter, async () => { await getDevices(); });
+
+onMounted(async () => { await getDevices(); });
+
+defineExpose({ rootEl });
 </script>
 
 <style scoped>

@@ -3,11 +3,11 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import WelcomeThirdScreen from "@/components/Welcome/WelcomeThirdScreen.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { IDevice } from "@/interfaces/IDevice";
 
 type WelcomeThirdScreenWrapper = VueWrapper<InstanceType<typeof WelcomeThirdScreen>>;
 
@@ -44,7 +44,10 @@ describe("Welcome Third Screen", () => {
 
     wrapper = mount(WelcomeThirdScreen, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
+      },
+      props: {
+        firstPendingDevice: devices[0] as IDevice,
       },
     });
   });

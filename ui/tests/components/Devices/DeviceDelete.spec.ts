@@ -8,10 +8,12 @@ import DeviceDelete from "@/components/Devices/DeviceDelete.vue";
 import { router } from "@/router";
 import { devicesApi, tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useDevicesStore from "@/store/modules/devices";
 
 describe("Device Delete", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceDelete>>;
   setActivePinia(createPinia());
+  const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
 
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
@@ -64,13 +66,13 @@ describe("Device Delete", () => {
 
   it("Calls remove method when confirm button is clicked", async () => {
     await wrapper.setProps({ uid: "test_device" });
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(devicesStore, "removeDevice");
 
     mockDevicesApi.onDelete("http://localhost:3000/api/devices/test_device").reply(200);
 
     await wrapper.findComponent('[data-test="device-delete-item"]').trigger("click");
     await wrapper.findComponent('[data-test="confirm-btn"]').trigger("click");
 
-    expect(storeSpy).toHaveBeenCalledWith("devices/remove", "test_device");
+    expect(storeSpy).toHaveBeenCalledWith("test_device");
   });
 });

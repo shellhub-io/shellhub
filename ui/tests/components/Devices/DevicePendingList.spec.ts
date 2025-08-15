@@ -8,6 +8,8 @@ import DevicePendingList from "@/components/Devices/DevicePendingList.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useDevicesStore from "@/store/modules/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
 const mockDevices = [
   {
@@ -51,16 +53,17 @@ const mockDevices = [
 describe("Device Pending List", () => {
   let wrapper: VueWrapper<InstanceType<typeof DevicePendingList>>;
   setActivePinia(createPinia());
+  const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   beforeEach(async () => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=pending").reply(
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending").reply(
       200,
       mockDevices,
       { "x-total-count": "2" },
     );
-    store.commit("devices/setDevices", { data: mockDevices, headers: { "x-total-count": "2" } });
+    devicesStore.devices = mockDevices as IDevice[];
 
     wrapper = mount(DevicePendingList, {
       global: {

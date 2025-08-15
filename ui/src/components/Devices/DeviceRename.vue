@@ -18,11 +18,11 @@
 
       <v-card-text class="mt-4 mb-0 pb-1">
         <v-text-field
-          v-model="editName"
+          v-model="newName"
           label="Hostname"
-          :error-messages="editNameError"
+          :error-messages="newNameError"
           :messages="messages"
-          require
+          required
           variant="underlined"
           data-test="rename-field"
         />
@@ -49,59 +49,60 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useDevicesStore from "@/store/modules/devices";
 
-const props = defineProps<{ uid: string }>();
-const emit = defineEmits(["new-hostname"]);
+const props = defineProps<{
+  uid: string,
+  name: string
+}>();
+
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 const messages = ref(
   "Examples: (foobar, foo-bar-ba-z-qux, foo-example, 127-0-0-1)",
 );
-const store = useStore();
-const deviceName = computed(() => store.getters["devices/getName"]);
+const devicesStore = useDevicesStore();
 const {
-  value: editName,
-  errorMessage: editNameError,
-  setErrors: setEditNameError,
+  value: newName,
+  errorMessage: newNameError,
+  setErrors: setNewNameError,
 } = useField<string | undefined>("name", yup.string().required(), {
-  initialValue: deviceName.value,
+  initialValue: props.name,
 });
 
 const open = () => {
+  newName.value = props.name;
   showDialog.value = true;
-  editName.value = deviceName.value;
 };
 
 const close = () => {
-  setEditNameError("");
+  setNewNameError("");
   showDialog.value = false;
 };
 
 const rename = async () => {
   try {
-    await store.dispatch("devices/rename", {
+    await devicesStore.renameDevice({
       uid: props.uid,
-      name: { name: editName.value },
+      name: { name: newName.value },
     });
 
-    emit("new-hostname", editName.value);
     close();
     snackbar.showSuccess("Device renamed successfully.");
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 400) {
-        setEditNameError("The characters being used are invalid");
+        setNewNameError("The characters being used are invalid");
       } else if (error.response?.status === 409) {
-        setEditNameError("The name already exists in the namespace");
+        setNewNameError("The name already exists in the namespace");
       }
       handleError(error);
     } else {

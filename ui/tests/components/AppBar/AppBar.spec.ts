@@ -88,8 +88,8 @@ describe("AppBar Component", () => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockSystemApi.onGet("http://localhost:3000/info").reply(200, systemInfo);
-    mockDevicesApi.onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending").reply(200);
-    mockContainersApi.onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending").reply(200);
+    mockDevicesApi.onGet("http://localhost/api/devices?page=1&per_page=10&status=pending").reply(200);
+    mockContainersApi.onGet("http://localhost/api/containers?page=1&per_page=10&status=pending").reply(200);
 
     authStore.$patch(authStoreData);
     billingStore.billing = billingData;

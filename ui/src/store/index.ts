@@ -13,13 +13,11 @@ import { publicKeys, PublicKeysState } from "./modules/public_keys";
 import { privateKey, PrivateKeyState } from "./modules/private_key";
 import { notifications, NotificationsState } from "./modules/notifications";
 import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
-import { devices, DevicesState } from "./modules/devices";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 
 export interface State {
   billing: NamespacesState;
-  devices: DevicesState;
   firewallRules: FirewallRulesState;
   layout: LayoutState;
   namespaces: NamespacesState;
@@ -40,7 +38,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {
-    devices,
     firewallRules,
     layout,
     namespaces,

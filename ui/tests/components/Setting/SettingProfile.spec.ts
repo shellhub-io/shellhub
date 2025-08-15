@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SettingProfile from "@/components/Setting/SettingProfile.vue";
-import { usersApi } from "@/api/http";
+import { mfaApi, usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
@@ -31,12 +31,26 @@ const authData = {
   },
 };
 
+const mfaGenerateData = {
+  secret: "secret-mfa",
+  link: "link-mfa",
+  recovery_codes: [
+    "HW2wlxV40B",
+    "2xsmMUHHHb",
+    "DTQgVsaVac",
+    "KXPBoXvuWD",
+    "QQYTPfotBi",
+    "XWiKBEPyb4",
+  ],
+};
+
 describe("Settings Namespace", () => {
   let wrapper: SettingProfileWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
   const vuetify = createVuetify();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
+  const mockMfaApi = new MockAdapter(mfaApi.getAxios());
 
   window.matchMedia = vi.fn().mockImplementation((query) => ({
     matches: false,
@@ -52,6 +66,7 @@ describe("Settings Namespace", () => {
   beforeEach(async () => {
     envVariables.isCommunity = true; // used in the MFA switch test only
     mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
+    mockMfaApi.onGet("http://localhost:3000/api/user/mfa/generate").reply(200, mfaGenerateData);
     authStore.$patch(authData);
     wrapper = mount(SettingProfile, {
       global: {

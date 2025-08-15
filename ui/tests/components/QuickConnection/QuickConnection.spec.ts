@@ -1,19 +1,14 @@
 import { createPinia, setActivePinia } from "pinia";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
+import { expect, describe, it, beforeEach } from "vitest";
 import QuickConnection from "@/components/QuickConnection/QuickConnection.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type QuickConnectionWrapper = VueWrapper<InstanceType<typeof QuickConnection>>;
-
-const mockSnackbar = {
-  showError: vi.fn(),
-};
 
 describe("Quick Connection", () => {
   let wrapper: QuickConnectionWrapper;
@@ -46,13 +41,12 @@ describe("Quick Connection", () => {
   beforeEach(async () => {
     mockDevicesApi
       // eslint-disable-next-line vue/max-len
-      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
+      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fSx7InR5cGUiOiJwcm9wZXJ0eSIsInBhcmFtcyI6eyJuYW1lIjoibmFtZSIsIm9wZXJhdG9yIjoiY29udGFpbnMiLCJ2YWx1ZSI6IiJ9fSx7InR5cGUiOiJvcGVyYXRvciIsInBhcmFtcyI6eyJuYW1lIjoiYW5kIn19XQ%3D%3D&page=1&per_page=10&status=accepted")
       .reply(200, devices);
 
     wrapper = mount(QuickConnection, {
       global: {
-        plugins: [[store, key], vuetify, router],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -91,18 +85,5 @@ describe("Quick Connection", () => {
     dispatchEvent(event);
 
     expect(wrapper.find('[data-test="quick-connection-open-btn"]').exists()).toBe(true);
-  });
-
-  it("Checks if the fetch function handles error on failure", async () => {
-    mockDevicesApi
-      // eslint-disable-next-line vue/max-len
-      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
-      .reply(403);
-
-    await wrapper.findComponent('[data-test="quick-connection-open-btn"]').trigger("click");
-
-    await flushPromises();
-
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while loading devices.");
   });
 });

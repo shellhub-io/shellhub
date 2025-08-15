@@ -2,14 +2,43 @@ import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
 import { store, key } from "@/store";
 import QuickConnectionList from "@/components/QuickConnection/QuickConnectionList.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type QuickConnectionListWrapper = VueWrapper<InstanceType<typeof QuickConnectionList>>;
+
+const mockSnackbar = {
+  showError: vi.fn(),
+};
+
+const devices = [
+  {
+    uid: "a582b47a42e",
+    name: "39-5e-2b",
+    identity: {
+      mac: "00:00:00:00:00:00",
+    },
+    info: {
+      id: "linuxmint",
+      pretty_name: "Linux Mint 19.3",
+      version: "",
+    },
+    public_key: "----- PUBLIC KEY -----",
+    tenant_id: "fake-tenant-data",
+    last_seen: "2020-05-20T19:58:53.276Z",
+    online: true,
+    namespace: "user",
+    status: "accepted",
+    tags: ["test-tag"],
+  },
+];
+
+// eslint-disable-next-line vue/max-len
+const mockDeviceApiUrl = "http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fSx7InR5cGUiOiJwcm9wZXJ0eSIsInBhcmFtcyI6eyJuYW1lIjoibmFtZSIsIm9wZXJhdG9yIjoiY29udGFpbnMifX0seyJ0eXBlIjoib3BlcmF0b3IiLCJwYXJhbXMiOnsibmFtZSI6ImFuZCJ9fV0%3D&page=1&per_page=10&status=accepted";
 
 describe("Quick Connection List", () => {
   let wrapper: QuickConnectionListWrapper;
@@ -17,40 +46,18 @@ describe("Quick Connection List", () => {
   const vuetify = createVuetify();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
-  const devices = [
-    {
-      uid: "a582b47a42e",
-      name: "39-5e-2b",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
-      info: {
-        id: "linuxmint",
-        pretty_name: "Linux Mint 19.3",
-        version: "",
-      },
-      public_key: "----- PUBLIC KEY -----",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2020-05-20T19:58:53.276Z",
-      online: true,
-      namespace: "user",
-      status: "accepted",
-      tags: ["test-tag"],
-    },
-  ];
-
   beforeEach(async () => {
-    mockDevicesApi
-      // eslint-disable-next-line vue/max-len
-      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
-      .reply(200, devices);
+    mockDevicesApi.onGet(mockDeviceApiUrl).reply(200, devices);
 
     wrapper = mount(QuickConnectionList, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [[store, key], vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
   });
+
+  afterEach(() => { wrapper.unmount(); });
 
   it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
@@ -88,14 +95,16 @@ describe("Quick Connection List", () => {
   });
 
   it("Renders the no online devices message", async () => {
-    mockDevicesApi.reset();
-    mockDevicesApi
-      // eslint-disable-next-line vue/max-len
-      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&per_page=10&status=accepted")
-      .reply(200, []);
+    mockDevicesApi.onGet(mockDeviceApiUrl).reply(200, []);
     await flushPromises();
     expect(wrapper.find('[data-test="no-online-devices"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="no-online-devices-icon"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="no-online-devices-message"]').exists()).toBe(true);
+  });
+
+  it("Checks if the fetch function handles error on failure", async () => {
+    mockDevicesApi.onGet(mockDeviceApiUrl).reply(403);
+    await flushPromises();
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while loading devices.");
   });
 });
