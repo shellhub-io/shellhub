@@ -6,24 +6,18 @@ export const postTag = async (data: IDevicePostTag) => tagsApi.createDeviceTag(d
 export const fetchDevices = async (
   page: number,
   perPage: number,
-  filter: string | undefined,
-  status: "accepted" | "rejected" | "pending" | "unused",
-  sortStatusField: string | undefined,
-  sortStatusString: "asc" | "desc" | "",
-) => {
-  if (sortStatusField && sortStatusString) {
-    return devicesApi.getDevices(
-      filter,
-      page,
-      perPage,
-      status,
-      sortStatusField,
-      sortStatusString,
-    );
-  }
-
-  return devicesApi.getDevices(filter, page, perPage, status);
-};
+  status: "accepted" | "rejected" | "pending",
+  filter?: string,
+  sortStatusField?: string,
+  sortStatusString?: "asc" | "desc",
+) => devicesApi.getDevices(
+  filter,
+  page,
+  perPage,
+  status,
+  sortStatusField,
+  sortStatusString,
+);
 
 export const resolveDevice = async (hostname?: string, uid?: string) => devicesApi.resolveDevice(hostname, uid);
 

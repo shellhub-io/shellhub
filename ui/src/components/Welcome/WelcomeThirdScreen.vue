@@ -1,5 +1,5 @@
 <template>
-  <div class="pa-4">
+  <div class="pa-4" v-if="firstPendingDevice">
     <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-third-screen-name">
       A device connection has been detected.
     </p>
@@ -22,7 +22,7 @@
           align="center"
           data-test="device-field"
         >
-          {{ getPendingDevice.name }}
+          {{ firstPendingDevice.name }}
         </v-card>
       </v-col>
       <v-col>
@@ -37,9 +37,9 @@
           align="center"
           data-test="device-pretty-name-field"
         >
-          <div v-if="getPendingDevice.info">
-            <DeviceIcon :icon="getPendingDevice.info.id" />
-            {{ getPendingDevice.info.pretty_name }}
+          <div v-if="firstPendingDevice.info">
+            <DeviceIcon :icon="firstPendingDevice.info.id" />
+            {{ firstPendingDevice.info.pretty_name }}
           </div>
         </v-card>
       </v-col>
@@ -48,19 +48,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
-import { useStore } from "@/store";
+import { onBeforeMount } from "vue";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useDevicesStore from "@/store/modules/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
-const store = useStore();
+const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
-const getPendingDevice = computed(
-  () => store.getters["devices/getFirstPending"],
-);
-onMounted(() => {
+const firstPendingDevice = defineModel<IDevice>("firstPendingDevice");
+
+onBeforeMount(async () => {
   try {
-    store.dispatch("devices/setFirstPending");
+    firstPendingDevice.value = await devicesStore.getFirstPendingDevice();
   } catch {
     snackbar.showError("Failed to get pending device.");
   }

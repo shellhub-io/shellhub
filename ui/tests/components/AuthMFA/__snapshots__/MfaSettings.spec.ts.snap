@@ -1,3 +1,13 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`MfaSettings > Renders the component 1`] = `""`;
+
+exports[`MfaSettings > Renders the components (second-window) 1`] = `
+"<!--teleport start-->
+<!--teleport end-->"
+`;
+
+exports[`MfaSettings > Renders the components (third-window) 1`] = `
+"<!--teleport start-->
+<!--teleport end-->"
+`;

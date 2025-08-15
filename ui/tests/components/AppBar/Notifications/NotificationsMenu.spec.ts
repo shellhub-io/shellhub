@@ -34,7 +34,7 @@ describe("Notifications Menu", async () => {
   const authStore = useAuthStore();
 
   const mockPendingNotifications = (deviceData, containerData, status = 200) => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=pending").reply(status, deviceData);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending").reply(status, deviceData);
     mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending").reply(status, containerData);
   };
 
