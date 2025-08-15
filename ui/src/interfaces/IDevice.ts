@@ -49,24 +49,17 @@ export interface IDevicePostTag {
   name: CreateDeviceTagRequest;
 }
 
-export interface SortDevicesParams {
-  sortField?: string;
-  sortOrder?: "asc" | "desc";
-}
-
-export interface FetchDevicesParams extends SortDevicesParams {
+export interface FetchDevicesParams {
   perPage?: number;
   page?: number;
   filter?: string;
   status?: "accepted" | "pending" | "rejected";
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface IDeviceMethods {
   fetchDevices: (params: FetchDevicesParams) => Promise<void>;
-  setSort: (params: SortDevicesParams) => void;
-  getFilter: () => string;
   getList: () => IDevice[];
-  getSortStatusField: () => string;
-  getSortStatusString: () => SortDevicesParams["sortOrder"];
-  getNumber: () => number;
+  getCount: () => number;
 }

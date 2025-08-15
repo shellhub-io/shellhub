@@ -3,8 +3,6 @@ import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { createStore } from "vuex";
-import { key } from "@/store";
 import DeviceTable from "@/components/Tables/DeviceTable.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
@@ -61,37 +59,33 @@ describe("Device Table", () => {
     },
   ];
 
-  const mockStore = createStore({
-    state: {
-      totalCount: 3,
-      devices: [
-        { name: "Device1", operating_system: "OS1", sshid: "ssh1", tags: "tag1" },
-        { name: "Device2", operating_system: "OS2", sshid: "ssh2", tags: "tag2" },
-        { name: "Device3", operating_system: "OS3", sshid: "ssh3", tags: "tag3" },
-      ],
-    },
-    getters: {
-      totalCount: (state) => state.totalCount,
-      devices: (state) => state.devices,
-    },
-  });
+  // const mockStore = createStore({
+  //   state: {
+  //     totalCount: 3,
+  //     devices: [
+  //       { name: "Device1", operating_system: "OS1", sshid: "ssh1", tags: "tag1" },
+  //       { name: "Device2", operating_system: "OS2", sshid: "ssh2", tags: "tag2" },
+  //       { name: "Device3", operating_system: "OS3", sshid: "ssh3", tags: "tag3" },
+  //     ],
+  //   },
+  //   getters: {
+  //     totalCount: (state) => state.totalCount,
+  //     devices: (state) => state.devices,
+  //   },
+  // });
 
   const mockStoreMethods = {
     fetchDevices: vi.fn(),
-    setSort: vi.fn(),
-    getFilter: vi.fn(),
     getList: () => devices as IDevice[],
-    getSortStatusField: vi.fn(),
-    getSortStatusString: vi.fn(),
-    getNumber: () => mockStore.state.totalCount,
+    getCount: () => devices.length,
   };
 
   beforeEach(async () => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);
 
     wrapper = shallowMount(DeviceTable, {
       global: {
-        plugins: [[mockStore, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
       props: {
         storeMethods: mockStoreMethods,

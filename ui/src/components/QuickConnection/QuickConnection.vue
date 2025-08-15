@@ -32,7 +32,6 @@
                 single-line
                 hide-details
                 v-model.trim="filter"
-                @keyup="searchDevices"
                 prepend-inner-icon="mdi-magnify"
                 density="comfortable"
                 data-test="search-text"
@@ -59,7 +58,7 @@
             </v-col>
           </v-row>
 
-          <QuickConnectionList ref="listRef" />
+          <QuickConnectionList ref="listRef" :filter />
         </v-card-text>
 
         <v-card-actions>
@@ -90,18 +89,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from "vue";
+import { ref } from "vue";
 import { useMagicKeys } from "@vueuse/core";
 import QuickConnectionList from "./QuickConnectionList.vue";
-import { useStore } from "@/store";
-import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 
 const showDialog = ref(false);
-const snackbar = useSnackbar();
 const filter = ref("");
 const listRef = ref<InstanceType<typeof QuickConnectionList> | null>(null);
-const store = useStore();
 
 const headers = [
   { label: "Hostname" },
@@ -123,37 +118,6 @@ useMagicKeys({
       listRef.value?.rootEl?.focus?.();
     }
   },
-});
-
-const searchDevices = () => {
-  let encodedFilter = "";
-
-  if (filter.value.trim()) {
-    const filterObj = [
-      {
-        type: "property",
-        params: { name: "name", operator: "contains", value: filter.value },
-      },
-    ];
-    encodedFilter = btoa(JSON.stringify(filterObj));
-  }
-
-  if (!showDialog.value) {
-    encodedFilter = "";
-  }
-
-  store.dispatch("devices/searchQuickConnection", {
-    page: store.getters["devices/getPage"],
-    perPage: store.getters["devices/getPerPage"],
-    filter: encodedFilter,
-    status: store.getters["devices/getStatus"],
-  }).catch(() => {
-    snackbar.showError("An error occurred while searching for devices.");
-  });
-};
-
-onUnmounted(() => {
-  store.dispatch("devices/setFilter", "");
 });
 </script>
 

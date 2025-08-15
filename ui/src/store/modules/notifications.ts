@@ -42,7 +42,7 @@ export const notifications: Module<NotificationsState, State> = {
     fetch: async (context) => {
       try {
         const [deviceRes, containerRes] = await Promise.all([
-          fetchDevices(1, 10, "", "pending", undefined, ""),
+          fetchDevices(1, 10, "pending"),
           fetchContainers(1, 10, "pending"),
         ]);
 

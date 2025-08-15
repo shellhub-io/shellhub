@@ -59,7 +59,7 @@ describe("Device List", () => {
   ];
 
   beforeEach(async () => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);
 
     wrapper = mount(DeviceList, {
       global: {

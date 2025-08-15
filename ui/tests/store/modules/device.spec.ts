@@ -1,223 +1,172 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import { nextTick } from "vue";
-import { store } from "@/store";
-import { devicesApi } from "@/api/http";
+import { createPinia, setActivePinia } from "pinia";
+import { devicesApi, billingApi } from "@/api/http";
+import { IDevice } from "@/interfaces/IDevice";
+import useDevicesStore from "@/store/modules/devices";
 
-const initialDevices = {
-  data: [
-    { uid: "a582b47a42d", name: "Device 1" },
-    { uid: "a582b47a42e", name: "Device 2" },
-  ],
-  headers: {
-    "x-total-count": 2,
-  },
-};
-describe("Devices store", () => {
-  let mockDevices: MockAdapter;
+describe("Devices Pinia Store", () => {
+  setActivePinia(createPinia());
+  const mockDevices = new MockAdapter(devicesApi.getAxios());
+  const mockBilling = new MockAdapter(billingApi.getAxios());
+  let deviceStore: ReturnType<typeof useDevicesStore>;
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    mockDevices = new MockAdapter(devicesApi.getAxios());
+    deviceStore = useDevicesStore();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
+    mockDevices.reset();
+    mockBilling.reset();
   });
 
-  it("Returns devices default variables", () => {
-    const defaultState = {
-      devices: [],
-      quickConnectionList: [],
-      device: {},
-      showDevices: false,
-      numberDevices: 0,
-      page: 1,
-      perPage: 10,
-      filter: "",
-      status: "accepted",
-      sortStatusField: undefined,
-      sortStatusString: "asc",
-      deviceChooserStatus: false,
-      devicesForUserToChoose: [],
-      numberdevicesForUserToChoose: 0,
-      devicesSelected: [],
-      deviceName: "",
-    };
-
-    expect(store.getters["devices/list"]).toEqual(defaultState.devices);
-    expect(store.getters["devices/listQuickConnection"]).toEqual(defaultState.quickConnectionList);
-    expect(store.getters["devices/get"]).toEqual(defaultState.device);
-    expect(store.getters["devices/getShowDevices"]).toEqual(defaultState.showDevices);
-    expect(store.getters["devices/getNumberDevices"]).toEqual(defaultState.numberDevices);
-    expect(store.getters["devices/getPage"]).toEqual(defaultState.page);
-    expect(store.getters["devices/getPerPage"]).toEqual(defaultState.perPage);
-    expect(store.getters["devices/getFilter"]).toEqual(defaultState.filter);
-    expect(store.getters["devices/getStatus"]).toEqual(defaultState.status);
-    expect(store.getters["devices/getSortStatusField"]).toEqual(defaultState.sortStatusField);
-    expect(store.getters["devices/getSortStatusString"]).toEqual(defaultState.sortStatusString);
-    expect(store.getters["devices/getDeviceChooserStatus"]).toEqual(defaultState.deviceChooserStatus);
-    expect(store.getters["devices/getDevicesForUserToChoose"]).toEqual(defaultState.devicesForUserToChoose);
-    expect(store.getters["devices/getNumberForUserToChoose"]).toEqual(defaultState.numberdevicesForUserToChoose);
-    expect(store.getters["devices/getDevicesSelected"]).toEqual(defaultState.devicesSelected);
-    expect(store.getters["devices/getDeviceToBeRenamed"]).toEqual(defaultState.deviceName);
+  describe("initial state", () => {
+    it("should have initial state values", () => {
+      expect(deviceStore.devices).toEqual([]);
+      expect(deviceStore.device).toEqual({});
+      expect(deviceStore.showDevices).toBe(false);
+      expect(deviceStore.deviceCount).toBe(0);
+      expect(deviceStore.showDeviceChooser).toBe(false);
+      expect(deviceStore.suggestedDevices).toEqual([]);
+      expect(deviceStore.selectedDevices).toEqual([]);
+      expect(deviceStore.duplicatedDeviceName).toBe("");
+    });
   });
 
-  it("Fetches devices and updates state accordingly", async () => {
-    const devices = [{ uid: "1", name: "Device 1" }, { uid: "2", name: "Device 2" }];
-    const totalCount = 2;
+  describe("actions", () => {
+    it("should fetch device list successfully", async () => {
+      const devicesData = [
+        { uid: "a582b47a42d", name: "Device 1" },
+        { uid: "a582b47a42e", name: "Device 2" },
+      ];
 
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted")
-      .reply(200, devices, { "x-total-count": totalCount });
+      mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devicesData, {
+        "x-total-count": "2",
+      });
 
-    await store.dispatch("devices/fetch", {
-      page: 1,
-      perPage: 10,
-      filter: "",
-      status: "accepted",
-      sortStatusField: undefined,
-      sortStatusString: "asc",
+      await deviceStore.fetchDeviceList({ page: 1, perPage: 10, status: "accepted" });
+
+      expect(deviceStore.devices).toEqual(devicesData);
+      expect(deviceStore.deviceCount).toBe(2);
+      expect(deviceStore.showDevices).toBe(true);
     });
 
-    expect(store.getters["devices/list"]).toEqual(devices);
-    expect(store.getters["devices/getNumberDevices"]).toEqual(totalCount);
-  });
+    it("should handle empty device list", async () => {
+      mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, [], {
+        "x-total-count": "0",
+      });
 
-  it("Removes a device from the state", async () => {
-    // Mock the API call
-    mockDevices.onDelete("http://localhost:3000/api/devices/a582b47a42d").reply(200);
+      await deviceStore.fetchDeviceList({ page: 1, perPage: 10, status: "accepted" });
 
-    const storeSpy = vi.spyOn(store, "dispatch");
-    // Call the action
-    await store.dispatch("devices/remove", "a582b47a42d");
-
-    expect(storeSpy).toBeCalledWith("devices/remove", "a582b47a42d");
-  });
-
-  it("Renames a device in the state", async () => {
-    const deviceToUpdate = { uid: "a582b47a42d", name: "Device 1" };
-    const newName = "Updated Device 1";
-    const updatedDevice = { ...deviceToUpdate, name: newName };
-    // Set initial state
-    store.commit("devices/setDevices", initialDevices);
-    const storeSpy = vi.spyOn(store, "dispatch");
-
-    // Mock the API call
-    mockDevices.onPut(`http://localhost:3000/api/devices/${deviceToUpdate.uid}`).reply(200);
-
-    // Call the action
-    await store.dispatch("devices/rename", updatedDevice);
-
-    // Assert the device was renamed in the state
-    expect(storeSpy).toBeCalledWith("devices/rename", updatedDevice);
-  });
-
-  it("Gets a device by its UID and updates state", async () => {
-    const uid = "a582b47a42d";
-    const device = { uid, name: "Device 1" };
-
-    mockDevices.onGet(`http://localhost:3000/api/devices/resolve?uid=${uid}`).reply(200, device);
-
-    await store.dispatch("devices/get", { uid });
-
-    expect(store.getters["devices/get"]).toEqual(device);
-  });
-
-  it("Gets a device by its name and updates state", async () => {
-    const name = "Device1";
-    const device = { uid: "a582b47a42d", name };
-
-    mockDevices.onGet(`http://localhost:3000/api/devices/resolve?hostname=${name}`).reply(200, device);
-
-    await store.dispatch("devices/get", { hostname: name });
-
-    expect(store.getters["devices/get"]).toEqual(device);
-  });
-
-  it("Accepts a device and updates state", async () => {
-    const uid = "a582b47a42d";
-    const storeSpy = vi.spyOn(store, "dispatch");
-
-    // Mock the API call
-    mockDevices.onPatch(`http://localhost:3000/api/devices/${uid}/accept`).reply(200);
-
-    await store.dispatch("devices/accept", uid);
-
-    expect(storeSpy).toBeCalledWith("devices/accept", uid);
-  });
-
-  it("Rejects a device and updates state", async () => {
-    const uid = "a582b47a42d";
-    const storeSpy = vi.spyOn(store, "dispatch");
-
-    // Mock the API call
-    mockDevices.onPatch(`http://localhost:3000/api/devices/${uid}/reject`).reply(200);
-
-    await store.dispatch("devices/reject", uid);
-
-    expect(storeSpy).toBeCalledWith("devices/reject", uid);
-  });
-
-  it("Sets filter and updates state", async () => {
-    const filter = "some_filter";
-
-    await store.dispatch("devices/setFilter", filter);
-
-    expect(store.getters["devices/getFilter"]).toEqual(filter);
-  });
-
-  it("Searches for devices and updates state", async () => {
-    const devices = [{ uid: "1", name: "Device 1" }, { uid: "2", name: "Device 2" }];
-    const totalCount = 2;
-    const data = {
-      page: 1,
-      perPage: 10,
-      filter: "some_filter",
-    };
-    mockDevices.onGet(`http://localhost:3000/api/devices?filter=${data.filter}&page=${data.page}&per_page=${data.perPage}&status=accepted`)
-      .reply(200, devices, { "x-total-count": totalCount });
-
-    await store.dispatch("devices/search", data);
-
-    expect(store.getters["devices/list"]).toEqual(devices);
-    expect(store.getters["devices/getNumberDevices"]).toEqual(totalCount);
-    expect(store.getters["devices/getFilter"]).toEqual(data.filter);
-  });
-
-  it("Sets selected devices and updates state", async () => {
-    const selectedDevices = [{ uid: "1", name: "Device 1" }, { uid: "2", name: "Device 2" }];
-
-    await store.dispatch("devices/setDevicesSelected", selectedDevices);
-
-    expect(store.getters["devices/getDevicesSelected"]).toEqual(selectedDevices);
-  });
-
-  it("Sets sort status and updates state", async () => {
-    const sortStatus = {
-      sortStatusString: "desc",
-    };
-
-    await store.dispatch("devices/setSortStatus", sortStatus);
-    await nextTick();
-    expect(store.getters["devices/getSortStatusString"]).toEqual(sortStatus.sortStatusString);
-  });
-
-  it("Updates device tag", async () => {
-    const deviceUid = "a582b47a42d";
-    const tags = ["tag1", "tag2"];
-    const updateSpy = vi.spyOn(store, "dispatch");
-    mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(200);
-
-    await store.dispatch("devices/updateDeviceTag", {
-      uid: deviceUid,
-      tags: { tags },
+      expect(deviceStore.devices).toEqual([]);
+      expect(deviceStore.deviceCount).toBe(0);
     });
 
-    expect(updateSpy).toBeCalledWith("devices/updateDeviceTag", {
-      uid: deviceUid,
-      tags: { tags },
+    it("should remove device", async () => {
+      mockDevices.onDelete("http://localhost:3000/api/devices/a582b47a42d").reply(200);
+
+      await expect(deviceStore.removeDevice("a582b47a42d")).resolves.not.toThrow();
+    });
+
+    it("should rename device", async () => {
+      const renameData = { uid: "a582b47a42d", name: { name: "Updated Device 1" } };
+
+      // Set initial device state
+      deviceStore.device = { uid: "a582b47a42d", name: "Device 1" } as IDevice;
+
+      mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d").reply(200);
+
+      await deviceStore.renameDevice(renameData);
+
+      expect(deviceStore.device.name).toBe("Updated Device 1");
+    });
+
+    it("should fetch device by UID", async () => {
+      const deviceData = { uid: "a582b47a42d", name: "Device 1" };
+
+      mockDevices.onGet("http://localhost:3000/api/devices/resolve?uid=a582b47a42d").reply(200, deviceData);
+
+      await deviceStore.fetchDevice({ uid: "a582b47a42d" });
+
+      expect(deviceStore.device).toEqual(deviceData);
+    });
+
+    it("should fetch device by hostname", async () => {
+      const deviceData = { uid: "a582b47a42d", name: "Device1" };
+
+      mockDevices.onGet("http://localhost:3000/api/devices/resolve?hostname=Device1").reply(200, deviceData);
+
+      await deviceStore.fetchDevice({ hostname: "Device1" });
+
+      expect(deviceStore.device).toEqual(deviceData);
+    });
+
+    it("should accept device", async () => {
+      mockDevices.onPatch("http://localhost:3000/api/devices/a582b47a42d/accept").reply(200);
+
+      await expect(deviceStore.acceptDevice("a582b47a42d")).resolves.not.toThrow();
+    });
+
+    it("should reject device", async () => {
+      mockDevices.onPatch("http://localhost:3000/api/devices/a582b47a42d/reject").reply(200);
+
+      await expect(deviceStore.rejectDevice("a582b47a42d")).resolves.not.toThrow();
+    });
+
+    it("should get first pending device", async () => {
+      const deviceData = { uid: "a582b47a42d", name: "Device 1" };
+
+      mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=1&status=pending").reply(200, [deviceData]);
+
+      const result = await deviceStore.getFirstPendingDevice();
+
+      expect(result).toEqual(deviceData);
+    });
+
+    it("should fetch most used devices", async () => {
+      const devicesData = [
+        { uid: "a582b47a42d", name: "Device 1" },
+        { uid: "a582b47a42e", name: "Device 2" },
+      ];
+
+      mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devicesData);
+
+      await deviceStore.fetchMostUsedDevices();
+
+      expect(deviceStore.suggestedDevices).toEqual(devicesData);
+    });
+
+    it("should update device tags", async () => {
+      const updateData = { uid: "a582b47a42d", tags: { tags: ["tag1", "tag2"] } };
+
+      mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(200);
+
+      await expect(deviceStore.updateDeviceTags(updateData)).resolves.not.toThrow();
+    });
+
+    it("should handle fetch device list error", async () => {
+      mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(500);
+
+      await expect(deviceStore.fetchDeviceList({ page: 1, perPage: 10, status: "accepted" })).rejects.toThrow();
+
+      expect(deviceStore.devices).toEqual([]);
+      expect(deviceStore.deviceCount).toBe(0);
+    });
+
+    it("should handle fetch device error", async () => {
+      mockDevices.onGet("http://localhost:3000/api/devices/resolve?uid=a582b47a42d").reply(404);
+
+      await expect(deviceStore.fetchDevice({ uid: "a582b47a42d" })).rejects.toThrow();
+
+      expect(deviceStore.device).toEqual({});
+    });
+
+    it("should handle fetch most used devices error", async () => {
+      mockBilling.onGet("http://localhost:3000/api/billing/devices-most-used").reply(500);
+
+      await expect(deviceStore.fetchMostUsedDevices()).rejects.toThrow();
+
+      expect(deviceStore.suggestedDevices).toEqual([]);
     });
   });
 });

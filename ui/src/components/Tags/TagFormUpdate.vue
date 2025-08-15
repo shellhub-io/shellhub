@@ -68,6 +68,7 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useDevicesStore from "@/store/modules/devices";
 
 const props = defineProps<{
   deviceUid: string;
@@ -78,6 +79,7 @@ const props = defineProps<{
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 const store = useStore();
+const devicesStore = useDevicesStore();
 const showDialog = ref(false);
 const hasTags = computed(() => props.tagsList.length > 0);
 const inputTags = ref<string[]>([]);
@@ -105,7 +107,7 @@ const save = async () => {
   try {
     tagsError.value = "";
 
-    await store.dispatch("devices/updateDeviceTag", {
+    await devicesStore.updateDeviceTags({
       uid: props.deviceUid,
       tags: { tags: inputTags.value },
     });

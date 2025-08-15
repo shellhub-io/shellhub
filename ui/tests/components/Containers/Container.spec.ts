@@ -55,7 +55,7 @@ describe("Containers", () => {
   const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
   beforeEach(async () => {
-    mockContainersApi.onGet("http://localhost:3000/api/containers?filter=&page=1&per_page=10&status=accepted").reply(200, containers);
+    mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=accepted").reply(200, containers);
 
     wrapper = mount(Containers, {
       global: {
