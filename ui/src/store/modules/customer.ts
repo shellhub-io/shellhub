@@ -1,93 +1,79 @@
-import { Module } from "vuex";
-import axios, { AxiosError } from "axios";
-import { State } from "..";
-import * as apiBilling from "../api/billing";
-import { ICustomer } from "@/interfaces/ICustomer";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import axios from "axios";
+import * as billingApi from "../api/billing";
+import type { ICustomer } from "@/interfaces/ICustomer";
 import handleError from "@/utils/handleError";
 
-export interface CustomerState {
-  customer: ICustomer;
-}
+const useCustomerStore = defineStore("customer", () => {
+  const customer = ref<ICustomer>({} as ICustomer);
 
-type errorResponseData = {
-  code: string;
-  message: string;
-};
+  const fetchCustomer = async () => {
+    try {
+      const { data } = await billingApi.getCustomer();
+      customer.value = data as ICustomer;
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
-export function isAxiosError<ResponseType>(error: unknown): error is AxiosError<ResponseType> {
-  return axios.isAxiosError(error);
-}
+  const createCustomer = async () => {
+    try {
+      await billingApi.createCustomer();
+    } catch (error) {
+      handleError(error);
+    }
+  };
 
-export const customer: Module<CustomerState, State> = {
-  namespaced: true,
-  state: {
-    customer: {} as ICustomer,
-  },
-  getters: {
-    getCustomer: (state) => state.customer,
-    hasPaymentMethods: (state) => state.customer.payment_methods || false,
-  },
-  mutations: {
-    setCustomer: (state, customer: ICustomer) => {
-      state.customer = customer;
-    },
-  },
-  actions: {
-    fetchCustomer: async ({ commit }) => {
-      try {
-        const customer = await apiBilling.getCustomer();
-        commit("setCustomer", customer);
-      } catch (error) {
+  const attachPaymentMethod = async (id: string) => {
+    try {
+      await billingApi.attachPaymentMethod(id);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.data;
+      } else {
         handleError(error);
       }
-    },
-    createCustomer: async ({ commit }) => {
-      try {
-        const customer = await apiBilling.createCustomer();
-        commit("setCustomer", customer);
-      } catch (error) {
+    }
+  };
+
+  const detachPaymentMethod = async (id: string) => {
+    try {
+      await billingApi.detachPaymentMethod(id);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const createSubscription = async () => {
+    try {
+      await billingApi.createSubscription();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error.response?.status;
+      } else {
         handleError(error);
       }
-    },
-    attachPaymentMethod: async ({ commit }, id: string) => {
-      try {
-        await apiBilling.attachPaymentMethod(id);
-        commit("setCustomer", customer);
-      } catch (error) {
-        if (isAxiosError<errorResponseData>(error)) {
-          throw error.response?.data;
-        } else {
-          handleError(error);
-        }
-      }
-    },
-    detachPaymentMethod: async ({ commit }, id: string) => {
-      try {
-        await apiBilling.detachPaymentMethod(id);
-        commit("setCustomer", customer);
-      } catch (error) {
-        handleError(error);
-      }
-    },
-    createSubscription: async ({ commit }) => {
-      try {
-        await apiBilling.createSubscription();
-        commit("setCustomer", customer);
-      } catch (error) {
-        if (isAxiosError(error)) {
-          throw error.response?.status;
-        } else {
-          handleError(error);
-        }
-      }
-    },
-    setDefaultPaymentMethod: async ({ commit }, id: string) => {
-      try {
-        await apiBilling.setDefaultPaymentMethod(id);
-        commit("setCustomer", customer);
-      } catch (error) {
-        handleError(error);
-      }
-    },
-  },
-};
+    }
+  };
+
+  const setDefaultPaymentMethod = async (id: string) => {
+    try {
+      await billingApi.setDefaultPaymentMethod(id);
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  return {
+    customer,
+    fetchCustomer,
+    createCustomer,
+    attachPaymentMethod,
+    detachPaymentMethod,
+    createSubscription,
+    setDefaultPaymentMethod,
+  };
+});
+
+export default useCustomerStore;

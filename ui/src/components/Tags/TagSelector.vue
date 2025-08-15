@@ -56,64 +56,48 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, PropType } from "vue";
+import { computed, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useContainersStore from "@/store/modules/containers";
+import useDevicesStore from "@/store/modules/devices";
 
-const props = defineProps({
-  variant: {
-    type: String as PropType<"device" | "container">,
-    required: true,
-  },
-});
+const props = defineProps<{ variant: "device" | "container" }>();
+
 const store = useStore();
+const containersStore = useContainersStore();
+const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 const prevSelectedLength = ref(0);
-
 const getListTags = computed(() => store.getters["tags/list"]);
-
 const selectedTags = computed<Array<string>>(() => store.getters["tags/selected"]);
-
 const tagIsSelected = (tag: string) => selectedTags.value.includes(tag);
 
 const getTags = async () => {
   await store.dispatch("tags/fetch");
 };
 
+const fetchDevices = async (filter?: string) => {
+  const fetch = {
+    device: () => devicesStore.fetchDeviceList({ filter }),
+    container: () => containersStore.fetchContainerList({ filter }),
+  }[props.variant];
+
+  await fetch();
+};
+
 const getItems = async (item: Array<string>) => {
-  let encodedFilter : string | null = null;
+  const filter = [{
+    type: "property",
+    params: { name: "tags", operator: "contains", value: item },
+  }];
 
-  const filter = [
-    {
-      type: "property",
-      params: { name: "tags", operator: "contains", value: item },
-    },
-  ];
-  encodedFilter = btoa(JSON.stringify(filter));
+  const encodedFilter = btoa(JSON.stringify(filter));
 
-  switch (props.variant) {
-    case "device":
-      await store.dispatch("devices/setFilter", encodedFilter);
-      break;
-    case "container":
-      await store.dispatch("container/setFilter", encodedFilter);
-      break;
-    default:
-      break;
-  }
   try {
-    switch (props.variant) {
-      case "device":
-        await store.dispatch("devices/refresh", encodedFilter);
-        break;
-      case "container":
-        await store.dispatch("container/refresh", encodedFilter);
-        break;
-      default:
-        break;
-    }
+    await fetchDevices(encodedFilter);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -125,28 +109,6 @@ const getItems = async (item: Array<string>) => {
       snackbar.showError("Failed to load items.");
       handleError(error);
     }
-  }
-};
-
-const fetchDevices = async () => {
-  const data = {
-    perPage: props.variant === "device" ? store.getters["devices/getPerPage"] : store.getters["container/getPerPage"],
-    page: props.variant === "device" ? store.getters["devices/getPage"] : store.getters["container/getPage"],
-    status: "accepted",
-    search: null,
-    filter: "",
-    sortStatusField: null,
-  };
-
-  switch (props.variant) {
-    case "device":
-      await store.dispatch("devices/fetch", data);
-      break;
-    case "container":
-      await store.dispatch("container/fetch", data);
-      break;
-    default:
-      break;
   }
 };
 
@@ -165,7 +127,7 @@ const selectTag = async (item: string) => {
   }
 };
 
-onMounted(() => {
-  getTags();
+onMounted(async () => {
+  await getTags();
 });
 </script>

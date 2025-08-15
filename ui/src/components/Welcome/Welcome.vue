@@ -47,7 +47,7 @@
 
         <v-window-item :value="3">
           <v-card class="bg-v-theme-surface" height="250px" :elevation="0" data-test="welcome-third-screen">
-            <WelcomeThirdScreen v-if="enable" />
+            <WelcomeThirdScreen v-if="enable" v-model:first-pending-device="firstPendingDevice" />
           </v-card>
           <v-card-actions>
             <v-btn variant="text" data-test="close3-btn" @click="close">
@@ -91,21 +91,21 @@ import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import { IDevice } from "@/interfaces/IDevice";
+import { useDevicesStore } from "@/store/modules/devices";
 
 type Timer = ReturnType<typeof setInterval>;
 
 const showDialog = defineModel<boolean>({ required: true });
 const store = useStore();
+const authStore = useAuthStore();
+const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 const el = ref<number>(1);
+const firstPendingDevice = ref<IDevice>();
 const polling = ref<Timer | undefined>(undefined);
 const enable = ref(false);
-
-const curl = ref({
-  hostname: window.location.hostname,
-  tenant: store.getters["auth/tenant"],
-});
-
 const pollingDevices = () => {
   polling.value = setInterval(async () => {
     try {
@@ -128,10 +128,9 @@ const activePollingDevices = () => {
 };
 
 const acceptDevice = async () => {
-  const device = store.getters["devices/getFirstPending"];
   try {
-    if (device) {
-      await store.dispatch("devices/accept", device.uid);
+    if (firstPendingDevice.value) {
+      await devicesStore.acceptDevice(firstPendingDevice.value.uid);
 
       store.dispatch("notifications/fetch");
       store.dispatch("stats/get");
@@ -146,10 +145,11 @@ const acceptDevice = async () => {
 
 const command = () => {
   const port = window.location.port ? `:${window.location.port}` : "";
-  const { hostname } = window.location;
+  const { hostname, protocol } = window.location;
+  const { tenantId } = authStore;
 
   // eslint-disable-next-line vue/max-len
-  return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${curl.value.tenant} SERVER_ADDRESS=${window.location.protocol}//${hostname} sh`;
+  return `curl -sSf ${protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${protocol}//${hostname} sh`;
 };
 
 const close = () => {

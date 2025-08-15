@@ -1,6 +1,7 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper, flushPromises } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SettingBilling from "@/components/Setting/SettingBilling.vue";
@@ -9,93 +10,77 @@ import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
 
 type SettingBillingWrapper = VueWrapper<InstanceType<typeof SettingBilling>>;
+
+setActivePinia(createPinia());
+const authStore = useAuthStore();
+const billingStore = useBillingStore();
+const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+const mockBillingApi = new MockAdapter(billingApi.getAxios());
+const vuetify = createVuetify();
+
+const members = [
+  {
+    id: "xxxxxxxx",
+    username: "test",
+    role: "owner",
+  },
+];
+
+const billingData = {
+  active: false,
+  status: "inactive",
+  customer_id: "cus_test",
+  subscription_id: "sub_test",
+  current_period_end: 2068385820,
+  created_at: "",
+  updated_at: "",
+  invoices: [],
+};
+
+const namespaceData = {
+  name: "test",
+  owner: "test",
+  tenant_id: "fake-tenant-data",
+  members,
+  max_devices: 3,
+  devices_count: 3,
+  created_at: "",
+  billing: billingData,
+};
+
+const customerData = {
+  id: "cus_test",
+  name: "test",
+  email: "test@test.com",
+  payment_methods: [
+    {
+      id: "test_id",
+      number: "xxxxxxxxxxxx4242",
+      brand: "visa",
+      exp_month: 3,
+      exp_year: 2029,
+      cvc: "",
+      default: true,
+    },
+  ],
+};
 
 describe("Billing Settings Free Mode", () => {
   let wrapper: SettingBillingWrapper;
 
-  const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockBilling: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const billingData = {
-    active: false,
-    status: "inactive",
-    customer_id: "cus_test",
-    subscription_id: "sub_test",
-    current_period_end: 2068385820,
-    created_at: "",
-    updated_at: "",
-    invoices: [],
-  };
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-    billing: billingData,
-  };
-
-  const authData = {
-    status: "",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-  };
-
-  const customerData = {
-    id: "cus_test",
-    name: "test",
-    email: "test@test.com",
-    payment_methods: [
-      {
-        id: "test_id",
-        number: "xxxxxxxxxxxx4242",
-        brand: "visa",
-        exp_month: 3,
-        exp_year: 2029,
-        cvc: "",
-        default: true,
-      },
-    ],
-  };
-
   beforeEach(() => {
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
-    // Create a mock adapter for the billingApi and namespacesApi instance
-    mockBilling = new MockAdapter(billingApi.getAxios());
 
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
 
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-    mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("billing/setSubscription", billingData);
-
+    authStore.role = "owner";
     wrapper = mount(SettingBilling, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
@@ -154,12 +139,6 @@ describe("Billing Settings Free Mode", () => {
 describe("Billing Settings Premium Usage", () => {
   let wrapper: SettingBillingWrapper;
 
-  const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockBilling: MockAdapter;
-
   const members = [
     {
       id: "xxxxxxxx",
@@ -169,18 +148,20 @@ describe("Billing Settings Premium Usage", () => {
   ];
 
   const billingData = {
+    id: "sub_test",
     active: true,
     status: "active",
     customer_id: "cus_test",
     subscription_id: "sub_test",
     current_period_end: 2068385820,
+    end_at: 2068385820,
     created_at: "",
     updated_at: "",
     invoices: [
       {
         id: "xxxxx",
-        status: "open",
-        currency: "brl",
+        status: "open" as const,
+        currency: "brl" as const,
         amount: 12,
       },
     ],
@@ -197,52 +178,17 @@ describe("Billing Settings Premium Usage", () => {
     billing: billingData,
   };
 
-  const authData = {
-    status: "",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-  };
-
-  const customerData = {
-    id: "cus_test",
-    name: "test",
-    email: "test@test.com",
-    payment_methods: [
-      {
-        id: "test_id",
-        number: "xxxxxxxxxxxx4242",
-        brand: "visa",
-        exp_month: 3,
-        exp_year: 2029,
-        cvc: "",
-        default: true,
-      },
-    ],
-  };
-
   beforeEach(() => {
-    vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
-    // Create a mock adapter for the usersApi instance
-    mockBilling = new MockAdapter(billingApi.getAxios());
+    envVariables.billingEnable = true;
 
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
 
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockBilling.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-    mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("billing/setSubscription", billingData);
-    store.commit("customer/setCustomer", customerData);
-
+    billingStore.billing = billingData;
+    authStore.role = "owner";
     wrapper = mount(SettingBilling, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],
@@ -279,24 +225,26 @@ describe("Billing Settings Premium Usage", () => {
 
   it("Render alerts for status", async () => {
     const billingData = {
+      id: "sub_test",
       active: true,
       status: "to_cancel_at_end_of_period",
       customer_id: "cus_test",
       subscription_id: "sub_test",
       current_period_end: 2068385820,
+      end_at: 2068385820,
       created_at: "",
       updated_at: "",
       invoices: [
         {
           id: "xxxxx",
-          status: "open",
-          currency: "brl",
+          status: "open" as const,
+          currency: "brl" as const,
           amount: 12,
         },
       ],
     };
-    mockBilling.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-    store.commit("billing/setSubscription", billingData);
+    mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
+    billingStore.billing = billingData;
     await nextTick();
     await flushPromises();
     expect(wrapper.find('[data-test="billing-status-message"]')).toBeTruthy();

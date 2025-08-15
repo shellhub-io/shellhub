@@ -1,130 +1,94 @@
-import { Module } from "vuex";
-import * as apiFirewallRule from "../api/firewall_rules";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import * as firewallRuleApi from "../api/firewall_rules";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
-import { State } from "..";
 
-export interface FirewallRulesState {
-  firewalls: Array<IFirewallRule>;
-  firewall: IFirewallRule;
-  numberFirewalls: number;
-  page: number;
-  perPage: number;
-  filter: string | null;
-}
+const useFirewallRulesStore = defineStore("firewallRules", () => {
+  const firewallRules = ref<Array<IFirewallRule>>([]);
+  const firewall = ref<IFirewallRule>({} as IFirewallRule);
+  const firewallRuleCount = ref<number>(0);
 
-export const firewallRules: Module<FirewallRulesState, State> = {
-  namespaced: true,
-  state: {
-    firewalls: [],
-    firewall: {} as IFirewallRule,
-    numberFirewalls: 0,
-    page: 1,
-    perPage: 10,
-    filter: null,
-  },
+  const createFirewallRule = async (data: IFirewallRule) => {
+    await firewallRuleApi.postFirewall(data);
+  };
 
-  getters: {
-    list: (state) => state.firewalls,
-    get: (state) => state.firewall,
-    getNumberFirewalls: (state) => state.numberFirewalls,
-    getPage: (state) => state.page,
-    getPerPage: (state) => state.perPage,
-  },
-
-  mutations: {
-    setFirewalls: (state, res) => {
-      state.firewalls = res.data;
-      state.numberFirewalls = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setFirewall: (state, res) => {
-      state.firewall = res.data;
-    },
-
-    removeFirewalls: (state, id) => {
-      state.firewalls.splice(
-        state.firewalls.findIndex((d) => d.id === id),
-        1,
+  const fetchFirewallRuleList = async (data?: { perPage: number; page: number }) => {
+    try {
+      const res = await firewallRuleApi.fetchFirewalls(
+        data?.perPage || 10,
+        data?.page || 1,
       );
-    },
-
-    setPagePerpageFilter: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-      state.filter = data.filter;
-    },
-
-    resetPagePerpage: (state) => {
-      state.page = 1;
-      state.perPage = 10;
-    },
-
-    clearListFirewalls: (state) => {
-      state.firewalls = [];
-      state.numberFirewalls = 0;
-    },
-
-    clearObjectFirewalls: (state) => {
-      state.firewall = {} as IFirewallRule;
-    },
-  },
-
-  actions: {
-    post: async (context, data) => {
-      await apiFirewallRule.postFirewall(data);
-    },
-
-    fetch: async (context, data) => {
-      try {
-        const res = await apiFirewallRule.fetchFirewalls(
-          data.perPage,
-          data.page,
-        );
-        if (res.data.length) {
-          context.commit("setFirewalls", res);
-          context.commit("setPagePerpageFilter", data);
-          return true;
-        }
-        return false;
-      } catch (error) {
-        context.commit("clearListFirewalls");
-        throw error;
+      if (res.data.length) {
+        firewallRules.value = res.data as IFirewallRule[];
+        firewallRuleCount.value = parseInt(res.headers["x-total-count"], 10);
+        return true;
       }
-    },
+      return false;
+    } catch (error) {
+      firewallRules.value = [];
+      firewallRuleCount.value = 0;
+      throw error;
+    }
+  };
 
-    refresh: async (context) => {
-      try {
-        const res = await apiFirewallRule.fetchFirewalls(
-          context.state.perPage,
-          context.state.page,
-        );
-        context.commit("setFirewalls", res);
-      } catch (error) {
-        context.commit("clearListFirewalls");
-        throw error;
-      }
-    },
+  // const refresh = async () => {
+  //   try {
+  //     const res = await firewallRuleApi.fetchFirewalls(
+  //       perPage.value,
+  //       page.value,
+  //     );
+  //     firewalls.value = res.data;
+  //     numberFirewalls.value = parseInt(res.headers["x-total-count"], 10);
+  //   } catch (error) {
+  //     firewalls.value = [];
+  //     numberFirewalls.value = 0;
+  //     throw error;
+  //   }
+  // };
 
-    get: async (context, id) => {
-      try {
-        const res = await apiFirewallRule.getFirewall(id);
-        context.commit("setFirewall", res);
-      } catch (error) {
-        context.commit("clearObjectFirewalls");
-        throw error;
-      }
-    },
+  const updateFirewallRule = async (data: IFirewallRule) => {
+    await firewallRuleApi.updateFirewallRule(data);
+  };
 
-    put: async (context, data) => {
-      await apiFirewallRule.putFirewall(data);
-    },
+  const removeFirewallRule = async (id: string) => {
+    await firewallRuleApi.removeFirewallRule(id);
+  };
 
-    resetPagePerpage: async (context) => {
-      context.commit("resetPagePerpage");
-    },
+  const setFirewall = (firewallData: IFirewallRule) => {
+    firewall.value = firewallData;
+  };
 
-    remove: async (context, id) => {
-      await apiFirewallRule.removeFirewall(id);
-    },
-  },
-};
+  const removeFromList = (id: string | number) => {
+    const index = firewallRules.value.findIndex((d) => d.id === id);
+    if (index !== -1) {
+      firewallRules.value.splice(index, 1);
+      firewallRuleCount.value = Math.max(0, firewallRuleCount.value - 1);
+    }
+  };
+
+  const clearFirewalls = () => {
+    firewallRules.value = [];
+    firewallRuleCount.value = 0;
+  };
+
+  const clearFirewall = () => {
+    firewall.value = {} as IFirewallRule;
+  };
+
+  return {
+    firewallRules,
+    firewall,
+    firewallRuleCount,
+
+    createFirewallRule,
+    fetchFirewallRuleList,
+    updateFirewallRule,
+    removeFirewallRule,
+    setFirewall,
+    removeFromList,
+    clearFirewalls,
+    clearFirewall,
+  };
+});
+
+export default useFirewallRulesStore;

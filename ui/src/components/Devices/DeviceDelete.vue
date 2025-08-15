@@ -39,7 +39,7 @@
         <v-btn
           color="red darken-1"
           variant="text"
-          @click="removeDevice(props.uid, props.redirect)"
+          @click="removeDevice()"
           data-test="confirm-btn"
         >
           Remove
@@ -56,6 +56,7 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useDevicesStore from "@/store/modules/devices";
 
 const props = defineProps<{
   uid: string;
@@ -68,21 +69,18 @@ const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 const store = useStore();
+const devicesStore = useDevicesStore();
 const router = useRouter();
 
 const emitUpdate = (): void => {
   emit("update");
 };
 
-const closeDialog = (): void => {
-  showDialog.value = false;
-};
-
-const removeDevice = async (uid: string, redirect: boolean): Promise<void> => {
+const removeDevice = async (): Promise<void> => {
   try {
-    await store.dispatch("devices/remove", uid);
+    await devicesStore.removeDevice(props.uid);
 
-    if (redirect) {
+    if (props.redirect) {
       router.push("/devices");
     } else {
       await store.dispatch("tags/fetch");
@@ -93,9 +91,9 @@ const removeDevice = async (uid: string, redirect: boolean): Promise<void> => {
   } catch (error: unknown) {
     snackbar.showError("Failed to remove device.");
     handleError(error);
-  } finally {
-    closeDialog();
   }
+
+  showDialog.value = false;
 };
 
 defineExpose({ removeDevice });

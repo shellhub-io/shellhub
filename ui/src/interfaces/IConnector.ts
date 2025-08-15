@@ -1,36 +1,23 @@
 import { ConnectorTLS } from "@/api/client";
 
-export interface IConnectorCreate {
-  enable: boolean,
-  secure: boolean,
-  address: string,
-  port: number,
-  tls: ConnectorTLS,
-}
-
-export interface IConnectorUpdate {
-  uid: string,
-  enable: boolean,
-  secure: boolean,
-  address: string,
-  port: number,
-  tls: ConnectorTLS,
-}
-
 export interface IConnectorPayload {
-  enable: boolean;
-  secure: boolean;
-  address: string;
-  port: number;
-  uid?: string;
-  tls?: ConnectorTLS | unknown;
+  enable: boolean,
+  secure: boolean,
+  address: string,
+  port: number,
+  tls?: ConnectorTLS,
+  uid: string,
 }
 
 export interface IConnector {
   uid: string,
   tenant_id: string,
+  address: string,
+  port: number,
+  status: {
+    state: string,
+    message: string,
+  },
   enable: boolean,
   secure: boolean,
-  hostname: string,
-  tls: null,
 }

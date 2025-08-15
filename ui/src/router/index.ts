@@ -3,6 +3,9 @@ import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
+import useAuthStore from "@/store/modules/auth";
+import useContainersStore from "@/store/modules/containers";
+import useDevicesStore from "@/store/modules/devices";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   try {
@@ -12,7 +15,7 @@ export const handleAcceptInvite = async (to: RouteLocationNormalized, from: Rout
       sig: to.query.sig || from.query.sig,
     });
     const userStatus = store.getters["namespaces/getUserStatus"];
-    const isLoggedIn = store.getters["auth/isLoggedIn"];
+    const { isLoggedIn } = useAuthStore();
 
     switch (userStatus) {
       case "invited":
@@ -233,13 +236,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Devices",
     component: Devices,
     beforeEnter: async (to, from, next) => {
-      await store.dispatch("devices/fetch", {
-        page: store.getters["devices/getPage"],
-        perPage: store.getters["devices/getPerPage"],
-        filter: store.getters["devices/getFilter"],
-        status: "",
-        committable: false,
-      });
+      await useDevicesStore().fetchDeviceList();
       next();
     },
     redirect: { name: "DeviceList" },
@@ -266,13 +263,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Containers",
     component: Containers,
     beforeEnter: async (to, from, next) => {
-      await store.dispatch("container/fetch", {
-        page: store.getters["container/getPage"],
-        perPage: store.getters["container/getPerPage"],
-        filter: store.getters["container/getFilter"],
-        status: "",
-        committable: false,
-      });
+      await useContainersStore().fetchContainerList();
       next();
     },
     redirect: { name: "ContainerList" },
@@ -437,8 +428,7 @@ export const router = createRouter({
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     await store.dispatch("users/fetchSystemInfo");
-
-    const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
+    const { isLoggedIn } = useAuthStore();
     const requiresAuth = to.meta.requiresAuth ?? true;
 
     const layout = to.meta.layout || "AppLayout";

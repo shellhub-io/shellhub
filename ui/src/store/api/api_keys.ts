@@ -1,12 +1,12 @@
 import {
-  IApiKey, ApiKeyEdit,
-  ApiKeyRemove } from "@/interfaces/IApiKey";
+  IApiKeyCreate, IApiKeyEdit, IApiKeyRemove,
+} from "@/interfaces/IApiKey";
 import { apiKeysApi } from "@/api/http";
 
-export const generateApiKey = async (data: IApiKey) => apiKeysApi.apiKeyCreate({
+export const generateApiKey = async (data: IApiKeyCreate) => apiKeysApi.apiKeyCreate({
   name: data.name,
   role: data.role,
-  expires_at: data.expires_at,
+  expires_at: data.expires_in,
 });
 
 export const getApiKey = async (
@@ -16,6 +16,6 @@ export const getApiKey = async (
   sortStatusField?: string,
 ) => apiKeysApi.apiKeyList(page, perPage, sortStatusString, sortStatusField);
 
-export const removeApiKey = async (data: ApiKeyRemove) => apiKeysApi.apiKeyDelete(data.key);
+export const removeApiKey = async (data: IApiKeyRemove) => apiKeysApi.apiKeyDelete(data.key);
 
-export const editApiKey = async (data: ApiKeyEdit) => apiKeysApi.apiKeyUpdate(data.key, { name: data.name, role: data.role });
+export const editApiKey = async (data: IApiKeyEdit) => apiKeysApi.apiKeyUpdate(data.key, { name: data.name, role: data.role });

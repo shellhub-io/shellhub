@@ -2,6 +2,7 @@ import { Module } from "vuex";
 import { AxiosResponse } from "axios";
 import * as apiUser from "../api/users";
 import { State } from "..";
+import useAuthStore from "@/store/modules/auth";
 
 export interface UsersState {
   statusUpdateAccountDialog: boolean;
@@ -101,15 +102,7 @@ export const users: Module<UsersState, State> = {
 
       if (res.data.token) {
         context.commit("setSignUpToken", res.data.token);
-        context.commit("auth/authSuccess", res.data, { root: true });
-        localStorage.setItem("token", res.data.token || "");
-        localStorage.setItem("user", res.data.user || "");
-        localStorage.setItem("name", res.data.name || "");
-        localStorage.setItem("tenant", res.data.tenant || "");
-        localStorage.setItem("email", res.data.email || "");
-        localStorage.setItem("id", res.data.id || "");
-        localStorage.setItem("role", res.data.role || "");
-        localStorage.setItem("namespacesWelcome", JSON.stringify({}));
+        useAuthStore().persistAuth(res.data);
       }
     },
 

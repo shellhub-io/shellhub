@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="dialog" max-width="450" @click:outside="close()">
+  <BaseDialog v-model="showDialog" @click:outside="close()">
     <v-card data-test="tunnel-create-dialog" class="bg-v-theme-surface">
       <v-card-title class="bg-primary" data-test="create-dialog-title">
         Create Device Web Endpoint
@@ -50,7 +50,7 @@
                 variant="outlined"
                 return-object
                 hide-details
-                @click:control="() => fetchDevices()"
+                @click:control="fetchDevices"
                 @update:search="fetchDevices"
                 data-test="web-endpoint-autocomplete"
               >
@@ -131,6 +131,7 @@ import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useDevicesStore from "@/store/modules/devices";
 
 interface DeviceOption {
   uid: string;
@@ -142,18 +143,16 @@ interface DeviceOption {
   [key: string]: unknown;
 }
 
-const props = defineProps({
-  uid: { type: String, required: false, default: "" },
-  useDevicesList: {
-    type: Boolean,
-    required: true,
-  },
-});
+const props = defineProps<{
+  uid?: string;
+  useDevicesList: boolean;
+}>();
 
 const emit = defineEmits(["update"]);
 const store = useStore();
+const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
-const dialog = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 const alertText = ref();
 
 const selectedDevice = ref<DeviceOption | null>(null);
@@ -220,34 +219,28 @@ const hasErrors = computed(() => {
 });
 
 const resetFields = () => { resetPort(); resetHost(); selectedTimeout.value = -1; resetCustomTimeout(); };
-const close = () => { resetFields(); dialog.value = false; };
+const close = () => { resetFields(); showDialog.value = false; };
 const update = () => { emit("update"); close(); };
 
-const fetchDevices = async (val?: string) => {
-  if (!val && deviceOptions.value.length > 0) return;
+const fetchDevices = async (searchQuery?: string) => {
+  if (!searchQuery && deviceOptions.value.length > 0) return;
 
   loadingDevices.value = true;
 
-  const filter = val
+  const filter = searchQuery
     ? btoa(JSON.stringify([
-      { type: "property", params: { name: "name", operator: "contains", value: val } },
+      { type: "property", params: { name: "name", operator: "contains", value: searchQuery } },
     ]))
     : "";
 
   try {
-    await store.dispatch("devices/search", {
-      page: 1,
-      perPage: 10,
-      filter,
-      status: "accepted",
-    });
-
-    deviceOptions.value = store.getters["devices/list"];
+    await devicesStore.fetchDeviceList({ filter });
+    deviceOptions.value = devicesStore.devices;
   } catch {
     snackbar.showError("Failed to load devices.");
-  } finally {
-    loadingDevices.value = false;
   }
+
+  loadingDevices.value = false;
 };
 
 const addWebEndpoint = async () => {
@@ -278,5 +271,4 @@ const addWebEndpoint = async () => {
     }
   }
 };
-
 </script>

@@ -14,7 +14,7 @@ export const fetchFirewalls = async (perPage: number, page: number) => rulesApi.
 
 export const getFirewall = async (id: number) => rulesApi.getFirewallRule(id);
 
-export const putFirewall = async (data: IFirewallRule & { id: number }) => rulesApi.updateFirewallRule(data.id, {
+export const updateFirewallRule = async (data: IFirewallRule) => rulesApi.updateFirewallRule(data.id, {
   priority: data.priority,
   action: data.action,
   active: data.active,
@@ -23,4 +23,4 @@ export const putFirewall = async (data: IFirewallRule & { id: number }) => rules
   username: data.username,
 });
 
-export const removeFirewall = async (id: number) => rulesApi.deleteFirewallRule(id);
+export const removeFirewallRule = async (id: string) => rulesApi.deleteFirewallRule(id);

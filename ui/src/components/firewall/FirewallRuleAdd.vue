@@ -173,9 +173,13 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const snackbar = useSnackbar();
 const store = useStore();
+const authStore = useAuthStore();
+const firewallRulesStore = useFirewallRulesStore();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const active = ref(true);
@@ -248,7 +252,7 @@ const filterSelectOptions = [
 ];
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.firewall.create);
 });
 
@@ -345,7 +349,7 @@ const addFirewallRule = async () => {
   }
 
   try {
-    await store.dispatch("firewallRules/post", constructNewFirewallRule());
+    await firewallRulesStore.createFirewallRule(constructNewFirewallRule() as IFirewallRule);
     snackbar.showSuccess("Successfully created a new firewall rule.");
     update();
   } catch (error: unknown) {

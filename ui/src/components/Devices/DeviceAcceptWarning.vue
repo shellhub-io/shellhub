@@ -12,7 +12,7 @@
 
       <v-card-text class="mt-4 mb-3 pb-1">
         <p class="mb-2" data-test="card-text">
-          <strong>{{ device }} </strong> name is already taken by another accepted device,
+          <strong>{{ duplicatedDeviceName }} </strong> name is already taken by another accepted device,
           please choose another name.
         </p>
       </v-card-text>
@@ -32,13 +32,17 @@ import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { useStore } from "@/store";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import { useDevicesStore } from "@/store/modules/devices";
 
+const authStore = useAuthStore();
+const devicesStore = useDevicesStore();
 const store = useStore();
-const device = computed(() => store.getters["devices/getDeviceToBeRenamed"]);
+const duplicatedDeviceName = computed(() => devicesStore.duplicatedDeviceName);
 const showDialog = computed(() => store.getters["users/deviceDuplicationError"]);
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
 });
 

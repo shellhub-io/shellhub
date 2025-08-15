@@ -1,4 +1,4 @@
-// AppLayout.spec.ts
+import { createPinia, setActivePinia } from "pinia";
 import { defineComponent, nextTick } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
@@ -18,7 +18,7 @@ let mockContainers: MockAdapter;
 
 describe("App Layout Component", () => {
   let wrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify({
     components,
     directives,
@@ -44,10 +44,10 @@ describe("App Layout Component", () => {
     mockContainers = new MockAdapter(containersApi.getAxios());
 
     mockDevices
-      .onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending")
+      .onGet("http://localhost/api/devices?page=1&per_page=10&status=pending")
       .reply(200);
     mockContainers
-      .onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending")
+      .onGet("http://localhost/api/containers?page=1&per_page=10&status=pending")
       .reply(200);
 
     wrapper = mount(AppWrapperComponent, {
