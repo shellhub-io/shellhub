@@ -65,6 +65,7 @@ describe("MfaSettings", () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
     wrapper.vm.goToNextStep();
+    expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Renders the components (third-window)", async () => {
@@ -72,10 +73,11 @@ describe("MfaSettings", () => {
     await flushPromises();
     wrapper.vm.goToNextStep();
     wrapper.vm.goToNextStep();
+    expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Successful MFA setup", async () => {
-    wrapper.vm.el = 2;
+    wrapper.vm.goToNextStep(); // 2
     const responseData = {
       token: "token",
     };
@@ -85,9 +87,8 @@ describe("MfaSettings", () => {
 
     wrapper.vm.showDialog = true;
     await flushPromises();
-    wrapper.vm.el = 3;
+    wrapper.vm.goToNextStep(); // 3
     await flushPromises();
-
     await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
     await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");
     await flushPromises();
@@ -101,7 +102,7 @@ describe("MfaSettings", () => {
 
   it("Error MFA setup", async () => {
     expect(wrapper.findComponent('[data-test="error-alert"]').exists()).toBe(false);
-    wrapper.vm.el = 2;
+    wrapper.vm.goToNextStep(); // 2
 
     mockMfaApi.onPut("http://localhost:3000/api/user/mfa/enable").reply(403);
 
@@ -109,7 +110,8 @@ describe("MfaSettings", () => {
 
     wrapper.vm.showDialog = true;
     await flushPromises();
-    wrapper.vm.el = 3;
+    wrapper.vm.goToNextStep(); // 3
+
     await flushPromises();
 
     await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");

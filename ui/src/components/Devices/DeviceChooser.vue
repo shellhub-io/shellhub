@@ -21,13 +21,13 @@
           data-test="subtext"
         >
           You currently have no subscription to the
-          <a :href="url()"> premium plan </a> and the free version is limited to
+          <router-link :to="billingUrl">premium plan</router-link> and the free version is limited to
           3 devices. To unlock access to all devices, you can subscribe to the
-          <a :href="url()"> premium plan </a>. Case, If you want to continue on
+          <router-link :to="billingUrl">premium plan</router-link>. If you want to continue on
           the free plan, you need to select three devices.
         </p>
       </v-card-text>
-      <div v-if="isAllDevices && hasDevice" class="pa-5">
+      <div v-if="isAllDevicesTab && hasDevices" class="pa-5">
         <v-row>
           <v-col md="12" sm="12">
             <v-text-field
@@ -65,7 +65,7 @@
       </div>
 
       <v-card-text class="mb-2 pb-0">
-        <v-window v-model="tab">
+        <v-window v-model="tab" @update:model-value="handleTabChange">
           <v-window-item
             v-for="(item, id) in tabItems"
             :key="id"
@@ -107,9 +107,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted, watch } from "vue";
+import { computed, ref, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import DeviceListChooser from "./DeviceListChooser.vue";
 import hasPermission from "@/utils/permission";
@@ -117,80 +116,37 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useDevicesStore from "@/store/modules/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
 const authStore = useAuthStore();
-const store = useStore();
+const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
-const showDialog = computed(() => store.getters["devices/getDeviceChooserStatus"]);
+
+const showDialog = computed(() => devicesStore.showDeviceChooser);
+const disableSuggestedTab = ref(devicesStore.suggestedDevices.length <= 0);
+const tab = ref(disableSuggestedTab.value ? "all" : "suggested");
+const filter = ref("");
+const billingUrl = "/settings/billing";
+const isAllDevicesTab = computed(() => tab.value === "all");
+const hasDevices = computed(() => devicesStore.devices.length > 0);
+const disableButton = computed(() => (
+  (devicesStore.selectedDevices.length <= 0
+    || devicesStore.selectedDevices.length > 3)
+    && tab.value === "all"
+));
 
 const hasAuthorization = computed(() => {
   const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.device.chooser);
 });
 
-const url = () => `${window.location.protocol}//${window.location.hostname}/settings/billing`;
-
-const close = () => { store.dispatch("devices/setDeviceChooserStatus", false); };
-
-const filter = ref("");
-
-const searchDevices = () => {
-  let encodedFilter = "";
-
-  if (!filter.value) {
-    return;
-  }
-
-  const filterToEncodeBase64 = [
-    {
-      type: "property",
-      params: { name: "name", operator: "contains", value: filter.value },
-    },
-  ];
-
-  encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-
-  try {
-    store.dispatch("devices/search", {
-      page: store.getters["devices/getPage"],
-      perPage: store.getters["devices/getPerPage"],
-      filter: encodedFilter,
-      status: store.getters["devices/getStatus"],
-    });
-  } catch {
-    snackbar.showError("An error occurred while searching for devices.");
-  }
-};
-
-const sendDevicesChoice = async (devices: Array<string>) => {
-  try {
-    await store.dispatch("devices/postDevicesChooser", { devices });
-    snackbar.showSuccess("Devices selected successfully.");
-    store.dispatch("devices/refresh");
-    close();
-  } catch (error: unknown) {
-    snackbar.showError("An error occurred while selecting devices.");
-    handleError(error);
-  }
-
-  store.dispatch("stats/get");
-};
-
-const disableTab = ref(false);
-
-// Current selected tab
-const tab = ref("");
-
-// This variable is used to define the items for the `<v-tabs>`.
 const tabItems = ref({
-  // TODO: 'automatically' seems a better name to use
   suggested: {
     title: "Suggested",
     selectable: false,
-    disabled: disableTab,
+    disabled: disableSuggestedTab,
   },
-
-  // TODO: 'manually' seems a better name to use
   all: {
     title: "All",
     selectable: true,
@@ -198,66 +154,52 @@ const tabItems = ref({
   },
 });
 
-const isAllDevices = computed(() => tab.value === "all");
+const close = () => { devicesStore.showDeviceChooser = false; };
 
-const hasDevice = computed(() => (
-  store.getters["stats/stats"].registered_devices > 0
-        || store.getters["stats/stats"].pending_devices > 0
-        || store.getters["stats/stats"].rejected_devices > 0
-));
+const searchDevices = async () => {
+  const filterToEncodeBase64 = [{
+    type: "property",
+    params: { name: "name", operator: "contains", value: filter.value },
+  }];
 
-// Watch for changes in the current tab to load the relevant data into the data table
-watch(tab, async (tabId) => {
-  switch (tabItems.value[tabId]) {
-    case tabItems.value.suggested: {
-      await store.dispatch("devices/getDevicesMostUsed");
-      disableTab.value = store.getters["devices/getDevicesForUserToChoose"].length <= 0;
-      // Set tab.value to "all" if disabled.value is true
-      if (disableTab.value) {
-        tab.value = "all";
-      }
-      break;
-    }
-    case tabItems.value.all: {
-      await store.dispatch("devices/setDevicesForUserToChoose", {
-        perPage: 5,
-        page: 1,
-        filter: store.getters["devices/getFilter"],
-        status: "accepted",
-        sortStatusField: null,
-        sortStatusString: "asc",
-      });
-      break;
-    }
-    default:
-      break;
+  const encodedFilter = filter.value ? btoa(JSON.stringify(filterToEncodeBase64)) : undefined;
+
+  try {
+    await devicesStore.fetchDeviceList({
+      perPage: 5,
+      filter: encodedFilter,
+    });
+  } catch {
+    snackbar.showError("An error occurred while searching for devices.");
   }
-});
+};
 
-const disableButton = computed(() => (
-  (store.getters["devices/getDevicesSelected"].length <= 0
-    || store.getters["devices/getDevicesSelected"].length > 3)
-    && tab.value !== "suggested"
-));
+const sendDevicesChoice = async (devices: Array<IDevice>) => {
+  try {
+    await devicesStore.sendDeviceChoices(devices);
+    snackbar.showSuccess("Devices selected successfully.");
+    await devicesStore.fetchDeviceList();
+    close();
+  } catch (error: unknown) {
+    snackbar.showError("An error occurred while selecting devices.");
+    handleError(error);
+  }
+};
+
+const handleTabChange = async () => {
+  if (tab.value === "suggested") await devicesStore.fetchMostUsedDevices();
+  else await devicesStore.fetchDeviceList({ perPage: 5 });
+};
 
 const accept = async () => {
-  switch (tabItems.value[tab.value]) {
-    case tabItems.value.suggested: {
-      sendDevicesChoice(store.getters["devices/getDevicesForUserToChoose"]);
-      break;
-    }
-    case tabItems.value.all: {
-      sendDevicesChoice(store.getters["devices/getDevicesSelected"]);
-      break;
-    }
-    default:
-      break;
-  }
+  if (tab.value === "suggested") await sendDevicesChoice(devicesStore.suggestedDevices);
+  else await sendDevicesChoice(devicesStore.selectedDevices);
 };
 
 onMounted(async () => {
   try {
-    await store.dispatch("stats/get");
+    await devicesStore.fetchMostUsedDevices();
+    await devicesStore.fetchDeviceList({ perPage: 5 });
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     switch (axios.isAxiosError(error)) {
@@ -266,9 +208,5 @@ onMounted(async () => {
     }
     handleError(error);
   }
-});
-
-onUnmounted(async () => {
-  await store.dispatch("devices/setFilter", null);
 });
 </script>

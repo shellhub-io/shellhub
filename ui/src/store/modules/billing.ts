@@ -11,13 +11,14 @@ const useBillingStore = defineStore("billing", () => {
   const invoices = computed(() => billing.value.invoices ?? []);
 
   const getSubscriptionInfo = async (): Promise<void> => {
-    if (envVariables.billingEnable) {
-      const res = await billingApi.getSubscriptionInfo();
-      billing.value = res.data as IBilling;
-      return;
+    try {
+      if (envVariables.billingEnable) {
+        const res = await billingApi.getSubscriptionInfo();
+        billing.value = res.data as IBilling;
+      }
+    } catch (error) {
+      billing.value.active = false;
     }
-
-    billing.value.active = false;
   };
 
   const openBillingPortal = async (): Promise<void> => {

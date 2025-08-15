@@ -1,6 +1,6 @@
 <template>
   <DeviceChooser
-    v-if="isBillingEnabled && hasWarning"
+    v-if="isBillingEnabled && showDeviceChooser"
     data-test="device-chooser-component"
   />
 
@@ -67,6 +67,7 @@ import useSnackbar from "@/helpers/snackbar";
 import useAnnouncementStore from "@/store/modules/announcement";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useDevicesStore from "@/store/modules/devices";
 
 defineOptions({
   inheritAttrs: false,
@@ -77,6 +78,7 @@ const store = useStore();
 const announcementStore = useAnnouncementStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
+const devicesStore = useDevicesStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
@@ -90,25 +92,12 @@ const currentAnnouncement = computed(() => announcementStore.currentAnnouncement
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );
-const hasWarning = computed(
-  () => store.getters["devices/getDeviceChooserStatus"],
-);
-const statusWarning = async () => {
-  const bill = store.getters["namespaces/get"].billing;
-
-  if (bill === undefined) {
-    await store.dispatch("namespaces/get", localStorage.getItem("tenant"));
-  }
-
-  return (
-    store.getters["stats/stats"].registered_devices > 3
-        && !billingStore.isActive
-  );
-};
+const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
 
 const billingWarning = async () => {
-  const status = await statusWarning();
-  await store.dispatch("devices/setDeviceChooserStatus", status);
+  await billingStore.getSubscriptionInfo();
+  const showDeviceChooser = store.getters["stats/stats"].registered_devices > 3 && !billingStore.isActive;
+  devicesStore.showDeviceChooser = showDeviceChooser;
 };
 
 const namespaceHasBeenShown = (tenant: string) => (
@@ -190,7 +179,6 @@ const showDialogs = async () => {
 };
 
 onMounted(async () => {
-  await billingStore.getSubscriptionInfo();
   showDialogs();
   checkForNewAnnouncements();
 

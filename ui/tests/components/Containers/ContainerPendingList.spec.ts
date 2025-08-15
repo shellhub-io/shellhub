@@ -60,7 +60,7 @@ describe("Container Pending List", () => {
   ];
 
   beforeEach(async () => {
-    mockContainersApi.onGet("http://localhost:3000/api/containers?filter=&page=1&per_page=10&status=pending").reply(200, containers);
+    mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending").reply(200, containers);
 
     wrapper = mount(ContainerPendingList, {
       global: {

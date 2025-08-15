@@ -22,7 +22,7 @@ const useContainersStore = defineStore("containers", () => {
 
       containers.value = res.data as IContainer[];
       containerCount.value = parseInt(res.headers["x-total-count"], 10);
-      showContainers.value = true;
+      if (containerCount.value) showContainers.value = true;
     } catch (error) {
       containers.value = [];
       containerCount.value = 0;

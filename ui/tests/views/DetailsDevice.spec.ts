@@ -10,12 +10,15 @@ import { devicesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { routes } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useDevicesStore from "@/store/modules/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
 type DetailsDeviceWrapper = VueWrapper<InstanceType<typeof DetailsDevice>>;
 
 describe("Details Device", () => {
   let wrapper: DetailsDeviceWrapper;
   setActivePinia(createPinia());
+  const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
 
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
@@ -63,7 +66,7 @@ describe("Details Device", () => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices/resolve?uid=123456")
       .reply(200, device);
 
-    store.commit("devices/setDevice", device);
+    devicesStore.device = device;
 
     wrapper = mount(DetailsDevice, {
       global: {
@@ -96,36 +99,35 @@ describe("Details Device", () => {
   });
 
   it("Renders the component when deviceIsEmpty is true", async () => {
-    // Set device to empty object
-    store.commit("devices/setDevice", {});
+    devicesStore.device = {} as IDevice;
     await nextTick();
     expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Renders the component when device status is not accepted", async () => {
     // Set device status to 'pending'
-    store.commit("devices/setDevice", { ...device, status: "pending" });
+    devicesStore.device = { ...device, status: "pending" };
     await nextTick();
     expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Renders the component when device is offline", async () => {
     // Set device online status to false
-    store.commit("devices/setDevice", { ...device, online: false });
+    devicesStore.device = { ...device, online: false };
     await nextTick();
     expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Renders the component when device has no tags", async () => {
     // Set device tags to empty array
-    store.commit("devices/setDevice", { ...device, tags: [] });
+    devicesStore.device = { ...device, tags: [] };
     await nextTick();
     expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Renders the component when device has no last seen date", async () => {
     // Set device last_seen to empty string
-    store.commit("devices/setDevice", { ...device, last_seen: "" });
+    devicesStore.device = { ...device, last_seen: "" };
     await nextTick();
     expect(wrapper.html()).toMatchSnapshot();
   });
