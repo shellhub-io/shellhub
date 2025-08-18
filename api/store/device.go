@@ -54,5 +54,4 @@ type DeviceStore interface {
 	DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (modifiedCount int64, err error)
 
 	DeviceDelete(ctx context.Context, uid models.UID) error
-	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 }

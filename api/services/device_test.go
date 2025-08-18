@@ -1063,122 +1063,102 @@ func TestRenameDevice(t *testing.T) {
 	queryOptionsMock := new(storemock.QueryOptions)
 	storeMock.On("Options").Return(queryOptionsMock)
 
-	ctx := context.TODO()
-
 	cases := []struct {
-		description   string
-		requiredMocks func(device *models.Device)
+		name          string
 		uid           models.UID
-		device        *models.Device
 		deviceNewName string
 		tenant        string
+		mocks         func(context.Context)
 		expected      error
 	}{
 		{
-			description: "fails when store device get fails",
-			tenant:      "tenant",
-			uid:         models.UID("uid"),
-			device:      &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
-			requiredMocks: func(device *models.Device) {
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).Return(device, errors.New("error", "", 0)).Once()
+			name:          "fails when store device resolve fails",
+			uid:           models.UID("uid"),
+			deviceNewName: "newname",
+			tenant:        "tenant",
+			mocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
 		},
 		{
-			description:   "returns nil if the name is the same",
-			tenant:        "tenant",
-			deviceNewName: "name",
+			name:          "succeeds when name is the same",
 			uid:           models.UID("uid"),
-			device:        &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
-			requiredMocks: func(device *models.Device) {
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).Return(device, nil).Once()
+			deviceNewName: "name",
+			tenant:        "tenant",
+			mocks: func(ctx context.Context) {
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
 			},
 			expected: nil,
 		},
 		{
-			description:   "fails when store get by device name fails",
-			tenant:        "tenant",
-			deviceNewName: "newname",
+			name:          "fails when device update fails",
 			uid:           models.UID("uid"),
-			device:        &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
-			requiredMocks: func(device *models.Device) {
-				device2 := &models.Device{
-					UID:      "uid2",
-					Name:     "newname",
-					TenantID: "tenant2",
-				}
-
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).Return(device, nil).Once()
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceHostnameResolver, "newname", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).Return(device2, errors.New("error", "", 0)).Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), errors.New("error", "", 0)),
-		},
-		{
-			description:   "fails when the name already exists",
-			tenant:        "tenant",
 			deviceNewName: "newname",
-			uid:           models.UID("uid"),
-			device:        &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
-			requiredMocks: func(device *models.Device) {
-				device2 := &models.Device{
-					UID:      "uid2",
-					Name:     "newname",
-					TenantID: "tenant2",
-				}
-
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).Return(device, nil).Once()
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceHostnameResolver, "newname", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).Return(device2, nil).Once()
-			},
-			expected: NewErrDeviceDuplicated("newname", nil),
-		},
-		{
-			description:   "fails when the store device rename fails",
 			tenant:        "tenant",
-			deviceNewName: "newname",
-			uid:           models.UID("uid"),
-			device:        &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
-			requiredMocks: func(device *models.Device) {
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).Return(device, nil).Once()
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceHostnameResolver, "newname", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("DeviceRename", ctx, models.UID("uid"), "newname").Return(errors.New("error", "", 0)).Once()
+			mocks: func(ctx context.Context) {
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "tenant", "uid", &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, Name: "newname"}).
+					Return(errors.New("error", "", 0)).
+					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
 		{
-			description:   "succeeds",
-			tenant:        "tenant",
-			deviceNewName: "newname",
+			name:          "succeeds",
 			uid:           models.UID("uid"),
-			device:        &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"},
-			requiredMocks: func(device *models.Device) {
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).Return(device, nil).Once()
-				queryOptionsMock.On("InNamespace", "tenant").Return(nil).Once()
-				queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Once()
-				storeMock.On("DeviceResolve", ctx, store.DeviceHostnameResolver, "newname", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("DeviceRename", ctx, models.UID("uid"), "newname").Return(nil).Once()
+			deviceNewName: "newname",
+			tenant:        "tenant",
+			mocks: func(ctx context.Context) {
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+				queryOptionsMock.
+					On("InNamespace", "tenant").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "tenant", "uid", &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, Name: "newname"}).
+					Return(nil).
+					Once()
 			},
 			expected: nil,
 		},
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks(tc.device)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			err := service.RenameDevice(ctx, tc.uid, tc.deviceNewName, tc.tenant)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			tc.mocks(ctx)
+			err := s.RenameDevice(ctx, tc.uid, tc.deviceNewName, tc.tenant)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

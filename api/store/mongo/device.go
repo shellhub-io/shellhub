@@ -266,19 +266,6 @@ func (s *Store) DeviceCreate(ctx context.Context, device *models.Device) (string
 	return device.UID, nil
 }
 
-func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname string) error {
-	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"name": hostname}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if dev.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
 func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
 	pipeline := []bson.M{
 		{
