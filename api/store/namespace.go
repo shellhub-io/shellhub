@@ -44,7 +44,6 @@ type NamespaceStore interface {
 	// It returns an error, if any, or store.ErrNoDocuments if the namespace does not exist.
 	NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error
 
-	NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error
 	NamespaceDelete(ctx context.Context, tenantID string) error
 
 	// NamespaceAddMember adds a new member to the namespace with the specified tenantID.

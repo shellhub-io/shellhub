@@ -517,53 +517,6 @@ func TestNamespaceEdit(t *testing.T) {
 	}
 }
 
-func TestNamespaceUpdate(t *testing.T) {
-	cases := []struct {
-		description string
-		tenant      string
-		ns          *models.Namespace
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when tenant is not found",
-			tenant:      "nonexistent",
-			ns: &models.Namespace{
-				Name:       "edited-namespace",
-				MaxDevices: 3,
-				Settings:   &models.NamespaceSettings{SessionRecord: true},
-			},
-			fixtures: []string{fixtureNamespaces},
-			expected: store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when tenant is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			ns: &models.Namespace{
-				Name:       "edited-namespace",
-				MaxDevices: 3,
-				Settings:   &models.NamespaceSettings{SessionRecord: true},
-			},
-			fixtures: []string{fixtureNamespaces},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.NamespaceUpdate(ctx, tc.tenant, tc.ns)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
 func TestNamespaceDelete(t *testing.T) {
 	cases := []struct {
 		description string
