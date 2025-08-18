@@ -34,7 +34,7 @@ type NamespaceStore interface {
 	// can be passed via `opts` to inject additional data into the namespace.
 	//
 	// It returns the namespace or an error if any.
-	NamespaceGetPreferred(ctx context.Context, userID string, opts ...NamespaceQueryOption) (*models.Namespace, error)
+	NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error)
 
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error)
 
