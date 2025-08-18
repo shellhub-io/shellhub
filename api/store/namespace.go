@@ -40,9 +40,9 @@ type NamespaceStore interface {
 
 	NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) (conflicts []string, has bool, err error)
 
-	// NamespaceEdit updates a namespace with the specified tenant.
+	// NamespaceUpdate updates a namespace with the specified tenant.
 	// It returns an error, if any, or store.ErrNoDocuments if the namespace does not exist.
-	NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error
+	NamespaceUpdate(ctx context.Context, tenant string, changes *models.NamespaceChanges) error
 
 	NamespaceDelete(ctx context.Context, tenantID string) error
 

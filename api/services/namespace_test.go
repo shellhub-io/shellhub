@@ -1039,7 +1039,7 @@ func TestEditNamespace(t *testing.T) {
 			namespaceName: "newname",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					On("NamespaceUpdate", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
 					Return(store.ErrNoDocuments).
 					Once()
 			},
@@ -1054,7 +1054,7 @@ func TestEditNamespace(t *testing.T) {
 			namespaceName: "newname",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					On("NamespaceUpdate", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1069,7 +1069,7 @@ func TestEditNamespace(t *testing.T) {
 			tenantID:      "xxxxx",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					On("NamespaceUpdate", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1096,7 +1096,7 @@ func TestEditNamespace(t *testing.T) {
 			tenantID:      "xxxxx",
 			requiredMocks: func() {
 				storeMock.
-					On("NamespaceEdit", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
+					On("NamespaceUpdate", ctx, "xxxxx", &models.NamespaceChanges{Name: "newname"}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1238,7 +1238,7 @@ func TestEditSessionRecord(t *testing.T) {
 			mocks: func(ctx context.Context) {
 				sessionRecord := true
 				storeMock.
-					On("NamespaceEdit", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
+					On("NamespaceUpdate", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1251,7 +1251,7 @@ func TestEditSessionRecord(t *testing.T) {
 			mocks: func(ctx context.Context) {
 				sessionRecord := true
 				storeMock.
-					On("NamespaceEdit", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
+					On("NamespaceUpdate", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
 					Return(store.ErrNoDocuments).
 					Once()
 			},
@@ -1264,7 +1264,7 @@ func TestEditSessionRecord(t *testing.T) {
 			mocks: func(ctx context.Context) {
 				sessionRecord := true
 				storeMock.
-					On("NamespaceEdit", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
+					On("NamespaceUpdate", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
 					Return(nil).
 					Once()
 			},
