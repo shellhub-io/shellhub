@@ -168,6 +168,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import BaseDialog from "../BaseDialog.vue";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const { firewallRule, hasAuthorization } = defineProps<{
   firewallRule: IFirewallRule;
@@ -175,6 +176,7 @@ const { firewallRule, hasAuthorization } = defineProps<{
 }>();
 
 const store = useStore();
+const firewallRulesStore = useFirewallRulesStore();
 const snackbar = useSnackbar();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
@@ -378,7 +380,7 @@ const editFirewallRule = async () => {
   if (hasErrors.value) return;
 
   try {
-    await store.dispatch("firewallRules/put", constructUpdatedFirewallRule());
+    await firewallRulesStore.updateFirewallRule(constructUpdatedFirewallRule() as IFirewallRule);
     snackbar.showSuccess("Firewall rule updated successfully.");
     update();
   } catch (error: unknown) {

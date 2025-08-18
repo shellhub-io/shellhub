@@ -7,18 +7,21 @@ import FirewallRules from "@/views/FirewallRules.vue";
 import { rulesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
+import { IFirewallRule } from "@/interfaces/IFirewallRule";
 
 type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
 
 describe("Firewall Rules", () => {
   let wrapper: FirewallRulesWrapper;
   setActivePinia(createPinia());
+  const firewallRulesStore = useFirewallRulesStore();
   const vuetify = createVuetify();
 
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
-  const firewallRule = {
-    data: [{
+  const firewallRules = [
+    {
       priority: 1,
       action: "allow",
       active: true,
@@ -27,17 +30,13 @@ describe("Firewall Rules", () => {
       },
       source_ip: ".*",
       username: ".*",
-    }],
-    headers: {
-      "x-total-count": 1,
     },
-  };
+  ];
 
   beforeEach(async () => {
-    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRule.data);
-    store.commit("firewallRules/setFirewalls", firewallRule);
-    store.commit("firewallRules/setFirewall", firewallRule.data[0]);
-
+    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRules);
+    firewallRulesStore.firewallRules = firewallRules as IFirewallRule[];
+    firewallRulesStore.firewallRuleCount = 1;
     wrapper = mount(FirewallRules, {
       global: {
         plugins: [[store, key], vuetify, SnackbarPlugin],
@@ -73,7 +72,8 @@ describe("Firewall Rules", () => {
 
   it("Shows the no items message when there are no firewall rules", () => {
     mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, []);
-    store.commit("firewallRules/setFirewalls", { data: [], headers: { "x-total-count": 0 } });
+    firewallRulesStore.firewallRules = [];
+    firewallRulesStore.firewallRuleCount = 0;
     wrapper = mount(FirewallRules, {
       global: {
         plugins: [[store, key], vuetify, SnackbarPlugin],

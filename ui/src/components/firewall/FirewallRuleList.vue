@@ -5,7 +5,7 @@
       v-model:itemsPerPage="itemsPerPage"
       :headers
       :items="firewallRules"
-      :totalCount="firewallRulesCount"
+      :totalCount="firewallRuleCount"
       :loading
       :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="firewallRules-list"
@@ -124,7 +124,6 @@ import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
 import { Filter, HostnameFilter } from "@/interfaces/IFilter";
-import { useStore } from "@/store";
 import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";
@@ -134,6 +133,7 @@ import FirewallRuleEdit from "./FirewallRuleEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const headers = [
   {
@@ -166,31 +166,22 @@ const headers = [
   },
 ];
 
-const store = useStore();
 const authStore = useAuthStore();
+const firewallRulesStore = useFirewallRulesStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
+const firewallRules = computed(() => firewallRulesStore.firewallRules);
+const firewallRuleCount = computed(() => firewallRulesStore.firewallRuleCount);
 
-const firewallRules = computed(() => store.getters["firewallRules/list"]);
-
-const firewallRulesCount = computed(
-  () => store.getters["firewallRules/getNumberFirewalls"],
-);
-
-const getFirewalls = async (perPageValue: number, pageValue: number) => {
-  const data = {
-    perPage: perPageValue,
-    page: pageValue,
-  };
-
+const getFirewalls = async () => {
   try {
     loading.value = true;
-    const hasRules = await store.dispatch("firewallRules/fetch", data);
-    if (!hasRules) {
-      page.value--;
-    }
+    await firewallRulesStore.fetchFirewallRuleList({
+      perPage: itemsPerPage.value,
+      page: page.value,
+    });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -208,13 +199,12 @@ const getFirewalls = async (perPageValue: number, pageValue: number) => {
 };
 
 watch([page, itemsPerPage], async () => {
-  await getFirewalls(itemsPerPage.value, page.value);
+  await getFirewalls();
 });
 
 const refreshFirewallRules = async () => {
   try {
-    await store.dispatch("firewallRules/refresh");
-    // getFirewalls(itemsPerPage.value, page.value);
+    await getFirewalls();
   } catch (error: unknown) {
     snackbar.showError("An error occurred while refreshing the firewall rules.");
     handleError(error);

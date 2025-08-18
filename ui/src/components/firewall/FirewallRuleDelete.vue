@@ -53,10 +53,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const props = defineProps<{
   id: string;
@@ -65,12 +65,12 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const firewallRulesStore = useFirewallRulesStore();
 const snackbar = useSnackbar();
 
 const remove = async () => {
   try {
-    await store.dispatch("firewallRules/remove", props.id);
+    await firewallRulesStore.removeFirewallRule(props.id);
     snackbar.showSuccess("Firewall rule deleted successfully.");
     emit("update");
   } catch (error: unknown) {

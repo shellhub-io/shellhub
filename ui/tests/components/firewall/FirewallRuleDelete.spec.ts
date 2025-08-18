@@ -8,6 +8,7 @@ import FirewallRuleDelete from "@/components/firewall/FirewallRuleDelete.vue";
 import { router } from "@/router";
 import { rulesApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 type FirewallRuleDeleteWrapper = VueWrapper<InstanceType<typeof FirewallRuleDelete>>;
 
@@ -20,6 +21,7 @@ describe("Firewall Rule Delete", () => {
   let wrapper: FirewallRuleDeleteWrapper;
   setActivePinia(createPinia());
   const vuetify = createVuetify();
+  const firewallRulesStore = useFirewallRulesStore();
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
   beforeEach(async () => {
@@ -60,7 +62,7 @@ describe("Firewall Rule Delete", () => {
   });
 
   it("Successful on removing firewall rules", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(firewallRulesStore, "removeFirewallRule");
 
     mockRulesApi.onDelete("http://localhost:3000/api/firewall/rules/1000").reply(200);
 
@@ -68,7 +70,7 @@ describe("Firewall Rule Delete", () => {
 
     await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
 
-    expect(storeSpy).toBeCalledWith("firewallRules/remove", "1000");
+    expect(storeSpy).toBeCalledWith("1000");
   });
 
   it("Fails on removing firewall rules", async () => {

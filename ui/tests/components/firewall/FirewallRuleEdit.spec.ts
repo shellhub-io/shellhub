@@ -9,6 +9,7 @@ import FirewallRuleEdit from "@/components/firewall/FirewallRuleEdit.vue";
 import { rulesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 type FirewallRuleEditWrapper = VueWrapper<InstanceType<typeof FirewallRuleEdit>>;
 
@@ -35,6 +36,7 @@ describe("Firewall Rule Edit", () => {
   let wrapper: FirewallRuleEditWrapper;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
+  const firewallRulesStore = useFirewallRulesStore();
   const mountWrapper = (firewallRuleProp: IFirewallRule = firewallRule) => mount(FirewallRuleEdit, {
     global: {
       plugins: [[store, key], vuetify],
@@ -106,7 +108,7 @@ describe("Firewall Rule Edit", () => {
   });
 
   it("Successful on editing firewall rules", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(firewallRulesStore, "updateFirewallRule");
 
     mockRulesApi.onPut("http://localhost:3000/api/firewall/rules/1000").reply(200);
 
@@ -114,7 +116,7 @@ describe("Firewall Rule Edit", () => {
 
     await wrapper.findComponent('[data-test="firewall-rule-edit-btn"]').trigger("click");
 
-    expect(storeSpy).toBeCalledWith("firewallRules/put", {
+    expect(storeSpy).toBeCalledWith({
       id: "1000",
       action: "allow",
       priority: 1,
