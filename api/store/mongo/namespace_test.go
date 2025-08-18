@@ -428,6 +428,52 @@ func TestNamespaceCreate(t *testing.T) {
 	}
 }
 
+func TestNamespaceConflicts(t *testing.T) {
+	type Expected struct {
+		conflicts []string
+		ok        bool
+		err       error
+	}
+
+	cases := []struct {
+		description string
+		target      *models.NamespaceConflicts
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "no conflicts when target is empty",
+			target:      &models.NamespaceConflicts{},
+			fixtures:    []string{fixtureNamespaces},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "no conflicts with non existing name",
+			target:      &models.NamespaceConflicts{Name: "nonexistent-namespace"},
+			fixtures:    []string{fixtureNamespaces},
+			expected:    Expected{[]string{}, false, nil},
+		},
+		{
+			description: "conflict detected with existing name",
+			target:      &models.NamespaceConflicts{Name: "namespace-1"},
+			fixtures:    []string{fixtureNamespaces},
+			expected:    Expected{[]string{"name"}, true, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			require.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
+
+			conflicts, ok, err := s.NamespaceConflicts(ctx, tc.target)
+			require.Equal(t, tc.expected, Expected{conflicts, ok, err})
+		})
+	}
+}
+
 func TestNamespaceEdit(t *testing.T) {
 	cases := []struct {
 		description string

@@ -444,48 +444,13 @@ func TestCreateNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(&models.Namespace{Name: "namespace"}, nil).
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, true, nil).
 					Once()
 			},
 			expected: Expected{
 				ns:  nil,
 				err: NewErrNamespaceDuplicated(nil),
-			},
-		},
-		{
-			description: "fails retrieve namespace fails without ErrNoDocuments",
-			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
-			},
-			requiredMocks: func() {
-				storeMock.
-					On("UserGetInfo", ctx, "000000000000000000000000").
-					Return(
-						&models.UserInfo{
-							OwnedNamespaces:      []models.Namespace{{}},
-							AssociatedNamespaces: []models.Namespace{},
-						},
-						nil,
-					).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:            "000000000000000000000000",
-						MaxNamespaces: 3,
-					}, nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(nil, errors.New("error")).
-					Once()
-			},
-			expected: Expected{
-				ns:  nil,
-				err: NewErrNamespaceDuplicated(errors.New("error")),
 			},
 		},
 		{
@@ -514,8 +479,8 @@ func TestCreateNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(nil, store.ErrNoDocuments).
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, false, nil).
 					Once()
 				// envs.IsCommunity = true
 				envMock.
@@ -591,8 +556,8 @@ func TestCreateNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(nil, store.ErrNoDocuments).
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, false, nil).
 					Once()
 				// envs.IsCommunity = true
 				envMock.
@@ -707,8 +672,8 @@ func TestCreateNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(nil, store.ErrNoDocuments).
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, false, nil).
 					Once()
 				// envs.IsCommunity = true
 				envMock.
@@ -829,8 +794,8 @@ func TestCreateNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(nil, store.ErrNoDocuments).
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, false, nil).
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
@@ -946,8 +911,8 @@ func TestCreateNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(nil, store.ErrNoDocuments).
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, false, nil).
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").

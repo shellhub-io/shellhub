@@ -289,6 +289,38 @@ func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace
 	return namespace, err
 }
 
+func (s *Store) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"$or": []bson.M{
+					{"name": target.Name},
+				},
+			},
+		},
+	}
+
+	cursor, err := s.db.Collection("namespaces").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, false, FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	namespace := new(models.NamespaceConflicts)
+	conflicts := make([]string, 0)
+	for cursor.Next(ctx) {
+		if err := cursor.Decode(&namespace); err != nil {
+			return nil, false, FromMongoError(err)
+		}
+
+		if namespace.Name == target.Name {
+			conflicts = append(conflicts, "name")
+		}
+	}
+
+	return conflicts, len(conflicts) > 0, nil
+}
+
 func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
