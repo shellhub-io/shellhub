@@ -1,5 +1,5 @@
 <template>
-  <v-app :theme="getStatusDarkMode">
+  <v-app :theme="theme">
     <component
       :is="layout"
       :data-test="layout + '-component'"
@@ -11,17 +11,14 @@
 import { computed } from "vue";
 import LoginLayout from "./layouts/LoginLayout.vue";
 import AppLayout from "./layouts/AppLayout.vue";
-import { useStore } from "./store";
-
+import useLayoutStore from "@/store/modules/layout";
 import "./assets/global.css";
 
 const components = {
   AppLayout,
   LoginLayout,
 };
-const store = useStore();
-const layout = computed(() => components[store.getters["layout/getLayout"]]);
-const getStatusDarkMode = computed(
-  () => store.getters["layout/getStatusDarkMode"],
-);
+const layoutStore = useLayoutStore();
+const layout = computed(() => components[layoutStore.layout]);
+const theme = computed(() => layoutStore.theme);
 </script>
