@@ -58,9 +58,6 @@ type NamespaceStore interface {
 	// It returns an error if any.
 	NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error
 
-	NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error
-	NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error)
-
 	// NamespaceIncrementDeviceCount atomically increments or decrements the device count for a specific status within a namespace.
 	// Returns [ErrNoDocuments] if the namespace is not found.
 	NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error

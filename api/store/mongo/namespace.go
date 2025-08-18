@@ -518,35 +518,6 @@ func (s *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memb
 	return nil
 }
 
-func (s *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
-	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": tenantID}, bson.M{"$set": bson.M{"settings.session_record": sessionRecord}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if ns.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
-		log.Error(err)
-	}
-
-	return nil
-}
-
-func (s *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	var settings struct {
-		Settings *models.NamespaceSettings `json:"settings" bson:"settings"`
-	}
-
-	if err := s.db.Collection("namespaces").FindOne(ctx, bson.M{"tenant_id": tenantID}).Decode(&settings); err != nil {
-		return false, FromMongoError(err)
-	}
-
-	return settings.Settings.SessionRecord, nil
-}
-
 func (s *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
 	update := bson.M{
 		"$inc": bson.M{

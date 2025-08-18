@@ -1221,10 +1221,73 @@ func TestDeleteNamespace(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-func TestGetSessionRecord(t *testing.T) {
+func TestEditSessionRecord(t *testing.T) {
 	storeMock := new(storemock.Store)
 
-	ctx := context.TODO()
+	cases := []struct {
+		name          string
+		sessionRecord bool
+		tenantID      string
+		mocks         func(context.Context)
+		expected      error
+	}{
+		{
+			name:          "fails when namespace edit fails",
+			sessionRecord: true,
+			tenantID:      "xxxx",
+			mocks: func(ctx context.Context) {
+				sessionRecord := true
+				storeMock.
+					On("NamespaceEdit", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
+		},
+		{
+			name:          "fails when namespace not found",
+			sessionRecord: true,
+			tenantID:      "xxxx",
+			mocks: func(ctx context.Context) {
+				sessionRecord := true
+				storeMock.
+					On("NamespaceEdit", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceNotFound("xxxx", store.ErrNoDocuments),
+		},
+		{
+			name:          "succeeds",
+			sessionRecord: true,
+			tenantID:      "xxxx",
+			mocks: func(ctx context.Context) {
+				sessionRecord := true
+				storeMock.
+					On("NamespaceEdit", ctx, "xxxx", &models.NamespaceChanges{SessionRecord: &sessionRecord}).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			tc.mocks(ctx)
+			err := s.EditSessionRecordStatus(ctx, tc.sessionRecord, tc.tenantID)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	storeMock.AssertExpectations(t)
+}
+
+func TestGetSessionRecord(t *testing.T) {
+	storeMock := new(storemock.Store)
 
 	type Expected struct {
 		status bool
@@ -1232,160 +1295,59 @@ func TestGetSessionRecord(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
-		requiredMocks func(namespace *models.Namespace)
-		namespace     *models.Namespace
-		tenantID      string
-		expected      Expected
+		name     string
+		tenantID string
+		mocks    func(context.Context)
+		expected Expected
 	}{
 		{
-			description: "fails when the namespace document is not found",
-			namespace:   &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}},
-			requiredMocks: func(namespace *models.Namespace) {
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(namespace, store.ErrNoDocuments).Once()
+			name:     "fails when namespace not found",
+			tenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+			mocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "a736a52b-5777-4f92-b0b8-e359bf484713").Return(nil, store.ErrNoDocuments).Once()
 			},
 			expected: Expected{false, NewErrNamespaceNotFound("a736a52b-5777-4f92-b0b8-e359bf484713", store.ErrNoDocuments)},
 		},
 		{
-			description: "fails when store namespace get fails",
-			namespace:   &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}},
-			requiredMocks: func(namespace *models.Namespace) {
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(nil, errors.New("error")).Once()
-			},
+			name:     "fails when store namespace resolve fails",
 			tenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "a736a52b-5777-4f92-b0b8-e359bf484713").
+					Return(nil, errors.New("error")).
+					Once()
+			},
 			expected: Expected{false, NewErrNamespaceNotFound("a736a52b-5777-4f92-b0b8-e359bf484713", errors.New("error"))},
 		},
 		{
-			description: "fails when store namespace get session record fails",
-			namespace:   &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}},
-			requiredMocks: func(namespace *models.Namespace) {
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(namespace, nil).Once()
-				storeMock.On("NamespaceGetSessionRecord", ctx, namespace.TenantID).Return(false, errors.New("error")).Once()
-			},
+			name:     "succeeds",
 			tenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-			expected: Expected{false, errors.New("error")},
-		},
-		{
-			description: "succeeds",
-			namespace:   &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713", Settings: &models.NamespaceSettings{SessionRecord: true}},
-			requiredMocks: func(namespace *models.Namespace) {
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(namespace, nil).Once()
-				storeMock.On("NamespaceGetSessionRecord", ctx, namespace.TenantID).Return(true, nil).Once()
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "a736a52b-5777-4f92-b0b8-e359bf484713").
+					Return(
+						&models.Namespace{
+							Name:     "group1",
+							Owner:    "hash1",
+							TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+							Settings: &models.NamespaceSettings{SessionRecord: false},
+						},
+						nil,
+					).
+					Once()
 			},
-			tenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
-			expected: Expected{true, nil},
+			expected: Expected{false, nil},
 		},
 	}
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks(tc.namespace)
-
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			returnedUserSecurity, err := service.GetSessionRecord(ctx, tc.namespace.TenantID)
-			assert.Equal(t, tc.expected, Expected{returnedUserSecurity, err})
-		})
-	}
-
-	storeMock.AssertExpectations(t)
-}
-
-func TestEditSessionRecord(t *testing.T) {
-	storeMock := new(storemock.Store)
-
-	ctx := context.TODO()
-
-	cases := []struct {
-		description   string
-		namespace     *models.Namespace
-		requiredMocks func()
-		sessionRecord bool
-		tenantID      string
-		expected      error
-	}{
-		{
-			description: "fails when namespace set session record fails",
-			namespace: &models.Namespace{
-				Name:     "group1",
-				Owner:    "hash1",
-				TenantID: "xxxx",
-				Settings: &models.NamespaceSettings{SessionRecord: true},
-				Members: []models.Member{
-					{
-						ID:   "hash1",
-						Role: authorizer.RoleOwner,
-					},
-					{
-						ID:   "hash2",
-						Role: authorizer.RoleObserver,
-					},
-				},
-			},
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					Name:     "group1",
-					Owner:    "hash1",
-					TenantID: "xxxx",
-					Settings: &models.NamespaceSettings{SessionRecord: true},
-					Members: []models.Member{
-						{
-							ID:   "hash1",
-							Role: authorizer.RoleOwner,
-						},
-						{
-							ID:   "hash2",
-							Role: authorizer.RoleObserver,
-						},
-					},
-				}
-
-				status := true
-				storeMock.On("NamespaceSetSessionRecord", ctx, status, namespace.TenantID).Return(errors.New("error")).Once()
-			},
-			tenantID:      "xxxx",
-			sessionRecord: true,
-			expected:      errors.New("error"),
-		},
-		{
-			description: "succeeds",
-			namespace: &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}, Members: []models.Member{
-				{
-					ID:   "hash1",
-					Role: authorizer.RoleOwner,
-				},
-				{
-					ID:   "hash2",
-					Role: authorizer.RoleObserver,
-				},
-			}},
-			requiredMocks: func() {
-				namespace := &models.Namespace{Name: "group1", Owner: "hash1", TenantID: "xxxx", Settings: &models.NamespaceSettings{SessionRecord: true}, Members: []models.Member{
-					{
-						ID:   "hash1",
-						Role: authorizer.RoleOwner,
-					},
-					{
-						ID:   "hash2",
-						Role: authorizer.RoleObserver,
-					},
-				}}
-
-				status := true
-				storeMock.On("NamespaceSetSessionRecord", ctx, status, namespace.TenantID).Return(nil).Once()
-			},
-			tenantID:      "xxxx",
-			sessionRecord: true,
-			expected:      nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
-
-			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
-			err := service.EditSessionRecordStatus(ctx, tc.sessionRecord, tc.tenantID)
-			assert.Equal(t, tc.expected, err)
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			tc.mocks(ctx)
+			status, err := s.GetSessionRecord(ctx, tc.tenantID)
+			assert.Equal(t, tc.expected, Expected{status, err})
 		})
 	}
 

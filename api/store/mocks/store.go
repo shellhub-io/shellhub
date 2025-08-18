@@ -795,34 +795,6 @@ func (_m *Store) NamespaceGetPreferred(ctx context.Context, userID string) (*mod
 	return r0, r1
 }
 
-// NamespaceGetSessionRecord provides a mock function with given fields: ctx, tenantID
-func (_m *Store) NamespaceGetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	ret := _m.Called(ctx, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceGetSessionRecord")
-	}
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, tenantID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, tenantID)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenantID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // NamespaceIncrementDeviceCount provides a mock function with given fields: ctx, tenantID, status, count
 func (_m *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
 	ret := _m.Called(ctx, tenantID, status, count)
@@ -924,24 +896,6 @@ func (_m *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceR
 	}
 
 	return r0, r1
-}
-
-// NamespaceSetSessionRecord provides a mock function with given fields: ctx, sessionRecord, tenantID
-func (_m *Store) NamespaceSetSessionRecord(ctx context.Context, sessionRecord bool, tenantID string) error {
-	ret := _m.Called(ctx, sessionRecord, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceSetSessionRecord")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, bool, string) error); ok {
-		r0 = rf(ctx, sessionRecord, tenantID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // NamespaceUpdate provides a mock function with given fields: ctx, tenantID, namespace

@@ -173,8 +173,19 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 //
 // It receives a context, used to "control" the request flow, a boolean to define if the sessions will be recorded and
 // the tenant ID from models.Namespace.
+//
+// This method is deprecated, use [NamespaceService#EditNamespace] instead.
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
-	return s.store.NamespaceSetSessionRecord(ctx, sessionRecord, tenantID)
+	if err := s.store.NamespaceEdit(ctx, tenantID, &models.NamespaceChanges{SessionRecord: &sessionRecord}); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrNamespaceNotFound(tenantID, err)
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 // GetSessionRecord gets the session record data.
@@ -184,9 +195,10 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 // GetSessionRecord returns a boolean indicating the session record status and an error. When error is not nil,
 // the boolean is false.
 func (s *service) GetSessionRecord(ctx context.Context, tenantID string) (bool, error) {
-	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID); err != nil {
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+	if err != nil {
 		return false, NewErrNamespaceNotFound(tenantID, err)
 	}
 
-	return s.store.NamespaceGetSessionRecord(ctx, tenantID)
+	return n.Settings.SessionRecord, nil
 }
