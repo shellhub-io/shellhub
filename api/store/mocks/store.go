@@ -101,66 +101,6 @@ func (_m *Store) APIKeyDelete(ctx context.Context, tenantID string, name string)
 	return r0
 }
 
-// APIKeyGet provides a mock function with given fields: ctx, id
-func (_m *Store) APIKeyGet(ctx context.Context, id string) (*models.APIKey, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for APIKeyGet")
-	}
-
-	var r0 *models.APIKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.APIKey, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *models.APIKey); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.APIKey)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// APIKeyGetByName provides a mock function with given fields: ctx, tenantID, name
-func (_m *Store) APIKeyGetByName(ctx context.Context, tenantID string, name string) (*models.APIKey, error) {
-	ret := _m.Called(ctx, tenantID, name)
-
-	if len(ret) == 0 {
-		panic("no return value specified for APIKeyGetByName")
-	}
-
-	var r0 *models.APIKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.APIKey, error)); ok {
-		return rf(ctx, tenantID, name)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.APIKey); ok {
-		r0 = rf(ctx, tenantID, name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.APIKey)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenantID, name)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // APIKeyList provides a mock function with given fields: ctx, tenantID, paginator, sorter
 func (_m *Store) APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
 	ret := _m.Called(ctx, tenantID, paginator, sorter)
@@ -196,6 +136,43 @@ func (_m *Store) APIKeyList(ctx context.Context, tenantID string, paginator quer
 	}
 
 	return r0, r1, r2
+}
+
+// APIKeyResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, value string, opts ...store.QueryOption) (*models.APIKey, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, resolver, value)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for APIKeyResolve")
+	}
+
+	var r0 *models.APIKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.APIKeyResolver, string, ...store.QueryOption) (*models.APIKey, error)); ok {
+		return rf(ctx, resolver, value, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.APIKeyResolver, string, ...store.QueryOption) *models.APIKey); ok {
+		r0 = rf(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.APIKey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.APIKeyResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // APIKeyUpdate provides a mock function with given fields: ctx, tenantID, name, changes

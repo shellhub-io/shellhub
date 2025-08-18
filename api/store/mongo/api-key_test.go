@@ -52,137 +52,6 @@ func TestAPIKeyCreate(t *testing.T) {
 	}
 }
 
-func TestAPIKeyGet(t *testing.T) {
-	type Expected struct {
-		apiKey *models.APIKey
-		err    error
-	}
-
-	cases := []struct {
-		description string
-		id          string
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "fails when name and tenant id does not exists",
-			id:          "nonexistent",
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				apiKey: nil,
-				err:    store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "succeeds",
-			id:          "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				apiKey: &models.APIKey{
-					ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
-					Name:      "dev",
-					CreatedBy: "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Role:      "admin",
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					ExpiresIn: 0,
-				},
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			require.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
-
-			apiKey, err := s.APIKeyGet(ctx, tc.id)
-			require.Equal(t, tc.expected, Expected{apiKey, err})
-		})
-	}
-}
-
-func TestAPIKeyGetByName(t *testing.T) {
-	type Expected struct {
-		apiKey *models.APIKey
-		err    error
-	}
-
-	cases := []struct {
-		description string
-		name        string
-		tenantID    string
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "fails when name and tenant id does not exists",
-			tenantID:    "nonexistent",
-			name:        "nonexistent",
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				apiKey: nil,
-				err:    store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "fails when name is valid but tenant id not",
-			tenantID:    "nonexistent",
-			name:        "dev",
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				apiKey: nil,
-				err:    store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "fails when tenant id is valid but name not",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			name:        "nonexistent",
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				apiKey: nil,
-				err:    store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "succeeds",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			name:        "dev",
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				apiKey: &models.APIKey{
-					ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
-					Name:      "dev",
-					CreatedBy: "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Role:      "admin",
-					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					ExpiresIn: 0,
-				},
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			require.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
-
-			apiKey, err := s.APIKeyGetByName(ctx, tc.tenantID, tc.name)
-			require.Equal(t, tc.expected, Expected{apiKey, err})
-		})
-	}
-}
-
 func TestAPIKeyConflicts(t *testing.T) {
 	type Expected struct {
 		conflicts []string
@@ -243,6 +112,130 @@ func TestAPIKeyConflicts(t *testing.T) {
 
 			conflicts, ok, err := s.APIKeyConflicts(ctx, tc.tenantID, tc.target)
 			require.Equal(t, tc.expected, Expected{conflicts, ok, err})
+		})
+	}
+}
+
+func TestAPIKeyResolve(t *testing.T) {
+	type Expected struct {
+		apiKey *models.APIKey
+		err    error
+	}
+
+	cases := []struct {
+		description string
+		tenantID    string
+		resolver    store.APIKeyResolver
+		value       string
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "fails when ID does not exist",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.APIKeyIDResolver,
+			value:       "nonexistent-id",
+			fixtures:    []string{fixtureAPIKeys},
+			expected: Expected{
+				apiKey: nil,
+				err:    store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds resolving API key by ID",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.APIKeyIDResolver,
+			value:       "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+			fixtures:    []string{fixtureAPIKeys},
+			expected: Expected{
+				apiKey: &models.APIKey{
+					ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+					Name:      "dev",
+					CreatedBy: "507f1f77bcf86cd799439011",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					Role:      "admin",
+					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					ExpiresIn: 0,
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "fails when name and tenant ID does not exist",
+			tenantID:    "nonexistent-tenant",
+			resolver:    store.APIKeyNameResolver,
+			value:       "nonexistent",
+			fixtures:    []string{fixtureAPIKeys},
+			expected: Expected{
+				apiKey: nil,
+				err:    store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "fails when name is valid but tenant ID is not",
+			tenantID:    "nonexistent-tenant",
+			resolver:    store.APIKeyNameResolver,
+			value:       "dev",
+			fixtures:    []string{fixtureAPIKeys},
+			expected: Expected{
+				apiKey: nil,
+				err:    store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "fails when tenant ID is valid but name is not",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.APIKeyNameResolver,
+			value:       "nonexistent",
+			fixtures:    []string{fixtureAPIKeys},
+			expected: Expected{
+				apiKey: nil,
+				err:    store.ErrNoDocuments,
+			},
+		},
+		{
+			description: "succeeds resolving API key by name",
+			tenantID:    "00000000-0000-4000-0000-000000000000",
+			resolver:    store.APIKeyNameResolver,
+			value:       "dev",
+			fixtures:    []string{fixtureAPIKeys},
+			expected: Expected{
+				apiKey: &models.APIKey{
+					ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+					Name:      "dev",
+					CreatedBy: "507f1f77bcf86cd799439011",
+					TenantID:  "00000000-0000-4000-0000-000000000000",
+					Role:      "admin",
+					CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					ExpiresIn: 0,
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "fails when API key exists but belongs to different tenant",
+			tenantID:    "11111111-1111-4111-1111-111111111111",
+			resolver:    store.APIKeyNameResolver,
+			value:       "dev",
+			fixtures:    []string{fixtureAPIKeys},
+			expected: Expected{
+				apiKey: nil,
+				err:    store.ErrNoDocuments,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			require.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
+
+			apiKey, err := s.APIKeyResolve(ctx, tc.resolver, tc.value, s.Options().InNamespace(tc.tenantID))
+			require.Equal(t, tc.expected, Expected{apiKey: apiKey, err: err})
 		})
 	}
 }

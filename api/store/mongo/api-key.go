@@ -24,24 +24,6 @@ func (s *Store) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string
 	return res.InsertedID.(string), nil
 }
 
-func (s *Store) APIKeyGet(ctx context.Context, id string) (*models.APIKey, error) {
-	apiKey := new(models.APIKey)
-	if err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"_id": id}).Decode(apiKey); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return apiKey, nil
-}
-
-func (s *Store) APIKeyGetByName(ctx context.Context, tenantID string, name string) (*models.APIKey, error) {
-	apiKey := new(models.APIKey)
-	if err := s.db.Collection("api_keys").FindOne(ctx, bson.M{"tenant_id": tenantID, "name": name}).Decode(&apiKey); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return apiKey, nil
-}
-
 func (s *Store) APIKeyConflicts(ctx context.Context, tenantID string, target *models.APIKeyConflicts) ([]string, bool, error) {
 	pipeline := []bson.M{
 		{
@@ -78,6 +60,37 @@ func (s *Store) APIKeyConflicts(ctx context.Context, tenantID string, target *mo
 	}
 
 	return conflicts, len(conflicts) > 0, nil
+}
+
+func (s *Store) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, value string, opts ...store.QueryOption) (*models.APIKey, error) {
+	matchStage := bson.M{}
+	switch resolver {
+	case store.APIKeyIDResolver:
+		matchStage["_id"] = value
+	case store.APIKeyNameResolver:
+		matchStage["name"] = value
+	}
+
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
+			return nil, err
+		}
+	}
+
+	cursor, err := s.db.Collection("api_keys").Aggregate(ctx, []bson.M{{"$match": matchStage}})
+	if err != nil {
+		return nil, FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	cursor.Next(ctx)
+
+	apiKey := new(models.APIKey)
+	if err := cursor.Decode(&apiKey); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return apiKey, nil
 }
 
 func (s *Store) APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
