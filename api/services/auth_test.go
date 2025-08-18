@@ -2424,7 +2424,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyGet", ctx, hashedKey).
+					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -2444,7 +2444,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyGet", ctx, hashedKey).
+					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
 					Return(
 						&models.APIKey{
 							Name:      "dev",
@@ -2470,7 +2470,7 @@ func TestAuthAPIKey(t *testing.T) {
 				keySum := sha256.Sum256([]byte("00000000-0000-4000-0000-000000000000"))
 				hashedKey := hex.EncodeToString(keySum[:])
 				storeMock.
-					On("APIKeyGet", ctx, hashedKey).
+					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
 					Return(
 						&models.APIKey{
 							Name:      "dev",

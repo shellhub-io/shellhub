@@ -431,7 +431,7 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		hashedKey := hex.EncodeToString(keySum[:])
 
 		var err error
-		if apiKey, err = s.store.APIKeyGet(ctx, hashedKey); err != nil {
+		if apiKey, err = s.store.APIKeyResolve(ctx, store.APIKeyIDResolver, hashedKey); err != nil {
 			return nil, NewErrAPIKeyNotFound("", err)
 		}
 	}

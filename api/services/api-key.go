@@ -87,7 +87,7 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 
 	// As we need to return the plain key in the create service, we temporarily set
 	// the apiKey.ID to the plain key here.
-	apiKey, _ := s.store.APIKeyGet(ctx, hashedKey)
+	apiKey, _ := s.store.APIKeyResolve(ctx, store.APIKeyIDResolver, hashedKey)
 	apiKey.ID = req.Key
 
 	return responses.CreateAPIKeyFromModel(apiKey), nil

@@ -275,7 +275,7 @@ func TestCreateAPIKey(t *testing.T) {
 					Return(hashedKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyGet", ctx, hashedKey).
+					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
 					Return(&models.APIKey{
 						ID:        hashedKey,
 						Name:      "dev",
@@ -353,7 +353,7 @@ func TestCreateAPIKey(t *testing.T) {
 					Return(hashedKey, nil).
 					Once()
 				storeMock.
-					On("APIKeyGet", ctx, hashedKey).
+					On("APIKeyResolve", ctx, store.APIKeyIDResolver, hashedKey).
 					Return(&models.APIKey{
 						ID:        hashedKey,
 						Name:      "dev",

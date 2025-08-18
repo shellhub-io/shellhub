@@ -7,15 +7,21 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
+type APIKeyResolver uint
+
+const (
+	APIKeyIDResolver APIKeyResolver = iota + 1
+	APIKeyNameResolver
+)
+
 type APIKeyStore interface {
 	// APIKeyCreate creates an API key with the provided data. Returns the inserted ID and an error if any.
 	APIKeyCreate(ctx context.Context, APIKey *models.APIKey) (insertedID string, err error)
 
-	// APIKeyGet retrieves an API key based on its ID. Returns the API key and an error if any.
-	APIKeyGet(ctx context.Context, id string) (apiKey *models.APIKey, err error)
-
-	// APIKeyGetByName retrieves an API key based on its name and tenant ID. Returns the API key and an error if any.
-	APIKeyGetByName(ctx context.Context, tenantID string, name string) (apiKey *models.APIKey, err error)
+	// APIKeyResolve fetches an API key using a specific resolver within a given tenant ID.
+	//
+	// It returns the resolved API key if found and an error, if any.
+	APIKeyResolve(ctx context.Context, resolver APIKeyResolver, value string, opts ...QueryOption) (*models.APIKey, error)
 
 	// APIKeyConflicts reports whether the target contains conflicting attributes with the database. Pass zero values for
 	// attributes you do not wish to match on.  It returns an array of conflicting attribute fields and an error, if any.
