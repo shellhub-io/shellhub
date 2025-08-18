@@ -73,3 +73,11 @@ func WithReverser(reverser IReverser) Opt {
 		return nil
 	}
 }
+
+func WithVersion(version string) Opt {
+	return func(c *client) error {
+		c.http.SetHeader("User-Agent", "shellhub-agent/"+version)
+
+		return nil
+	}
+}
