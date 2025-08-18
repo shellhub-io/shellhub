@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -27,7 +26,11 @@ type DeviceService interface {
 	ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error)
 
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
+
+	// RenameDevice renames the specified device.
+	// This method is deprecated, use [DeviceService#UpdateDevice] instead.
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
+
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OfflineDevice(ctx context.Context, uid models.UID) error
 
@@ -163,41 +166,16 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	updatedDevice := &models.Device{
-		UID:        device.UID,
-		Name:       strings.ToLower(name),
-		Identity:   device.Identity,
-		Info:       device.Info,
-		PublicKey:  device.PublicKey,
-		TenantID:   device.TenantID,
-		LastSeen:   device.LastSeen,
-		Online:     device.Online,
-		Namespace:  device.Namespace,
-		Status:     device.Status,
-		CreatedAt:  time.Time{},
-		RemoteAddr: "",
-		Position:   &models.DevicePosition{},
-		Tags:       []string{},
-	}
-
-	if ok, err := s.validator.Struct(updatedDevice); !ok || err != nil {
-		return NewErrDeviceInvalid(nil, err)
-	}
-
-	if device.Name == updatedDevice.Name {
+	if strings.EqualFold(device.Name, name) {
 		return nil
 	}
 
-	otherDevice, err := s.store.DeviceResolve(ctx, store.DeviceHostnameResolver, updatedDevice.Name, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted), s.store.Options().InNamespace(tenant))
-	if err != nil && err != store.ErrNoDocuments {
-		return NewErrDeviceNotFound(models.UID(updatedDevice.UID), err)
+	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, Name: strings.ToLower(name)}
+	if err := s.store.DeviceUpdate(ctx, device.TenantID, string(uid), changes); err != nil { // nolint:revive
+		return err
 	}
 
-	if otherDevice != nil {
-		return NewErrDeviceDuplicated(otherDevice.Name, err)
-	}
-
-	return s.store.DeviceRename(ctx, uid, name)
+	return nil
 }
 
 // LookupDevice looks for a device in a namespace.
