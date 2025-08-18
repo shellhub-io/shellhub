@@ -299,19 +299,6 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status m
 	return nil
 }
 
-func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
-	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"position": position}})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if dev.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
 func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
 	pipeline := []bson.M{
 		{

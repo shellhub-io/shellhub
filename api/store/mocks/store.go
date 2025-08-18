@@ -525,24 +525,6 @@ func (_m *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolve
 	return r0, r1
 }
 
-// DeviceSetPosition provides a mock function with given fields: ctx, uid, position
-func (_m *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
-	ret := _m.Called(ctx, uid, position)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceSetPosition")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DevicePosition) error); ok {
-		r0 = rf(ctx, uid, position)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeviceSetTags provides a mock function with given fields: ctx, uid, tags
 func (_m *Store) DeviceSetTags(ctx context.Context, uid models.UID, tags []string) (int64, int64, error) {
 	ret := _m.Called(ctx, uid, tags)
