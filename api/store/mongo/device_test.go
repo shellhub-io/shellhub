@@ -492,55 +492,6 @@ func TestDeviceList(t *testing.T) {
 	}
 }
 
-func TestDeviceListByUsage(t *testing.T) {
-	type Expected struct {
-		uid []models.UID
-		len int
-		err error
-	}
-	cases := []struct {
-		description string
-		tenant      string
-		fixtures    []string
-		expected    Expected
-	}{
-		{
-			description: "returns an empty list when tenant not exist",
-			tenant:      "nonexistent",
-			fixtures:    []string{fixtureSessions},
-			expected: Expected{
-				uid: []models.UID{},
-				len: 0,
-				err: nil,
-			},
-		},
-		{
-			description: "succeeds when has 1 or more device sessions",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtureSessions},
-			expected: Expected{
-				uid: []models.UID{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"},
-				len: 1,
-				err: nil,
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			uids, err := s.DeviceListByUsage(ctx, tc.tenant)
-			assert.Equal(t, tc.expected, Expected{uid: uids, len: len(uids), err: err})
-		})
-	}
-}
-
 func TestDeviceResolve(t *testing.T) {
 	type Expected struct {
 		dev *models.Device
@@ -817,38 +768,6 @@ func TestDeviceSetPosition(t *testing.T) {
 			})
 
 			err := s.DeviceSetPosition(ctx, tc.uid, tc.position)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestDeviceChooser(t *testing.T) {
-	cases := []struct {
-		description string
-		tenant      string
-		chosen      []string
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			chosen:      []string{""},
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.DeviceChooser(ctx, tc.tenant, tc.chosen)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
