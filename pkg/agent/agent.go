@@ -239,7 +239,7 @@ func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
 func (a *Agent) Initialize() error {
 	var err error
 
-	a.cli, err = client.NewClient(a.config.ServerAddress)
+	a.cli, err = client.NewClient(a.config.ServerAddress, client.WithVersion(AgentVersion))
 	if err != nil {
 		return errors.Wrap(err, "failed to create the HTTP client")
 	}
