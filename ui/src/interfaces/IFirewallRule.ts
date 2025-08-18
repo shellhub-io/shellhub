@@ -9,5 +9,4 @@ export interface IFirewallRule {
   priority: number;
   source_ip: string;
   username: string;
-  status: string;
 }

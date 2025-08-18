@@ -12,13 +12,11 @@ import { sessionRecording, SessionRecordingState } from "./modules/session_recor
 import { publicKeys, PublicKeysState } from "./modules/public_keys";
 import { privateKey, PrivateKeyState } from "./modules/private_key";
 import { notifications, NotificationsState } from "./modules/notifications";
-import { firewallRules, FirewallRulesState } from "./modules/firewall_rules";
 import { namespaces, NamespacesState } from "./modules/namespaces";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 
 export interface State {
   billing: NamespacesState;
-  firewallRules: FirewallRulesState;
   layout: LayoutState;
   namespaces: NamespacesState;
   webEndpoints: WebEndpointsState;
@@ -38,7 +36,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {
-    firewallRules,
     layout,
     namespaces,
     webEndpoints,

@@ -10,6 +10,7 @@ import { rulesApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import useAuthStore from "@/store/modules/auth";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 type FirewallRuleAddWrapper = VueWrapper<InstanceType<typeof FirewallRuleAdd>>;
 
@@ -22,6 +23,7 @@ describe("Firewall Rule Add", () => {
   let wrapper: FirewallRuleAddWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const firewallRulesStore = useFirewallRulesStore();
   const vuetify = createVuetify();
 
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
@@ -88,7 +90,7 @@ describe("Firewall Rule Add", () => {
   });
 
   it("Successful on adding firewall rules", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(firewallRulesStore, "createFirewallRule");
 
     mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(200);
 
@@ -96,7 +98,7 @@ describe("Firewall Rule Add", () => {
 
     await wrapper.findComponent('[data-test="firewall-rule-add-btn"]').trigger("click");
 
-    expect(storeSpy).toBeCalledWith("firewallRules/post", {
+    expect(storeSpy).toBeCalledWith({
       active: true,
       action: "allow",
       priority: 1,
