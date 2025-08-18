@@ -377,35 +377,6 @@ func (s *Store) NamespaceEdit(ctx context.Context, tenant string, changes *model
 	return nil
 }
 
-func (s *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error {
-	ns, err := s.db.Collection("namespaces").UpdateOne(
-		ctx,
-		bson.M{
-			"tenant_id": tenantID,
-		},
-		bson.M{
-			"$set": bson.M{
-				"name":                    namespace.Name,
-				"max_devices":             namespace.MaxDevices,
-				"settings.session_record": namespace.Settings.SessionRecord,
-			},
-		},
-	)
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if ns.MatchedCount < 1 {
-		return store.ErrNoDocuments
-	}
-
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
-		log.Error(err)
-	}
-
-	return nil
-}
-
 func (s *Store) NamespaceAddMember(ctx context.Context, tenantID string, member *models.Member) error {
 	err := s.db.
 		Collection("namespaces").

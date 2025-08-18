@@ -898,24 +898,6 @@ func (_m *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceR
 	return r0, r1
 }
 
-// NamespaceUpdate provides a mock function with given fields: ctx, tenantID, namespace
-func (_m *Store) NamespaceUpdate(ctx context.Context, tenantID string, namespace *models.Namespace) error {
-	ret := _m.Called(ctx, tenantID, namespace)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceUpdate")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *models.Namespace) error); ok {
-		r0 = rf(ctx, tenantID, namespace)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NamespaceUpdateMember provides a mock function with given fields: ctx, tenantID, memberID, changes
 func (_m *Store) NamespaceUpdateMember(ctx context.Context, tenantID string, memberID string, changes *models.MemberChanges) error {
 	ret := _m.Called(ctx, tenantID, memberID, changes)
