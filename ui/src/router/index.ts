@@ -6,6 +6,7 @@ import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin 
 import useAuthStore from "@/store/modules/auth";
 import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
+import useLayoutStore, { Layout } from "@/store/modules/layout";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   try {
@@ -432,7 +433,7 @@ router.beforeEach(
     const requiresAuth = to.meta.requiresAuth ?? true;
 
     const layout = to.meta.layout || "AppLayout";
-    await store.dispatch("layout/setLayout", layout);
+    useLayoutStore().layout = layout as Layout;
 
     if (!isLoggedIn) {
       if (requiresAuth) {

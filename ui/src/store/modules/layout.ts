@@ -1,39 +1,24 @@
-import { Module } from "vuex";
-import { State } from "..";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export interface LayoutState {
-  layout: string;
-  statusDarkMode: string;
-}
+export type Layout = "AppLayout" | "LoginLayout";
+type Theme = "dark" | "light";
 
-export const layout: Module<LayoutState, State> = {
-  namespaced: true,
-  state: {
-    layout: "appLayout",
-    statusDarkMode: localStorage.getItem("statusDarkMode") || "dark",
-  },
-  getters: {
-    getLayout: (state) => state.layout,
-    getStatusDarkMode: (state) => state.statusDarkMode,
-  },
-  mutations: {
-    setLayout: (state, layout) => {
-      state.layout = layout;
-    },
-    setStatusDarkMode: (state, status) => {
-      state.statusDarkMode = status;
-    },
-  },
+const useLayoutStore = defineStore("layout", () => {
+  const layout = ref<Layout>("AppLayout");
+  const theme = ref<Theme>(localStorage.getItem("theme") as Theme || "dark");
 
-  actions: {
-    setLayout({ commit }, layout) {
-      commit("setLayout", layout);
-    },
+  const setTheme = (newTheme: Theme) => {
+    theme.value = newTheme;
+    localStorage.setItem("theme", newTheme);
+  };
 
-    setStatusDarkMode({ commit }, status: boolean) {
-      const statusDarkMode = status ? "dark" : "light";
-      commit("setStatusDarkMode", statusDarkMode);
-      localStorage.setItem("statusDarkMode", statusDarkMode);
-    },
-  },
-};
+  return {
+    layout,
+    theme,
+
+    setTheme,
+  };
+});
+
+export default useLayoutStore;

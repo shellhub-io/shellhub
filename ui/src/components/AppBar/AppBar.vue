@@ -109,6 +109,7 @@ import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useLayoutStore from "@/store/modules/layout";
 
 type MenuItem = {
   title: string;
@@ -131,12 +132,11 @@ const { setUser, setConversationCustomAttributes, toggle, reset } = useChatWoot(
 const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
+const layoutStore = useLayoutStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
-const getStatusDarkMode = computed(
-  () => store.getters["layout/getStatusDarkMode"],
-);
+const theme = computed(() => layoutStore.theme);
 const isChatCreated = computed(() => store.getters["support/getCreatedStatus"]);
 const tenant = computed(() => authStore.tenantId);
 const userEmail = computed(() => authStore.email);
@@ -144,7 +144,7 @@ const userId = computed(() => authStore.id);
 const currentUser = computed(() => authStore.username);
 const isBillingActive = computed(() => billingStore.isActive);
 const identifier = computed(() => store.getters["support/getIdentifier"]);
-const isDarkMode = ref(getStatusDarkMode.value === "dark");
+const isDarkMode = ref(theme.value === "dark");
 const chatSupportPaywall = ref(false);
 const showNavigationDrawer = defineModel<boolean>();
 
@@ -179,7 +179,7 @@ const logout = async () => {
 
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
-  store.dispatch("layout/setStatusDarkMode", isDarkMode.value);
+  layoutStore.theme = isDarkMode.value ? "dark" : "light";
 };
 
 const openChatwoot = async (): Promise<void> => {

@@ -34,7 +34,7 @@ describe("App Layout Component", () => {
   });
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    localStorage.setItem("theme", "dark");
 
     envVariables.hasWebEndpoints = true;
     envVariables.isCloud = true;
