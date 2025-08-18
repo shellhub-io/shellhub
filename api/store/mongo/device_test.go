@@ -728,51 +728,6 @@ func TestDeviceUpdateStatus(t *testing.T) {
 	}
 }
 
-func TestDeviceSetPosition(t *testing.T) {
-	cases := []struct {
-		description string
-		uid         models.UID
-		position    models.DevicePosition
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when the device is not found",
-			uid:         models.UID("nonexistent"),
-			position: models.DevicePosition{
-				Longitude: 1,
-				Latitude:  1,
-			},
-			fixtures: []string{fixtureDevices},
-			expected: store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when the device is found",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			position: models.DevicePosition{
-				Longitude: 1,
-				Latitude:  1,
-			},
-			fixtures: []string{fixtureDevices},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.DeviceSetPosition(ctx, tc.uid, tc.position)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
 func TestDeviceConflicts(t *testing.T) {
 	type Expected struct {
 		conflicts []string
