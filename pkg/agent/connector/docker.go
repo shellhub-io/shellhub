@@ -3,6 +3,7 @@ package connector
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -175,8 +176,19 @@ func (d *DockerConnector) getContainerNameFromID(ctx context.Context, id string)
 		return "", err
 	}
 
-	// NOTICE: It removes the first character on container's name that is a `/`.
-	return container.Name[1:], nil
+	// NOTE: It removes the first character on container's name that is a `/`.
+	name := container.Name[1:]
+
+	// NOTE: Normalize the container name to comply with ShellHub's device naming conventions.
+	// While Docker allows characters like dots and hyphens in its naming pattern `[a-zA-Z0-9][a-zA-Z0-9_.-]`,
+	// ShellHub restricts names to letters, numbers, underscores, and hyphens, with a maximum length of 64 characters
+	// `([a-zA-Z0-9_-]){1,64}$`. This normalization is essential for compatibility.
+	name = strings.ReplaceAll(name, ".", "_")
+	if len(name) > 64 {
+		name = name[:64]
+	}
+
+	return name, nil
 }
 
 // Listen listens for events and starts or stops the agent for the containers.
