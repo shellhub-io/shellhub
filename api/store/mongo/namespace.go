@@ -255,7 +255,7 @@ func (s *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceRe
 	return namespace, nil
 }
 
-func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts ...store.NamespaceQueryOption) (*models.Namespace, error) {
+func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error) {
 	filter := bson.M{"members.id": userID}
 
 	if user, _ := s.UserResolve(ctx, store.UserIDResolver, userID); user != nil {
@@ -267,12 +267,6 @@ func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string, opts .
 	ns := new(models.Namespace)
 	if err := s.db.Collection("namespaces").FindOne(ctx, filter).Decode(ns); err != nil {
 		return nil, FromMongoError(err)
-	}
-
-	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "db", s.db), ns); err != nil { //nolint:revive
-			return nil, err
-		}
 	}
 
 	return ns, nil
