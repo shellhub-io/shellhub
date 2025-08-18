@@ -578,24 +578,6 @@ func (_m *Store) DeviceUpdate(ctx context.Context, tenant string, uid string, ch
 	return r0
 }
 
-// DeviceUpdateStatus provides a mock function with given fields: ctx, uid, status
-func (_m *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
-	ret := _m.Called(ctx, uid, status)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceUpdateStatus")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, models.DeviceStatus) error); ok {
-		r0 = rf(ctx, uid, status)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetStats provides a mock function with given fields: ctx
 func (_m *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	ret := _m.Called(ctx)

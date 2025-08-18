@@ -9,13 +9,11 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // DeviceList returns a list of devices based on the given filters, pagination and sorting.
@@ -276,24 +274,6 @@ func (s *Store) DeviceRename(ctx context.Context, uid models.UID, hostname strin
 
 	if dev.MatchedCount < 1 {
 		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
-// DeviceUpdateStatus updates the status of a specific device in the devices collection
-func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error {
-	updateOptions := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	result := s.db.Collection("devices", options.Collection()).
-		FindOneAndUpdate(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"status": status, "status_updated_at": clock.Now()}}, updateOptions)
-
-	if result.Err() != nil {
-		return FromMongoError(result.Err())
-	}
-
-	device := new(models.Device)
-	if err := result.Decode(&device); err != nil {
-		return FromMongoError(err)
 	}
 
 	return nil

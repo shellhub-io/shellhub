@@ -55,5 +55,4 @@ type DeviceStore interface {
 
 	DeviceDelete(ctx context.Context, uid models.UID) error
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
-	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
 }
