@@ -300,24 +300,6 @@ func (_m *Store) DeviceBulkUpdate(ctx context.Context, uids []string, changes *m
 	return r0, r1
 }
 
-// DeviceChooser provides a mock function with given fields: ctx, tenantID, chosen
-func (_m *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
-	ret := _m.Called(ctx, tenantID, chosen)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceChooser")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, tenantID, chosen)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeviceConflicts provides a mock function with given fields: ctx, target
 func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
 	ret := _m.Called(ctx, target)
@@ -473,36 +455,6 @@ func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pag
 	}
 
 	return r0, r1, r2
-}
-
-// DeviceListByUsage provides a mock function with given fields: ctx, tenantID
-func (_m *Store) DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error) {
-	ret := _m.Called(ctx, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceListByUsage")
-	}
-
-	var r0 []models.UID
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.UID, error)); ok {
-		return rf(ctx, tenantID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []models.UID); ok {
-		r0 = rf(ctx, tenantID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.UID)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tenantID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // DevicePullTag provides a mock function with given fields: ctx, uid, tag

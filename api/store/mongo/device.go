@@ -299,52 +299,6 @@ func (s *Store) DeviceUpdateStatus(ctx context.Context, uid models.UID, status m
 	return nil
 }
 
-func (s *Store) DeviceListByUsage(ctx context.Context, tenant string) ([]models.UID, error) {
-	query := []bson.M{
-		{
-			"$match": bson.M{
-				"tenant_id": tenant,
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id": "$device_uid",
-				"count": bson.M{
-					"$sum": 1,
-				},
-			},
-		},
-		{
-			"$sort": bson.M{
-				"count": -1,
-			},
-		},
-		{
-			"$limit": 3,
-		},
-	}
-
-	uids := make([]models.UID, 0)
-
-	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
-	if err != nil {
-		return uids, FromMongoError(err)
-	}
-
-	for cursor.Next(ctx) {
-		var dev map[string]interface{}
-
-		err = cursor.Decode(&dev)
-		if err != nil {
-			return uids, err
-		}
-
-		uids = append(uids, models.UID(dev["_id"].(string)))
-	}
-
-	return uids, nil
-}
-
 func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error {
 	dev, err := s.db.Collection("devices").UpdateOne(ctx, bson.M{"uid": uid}, bson.M{"$set": bson.M{"position": position}})
 	if err != nil {
@@ -353,29 +307,6 @@ func (s *Store) DeviceSetPosition(ctx context.Context, uid models.UID, position 
 
 	if dev.MatchedCount < 1 {
 		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
-func (s *Store) DeviceChooser(ctx context.Context, tenantID string, chosen []string) error {
-	filter := bson.M{
-		"status":    "accepted",
-		"tenant_id": tenantID,
-		"uid": bson.M{
-			"$nin": chosen,
-		},
-	}
-
-	update := bson.M{
-		"$set": bson.M{
-			"status": "pending",
-		},
-	}
-
-	_, err := s.db.Collection("devices").UpdateMany(ctx, filter, update)
-	if err != nil {
-		return err
 	}
 
 	return nil

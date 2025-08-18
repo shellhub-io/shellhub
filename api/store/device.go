@@ -57,6 +57,4 @@ type DeviceStore interface {
 	DeviceRename(ctx context.Context, uid models.UID, hostname string) error
 	DeviceUpdateStatus(ctx context.Context, uid models.UID, status models.DeviceStatus) error
 	DeviceSetPosition(ctx context.Context, uid models.UID, position models.DevicePosition) error
-	DeviceListByUsage(ctx context.Context, tenantID string) ([]models.UID, error)
-	DeviceChooser(ctx context.Context, tenantID string, chosen []string) error
 }
