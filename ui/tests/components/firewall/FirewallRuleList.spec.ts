@@ -7,16 +7,19 @@ import { store, key } from "@/store";
 import FirewallRuleList from "@/components/firewall/FirewallRuleList.vue";
 import { rulesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
+import { IFirewallRule } from "@/interfaces/IFirewallRule";
 
 type FirewallRuleListWrapper = VueWrapper<InstanceType<typeof FirewallRuleList>>;
 
 describe("Firewall Rule List", () => {
   let wrapper: FirewallRuleListWrapper;
   setActivePinia(createPinia());
+  const firewallRulesStore = useFirewallRulesStore();
   const vuetify = createVuetify();
-  const mockFirewallApi = new MockAdapter(rulesApi.getAxios());
+  const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
-  const firewallRule = [
+  const firewallRules = [
     {
       id: "1000",
       tenant_id: "00000000-0000-4000-0000-000000000000",
@@ -44,15 +47,15 @@ describe("Firewall Rule List", () => {
   ];
 
   const res = {
-    data: firewallRule,
+    data: firewallRules,
     headers: {
       "x-total-count": 2,
     },
   };
 
   beforeEach(async () => {
-    mockFirewallApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, res);
-    store.commit("firewallRules/setFirewalls", res);
+    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, res);
+    firewallRulesStore.firewallRules = firewallRules as IFirewallRule[];
 
     wrapper = mount(FirewallRuleList, {
       global: {
