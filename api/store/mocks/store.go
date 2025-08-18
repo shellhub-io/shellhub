@@ -733,6 +733,43 @@ func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, member
 	return r0
 }
 
+// NamespaceConflicts provides a mock function with given fields: ctx, target
+func (_m *Store) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
+	ret := _m.Called(ctx, target)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceConflicts")
+	}
+
+	var r0 []string
+	var r1 bool
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.NamespaceConflicts) ([]string, bool, error)); ok {
+		return rf(ctx, target)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *models.NamespaceConflicts) []string); ok {
+		r0 = rf(ctx, target)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *models.NamespaceConflicts) bool); ok {
+		r1 = rf(ctx, target)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, *models.NamespaceConflicts) error); ok {
+		r2 = rf(ctx, target)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // NamespaceCreate provides a mock function with given fields: ctx, namespace
 func (_m *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
 	ret := _m.Called(ctx, namespace)

@@ -44,7 +44,8 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		}
 	}
 
-	if dup, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(req.Name)); dup != nil || (err != nil && err != store.ErrNoDocuments) {
+	conflictsTarget := &models.NamespaceConflicts{Name: strings.ToLower(req.Name)}
+	if _, has, err := s.store.NamespaceConflicts(ctx, conflictsTarget); has || err != nil {
 		return nil, NewErrNamespaceDuplicated(err)
 	}
 

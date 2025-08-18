@@ -86,3 +86,16 @@ const DefaultAnnouncementMessage = `
 *                                                                *
 ******************************************************************
 `
+
+// NamespaceConflicts holds namespace attributes that must be unique for each document and can be utilized in queries
+// to identify conflicts.
+type NamespaceConflicts struct {
+	Name string
+}
+
+// Distinct removes the c attributes whether it's equal to the namespace attribute.
+func (c *NamespaceConflicts) Distinct(namespace *Namespace) {
+	if c.Name == namespace.Name {
+		c.Name = ""
+	}
+}
