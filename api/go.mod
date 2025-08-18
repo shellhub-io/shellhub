@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
-	github.com/getsentry/sentry-go v0.35.0
+	github.com/getsentry/sentry-go v0.35.1
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.13.4
