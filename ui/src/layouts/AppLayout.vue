@@ -1,6 +1,6 @@
 <template>
   <v-navigation-drawer
-    theme="dark"
+    :theme="theme"
     v-model="showNavigationDrawer"
     :permanent="permanent"
     absolute
@@ -131,7 +131,7 @@
   <v-main data-test="main">
     <slot>
       <v-container
-        :class="{ 'pa-8': true, 'container-light-bg': getStatusDarkMode == 'light' }"
+        :class="{ 'pa-8': true, 'container-light-bg': theme === 'light' }"
         fluid
         data-test="container"
       >
@@ -171,6 +171,7 @@ import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
+import useLayoutStore from "@/store/modules/layout";
 
 defineOptions({
   inheritAttrs: false,
@@ -178,14 +179,13 @@ defineOptions({
 
 const router = useRouter();
 const store = useStore();
+const layoutStore = useLayoutStore();
 const currentRoute = computed(() => router.currentRoute);
 const showNamespaceAdd = ref(false);
 const hasNamespaces = computed(
   () => store.getters["namespaces/getNumberNamespaces"] !== 0,
 );
-const getStatusDarkMode = computed(
-  () => store.getters["layout/getStatusDarkMode"],
-);
+const theme = computed(() => layoutStore.theme);
 
 const { lgAndUp } = useDisplay();
 

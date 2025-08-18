@@ -16,7 +16,6 @@
           xl="3"
         >
           <v-card
-            theme="dark"
             class="pa-6 bg-v-theme-surface"
             rounded="lg"
           >
