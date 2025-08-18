@@ -358,7 +358,7 @@ func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	return nil
 }
 
-func (s *Store) NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error {
+func (s *Store) NamespaceUpdate(ctx context.Context, tenant string, changes *models.NamespaceChanges) error {
 	res, err := s.db.
 		Collection("namespaces").
 		UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": changes})

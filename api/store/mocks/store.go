@@ -747,24 +747,6 @@ func (_m *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
 	return r0
 }
 
-// NamespaceEdit provides a mock function with given fields: ctx, tenant, changes
-func (_m *Store) NamespaceEdit(ctx context.Context, tenant string, changes *models.NamespaceChanges) error {
-	ret := _m.Called(ctx, tenant, changes)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceEdit")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *models.NamespaceChanges) error); ok {
-		r0 = rf(ctx, tenant, changes)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NamespaceGetPreferred provides a mock function with given fields: ctx, userID
 func (_m *Store) NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, userID)
@@ -896,6 +878,24 @@ func (_m *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceR
 	}
 
 	return r0, r1
+}
+
+// NamespaceUpdate provides a mock function with given fields: ctx, tenant, changes
+func (_m *Store) NamespaceUpdate(ctx context.Context, tenant string, changes *models.NamespaceChanges) error {
+	ret := _m.Called(ctx, tenant, changes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceUpdate")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.NamespaceChanges) error); ok {
+		r0 = rf(ctx, tenant, changes)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NamespaceUpdateMember provides a mock function with given fields: ctx, tenantID, memberID, changes

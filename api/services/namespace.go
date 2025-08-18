@@ -157,7 +157,7 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 		ConnectionAnnouncement: req.Settings.ConnectionAnnouncement,
 	}
 
-	if err := s.store.NamespaceEdit(ctx, req.Tenant, changes); err != nil {
+	if err := s.store.NamespaceUpdate(ctx, req.Tenant, changes); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
 			return nil, NewErrNamespaceNotFound(req.Tenant, err)
@@ -176,7 +176,7 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 //
 // This method is deprecated, use [NamespaceService#EditNamespace] instead.
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
-	if err := s.store.NamespaceEdit(ctx, tenantID, &models.NamespaceChanges{SessionRecord: &sessionRecord}); err != nil {
+	if err := s.store.NamespaceUpdate(ctx, tenantID, &models.NamespaceChanges{SessionRecord: &sessionRecord}); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
 			return NewErrNamespaceNotFound(tenantID, err)

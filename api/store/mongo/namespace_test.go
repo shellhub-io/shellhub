@@ -474,7 +474,7 @@ func TestNamespaceConflicts(t *testing.T) {
 	}
 }
 
-func TestNamespaceEdit(t *testing.T) {
+func TestNamespaceUpdate(t *testing.T) {
 	cases := []struct {
 		description string
 		tenant      string
@@ -511,7 +511,7 @@ func TestNamespaceEdit(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.NamespaceEdit(ctx, tc.tenant, tc.changes)
+			err := s.NamespaceUpdate(ctx, tc.tenant, tc.changes)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
