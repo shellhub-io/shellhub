@@ -9,33 +9,39 @@ import { devicesApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { INamespace } from "@/interfaces/INamespace";
 
 type HomeWrapper = VueWrapper<InstanceType<typeof Home>>;
 
 describe("Home", () => {
   let wrapper: HomeWrapper;
   setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   const members = [
     {
       id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
+      role: "owner" as const,
     },
   ];
 
   const namespaceData = {
+    billing: null,
     name: "test",
     owner: "test",
     tenant_id: "fake-tenant-data",
     members,
     settings: {
       session_record: true,
+      connection_announcement: "",
     },
     max_devices: 3,
-    devices_count: 3,
+    devices_accepted_count: 0,
+    devices_rejected_count: 0,
+    devices_pending_count: 0,
     created_at: "",
   };
 
@@ -47,16 +53,10 @@ describe("Home", () => {
     rejected_devices: 0,
   };
 
-  const res = {
-    data: [namespaceData],
-    headers: {
-      "x-total-count": 1,
-    },
-  };
-
   beforeEach(async () => {
     mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
-    store.commit("namespaces/setNamespaces", res);
+
+    namespacesStore.namespaceList = [namespaceData] as INamespace[];
 
     wrapper = mount(Home, {
       global: {

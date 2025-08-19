@@ -37,20 +37,20 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
-const store = useStore();
+const namespacesStore = useNamespacesStore();
 const authStore = useAuthStore();
 const router = useRouter();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
-const tenant = computed(() => localStorage.getItem("tenant"));
+const tenant = computed(() => localStorage.getItem("tenant") as string);
 
 const hasAuthorization = computed(() => {
   const { role } = authStore;
@@ -59,7 +59,7 @@ const hasAuthorization = computed(() => {
 
 const leave = async () => {
   try {
-    await store.dispatch("namespaces/leave", tenant.value);
+    await namespacesStore.leaveNamespace(tenant.value);
     showDialog.value = false;
     snackbar.showSuccess("You have left the namespace.");
     router.go(0);

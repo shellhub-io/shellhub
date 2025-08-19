@@ -67,6 +67,7 @@ import useAnnouncementStore from "@/store/modules/announcement";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 defineOptions({
   inheritAttrs: false,
@@ -78,6 +79,7 @@ const announcementStore = useAnnouncementStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
+const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
@@ -88,9 +90,7 @@ const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
 const stats = computed(() => store.getters["stats/stats"]);
 const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
-const hasNamespaces = computed(
-  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
 const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
 
 const billingWarning = async () => {
@@ -115,7 +115,7 @@ const hasDevices = computed(() => (
 const showScreenWelcome = async () => {
   let status = false;
 
-  const tenantID = await store.getters["namespaces/get"].tenant_id;
+  const tenantID = namespacesStore.currentNamespace.tenant_id;
   if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
     authStore.setShowWelcomeScreen(tenantID);
     status = true;
@@ -150,10 +150,7 @@ const showDialogs = async () => {
   try {
     if (!authStore.isLoggedIn) return;
 
-    await store.dispatch("namespaces/fetch", {
-      page: 1,
-      perPage: 30,
-    });
+    await namespacesStore.fetchNamespaceList({ perPage: 30 });
 
     if (hasNamespaces.value) {
       await store.dispatch("stats/get");

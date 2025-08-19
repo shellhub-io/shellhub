@@ -1,5 +1,5 @@
 <template>
-  <SettingOwnerInfo :is-owner="hasAuthorization" v-if="!hasAuthorization" data-test="settings-owner-info-component" />
+  <SettingOwnerInfo v-if="!hasAuthorization" data-test="settings-owner-info-component" />
   <v-container fluid v-else>
     <BillingDialog v-model="dialogCheckout" @reload="reload" />
     <v-card
@@ -155,7 +155,6 @@ import {
 } from "vue";
 import { storeToRefs } from "pinia";
 import { useEventListener } from "@vueuse/core";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import BillingDialog from "../Billing/BillingDialog.vue";
@@ -165,12 +164,13 @@ import { formatUnixToDate } from "@/utils/date";
 import handleError from "@/utils/handleError";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useNamespacesStore from "@/store/modules/namespaces";
 
-const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
+const namespacesStore = useNamespacesStore();
 const { billing: billingInfo, isActive: isBillingActive, status: billingStatus } = storeToRefs(billingStore);
-const namespace = computed(() => store.getters["namespaces/get"]);
+const namespace = computed(() => namespacesStore.currentNamespace);
 const el = ref<number>(1);
 const dialogCheckout = ref(false);
 const noCustomer = reactive({ value: false });
@@ -232,9 +232,9 @@ const getSubscriptionInfo = async () => {
 };
 
 onMounted(async () => {
-  const tenant = computed(() => localStorage.getItem("tenant"));
-  await store.dispatch("namespaces/get", tenant.value);
-  if (namespace.value.billing == null || !namespace.value.billing.customer_id) {
+  const tenant = computed(() => localStorage.getItem("tenant") as string);
+  await namespacesStore.fetchNamespace(tenant.value);
+  if (!namespace.value.billing || !namespace.value.billing.customer_id) {
     noCustomer.value = true;
   }
   await getSubscriptionInfo();

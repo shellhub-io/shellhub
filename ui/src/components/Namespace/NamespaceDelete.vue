@@ -48,10 +48,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { displayOnlyTenCharacters } from "@/utils/string";
@@ -60,18 +59,19 @@ import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useNamespacesStore from "@/store/modules/namespaces";
 import { envVariables } from "@/envVariables";
 
 const props = defineProps<{ tenant: string }>();
 const emit = defineEmits(["billing-in-debt"]);
 
-const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel({ default: false });
-const name = ref("");
+const { name } = namespacesStore.currentNamespace;
 const tenant = computed(() => props.tenant);
 const isBillingActive = computed(() => billingStore.isActive);
 const hasAuthorization = computed(() => {
@@ -81,7 +81,7 @@ const hasAuthorization = computed(() => {
 
 const remove = async () => {
   try {
-    await store.dispatch("namespaces/remove", tenant.value);
+    await namespacesStore.deleteNamespace(tenant.value);
     snackbar.showSuccess("Namespace deleted successfully.");
     authStore.logout();
     await router.push({ name: "Login" });
@@ -106,7 +106,5 @@ onMounted(async () => {
   if (hasAuthorization.value && envVariables.isCloud) {
     await billingStore.getSubscriptionInfo();
   }
-
-  name.value = store.getters["namespaces/get"].name;
 });
 </script>

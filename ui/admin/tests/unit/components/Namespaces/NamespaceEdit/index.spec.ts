@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import NamespaceEdit from "@admin/components/Namespace/NamespaceEdit.vue";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
@@ -28,11 +29,9 @@ const namespace = {
   members: [
     {
       id: "",
-      username: "ossystems",
       role: "owner" as const,
     },
   ],
-
   name: "ossystems",
   owner: "ossystems",
   settings: {
@@ -65,7 +64,7 @@ describe("Namespace Edit", () => {
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
-        namespace,
+        namespace: namespace as IAdminNamespace,
       },
     });
   });

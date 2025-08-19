@@ -172,6 +172,7 @@ import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import useLayoutStore from "@/store/modules/layout";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 defineOptions({
   inheritAttrs: false,
@@ -180,11 +181,10 @@ defineOptions({
 const router = useRouter();
 const store = useStore();
 const layoutStore = useLayoutStore();
+const namespacesStore = useNamespacesStore();
 const currentRoute = computed(() => router.currentRoute);
 const showNamespaceAdd = ref(false);
-const hasNamespaces = computed(
-  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
 const theme = computed(() => layoutStore.theme);
 
 const { lgAndUp } = useDisplay();

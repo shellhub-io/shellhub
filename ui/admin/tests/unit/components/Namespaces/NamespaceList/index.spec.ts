@@ -10,7 +10,7 @@ import NamespaceList from "../../../../../src/components/Namespace/NamespaceList
 
 type NamespaceListWrapper = VueWrapper<InstanceType<typeof NamespaceList>>;
 
-const namespaces: IAdminNamespace[] = [
+const namespaces = [
   {
     billing: {
       active: true,
@@ -32,7 +32,6 @@ const namespaces: IAdminNamespace[] = [
       {
         id: "",
         role: "owner",
-        username: "ossystems",
       },
     ],
     name: "ossystems",
@@ -63,7 +62,6 @@ const namespaces: IAdminNamespace[] = [
       {
         id: "",
         role: "owner",
-        username: "ossystems",
       },
     ],
     name: "dev",
@@ -73,7 +71,7 @@ const namespaces: IAdminNamespace[] = [
     },
     tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   },
-];
+] as IAdminNamespace[];
 
 describe("Namespace List", () => {
   let wrapper: NamespaceListWrapper;

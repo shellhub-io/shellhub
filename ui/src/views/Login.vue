@@ -158,12 +158,14 @@ import useSnackbar from "../helpers/snackbar";
 import useCountdown from "@/utils/countdownTimeout";
 import { envVariables } from "@/envVariables";
 import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbar();
 const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const showPassword = ref(false);
 const loginToken = ref(false);
 const invalid = reactive({ title: "", msg: "", timeout: false });
@@ -180,7 +182,7 @@ const isLoggedIn = computed(() => authStore.isLoggedIn);
 const ssoStatus = computed(() => store.getters["users/getSystemInfo"].authentication);
 const samlUrl = computed(() => store.getters["users/getSamlURL"]);
 // Alerts for user status on accept namespace invitation logic
-const userStatus = computed(() => store.getters["namespaces/getUserStatus"]);
+const userStatus = computed(() => namespacesStore.userStatus);
 
 const cameFromAcceptInvite = computed(() => isLoggedIn.value === false && route.query.redirect?.includes("/accept-invite"));
 
@@ -227,7 +229,7 @@ onMounted(async () => {
   loginToken.value = true;
 
   await store.dispatch("stats/clear");
-  await store.dispatch("namespaces/clearNamespaceList");
+  namespacesStore.namespaceList = [];
   authStore.logout();
   await authStore.loginWithToken(route.query.token as string);
 

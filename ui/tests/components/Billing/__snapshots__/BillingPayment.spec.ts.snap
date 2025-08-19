@@ -128,7 +128,6 @@ exports[`Billing Payment > Renders the component 1`] = `
             <div data-v-ec12e293="" class="v-col v-col-4"><b data-v-ec12e293="">1234 1234 1234 1234</b></div>
             <div data-v-ec12e293="" class="v-col v-col-2">12/2999</div>
             <div data-v-ec12e293="" class="v-col v-col-2">123</div>
-            <!--v-if-->
             <div data-v-ec12e293="" class="v-col v-col-3 d-flex flex-column align-end"><button data-v-ec12e293="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="payment-methods-delete-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                 <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                 <!---->
@@ -171,7 +170,7 @@ exports[`Billing Payment > Renders the component 1`] = `
             <div data-v-ec12e293="" class="v-col v-col-4"><b data-v-ec12e293="">1234 1234 1234 5678</b></div>
             <div data-v-ec12e293="" class="v-col v-col-2">12/2999</div>
             <div data-v-ec12e293="" class="v-col v-col-2">123</div>
-            <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-7"><!----><span class="v-chip__underlay"></span>
+            <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
               <!---->
               <!---->
               <div class="v-chip__content" data-no-activator=""><b data-v-ec12e293="">default</b>
@@ -182,7 +181,6 @@ exports[`Billing Payment > Renders the component 1`] = `
               <!---->
               <!----></span>
             </div>
-            <!--v-if-->
           </div>
         </div>
         <!---->
