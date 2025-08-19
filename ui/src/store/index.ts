@@ -11,12 +11,9 @@ import { sessionRecording, SessionRecordingState } from "./modules/session_recor
 import { publicKeys, PublicKeysState } from "./modules/public_keys";
 import { privateKey, PrivateKeyState } from "./modules/private_key";
 import { notifications, NotificationsState } from "./modules/notifications";
-import { namespaces, NamespacesState } from "./modules/namespaces";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 
 export interface State {
-  billing: NamespacesState;
-  namespaces: NamespacesState;
   webEndpoints: WebEndpointsState;
   notifications: NotificationsState;
   privateKey: PrivateKeyState;
@@ -34,7 +31,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 
 export const store = createStore<State>({
   modules: {
-    namespaces,
     webEndpoints,
     notifications,
     privateKey,

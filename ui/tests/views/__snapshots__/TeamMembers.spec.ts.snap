@@ -35,7 +35,7 @@ exports[`Team Members > Renders the component 1`] = `
           <tr class="text-center">
             <td><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i> </td>
             <td class="text-center text-capitalize">owner</td>
-            <td class="text-center" aria-describedby="v-tooltip-v-2">
+            <td class="text-center text-capitalize" aria-describedby="v-tooltip-v-2">
               <!---->
               <!--teleport start-->
               <!--teleport end-->

@@ -49,7 +49,7 @@
                 >This payment method will be used on your subscription</v-tooltip>
               </v-chip>
             </v-col>
-            <v-col cols="3" v-if="!item.default" class="d-flex flex-column align-end">
+            <v-col cols="3" v-else class="d-flex flex-column align-end">
               <v-btn variant="text" icon="mdi-delete" data-test="payment-methods-delete-btn" @click.stop="deletePaymentMethod(item.id)" />
             </v-col>
           </v-row>
@@ -98,25 +98,29 @@ import { loadStripe } from "@stripe/stripe-js";
 import { StripeElements, StripeElement } from "vue-stripe-js";
 import type { StripeConstructorOptions, StripeElementsOptions, StripeCardElementOptions } from "@stripe/stripe-js";
 import BillingIcon from "./BillingIcon.vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useCustomerStore from "@/store/modules/customer";
+import useNamespacesStore from "@/store/modules/namespaces";
+
+interface CustomError {
+  code: string;
+  message: string;
+}
 
 const emit = defineEmits(["no-payment-methods", "has-default-payment", "customer-id-created"]);
 const stripeKey = computed(() => envVariables.stripeKey);
 const stripeLoaded = ref(false);
-const store = useStore();
 const customerStore = useCustomerStore();
+const namespacesStore = useNamespacesStore();
 const customer = computed(() => customerStore.customer);
 const card = ref();
 const elms = ref();
 const errorMessage = ref();
 const alertRender = ref(false);
 const addNewCard = ref(false);
-const namespace = computed(() => store.getters["namespaces/get"]);
-const instanceOptions = ref<StripeConstructorOptions>({
-});
+const namespace = computed(() => namespacesStore.currentNamespace);
+const instanceOptions = ref<StripeConstructorOptions>({});
 
 const elementsOptions = ref<StripeElementsOptions>({
   fonts: [{ cssSrc: "https://fonts.googleapis.com/css2?family=Lato" }],
@@ -171,17 +175,6 @@ const fetchData = async () => {
   }
 };
 
-class CustomError {
-  code: string;
-
-  message: string;
-
-  constructor(code: string, message: string) {
-    this.code = code;
-    this.message = message;
-  }
-}
-
 const savePayment = async () => {
   const cardElement = card.value.stripeElement;
   elms.value.instance.createPaymentMethod({
@@ -233,9 +226,9 @@ const deletePaymentMethod = async (id: string) => {
 };
 
 onMounted(async () => {
-  const tenant = computed(() => localStorage.getItem("tenant"));
-  await store.dispatch("namespaces/get", tenant.value);
-  if (namespace.value.billing == null || namespace.value.billing.customer_id === "") {
+  const tenant = computed(() => localStorage.getItem("tenant") as string);
+  await namespacesStore.fetchNamespace(tenant.value);
+  if (!namespace.value.billing || !namespace.value.billing?.customer_id) {
     try {
       await customerStore.createCustomer();
       emit("customer-id-created");

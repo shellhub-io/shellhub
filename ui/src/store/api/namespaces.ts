@@ -1,17 +1,23 @@
-import { INamespace, INamespaceAcceptInvite, INamespaceAddMember, Role } from "@/interfaces/INamespace";
+import {
+  INamespaceAcceptInvite,
+  INamespaceAddMember,
+  INamespaceEdit,
+  INamespaceEditMember,
+  INamespaceRemoveMember,
+} from "@/interfaces/INamespace";
 import { namespacesApi } from "@/api/http";
 
-export const postNamespace = async (data: string) => namespacesApi.createNamespace({ name: data });
+export const createNamespace = async (name: string) => namespacesApi.createNamespace({ name });
 
-export const fetchNamespaces = async (page: number, perPage: number, filter: string) => namespacesApi.getNamespaces(filter, page, perPage);
+export const fetchNamespaces = async (page: number, perPage: number, filter?: string) => namespacesApi.getNamespaces(filter, page, perPage);
 
 export const getNamespace = async (id: string) => namespacesApi.getNamespace(id);
 
-export const removeNamespace = async (id: string) => namespacesApi.deleteNamespace(id);
+export const deleteNamespace = async (id: string) => namespacesApi.deleteNamespace(id);
 
 export const leaveNamespace = async (tenant: string) => namespacesApi.leaveNamespace(tenant);
 
-export const putNamespace = async (data: INamespace) => namespacesApi.editNamespace(data.tenant_id, {
+export const editNamespace = async (data: INamespaceEdit) => namespacesApi.editNamespace(data.tenant_id, {
   name: data.name,
   settings: {
     connection_announcement: data.settings?.connection_announcement,
@@ -29,15 +35,16 @@ export const generateNamespaceLink = async (data: INamespaceAddMember) => namesp
   role: data.role,
 });
 
-export const editUserToNamespace = async (data: { tenant_id: string, user_id: string, role: Role }) => namespacesApi.updateNamespaceMember(
+export const updateNamespaceMember = async (data: INamespaceEditMember) => namespacesApi.updateNamespaceMember(
   data.tenant_id,
   data.user_id,
   { role: data.role },
 );
 
-export const removeUserFromNamespace = async (
-  data: { tenant_id: string, user_id: string, },
-) => namespacesApi.removeNamespaceMember(data.tenant_id, data.user_id);
+export const removeUserFromNamespace = async (data: INamespaceRemoveMember) => namespacesApi.removeNamespaceMember(
+  data.tenant_id,
+  data.user_id,
+);
 
 export const switchNamespace = async (tenantId: string) => namespacesApi.getNamespaceToken(tenantId);
 

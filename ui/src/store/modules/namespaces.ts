@@ -1,182 +1,113 @@
-import { Module } from "vuex";
-import * as apiNamespace from "../api/namespaces";
-import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
-import { IBilling } from "@/interfaces/IBilling";
-import { State } from "..";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import * as namespacesApi from "../api/namespaces";
+import {
+  INamespace,
+  INamespaceAcceptInvite,
+  INamespaceAddMember,
+  INamespaceEdit,
+  INamespaceEditMember,
+  INamespaceRemoveMember,
+} from "@/interfaces/INamespace";
 
-export interface NamespacesState {
-  namespace: INamespace;
-  billing: IBilling;
-  namespaces: Array<INamespace>;
-  defaultPerPage: number;
-  invoicesLength: number;
-  numberNamespaces: number;
-  owner: boolean;
-  userStatus: string;
-  invitationLink: string;
-}
+const useNamespacesStore = defineStore("namespaces", () => {
+  const currentNamespace = ref<INamespace>({} as INamespace);
+  const namespaceList = ref<Array<INamespace>>([]);
+  const userStatus = ref<string>();
 
-export const namespaces: Module<NamespacesState, State> = {
-  namespaced: true,
-  state: {
-    namespace: {} as INamespace,
-    billing: {} as IBilling,
-    namespaces: [],
-    defaultPerPage: 3,
-    invoicesLength: 0,
-    numberNamespaces: 0,
-    owner: false,
-    userStatus: "",
-    invitationLink: "",
-  },
+  const fetchNamespaceList = async (data?: { page?: number; perPage?: number; filter?: string }) => {
+    const res = await namespacesApi.fetchNamespaces(data?.page || 1, data?.perPage || 10, data?.filter);
+    namespaceList.value = res.data as INamespace[];
+  };
 
-  getters: {
-    list: (state) => state.namespaces,
-    get: (state) => state.namespace,
-    getNumberNamespaces: (state) => state.numberNamespaces,
-    owner: (state) => state.owner,
-    billing: (state) => state.billing,
-    getUserStatus: (state) => state.userStatus,
-    getInvitationLink: (state) => state.invitationLink,
-  },
+  const fetchNamespace = async (id: string) => {
+    const res = await namespacesApi.getNamespace(id);
+    currentNamespace.value = res.data as INamespace;
+  };
 
-  mutations: {
-    setNamespaces: (state, res) => {
-      state.namespaces = res.data;
-      state.numberNamespaces = parseInt(res.headers["x-total-count"], 10);
-    },
+  const createNamespace = async (name: string) => {
+    const res = await namespacesApi.createNamespace(name);
+    return res.data.tenant_id as string;
+  };
 
-    setNamespace: (state, res) => {
-      state.namespace = res.data;
-    },
+  const editNamespace = async (data: INamespaceEdit) => {
+    const res = await namespacesApi.editNamespace(data);
+    currentNamespace.value = res.data as INamespace;
+  };
 
-    setBilling: (state, data) => {
-      state.billing = data;
-    },
+  const deleteNamespace = async (id: string) => {
+    await namespacesApi.deleteNamespace(id);
+    currentNamespace.value = {} as INamespace;
+    namespaceList.value = [];
+  };
 
-    setUserStatus: (state, status) => {
-      state.userStatus = status;
-    },
+  const leaveNamespace = async (tenant: string) => {
+    const res = await namespacesApi.leaveNamespace(tenant);
 
-    removeNamespace: (state, id) => {
-      state.namespaces.splice(
-        state.namespaces.findIndex((d) => d.tenant_id === id),
-        1,
-      );
-    },
+    localStorage.setItem("token", res.data.token || "");
 
-    removeMember: (state, usr) => {
-      state.namespace.members.splice(
-        state.namespace.members.findIndex((m: INamespaceMember) => m.username === usr),
-        1,
-      );
-    },
+    if (res.data.tenant) {
+      localStorage.setItem("tenant", res.data.tenant || "");
+      localStorage.setItem("role", res.data.role || "");
+    }
+  };
 
-    clearNamespaceList: (state) => {
-      state.namespaces = [];
-      state.numberNamespaces = 0;
-    },
+  const sendEmailInvitation = async (data: INamespaceAddMember) => {
+    await namespacesApi.sendNamespaceLink(data);
+  };
 
-    clearObjectNamespace: (state) => {
-      state.namespace = {} as INamespace;
-    },
+  const generateInvitationLink = async (data: INamespaceAddMember) => {
+    const res = await namespacesApi.generateNamespaceLink(data);
+    return res.data.link as string;
+  };
 
-    setOwnerStatus: (state, status) => {
-      state.owner = status;
-    },
+  const updateNamespaceMember = async (data: INamespaceEditMember) => {
+    await namespacesApi.updateNamespaceMember(data);
+  };
 
-    setInvitationLink: (state, link) => {
-      state.invitationLink = link;
-    },
-  },
+  const removeMemberFromNamespace = async (data: INamespaceRemoveMember) => {
+    await namespacesApi.removeUserFromNamespace(data);
+  };
 
-  actions: {
-    post: async (context, data) => {
-      const res = await apiNamespace.postNamespace(data);
-      return res;
-    },
+  const acceptInvite = async (data: INamespaceAcceptInvite) => {
+    await namespacesApi.acceptNamespaceInvite(data);
+  };
 
-    fetch: async (context, data) => {
-      const res = await apiNamespace.fetchNamespaces(data.page, data.perPage, data.filter);
-      context.commit("setNamespaces", res);
-    },
+  const lookupUserStatus = async (data: { tenant: string; id: string; sig: string; }) => {
+    const res = await namespacesApi.lookupUserStatus(data);
+    userStatus.value = res.data.status;
+  };
 
-    get: async (context, id) => {
-      const res = await apiNamespace.getNamespace(id);
-      context.commit("setNamespace", res);
+  const switchNamespace = async (tenantId: string) => {
+    localStorage.removeItem("role");
 
-      const { billing } = res.data;
-      if (billing !== null) {
-        context.commit("setBilling", billing);
-      }
-    },
-
-    put: async (context, data) => {
-      const res = await apiNamespace.putNamespace(data);
-      context.commit("setNamespace", res);
-    },
-
-    remove: async (context, id) => {
-      await apiNamespace.removeNamespace(id);
-      context.commit("removeNamespace", id);
-      context.commit("clearObjectNamespace");
-      context.commit("clearNamespaceList");
-    },
-
-    leave: async (context, tenant) => {
-      const res = await apiNamespace.leaveNamespace(tenant);
-
+    const res = await namespacesApi.switchNamespace(tenantId);
+    if (res.status === 200) {
       localStorage.setItem("token", res.data.token || "");
+      localStorage.setItem("tenant", tenantId);
+      localStorage.setItem("role", res.data.role || "");
+    }
+  };
 
-      if (res.data.tenant) {
-        localStorage.setItem("tenant", res.data.tenant || "");
-        localStorage.setItem("role", res.data.role || "");
-      }
-    },
+  return {
+    currentNamespace,
+    namespaceList,
+    userStatus,
 
-    sendEmailInvitation: async (context, data) => {
-      await apiNamespace.sendNamespaceLink(data);
-    },
+    createNamespace,
+    fetchNamespaceList,
+    fetchNamespace,
+    editNamespace,
+    deleteNamespace,
+    leaveNamespace,
+    sendEmailInvitation,
+    generateInvitationLink,
+    updateNamespaceMember,
+    removeMemberFromNamespace,
+    acceptInvite,
+    lookupUserStatus,
+    switchNamespace,
+  };
+});
 
-    generateInvitationLink: async (context, data) => {
-      const res = await apiNamespace.generateNamespaceLink(data);
-      context.commit("setInvitationLink", res.data.link);
-    },
-
-    editUser: async (context, data) => {
-      await apiNamespace.editUserToNamespace(data);
-    },
-
-    removeUser: async (context, data) => {
-      await apiNamespace.removeUserFromNamespace(data);
-    },
-
-    acceptInvite: async (context, data) => {
-      await apiNamespace.acceptNamespaceInvite(data);
-    },
-
-    lookupUserStatus: async (context, data) => {
-      const res = await apiNamespace.lookupUserStatus(data);
-      context.commit("setUserStatus", res.data?.status);
-    },
-
-    clearNamespaceList: (context) => {
-      context.commit("clearNamespaceList");
-    },
-
-    switchNamespace: async (context, tenantId) => {
-      localStorage.removeItem("role");
-
-      const res = await apiNamespace.switchNamespace(tenantId);
-      if (res.status === 200) {
-        localStorage.setItem("token", res.data.token || "");
-        localStorage.setItem("tenant", tenantId);
-        localStorage.setItem("role", res.data.role || "");
-      }
-    },
-
-    setOwnerStatus: async (context, status) => {
-      context.commit("setOwnerStatus", status);
-    },
-  },
-};
+export default useNamespacesStore;

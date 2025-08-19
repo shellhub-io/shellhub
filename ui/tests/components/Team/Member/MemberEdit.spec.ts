@@ -5,10 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MemberEdit from "@/components/Team/Member/MemberEdit.vue";
 import { namespacesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { INamespaceMember } from "@/interfaces/INamespace";
 
 type MemberEditWrapper = VueWrapper<InstanceType<typeof MemberEdit>>;
 
@@ -20,15 +21,15 @@ const mockSnackbar = {
 const members = [
   {
     id: "xxxxxxxx",
-    username: "test",
     role: "owner" as const,
   },
-];
+] as INamespaceMember[];
 
 describe("Member Edit", () => {
   let wrapper: MemberEditWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
 
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
@@ -38,7 +39,7 @@ describe("Member Edit", () => {
 
     wrapper = mount(MemberEdit, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
@@ -73,7 +74,7 @@ describe("Member Edit", () => {
   it("Edit Member Error Validation", async () => {
     mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(409);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "updateNamespaceMember");
 
     await wrapper.findComponent('[data-test="member-edit-btn"]').trigger("click");
 
@@ -83,7 +84,7 @@ describe("Member Edit", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/editUser", {
+    expect(storeSpy).toBeCalledWith({
       role: "not-right-role",
       tenant_id: "fake-tenant-data",
       user_id: "xxxxxxxx",
@@ -95,7 +96,7 @@ describe("Member Edit", () => {
   it("Edit Member Success Validation", async () => {
     mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "updateNamespaceMember");
 
     await wrapper.findComponent('[data-test="member-edit-btn"]').trigger("click");
 
@@ -105,7 +106,7 @@ describe("Member Edit", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/editUser", {
+    expect(storeSpy).toBeCalledWith({
       role: "administrator",
       tenant_id: "fake-tenant-data",
       user_id: "xxxxxxxx",

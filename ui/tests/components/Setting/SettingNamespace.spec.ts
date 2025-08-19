@@ -23,7 +23,6 @@ describe("Setting Namespace", () => {
   const members = [
     {
       id: "507f1f77bcf86cd799439011",
-      username: "test",
       role: "owner",
     },
   ];
@@ -72,7 +71,6 @@ describe("Setting Namespace", () => {
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant").reply(200, namespaceData.data);
     mockUsersApi.onGet("http://localhost:3000/api/users/security").reply(200, true);
 
-    store.commit("namespaces/setNamespace", namespaceData);
     authStore.tenantId = "fake-tenant";
 
     wrapper = mount(SettingNamespace, {
