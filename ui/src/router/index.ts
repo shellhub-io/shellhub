@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized, NavigationGuardNext } from "vue-router";
 import { envVariables } from "../envVariables";
 import { store } from "@/store";
@@ -7,15 +6,17 @@ import useAuthStore from "@/store/modules/auth";
 import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
 import useLayoutStore, { Layout } from "@/store/modules/layout";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+  const namespacesStore = useNamespacesStore();
   try {
-    await store.dispatch("namespaces/lookupUserStatus", {
-      tenant: to.query["tenant-id"] || from.query["tenant-id"],
-      id: to.query["user-id"] || from.query["user-id"],
-      sig: to.query.sig || from.query.sig,
+    await namespacesStore.lookupUserStatus({
+      tenant: (to.query["tenant-id"] || from.query["tenant-id"]) as string,
+      id: (to.query["user-id"] || from.query["user-id"]) as string,
+      sig: (to.query.sig || from.query.sig) as string,
     });
-    const userStatus = store.getters["namespaces/getUserStatus"];
+    const { userStatus } = namespacesStore;
     const { isLoggedIn } = useAuthStore();
 
     switch (userStatus) {

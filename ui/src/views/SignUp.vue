@@ -153,8 +153,10 @@ import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../store";
 import AccountCreated from "../components/Account/AccountCreated.vue";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const store = useStore();
+const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const route = useRoute();
 const showPassword = ref(false);
@@ -165,7 +167,7 @@ const acceptPrivacyPolicy = ref(false);
 const isEmailLocked = ref(false);
 const messageKind: Ref<"sig" | "normal"> = ref("normal");
 const token = computed(() => store.getters["users/getSignToken"]);
-const userStatus = computed(() => store.getters["namespaces/getUserStatus"]);
+const userStatus = computed(() => namespacesStore.userStatus);
 
 const alertVisible = computed(
   () => (userStatus.value === "invited" || route.query.redirect?.includes("/accept-invite")) && !showMessage.value,

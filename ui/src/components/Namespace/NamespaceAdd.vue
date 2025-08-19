@@ -72,13 +72,13 @@ import { computed } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "@/envVariables";
 import BaseDialog from "../BaseDialog.vue";
+import useNamespacesStore from "@/store/modules/namespaces";
 
-const store = useStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const isCommunityVersion = computed(() => envVariables.isCommunity);
@@ -109,7 +109,7 @@ const close = () => {
 // Change to the specified namespace
 const changeNamespace = async (tenantId: string) => {
   try {
-    await store.dispatch("namespaces/switchNamespace", tenantId);
+    await namespacesStore.switchNamespace(tenantId);
     window.location.reload();
   } catch (error) {
     snackbar.showError("An error occurred while switching namespaces.");
@@ -126,8 +126,8 @@ const handleErrorAndNotify = (error: unknown) => {
 // Add a new namespace
 const addNamespace = async () => {
   try {
-    const response = await store.dispatch("namespaces/post", namespaceName.value);
-    await changeNamespace(response.data.tenant_id);
+    const newNamespaceId = await namespacesStore.createNamespace(namespaceName.value);
+    await changeNamespace(newNamespaceId);
     close();
     snackbar.showSuccess("Namespace created successfully");
   } catch (error) {

@@ -17,12 +17,10 @@ const namespaceDetail: IAdminNamespace = {
   members: [
     {
       id: "6256b739302b50b6cc5eafcc",
-      username: "antony",
       role: "owner",
     },
     {
       id: "7326b239302b50b6cc5eafdd",
-      username: "test",
       role: "administrator",
     },
   ],
@@ -35,7 +33,7 @@ const namespaceDetail: IAdminNamespace = {
   devices_rejected_count: 0,
   created_at: "2022-04-13T11:43:24.668Z",
   billing: undefined,
-};
+} as IAdminNamespace;
 
 const devicesCount = namespaceDetail.devices_accepted_count
   + namespaceDetail.devices_pending_count

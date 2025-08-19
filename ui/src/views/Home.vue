@@ -26,14 +26,15 @@ import StatCard from "@/components/StatCard.vue";
 import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const store = useStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const hasStatus = ref(false);
 const itemsStats = computed(() => store.getters["stats/stats"]);
-const hasNamespace = computed(
-  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-);
+const hasNamespace = computed(() => namespacesStore.namespaceList.length !== 0);
+
 const items = computed<StatCardItem[]>(() => [
   {
     title: "Registered Devices",

@@ -110,6 +110,7 @@ import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useLayoutStore from "@/store/modules/layout";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 type MenuItem = {
   title: string;
@@ -133,6 +134,7 @@ const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const layoutStore = useLayoutStore();
+const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -164,8 +166,8 @@ const triggerClick = (item: MenuItem): void => {
 const logout = async () => {
   try {
     authStore.logout();
+    namespacesStore.namespaceList = [];
     await store.dispatch("stats/clear");
-    await store.dispatch("namespaces/clearNamespaceList");
     if (isChatCreated.value) {
       toggle("close");
       reset();
@@ -196,7 +198,7 @@ const openChatwoot = async (): Promise<void> => {
       "chatwoot:on-message",
       () => {
         setConversationCustomAttributes({
-          namespace: store.getters["namespaces/get"].name,
+          namespace: namespacesStore.currentNamespace.name,
           tenant: tenant.value,
           domain: window.location.hostname,
         });

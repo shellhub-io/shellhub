@@ -1,24 +1,26 @@
+import MockAdapter from "axios-mock-adapter";
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import NamespaceInviteCard from "@/views/NamespaceInviteCard.vue";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { namespacesApi } from "@/api/http";
 
 type NamespaceInviteCardWrapper = VueWrapper<InstanceType<typeof NamespaceInviteCard>>;
 
 let wrapper: NamespaceInviteCardWrapper;
 setActivePinia(createPinia());
 const vuetify = createVuetify();
+const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
 describe("Namespace Invite Dialog (Invalid User)", () => {
   beforeEach(async () => {
     wrapper = mount(NamespaceInviteCard, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -41,7 +43,7 @@ describe("Namespace Invite Dialog", () => {
 
     wrapper = mount(NamespaceInviteCard, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -77,6 +79,7 @@ describe("Namespace Invite Dialog", () => {
   });
 
   it("Calls acceptInvite method when Accept Invitation button is clicked", async () => {
+    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant/members/accept-invite").reply(200);
     const acceptSpy = vi.spyOn(wrapper.vm, "acceptInvite");
     await flushPromises();
     await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");

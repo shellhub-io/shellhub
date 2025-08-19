@@ -156,13 +156,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import multiavatar from "@multiavatar/multiavatar";
 import hasPermission from "@/utils/permission";
-import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
@@ -172,14 +171,15 @@ import BaseDialog from "@/components/BaseDialog.vue";
 import RoleSelect from "../RoleSelect.vue";
 import { BasicRole } from "@/interfaces/INamespace";
 import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const emit = defineEmits(["update"]);
-const store = useStore();
 const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 const getInvitationCheckbox = ref(false);
-const invitationLink = computed(() => store.getters["namespaces/getInvitationLink"]);
+const invitationLink = ref("");
 const formWindow = ref("form-1");
 const selectedRole = ref<BasicRole>("administrator");
 
@@ -242,7 +242,7 @@ const getInvitePayload = () => ({
 
 const generateLinkInvite = async () => {
   try {
-    await store.dispatch("namespaces/generateInvitationLink", getInvitePayload());
+    invitationLink.value = await namespacesStore.generateInvitationLink(getInvitePayload());
     snackbar.showSuccess("Invitation link generated successfully.");
     formWindow.value = "form-2";
   } catch (error) {
@@ -252,7 +252,7 @@ const generateLinkInvite = async () => {
 
 const sendEmailInvite = async () => {
   try {
-    await store.dispatch("namespaces/sendEmailInvitation", getInvitePayload());
+    await namespacesStore.sendEmailInvitation(getInvitePayload());
     snackbar.showSuccess("Invitation email sent successfully.");
     update();
     resetFields();

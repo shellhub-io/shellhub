@@ -3,16 +3,18 @@ import { shallowMount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import MemberList from "@/components/Team/Member/MemberList.vue";
 import { namespacesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { INamespace } from "@/interfaces/INamespace";
 
 type MemberListWrapper = VueWrapper<InstanceType<typeof MemberList>>;
 
 describe("Member List", () => {
   let wrapper: MemberListWrapper;
   setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
 
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
@@ -24,26 +26,30 @@ describe("Member List", () => {
     members: [
       {
         id: "xxxxxxxx",
-        username: "test",
         email: "test@test.com",
-        role: "owner",
+        role: "owner" as const,
         added_at: "2024-01-01T12:00:00Z",
+        status: "accepted" as const,
       },
     ],
+    settings: {
+      session_record: true,
+    },
     max_devices: 3,
-    devices_count: 3,
-    devices: 2,
+    devices_accepted_count: 2,
+    devices_rejected_count: 0,
+    devices_pending_count: 0,
     created_at: "",
-    billing: {},
+    billing: null,
   };
 
   beforeEach(async () => {
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    store.commit("namespaces/setNamespace", namespaceData);
+    namespacesStore.currentNamespace = namespaceData as INamespace;
 
     wrapper = shallowMount(MemberList, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

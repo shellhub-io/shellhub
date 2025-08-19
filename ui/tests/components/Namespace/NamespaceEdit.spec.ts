@@ -6,8 +6,9 @@ import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import NamespaceEdit from "@/components/Namespace/NamespaceEdit.vue";
 import { namespacesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { INamespaceMember } from "@/interfaces/INamespace";
 
 type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
 
@@ -19,6 +20,7 @@ const mockSnackbar = {
 describe("Namespace Edit", () => {
   let wrapper: NamespaceEditWrapper;
   setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
 
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
@@ -26,12 +28,12 @@ describe("Namespace Edit", () => {
   const members = [
     {
       id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
+      role: "owner" as const,
     },
-  ];
+  ] as INamespaceMember[];
 
   const namespaceData = {
+    billing: null,
     name: "test",
     owner: "test",
     tenant_id: "fake-tenant-data",
@@ -41,19 +43,22 @@ describe("Namespace Edit", () => {
       connection_announcement: "",
     },
     max_devices: 3,
-    devices_count: 3,
+    devices_accepted_count: 3,
+    devices_rejected_count: 0,
+    devices_pending_count: 0,
     created_at: "",
   };
 
   beforeEach(async () => {
     localStorage.setItem("tenant", "fake-tenant-data");
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?filter=&page=1&per_page=10").reply(200, [namespaceData]);
-    store.commit("namespaces/setNamespace", namespaceData);
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=10").reply(200, [namespaceData]);
+
+    namespacesStore.currentNamespace = namespaceData;
 
     wrapper = mount(NamespaceEdit, {
       global: {
-        plugins: [[store, key], vuetify],
+        plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -95,12 +100,12 @@ describe("Namespace Edit", () => {
 
     await wrapper.findComponent('[data-test="connection-announcement-text"]').setValue("test");
 
-    const changeDataSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "editNamespace");
     await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
 
     await nextTick();
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("namespaces/put", changeNamespaceData);
+    expect(storeSpy).toHaveBeenCalledWith(changeNamespaceData);
   });
 
   it("Fails to change namespace data", async () => {

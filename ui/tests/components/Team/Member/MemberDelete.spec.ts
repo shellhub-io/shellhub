@@ -5,8 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MemberDelete from "@/components/Team/Member/MemberDelete.vue";
 import { namespacesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { INamespaceMember } from "@/interfaces/INamespace";
 
 type MemberDeleteWrapper = VueWrapper<InstanceType<typeof MemberDelete>>;
 
@@ -18,23 +19,23 @@ const mockSnackbar = {
 describe("Member Delete", () => {
   let wrapper: MemberDeleteWrapper;
   setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   const members = [
     {
       id: "xxxxxxxx",
-      username: "test",
       role: "owner" as const,
     },
-  ];
+  ] as INamespaceMember[];
 
   beforeEach(async () => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     wrapper = mount(MemberDelete, {
       global: {
-        plugins: [[store, key], vuetify],
+        plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
@@ -69,7 +70,7 @@ describe("Member Delete", () => {
   it("Delete Member Error Validation", async () => {
     mockNamespacesApi.onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(403);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "removeMemberFromNamespace");
 
     await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
 
@@ -77,7 +78,7 @@ describe("Member Delete", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/removeUser", {
+    expect(storeSpy).toBeCalledWith({
       tenant_id: "fake-tenant-data",
       user_id: "xxxxxxxx",
     });
@@ -88,7 +89,7 @@ describe("Member Delete", () => {
   it("Delete Member Success Validation", async () => {
     mockNamespacesApi.onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "removeMemberFromNamespace");
 
     await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
 
@@ -96,7 +97,7 @@ describe("Member Delete", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/removeUser", {
+    expect(storeSpy).toBeCalledWith({
       tenant_id: "fake-tenant-data",
       user_id: "xxxxxxxx",
     });

@@ -193,7 +193,6 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
-import { useStore } from "@/store";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
@@ -202,11 +201,12 @@ import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
-const store = useStore();
 const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
-const namespace = computed(() => store.getters["namespaces/get"]);
+const namespace = computed(() => namespacesStore.currentNamespace);
 const isOwner = computed(() => namespace.value.owner === localStorage.getItem("id"));
 const { tenantId } = authStore;
 const billingInDebt = ref(false);
@@ -234,14 +234,14 @@ const {
 
 const cancel = (type: string) => {
   if (type === "data") {
-    name.value = store.getters["namespaces/get"].name;
+    name.value = namespace.value.name;
     editDataStatus.value = !editDataStatus.value;
   }
 };
 
 const getNamespace = async () => {
   try {
-    await store.dispatch("namespaces/get", tenantId);
+    await namespacesStore.fetchNamespace(tenantId);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -277,18 +277,14 @@ const updateName = async () => {
   if (nameError.value) return;
 
   try {
-    await store.dispatch("namespaces/put", {
+    await namespacesStore.editNamespace({
       tenant_id: tenantId,
       name: name.value,
     });
 
-    await store.dispatch("namespaces/fetch", {
-      page: 1,
-      perPage: 10,
-      filter: "",
-    });
+    await namespacesStore.fetchNamespaceList();
 
-    getNamespace();
+    await getNamespace();
     snackbar.showSuccess("Namespace name updated successfully.");
     editDataStatus.value = true;
   } catch (error) {

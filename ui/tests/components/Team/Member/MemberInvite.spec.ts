@@ -10,6 +10,7 @@ import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
 import { envVariables } from "@/envVariables";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 type MemberInviteWrapper = VueWrapper<InstanceType<typeof MemberInvite>>;
 
@@ -23,6 +24,7 @@ describe("Member Invite", () => {
   let wrapper: MemberInviteWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
@@ -66,7 +68,7 @@ describe("Member Invite", () => {
   it("Invite Member Email - Error Validation", async () => {
     mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(409);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "sendEmailInvitation");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -78,7 +80,7 @@ describe("Member Invite", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/sendEmailInvitation", {
+    expect(storeSpy).toBeCalledWith({
       email: "not-working-mail",
       tenant_id: "fake-tenant-data",
       role: "not-right-role",
@@ -90,7 +92,7 @@ describe("Member Invite", () => {
   it("Invite Member Email - Success Validation", async () => {
     mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(200);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "sendEmailInvitation");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -102,7 +104,7 @@ describe("Member Invite", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/sendEmailInvitation", {
+    expect(storeSpy).toBeCalledWith({
       email: "workingmail@mail.com",
       tenant_id: "fake-tenant-data",
       role: "administrator",
@@ -116,7 +118,7 @@ describe("Member Invite", () => {
   it("Generates Invitation Link - Failure", async () => {
     mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members/invites").reply(404);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "generateInvitationLink");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -130,7 +132,7 @@ describe("Member Invite", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/generateInvitationLink", {
+    expect(storeSpy).toBeCalledWith({
       email: "valid@mail.com",
       tenant_id: "fake-tenant-data",
       role: "administrator",
@@ -144,7 +146,7 @@ describe("Member Invite", () => {
       link: "http://localhost/invite-link",
     });
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(namespacesStore, "generateInvitationLink");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -158,7 +160,7 @@ describe("Member Invite", () => {
 
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith("namespaces/generateInvitationLink", {
+    expect(storeSpy).toBeCalledWith({
       email: "valid@mail.com",
       tenant_id: "fake-tenant-data",
       role: "administrator",

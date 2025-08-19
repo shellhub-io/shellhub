@@ -54,12 +54,12 @@
 import { ref } from "vue";
 import axios from "axios";
 import { BasicRole, INamespaceMember } from "@/interfaces/INamespace";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
 import RoleSelect from "@/components/Team/RoleSelect.vue";
 import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const { member, hasAuthorization } = defineProps<{
   member: INamespaceMember;
@@ -67,8 +67,8 @@ const { member, hasAuthorization } = defineProps<{
 }>();
 
 const emit = defineEmits(["update"]);
-const store = useStore();
 const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 const newRole = ref(member.role as BasicRole);
@@ -105,7 +105,7 @@ const handleEditMemberError = (error: unknown) => {
 
 const editMember = async () => {
   try {
-    await store.dispatch("namespaces/editUser", {
+    await namespacesStore.updateNamespaceMember({
       user_id: member.id,
       tenant_id: authStore.tenantId,
       role: newRole.value,

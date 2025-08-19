@@ -47,10 +47,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import NamespaceAdd from "./NamespaceAdd.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 interface NamespaceItem {
   tenant_id: string;
@@ -62,17 +62,17 @@ defineOptions({
 });
 
 const snackbar = useSnackbar();
-const store = useStore();
-const namespaceList = computed(() => store.getters["namespaces/list"]);
-const selectedNamespace = computed(() => store.getters["namespaces/get"]);
-const tenant = computed(() => localStorage.getItem("tenant"));
-const firstNamespaceLetter = computed(() => (store.getters["namespaces/get"].name ?? "").charAt(0));
+const namespacesStore = useNamespacesStore();
+const namespaceList = computed(() => namespacesStore.namespaceList);
+const selectedNamespace = computed(() => namespacesStore.currentNamespace);
+const tenant = computed(() => localStorage.getItem("tenant") as string);
+const firstNamespaceLetter = computed(() => (selectedNamespace.value.name ?? "").charAt(0));
 const isAddNamespaceDialogVisible = ref(false);
 
 // Change the current namespace
 const changeNamespace = async (tenantId: string) => {
   try {
-    await store.dispatch("namespaces/switchNamespace", tenantId);
+    await namespacesStore.switchNamespace(tenantId);
     window.location.reload();
   } catch (error: unknown) {
     snackbar.showError("An error occurred while switching namespaces.");
@@ -83,16 +83,16 @@ const changeNamespace = async (tenantId: string) => {
 // Fetch the current namespace
 const fetchNamespace = async () => {
   try {
-    await store.dispatch("namespaces/get", tenant.value);
+    await namespacesStore.fetchNamespace(tenant.value);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       switch (true) {
         case axiosError.response?.status === 404: {
           // detects namespace inserted
-          const namespaceFind = store.getters["namespaces/list"][0];
-          if (tenant.value === "" && namespaceFind !== undefined) {
-            changeNamespace(namespaceFind.tenant_id);
+          const namespace = namespacesStore.namespaceList[0];
+          if (tenant.value === "" && namespace !== undefined) {
+            changeNamespace(namespace.tenant_id);
           }
           break;
         }
