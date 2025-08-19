@@ -80,6 +80,17 @@ func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
 	return cfg, nil, nil
 }
 
+func NewDockerConnectorWithClient(cli *dockerclient.Client, config *Config) Connector {
+	return &DockerConnector{
+		cli:         cli,
+		server:      config.ServerAddress,
+		tenant:      config.TenantID,
+		privateKeys: config.PrivateKeys,
+		Label:       config.Label,
+		cancels:     make(map[string]context.CancelFunc),
+	}
+}
+
 // NewDockerConnector creates a new [Connector] that uses Docker as the container runtime.
 func NewDockerConnector(config *Config) (Connector, error) {
 	cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
