@@ -132,6 +132,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	publicAPI.GET(GetSessionsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSessionList)))
 	publicAPI.GET(GetSessionURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSession)))
+	publicAPI.GET(ListEventsSessionsURL, routesmiddleware.Authorize(gateway.Handler(handler.ListEventsSession)))
 
 	publicAPI.GET(GetStatsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetStats)))
 	publicAPI.GET(GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))

@@ -9,7 +9,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
@@ -215,6 +217,7 @@ func (s *Store) SessionCreate(ctx context.Context, session models.Session) (*mod
 	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
+	session.Seats = []models.SessionSeat{}
 
 	device, err := s.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {
@@ -327,15 +330,28 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 
 	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (any, error) {
 		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
-			bson.M{"uid": uid},
+			bson.M{"uid": uid, "seats.id": bson.M{"$ne": event.Seat}},
 			bson.M{
-				"$addToSet": bson.M{
-					"events.types": event.Type,
-					"events.seats": event.Seat,
+				"$push": bson.M{
+					"seats": bson.M{
+						"id":     event.Seat,
+						"events": bson.A{},
+					},
 				},
 			},
 		); err != nil {
-			return nil, err
+			return nil, FromMongoError(err)
+		}
+
+		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
+			bson.M{"uid": uid, "seats.id": event.Seat},
+			bson.M{
+				"$addToSet": bson.M{
+					"seats.$.events": event.Type,
+				},
+			},
+		); err != nil {
+			return nil, FromMongoError(err)
 		}
 
 		if _, err := s.db.Collection("sessions_events").InsertOne(ctx, event); err != nil {
@@ -350,39 +366,91 @@ func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.
 	return nil
 }
 
-func (s *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error) {
-	query := []bson.M{
+func (s *Store) SessionListEvents(ctx context.Context, uid models.UID, paginator query.Paginator, filters query.Filters, sorter query.Sorter) ([]models.SessionEvent, int, error) {
+	pipeline := []bson.M{
 		{
 			"$match": bson.M{
 				"session": uid,
-				"seat":    seat,
-				"type":    event,
-			},
-		},
-		{
-			"$sort": bson.M{
-				"timestamp": 1,
 			},
 		},
 	}
 
-	queryCount := query
-	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := AggregateCount(ctx, s.db.Collection("sessions_events"), queryCount)
+	queryMatch, err := queries.FromFilters(&filters)
 	if err != nil {
+		log.WithError(err).Error("failed to create filters")
+
 		return nil, 0, FromMongoError(err)
 	}
 
-	query = append(query, queries.FromPaginator(&paginator)...)
+	pipeline = append(pipeline, queryMatch...)
 
-	cursosr, err := s.db.Collection("sessions_events").Aggregate(ctx, query)
+	countPipeline := append(pipeline, bson.M{"$count": "count"})
+	count, err := AggregateCount(ctx, s.db.Collection("sessions_events"), countPipeline)
 	if err != nil {
+		log.WithError(err).Error("failed to count sessions_events")
+
 		return nil, 0, FromMongoError(err)
 	}
+
+	if sorter.By == "" {
+		sorter.By = "timestamp"
+	}
+
+	pipeline = append(pipeline, queries.FromSorter(&sorter)...)
+	pipeline = append(pipeline, queries.FromPaginator(&paginator)...)
+
+	opts := options.Aggregate().SetAllowDiskUse(true)
+	cursor, err := s.db.Collection("sessions_events").Aggregate(ctx, pipeline, opts)
+	if err != nil {
+		log.WithError(err).Error("failed to run aggregation against sessions_events collection")
+
+		return nil, 0, FromMongoError(err)
+	}
+
+	defer cursor.Close(ctx)
 
 	events := make([]models.SessionEvent, 0)
-	if err := cursosr.All(ctx, events); err != nil {
-		return nil, 0, FromMongoError(err)
+	for cursor.Next(ctx) {
+		var event models.SessionEvent
+		if err := cursor.Decode(&event); err != nil {
+			log.WithError(err).Error("failed to decode the event from the cursor")
+
+			return nil, 0, err
+		}
+
+		switch event.Type {
+		case models.SessionEventTypeWindowChange:
+			prim := event.Data.(primitive.D)
+
+			data, err := bson.Marshal(prim)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			model := models.SSHWindowChange{}
+			if err := bson.Unmarshal(data, &model); err != nil {
+				return nil, 0, err
+			}
+
+			event.Data = model
+		case models.SessionEventTypePtyRequest:
+			// NOTE: We're converting the data returned by MongoDB when the field is a [any] to out structure.
+			prim := event.Data.(primitive.D)
+
+			data, err := bson.Marshal(prim)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			model := models.SSHPty{}
+			if err := bson.Unmarshal(data, &model); err != nil {
+				return nil, 0, err
+			}
+
+			event.Data = model
+		}
+
+		events = append(events, event)
 	}
 
 	return events, count, nil
