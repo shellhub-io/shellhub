@@ -1,67 +1,47 @@
-import { Module } from "vuex";
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
 import { fetchDevices } from "../api/devices";
 import { fetchContainers } from "../api/containers";
-import { State } from "..";
 import { deviceToNotification, containerToNotification } from "@/utils/notificationAdapters";
 import { IDevice } from "@/interfaces/IDevice";
 import { IContainer } from "@/interfaces/IContainer";
 import { INotification } from "@/interfaces/INotification";
 
-export interface NotificationsState {
-  notifications: INotification[];
-  total: number;
-}
+const useNotificationsStore = defineStore("notifications", () => {
+  const notifications = ref<INotification[]>([]);
+  const notificationCount = computed(() => notifications.value.length);
 
-export const notifications: Module<NotificationsState, State> = {
-  namespaced: true,
+  const fetchNotifications = async () => {
+    try {
+      const [deviceRes, containerRes] = await Promise.all([
+        fetchDevices(1, 10, "pending"),
+        fetchContainers(1, 10, "pending"),
+      ]);
 
-  state: {
-    notifications: [],
-    total: 0,
-  },
+      const devices = deviceRes.data as IDevice[];
+      const containers = containerRes.data as IContainer[];
 
-  getters: {
-    notifications: (state) => state.notifications,
-    total: (state) => state.total,
-    notificationsByType: (state) => (type: string) => state.notifications.filter((notification) => notification.type === type),
-  },
+      const deviceNotifications = devices.map(deviceToNotification);
+      const containerNotifications = containers.map(containerToNotification);
 
-  mutations: {
-    setNotifications: (state, notifications) => {
-      state.notifications = notifications;
-      state.total = notifications.length;
-    },
+      const combinedNotifications = [
+        ...deviceNotifications,
+        ...containerNotifications,
+      ];
 
-    clearNotifications: (state) => {
-      state.notifications = [];
-      state.total = 0;
-    },
-  },
+      notifications.value = combinedNotifications;
+    } catch (error) {
+      notifications.value = [];
+      throw error;
+    }
+  };
 
-  actions: {
-    fetch: async (context) => {
-      try {
-        const [deviceRes, containerRes] = await Promise.all([
-          fetchDevices(1, 10, "pending"),
-          fetchContainers(1, 10, "pending"),
-        ]);
+  return {
+    notifications,
+    notificationCount,
 
-        const devices = deviceRes.data as IDevice[];
-        const containers = containerRes.data as IContainer[];
+    fetchNotifications,
+  };
+});
 
-        const deviceNotifications = devices.map(deviceToNotification);
-        const containerNotifications = containers.map(containerToNotification);
-
-        const combinedNotifications = [
-          ...deviceNotifications,
-          ...containerNotifications,
-        ];
-
-        context.commit("setNotifications", combinedNotifications);
-      } catch (error) {
-        context.commit("clearNotifications");
-        throw error;
-      }
-    },
-  },
-};
+export default useNotificationsStore;

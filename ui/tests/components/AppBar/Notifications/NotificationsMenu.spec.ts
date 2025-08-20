@@ -9,6 +9,7 @@ import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { containersApi, devicesApi } from "@/api/http";
 import { router } from "@/router";
 import useAuthStore from "@/store/modules/auth";
+import useNotificationsStore from "@/store/modules/notifications";
 
 const deviceData = [{
   uid: "a582b47a42d",
@@ -32,6 +33,7 @@ describe("Notifications Menu", async () => {
   const vuetify = createVuetify();
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const notificationsStore = useNotificationsStore();
 
   const mockPendingNotifications = (deviceData, containerData, status = 200) => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending").reply(status, deviceData);
@@ -60,14 +62,14 @@ describe("Notifications Menu", async () => {
   });
 
   it("Calls fetch on before mount", () => {
-    const fetchSpy = vi.spyOn(store, "dispatch");
+    const fetchSpy = vi.spyOn(notificationsStore, "fetchNotifications");
     wrapper = mount(NotificationsMenu, {
       global: {
         plugins: [[store, key], router, vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
-    expect(fetchSpy).toHaveBeenCalledWith("notifications/fetch");
+    expect(fetchSpy).toHaveBeenCalled();
   });
 
   it("Shows correct number of notifications in badge", () => {
