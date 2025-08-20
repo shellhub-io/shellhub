@@ -62,6 +62,7 @@ import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
+import useNotificationsStore from "@/store/modules/notifications";
 
 interface DeviceActionButtonProps {
   name?: string;
@@ -82,6 +83,7 @@ const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
+const { fetchNotifications } = useNotificationsStore();
 const snackbar = useSnackbar();
 const isBillingActive = computed(() => billingStore.isActive);
 const icon = {
@@ -103,7 +105,7 @@ const close = () => {
 
 const refreshDevices = async () => {
   try {
-    await store.dispatch("notifications/fetch");
+    await fetchNotifications();
     emit("update");
     close();
   } catch (error: unknown) {

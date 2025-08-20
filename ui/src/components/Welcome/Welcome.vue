@@ -94,6 +94,7 @@ import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import { IDevice } from "@/interfaces/IDevice";
 import useDevicesStore from "@/store/modules/devices";
+import useNotificationsStore from "@/store/modules/notifications";
 
 type Timer = ReturnType<typeof setInterval>;
 
@@ -101,6 +102,7 @@ const showDialog = defineModel<boolean>({ required: true });
 const store = useStore();
 const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
+const { fetchNotifications } = useNotificationsStore();
 const snackbar = useSnackbar();
 const el = ref<number>(1);
 const firstPendingDevice = ref<IDevice>();
@@ -132,7 +134,7 @@ const acceptDevice = async () => {
     if (firstPendingDevice.value) {
       await devicesStore.acceptDevice(firstPendingDevice.value.uid);
 
-      store.dispatch("notifications/fetch");
+      fetchNotifications();
       store.dispatch("stats/get");
 
       el.value = 4;
