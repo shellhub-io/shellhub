@@ -1,6 +1,6 @@
 <template>
   <DeviceChooser
-    v-if="isBillingEnabled && hasWarning"
+    v-if="hasWarning"
     data-test="device-chooser-component"
   />
 
@@ -15,7 +15,6 @@
   />
 
   <BillingWarning
-    v-if="isBillingEnabled"
     data-test="billing-warning-component"
   />
 
@@ -160,8 +159,6 @@ const checkAnnouncements = async () => {
   }
 };
 
-const isBillingEnabled = computed(() => envVariables.billingEnable);
-
 const showDialogs = async () => {
   try {
     if (!store.getters["auth/isLoggedIn"]) return;
@@ -175,7 +172,7 @@ const showDialogs = async () => {
       await store.dispatch("stats/get");
 
       showScreenWelcome();
-      if (isBillingEnabled.value) {
+      if (envVariables.isCloud && !store.getters["billing/active"]) {
         await billingWarning();
       }
     } else {

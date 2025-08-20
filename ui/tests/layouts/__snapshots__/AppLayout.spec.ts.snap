@@ -236,6 +236,14 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Tags-listItem">Tags</div>
                   </div>
                   <!---->
+                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" href="/settings/billing" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+                  <!---->
+                  <div class="v-list-item__content" data-no-activator="">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Billing-listItem">Billing</div>
+                  </div>
+                  <!---->
                 </a></div>
             </transition-stub>
           </div>

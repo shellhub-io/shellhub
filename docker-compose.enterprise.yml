@@ -19,8 +19,6 @@ services:
 
   ssh:
     image: registry.infra.ossystems.io/cache/shellhubio/ssh:${SHELLHUB_VERSION}
-    environment:
-      - BILLING_URL=cloud:8080
 
   cloud:
     image: registry.infra.ossystems.io/shellhub/cloud:${SHELLHUB_VERSION}
@@ -42,6 +40,7 @@ services:
       - SHELLHUB_OBJECT_STORAGE_BUCKET=${SHELLHUB_OBJECT_STORAGE_BUCKET}
       - SHELLHUB_OBJECT_STORAGE_ACCESS_KEY=${SHELLHUB_OBJECT_STORAGE_ACCESS_KEY}
       - SHELLHUB_OBJECT_STORAGE_SECRET_KEY=${SHELLHUB_OBJECT_STORAGE_SECRET_KEY}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_BILLING=${SHELLHUB_BILLING}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_PRICE_ID=${STRIPE_PRICE_ID}
