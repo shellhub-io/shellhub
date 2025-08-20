@@ -52,19 +52,19 @@
 
 <script setup lang="ts">
 import { computed, onBeforeMount } from "vue";
-import { useStore } from "@/store";
 import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import NotificationsList from "./NotificationsList.vue";
 import useAuthStore from "@/store/modules/auth";
+import useNotificationsStore from "@/store/modules/notifications";
 
-const store = useStore();
 const authStore = useAuthStore();
+const notificationsStore = useNotificationsStore();
 const snackbar = useSnackbar();
-const notifications = computed(() => store.getters["notifications/notifications"]);
-const notificationCount = computed(() => store.getters["notifications/total"]);
+const notifications = computed(() => notificationsStore.notifications);
+const notificationCount = computed(() => notificationsStore.notificationCount);
 const canViewNotifications = computed(() => {
   const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.notification.view);
@@ -76,7 +76,7 @@ const emptyCardMessage = computed(() => (
 
 const fetchNotifications = async () => {
   try {
-    await store.dispatch("notifications/fetch");
+    await notificationsStore.fetchNotifications();
   } catch (error: unknown) {
     if (canViewNotifications.value) {
       snackbar.showError("Failed to load notifications.");
