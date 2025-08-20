@@ -1914,10 +1914,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "pending-device", mock.MatchedBy(func(changes *models.DeviceChanges) bool {
 						return changes.Status == models.DeviceStatusAccepted
@@ -2059,10 +2055,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "pending-device", mock.MatchedBy(func(changes *models.DeviceChanges) bool {
 						return changes.Status == models.DeviceStatusAccepted
@@ -2143,10 +2135,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
 				clientMock.
 					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
 					Return(&models.BillingEvaluation{CanAccept: false}, 0, errors.New("error", "store", 0)).
@@ -2217,10 +2205,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
 				clientMock.
 					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
 					Return(&models.BillingEvaluation{CanAccept: false}, 0, nil).
@@ -2286,10 +2270,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
@@ -2379,10 +2359,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
 					Return(0, errors.New("billing error", "", 0)).
@@ -2453,10 +2429,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("true").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
-					Once()
 				clientMock.
 					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
 					Return(402, nil).
@@ -2522,10 +2494,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(nil, store.ErrNoDocuments).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").

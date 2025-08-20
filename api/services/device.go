@@ -296,19 +296,27 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 					return NewErrDeviceDuplicated(device.Name, nil)
 				}
 
-				if err := s.checkDeviceLimits(ctx, namespace, device); err != nil {
-					log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).
-						Error("namespace's limit reached - cannot accept another device")
-
-					return err
-				}
-
 				if envs.IsCloud() {
+					hasBillingActive := namespace.Billing != nil && namespace.Billing.IsActive()
+					hasRechedLimit := namespace.HasMaxDevices() && namespace.HasLimitDevicesReached()
+					isDeviceStatusRemoved := device.Status == models.DeviceStatusRemoved
+
+					if !hasBillingActive && hasRechedLimit && !isDeviceStatusRemoved {
+						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).
+							Error("namespace's limit reached - cannot accept another device")
+
+						return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
+					}
+
 					if err := s.handleCloudBilling(ctx, namespace); err != nil {
 						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID, "billing_active": namespace.Billing.IsActive()}).
 							Error("billing validation failed")
 
 						return err
+					}
+				} else {
+					if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
+						return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
 					}
 				}
 			}
@@ -373,26 +381,6 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	}
 
 	return nil
-}
-
-// checkDeviceLimits validates if the namespace can accept more devices based on environment-specific limits.
-func (s *service) checkDeviceLimits(ctx context.Context, namespace *models.Namespace, device *models.Device) error {
-	switch {
-	case envs.IsCloud():
-		if !namespace.Billing.IsActive() && device.Status != models.DeviceStatusRemoved &&
-			namespace.HasMaxDevices() && namespace.HasLimitDevicesReached() {
-
-			return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
-		}
-
-		return nil
-	default:
-		if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-			return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
-		}
-
-		return nil
-	}
 }
 
 // handleCloudBilling processes billing-related operations for Cloud environment.
