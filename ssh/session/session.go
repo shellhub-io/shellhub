@@ -568,12 +568,12 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	snap := getSnapshot(ctx)
 
-	if envs.IsCloud() || envs.IsEnterprise() {
+	if envs.IsEnterprise() {
 		if ok, err := s.checkFirewall(); err != nil || !ok {
 			return err
 		}
 
-		if envs.HasBilling() {
+		if envs.IsCloud() {
 			if ok, err := s.checkBilling(); err != nil || !ok {
 				return err
 			}

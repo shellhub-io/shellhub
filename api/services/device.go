@@ -139,7 +139,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	// NOTE: If the namespace has a limit of devices, we change the device's slot status to removed only when it is
 	// [models.DeviceStatusAccepted]. This way, we can keep track of the number of devices that were removed from the
 	// namespace and void the device switching.
-	if envs.IsCloud() && envs.HasBilling() && !ns.Billing.IsActive() && device.Status == models.DeviceStatusAccepted {
+	if envs.IsCloud() && !ns.Billing.IsActive() && device.Status == models.DeviceStatusAccepted {
 		if err := s.store.DeviceUpdate(ctx, tenant, string(uid), &models.DeviceChanges{Status: models.DeviceStatusRemoved}); err != nil {
 			return err
 		}

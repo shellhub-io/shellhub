@@ -897,9 +897,6 @@ func TestDeleteDevice(t *testing.T) {
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").Return("true").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_BILLING").Return("true").
-					Once()
 				storeMock.
 					On(
 						"DeviceUpdate",
@@ -958,9 +955,6 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").Return("true").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_BILLING").Return("true").
 					Once()
 				storeMock.
 					On(
@@ -1028,9 +1022,6 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").Return("true").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_BILLING").Return("true").
 					Once()
 				storeMock.
 					On("DeviceDelete", ctx, models.UID("uid")).

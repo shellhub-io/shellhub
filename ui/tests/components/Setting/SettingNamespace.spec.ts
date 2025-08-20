@@ -27,12 +27,24 @@ describe("Setting Namespace", () => {
     },
   ];
 
+  const billingData = {
+    active: false,
+    status: "inactive",
+    customer_id: "cus_test",
+    subscription_id: "sub_test",
+    current_period_end: 2068385820,
+    created_at: "",
+    updated_at: "",
+    invoices: [],
+  };
+
   const namespaceData = {
     data: {
       name: "test",
       owner: "test",
       tenant_id: "fake-tenant",
       members,
+      billing: billingData,
       settings: {
         session_record: true,
         connection_announcement: "",
@@ -82,6 +94,7 @@ describe("Setting Namespace", () => {
 
     store.commit("auth/authSuccess", authData);
     store.commit("namespaces/setNamespace", namespaceData);
+    store.commit("billing/setSubscription", billingData);
 
     wrapper = mount(SettingNamespace, {
       global: {
