@@ -4,6 +4,7 @@ import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
+import { createPinia, setActivePinia } from "pinia";
 import { store, key } from "@/store";
 import TerminalDialog from "@/components/Terminal/TerminalDialog.vue";
 import { routes } from "@/router";
@@ -25,6 +26,7 @@ vi.mock("xterm", () => ({
 describe("Terminal Dialog", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalDialog>>;
   let dialog: DOMWrapper<HTMLElement>;
+  setActivePinia(createPinia());
 
   const router = createRouter({
     history: createWebHistory(),

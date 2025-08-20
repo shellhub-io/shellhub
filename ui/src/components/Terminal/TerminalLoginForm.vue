@@ -92,16 +92,16 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import { LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
-import { useStore } from "@/store";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const emit = defineEmits<{
   submit: [formData: LoginFormData];
   close: [];
 }>();
 
+const { privateKeys } = usePrivateKeysStore();
 const authenticationMethod = ref(TerminalAuthMethods.Password);
 const showPassword = ref(false);
-const privateKeys: Array<IPrivateKey> = useStore().getters["privateKey/list"];
 const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
 const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
 const showPassphraseField = ref(false);

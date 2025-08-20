@@ -173,6 +173,7 @@ import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import useLayoutStore from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 defineOptions({
   inheritAttrs: false,
@@ -182,6 +183,7 @@ const router = useRouter();
 const store = useStore();
 const layoutStore = useLayoutStore();
 const namespacesStore = useNamespacesStore();
+const { getPrivateKeyList } = usePrivateKeysStore();
 const currentRoute = computed(() => router.currentRoute);
 const showNamespaceAdd = ref(false);
 const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
@@ -195,10 +197,6 @@ const showNavigationDrawer = ref(lgAndUp.value);
 const hasSpinner = computed({
   get() { return store.getters["spinner/status"]; },
   set(v) { store.dispatch("spinner/setStatus", v); },
-});
-
-onMounted(() => {
-  store.dispatch("privateKey/fetch");
 });
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
@@ -313,6 +311,8 @@ function getFilteredChildren(children) {
 }
 
 const visibleItems = computed(() => items.filter((item) => !item.hidden));
+
+onMounted(() => { getPrivateKeyList(); });
 
 defineExpose({
   items,
