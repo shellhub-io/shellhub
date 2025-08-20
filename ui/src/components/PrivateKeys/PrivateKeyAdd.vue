@@ -76,14 +76,14 @@
 import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import { useStore } from "@/store";
 import { createKeyFingerprint, parsePrivateKeySsh, validateKey } from "@/utils/validate";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const emit = defineEmits(["update"]);
-const store = useStore();
+const privateKeysStore = usePrivateKeysStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const hasPassphrase = ref(false);
@@ -196,7 +196,7 @@ const create = async () => {
 
   try {
     const fingerprint = createKeyFingerprint(privateKeyData.value, passphrase.value);
-    await store.dispatch("privateKey/set", {
+    await privateKeysStore.addPrivateKey({
       name: name.value,
       data: privateKeyData.value,
       hasPassphrase: hasPassphrase.value,

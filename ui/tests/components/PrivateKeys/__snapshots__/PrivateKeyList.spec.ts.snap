@@ -12,7 +12,44 @@ exports[`Private Key List > Renders the component 1`] = `
           <th class="text-center"><span>Actions</span></th>
         </tr>
       </thead>
-      <div sm="12" class="text-start mt-2 mb-3" data-test="no-private-key-warning"><span class="ml-4">No data avaliable</span></div>
+      <tbody>
+        <tr>
+          <td class="text-center" data-test="privateKey-name">test-key-1</td>
+          <td class="text-center" data-test="privateKey-fingerprint">fingerprint-1</td>
+          <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-0" data-test="privateKey-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+              <!---->
+              <!---->
+            </button>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr>
+          <td class="text-center" data-test="privateKey-name">test-key-2</td>
+          <td class="text-center" data-test="privateKey-fingerprint">fingerprint-2</td>
+          <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" data-test="privateKey-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+              <!---->
+              <!---->
+            </button>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+        <tr>
+          <td class="text-center" data-test="privateKey-name">test-key-3</td>
+          <td class="text-center" data-test="privateKey-fingerprint">fingerprint-3</td>
+          <td class="text-center"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-4" data-test="privateKey-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+              <!---->
+              <!---->
+            </button>
+            <!--teleport start-->
+            <!--teleport end-->
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
   <!---->

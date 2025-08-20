@@ -3,9 +3,9 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import PrivateKeyEdit from "@/components/PrivateKeys/PrivateKeyEdit.vue";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 type PrivateKeyEditWrapper = VueWrapper<InstanceType<typeof PrivateKeyEdit>>;
 
@@ -19,27 +19,28 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
+const mockPrivateKey = {
+  id: 1,
+  name: "test-name",
+  data: "test-data",
+  hasPassphrase: false,
+  fingerprint: "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
+};
+
 describe("Private Key Edit", () => {
   let wrapper: PrivateKeyEditWrapper;
   setActivePinia(createPinia());
+  const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
-
-  const mockObject = {
-    id: 1,
-    name: "test-name",
-    data: "test-data",
-    hasPassphrase: false,
-    fingerprint: "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
-  };
 
   beforeEach(async () => {
     wrapper = mount(PrivateKeyEdit, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
-        privateKey: mockObject,
+        privateKey: mockPrivateKey,
       },
     });
   });
@@ -83,7 +84,7 @@ describe("Private Key Edit", () => {
   });
 
   it("Checks if the edit function updates the store on success", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(privateKeysStore, "editPrivateKey");
     wrapper.vm.initializeFormData();
     const privateKeyPayload = {
       name: wrapper.vm.name,
@@ -93,7 +94,7 @@ describe("Private Key Edit", () => {
       hasPassphrase: wrapper.vm.hasPassphrase,
     };
     await wrapper.vm.edit();
-    expect(storeSpy).toHaveBeenCalledWith("privateKey/edit", privateKeyPayload);
+    expect(storeSpy).toHaveBeenCalledWith(privateKeyPayload);
     expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Private key updated successfully.");
   });
 

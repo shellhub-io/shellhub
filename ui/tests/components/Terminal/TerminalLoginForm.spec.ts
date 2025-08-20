@@ -1,36 +1,30 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
-import { createStore } from "vuex";
 import { nextTick } from "vue";
-import { key } from "@/store";
 import TerminalLoginForm from "@/components/Terminal/TerminalLoginForm.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
+import usePrivateKeysStore from "@/store/modules/private_keys";
+
+const mockPrivateKeys: Array<IPrivateKey> = [
+  { id: 1, name: "test-key-1", data: "private-key-data-1", hasPassphrase: true, fingerprint: "fingerprint-1" },
+  { id: 2, name: "test-key-2", data: "private-key-data-2", hasPassphrase: false, fingerprint: "fingerprint-2" },
+];
 
 describe("Terminal Login Form", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalLoginForm>>;
-
+  setActivePinia(createPinia());
+  const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
 
-  const mockPrivateKeys: Array<IPrivateKey> = [
-    { id: 1, name: "test-key-1", data: "private-key-data-1", hasPassphrase: true, fingerprint: "fingerprint-1" },
-    { id: 2, name: "test-key-2", data: "private-key-data-2", hasPassphrase: false, fingerprint: "fingerprint-2" },
-  ];
-
-  const store = createStore({
-    state: {
-      privateKeys: mockPrivateKeys,
-    },
-    getters: {
-      "privateKey/list": (state) => state.privateKeys,
-    },
-  });
-
   beforeEach(async () => {
+    privateKeysStore.privateKeys = mockPrivateKeys;
+
     wrapper = mount(TerminalLoginForm, {
       global: {
-        plugins: [[store, key], vuetify],
+        plugins: [vuetify],
       },
     });
   });
