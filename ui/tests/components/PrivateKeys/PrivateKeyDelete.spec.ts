@@ -3,20 +3,21 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import PrivateKeyDelete from "@/components/PrivateKeys/PrivateKeyDelete.vue";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 type PrivateKeyDeleteWrapper = VueWrapper<InstanceType<typeof PrivateKeyDelete>>;
 
 describe("Private Key Delete", () => {
   let wrapper: PrivateKeyDeleteWrapper;
   setActivePinia(createPinia());
+  const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
 
   beforeEach(async () => {
     wrapper = mount(PrivateKeyDelete, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         id: 1,
@@ -45,11 +46,11 @@ describe("Private Key Delete", () => {
   });
 
   it("Checks if the remove function updates the store on success", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(privateKeysStore, "deletePrivateKey");
     await wrapper.setProps({ id: 1 });
     await wrapper.findComponent('[data-test="privatekey-delete-btn"]').trigger("click");
     await flushPromises();
     await wrapper.findComponent('[data-test="privatekey-remove-btn"]').trigger("click");
-    expect(storeSpy).toHaveBeenCalledWith("privateKey/remove", 1);
+    expect(storeSpy).toHaveBeenCalledWith(1);
   });
 });

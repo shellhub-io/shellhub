@@ -43,20 +43,20 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const props = defineProps<{ id: number }>();
 const emit = defineEmits(["update"]);
 
 const snackbar = useSnackbar();
 const showDialog = ref(false);
-const store = useStore();
+const privateKeysStore = usePrivateKeysStore();
 
 const remove = async () => {
   try {
-    await store.dispatch("privateKey/remove", props.id);
+    await privateKeysStore.deletePrivateKey(props.id);
     snackbar.showSuccess("The private key was removed successfully");
     emit("update");
   } finally {

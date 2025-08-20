@@ -42,15 +42,15 @@
 import { ref } from "vue";
 import PrivateKeyAdd from "../PrivateKeys/PrivateKeyAdd.vue";
 import PrivateKeyList from "../PrivateKeys/PrivateKeyList.vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
-const store = useStore();
+const privateKeysStore = usePrivateKeysStore();
 const privateKeyAdd = ref(false);
 
-const getPrivateKeys = async () => {
+const getPrivateKeys = () => {
   try {
-    await store.dispatch("privateKey/fetch");
+    privateKeysStore.getPrivateKeyList();
   } catch (error: unknown) {
     handleError(error);
   }
