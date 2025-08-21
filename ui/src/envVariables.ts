@@ -24,7 +24,6 @@ export const envVariables = {
   isCommunity: (window.env || process.env).VUE_APP_SHELLHUB_CLOUD === "false" && (window.env || process.env).VUE_APP_SHELLHUB_ENTERPRISE === "false",
   premiumPaywall: (window.env || process.env).VUE_APP_SHELLHUB_PAYWALL === "true",
   stripePublishableKey: (window.env || process.env).VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY,
-  billingEnable: (window.env || process.env).VUE_APP_SHELLHUB_BILLING === "true",
   chatWootWebsiteToken:(window.env || process.env).VUE_APP_SHELLHUB_CHATWOOT_WEBSITE_TOKEN,
   chatWootBaseURL:(window.env || process.env).VUE_APP_SHELLHUB_CHATWOOT_BASEURL,
   version: (window.env || process.env).VUE_APP_SHELLHUB_VERSION,

@@ -391,7 +391,7 @@ export const routes: Array<RouteRecordRaw> = [
         path: "billing",
         name: "SettingBilling",
         beforeEnter: (to, from, next) => {
-          if (envVariables.billingEnable) {
+          if (envVariables.isCloud) {
             next();
           } else {
             next("/404");

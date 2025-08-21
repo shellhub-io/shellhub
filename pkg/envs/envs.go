@@ -42,11 +42,6 @@ func IsDevelopment() bool {
 	return DefaultBackend.Get("SHELLHUB_ENV") == "development"
 }
 
-// HasBilling returns true if the current ShellHub server instance has billing feature enabled.
-func HasBilling() bool {
-	return DefaultBackend.Get("SHELLHUB_BILLING") == ENABLED
-}
-
 var ErrParseWithPrefix = errors.New("failed to parse environment variables for the given prefix")
 
 // ParseWithPrefix parses the environment variables for the a given prefix.

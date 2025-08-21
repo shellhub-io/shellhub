@@ -54,11 +54,11 @@ import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
-import { envVariables } from "@/envVariables";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import { envVariables } from "@/envVariables";
 
 const props = defineProps<{ tenant: string }>();
 const emit = defineEmits(["billing-in-debt"]);
@@ -75,8 +75,6 @@ const hasAuthorization = computed(() => {
   return !!role && hasPermission(authorizer.role[role], actions.namespace.remove);
 });
 
-const isBillingEnabled = envVariables.billingEnable;
-
 const getSubscriptionInfo = async () => {
   if (billingActive.value) {
     try {
@@ -89,7 +87,7 @@ const getSubscriptionInfo = async () => {
 };
 
 onMounted(() => {
-  if (hasAuthorization.value && isBillingEnabled) {
+  if (hasAuthorization.value && envVariables.isCloud) {
     getSubscriptionInfo();
   }
 

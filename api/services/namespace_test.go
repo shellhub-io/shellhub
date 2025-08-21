@@ -1171,10 +1171,6 @@ func TestDeleteNamespace(t *testing.T) {
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
-				envMock.
-					On("Get", "SHELLHUB_BILLING").
-					Return("false").
-					Once()
 				storeMock.
 					On("NamespaceDelete", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(errors.New("error")).
@@ -1192,10 +1188,6 @@ func TestDeleteNamespace(t *testing.T) {
 					Once()
 				envMock.
 					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_BILLING").
 					Return("false").
 					Once()
 				storeMock.

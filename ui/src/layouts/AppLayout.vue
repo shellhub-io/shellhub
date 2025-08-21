@@ -294,7 +294,7 @@ const items = reactive([
       {
         title: "Billing",
         path: "/settings/billing",
-        hidden: !(envVariables.billingEnable && envVariables.isCloud && namespacedInstance.value),
+        hidden: !(envVariables.isCloud && namespacedInstance.value),
       },
     ],
   },
