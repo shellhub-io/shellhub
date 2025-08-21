@@ -1,44 +1,40 @@
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PublicKeys from "@/views/PublicKeys.vue";
 import { sshApi } from "@/api/http";
 import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
 type PublicKeysWrapper = VueWrapper<InstanceType<typeof PublicKeys>>;
 
 describe("Public Keys", () => {
   let wrapper: PublicKeysWrapper;
   setActivePinia(createPinia());
+  const publicKeysStore = usePublicKeysStore();
   const vuetify = createVuetify();
 
   const mockSshApi = new MockAdapter(sshApi.getAxios());
 
-  const publicKeys = {
-    data: [
-      {
-        data: "",
-        fingerprint: "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:01",
-        created_at: "",
-        tenant_id: "00000000-0000-4000-0000-000000000000",
-        name: "public-key-test",
-        username: ".*",
-        filter: {
-          hostname: ".*",
-        },
-      },
-    ],
-    headers: {
-      "x-total-count": 1,
+  const mockPublicKeys = [{
+    data: "",
+    fingerprint: "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:01",
+    created_at: "",
+    tenant_id: "00000000-0000-4000-0000-000000000000",
+    name: "public-key-test",
+    username: ".*",
+    filter: {
+      hostname: ".*",
     },
-  };
+  }];
 
   beforeEach(async () => {
-    mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, publicKeys);
-    store.commit("publicKeys/setPublicKeys", publicKeys);
+    mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?page=1&per_page=10").reply(200, mockPublicKeys, { "x-total-count": 1 });
+    publicKeysStore.publicKeys = mockPublicKeys;
+
     wrapper = mount(PublicKeys, {
       global: {
         plugins: [[store, key], vuetify, SnackbarPlugin],
@@ -67,15 +63,8 @@ describe("Public Keys", () => {
     expect(wrapper.findComponent({ name: "PublicKeyAdd" }).exists()).toBe(true);
   });
 
-  it("Refreshes the public keys", async () => {
-    const refreshSpy = vi.spyOn(store, "dispatch");
-    await wrapper.vm.refresh();
-    expect(refreshSpy).toHaveBeenCalledWith("publicKeys/refresh");
-  });
-
   it("Shows the no items message when there are no public keys", async () => {
-    mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, []);
-    store.commit("publicKeys/setPublicKeys", { data: [], headers: { "x-total-count": 0 } });
+    mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?page=1&per_page=10").reply(200, [], { "x-total-count": 0 });
     await wrapper.vm.refresh();
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Public Keys");

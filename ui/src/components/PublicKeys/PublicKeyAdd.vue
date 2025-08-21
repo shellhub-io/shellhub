@@ -134,12 +134,15 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import usePublicKeysStore from "@/store/modules/public_keys";
+import { IPublicKeyCreate } from "@/interfaces/IPublicKey";
 
 const { size } = defineProps<{ size?: string }>();
 
 const emit = defineEmits(["update"]);
 const store = useStore();
 const authStore = useAuthStore();
+const publicKeysStore = usePublicKeysStore();
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 const validateLength = ref(true);
@@ -339,12 +342,10 @@ const create = async () => {
       chooseUsername();
       const keySend = {
         ...keyLocal.value,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         data: btoa(publicKeyData.value),
         name: name.value,
       };
-      await store.dispatch("publicKeys/post", keySend);
+      await publicKeysStore.createPublicKey(keySend as IPublicKeyCreate);
       snackbar.showSuccess("Public key created successfully.");
       update();
       resetFields();

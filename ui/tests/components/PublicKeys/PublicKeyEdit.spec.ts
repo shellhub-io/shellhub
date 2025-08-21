@@ -8,12 +8,14 @@ import { sshApi, tagsApi } from "@/api/http";
 import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
 type PublicKeyEditWrapper = VueWrapper<InstanceType<typeof PublicKeyEdit>>;
 
 describe("Public Key Edit", () => {
   let wrapper: PublicKeyEditWrapper;
   setActivePinia(createPinia());
+  const publicKeysStore = usePublicKeysStore();
   const vuetify = createVuetify();
 
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
@@ -90,14 +92,14 @@ describe("Public Key Edit", () => {
       },
     });
     mockSshApi.onPut("http://localhost:3000/api/sshkeys/public-keys/fingerprint123").reply(200);
-    const pkEdit = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(publicKeysStore, "updatePublicKey");
     await wrapper.findComponent('[data-test="public-key-edit-title-btn"]').trigger("click");
     await flushPromises();
     await wrapper.findComponent('[data-test="name-field"]').setValue("my edited public key");
     await wrapper.findComponent('[data-test="data-field"]').setValue("fakeish key");
     await wrapper.findComponent('[data-test="pk-edit-save-btn"]').trigger("click");
     await flushPromises();
-    expect(pkEdit).toHaveBeenCalledWith("publicKeys/put", {
+    expect(storeSpy).toHaveBeenCalledWith({
       data: btoa("fake key"),
       filter: {
         hostname: ".*",
