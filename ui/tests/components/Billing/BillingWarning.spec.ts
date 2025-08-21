@@ -8,10 +8,12 @@ import { key } from "@/store";
 import { router } from "@/router";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useStatsStore from "@/store/modules/stats";
 
 setActivePinia(createPinia());
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
+const statsStore = useStatsStore();
 const statusUpdateAccountDialog = true;
 const statusUpdateAccountDialogByDeviceAction = false;
 
@@ -26,6 +28,7 @@ const stats = {
 const store = (statsData: typeof stats, billingEnabled: boolean, role: string) => {
   authStore.role = role;
   billingStore.billing.active = billingEnabled;
+  statsStore.stats = statsData;
   return createStore({
     state: {
       stats: statsData,
@@ -33,7 +36,6 @@ const store = (statsData: typeof stats, billingEnabled: boolean, role: string) =
       statusUpdateAccountDialogByDeviceAction,
     },
     getters: {
-      "stats/stats": (state) => state.stats,
       "users/statusUpdateAccountDialog": (state) => state.statusUpdateAccountDialog,
       "users/statusUpdateAccountDialogByDeviceAction": (state) => state.statusUpdateAccountDialogByDeviceAction,
     },

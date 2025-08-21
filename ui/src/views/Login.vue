@@ -159,6 +159,8 @@ import useCountdown from "@/utils/countdownTimeout";
 import { envVariables } from "@/envVariables";
 import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
+import useStatsStore from "@/store/modules/stats";
+import { IStats } from "@/interfaces/IStats";
 
 const store = useStore();
 const route = useRoute();
@@ -166,6 +168,7 @@ const router = useRouter();
 const snackbar = useSnackbar();
 const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
+const statsStore = useStatsStore();
 const showPassword = ref(false);
 const loginToken = ref(false);
 const invalid = reactive({ title: "", msg: "", timeout: false });
@@ -228,9 +231,9 @@ onMounted(async () => {
 
   loginToken.value = true;
 
-  await store.dispatch("stats/clear");
   namespacesStore.namespaceList = [];
   authStore.logout();
+  statsStore.stats = {} as IStats;
   await authStore.loginWithToken(route.query.token as string);
 
   window.location.href = "/";
