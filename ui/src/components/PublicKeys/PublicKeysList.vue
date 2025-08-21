@@ -5,7 +5,7 @@
       v-model:itemsPerPage="itemsPerPage"
       :headers
       :items="publicKeys"
-      :totalCount="publicKeysCount"
+      :totalCount="publicKeyCount"
       :loading
       :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="public-keys-list"
@@ -117,7 +117,6 @@
 import { computed, ref, watch } from "vue";
 import { actions, authorizer } from "@/authorizer";
 import { Filter, HostnameFilter } from "@/interfaces/IFilter";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import {
   displayOnlyTenCharacters,
@@ -132,6 +131,7 @@ import PublicKeyEdit from "./PublicKeyEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
 const headers = [
   {
@@ -159,16 +159,14 @@ const headers = [
     value: "actions",
   },
 ];
-const store = useStore();
 const authStore = useAuthStore();
+const publicKeysStore = usePublicKeysStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
-const publicKeys = computed(() => store.getters["publicKeys/list"]);
-const publicKeysCount = computed(
-  () => store.getters["publicKeys/getNumberPublicKeys"],
-);
+const publicKeys = computed(() => publicKeysStore.publicKeys);
+const publicKeyCount = computed(() => publicKeysStore.publicKeyCount);
 const hasAuthorizationFormDialogEdit = computed(() => {
   const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.publicKey.edit);
@@ -179,21 +177,13 @@ const hasAuthorizationFormDialogRemove = computed(() => {
   return !!role && hasPermission(authorizer.role[role], actions.publicKey.remove);
 });
 
-const getPublicKeysList = async (
-  perPageValue: number,
-  pageValue: number,
-) => {
-  const data = {
-    perPage: perPageValue,
-    page: pageValue,
-  };
+const getPublicKeysList = async () => {
   try {
     loading.value = true;
-    const hasPublicKeys = await store.dispatch("publicKeys/fetch", data);
-
-    if (!hasPublicKeys) {
-      page.value--;
-    }
+    await publicKeysStore.fetchPublicKeyList({
+      page: page.value,
+      perPage: itemsPerPage.value,
+    });
     loading.value = false;
   } catch (error: unknown) {
     snackbar.showError("Failed to load public keys.");
@@ -202,11 +192,11 @@ const getPublicKeysList = async (
 };
 
 watch([page, itemsPerPage], async () => {
-  await getPublicKeysList(itemsPerPage.value, page.value);
+  await getPublicKeysList();
 });
 
 const refreshPublicKeys = async () => {
-  await store.dispatch("publicKeys/refresh");
+  await getPublicKeysList();
 };
 
 const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;

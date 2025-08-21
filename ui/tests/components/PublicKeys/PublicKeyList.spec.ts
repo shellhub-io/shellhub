@@ -9,6 +9,7 @@ import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
 type PublicKeysListWrapper = VueWrapper<InstanceType<typeof PublicKeysList>>;
 
@@ -16,6 +17,7 @@ describe("Public Key List", () => {
   let wrapper: PublicKeysListWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const publicKeysStore = usePublicKeysStore();
   const vuetify = createVuetify();
   const mockSshApi = new MockAdapter(sshApi.getAxios());
 
@@ -33,14 +35,11 @@ describe("Public Key List", () => {
         username: ".*",
       },
     ],
-    headers: {
-      "x-total-count": 1,
-    },
   };
 
   beforeEach(async () => {
     mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, mockPublicKeys);
-    store.commit("publicKeys/setPublicKeys", mockPublicKeys);
+    publicKeysStore.publicKeys = mockPublicKeys.data;
     wrapper = mount(PublicKeysList, {
       global: {
         plugins: [[store, key], vuetify, router, SnackbarPlugin],

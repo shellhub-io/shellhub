@@ -9,6 +9,7 @@ import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
 type PublicKeyAddWrapper = VueWrapper<InstanceType<typeof PublicKeyAdd>>;
 
@@ -16,6 +17,7 @@ describe("Public Key Add", () => {
   let wrapper: PublicKeyAddWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const publicKeysStore = usePublicKeysStore();
   const vuetify = createVuetify();
 
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
@@ -65,14 +67,14 @@ describe("Public Key Add", () => {
   it("Allows adding a public key with username restriction", async () => {
     mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
 
-    const pkAdd = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
 
     await wrapper.findComponent('[data-test="public-key-add-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="name-field"]').setValue("my public key");
     await wrapper.findComponent('[data-test="data-field"]').setValue("fake key");
     await wrapper.findComponent('[data-test="pk-add-save-btn"]').trigger("click");
     await flushPromises();
-    expect(pkAdd).toHaveBeenCalledWith("publicKeys/post", {
+    expect(storeSpy).toHaveBeenCalledWith({
       data: btoa("fake key"),
       filter: {
         hostname: ".*",
@@ -96,7 +98,7 @@ describe("Public Key Add", () => {
   it("Allows adding a public key with hostname restriction", async () => {
     mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
 
-    const pkAdd = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
 
     await wrapper.findComponent('[data-test="public-key-add-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="name-field"]').setValue("my public key");
@@ -105,7 +107,7 @@ describe("Public Key Add", () => {
     await wrapper.findComponent('[data-test="hostname-field"]').setValue("example.com");
     await wrapper.findComponent('[data-test="pk-add-save-btn"]').trigger("click");
     await flushPromises();
-    expect(pkAdd).toHaveBeenCalledWith("publicKeys/post", {
+    expect(storeSpy).toHaveBeenCalledWith({
       data: btoa("fake key"),
       filter: {
         hostname: "example.com",
@@ -118,7 +120,7 @@ describe("Public Key Add", () => {
   it("Allows adding a public key with tag restriction", async () => {
     mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
 
-    const pkAdd = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
 
     await wrapper.findComponent('[data-test="public-key-add-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="name-field"]').setValue("my public key");
@@ -127,7 +129,7 @@ describe("Public Key Add", () => {
     await wrapper.findComponent('[data-test="tags-selector"]').setValue(["tag1", "tag2"]);
     await wrapper.findComponent('[data-test="pk-add-save-btn"]').trigger("click");
     await flushPromises();
-    expect(pkAdd).toHaveBeenCalledWith("publicKeys/post", {
+    expect(storeSpy).toHaveBeenCalledWith({
       data: btoa("fake key"),
       filter: {
         tags: ["tag1", "tag2"],

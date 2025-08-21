@@ -46,23 +46,24 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
 const { fingerprint, hasAuthorization } = defineProps<{
   fingerprint: string;
   hasAuthorization: boolean;
 }>();
-
 const emit = defineEmits(["update"]);
+
+const publicKeysStore = usePublicKeysStore();
 const showDialog = ref(false);
 const snackbar = useSnackbar();
-const store = useStore();
+
 const remove = async () => {
   try {
-    await store.dispatch("publicKeys/remove", fingerprint);
+    await publicKeysStore.deletePublicKey(fingerprint);
     snackbar.showSuccess("The public key was removed successfully");
     emit("update");
   } catch (error: unknown) {
@@ -72,5 +73,4 @@ const remove = async () => {
     showDialog.value = false;
   }
 };
-
 </script>
