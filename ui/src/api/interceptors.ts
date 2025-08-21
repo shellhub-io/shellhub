@@ -1,26 +1,26 @@
 import { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from "axios";
-import { store } from "../store";
 import { router } from "../router";
 import useAuthStore from "@/store/modules/auth";
+import useSpinnerStore from "@/store/modules/spinner";
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-  store.dispatch("spinner/setStatus", true);
+  useSpinnerStore().status = true;
   return config;
 };
 
 const onRequestError = (error: AxiosError) => {
-  store.dispatch("spinner/setStatus", false);
+  useSpinnerStore().status = false;
   return Promise.reject(error);
 };
 
 const onResponse = (response: AxiosResponse): AxiosResponse => {
-  store.dispatch("spinner/setStatus", false);
+  useSpinnerStore().status = false;
   return response;
 };
 
 const onResponseError = async (error: AxiosError): Promise<AxiosError> => {
   const { logout } = useAuthStore();
-  store.dispatch("spinner/setStatus", false);
+  useSpinnerStore().status = false;
   if (error.response?.status === 401) {
     logout();
     await router.push({ name: "Login", query: router.currentRoute.value.query });
