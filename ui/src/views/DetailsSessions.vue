@@ -2,7 +2,7 @@
   <div class="d-flex pa-0 align-center">
     <h1>Session Details</h1>
   </div>
-  <v-card class="mt-2 bg-v-theme-surface" v-if="!sessionIsEmpty" data-test="sessionDetails-card">
+  <v-card class="mt-2 bg-v-theme-surface" v-if="session.uid" data-test="sessionDetails-card">
     <v-card-title class="pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
         <v-icon v-if="session.active" color="success" size="small" data-test="sessionActive-icon">
@@ -63,7 +63,7 @@
                     :uid="session.uid"
                     :device="session.device"
                     :hasAuthorization="hasAuthorizationRemoveRecord()"
-                    @update="refreshSessions"
+                    @update="getSession"
                     data-test="session-close-component"
                   />
                 </div>
@@ -83,7 +83,7 @@
                     v-if="session.uid"
                     :uid="session.uid"
                     :hasAuthorization="hasAuthorizationRemoveRecord()"
-                    @update="refreshSessions"
+                    @update="getSession"
                     data-test="session-delete-record-component"
                   />
 
@@ -161,12 +161,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "../store";
 import { formatFullDateTime, getTimeFromNow } from "..//utils/date";
 import hasPermission from "..//utils/permission";
-import { ISession } from "../interfaces/ISession";
 import { authorizer, actions } from "../authorizer";
 import SessionDelete from "../components/Sessions/SessionDelete.vue";
 import SessionClose from "../components/Sessions/SessionClose.vue";
@@ -174,38 +172,27 @@ import SessionPlay from "../components/Sessions/SessionPlay.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useSessionsStore from "@/store/modules/sessions";
 
-const store = useStore();
 const authStore = useAuthStore();
+const sessionsStore = useSessionsStore();
 const route = useRoute();
 const snackbar = useSnackbar();
-const sessionId = computed(() => route.params.id);
-const session = ref({} as ISession);
+const sessionId = computed(() => route.params.id as string);
+const session = computed(() => sessionsStore.session);
 
-onMounted(async () => {
+const getSession = async () => {
   try {
-    await store.dispatch("sessions/get", sessionId.value);
-    session.value = store.getters["sessions/get"];
-  } catch (error: unknown) {
-    snackbar.showError("Failed to load session details.");
-    handleError(error);
-  }
-});
-
-const sessionIsEmpty = computed(
-  () => store.getters["sessions/get"]
-        && store.getters["sessions/get"].length === 0,
-);
-
-const refreshSessions = async () => {
-  try {
-    await store.dispatch("sessions/get", sessionId.value);
-    session.value = store.getters["sessions/get"];
+    await sessionsStore.getSession(sessionId.value);
   } catch (error: unknown) {
     snackbar.showError("Failed to load session details.");
     handleError(error);
   }
 };
+
+onMounted(async () => {
+  await getSession();
+});
 
 const hasAuthorizationRemoveRecord = () => {
   const { role } = authStore;

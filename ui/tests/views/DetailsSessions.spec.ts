@@ -6,9 +6,9 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import DetailsSessions from "@/views/DetailsSessions.vue";
 import { sessionsApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { routes } from "@/router";
+import { key, store } from "@/store";
 
 type DetailsSessionsWrapper = VueWrapper<InstanceType<typeof DetailsSessions>>;
 
@@ -19,7 +19,7 @@ describe("Details Sessions", () => {
 
   const mockSessionsApi = new MockAdapter(sessionsApi.getAxios());
 
-  const sessionObj = {
+  const mockSession = {
     uid: "1",
     device_uid: "1",
     device: {
@@ -70,11 +70,9 @@ describe("Details Sessions", () => {
 
   beforeEach(async () => {
     router.push("/sessions/1");
-
     await router.isReady();
 
-    mockSessionsApi.onGet("http://localhost:3000/api/sessions/1").reply(200, sessionObj);
-    store.commit("sessions/setSession", sessionObj);
+    mockSessionsApi.onGet("http://localhost:3000/api/sessions/1").reply(200, mockSession);
 
     wrapper = mount(DetailsSessions, {
       global: {

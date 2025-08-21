@@ -48,10 +48,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useSessionsStore from "@/store/modules/sessions";
 
 const props = defineProps<{
   uid: string;
@@ -61,11 +61,11 @@ const props = defineProps<{
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 const showDialog = ref(false);
-const store = useStore();
+const sessionsStore = useSessionsStore();
 
 const deleteRecord = async () => {
   try {
-    await store.dispatch("sessions/deleteSessionLogs", props.uid);
+    await sessionsStore.deleteSessionLogs(props.uid);
     showDialog.value = false;
     snackbar.showSuccess("Successfully deleted the session logs.");
     emit("update");
