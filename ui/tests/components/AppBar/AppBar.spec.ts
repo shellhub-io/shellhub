@@ -12,6 +12,7 @@ import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useSupportStore from "@/store/modules/support";
 
 const Component = {
   template: "<v-layout><AppBar /></v-layout>",
@@ -22,6 +23,7 @@ vi.mock("@productdevbook/chatwoot/vue", () => ({
     setUser: vi.fn(),
     setConversationCustomAttributes: vi.fn(),
     toggle: vi.fn(),
+    reset: vi.fn(),
   }),
 }));
 
@@ -71,6 +73,7 @@ describe("AppBar Component", () => {
   setActivePinia(createPinia());
   const authStore = useAuthStore();
   const billingStore = useBillingStore();
+  const supportStore = useSupportStore();
 
   beforeEach(async () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
@@ -184,13 +187,13 @@ describe("AppBar Component", () => {
     vi.spyOn(drawer.vm, "identifier", "get").mockReturnValue("mocked_identifier");
 
     const windowOpenMock = vi.spyOn(window, "open").mockImplementation(() => null);
-    const storeDispatchMock = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(supportStore, "getIdentifier");
 
     await supportBtn.trigger("click");
 
     await flushPromises();
 
     expect(windowOpenMock).not.toHaveBeenCalled();
-    expect(storeDispatchMock).toHaveBeenCalledWith("support/get", "fake-tenant-data");
+    expect(storeSpy).toHaveBeenCalledWith("fake-tenant-data");
   });
 });

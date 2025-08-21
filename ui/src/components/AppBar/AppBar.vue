@@ -100,7 +100,6 @@ import {
 } from "vue";
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
 import NotificationsMenu from "./Notifications/NotificationsMenu.vue";
@@ -113,6 +112,7 @@ import useLayoutStore from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
 import useStatsStore from "@/store/modules/stats";
 import { IStats } from "@/interfaces/IStats";
+import useSupportStore from "@/store/modules/support";
 
 type MenuItem = {
   title: string;
@@ -132,23 +132,23 @@ defineOptions({
 });
 
 const { setUser, setConversationCustomAttributes, toggle, reset } = useChatWoot();
-const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const layoutStore = useLayoutStore();
 const namespacesStore = useNamespacesStore();
 const statsStore = useStatsStore();
+const supportStore = useSupportStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
-const theme = computed(() => layoutStore.theme);
-const isChatCreated = computed(() => store.getters["support/getCreatedStatus"]);
 const tenant = computed(() => authStore.tenantId);
 const userEmail = computed(() => authStore.email);
 const userId = computed(() => authStore.id);
 const currentUser = computed(() => authStore.username);
 const isBillingActive = computed(() => billingStore.isActive);
-const identifier = computed(() => store.getters["support/getIdentifier"]);
+const theme = computed(() => layoutStore.theme);
+const isChatCreated = computed(() => supportStore.isChatCreated);
+const identifier = computed(() => supportStore.identifier);
 const isDarkMode = ref(theme.value === "dark");
 const chatSupportPaywall = ref(false);
 const showNavigationDrawer = defineModel<boolean>();
@@ -174,7 +174,7 @@ const logout = async () => {
     if (isChatCreated.value) {
       toggle("close");
       reset();
-      store.commit("support/setCreatedStatus", false);
+      supportStore.isChatCreated = false;
     }
     await router.push({ name: "Login" });
   } catch (error: unknown) {
@@ -189,7 +189,7 @@ const toggleDarkMode = () => {
 
 const openChatwoot = async (): Promise<void> => {
   try {
-    await store.dispatch("support/get", tenant.value);
+    await supportStore.getIdentifier(tenant.value);
 
     setUser(userId.value, {
       name: currentUser.value,
@@ -214,7 +214,7 @@ const openChatwoot = async (): Promise<void> => {
       window.dispatchEvent(new CustomEvent("chatwoot:ready"));
     }
 
-    store.commit("support/setCreatedStatus", true);
+    supportStore.isChatCreated = true;
     toggle("open");
   } catch (error) {
     snackbar.showError("Failed to open chat support. Please check your account's billing and try again later.");

@@ -1,40 +1,23 @@
-import { Module } from "vuex";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
-import * as apiSupport from "../api/namespaces";
-import { State } from "..";
+import * as supportApi from "../api/namespaces";
 
-export interface SupportState {
-  identifier: string;
-  chatCreated: boolean;
-}
+const useSupportStore = defineStore("support", () => {
+  const identifier = ref<string>("");
+  const isChatCreated = ref<boolean>(false);
 
-export const support: Module<SupportState, State> = {
-  namespaced: true,
-  state: {
-    identifier: "",
-    chatCreated: false,
-  },
+  const getIdentifier = async (tenantId: string) => {
+    useChatWoot().reset();
+    const res = await supportApi.getSupportID(tenantId);
+    identifier.value = res.data.identifier as string;
+  };
 
-  getters: {
-    getIdentifier: (state) => state.identifier,
-    getCreatedStatus: (state) => state.chatCreated,
-  },
+  return {
+    identifier,
+    isChatCreated,
+    getIdentifier,
+  };
+});
 
-  mutations: {
-    setIdentifier: (state, identifier) => {
-      state.identifier = identifier;
-    },
-
-    setCreatedStatus: (state, status) => {
-      state.chatCreated = status;
-    },
-  },
-
-  actions: {
-    get: async (context, data) => {
-      useChatWoot().reset();
-      const res = await apiSupport.getSupportID(data);
-      context.commit("setIdentifier", res.data.identifier);
-    },
-  },
-};
+export default useSupportStore;
