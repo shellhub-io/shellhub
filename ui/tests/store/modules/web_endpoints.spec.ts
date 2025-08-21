@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { webEndpointsApi } from "@/api/http";
@@ -14,6 +15,7 @@ const initialWebEndpoints = {
 };
 
 describe("WebEndpoints store", () => {
+  setActivePinia(createPinia());
   let mock: MockAdapter;
 
   beforeEach(() => {

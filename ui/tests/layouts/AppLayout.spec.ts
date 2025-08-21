@@ -12,6 +12,7 @@ import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { devicesApi, containersApi } from "@/api/http";
 import { envVariables } from "@/envVariables";
+import useSpinnerStore from "@/store/modules/spinner";
 
 let mockDevices: MockAdapter;
 let mockContainers: MockAdapter;
@@ -19,6 +20,7 @@ let mockContainers: MockAdapter;
 describe("App Layout Component", () => {
   let wrapper;
   setActivePinia(createPinia());
+  const spinnerStore = useSpinnerStore();
   const vuetify = createVuetify({
     components,
     directives,
@@ -38,7 +40,7 @@ describe("App Layout Component", () => {
 
     envVariables.hasWebEndpoints = true;
     envVariables.isCloud = true;
-    store.dispatch("spinner/setStatus", true);
+    spinnerStore.status = true;
 
     mockDevices = new MockAdapter(devicesApi.getAxios());
     mockContainers = new MockAdapter(containersApi.getAxios());
@@ -96,7 +98,7 @@ describe("App Layout Component", () => {
   });
 
   it("Renders loading screen", async () => {
-    await store.dispatch("spinner/setStatus", true);
+    spinnerStore.status = true;
     await flushPromises();
 
     const layoutWrapper = wrapper.findComponent(AppLayout);

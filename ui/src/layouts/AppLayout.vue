@@ -164,7 +164,6 @@ import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
 import Logo from "../assets/logo-inverted.png";
 import { envVariables } from "../envVariables";
-import { useStore } from "../store";
 import UserWarning from "../components/User/UserWarning.vue";
 import Namespace from "@/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
@@ -174,15 +173,16 @@ import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import useLayoutStore from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
 import usePrivateKeysStore from "@/store/modules/private_keys";
+import useSpinnerStore from "@/store/modules/spinner";
 
 defineOptions({
   inheritAttrs: false,
 });
 
 const router = useRouter();
-const store = useStore();
 const layoutStore = useLayoutStore();
 const namespacesStore = useNamespacesStore();
+const spinnerStore = useSpinnerStore();
 const { getPrivateKeyList } = usePrivateKeysStore();
 const currentRoute = computed(() => router.currentRoute);
 const showNamespaceAdd = ref(false);
@@ -195,8 +195,8 @@ const permanent = computed(() => lgAndUp.value);
 const showNavigationDrawer = ref(lgAndUp.value);
 
 const hasSpinner = computed({
-  get() { return store.getters["spinner/status"]; },
-  set(v) { store.dispatch("spinner/setStatus", v); },
+  get() { return spinnerStore.status; },
+  set(newStatus) { spinnerStore.status = newStatus; },
 });
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
