@@ -47,10 +47,12 @@ import { useStore } from "@/store";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useStatsStore from "@/store/modules/stats";
 
 const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
+const { stats } = useStatsStore();
 
 const hasAuthorization = computed(() => {
   const { role } = authStore;
@@ -74,7 +76,7 @@ const showWarningDialog = computed({
   get() {
     return (
       (store.getters["users/statusUpdateAccountDialog"]
-        && store.getters["stats/stats"].registered_devices === 3
+        && stats.registered_devices === 3
         && !billingStore.isActive)
         || store.getters["users/statusUpdateAccountDialogByDeviceAction"]
     );

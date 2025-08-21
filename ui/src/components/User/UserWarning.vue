@@ -68,6 +68,7 @@ import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
 import useNamespacesStore from "@/store/modules/namespaces";
+import useStatsStore from "@/store/modules/stats";
 
 defineOptions({
   inheritAttrs: false,
@@ -80,6 +81,7 @@ const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
 const namespacesStore = useNamespacesStore();
+const statsStore = useStatsStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
@@ -88,14 +90,14 @@ const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationE
 const showRecoverHelper = computed(() => authStore.showRecoveryModal);
 const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
 const showPaywall = computed(() => store.getters["users/showPaywall"]);
-const stats = computed(() => store.getters["stats/stats"]);
+const stats = computed(() => statsStore.stats);
 const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
 const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
 const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
 
 const billingWarning = async () => {
   await billingStore.getSubscriptionInfo();
-  const showDeviceChooser = store.getters["stats/stats"].registered_devices > 3 && !billingStore.isActive;
+  const showDeviceChooser = stats.value.registered_devices > 3 && !billingStore.isActive;
   devicesStore.showDeviceChooser = showDeviceChooser;
 };
 
@@ -153,7 +155,7 @@ const showDialogs = async () => {
     await namespacesStore.fetchNamespaceList({ perPage: 30 });
 
     if (hasNamespaces.value) {
-      await store.dispatch("stats/get");
+      await statsStore.fetchStats();
 
       showScreenWelcome();
 

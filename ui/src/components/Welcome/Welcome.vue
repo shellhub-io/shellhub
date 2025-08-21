@@ -83,7 +83,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
@@ -95,14 +94,15 @@ import useAuthStore from "@/store/modules/auth";
 import { IDevice } from "@/interfaces/IDevice";
 import useDevicesStore from "@/store/modules/devices";
 import useNotificationsStore from "@/store/modules/notifications";
+import useStatsStore from "@/store/modules/stats";
 
 type Timer = ReturnType<typeof setInterval>;
 
 const showDialog = defineModel<boolean>({ required: true });
-const store = useStore();
 const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
 const { fetchNotifications } = useNotificationsStore();
+const statsStore = useStatsStore();
 const snackbar = useSnackbar();
 const el = ref<number>(1);
 const firstPendingDevice = ref<IDevice>();
@@ -111,9 +111,9 @@ const enable = ref(false);
 const pollingDevices = () => {
   polling.value = setInterval(async () => {
     try {
-      await store.dispatch("stats/get");
+      await statsStore.fetchStats();
 
-      enable.value = store.getters["stats/stats"].pending_devices !== 0;
+      enable.value = statsStore.stats.pending_devices !== 0;
       if (enable.value) {
         el.value = 3;
         clearTimeout(polling.value);
@@ -134,8 +134,8 @@ const acceptDevice = async () => {
     if (firstPendingDevice.value) {
       await devicesStore.acceptDevice(firstPendingDevice.value.uid);
 
-      fetchNotifications();
-      store.dispatch("stats/get");
+      await fetchNotifications();
+      await statsStore.fetchStats();
 
       el.value = 4;
     }
@@ -150,7 +150,6 @@ const command = () => {
   const { hostname, protocol } = window.location;
   const { tenantId } = authStore;
 
-  // eslint-disable-next-line vue/max-len
   return `curl -sSf ${protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${protocol}//${hostname} sh`;
 };
 
