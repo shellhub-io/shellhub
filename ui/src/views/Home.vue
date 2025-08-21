@@ -23,16 +23,16 @@ import { computed, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import { StatCardItem } from "@/interfaces/IStats";
 import StatCard from "@/components/StatCard.vue";
-import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useNamespacesStore from "@/store/modules/namespaces";
+import useStatsStore from "@/store/modules/stats";
 
-const store = useStore();
 const namespacesStore = useNamespacesStore();
+const statsStore = useStatsStore();
 const snackbar = useSnackbar();
 const hasStatus = ref(false);
-const itemsStats = computed(() => store.getters["stats/stats"]);
+const stats = computed(() => statsStore.stats);
 const hasNamespace = computed(() => namespacesStore.namespaceList.length !== 0);
 
 const items = computed<StatCardItem[]>(() => [
@@ -42,7 +42,7 @@ const items = computed<StatCardItem[]>(() => [
     icon: "mdi-devices",
     buttonLabel: "Add Device",
     path: "devices",
-    stat: itemsStats.value.registered_devices || 0,
+    stat: stats.value.registered_devices || 0,
   },
   {
     title: "Online Devices",
@@ -50,7 +50,7 @@ const items = computed<StatCardItem[]>(() => [
     icon: "mdi-devices",
     buttonLabel: "View all Devices",
     path: "devices",
-    stat: itemsStats.value.online_devices || 0,
+    stat: stats.value.online_devices || 0,
   },
   {
     title: "Active Sessions",
@@ -58,7 +58,7 @@ const items = computed<StatCardItem[]>(() => [
     icon: "mdi-devices",
     buttonLabel: "View all Sessions",
     path: "sessions",
-    stat: itemsStats.value.active_sessions || 0,
+    stat: stats.value.active_sessions || 0,
   },
 ]);
 
@@ -66,7 +66,7 @@ onMounted(async () => {
   if (!hasNamespace.value) return;
 
   try {
-    await store.dispatch("stats/get");
+    await statsStore.fetchStats();
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;

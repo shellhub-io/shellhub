@@ -111,6 +111,8 @@ import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useLayoutStore from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
+import useStatsStore from "@/store/modules/stats";
+import { IStats } from "@/interfaces/IStats";
 
 type MenuItem = {
   title: string;
@@ -135,6 +137,7 @@ const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const layoutStore = useLayoutStore();
 const namespacesStore = useNamespacesStore();
+const statsStore = useStatsStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -167,7 +170,7 @@ const logout = async () => {
   try {
     authStore.logout();
     namespacesStore.namespaceList = [];
-    await store.dispatch("stats/clear");
+    statsStore.stats = {} as IStats;
     if (isChatCreated.value) {
       toggle("close");
       reset();
