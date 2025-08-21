@@ -7,12 +7,10 @@ import { stats, StatsState } from "./modules/stats";
 import { support, SupportState } from "./modules/support";
 import { spinner, SpinnerState } from "./modules/spinner";
 import { sessions, SessionsState } from "./modules/sessions";
-import { sessionRecording, SessionRecordingState } from "./modules/session_recording";
 import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
 
 export interface State {
   webEndpoints: WebEndpointsState;
-  sessionRecording: SessionRecordingState;
   sessions: SessionsState;
   spinner: SpinnerState;
   stats: StatsState;
@@ -26,7 +24,6 @@ export const key: InjectionKey<Store<State>> = Symbol("store");
 export const store = createStore<State>({
   modules: {
     webEndpoints,
-    sessionRecording,
     sessions,
     spinner,
     stats,

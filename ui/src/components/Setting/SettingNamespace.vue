@@ -150,7 +150,7 @@
             </v-card>
             <v-col class="d-flex align-center justify-end bg-background">
               <SettingSessionRecording
-                :hasTenant="hasTenant()"
+                :tenantId
                 data-test="session-recording-setting-component"
               />
             </v-col>
@@ -300,8 +300,6 @@ const hasAuthorizationEdit = computed(() => {
 onMounted(async () => {
   if (tenantId) await getNamespace();
 });
-
-const hasTenant = () => tenantId !== "";
 </script>
 
 <style scoped>

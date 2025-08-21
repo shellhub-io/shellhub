@@ -1,36 +1,26 @@
-import { Module } from "vuex";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import * as usersApi from "../api/users";
-import { State } from "..";
+import { IUserPutSessionRecording } from "@/interfaces/IUser";
 
-export interface SessionRecordingState {
-  enabled: boolean,
-}
+const useSessionRecordingStore = defineStore("sessionRecording", () => {
+  const isEnabled = ref<boolean>(true);
 
-export const sessionRecording: Module<SessionRecordingState, State> = {
-  namespaced: true,
-  state: {
-    enabled: true,
-  },
+  const setStatus = async (data: IUserPutSessionRecording) => {
+    await usersApi.setSessionRecordStatus(data);
+    isEnabled.value = data.status;
+  };
 
-  getters: {
-    isEnabled: (state) => state.enabled,
-  },
+  const getStatus = async () => {
+    const res = await usersApi.getSessionRecordStatus();
+    isEnabled.value = res.data;
+  };
 
-  mutations: {
-    setEnabled: (state, status) => {
-      state.enabled = status;
-    },
-  },
+  return {
+    isEnabled,
+    setStatus,
+    getStatus,
+  };
+});
 
-  actions: {
-    async setStatus(context, data) {
-      await usersApi.setSessionRecordStatus(data);
-      context.commit("setEnabled", data.status);
-    },
-
-    async getStatus(context) {
-      const res = await usersApi.getSessionRecordStatus();
-      context.commit("setEnabled", res.data);
-    },
-  },
-};
+export default useSessionRecordingStore;
