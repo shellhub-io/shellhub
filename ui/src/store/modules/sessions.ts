@@ -1,142 +1,63 @@
-import { Module } from "vuex";
-import * as apiSession from "../api/sessions";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import * as sessionsApi from "../api/sessions";
 import { ISession } from "@/interfaces/ISession";
-import { State } from "..";
 
-export interface SessionsState {
-  sessions: Array<ISession>;
-  session: ISession;
-  sessionLogs: string | null;
-  numberSessions: number;
-  page: number;
-  perPage: number;
-}
+const useSessionsStore = defineStore("sessions", () => {
+  const sessions = ref<Array<ISession>>([]);
+  const session = ref<ISession>({} as ISession);
+  const sessionCount = ref(0);
 
-export const sessions: Module<SessionsState, State> = {
-  namespaced: true,
-  state: {
-    sessions: [],
-    session: {} as ISession,
-    sessionLogs: null,
-    numberSessions: 0,
-    page: 1,
-    perPage: 10,
-  },
+  const fetchSessionList = async (data?: { page: number; perPage: number }) => {
+    try {
+      const res = await sessionsApi.fetchSessions(data?.page || 1, data?.perPage || 10);
+      sessions.value = res.data as ISession[];
+      sessionCount.value = Number(res.headers["x-total-count"]);
+    } catch (error) {
+      sessions.value = [];
+      sessionCount.value = 0;
+      throw error;
+    }
+  };
 
-  getters: {
-    list: (state) => state.sessions,
-    get: (state) => state.session,
-    getLogs: (state) => state.sessionLogs,
-    getNumberSessions: (state) => state.numberSessions,
-    getPage: (state) => state.page,
-    getPerPage: (state) => state.perPage,
-  },
+  const getSession = async (uid: string) => {
+    try {
+      const res = await sessionsApi.getSession(uid);
+      session.value = res.data as ISession;
+    } catch (error) {
+      session.value = {} as ISession;
+      throw error;
+    }
+  };
 
-  mutations: {
-    setSessions: (state, res) => {
-      state.sessions = res.data;
-      state.numberSessions = parseInt(res.headers["x-total-count"], 10);
-    },
+  const getSessionLogs = async (uid: string) => {
+    const res = await sessionsApi.getLog(uid);
+    return res.data as unknown as string;
+  };
 
-    setSession: (state, res) => {
-      state.session = res.data;
-    },
+  const closeSession = async (sessionData: Pick<ISession, "uid" | "device_uid">) => {
+    await sessionsApi.closeSession(sessionData);
+  };
 
-    setSessionLogs: (state, res) => {
-      state.sessionLogs = res.data;
-    },
+  const deleteSessionLogs = async (uid: string) => {
+    await sessionsApi.deleteSessionLogs(uid);
+    session.value = {
+      ...session.value,
+      recorded: false,
+    };
+  };
 
-    setPagePerpage: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-    },
+  return {
+    sessions,
+    session,
+    sessionCount,
 
-    resetPagePerpage: (state) => {
-      state.page = 1;
-      state.perPage = 10;
-    },
+    fetchSessionList,
+    getSession,
+    getSessionLogs,
+    closeSession,
+    deleteSessionLogs,
+  };
+});
 
-    clearListSessions: (state) => {
-      state.sessions = [];
-      state.numberSessions = 0;
-    },
-
-    clearSession: (state) => {
-      state.session = {} as ISession;
-    },
-
-    clearSessionLogs: (state) => {
-      state.sessionLogs = null;
-    },
-
-    removeRecordedSession: (state) => {
-      state.session = {
-        ...state.session,
-        recorded: false,
-      };
-    },
-  },
-
-  actions: {
-    fetch: async (context, data) => {
-      try {
-        const res = await apiSession.fetchSessions(data.page, data.perPage);
-        if (res.data.length) {
-          context.commit("setPagePerpage", data);
-          context.commit("setSessions", res);
-          return res;
-        }
-        return false;
-      } catch (error) {
-        context.commit("clearListSessions");
-        throw error;
-      }
-    },
-
-    refresh: async (context) => {
-      try {
-        const res = await apiSession.fetchSessions(
-          context.state.page,
-          context.state.perPage,
-        );
-        context.commit("setSessions", res);
-      } catch (error) {
-        context.commit("clearListSessions");
-        throw error;
-      }
-    },
-
-    get: async (context, uid) => {
-      try {
-        const res = await apiSession.getSession(uid);
-        context.commit("setSession", res);
-      } catch (error) {
-        context.commit("clearObjectSession");
-        throw error;
-      }
-    },
-
-    getSessionLogs: async (context, uid) => {
-      try {
-        const res = await apiSession.getLog(uid);
-        context.commit("setSessionLogs", res);
-      } catch (error) {
-        context.commit("clearSessionLogs");
-        throw error;
-      }
-    },
-
-    resetPagePerpage: async (context) => {
-      context.commit("resetPagePerpage");
-    },
-
-    close: async (context, session) => {
-      await apiSession.closeSession(session);
-    },
-
-    deleteSessionLogs: async (context, uid) => {
-      await apiSession.deleteSessionLogs(uid);
-      context.commit("removeRecordedSession");
-    },
-  },
-};
+export default useSessionsStore;

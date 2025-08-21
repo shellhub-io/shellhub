@@ -48,12 +48,13 @@ import {
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { envVariables } from "@/envVariables";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import Player from "./Player.vue";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useSessionsStore from "@/store/modules/sessions";
+import { useStore } from "@/store";
 
 const props = defineProps<{
   uid: string;
@@ -64,6 +65,7 @@ const props = defineProps<{
 const showDialog = ref(false);
 const store = useStore();
 const authStore = useAuthStore();
+const sessionsStore = useSessionsStore();
 const snackbar = useSnackbar();
 const disabled = computed(() => !props.recorded || !props.authenticated);
 const loading = ref(false);
@@ -82,8 +84,7 @@ const disableTooltip = computed(() => isCommunity.value || (hasAuthorizationToPl
 
 const getSessionLogs = async () => {
   if (props.recorded) {
-    await store.dispatch("sessions/getSessionLogs", props.uid);
-    logs.value = store.getters["sessions/getLogs"];
+    logs.value = await sessionsStore.getSessionLogs(props.uid);
   }
 };
 
