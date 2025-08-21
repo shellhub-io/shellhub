@@ -5,14 +5,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import SettingSessionRecording from "@/components/Setting/SettingSessionRecording.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useSessionRecordingStore from "@/store/modules/session_recording";
 
 type SettingSessionRecordingWrapper = VueWrapper<InstanceType<typeof SettingSessionRecording>>;
 
 describe("Setting Session Recording", () => {
   let wrapper: SettingSessionRecordingWrapper;
   setActivePinia(createPinia());
+  const sessionRecordingStore = useSessionRecordingStore();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
   const vuetify = createVuetify();
 
@@ -31,14 +32,14 @@ describe("Setting Session Recording", () => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockUsersApi.onGet("http://localhost:3000/api/users/security").reply(200, true);
-    store.commit("sessionRecording/setEnabled", true);
+    sessionRecordingStore.isEnabled = true;
 
     wrapper = mount(SettingSessionRecording, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
-        hasTenant: true,
+        tenantId: "fake-tenant-data",
       },
     });
   });
@@ -54,9 +55,9 @@ describe("Setting Session Recording", () => {
   it("Changes status in store when ref is mutated", async () => {
     mockUsersApi.onPut("http://localhost:3000/api/users/security/fake-tenant-data").reply(200);
 
-    const dispatchSpy = vi.spyOn(store, "dispatch");
-    wrapper.vm.sessionRecordingStatus = false;
+    const storeSpy = vi.spyOn(sessionRecordingStore, "setStatus");
+    wrapper.vm.isSessionRecordingEnabled = false;
 
-    expect(dispatchSpy).toHaveBeenCalledWith("sessionRecording/setStatus", { id: "fake-tenant-data", status: false });
+    expect(storeSpy).toHaveBeenCalledWith({ id: "fake-tenant-data", status: false });
   });
 });
