@@ -31,26 +31,21 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
-import { useStore } from "../store";
 import SessionList from "../components/Sessions/SessionList.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useSessionsStore from "@/store/modules/sessions";
 
-const store = useStore();
+const sessionsStore = useSessionsStore();
 const snackbar = useSnackbar();
+const hasSession = computed(() => sessionsStore.sessionCount > 0);
 
 onMounted(async () => {
   try {
-    store.dispatch("sessions/resetPagePerpage");
-
-    await store.dispatch("sessions/refresh");
+    await sessionsStore.fetchSessionList();
   } catch (error: unknown) {
     snackbar.showError("Failed to load the sessions list.");
     handleError(error);
   }
 });
-
-const hasSession = computed(
-  () => store.getters["sessions/getNumberSessions"] > 0,
-);
 </script>

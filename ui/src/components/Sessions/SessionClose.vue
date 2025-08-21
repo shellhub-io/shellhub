@@ -49,10 +49,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { IDevice } from "@/interfaces/IDevice";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useSessionsStore from "@/store/modules/sessions";
 
 const props = defineProps<{
   uid: string;
@@ -62,12 +62,12 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const sessionsStore = useSessionsStore();
 const snackbar = useSnackbar();
 
 const closeSession = async () => {
   try {
-    await store.dispatch("sessions/close", {
+    await sessionsStore.closeSession({
       uid: props.uid,
       device_uid: props.device.uid,
     });
