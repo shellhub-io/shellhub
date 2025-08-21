@@ -1,107 +1,48 @@
-import { Module } from "vuex";
-import * as apiPublicKey from "../api/public_keys";
-import { IPublicKey } from "@/interfaces/IPublicKey";
-import { State } from "..";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import * as publicKeysApi from "../api/public_keys";
+import { IPublicKey, IPublicKeyCreate } from "@/interfaces/IPublicKey";
 
-export interface PublicKeysState {
-  publicKeys: Array<IPublicKey>,
-  publicKey: IPublicKey,
-  numberPublicKeys: number,
-  page: number,
-  perPage: number,
-}
+const usePublicKeysStore = defineStore("publicKeys", () => {
+  const publicKeys = ref<Array<IPublicKey>>([]);
+  const publicKeyCount = ref(0);
 
-export const publicKeys: Module<PublicKeysState, State> = {
-  namespaced: true,
-  state: {
-    publicKeys: [] as Array<IPublicKey>,
-    publicKey: {} as IPublicKey,
-    numberPublicKeys: 0,
-    page: 1,
-    perPage: 10,
-  },
+  const fetchPublicKeyList = async (data?: { page: number; perPage: number; filter?: string }) => {
+    const res = await publicKeysApi.fetchPublicKeys(data?.page || 1, data?.perPage || 10, data?.filter);
+    publicKeys.value = res.data as IPublicKey[];
+    publicKeyCount.value = parseInt(res.headers["x-total-count"], 10);
+  };
 
-  getters: {
-    list: (state) => state.publicKeys,
-    get: (state) => state.publicKey,
-    getNumberPublicKeys: (state) => state.numberPublicKeys,
-    getPage: (state) => state.page,
-    getPerPage: (state) => state.perPage,
-  },
+  const createPublicKey = async (data: IPublicKeyCreate) => {
+    await publicKeysApi.createPublicKey(data);
+  };
 
-  mutations: {
-    setPublicKeys: (state, res) => {
-      state.publicKeys = res.data;
-      state.numberPublicKeys = parseInt(res.headers["x-total-count"], 10);
-    },
+  const updatePublicKey = async (data: IPublicKey) => {
+    await publicKeysApi.updatePublicKey(data);
+  };
 
-    setPublicKey: (state, res) => {
-      state.publicKey = res.data;
-    },
+  const removeFromList = (fingerprint: string) => {
+    const index = publicKeys.value.findIndex((d) => d.fingerprint === fingerprint);
+    if (index !== -1) {
+      publicKeys.value.splice(index, 1);
+      publicKeyCount.value--;
+    }
+  };
 
-    setPagePerpage: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-    },
+  const deletePublicKey = async (fingerprint: string) => {
+    await publicKeysApi.deletePublicKey(fingerprint);
+    removeFromList(fingerprint);
+  };
 
-    resetPagePerpage: (state) => {
-      state.page = 1;
-      state.perPage = 10;
-    },
+  return {
+    publicKeys,
+    publicKeyCount,
 
-    removePublicKey: (state, fingerprint) => {
-      state.publicKeys.splice(state.publicKeys.findIndex((d) => d.fingerprint === fingerprint), 1);
-    },
+    createPublicKey,
+    fetchPublicKeyList,
+    updatePublicKey,
+    deletePublicKey,
+  };
+});
 
-    clearListPublicKeys: (state) => {
-      state.publicKeys = [];
-      state.numberPublicKeys = 0;
-    },
-
-    clearObjectPublicKey: (state) => {
-      state.publicKey = {} as IPublicKey;
-    },
-  },
-
-  actions: {
-    post: async (context, data) => {
-      await apiPublicKey.postPublicKey(data);
-    },
-
-    fetch: async (context, data) => {
-      const res = await apiPublicKey.fetchPublicKeys(data.page, data.perPage, "");
-      if (res.data.length) {
-        context.commit("setPublicKeys", res);
-        context.commit("setPagePerpage", data);
-        return true;
-      }
-      return false;
-    },
-
-    refresh: async (context) => {
-      const res = await apiPublicKey.fetchPublicKeys(
-        context.state.page,
-        context.state.perPage,
-        "",
-      );
-      context.commit("setPublicKeys", res);
-    },
-
-    get: async (context, id) => {
-      const res = await apiPublicKey.getPublicKey(id);
-      context.commit("setPublicKey", res);
-    },
-
-    put: async (context, data) => {
-      await apiPublicKey.putPublicKey(data);
-    },
-
-    resetPagePerpage: async (context) => {
-      context.commit("resetPagePerpage");
-    },
-
-    remove: async (context, fingerprint) => {
-      await apiPublicKey.removePublicKey(fingerprint);
-    },
-  },
-};
+export default usePublicKeysStore;

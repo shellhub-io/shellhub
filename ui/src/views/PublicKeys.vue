@@ -33,32 +33,27 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { useStore } from "../store";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import PublicKeyAdd from "../components/PublicKeys/PublicKeyAdd.vue";
 import PublicKeysList from "../components/PublicKeys/PublicKeysList.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
-const store = useStore();
+const publicKeysStore = usePublicKeysStore();
 const snackbar = useSnackbar();
-const hasPublicKey = computed(
-  () => store.getters["publicKeys/getNumberPublicKeys"] > 0,
-);
+const hasPublicKey = computed(() => publicKeysStore.publicKeyCount > 0);
 
 const refresh = async () => {
   try {
-    await store.dispatch("publicKeys/refresh");
+    await publicKeysStore.fetchPublicKeyList();
   } catch (error: unknown) {
     snackbar.showError("Failed to load the public keys list.");
     handleError(error);
   }
 };
 
-onMounted(async () => {
-  store.dispatch("publicKeys/resetPagePerpage");
-  await refresh();
-});
+onMounted(async () => { await refresh(); });
 
 defineExpose({ refresh });
 </script>

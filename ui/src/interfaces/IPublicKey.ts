@@ -9,3 +9,5 @@ export interface IPublicKey {
   tenant_id: string;
   username: string;
 }
+
+export type IPublicKeyCreate = Pick<IPublicKey, "data" | "name" | "username" | "filter">
