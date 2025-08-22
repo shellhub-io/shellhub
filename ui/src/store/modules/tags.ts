@@ -1,74 +1,33 @@
-import { Module } from "vuex";
-import * as apiTags from "../api/tags";
-import * as apiDevice from "../api/devices";
-import { State } from "..";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import * as tagsApi from "../api/tags";
 
-export interface TagsState {
-  tags: Array<string>;
-  numberTags: number;
-  selected: Array<string>;
-}
+const useTagsStore = defineStore("tags", () => {
+  const tags = ref<Array<string>>([]);
+  const tagsCount = ref<number>(0);
 
-export const tags: Module<TagsState, State> = {
-  namespaced: true,
-  state: {
-    tags: [],
-    numberTags: 0,
-    selected: [],
-  },
+  const fetchTags = async () => {
+    const res = await tagsApi.getTags();
+    tags.value = res.data;
+    tagsCount.value = parseInt(res.headers["x-total-count"], 10);
+  };
 
-  getters: {
-    list: (state) => state.tags,
-    getNumberTags: (state) => state.numberTags,
-    selected: (state) => state.selected,
-  },
+  const updateTag = async (data: { oldTag: string, newTag: string }) => {
+    await tagsApi.updateTag(data);
+  };
 
-  mutations: {
-    setTags: (state, res) => {
-      state.tags = res.data;
-      state.numberTags = parseInt(res.headers["x-total-count"], 10);
-    },
+  const removeTag = async (name: string) => {
+    await tagsApi.removeTag(name);
+  };
 
-    setSelected: (state, data) => {
-      if (state.selected.includes(data)) {
-        state.selected.splice(state.selected.indexOf(data), 1);
-      } else {
-        state.selected = [...state.selected, data];
-      }
-    },
-    clearSelected: (state) => {
-      state.selected = [];
-    },
-  },
+  return {
+    tags,
+    tagsCount,
+    fetchTags,
 
-  actions: {
-    post: async (context, data) => {
-      await apiDevice.postTag(data);
-    },
+    updateTag,
+    removeTag,
+  };
+});
 
-    setSelected: async (context, data) => {
-      context.commit("setSelected", data);
-    },
-
-    fetch: async (context) => {
-      const res = await apiTags.getTags();
-      context.commit("setTags", res);
-    },
-
-    edit: async (context, data) => {
-      await apiTags.updateTag(data);
-    },
-
-    setTags: (context, data) => {
-      context.commit("setTags", data);
-    },
-
-    remove: async (context, name: string) => {
-      await apiTags.removeTag(name);
-    },
-
-    clearSelectedTags: (context) => {
-      context.commit("clearSelected");
-    },
-  },
-};
+export default useTagsStore;

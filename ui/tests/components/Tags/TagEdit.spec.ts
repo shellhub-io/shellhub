@@ -8,6 +8,7 @@ import TagEdit from "@/components/Tags/TagEdit.vue";
 import { router } from "@/router";
 import { tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useTagsStore from "@/store/modules/tags";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -17,6 +18,7 @@ const mockSnackbar = {
 describe("Tag Form Edit", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TagEdit>>;
   setActivePinia(createPinia());
+  const tagsStore = useTagsStore();
   const vuetify = createVuetify();
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
 
@@ -27,11 +29,10 @@ describe("Tag Form Edit", async () => {
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
-        tag: "test",
+        tag: "tag-test",
         hasAuthorization: true,
       },
     });
-    await wrapper.setProps({ tag: "tag-test" });
   });
 
   it("Is a Vue instance", () => {
@@ -56,7 +57,7 @@ describe("Tag Form Edit", async () => {
   it("Successfully edit tag", async () => {
     mockTagsApi.onPut("http://localhost:3000/api/tags/tag-test").reply(200);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(tagsStore, "updateTag");
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 
@@ -66,13 +67,13 @@ describe("Tag Form Edit", async () => {
 
     await flushPromises();
 
-    expect(StoreSpy).toHaveBeenCalledWith("tags/edit", {
+    expect(storeSpy).toHaveBeenCalledWith({
       oldTag: "tag-test",
       newTag: "tag-test2",
     });
   });
 
-  it("Failed to add tags", async () => {
+  it("Failed to edit tags", async () => {
     mockTagsApi.onPut("http://localhost:3000/api/tags/tag-test").reply(409);
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");

@@ -66,7 +66,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useStore } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import TagRemove from "./TagRemove.vue";
@@ -74,9 +73,10 @@ import TagEdit from "./TagEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useTagsStore from "@/store/modules/tags";
 
-const store = useStore();
 const authStore = useAuthStore();
+const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const headers = ref([
   {
@@ -93,7 +93,7 @@ const headers = ref([
   },
 ]);
 
-const tags = computed(() => store.getters["tags/list"]);
+const tags = computed(() => tagsStore.tags);
 
 const hasAuthorizationEdit = () => {
   const { role } = authStore;
@@ -107,14 +107,14 @@ const hasAuthorizationRemove = () => {
 
 const getTags = async () => {
   try {
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   } catch (error: unknown) {
     snackbar.showError("Failed to load tags.");
     handleError(error);
   }
 };
 
-onMounted(() => {
-  getTags();
+onMounted(async () => {
+  await getTags();
 });
 </script>
