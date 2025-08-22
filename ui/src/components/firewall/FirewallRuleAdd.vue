@@ -175,11 +175,13 @@ import { FormFilterOptions } from "@/interfaces/IFilter";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
+import useTagsStore from "@/store/modules/tags";
 
 const snackbar = useSnackbar();
 const store = useStore();
 const authStore = useAuthStore();
 const firewallRulesStore = useFirewallRulesStore();
+const tagsStore = useTagsStore();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const active = ref(true);
@@ -187,7 +189,7 @@ const action = ref<IFirewallRule["action"]>("allow");
 const selectedIPOption = ref("all");
 const selectedUsernameOption = ref("all");
 const selectedFilterOption = ref(FormFilterOptions.All);
-const availableTags = computed(() => store.getters["tags/list"]);
+const availableTags = computed(() => tagsStore.tags);
 const {
   value: priority,
   errorMessage: priorityError,
@@ -284,7 +286,7 @@ const handleFilterUpdate = async () => {
   if (selectedFilterOption.value === FormFilterOptions.Hostname) setHostnameError("This field is required");
   if (selectedFilterOption.value === FormFilterOptions.Tags) {
     setSelectedTagsError();
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   }
 };
 

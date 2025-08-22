@@ -127,7 +127,6 @@ import { computed, nextTick, ref, watch } from "vue";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { validateKey } from "@/utils/validate";
 import handleError from "@/utils/handleError";
@@ -136,13 +135,14 @@ import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import { IPublicKeyCreate } from "@/interfaces/IPublicKey";
+import useTagsStore from "@/store/modules/tags";
 
 const { size } = defineProps<{ size?: string }>();
 
 const emit = defineEmits(["update"]);
-const store = useStore();
 const authStore = useAuthStore();
 const publicKeysStore = usePublicKeysStore();
+const tagsStore = useTagsStore();
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 const validateLength = ref(true);
@@ -211,7 +211,7 @@ const {
   initialValue: "",
 });
 
-const tagNames = computed(() => store.getters["tags/list"]);
+const tagNames = computed(() => tagsStore.tags);
 
 const hasAuthorization = computed(() => {
   const { role } = authStore;
@@ -234,7 +234,7 @@ watch(tagChoices, (list) => {
 
 watch(choiceFilter, async () => {
   if (choiceFilter.value === "tags") {
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   }
 });
 

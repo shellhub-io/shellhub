@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/no-v-text-v-html-on-component -->
 <template>
   <div class="mr-4">
     <v-menu location="bottom" v-bind="$attrs" scrim eager>
@@ -14,7 +13,7 @@
             data-test="tags-btn"
             color="primary"
             variant="outlined"
-            :disabled="getListTags.length == 0"
+            :disabled="tags.length === 0"
             @click="getTags"
           >
             Tags
@@ -24,7 +23,7 @@
       </template>
       <v-list shaped density="compact" class="bg-v-theme-surface">
         <div>
-          <template v-for="(item, i) in getListTags">
+          <template v-for="(item, i) in tags">
             <v-divider v-if="!item" :key="`divider-${i}`" />
 
             <v-list-item
@@ -42,8 +41,7 @@
                       color="primary"
                       hide-details
                     />
-
-                    <v-list-item-title v-text="item" />
+                    <v-list-item-title>{{ item }}</v-list-item-title>
                   </v-list-item-action>
                 </div>
               </template>
@@ -58,25 +56,24 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
+import useTagsStore from "@/store/modules/tags";
 
 const props = defineProps<{ variant: "device" | "container" }>();
 
-const store = useStore();
 const containersStore = useContainersStore();
 const devicesStore = useDevicesStore();
+const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-const prevSelectedLength = ref(0);
-const getListTags = computed(() => store.getters["tags/list"]);
-const selectedTags = computed<Array<string>>(() => store.getters["tags/selected"]);
+const tags = computed(() => tagsStore.tags);
+const selectedTags = ref<Array<string>>([]);
 const tagIsSelected = (tag: string) => selectedTags.value.includes(tag);
 
 const getTags = async () => {
-  await store.dispatch("tags/fetch");
+  await tagsStore.fetchTags();
 };
 
 const fetchDevices = async (filter?: string) => {
@@ -113,18 +110,11 @@ const getItems = async (item: Array<string>) => {
 };
 
 const selectTag = async (item: string) => {
-  store.dispatch("tags/setSelected", item);
-  if (selectedTags.value.length > 0) {
-    await getItems(selectedTags.value);
-    prevSelectedLength.value = selectedTags.value.length;
-  } else if (prevSelectedLength.value === 1 && selectedTags.value.length === 0) {
-    await fetchDevices();
-  }
+  if (tagIsSelected(item)) selectedTags.value = selectedTags.value.filter((tag) => tag !== item);
+  else selectedTags.value.push(item);
 
-  if (selectedTags.value.length === 0) {
-    await store.dispatch("tags/clearSelectedTags");
-    await fetchDevices();
-  }
+  if (selectedTags.value.length) await getItems(selectedTags.value);
+  else await fetchDevices();
 };
 
 onMounted(async () => {
