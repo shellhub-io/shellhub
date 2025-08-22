@@ -7,6 +7,7 @@ import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
 import useLayoutStore, { Layout } from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
+import useUsersStore from "@/store/modules/users";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const namespacesStore = useNamespacesStore();
@@ -88,7 +89,7 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     beforeEnter: (to, from, next) => {
-      if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
+      if (envVariables.isCommunity && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
       next();
@@ -183,7 +184,7 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/sign-up",
     name: "SignUp",
     beforeEnter: (to, from, next) => {
-      if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
+      if (envVariables.isCommunity && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
       next();
@@ -202,7 +203,7 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     beforeEnter: (to, from, next) => {
-      if (!envVariables.isCommunity || store.getters["users/getSystemInfo"].setup) {
+      if (!envVariables.isCommunity || useUsersStore().systemInfo.setup) {
         next({ name: "Login" });
       }
       next();
@@ -308,7 +309,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: Connectors,
     beforeEnter: (to, from, next) => {
       if (envVariables.isCommunity && envVariables.premiumPaywall) {
-        store.commit("users/setShowPaywall", true);
+        useUsersStore().showPaywall = true;
       }
       next();
     },
@@ -344,7 +345,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: FirewallRules,
     beforeEnter: (to, from, next) => {
       if (envVariables.isCommunity && envVariables.premiumPaywall) {
-        store.commit("users/setShowPaywall", true);
+        useUsersStore().showPaywall = true;
       }
       next();
     },
@@ -429,7 +430,7 @@ export const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    await store.dispatch("users/fetchSystemInfo");
+    await useUsersStore().fetchSystemInfo();
     const { isLoggedIn } = useAuthStore();
     const requiresAuth = to.meta.requiresAuth ?? true;
 

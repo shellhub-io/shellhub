@@ -74,14 +74,14 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
-const store = useStore();
 const authStore = useAuthStore();
+const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 
@@ -163,7 +163,7 @@ const updatePassword = async () => {
     };
 
     try {
-      await store.dispatch("users/patchPassword", data);
+      await usersStore.patchPassword(data);
       snackbar.showSuccess("Password updated successfully.");
       close();
     } catch (error: unknown) {

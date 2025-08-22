@@ -151,12 +151,12 @@ import { useRouter, useRoute } from "vue-router";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../store";
 import AccountCreated from "../components/Account/AccountCreated.vue";
 import useNamespacesStore from "@/store/modules/namespaces";
+import useUsersStore from "@/store/modules/users";
 
-const store = useStore();
 const namespacesStore = useNamespacesStore();
+const usersStore = useUsersStore();
 const router = useRouter();
 const route = useRoute();
 const showPassword = ref(false);
@@ -166,7 +166,6 @@ const acceptMarketing = ref(false);
 const acceptPrivacyPolicy = ref(false);
 const isEmailLocked = ref(false);
 const messageKind: Ref<"sig" | "normal"> = ref("normal");
-const token = computed(() => store.getters["users/getSignToken"]);
 const userStatus = computed(() => namespacesStore.userStatus);
 
 const alertVisible = computed(
@@ -268,10 +267,10 @@ const createAccount = async () => {
         sig: sigValue.value,
       };
 
-      await store.dispatch("users/signUp", signUpData);
+      const token = await usersStore.signUp(signUpData);
       showMessage.value = true;
 
-      if (!token.value) {
+      if (!token) {
         await router.push({ name: "ConfirmAccount", query: { username: username.value } });
       }
       messageKind.value = "sig";

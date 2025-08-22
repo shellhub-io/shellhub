@@ -230,7 +230,6 @@ import { useDisplay } from "vuetify";
 import { useField } from "vee-validate";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
@@ -240,11 +239,12 @@ import { envVariables } from "@/envVariables";
 import ChangePassword from "../User/ChangePassword.vue";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
 type ErrorResponseData = { field: string; message: string }[];
 
-const store = useStore();
 const authStore = useAuthStore();
+const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const editDataStatus = ref(false);
 const editPasswordStatus = ref(false);
@@ -380,7 +380,7 @@ const updateUserData = async () => {
     };
 
     try {
-      await store.dispatch("users/patchData", data);
+      usersStore.patchData(data);
       authStore.updateUserData(data);
       snackbar.showSuccess("Profile data updated successfully.");
       enableEdit("data");

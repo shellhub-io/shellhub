@@ -35,7 +35,7 @@
             </p>
           </v-col>
         </v-row>
-        <div v-if="items.length === 0">
+        <div v-if="premiumFeatures.length === 0">
           <v-row>
             <v-col class="d-flex align-center justify-center">
               <v-btn
@@ -45,13 +45,13 @@
                 rel="noreferrer noopener"
                 data-test="no-link-available-btn"
               >
-                Checkout our website
+                Check out our website
               </v-btn>
             </v-col>
           </v-row>
         </div>
         <v-row v-else data-test="items-row">
-          <v-col v-for="(item, i) in items" :key="i" :data-test="'item-' + i">
+          <v-col v-for="(item, i) in premiumFeatures" :key="i" :data-test="'item-' + i">
             <v-card class="bg-v-theme-surface border d-flex flex-column justify-space-between" height="100%" :data-test="'item-card-' + i">
               <v-card-title class="d-flex justify-center" :data-test="'item-title-' + i">
                 <b>{{ item.title }}</b>
@@ -91,20 +91,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useStore } from "@/store";
+import { onMounted, ref } from "vue";
 import BaseDialog from "../BaseDialog.vue";
+import useUsersStore from "@/store/modules/users";
+import { IPremiumFeature } from "@/interfaces/IUser";
 
-const store = useStore();
+const usersStore = useUsersStore();
 const showDialog = ref(false);
+const premiumFeatures = ref<Array<IPremiumFeature>>([]);
+
 const close = () => {
   showDialog.value = false;
-  store.commit("users/setShowPaywall", false);
+  usersStore.showPaywall = false;
 };
-const items = computed(() => store.getters["users/getPremiumContent"]);
 
-onMounted(() => {
-  store.dispatch("users/getPremiumContent");
+onMounted(async () => {
+  premiumFeatures.value = await usersStore.getPremiumContent();
 });
 
 defineExpose({ showDialog });

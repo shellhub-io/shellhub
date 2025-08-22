@@ -15,6 +15,7 @@
   />
 
   <BillingWarning
+    v-model="showBillingWarning"
     data-test="billing-warning-component"
   />
 
@@ -25,8 +26,7 @@
   />
 
   <DeviceAcceptWarning
-    v-model:show="showDeviceWarning"
-    @update="showDeviceWarning = false"
+    v-if="showDuplicationWarning"
     data-test="device-accept-warning-component"
   />
 
@@ -52,7 +52,6 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Welcome from "../Welcome/Welcome.vue";
 import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
-import { useStore } from "@/store";
 import { envVariables } from "@/envVariables";
 import BillingWarning from "../Billing/BillingWarning.vue";
 import DeviceChooser from "../Devices/DeviceChooser.vue";
@@ -69,33 +68,42 @@ import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
 import useNamespacesStore from "@/store/modules/namespaces";
 import useStatsStore from "@/store/modules/stats";
+import useUsersStore from "@/store/modules/users";
 
 defineOptions({
   inheritAttrs: false,
 });
 
 const snackbar = useSnackbar();
-const store = useStore();
 const announcementStore = useAnnouncementStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
 const namespacesStore = useNamespacesStore();
 const statsStore = useStatsStore();
+const usersStore = useUsersStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
-const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
+const showDuplicationWarning = computed(() => !!devicesStore.duplicatedDeviceName);
 const showRecoverHelper = computed(() => authStore.showRecoveryModal);
 const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
-const showPaywall = computed(() => store.getters["users/showPaywall"]);
+const showPaywall = computed(() => usersStore.showPaywall);
 const stats = computed(() => statsStore.stats);
 const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
 const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
 const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
+const showBillingWarning = computed({
+  get() {
+    return billingStore.showBillingWarning;
+  },
+  set(value: boolean) {
+    billingStore.showBillingWarning = value;
+  },
+});
 
-const billingWarning = async () => {
+const setShowDeviceChooser = async () => {
   await billingStore.getSubscriptionInfo();
   const showDeviceChooser = stats.value.registered_devices > 3 && !billingStore.isActive;
   devicesStore.showDeviceChooser = showDeviceChooser;
@@ -159,7 +167,7 @@ const showDialogs = async () => {
 
       showScreenWelcome();
 
-      if (envVariables.isCloud && !store.getters["billing/active"]) await billingWarning();
+      if (envVariables.isCloud && !billingStore.isActive) await setShowDeviceChooser();
     } else showInstructions.value = true;
   } catch (error: unknown) {
     snackbar.showError("An error occurred while fetching the namespaces.");

@@ -3,24 +3,25 @@ import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
 import { nextTick } from "vue";
-import { store, key } from "@/store";
 import DeviceAcceptWarning from "@/components/Devices/DeviceAcceptWarning.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useDevicesStore from "@/store/modules/devices";
 
 describe("Device Accept Warning", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceAcceptWarning>>;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
 
   beforeEach(async () => {
-    store.commit("users/updateDeviceDuplicationError", true);
     authStore.role = "owner";
+    devicesStore.duplicatedDeviceName = "Test Device";
     wrapper = mount(DeviceAcceptWarning, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

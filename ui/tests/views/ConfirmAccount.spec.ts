@@ -5,9 +5,9 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import ConfirmAccount from "@/views/ConfirmAccount.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type ConfirmAccountWrapper = VueWrapper<InstanceType<typeof ConfirmAccount>>;
 const username = "test";
@@ -21,13 +21,14 @@ describe("Confirm Account", () => {
   let wrapper: ConfirmAccountWrapper;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
+  const usersStore = useUsersStore();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
   beforeEach(async () => {
     await router.push(`/confirm-account?username=${username}`);
 
     wrapper = mount(ConfirmAccount, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -53,13 +54,13 @@ describe("Confirm Account", () => {
   });
 
   it("Resends an email to the user", async () => {
-    const resendEmailSpy = vi.spyOn(store, "dispatch");
+    const resendEmailSpy = vi.spyOn(usersStore, "resendEmail");
 
     mockUsersApi.onPost("http://localhost:3000/api/user/resend_email").reply(200);
     await wrapper.findComponent('[data-test="resendEmail-btn"]').trigger("click");
     await flushPromises();
 
-    expect(resendEmailSpy).toHaveBeenCalledWith("users/resendEmail", username);
+    expect(resendEmailSpy).toHaveBeenCalledWith(username);
   });
 
   it("Error case on resends an email to the user", async () => {

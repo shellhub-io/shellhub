@@ -168,7 +168,6 @@ import { IFirewallRule } from "@/interfaces/IFirewallRule";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
@@ -176,12 +175,13 @@ import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 import useTagsStore from "@/store/modules/tags";
+import useUsersStore from "@/store/modules/users";
 
 const snackbar = useSnackbar();
-const store = useStore();
 const authStore = useAuthStore();
 const firewallRulesStore = useFirewallRulesStore();
 const tagsStore = useTagsStore();
+const usersStore = useUsersStore();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const active = ref(true);
@@ -346,7 +346,7 @@ const addFirewallRule = async () => {
   if (hasErrors.value) return;
 
   if (envVariables.isCommunity) {
-    store.commit("users/setShowPaywall", true);
+    usersStore.showPaywall = true;
     return;
   }
 

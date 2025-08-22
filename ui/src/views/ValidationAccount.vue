@@ -58,11 +58,12 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
-import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useUsersStore from "@/store/modules/users";
+import { IUser } from "@/interfaces/IUser";
 
-const store = useStore();
+const usersStore = useUsersStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -71,9 +72,13 @@ const activationProcessingStatus = ref("processing");
 
 const verifyActivationProcessingStatus = computed(() => activationProcessingStatus.value);
 
-const validationAccount = async (data: unknown) => {
+const validateAccount = async () => {
   try {
-    await store.dispatch("users/validationAccount", data);
+    const data: Pick<IUser, "email" | "token"> = {
+      email: route.query.email as string,
+      token: route.query.token as string,
+    };
+    await usersStore.validateAccount(data);
     snackbar.showSuccess("Your account has been activated successfully.");
     // Only set to "success" if validation is successful
     activationProcessingStatus.value = "success";
@@ -100,7 +105,7 @@ const validationAccount = async (data: unknown) => {
 };
 
 onMounted(() => {
-  validationAccount(route.query);
+  validateAccount();
 });
 
 defineExpose({ activationProcessingStatus });
