@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"reflect"
+	"slices"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -12,28 +13,40 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// AggregateCount takes a pipeline and count the results.
-func AggregateCount(ctx context.Context, coll *mongo.Collection, pipeline []bson.M) (int, error) {
-	resp := struct {
-		Count int `bson:"count"`
-	}{}
+func CountAllMatchingDocuments(ctx context.Context, collection *mongo.Collection, basePipeline []bson.M) (int, error) {
+	excludeStages := []string{"$skip", "$limit", "$sort"}
+	countPipeline := make([]bson.M, 0)
 
-	cursor, err := coll.Aggregate(ctx, pipeline)
+	for _, stage := range basePipeline {
+		filtered := make(bson.M)
+		for key, value := range stage {
+			if !slices.Contains(excludeStages, key) {
+				filtered[key] = value
+			}
+		}
+
+		if len(filtered) > 0 {
+			countPipeline = append(countPipeline, filtered)
+		}
+	}
+
+	countPipeline = append(countPipeline, bson.M{"$count": "count"})
+	cursor, err := collection.Aggregate(ctx, countPipeline)
 	if err != nil {
 		return 0, err
 	}
-
 	defer cursor.Close(ctx)
 
 	if !cursor.Next(ctx) {
 		return 0, nil
 	}
 
-	if err = cursor.Decode(&resp); err != nil {
+	result := make(map[string]any)
+	if err = cursor.Decode(&result); err != nil {
 		return 0, err
 	}
 
-	return resp.Count, nil
+	return int(result["count"].(int32)), nil
 }
 
 // ErrLayer is an error level. Each error defined at this level, is container to it.

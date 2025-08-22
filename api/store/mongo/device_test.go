@@ -22,20 +22,18 @@ func TestDeviceList(t *testing.T) {
 	}
 	cases := []struct {
 		description string
-		paginator   query.Paginator
-		sorter      query.Sorter
-		filters     query.Filters
-		status      models.DeviceStatus
+		opts        []store.QueryOption
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when no devices are found",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
-			paginator:   query.Paginator{Page: -1, PerPage: -1},
-			filters:     query.Filters{},
-			status:      models.DeviceStatus(""),
-			fixtures:    []string{},
+			opts: []store.QueryOption{
+				s.Options().Match(&query.Filters{}),
+				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
+				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+			},
+			fixtures: []string{},
 			expected: Expected{
 				dev: []models.Device{},
 				len: 0,
@@ -44,11 +42,12 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
-			paginator:   query.Paginator{Page: -1, PerPage: -1},
-			filters:     query.Filters{},
-			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			opts: []store.QueryOption{
+				s.Options().Match(&query.Filters{}),
+				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
+				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+			},
+			fixtures: []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -130,99 +129,14 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with limited page and page size",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
-			paginator:   query.Paginator{Page: 2, PerPage: 2},
-			filters:     query.Filters{},
-			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
-			expected: Expected{
-				dev: []models.Device{
-					{
-						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-						StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-						LastSeen:        time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
-						UID:             "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-						Name:            "device-3",
-						Identity:        &models.DeviceIdentity{MAC: "mac-3"},
-						Info:            nil,
-						PublicKey:       "",
-						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          false,
-						Namespace:       "namespace-1",
-						Status:          "accepted",
-						RemoteAddr:      "",
-						Position:        nil,
-						Tags:            []string{"tag-1"},
-						Acceptable:      false,
-					},
-					{
-						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
-						StatusUpdatedAt: time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
-						LastSeen:        time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
-						UID:             "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d",
-						Name:            "device-4",
-						Identity:        &models.DeviceIdentity{MAC: "mac-4"},
-						Info:            nil,
-						PublicKey:       "",
-						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          false,
-						Namespace:       "namespace-1",
-						Status:          "pending",
-						RemoteAddr:      "",
-						Position:        nil,
-						Tags:            []string{},
-						Acceptable:      true,
-					},
-				},
-				len: 4,
-				err: nil,
+			opts: []store.QueryOption{
+				s.Options().Match(&query.Filters{}),
+				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
+				s.Options().Paginate(&query.Paginator{Page: 2, PerPage: 2}),
 			},
-		},
-		{
-			description: "succeeds when devices are found with sort created_at",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
-			paginator:   query.Paginator{Page: -1, PerPage: -1},
-			filters:     query.Filters{},
-			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			fixtures: []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
-					{
-						CreatedAt:       time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						StatusUpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						LastSeen:        time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-						UID:             "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f",
-						Name:            "device-1",
-						Identity:        &models.DeviceIdentity{MAC: "mac-1"},
-						Info:            nil,
-						PublicKey:       "",
-						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          false,
-						Namespace:       "namespace-1",
-						Status:          "accepted",
-						RemoteAddr:      "",
-						Position:        nil,
-						Tags:            []string{"tag-1"},
-						Acceptable:      false,
-					},
-					{
-						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
-						StatusUpdatedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
-						LastSeen:        time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
-						UID:             "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
-						Name:            "device-2",
-						Identity:        &models.DeviceIdentity{MAC: "mac-2"},
-						Info:            nil,
-						PublicKey:       "",
-						TenantID:        "00000000-0000-4000-0000-000000000000",
-						Online:          false,
-						Namespace:       "namespace-1",
-						Status:          "accepted",
-						RemoteAddr:      "",
-						Position:        nil,
-						Tags:            []string{},
-						Acceptable:      false,
-					},
 					{
 						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
 						StatusUpdatedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -266,11 +180,12 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with order asc",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
-			paginator:   query.Paginator{Page: -1, PerPage: -1},
-			filters:     query.Filters{},
-			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			opts: []store.QueryOption{
+				s.Options().Match(&query.Filters{}),
+				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
+				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+			},
+			fixtures: []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -352,11 +267,12 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found with order desc",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderDesc},
-			paginator:   query.Paginator{Page: -1, PerPage: -1},
-			filters:     query.Filters{},
-			status:      models.DeviceStatus(""),
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			opts: []store.QueryOption{
+				s.Options().Match(&query.Filters{}),
+				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderDesc}),
+				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+			},
+			fixtures: []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -438,11 +354,13 @@ func TestDeviceList(t *testing.T) {
 		},
 		{
 			description: "succeeds when devices are found filtering status",
-			sorter:      query.Sorter{By: "last_seen", Order: query.OrderAsc},
-			paginator:   query.Paginator{Page: -1, PerPage: -1},
-			filters:     query.Filters{},
-			status:      models.DeviceStatusPending,
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			opts: []store.QueryOption{
+				s.Options().WithDeviceStatus(models.DeviceStatusPending),
+				s.Options().Match(&query.Filters{}),
+				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
+				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+			},
+			fixtures: []string{fixtureNamespaces, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -479,14 +397,7 @@ func TestDeviceList(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			dev, count, err := s.DeviceList(
-				ctx,
-				tc.status,
-				tc.paginator,
-				tc.filters,
-				tc.sorter,
-				store.DeviceAcceptableIfNotAccepted,
-			)
+			dev, count, err := s.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted, tc.opts...)
 			assert.Equal(t, tc.expected, Expected{dev: dev, len: count, err: err})
 		})
 	}

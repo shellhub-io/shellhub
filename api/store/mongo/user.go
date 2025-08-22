@@ -4,25 +4,19 @@ import (
 	"context"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
+func (s *Store) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
 	query := []bson.M{}
-
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
 	}
 
 	query = append(query, []bson.M{
@@ -46,20 +40,10 @@ func (s *Store) UserList(ctx context.Context, paginator query.Paginator, filters
 		},
 	}...)
 
-	queryMatch, err := queries.FromFilters(&filters)
+	count, err := CountAllMatchingDocuments(ctx, s.db.Collection("users"), query)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
-	query = append(query, queryMatch...)
-
-	queryCount := query
-	queryCount = append(queryCount, bson.M{"$count": "count"})
-	count, err := AggregateCount(ctx, s.db.Collection("users"), queryCount)
-	if err != nil {
-		return nil, 0, FromMongoError(err)
-	}
-
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	users := make([]models.User, 0)
 	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
@@ -121,13 +105,14 @@ func (s *Store) UserResolve(ctx context.Context, resolver store.UserResolver, va
 		matchStage["username"] = value
 	}
 
+	query := []bson.M{{"$match": matchStage}}
 	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
 			return nil, err
 		}
 	}
 
-	cursor, err := s.db.Collection("users").Aggregate(ctx, []bson.M{{"$match": matchStage}})
+	cursor, err := s.db.Collection("users").Aggregate(ctx, query)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}

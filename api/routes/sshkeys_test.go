@@ -29,17 +29,19 @@ func TestGetPublicKeys(t *testing.T) {
 	cases := []struct {
 		description   string
 		paginator     query.Paginator
-		requiredMocks func(query query.Paginator)
+		headers       map[string]string
+		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "success when try to list a publics keys exists",
-			paginator: query.Paginator{
-				Page:    1,
-				PerPage: 10,
-			},
-			requiredMocks: func(query query.Paginator) {
-				mock.On("ListPublicKeys", gomock.Anything, query).Return([]models.PublicKey{}, 1, nil)
+			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			requiredMocks: func() {
+				mock.
+					On("ListPublicKeys", gomock.Anything, &requests.ListPublicKeys{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
+					Return([]models.PublicKey{}, 1, nil).
+					Once()
 			},
 			expected: Expected{
 				expectedSession: []models.PublicKey{},
@@ -50,7 +52,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks(tc.paginator)
+			tc.requiredMocks()
 
 			jsonData, err := json.Marshal(tc.paginator)
 			if err != nil {
@@ -60,6 +62,10 @@ func TestGetPublicKeys(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/api/sshkeys/public-keys", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
+
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
