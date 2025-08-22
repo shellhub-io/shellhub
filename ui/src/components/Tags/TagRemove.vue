@@ -41,10 +41,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useTagsStore from "@/store/modules/tags";
 
 defineOptions({
   inheritAttrs: false,
@@ -57,12 +57,12 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 
 const remove = async () => {
   try {
-    await store.dispatch("tags/remove", props.tag);
+    await tagsStore.removeTag(props.tag);
     snackbar.showSuccess(`Tag ${props.tag} removed successfully.`);
     emit("update");
   } catch (error: unknown) {

@@ -52,7 +52,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
@@ -68,26 +67,17 @@ const props = defineProps<{
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const snackbar = useSnackbar();
-const store = useStore();
 const devicesStore = useDevicesStore();
 const router = useRouter();
-
-const emitUpdate = (): void => {
-  emit("update");
-};
 
 const removeDevice = async (): Promise<void> => {
   try {
     await devicesStore.removeDevice(props.uid);
 
-    if (props.redirect) {
-      router.push("/devices");
-    } else {
-      await store.dispatch("tags/fetch");
-    }
+    if (props.redirect) router.push("/devices");
 
     snackbar.showSuccess("Successfully removed device.");
-    emitUpdate();
+    emit("update");
   } catch (error: unknown) {
     snackbar.showError("Failed to remove device.");
     handleError(error);

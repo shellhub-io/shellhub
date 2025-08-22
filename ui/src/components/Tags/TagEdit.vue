@@ -54,10 +54,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useTagsStore from "@/store/modules/tags";
 
 const props = defineProps<{
   tag: string;
@@ -65,7 +65,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["update"]);
-const store = useStore();
+const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 
@@ -100,7 +100,7 @@ const update = () => {
 const edit = async () => {
   if (!tagsError.value) {
     try {
-      await store.dispatch("tags/edit", {
+      await tagsStore.updateTag({
         oldTag: props.tag,
         newTag: inputTags.value,
       });

@@ -5,7 +5,7 @@ import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import TagFormUpdate from "@/components/Tags/TagFormUpdate.vue";
-import { devicesApi } from "@/api/http";
+import { devicesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useDevicesStore from "@/store/modules/devices";
 
@@ -61,9 +61,11 @@ describe("Tag Form Update", async () => {
   const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
 
   beforeEach(async () => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);
+    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, ["test2"]);
 
     wrapper = mount(TagFormUpdate, {
       global: {

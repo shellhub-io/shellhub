@@ -134,13 +134,13 @@ import {
   onUpdated,
 } from "vue";
 import * as yup from "yup";
-import { useStore } from "@/store";
 import { IPublicKey } from "@/interfaces/IPublicKey";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
+import useTagsStore from "@/store/modules/tags";
 
 const props = defineProps<{
   publicKey: IPublicKey;
@@ -149,8 +149,8 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
 const publicKeysStore = usePublicKeysStore();
+const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const choiceFilter = ref("hostname");
 const validateLength = ref(true);
@@ -234,13 +234,13 @@ const hasTags = computed(() => {
 
 watch(choiceFilter, async () => {
   if (choiceFilter.value === "tags") {
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   }
 });
 
 const tagNames = computed({
   get() {
-    return store.getters["tags/list"];
+    return tagsStore.tags;
   },
   set(val) {
     tagChoices.value = val;
