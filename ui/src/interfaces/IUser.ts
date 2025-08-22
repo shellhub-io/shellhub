@@ -11,6 +11,18 @@ export interface IUser {
   currentPassword: string;
 }
 
+export interface IUserPatch {
+  name: string;
+  username: string;
+  email: string;
+  recovery_email: string;
+}
+
+export interface IUserPatchPassword extends IUserPatch {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface IUserSignUp {
   email: string;
   name: string;
@@ -37,4 +49,26 @@ export interface IUserUpdatePassword {
 export interface IUserPutSessionRecording {
   id: string;
   status: boolean;
+}
+
+export interface IUserSystemInfo {
+  version: string;
+  endpoints: {
+    ssh: string;
+    api: string;
+  };
+  setup: boolean;
+  authentication: {
+    local: boolean;
+    saml: boolean;
+  };
+}
+
+export interface IPremiumFeature {
+  title: string;
+  features: Array<string>;
+  button: {
+    link: string;
+    label: string;
+  }
 }

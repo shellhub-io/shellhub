@@ -2,8 +2,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { nextTick } from "vue";
-import { store, key } from "@/store";
 import PaywallDialog from "@/components/User/PaywallDialog.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
@@ -47,9 +45,10 @@ describe("PaywallDialog", async () => {
   beforeEach(async () => {
     wrapper = mount(PaywallDialog, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
+    wrapper.vm.showDialog = true;
   });
 
   it("Is a Vue instance", () => {
@@ -61,7 +60,6 @@ describe("PaywallDialog", async () => {
   });
 
   it("Renders the component table", async () => {
-    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
@@ -76,11 +74,7 @@ describe("PaywallDialog", async () => {
   });
 
   it("Renders the component table with a successful request to get card infos", async () => {
-    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-
-    store.commit("users/setPremiumContent", cards);
 
     await flushPromises();
     expect(dialog.find('[data-test="item-card-0"]').exists()).toBe(true);
@@ -106,13 +100,7 @@ describe("PaywallDialog", async () => {
   });
 
   it("Renders the component table with a successful request to get card infos", async () => {
-    wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
-
-    store.commit("users/setPremiumContent", []);
-
-    await nextTick();
-
     expect(dialog.find('[data-test="no-link-available-btn"]').exists()).toBe(true);
   });
 });

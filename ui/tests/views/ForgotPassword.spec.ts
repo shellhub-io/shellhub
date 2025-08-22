@@ -1,14 +1,14 @@
 import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import ForgotPassword from "@/views/ForgotPassword.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type ForgotPasswordWrapper = VueWrapper<InstanceType<typeof ForgotPassword>>;
 
@@ -16,27 +16,17 @@ describe("Forgot Password", () => {
   let wrapper: ForgotPasswordWrapper;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
-  let mock: MockAdapter;
+  const usersStore = useUsersStore();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(() => {
-    vi.useFakeTimers();
-
     envVariables.isCloud = true;
-
-    // Create a mock adapter for the usersApi instance
-    mock = new MockAdapter(usersApi.getAxios());
 
     wrapper = mount(ForgotPassword, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mock.reset();
   });
 
   it("Is a Vue instance", () => {
@@ -56,26 +46,24 @@ describe("Forgot Password", () => {
   });
 
   it("Calls the Forgot Password action when the button is clicked", async () => {
-    mock.onPost("http://localhost:3000/api/user/recover_password").reply(200);
+    mockUsersApi.onPost("http://localhost:3000/api/user/recover_password").reply(200);
 
-    const forgotPasswordSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "recoverPassword");
 
     await wrapper.findComponent('[data-test="account-text"]').setValue("testuser");
     await wrapper.find('[data-test="forgotPassword-btn"]').trigger("submit");
 
-    vi.runOnlyPendingTimers();
     await flushPromises();
 
-    expect(forgotPasswordSpy).toHaveBeenCalledWith("users/recoverPassword", "testuser");
+    expect(storeSpy).toHaveBeenCalledWith("testuser");
   });
 
   it("Displays success message on successful email submission", async () => {
-    mock.onPost("http://localhost:3000/api/user/recover_password").reply(200);
+    mockUsersApi.onPost("http://localhost:3000/api/user/recover_password").reply(200);
 
     await wrapper.findComponent('[data-test="account-text"]').setValue("testuser");
     await wrapper.find('[data-test="forgotPassword-btn"]').trigger("submit");
 
-    vi.runOnlyPendingTimers();
     await flushPromises();
 
     expect(wrapper.find('[data-test="success-text"]').exists()).toBe(true);

@@ -54,15 +54,16 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
+import { IUserPatch } from "@/interfaces/IUser";
 
 const showDialog = ref(false);
-const store = useStore();
 const authStore = useAuthStore();
+const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const email = computed(() => authStore.email);
 const {
@@ -87,12 +88,11 @@ const {
 
 const updateUserData = async () => {
   const data = {
-    id: authStore.id,
     recovery_email: recoveryEmail.value,
-  };
+  } as IUserPatch;
 
   try {
-    await store.dispatch("users/patchData", data);
+    await usersStore.patchData(data);
     authStore.updateUserData(data);
     snackbar.showSuccess("Recovery email updated successfully.");
   } catch (error) {

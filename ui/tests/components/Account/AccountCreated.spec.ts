@@ -5,9 +5,9 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import AccountCreated from "@/components/Account/AccountCreated.vue";
 import { namespacesApi, usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey, SnackbarPlugin } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type AccountCreatedWrapper = VueWrapper<InstanceType<typeof AccountCreated>>;
 
@@ -20,12 +20,9 @@ describe("Account Created", () => {
   let wrapper: AccountCreatedWrapper;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
-  let usersMock: MockAdapter;
-  let namespacesMock: MockAdapter;
-
-  beforeEach(() => {
-    usersMock = new MockAdapter(usersApi.getAxios());
-  });
+  const usersStore = useUsersStore();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   afterEach(() => {
     wrapper.unmount();
@@ -35,7 +32,7 @@ describe("Account Created", () => {
     beforeEach(() => {
       wrapper = mount(AccountCreated, {
         global: {
-          plugins: [[store, key], vuetify, router],
+          plugins: [vuetify, router],
           provide: { [SnackbarInjectionKey]: mockSnackbar },
         },
         props: {
@@ -63,27 +60,26 @@ describe("Account Created", () => {
     });
 
     it("Resends email", async () => {
-      const storeSpy = vi.spyOn(store, "dispatch");
+      const storeSpy = vi.spyOn(usersStore, "resendEmail");
 
-      usersMock.onPost("http://localhost:3000/api/user/resend_email").reply(200);
+      mockUsersApi.onPost("http://localhost:3000/api/user/resend_email").reply(200);
 
       await wrapper.find('[data-test="resendEmail-btn"]').trigger("click");
 
       await flushPromises();
 
-      expect(storeSpy).toHaveBeenCalledWith("users/resendEmail", "testUser");
+      expect(storeSpy).toHaveBeenCalledWith("testUser");
       expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Email successfully sent.");
     });
   });
 
   describe("With messageKind = 'sig'", () => {
-    namespacesMock = new MockAdapter(namespacesApi.getAxios());
-    namespacesMock.onGet("http://localhost:3000/api/namespaces/fake-tenant/members/fake-id/accept-invite?sig=fake-sig").reply(200);
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant/members/fake-id/accept-invite?sig=fake-sig").reply(200);
 
     beforeEach(() => {
       wrapper = mount(AccountCreated, {
         global: {
-          plugins: [[store, key], vuetify, router, SnackbarPlugin],
+          plugins: [vuetify, router, SnackbarPlugin],
         },
         props: {
           messageKind: "sig",

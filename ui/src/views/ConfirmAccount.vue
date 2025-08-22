@@ -40,18 +40,18 @@
 
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useUsersStore from "@/store/modules/users";
 
-const store = useStore();
+const usersStore = useUsersStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
 
 const resendEmail = async () => {
   try {
-    await store.dispatch("users/resendEmail", route.query.username);
+    await usersStore.resendEmail(route.query.username as string);
     snackbar.showSuccess("The email has been sent.");
     await router.push({ name: "Login" });
   } catch (error) {

@@ -6,11 +6,11 @@ import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SettingProfile from "@/components/Setting/SettingProfile.vue";
 import { mfaApi, usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
 type SettingProfileWrapper = VueWrapper<InstanceType<typeof SettingProfile>>;
 
@@ -48,6 +48,7 @@ describe("Settings Namespace", () => {
   let wrapper: SettingProfileWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const usersStore = useUsersStore();
   const vuetify = createVuetify();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
   const mockMfaApi = new MockAdapter(mfaApi.getAxios());
@@ -70,7 +71,7 @@ describe("Settings Namespace", () => {
     authStore.$patch(authData);
     wrapper = mount(SettingProfile, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -129,12 +130,12 @@ describe("Settings Namespace", () => {
     await wrapper.findComponent('[data-test="recovery-email-input"]').setValue("test2@test.com");
     await flushPromises();
 
-    const changeDataSpy = vi.spyOn(store, "dispatch");
+    const changeDataSpy = vi.spyOn(usersStore, "patchData");
     await wrapper.findComponent('[data-test="save-changes-button"]').trigger("click");
 
     await nextTick();
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", {
+    expect(changeDataSpy).toHaveBeenCalledWith({
       email: "test@test.com",
       name: "test",
       recovery_email: "test2@test.com",
@@ -152,7 +153,7 @@ describe("Settings Namespace", () => {
 
     mockUsersApi.onPatch("http://localhost:3000/api/users").reply(401);
 
-    const changeDataSpy = vi.spyOn(store, "dispatch");
+    const changeDataSpy = vi.spyOn(usersStore, "patchData");
     await wrapper.findComponent('[data-test="edit-profile-button"]').trigger("click");
     await wrapper.findComponent('[data-test="name-input"]').setValue("test");
     await wrapper.findComponent('[data-test="username-input"]').setValue("test");
@@ -164,6 +165,6 @@ describe("Settings Namespace", () => {
 
     await nextTick();
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", changeUserData);
+    expect(changeDataSpy).toHaveBeenCalledWith(changeUserData);
   });
 });

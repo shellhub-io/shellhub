@@ -62,10 +62,10 @@
 import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import { useStore } from "../store";
 import handleError from "../utils/handleError";
+import useUsersStore from "@/store/modules/users";
 
-const store = useStore();
+const usersStore = useUsersStore();
 const postSuccessful = ref(false);
 const validForm = ref(false);
 
@@ -95,7 +95,7 @@ const sendEmail = async () => {
   }
 
   try {
-    await store.dispatch("users/recoverPassword", account.value);
+    await usersStore.recoverPassword(account.value as string);
     postSuccessful.value = true;
   } catch (error) {
     handleError(error);

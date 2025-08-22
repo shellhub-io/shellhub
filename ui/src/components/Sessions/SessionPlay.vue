@@ -54,7 +54,7 @@ import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useSessionsStore from "@/store/modules/sessions";
-import { useStore } from "@/store";
+import useUsersStore from "@/store/modules/users";
 
 const props = defineProps<{
   uid: string;
@@ -63,9 +63,9 @@ const props = defineProps<{
 }>();
 
 const showDialog = ref(false);
-const store = useStore();
 const authStore = useAuthStore();
 const sessionsStore = useSessionsStore();
+const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const disabled = computed(() => !props.recorded || !props.authenticated);
 const loading = ref(false);
@@ -103,7 +103,7 @@ const displayDialog = async () => {
 
 const openDialog = () => {
   if (envVariables.isCommunity) {
-    store.commit("users/setShowPaywall", true);
+    usersStore.showPaywall = true;
     return;
   }
   displayDialog();

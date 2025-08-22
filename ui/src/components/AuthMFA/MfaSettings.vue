@@ -261,15 +261,16 @@ import { useField } from "vee-validate";
 import { ref, computed, watch } from "vue";
 import QrcodeVue from "qrcode.vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
+import { IUserPatch } from "@/interfaces/IUser";
 
-const store = useStore();
 const authStore = useAuthStore();
+const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const el = ref<number>(1);
 const emit = defineEmits(["update:recovery-email"]);
@@ -323,10 +324,9 @@ const goToNextStep = async () => {
 
 const updateRecoveryEmail = async () => {
   try {
-    await store.dispatch("users/patchData", {
-      id: authStore.id,
+    await usersStore.patchData({
       recovery_email: recoveryEmail.value,
-    });
+    } as IUserPatch);
     authStore.recoveryEmail = recoveryEmail.value;
     snackbar.showSuccess("Recovery email updated successfully.");
     emit("update:recovery-email", recoveryEmail.value);

@@ -1,9 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`BillingWarning > 3 devices, no subscription > Renders the component 1`] = `"<base-dialog-stub forcefullscreen="false" modelvalue="true" transition="dialog-bottom-transition" data-test="billing-warning-dialog"></base-dialog-stub>"`;
-
-exports[`BillingWarning > 3 devices, with subscription > Renders the component 1`] = `"<base-dialog-stub forcefullscreen="false" modelvalue="false" transition="dialog-bottom-transition" data-test="billing-warning-dialog"></base-dialog-stub>"`;
-
-exports[`BillingWarning > Less than 3 devices, no subscription > Renders the component 1`] = `"<base-dialog-stub forcefullscreen="false" modelvalue="false" transition="dialog-bottom-transition" data-test="billing-warning-dialog"></base-dialog-stub>"`;
-
-exports[`BillingWarning > Not the owner > Renders the component 1`] = `"<!--v-if-->"`;
