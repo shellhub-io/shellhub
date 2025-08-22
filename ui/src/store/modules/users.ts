@@ -1,164 +1,81 @@
-import { Module } from "vuex";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import { AxiosResponse } from "axios";
-import * as apiUser from "../api/users";
-import { State } from "..";
+import * as usersApi from "../api/users";
 import useAuthStore from "@/store/modules/auth";
+import { IUser, IUserPatch, IUserPatchPassword, IUserSetup, IUserSignUp, IUserSystemInfo, IUserUpdatePassword } from "@/interfaces/IUser";
 
-export interface UsersState {
-  statusUpdateAccountDialog: boolean;
-  statusUpdateAccountDialogByDeviceAction: boolean;
-  deviceDuplicationError: boolean,
-  showPaywall: boolean,
-  premiumContent: Array<object>,
-  signUpToken: string | undefined,
-  info: {
-    version: string;
-    endpoints: {
-      ssh: string;
-      api: string;
-    };
-    setup: boolean;
-    authentication: {
-      local: boolean,
-      saml: boolean
-    }
-  },
-  samlUrl: string,
-}
+const useUsersStore = defineStore("users", () => {
+  const showPaywall = ref(false);
+  const signUpToken = ref<string>();
+  const systemInfo = ref<IUserSystemInfo>({} as IUserSystemInfo);
 
-export const users: Module<UsersState, State> = {
-  namespaced: true,
-  state: {
-    statusUpdateAccountDialog: false,
-    statusUpdateAccountDialogByDeviceAction: false,
-    deviceDuplicationError: false,
-    showPaywall: false,
-    premiumContent: [],
-    signUpToken: undefined,
-    info: {
-      version: "",
-      endpoints: {
-        ssh: "",
-        api: "",
-      },
-      setup: false,
-      authentication: {
-        local: false,
-        saml: false,
-      },
-    },
-    samlUrl: "",
-  },
+  const signUp = async (data: IUserSignUp) => {
+    const res: AxiosResponse = await usersApi.signUp(data);
 
-  getters: {
-    statusUpdateAccountDialog: (state) => state.statusUpdateAccountDialog,
-    statusUpdateAccountDialogByDeviceAction(state) {
-      return state.statusUpdateAccountDialogByDeviceAction;
-    },
-    deviceDuplicationError: (state) => state.deviceDuplicationError,
-    showPaywall: (state) => state.showPaywall,
-    getPremiumContent: (state) => state.premiumContent,
-    getSignToken: (state) => state.signUpToken,
-    getSystemInfo: (state) => state.info,
-    getSamlURL: (state) => state.samlUrl,
-  },
+    if (!res.data.token) return false;
 
-  mutations: {
-    updateStatusUpdateAccountDialog(state, status) {
-      state.statusUpdateAccountDialog = status;
-    },
+    useAuthStore().persistAuth(res.data);
+    return res.data.token;
+  };
 
-    updateStatusUpdateAccountDialogByDeviceAction(state, status) {
-      state.statusUpdateAccountDialogByDeviceAction = status;
-    },
-    updateDeviceDuplicationError(state, status) {
-      state.deviceDuplicationError = status;
-    },
+  const patchData = async (data: IUserPatch) => {
+    await usersApi.patchUserData(data);
+  };
 
-    setSignUpToken(state, token) {
-      state.signUpToken = token;
-    },
+  const setup = async (data: IUserSetup) => {
+    await usersApi.setup(data);
+  };
 
-    setShowPaywall(state, status) {
-      state.showPaywall = status;
-    },
+  const patchPassword = async (data: IUserPatchPassword) => {
+    await usersApi.patchUserPassword(data);
+  };
 
-    setPremiumContent(state, data) {
-      state.premiumContent = data;
-    },
+  const resendEmail = async (username: string) => {
+    await usersApi.resendEmail(username);
+  };
 
-    setSystemInfo(state, data) {
-      state.info = data;
-    },
+  const recoverPassword = async (username: string) => {
+    await usersApi.recoverPassword(username);
+  };
 
-    setSamlUrl(state, url) {
-      state.samlUrl = url;
-    },
-  },
+  const validateAccount = async (data: Pick<IUser, "email" | "token">) => {
+    await usersApi.validateAccount(data);
+  };
 
-  actions: {
-    async signUp(context, data) {
-      const res: AxiosResponse = await apiUser.signUp(data);
+  const updatePassword = async (data: IUserUpdatePassword) => {
+    await usersApi.updatePassword(data);
+  };
 
-      if (res.data.token) {
-        context.commit("setSignUpToken", res.data.token);
-        useAuthStore().persistAuth(res.data);
-      }
-    },
+  const getPremiumContent = async () => usersApi.getPremiumContent();
 
-    async patchData(context, data) {
-      await apiUser.patchUserData(data);
-    },
+  const fetchSystemInfo = async () => {
+    const response = await usersApi.getInfo();
+    systemInfo.value = response.data as IUserSystemInfo;
+  };
 
-    async setup(context, data) {
-      await apiUser.setup(data);
-    },
+  const getSamlUrl = async () => {
+    const response = await usersApi.getSamlLink();
+    return response.data.url;
+  };
 
-    async patchPassword(context, data) {
-      await apiUser.patchUserPassword(data);
-    },
+  return {
+    showPaywall,
+    signUpToken,
+    systemInfo,
 
-    async resendEmail(context, username) {
-      await apiUser.postResendEmail(username);
-    },
+    signUp,
+    patchData,
+    setup,
+    patchPassword,
+    resendEmail,
+    recoverPassword,
+    validateAccount,
+    updatePassword,
+    getPremiumContent,
+    fetchSystemInfo,
+    getSamlUrl,
+  };
+});
 
-    async recoverPassword(context, username) {
-      await apiUser.postRecoverPassword(username);
-    },
-
-    async validationAccount(context, data) {
-      await apiUser.postValidationAccount(data);
-    },
-
-    async updatePassword(context, data) {
-      await apiUser.postUpdatePassword(data);
-    },
-
-    async getPremiumContent(context) {
-      const res = await apiUser.premiumContent();
-      context.commit("setPremiumContent", res);
-    },
-
-    async fetchSystemInfo({ commit }) {
-      const response = await apiUser.getInfo();
-      commit("setSystemInfo", response.data);
-    },
-
-    async fetchSamlUrl({ commit }) {
-      const response = await apiUser.getSamlLink();
-      commit("setSamlUrl", response.data.url);
-    },
-
-    setStatusUpdateAccountDialog(context, status) {
-      context.commit("updateStatusUpdateAccountDialog", status);
-    },
-
-    setStatusUpdateAccountDialogByDeviceAction(context, status) {
-      context.commit("updateStatusUpdateAccountDialogByDeviceAction", status);
-    },
-
-    setDeviceDuplicationOnAcceptance(context, status) {
-      context.commit("updateDeviceDuplicationError", status);
-    },
-  },
-};
+export default useUsersStore;

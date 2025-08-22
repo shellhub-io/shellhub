@@ -8,6 +8,7 @@ import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -20,6 +21,7 @@ describe("Change Password", () => {
   let wrapper: ChangePasswordWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const usersStore = useUsersStore();
   const vuetify = createVuetify();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
@@ -75,7 +77,7 @@ describe("Change Password", () => {
   it("Successfully Change Password", async () => {
     mockUsersApi.onPatch("http://localhost:3000/api/users").reply(200);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "patchPassword");
 
     wrapper.vm.showDialog = true;
     await flushPromises();
@@ -86,7 +88,7 @@ describe("Change Password", () => {
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
 
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith("users/patchPassword", {
+    expect(storeSpy).toHaveBeenCalledWith({
       name: "test",
       username: "test",
       email: "test@test.com",
@@ -99,7 +101,7 @@ describe("Change Password", () => {
   it("Fails to Change Password", async () => {
     mockUsersApi.onPatch("http://localhost:3000/api/users").reply(403);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "patchPassword");
 
     wrapper.vm.showDialog = true;
     await flushPromises();
@@ -111,7 +113,7 @@ describe("Change Password", () => {
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith("users/patchPassword", {
+    expect(storeSpy).toHaveBeenCalledWith({
       name: "test",
       username: "test",
       email: "test@test.com",

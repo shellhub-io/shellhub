@@ -52,7 +52,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { AxiosError } from "axios";
-import { useStore } from "@/store";
 import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { capitalizeText } from "@/utils/string";
@@ -79,7 +78,6 @@ const props = withDefaults(defineProps<DeviceActionButtonProps>(), {
 });
 
 const emit = defineEmits(["update"]);
-const store = useStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
@@ -139,7 +137,7 @@ const acceptDevice = async () => {
     const axiosError = error as AxiosError;
     switch (axiosError.response?.status) {
       case 402:
-        store.dispatch("users/setStatusUpdateAccountDialogByDeviceAction", true);
+        billingStore.showBillingWarning = true;
         snackbar.showError("Couldn't accept the device. Check your billing status and try again.");
         break;
       case 403:
@@ -147,7 +145,6 @@ const acceptDevice = async () => {
         break;
       case 409:
         devicesStore.duplicatedDeviceName = props.name;
-        store.dispatch("users/setDeviceDuplicationOnAcceptance", true);
         snackbar.showError("A device with that name already exists in the namespace. Rename it and try again.");
         break;
       default:

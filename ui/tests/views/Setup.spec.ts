@@ -1,15 +1,15 @@
 import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import Setup from "@/views/Setup.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type SetupWrapper = VueWrapper<InstanceType<typeof Setup>>;
 
@@ -17,26 +17,16 @@ describe("Setup Account", () => {
   let wrapper: SetupWrapper;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
-  let mock: MockAdapter;
-
+  const usersStore = useUsersStore();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
   beforeEach(() => {
-    vi.useFakeTimers();
-
     envVariables.isCloud = false;
-
-    mock = new MockAdapter(usersApi.getAxios());
 
     wrapper = mount(Setup, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mock.reset();
   });
 
   it("Is a Vue instance", () => {
@@ -86,9 +76,9 @@ describe("Setup Account", () => {
       password: "test123",
     };
 
-    mock.onPost("http://localhost:3000/api/setup").reply(200, responseData);
+    mockUsersApi.onPost("http://localhost:3000/api/setup").reply(200, responseData);
 
-    const signUpSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "setup");
 
     await wrapper.findComponent('[data-test="sign-text"]').setValue("sign");
 
@@ -104,10 +94,9 @@ describe("Setup Account", () => {
 
     await wrapper.find('[data-test="setup-account-btn"]').trigger("submit");
 
-    vi.runOnlyPendingTimers();
     await flushPromises();
     await nextTick();
-    expect(signUpSpy).toHaveBeenCalledWith("users/setup", {
+    expect(storeSpy).toHaveBeenCalledWith({
       sign: "sign",
       name: "test",
       email: "test@test.com",
@@ -117,7 +106,7 @@ describe("Setup Account", () => {
   });
 
   it("Handles error (400)", async () => {
-    mock.onPost("http://localhost:3000/api/setup").reply(400);
+    mockUsersApi.onPost("http://localhost:3000/api/setup").reply(400);
 
     await wrapper.findComponent('[data-test="sign-text"]').setValue("sign");
 

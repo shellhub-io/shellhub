@@ -5,9 +5,9 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import UpdatePassword from "@/views/UpdatePassword.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type UpdatePasswordWrapper = VueWrapper<InstanceType<typeof UpdatePassword>>;
 const uid = "testID";
@@ -21,6 +21,7 @@ describe("Update Password", () => {
   let wrapper: UpdatePasswordWrapper;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
+  const usersStore = useUsersStore();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(async () => {
@@ -28,7 +29,7 @@ describe("Update Password", () => {
 
     wrapper = mount(UpdatePassword, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -64,7 +65,7 @@ describe("Update Password", () => {
 
     mockUsersApi.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(200);
 
-    const updatePasswordSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "updatePassword");
     const routerPushSpy = vi.spyOn(router, "push");
 
     await wrapper.findComponent('[data-test="password-text"]').setValue("12345678");
@@ -74,7 +75,7 @@ describe("Update Password", () => {
 
     await flushPromises();
 
-    expect(updatePasswordSpy).toHaveBeenCalledWith("users/updatePassword", requestData);
+    expect(storeSpy).toHaveBeenCalledWith(requestData);
     expect(routerPushSpy).toHaveBeenCalledWith({ name: "Login" });
   });
 

@@ -30,21 +30,19 @@
 import { computed } from "vue";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
-import { useStore } from "@/store";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useDevicesStore from "@/store/modules/devices";
 
 const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
-const store = useStore();
 const duplicatedDeviceName = computed(() => devicesStore.duplicatedDeviceName);
-const showDialog = computed(() => store.getters["users/deviceDuplicationError"]);
+const showDialog = computed(() => !!duplicatedDeviceName.value);
 
 const hasAuthorization = computed(() => {
   const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
 });
 
-const close = () => { store.dispatch("users/setDeviceDuplicationOnAcceptance", false); };
+const close = () => { devicesStore.duplicatedDeviceName = ""; };
 </script>

@@ -9,6 +9,7 @@ const useBillingStore = defineStore("billing", () => {
   const isActive = computed(() => billing.value.active ?? false);
   const status = computed(() => billing.value.status ?? "inactive");
   const invoices = computed(() => billing.value.invoices ?? []);
+  const showBillingWarning = ref(false);
 
   const getSubscriptionInfo = async (): Promise<void> => {
     try {
@@ -31,6 +32,8 @@ const useBillingStore = defineStore("billing", () => {
     isActive,
     status,
     invoices,
+    showBillingWarning,
+
     getSubscriptionInfo,
     openBillingPortal,
   };

@@ -108,7 +108,6 @@ import { useField } from "vee-validate";
 import * as yup from "yup";
 import { computed, ref, watch } from "vue";
 import { envVariables } from "@/envVariables";
-import { useStore } from "@/store";
 import { IConnectorPayload } from "@/interfaces/IConnector";
 import { parseCertificate, parsePrivateKeySsh } from "@/utils/validate";
 import hasPermission from "@/utils/permission";
@@ -117,6 +116,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
 const props = defineProps<{
   isEditing: boolean;
@@ -128,11 +128,10 @@ const props = defineProps<{
 }>();
 
 const authStore = useAuthStore();
+const usersStore = useUsersStore();
 const showDialog = defineModel<boolean>({ default: false });
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
-
-const store = useStore();
 
 // eslint-disable-next-line vue/max-len
 const ipAddressRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})$/;
@@ -301,7 +300,7 @@ const saveConnector = async () => {
   }
 
   if (envVariables.isCommunity) {
-    store.commit("users/setShowPaywall", true);
+    usersStore.showPaywall = true;
     return;
   }
   try {

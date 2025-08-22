@@ -6,9 +6,9 @@ import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SignUp from "@/views/SignUp.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type SignUpWrapper = VueWrapper<InstanceType<typeof SignUp>>;
 
@@ -16,12 +16,13 @@ describe("Sign Up", () => {
   let wrapper: SignUpWrapper;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
+  const usersStore = useUsersStore();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(() => {
     wrapper = mount(SignUp, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -70,7 +71,7 @@ describe("Sign Up", () => {
 
     mockUsersApi.onPost("http://localhost:3000/api/register").reply(200, responseData);
 
-    const signUpSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "signUp");
 
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
@@ -84,7 +85,7 @@ describe("Sign Up", () => {
 
     await flushPromises();
     await nextTick();
-    expect(signUpSpy).toHaveBeenCalledWith("users/signUp", {
+    expect(storeSpy).toHaveBeenCalledWith({
       name: "test",
       email: "test@test.com",
       username: "test",
