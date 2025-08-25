@@ -1,6 +1,6 @@
 import { IDevice } from "./IDevice";
 
-export interface IWebEndpoints {
+export interface IWebEndpoint {
   address: string,
   full_address: string,
   device: IDevice
@@ -17,6 +17,10 @@ export interface IWebEndpointsCreate {
   ttl: number
 }
 
-export interface IWebEndpointsDelete {
-  address: string,
+export interface FetchWebEndpointsParams {
+  perPage?: number;
+  page?: number;
+  filter?: string;
+  sortField?: "created_at" | "updated_at" | "address" | "uid";
+  sortOrder?: "asc" | "desc";
 }

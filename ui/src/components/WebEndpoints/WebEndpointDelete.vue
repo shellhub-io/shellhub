@@ -36,29 +36,24 @@
 </template>
 
 <script setup lang="ts">
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
 defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps({
-  address: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{ address: string }>();
 
 const emit = defineEmits(["update"]);
 const showDialog = defineModel({ default: false });
-const store = useStore();
 const authStore = useAuthStore();
+const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
 
 const update = () => {
@@ -73,9 +68,7 @@ const hasAuthorizationDeleteWebEndpoint = () => {
 
 const remove = async () => {
   try {
-    await store.dispatch("webEndpoints/delete", {
-      address: props.address,
-    });
+    await webEndpointsStore.deleteWebEndpoint(props.address);
     update();
     snackbar.showSuccess("Web Endpoint deleted successfully.");
   } catch (error: unknown) {
