@@ -7,7 +7,6 @@ import ConnectorList from "@/components/Connector/ConnectorList.vue";
 import { router } from "@/router";
 import { namespacesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { key, store } from "@/store";
 
 type ConnectorListWrapper = VueWrapper<InstanceType<typeof ConnectorList>>;
 
@@ -56,7 +55,7 @@ describe("Connector List", () => {
 
     wrapper = mount(ConnectorList, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

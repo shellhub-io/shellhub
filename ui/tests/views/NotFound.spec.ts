@@ -3,7 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { vi, expect, describe, it, beforeEach } from "vitest";
 import NotFound from "@/views/NotFound.vue";
-import { key, store } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
@@ -15,7 +14,7 @@ describe("Not Found Page", () => {
   beforeEach(async () => {
     wrapper = mount(NotFound, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

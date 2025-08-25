@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PublicKeyEdit from "@/components/PublicKeys/PublicKeyEdit.vue";
 import { sshApi, tagsApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import usePublicKeysStore from "@/store/modules/public_keys";
@@ -38,7 +37,7 @@ describe("Public Key Edit", () => {
 
     wrapper = mount(PublicKeyEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
       props: {
         publicKey: mockPublicKey,

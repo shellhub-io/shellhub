@@ -6,7 +6,6 @@ import { VLayout } from "vuetify/components";
 import { createPinia, setActivePinia } from "pinia";
 import { containersApi, devicesApi, namespacesApi, systemApi } from "@/api/http";
 import AppBar from "@/components/AppBar/AppBar.vue";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -99,7 +98,7 @@ describe("AppBar Component", () => {
 
     wrapper = mount(Component, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
         components: {
           "v-layout": VLayout,
           AppBar,

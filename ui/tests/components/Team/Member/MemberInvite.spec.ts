@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MemberInvite from "@/components/Team/Member/MemberInvite.vue";
 import { namespacesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
@@ -37,7 +36,7 @@ describe("Member Invite", () => {
     });
     wrapper = mount(MemberInvite, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });

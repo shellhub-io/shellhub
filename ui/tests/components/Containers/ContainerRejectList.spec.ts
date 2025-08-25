@@ -3,7 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { containersApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -63,7 +62,7 @@ describe("Container Rejected List", () => {
 
     wrapper = mount(ContainerRejectedList, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

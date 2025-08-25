@@ -2,7 +2,6 @@ import { createPinia, setActivePinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import WelcomeFirstScreen from "@/components/Welcome/WelcomeFirstScreen.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -31,7 +30,7 @@ describe("Welcome First Screen", () => {
 
     wrapper = mount(WelcomeFirstScreen, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

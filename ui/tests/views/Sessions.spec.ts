@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import Sessions from "@/views/Sessions.vue";
 import { sessionsApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 
@@ -68,7 +67,7 @@ describe("Sessions View", () => {
 
     wrapper = mount(Sessions, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -99,7 +98,7 @@ describe("Sessions View", () => {
     wrapper.unmount();
     wrapper = mount(Sessions, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
     await flushPromises();

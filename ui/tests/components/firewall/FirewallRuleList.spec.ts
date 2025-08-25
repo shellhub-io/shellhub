@@ -3,7 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import FirewallRuleList from "@/components/firewall/FirewallRuleList.vue";
 import { rulesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -59,7 +58,7 @@ describe("Firewall Rule List", () => {
 
     wrapper = mount(FirewallRuleList, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

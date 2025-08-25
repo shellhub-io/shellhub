@@ -6,7 +6,6 @@ import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SettingBilling from "@/components/Setting/SettingBilling.vue";
 import { billingApi, namespacesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -83,7 +82,7 @@ describe("Billing Settings Free Mode", () => {
     authStore.role = "owner";
     wrapper = mount(SettingBilling, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -190,7 +189,7 @@ describe("Billing Settings Premium Usage", () => {
     authStore.role = "owner";
     wrapper = mount(SettingBilling, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

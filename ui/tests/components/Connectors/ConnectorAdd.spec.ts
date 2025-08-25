@@ -3,7 +3,6 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import ConnectorAdd from "@/components/Connector/ConnectorAdd.vue";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type ConnectorAddWrapper = VueWrapper<InstanceType<typeof ConnectorAdd>>;
@@ -16,7 +15,7 @@ describe("Connector Add", () => {
   beforeEach(async () => {
     wrapper = mount(ConnectorAdd, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

@@ -4,7 +4,6 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
 import { nextTick } from "vue";
-import { store, key } from "@/store";
 import FirewallRuleEdit from "@/components/firewall/FirewallRuleEdit.vue";
 import { rulesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
@@ -39,7 +38,7 @@ describe("Firewall Rule Edit", () => {
   const firewallRulesStore = useFirewallRulesStore();
   const mountWrapper = (firewallRuleProp: IFirewallRule = firewallRule) => mount(FirewallRuleEdit, {
     global: {
-      plugins: [[store, key], vuetify],
+      plugins: [vuetify],
       provide: { [SnackbarInjectionKey]: mockSnackbar },
     },
     props: {

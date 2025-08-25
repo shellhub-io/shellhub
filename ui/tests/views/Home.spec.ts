@@ -6,7 +6,6 @@ import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import Home from "@/views/Home.vue";
 import { devicesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useNamespacesStore from "@/store/modules/namespaces";
@@ -60,7 +59,7 @@ describe("Home", () => {
 
     wrapper = mount(Home, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

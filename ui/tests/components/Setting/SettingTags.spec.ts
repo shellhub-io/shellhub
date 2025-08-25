@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import SettingTags from "@/components/Setting/SettingTags.vue";
 import { tagsApi } from "@/api/http";
-import { key, store } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type SettingTagsWrapper = VueWrapper<InstanceType<typeof SettingTags>>;
@@ -21,7 +20,7 @@ describe("Setting Tags", () => {
 
     wrapper = mount(SettingTags, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

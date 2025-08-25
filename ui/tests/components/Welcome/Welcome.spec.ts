@@ -4,7 +4,6 @@ import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
 import Welcome from "@/components/Welcome/Welcome.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { key, store } from "@/store";
 
 type WelcomeWrapper = VueWrapper<InstanceType<typeof Welcome>>;
 
@@ -16,7 +15,7 @@ describe("Welcome", () => {
   beforeEach(async () => {
     wrapper = mount(Welcome, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         modelValue: true,

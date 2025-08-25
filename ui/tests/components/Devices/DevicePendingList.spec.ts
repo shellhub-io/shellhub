@@ -3,7 +3,6 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import DevicePendingList from "@/components/Devices/DevicePendingList.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
@@ -67,7 +66,7 @@ describe("Device Pending List", () => {
 
     wrapper = mount(DevicePendingList, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

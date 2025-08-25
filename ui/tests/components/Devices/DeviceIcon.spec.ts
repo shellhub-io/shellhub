@@ -2,7 +2,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -15,7 +14,7 @@ describe("Device Icon", () => {
   beforeEach(async () => {
     wrapper = mount(DeviceIcon, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
       props: {
         icon: "",

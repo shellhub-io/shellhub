@@ -3,7 +3,6 @@ import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TeamMembers from "@/views/TeamMembers.vue";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useNamespacesStore from "@/store/modules/namespaces";
 import { INamespaceMember } from "@/interfaces/INamespace";
@@ -45,7 +44,7 @@ describe("Team Members", () => {
 
     wrapper = mount(TeamMembers, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

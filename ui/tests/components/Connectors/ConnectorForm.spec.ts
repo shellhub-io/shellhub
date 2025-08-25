@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createVuetify } from "vuetify";
 import ConnectorForm from "@/components/Connector/ConnectorForm.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { key, store } from "@/store";
 
 type ConnectorFormWrapper = VueWrapper<InstanceType<typeof ConnectorForm>>;
 
@@ -16,7 +15,7 @@ describe("Connector Form", () => {
   beforeEach(async () => {
     wrapper = mount(ConnectorForm, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         isEditing: false,

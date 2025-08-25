@@ -3,7 +3,6 @@ import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
 import FirewallRuleDelete from "@/components/firewall/FirewallRuleDelete.vue";
 import { router } from "@/router";
 import { rulesApi } from "@/api/http";
@@ -27,7 +26,7 @@ describe("Firewall Rule Delete", () => {
   beforeEach(async () => {
     wrapper = mount(FirewallRuleDelete, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {

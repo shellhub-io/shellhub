@@ -3,7 +3,6 @@ import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import Settings from "@/views/Settings.vue";
-import { store, key } from "@/store";
 import { router } from "@/router";
 
 type SettingsWrapper = VueWrapper<InstanceType<typeof Settings>>;
@@ -16,7 +15,7 @@ describe("Settings View", () => {
   beforeEach(async () => {
     wrapper = mount(Settings, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
       },
     });
   });

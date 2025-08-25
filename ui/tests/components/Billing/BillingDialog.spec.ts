@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import BillingDialog from "@/components/Billing/BillingDialog.vue";
 import { billingApi, namespacesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -69,7 +68,7 @@ describe("Billing Dialog", () => {
 
     wrapper = mount(BillingDialog, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

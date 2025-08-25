@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import ValidationAccount from "@/views/ValidationAccount.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 
@@ -23,7 +22,7 @@ describe("Validation Account", () => {
 
     wrapper = mount(ValidationAccount, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

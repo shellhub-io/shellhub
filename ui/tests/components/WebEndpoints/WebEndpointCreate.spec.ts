@@ -3,7 +3,6 @@ import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
 import { devicesApi, webEndpointsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -112,7 +111,7 @@ describe("WebEndpointCreate.vue", () => {
     wrapper = mount(WebEndpointCreate, {
       attachTo: document.body,
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         useDevicesList: true,

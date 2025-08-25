@@ -3,7 +3,6 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import PrivateKeyAdd from "@/components/PrivateKeys/PrivateKeyAdd.vue";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type PrivateKeyAddWrapper = VueWrapper<InstanceType<typeof PrivateKeyAdd>>;
@@ -16,7 +15,7 @@ describe("Setting Private Keys", () => {
   beforeEach(async () => {
     wrapper = mount(PrivateKeyAdd, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

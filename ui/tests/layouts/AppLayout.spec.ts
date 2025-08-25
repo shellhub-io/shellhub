@@ -7,7 +7,6 @@ import MockAdapter from "axios-mock-adapter";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { devicesApi, containersApi } from "@/api/http";
@@ -54,7 +53,7 @@ describe("App Layout Component", () => {
 
     wrapper = mount(AppWrapperComponent, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
         stubs: {
           "router-link": {
             template: "<a><slot /></a>",
