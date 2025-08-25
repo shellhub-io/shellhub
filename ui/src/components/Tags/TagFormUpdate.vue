@@ -24,26 +24,84 @@
       <v-divider />
 
       <v-card-text class="mt-5 w-100">
-        <v-combobox
-          id="targetInput"
-          full-width
-          v-model="inputTags"
-          :error-messages="tagsError"
+        <v-autocomplete
+          v-model="selectedTags"
+          :items="tags"
+          item-title="name"
+          item-value="name"
           label="Tag"
-          hint="Maximum of 3 tags"
           multiple
-          clearable
-          chips
           variant="outlined"
-          data-test="deviceTag-combobox"
-          closable-chips
-          :delimiters="[',', ' ']"
-        />
+          data-test="deviceTag-autocomplete"
+          @update:search="searchTags"
+        >
+          <template v-slot:item="{ item }">
+            <v-list-item
+              v-bind="props"
+              :key="item.value"
+              @click="updateTags(item.value)"
+              :active="selectedTags.includes(item.value)"
+              active-color="primary"
+              data-test="tag-item"
+            >
+              <v-list-item-action>
+                <v-checkbox
+                  :model-value="selectedTags.includes(item.value)"
+                  color="primary"
+                  hide-details
+                />
+                <v-list-item-title><v-chip>{{ item.value }} </v-chip></v-list-item-title>
+              </v-list-item-action>
+            </v-list-item>
+
+            <v-divider />
+          </template>
+
+          <template v-slot:prepend-item>
+            <div class="d-flex justify-center">
+              <v-btn
+                v-if="validNewTag"
+                @click="createTag"
+                color="primary"
+                variant="text"
+                data-test="create-new-tag-btn"
+              >
+                Create New Tag
+              </v-btn>
+
+            </div>
+          </template>
+
+          <template v-slot:selection="{ item }">
+            <v-chip
+              :key="item.value"
+              closable
+              @click:close="removeTag(item.value)"
+              data-test="selected-tags"
+            >
+              {{ item.value }}
+            </v-chip>
+          </template>
+
+          <template v-slot:append-item>
+            <div class="d-flex justify-center" v-if="hasMore">
+              <v-btn
+                @click="loadTags"
+                variant="text"
+                color="primary"
+                data-test="load-more-tags-btn"
+                :disabled="!hasMore"
+              >
+                Load More
+              </v-btn>
+            </div>
+          </template>
+        </v-autocomplete>
+
       </v-card-text>
 
       <v-card-actions>
         <v-spacer />
-
         <v-btn
           variant="text"
           data-test="close-btn"
@@ -69,58 +127,83 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 
+interface Tag {
+  name: string;
+}
+
 const props = defineProps<{
   deviceUid: string;
-  tagsList: string[];
-  hasAuthorization: boolean;
+  tagsList: Tag[];
+  hasAuthorization?: boolean;
 }>();
 
-const emit = defineEmits(["update"]);
-const snackbar = useSnackbar();
 const store = useStore();
+const snackbar = useSnackbar();
+const tenant = computed(() => localStorage.getItem("tenant"));
 const showDialog = ref(false);
-const hasTags = computed(() => props.tagsList.length > 0);
-const inputTags = ref<string[]>([]);
+const emit = defineEmits(["update"]);
+const selectedTags = ref<Array<string>>(
+  props.tagsList.map((tag) => (typeof tag === "object" && "name" in tag ? tag.name : "")),
+);
+const fetchedTags = ref<Array<string>>([]);
+const tags = computed(() => fetchedTags.value);
+const page = ref(1);
+const perPage = ref(10);
+const hasMore = ref(true);
+const filter = ref("");
 const tagsError = ref("");
 
-const tagsHasLessThan3Characters = computed(() => inputTags.value.some((tag) => tag.length < 3));
+const hasTags = computed(() => selectedTags.value.length > 0);
 
-watch(inputTags, () => {
-  if (inputTags.value.length > 3) {
-    tagsError.value = "Maximum of 3 tags";
-  } else if (tagsHasLessThan3Characters.value) {
-    tagsError.value = "The minimum length is 3 characters";
-  } else {
-    tagsError.value = "";
+const close = () => {
+  selectedTags.value = [];
+  fetchedTags.value = [];
+  showDialog.value = false;
+};
+
+const encodeFilter = (search: string) => {
+  if (!search) return "";
+  const filterToEncodeBase64 = [
+    {
+      type: "property",
+      params: { name: "name", operator: "contains", value: search },
+    },
+  ];
+  return btoa(JSON.stringify(filterToEncodeBase64));
+};
+
+watch(selectedTags, (newValue) => {
+  if (selectedTags.value === newValue) {
+    emit("update");
   }
 });
 
-const open = () => {
-  inputTags.value.splice(0, inputTags.value.length, ...props.tagsList);
-  showDialog.value = true;
-};
+const validNewTag = computed(() => (
+  filter.value.length >= 3
+    && filter.value.length <= 255
+    && !tags.value.includes(filter.value)
+    && !selectedTags.value.includes(filter.value)
+));
 
-const save = async () => {
-  if (tagsError.value) return;
+const loadTags = async () => {
+  if (!hasMore.value) return;
+
   try {
-    tagsError.value = "";
+    const encodedFilter = encodeFilter(filter.value);
 
-    await store.dispatch("devices/updateDeviceTag", {
-      uid: props.deviceUid,
-      tags: { tags: inputTags.value },
+    await store.dispatch("tags/autocomplete", {
+      tenant: tenant.value,
+      filter: encodedFilter,
+      page: page.value,
+      perPage: perPage.value,
     });
 
-    await store.dispatch("tags/setTags", {
-      data: inputTags.value,
-      headers: {
-        "x-total-count": inputTags.value.length,
-      },
-    });
-    showDialog.value = false;
-    snackbar.showSuccess("Tags updated successfully.");
+    const newTags = store.getters["tags/list"];
 
-    emit("update");
-  } catch (error: unknown) {
+    if (newTags.length < perPage.value) hasMore.value = false;
+    else page.value += 1; // Increment page to load next batch
+    fetchedTags.value = [...fetchedTags.value, ...newTags]; // Append instead of replacing
+  } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       switch (axiosError.response?.status) {
@@ -151,7 +234,87 @@ const save = async () => {
   }
 };
 
-const close = () => {
-  showDialog.value = false;
+const open = async () => {
+  showDialog.value = true;
+  page.value = 1;
+  perPage.value = 10;
+  hasMore.value = true;
+  selectedTags.value = props.tagsList.map((tag) => typeof tag === "object" && "name" in tag ? tag.name : "");
+  await loadTags();
 };
+
+const searchTags = (search) => {
+  filter.value = search;
+
+  const encodedFilter = encodeFilter(search);
+
+  try {
+    store.dispatch("tags/search", {
+      tenant: tenant.value,
+      filter: encodedFilter,
+    });
+  } catch {
+    store.dispatch("snackbar/showSnackbarErrorDefault");
+  }
+};
+
+const updateTags = async (newTag: string) => {
+  const addedTag = !selectedTags.value.includes(newTag);
+
+  if (addedTag) {
+    await store.dispatch("tags/pushTagToDevice", {
+      tenant: tenant.value,
+      uid: props.deviceUid,
+      name: newTag,
+    });
+    selectedTags.value.push(newTag);
+  } else {
+    await store.dispatch("tags/removeTagFromDevice", {
+      tenant: tenant.value,
+      uid: props.deviceUid,
+      name: newTag,
+    });
+    const index = selectedTags.value.indexOf(newTag);
+    selectedTags.value.splice(index, 1);
+  }
+};
+
+const createTag = async () => {
+  if (!validNewTag.value) return;
+
+  try {
+    await store.dispatch("tags/createTag", {
+      tenant: tenant.value,
+      name: filter.value,
+    });
+
+    await store.dispatch("tags/pushTagToDevice", {
+      tenant: tenant.value,
+      uid: props.deviceUid,
+      name: filter.value,
+    });
+
+    selectedTags.value.push(filter.value);
+
+    fetchedTags.value = [...new Set([filter.value, ...fetchedTags.value])];
+
+    filter.value = "";
+    tagsError.value = "";
+  } catch (error) {
+    console.error("Error creating tag:", error);
+  }
+};
+
+const removeTag = async (tag) => {
+  selectedTags.value = selectedTags.value.filter((t) => t !== tag);
+
+  await store.dispatch("tags/removeTagFromDevice", {
+    tenant: tenant.value,
+    uid: props.deviceUid,
+    name: tag,
+  });
+};
+
+defineExpose({ updateTags, loadTags, createTag, removeTag, selectedTags, fetchedTags });
+
 </script>
