@@ -62,7 +62,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
           <div class="v-field__input" data-no-activator="">
             <!---->
             <!---->
-            <div class="v-select__selection"><span class="v-select__selection-text">1<!----></span></div><input size="1" type="text" id="input-v-2" inputmode="none" aria-label="Open" title="Open" value="1">
+            <div class="v-select__selection"><span class="v-select__selection-text">1<!----></span></div><input size="1" role="combobox" type="text" id="input-v-2" inputmode="none" aria-label="Open" title="Open" value="1">
           </div>
           <!---->
         </div>

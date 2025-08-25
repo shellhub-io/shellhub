@@ -75,7 +75,7 @@ exports[`Terminal Login Form > Renders the component 1`] = `
           <div class="v-field__input" data-no-activator="">
             <!---->
             <!---->
-            <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" inputmode="none" aria-label="Open" title="Open" value="Password">
+            <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" id="input-v-2" aria-describedby="input-v-2-messages" inputmode="none" aria-label="Open" title="Open" value="Password">
           </div>
           <!---->
         </div>

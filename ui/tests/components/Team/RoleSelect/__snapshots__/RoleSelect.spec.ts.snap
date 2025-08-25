@@ -30,7 +30,7 @@ exports[`RoleSelect > Renders the component 1`] = `
         <div class="v-field__input" data-no-activator="">
           <!---->
           <!---->
-          <div class="v-select__selection"><span class="v-select__selection-text">Administrator<!----></span></div><input size="1" type="text" id="input-v-0" aria-describedby="input-v-0-messages" inputmode="none" aria-label="Open" title="Open" required="" value="administrator">
+          <div class="v-select__selection"><span class="v-select__selection-text">Administrator<!----></span></div><input size="1" role="combobox" type="text" id="input-v-0" aria-describedby="input-v-0-messages" inputmode="none" aria-label="Open" title="Open" required="" value="Administrator">
         </div>
         <!---->
       </div>

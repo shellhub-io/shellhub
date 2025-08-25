@@ -90,7 +90,7 @@ exports[`Device Pending List > Renders the component 1`] = `
                   <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" type="text" id="input-v-9" outlined="" value="10">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-9" outlined="" value="10">
                   </div>
                   <!---->
                 </div>
