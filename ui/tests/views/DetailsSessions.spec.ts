@@ -8,7 +8,6 @@ import DetailsSessions from "@/views/DetailsSessions.vue";
 import { sessionsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { routes } from "@/router";
-import { key, store } from "@/store";
 
 type DetailsSessionsWrapper = VueWrapper<InstanceType<typeof DetailsSessions>>;
 
@@ -76,7 +75,7 @@ describe("Details Sessions", () => {
 
     wrapper = mount(DetailsSessions, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

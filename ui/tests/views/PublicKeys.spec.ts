@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PublicKeys from "@/views/PublicKeys.vue";
 import { sshApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import usePublicKeysStore from "@/store/modules/public_keys";
 
@@ -37,7 +36,7 @@ describe("Public Keys", () => {
 
     wrapper = mount(PublicKeys, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

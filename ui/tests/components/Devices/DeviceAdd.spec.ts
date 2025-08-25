@@ -3,7 +3,6 @@ import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import DeviceAdd from "@/components/Devices/DeviceAdd.vue";
 import { devicesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -58,7 +57,7 @@ describe("Device Add", () => {
 
     wrapper = mount(DeviceAdd, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

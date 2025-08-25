@@ -4,7 +4,6 @@ import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SettingNamespace from "@/components/Setting/SettingNamespace.vue";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 import { namespacesApi, usersApi } from "@/api/http";
@@ -75,7 +74,7 @@ describe("Setting Namespace", () => {
 
     wrapper = mount(SettingNamespace, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

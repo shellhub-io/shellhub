@@ -3,7 +3,6 @@ import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
 import DeviceDelete from "@/components/Devices/DeviceDelete.vue";
 import { router } from "@/router";
 import { devicesApi, tagsApi } from "@/api/http";
@@ -24,7 +23,7 @@ describe("Device Delete", () => {
 
     wrapper = mount(DeviceDelete, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
       props: {
         uid: "a582b47a42d",

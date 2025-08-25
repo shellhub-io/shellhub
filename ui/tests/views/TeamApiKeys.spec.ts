@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import TeamApiKeys from "@/views/TeamApiKeys.vue";
 import { apiKeysApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 import useApiKeysStore from "@/store/modules/api_keys";
@@ -44,7 +43,7 @@ describe("Team Api Keys", () => {
 
     wrapper = mount(TeamApiKeys, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

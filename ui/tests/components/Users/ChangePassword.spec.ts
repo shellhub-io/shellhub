@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import ChangePassword from "@/components/User/ChangePassword.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
 import useUsersStore from "@/store/modules/users";
@@ -47,7 +46,7 @@ describe("Change Password", () => {
 
     wrapper = mount(ChangePassword, {
       global: {
-        plugins: [[store, key], vuetify],
+        plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });

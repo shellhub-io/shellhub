@@ -5,7 +5,6 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MfaSettings from "@/components/AuthMFA/MfaSettings.vue";
 import { mfaApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
@@ -38,7 +37,7 @@ describe("MfaSettings", () => {
 
     wrapper = mount(MfaSettings, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

@@ -2,7 +2,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import WelcomeFourthScreen from "@/components/Welcome/WelcomeFourthScreen.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
@@ -16,7 +15,7 @@ describe("Welcome Fourth Screen", () => {
   beforeEach(async () => {
     wrapper = mount(WelcomeFourthScreen, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

@@ -6,7 +6,6 @@ import NotificationsList from "@/components/AppBar/Notifications/NotificationsLi
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 import { INotification } from "@/interfaces/INotification";
-import { key, store } from "@/store";
 
 const mockNotifications = [
   {
@@ -35,7 +34,7 @@ describe("Notifications List", async () => {
   beforeEach(async () => {
     wrapper = mount(NotificationsList, {
       global: {
-        plugins: [[store, key], router, vuetify, SnackbarPlugin],
+        plugins: [router, vuetify, SnackbarPlugin],
       },
       props: {
         notifications: mockNotifications as INotification[],

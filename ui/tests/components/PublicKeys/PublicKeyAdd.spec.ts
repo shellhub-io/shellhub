@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PublicKeyAdd from "@/components/PublicKeys/PublicKeyAdd.vue";
 import { sshApi, tagsApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
@@ -29,7 +28,7 @@ describe("Public Key Add", () => {
     authStore.role = "owner";
     wrapper = mount(PublicKeyAdd, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

@@ -3,7 +3,6 @@ import MockAdapter from "axios-mock-adapter";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
-import { key, store } from "@/store";
 import NotificationsMenu from "@/components/AppBar/Notifications/NotificationsMenu.vue";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { containersApi, devicesApi } from "@/api/http";
@@ -45,7 +44,7 @@ describe("Notifications Menu", async () => {
     mockPendingNotifications(deviceData, containerData);
     wrapper = mount(NotificationsMenu, {
       global: {
-        plugins: [[store, key], router, vuetify],
+        plugins: [router, vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -65,7 +64,7 @@ describe("Notifications Menu", async () => {
     const fetchSpy = vi.spyOn(notificationsStore, "fetchNotifications");
     wrapper = mount(NotificationsMenu, {
       global: {
-        plugins: [[store, key], router, vuetify],
+        plugins: [router, vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });

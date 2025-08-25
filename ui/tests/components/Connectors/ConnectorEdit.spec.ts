@@ -2,7 +2,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import ConnectorEdit from "@/components/Connector/ConnectorEdit.vue";
@@ -17,7 +16,7 @@ describe("Connector Edit", () => {
   beforeEach(async () => {
     wrapper = mount(ConnectorEdit, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
       props: {
         secure: true,

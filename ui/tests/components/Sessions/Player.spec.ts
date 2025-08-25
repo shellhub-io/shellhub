@@ -5,7 +5,6 @@ import { nextTick } from "vue";
 import { createVuetify } from "vuetify";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
-import { store, key } from "@/store";
 import Player from "@/components/Sessions/Player.vue";
 import formatPlaybackTime from "@/utils/playerPlayback";
 
@@ -34,7 +33,7 @@ describe("Asciinema Player", () => {
   beforeEach(async () => {
     wrapper = mount(Player, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
       props: {
         logs: logsMock,

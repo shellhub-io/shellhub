@@ -6,7 +6,6 @@ import moment from "moment";
 import { createPinia, setActivePinia } from "pinia";
 import ApiKeyList from "@/components/Team/ApiKeys/ApiKeyList.vue";
 import { apiKeysApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useApiKeysStore from "@/store/modules/api_keys";
 
@@ -49,7 +48,7 @@ describe("Api Key List", () => {
 
     wrapper = mount(ApiKeyList, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });

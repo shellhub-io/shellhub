@@ -5,7 +5,6 @@ import MockAdapter from "axios-mock-adapter";
 import { createPinia, setActivePinia } from "pinia";
 import ApiKeyEdit from "@/components/Team/ApiKeys/ApiKeyEdit.vue";
 import { apiKeysApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useApiKeysStore from "@/store/modules/api_keys";
@@ -27,7 +26,7 @@ describe("Api Key Edit", () => {
   beforeEach(async () => {
     wrapper = mount(ApiKeyEdit, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {

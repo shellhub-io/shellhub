@@ -3,7 +3,6 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
-import { store, key } from "@/store";
 import QuickConnectionList from "@/components/QuickConnection/QuickConnectionList.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
@@ -51,7 +50,7 @@ describe("Quick Connection List", () => {
 
     wrapper = mount(QuickConnectionList, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });

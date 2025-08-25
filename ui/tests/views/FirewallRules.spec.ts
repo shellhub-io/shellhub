@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import FirewallRules from "@/views/FirewallRules.vue";
 import { rulesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
@@ -39,7 +38,7 @@ describe("Firewall Rules", () => {
     firewallRulesStore.firewallRuleCount = 1;
     wrapper = mount(FirewallRules, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });
@@ -76,7 +75,7 @@ describe("Firewall Rules", () => {
     firewallRulesStore.firewallRuleCount = 0;
     wrapper = mount(FirewallRules, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);

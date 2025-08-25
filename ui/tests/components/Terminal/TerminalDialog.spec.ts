@@ -5,7 +5,6 @@ import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
 import { createRouter, createWebHistory } from "vue-router";
 import { createPinia, setActivePinia } from "pinia";
-import { store, key } from "@/store";
 import TerminalDialog from "@/components/Terminal/TerminalDialog.vue";
 import { routes } from "@/router";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
@@ -37,7 +36,7 @@ describe("Terminal Dialog", async () => {
   beforeEach(async () => {
     wrapper = mount(TerminalDialog, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
       },
       props: {
         modelValue: true,

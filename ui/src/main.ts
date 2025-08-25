@@ -6,7 +6,6 @@ import { configure as configGtag } from "vue-gtag";
 import { createChatWoot } from "@productdevbook/chatwoot/vue";
 import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
-import { key, store } from "./store";
 import { router } from "./router";
 import App from "./App.vue";
 import "asciinema-player/dist/bundle/asciinema-player.css";
@@ -37,7 +36,6 @@ loadFonts();
 app.use(vuetify);
 app.use(router);
 app.use(pinia);
-app.use(store, key);
 
 configGtag({
   tagId: envVariables.googleAnalyticsID || "",

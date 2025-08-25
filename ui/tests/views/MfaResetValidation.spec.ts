@@ -5,7 +5,6 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MfaResetValidation from "@/views/MfaResetValidation.vue";
 import { mfaApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
@@ -24,7 +23,7 @@ describe("Validate Recovery Mail", () => {
 
     wrapper = mount(MfaResetValidation, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

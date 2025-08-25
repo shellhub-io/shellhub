@@ -4,7 +4,6 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { nextTick } from "vue";
-import { store, key } from "@/store";
 import DeviceChooser from "@/components/Devices/DeviceChooser.vue";
 import { router } from "@/router";
 import { billingApi, devicesApi } from "@/api/http";
@@ -73,7 +72,7 @@ describe("Device Chooser", () => {
 
     wrapper = mount(DeviceChooser, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

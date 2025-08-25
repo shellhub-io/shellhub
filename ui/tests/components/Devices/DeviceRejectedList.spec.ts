@@ -3,7 +3,6 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import { store, key } from "@/store";
 import DeviceRejectedList from "@/components/Devices/DeviceRejectedList.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
@@ -68,7 +67,7 @@ describe("Device Rejected List", () => {
 
     wrapper = mount(DeviceRejectedList, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });

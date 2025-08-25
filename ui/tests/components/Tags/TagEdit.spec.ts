@@ -3,7 +3,6 @@ import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
 import TagEdit from "@/components/Tags/TagEdit.vue";
 import { router } from "@/router";
 import { tagsApi } from "@/api/http";
@@ -25,7 +24,7 @@ describe("Tag Form Edit", async () => {
   beforeEach(async () => {
     wrapper = mount(TagEdit, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {

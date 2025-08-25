@@ -3,7 +3,6 @@ import { flushPromises, mount, VueWrapper, DOMWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
 import WebEndpointDelete from "@/components/WebEndpoints/WebEndpointDelete.vue";
 import { webEndpointsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
@@ -26,7 +25,7 @@ describe("WebEndpointDelete.vue", () => {
   beforeEach(() => {
     wrapper = mount(WebEndpointDelete, {
       global: {
-        plugins: [[store, key], vuetify],
+        plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {

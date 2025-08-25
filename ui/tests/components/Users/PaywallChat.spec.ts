@@ -2,7 +2,6 @@ import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import PaywallChat from "@/components/User/PaywallChat.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
@@ -14,7 +13,7 @@ describe("PaywallChat", () => {
   beforeEach(async () => {
     wrapper = mount(PaywallChat, {
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       attachTo: document.body,
     });

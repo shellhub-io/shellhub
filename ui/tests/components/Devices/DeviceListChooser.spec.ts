@@ -2,7 +2,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, afterEach } from "vitest";
-import { store, key } from "@/store";
 import DeviceListChooser from "@/components/Devices/DeviceListChooser.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -17,7 +16,7 @@ describe("Device Chooser List", () => {
   beforeEach(async () => {
     wrapper = mount(DeviceListChooser, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
