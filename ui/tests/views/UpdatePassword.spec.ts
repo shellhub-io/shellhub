@@ -1,13 +1,13 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import UpdatePassword from "@/views/UpdatePassword.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type UpdatePasswordWrapper = VueWrapper<InstanceType<typeof UpdatePassword>>;
 const uid = "testID";
@@ -20,31 +20,23 @@ const mockSnackbar = {
 describe("Update Password", () => {
   let wrapper: UpdatePasswordWrapper;
   const vuetify = createVuetify();
-
-  let mock: MockAdapter;
+  setActivePinia(createPinia());
+  const usersStore = useUsersStore();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(async () => {
-    vi.useFakeTimers();
-    envVariables.isCloud = true;
-
-    mock = new MockAdapter(usersApi.getAxios());
     await router.push(`/update-password?id=${uid}&token=testtoken`);
 
     wrapper = mount(UpdatePassword, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mock.reset();
+    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
@@ -71,9 +63,9 @@ describe("Update Password", () => {
       id: uid,
     };
 
-    mock.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(200);
+    mockUsersApi.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(200);
 
-    const updatePasswordSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "updatePassword");
     const routerPushSpy = vi.spyOn(router, "push");
 
     await wrapper.findComponent('[data-test="password-text"]').setValue("12345678");
@@ -83,12 +75,12 @@ describe("Update Password", () => {
 
     await flushPromises();
 
-    expect(updatePasswordSpy).toHaveBeenCalledWith("users/updatePassword", requestData);
+    expect(storeSpy).toHaveBeenCalledWith(requestData);
     expect(routerPushSpy).toHaveBeenCalledWith({ name: "Login" });
   });
 
   it("Error in updating password", async () => {
-    mock.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(400);
+    mockUsersApi.onPost(`http://localhost:3000/api/user/${uid}/update_password`).reply(400);
 
     await wrapper.findComponent('[data-test="password-text"]').setValue("12345");
     await wrapper.findComponent('[data-test="password-confirm-text"]').setValue("12345");

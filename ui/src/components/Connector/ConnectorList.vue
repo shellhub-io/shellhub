@@ -4,7 +4,7 @@
     v-model:itemsPerPage="itemsPerPage"
     :headers
     :items="connectors"
-    :totalCount="connectorsCount"
+    :totalCount="connectorCount"
     :loading
     :itemsPerPageOptions="[10, 20, 50, 100]"
     data-test="connector-list"
@@ -21,7 +21,7 @@
           >
             <v-switch
               v-model="item.enable"
-              @click="switchConnector(item.uid, item.enable)"
+              @click="toggleConnectorState(item)"
               inset
               hide-details
               :color="item.enable ? 'primary' : 'grey-darken-2'"
@@ -128,9 +128,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import axios from "axios";
-import { useStore } from "@/store";
+import { onMounted, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
 import { envVariables } from "@/envVariables";
 import DataTable from "../DataTable.vue";
 import ConnectorDelete from "../Connector/ConnectorDelete.vue";
@@ -141,6 +140,9 @@ import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { router } from "@/router";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useConnectorStore from "@/store/modules/connectors";
+import { IConnector } from "@/interfaces/IConnector";
 
 const headers = [
   {
@@ -168,70 +170,61 @@ const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
-
-const store = useStore();
-
-const connectorsCount = computed<number>(
-  () => store.getters["connectors/getNumberConnectors"],
-);
-
-const connectors = computed(() => store.getters["connectors/list"]);
+const authStore = useAuthStore();
+const connectorStore = useConnectorStore();
+const { connectors, connectorCount } = storeToRefs(connectorStore);
 
 const hasAuthorizationEdit = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
 };
 
 const hasAuthorizationRemove = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
 };
 
-const getConnectors = async (perPageValue: number, pageValue: number) => {
+const getConnectors = async () => {
   try {
     loading.value = true;
-    await store.dispatch("connectors/fetch", {
-      page: pageValue,
-      perPage: perPageValue,
+    await connectorStore.fetchConnectorList({
+      page: page.value,
+      perPage: itemsPerPage.value,
     });
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      snackbar.showError("An error occurred while loading connectors");
-    } else {
-      snackbar.showError("An unexpected error occurred");
-      handleError(error);
-    }
-  } finally {
-    loading.value = false;
+    snackbar.showError("An error occurred while loading connectors");
+    handleError(error);
   }
+
+  loading.value = false;
 };
 
 onMounted(async () => {
   if (envVariables.isCommunity) {
     return;
   }
-  await getConnectors(itemsPerPage.value, page.value);
+  await getConnectors();
 });
 
 const refresh = async () => {
-  await getConnectors(itemsPerPage.value, page.value);
+  await getConnectors();
 };
 
 watch([page, itemsPerPage], async () => {
-  await getConnectors(itemsPerPage.value, page.value);
+  await getConnectors();
 });
 
 const redirectToDetails = (uid: string) => {
   router.push({ name: "ConnectorDetails", params: { id: uid } });
 };
 
-const switchConnector = async (uid: string, enable: boolean) => {
+const toggleConnectorState = async (item: IConnector) => {
   try {
     const payload = {
-      uid,
-      enable: !enable,
+      ...item,
+      enable: !item.enable,
     };
-    await store.dispatch("connectors/edit", payload);
+    await connectorStore.updateConnector(payload);
     snackbar.showSuccess("Connector updated successfully.");
     refresh();
   } catch (error) {

@@ -2,12 +2,11 @@ import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
+import { setActivePinia, createPinia } from "pinia";
 import ApiKeyDelete from "@/components/Team/ApiKeys/ApiKeyDelete.vue";
-import { namespacesApi, usersApi, apiKeysApi } from "@/api/http";
-import { store, key } from "@/store";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useApiKeysStore from "@/store/modules/api_keys";
+import { apiKeysApi } from "@/api/http";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -18,90 +17,15 @@ type ApiKeyDeleteWrapper = VueWrapper<InstanceType<typeof ApiKeyDelete>>;
 
 describe("Api Key Delete", () => {
   let wrapper: ApiKeyDeleteWrapper;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  let mockApiKeys: MockAdapter;
-
-  const members = [
-    {
-      id: "507f1f77bcf86cd799439011",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant",
-    email: "test@test.com",
-    id: "507f1f77bcf86cd799439011",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
-  const getKeyResponse = [
-    {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df1",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
-    },
-    {
-      id: "3e5a5194-9dec-4a32-98db-7434c6d49df2",
-      tenant_id: "fake-tenant",
-      user_id: "507f1f77bcf86cd799439011",
-      name: "my api key",
-      expires_in: 1707958989,
-    },
-  ];
+  const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
+  const apiKeysStore = useApiKeysStore();
 
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockApiKeys = new MockAdapter(apiKeysApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockApiKeys.onGet("http://localhost:3000/api/namespaces/fake-tenant/api-key").reply(200, getKeyResponse, { "x-total-count": 2 });
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("apiKeys/setKeyList", { data: getKeyResponse, headers: { "x-total-count": 2 } });
-
     wrapper = mount(ApiKeyDelete, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
@@ -132,21 +56,21 @@ describe("Api Key Delete", () => {
   });
 
   it("Successfully Delete Api Key", async () => {
-    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/api-key/fake-id").reply(200);
+    mockApiKeysApi.onDelete("http://localhost:3000/api/namespaces/api-key/fake-id").reply(200);
 
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(apiKeysStore, "removeApiKey");
 
     await wrapper.findComponent('[data-test="delete-main-btn-title"]').trigger("click");
 
     await wrapper.findComponent('[data-test="delete-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("apiKeys/removeApiKey", {
+    expect(storeSpy).toHaveBeenCalledWith({
       key: "fake-id",
     });
   });
 
   it("Fails to delete Api Key", async () => {
-    mockApiKeys.onDelete("http://localhost:3000/api/namespaces/api-key/fake-id").reply(404);
+    mockApiKeysApi.onDelete("http://localhost:3000/api/namespaces/api-key/fake-id").reply(404);
 
     await wrapper.findComponent('[data-test="delete-main-btn-title"]').trigger("click");
 

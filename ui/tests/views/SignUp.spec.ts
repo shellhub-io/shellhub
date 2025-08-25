@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
@@ -5,37 +6,29 @@ import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SignUp from "@/views/SignUp.vue";
 import { usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useUsersStore from "@/store/modules/users";
 
 type SignUpWrapper = VueWrapper<InstanceType<typeof SignUp>>;
 
 describe("Sign Up", () => {
   let wrapper: SignUpWrapper;
   const vuetify = createVuetify();
-
-  let mock: MockAdapter;
+  setActivePinia(createPinia());
+  const usersStore = useUsersStore();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   beforeEach(() => {
-    vi.useFakeTimers();
-
-    envVariables.isCloud = true;
-
-    mock = new MockAdapter(usersApi.getAxios());
-
     wrapper = mount(SignUp, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mock.reset();
+    wrapper.unmount();
   });
 
   it("Is a Vue instance", () => {
@@ -76,9 +69,9 @@ describe("Sign Up", () => {
       emailMarketing: true,
     };
 
-    mock.onPost("http://localhost:3000/api/register").reply(200, responseData);
+    mockUsersApi.onPost("http://localhost:3000/api/register").reply(200, responseData);
 
-    const signUpSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "signUp");
 
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
@@ -90,10 +83,9 @@ describe("Sign Up", () => {
 
     await wrapper.find('[data-test="create-account-btn"]').trigger("submit");
 
-    vi.runOnlyPendingTimers();
     await flushPromises();
     await nextTick();
-    expect(signUpSpy).toHaveBeenCalledWith("users/signUp", {
+    expect(storeSpy).toHaveBeenCalledWith({
       name: "test",
       email: "test@test.com",
       username: "test",
@@ -113,7 +105,7 @@ describe("Sign Up", () => {
         },
       },
     };
-    mock.onPost("http://localhost:3000/api/register").reply(400, responseData);
+    mockUsersApi.onPost("http://localhost:3000/api/register").reply(400, responseData);
 
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
@@ -125,7 +117,6 @@ describe("Sign Up", () => {
 
     await wrapper.find('[data-test="create-account-btn"]').trigger("submit");
 
-    vi.runOnlyPendingTimers();
     await flushPromises();
   });
 
@@ -140,7 +131,7 @@ describe("Sign Up", () => {
         },
       },
     };
-    mock.onPost("http://localhost:3000/api/register").reply(409, responseData);
+    mockUsersApi.onPost("http://localhost:3000/api/register").reply(409, responseData);
 
     await wrapper.findComponent('[data-test="name-text"]').setValue("test");
     await wrapper.findComponent('[data-test="username-text"]').setValue("test");
@@ -152,7 +143,6 @@ describe("Sign Up", () => {
 
     await wrapper.find('[data-test="create-account-btn"]').trigger("submit");
 
-    vi.runOnlyPendingTimers();
     await flushPromises();
   });
 });

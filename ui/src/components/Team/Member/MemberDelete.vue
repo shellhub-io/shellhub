@@ -43,11 +43,12 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
 import { INamespaceMember } from "@/interfaces/INamespace";
+import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const props = defineProps<{
   member: INamespaceMember;
@@ -56,7 +57,8 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 
 const update = () => {
@@ -66,10 +68,9 @@ const update = () => {
 
 const remove = async () => {
   try {
-    const tenant = store.getters["auth/tenant"];
-    await store.dispatch("namespaces/removeUser", {
+    await namespacesStore.removeMemberFromNamespace({
       user_id: props.member.id,
-      tenant_id: tenant,
+      tenant_id: authStore.tenantId,
     });
 
     update();

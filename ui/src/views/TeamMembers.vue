@@ -5,7 +5,7 @@
     <v-spacer />
 
     <div class="d-flex" data-test="member-invite">
-      <MemberInvite @update="refresh" />
+      <MemberInvite @update="getNamespace" />
     </div>
   </div>
 
@@ -17,19 +17,19 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import MemberInvite from "@/components/Team/Member/MemberInvite.vue";
 import MemberList from "@/components/Team/Member/MemberList.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
 
-const store = useStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
-const tenant = computed(() => localStorage.getItem("tenant"));
+const tenant = computed(() => localStorage.getItem("tenant") as string);
 
 const getNamespace = async () => {
   try {
-    await store.dispatch("namespaces/get", tenant.value);
+    await namespacesStore.fetchNamespace(tenant.value);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -41,10 +41,6 @@ const getNamespace = async () => {
       handleError(error);
     }
   }
-};
-
-const refresh = () => {
-  getNamespace();
 };
 
 onMounted(async () => {

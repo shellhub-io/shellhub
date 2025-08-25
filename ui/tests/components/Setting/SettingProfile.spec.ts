@@ -1,97 +1,77 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import SettingProfile from "@/components/Setting/SettingProfile.vue";
-import { namespacesApi, usersApi } from "@/api/http";
-import { store, key } from "@/store";
+import { mfaApi, usersApi } from "@/api/http";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
 type SettingProfileWrapper = VueWrapper<InstanceType<typeof SettingProfile>>;
 
+const authData = {
+  status: "success",
+  token: "",
+  username: "test",
+  name: "test",
+  tenant: "fake-tenant-data",
+  email: "test@test.com",
+  recovery_email: "test2@test.com",
+  id: "xxxxxxxx",
+  auth_methods: ["local", "saml"],
+  role: "owner",
+  mfa: {
+    enable: false,
+    validate: false,
+  },
+};
+
+const mfaGenerateData = {
+  secret: "secret-mfa",
+  link: "link-mfa",
+  recovery_codes: [
+    "HW2wlxV40B",
+    "2xsmMUHHHb",
+    "DTQgVsaVac",
+    "KXPBoXvuWD",
+    "QQYTPfotBi",
+    "XWiKBEPyb4",
+  ],
+};
+
 describe("Settings Namespace", () => {
   let wrapper: SettingProfileWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
+  const usersStore = useUsersStore();
   const vuetify = createVuetify();
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
+  const mockMfaApi = new MockAdapter(mfaApi.getAxios());
 
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    recovery_email: "test2@test.com",
-    id: "xxxxxxxx",
-    auth_methods: ["local", "saml"],
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
+  window.matchMedia = vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
 
   beforeEach(async () => {
-    window.matchMedia = vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
-
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
     envVariables.isCommunity = true; // used in the MFA switch test only
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-
+    mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
+    mockMfaApi.onGet("http://localhost:3000/api/user/mfa/generate").reply(200, mfaGenerateData);
+    authStore.$patch(authData);
     wrapper = mount(SettingProfile, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -141,7 +121,7 @@ describe("Settings Namespace", () => {
   });
 
   it("Successfully changes user data", async () => {
-    mockUser.onPatch("http://localhost:3000/api/users").reply(200);
+    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(200);
 
     await wrapper.findComponent('[data-test="edit-profile-button"]').trigger("click");
     await wrapper.findComponent('[data-test="name-input"]').setValue("test");
@@ -150,14 +130,12 @@ describe("Settings Namespace", () => {
     await wrapper.findComponent('[data-test="recovery-email-input"]').setValue("test2@test.com");
     await flushPromises();
 
-    const changeDataSpy = vi.spyOn(store, "dispatch");
+    const changeDataSpy = vi.spyOn(usersStore, "patchData");
     await wrapper.findComponent('[data-test="save-changes-button"]').trigger("click");
-
-    vi.runOnlyPendingTimers();
 
     await nextTick();
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", {
+    expect(changeDataSpy).toHaveBeenCalledWith({
       email: "test@test.com",
       name: "test",
       recovery_email: "test2@test.com",
@@ -173,9 +151,9 @@ describe("Settings Namespace", () => {
       username: "test",
     };
 
-    mockUser.onPatch("http://localhost:3000/api/users").reply(401);
+    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(401);
 
-    const changeDataSpy = vi.spyOn(store, "dispatch");
+    const changeDataSpy = vi.spyOn(usersStore, "patchData");
     await wrapper.findComponent('[data-test="edit-profile-button"]').trigger("click");
     await wrapper.findComponent('[data-test="name-input"]').setValue("test");
     await wrapper.findComponent('[data-test="username-input"]').setValue("test");
@@ -185,10 +163,8 @@ describe("Settings Namespace", () => {
 
     await wrapper.findComponent('[data-test="save-changes-button"]').trigger("click");
 
-    vi.runOnlyPendingTimers();
-
     await nextTick();
     await flushPromises();
-    expect(changeDataSpy).toHaveBeenCalledWith("users/patchData", changeUserData);
+    expect(changeDataSpy).toHaveBeenCalledWith(changeUserData);
   });
 });

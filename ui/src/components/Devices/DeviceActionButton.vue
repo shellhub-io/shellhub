@@ -32,7 +32,7 @@
         <v-divider />
         <v-container>
           <v-alert
-            v-if="billingActive"
+            v-if="isBillingActive"
             type="warning"
             text="Accepted devices in ShellHub become active in your account and are billed for the entire billing period." />
           <v-card-text class="mt-4 mb-0 pb-1">
@@ -41,7 +41,7 @@
           <v-card-actions>
             <v-spacer />
             <v-btn variant="text" @click="close()" data-test="close-btn"> Close </v-btn>
-            <v-btn variant="text" @click="doAction()" data-test="action-btn"> {{ action }} </v-btn>
+            <v-btn variant="text" @click="handleClick()" data-test="action-btn"> {{ action }} </v-btn>
           </v-card-actions>
         </v-container>
       </v-card>
@@ -52,13 +52,16 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { AxiosError } from "axios";
-import { useStore } from "@/store";
 import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { capitalizeText } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
+import useDevicesStore from "@/store/modules/devices";
+import useNotificationsStore from "@/store/modules/notifications";
 
 interface DeviceActionButtonProps {
   name?: string;
@@ -75,12 +78,19 @@ const props = withDefaults(defineProps<DeviceActionButtonProps>(), {
 });
 
 const emit = defineEmits(["update"]);
-const store = useStore();
+const authStore = useAuthStore();
+const billingStore = useBillingStore();
+const devicesStore = useDevicesStore();
+const { fetchNotifications } = useNotificationsStore();
 const snackbar = useSnackbar();
-const billingActive = computed(() => store.getters["billing/active"]);
-
+const isBillingActive = computed(() => billingStore.isActive);
+const icon = {
+  accept: "mdi-check",
+  reject: "mdi-close",
+  remove: "mdi-delete",
+}[props.action];
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.device[props.action]);
 });
 
@@ -93,14 +103,8 @@ const close = () => {
 
 const refreshDevices = async () => {
   try {
+    await fetchNotifications();
     emit("update");
-
-    const { pathname } = window.location;
-    if (pathname.startsWith("/devices")) await store.dispatch("devices/refresh");
-    else if (pathname.startsWith("/containers")) await store.dispatch("container/refresh");
-
-    await store.dispatch("notifications/fetch");
-
     close();
   } catch (error: unknown) {
     snackbar.showError("Failed to refresh devices.");
@@ -110,10 +114,8 @@ const refreshDevices = async () => {
 
 const removeDevice = async () => {
   try {
-    await store.dispatch("devices/remove", props.uid);
-    refreshDevices();
+    await devicesStore.removeDevice(props.uid);
   } catch (error: unknown) {
-    close();
     snackbar.showError("Failed to remove device.");
     handleError(error);
   }
@@ -121,10 +123,8 @@ const removeDevice = async () => {
 
 const rejectDevice = async () => {
   try {
-    await store.dispatch("devices/reject", props.uid);
-    refreshDevices();
+    await devicesStore.rejectDevice(props.uid);
   } catch (error: unknown) {
-    close();
     snackbar.showError("Failed to reject device.");
     handleError(error);
   }
@@ -132,32 +132,29 @@ const rejectDevice = async () => {
 
 const acceptDevice = async () => {
   try {
-    await store.dispatch("devices/accept", props.uid);
-    refreshDevices();
+    await devicesStore.acceptDevice(props.uid);
   } catch (error: unknown) {
     const axiosError = error as AxiosError;
     switch (axiosError.response?.status) {
       case 402:
-        store.dispatch("users/setStatusUpdateAccountDialogByDeviceAction", true);
+        billingStore.showBillingWarning = true;
         snackbar.showError("Couldn't accept the device. Check your billing status and try again.");
         break;
       case 403:
         snackbar.showError("You reached the maximum amount of accepted devices in this namespace.");
         break;
       case 409:
-        store.dispatch("devices/setDeviceToBeRenamed", props.name);
-        store.dispatch("users/setDeviceDuplicationOnAcceptance", true);
+        devicesStore.duplicatedDeviceName = props.name;
         snackbar.showError("A device with that name already exists in the namespace. Rename it and try again.");
         break;
       default:
         snackbar.showError("Failed to accept device.");
         handleError(error);
     }
-    close();
   }
 };
 
-const doAction = () => {
+const handleClick = async () => {
   if (hasAuthorization.value) {
     const currentDeviceAction = {
       accept: acceptDevice,
@@ -165,17 +162,12 @@ const doAction = () => {
       remove: removeDevice,
     }[props.action];
 
-    currentDeviceAction();
+    await currentDeviceAction();
+    await refreshDevices();
   } else {
     snackbar.showError("You don't have this kind of authorization.");
   }
 };
-
-const icon = {
-  accept: "mdi-check",
-  reject: "mdi-close",
-  remove: "mdi-delete",
-}[props.action];
 
 defineExpose({ showDialog, hasAuthorization });
 </script>

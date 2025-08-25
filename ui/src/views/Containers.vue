@@ -6,14 +6,14 @@
     <h1>Containers</h1>
     <v-col md="6">
       <v-text-field
-        v-if="show"
+        v-if="showContainers"
         label="Search by hostname"
         variant="outlined"
         color="primary"
         single-line
         hide-details
         v-model.trim="filter"
-        v-on:keyup="searchDevices"
+        v-on:keyup="searchContainers"
         prepend-inner-icon="mdi-magnify"
         density="compact"
         data-test="search-text"
@@ -26,7 +26,7 @@
     </div>
 
   </div>
-  <div class="mt-2" v-if="show" data-test="device-table-component">
+  <div class="mt-2" v-if="showContainers" data-test="device-table-component">
     <Containers />
   </div>
 
@@ -49,22 +49,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onUnmounted } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "../store";
 import Containers from "../components/Containers/Container.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import ContainerAdd from "../components/Containers/ContainerAdd.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useContainersStore from "@/store/modules/containers";
 
-const store = useStore();
+const containersStore = useContainersStore();
 const router = useRouter();
+const isContainerList = computed(() => router.currentRoute.value.name === "ContainerList");
 const filter = ref("");
-const show = computed(() => store.getters["container/getShowContainers"]);
+const showContainers = computed(() => containersStore.showContainers);
 const snackbar = useSnackbar();
 
-const searchDevices = () => {
+const searchContainers = async () => {
   let encodedFilter = "";
 
   if (filter.value) {
@@ -78,20 +79,12 @@ const searchDevices = () => {
   }
 
   try {
-    store.dispatch("container/search", {
-      page: store.getters["container/getPage"],
-      perPage: store.getters["container/getPerPage"],
+    await containersStore.fetchContainerList({
       filter: encodedFilter,
-      status: store.getters["container/getStatus"],
     });
   } catch {
     snackbar.showError("An error occurred while searching for containers.");
   }
 };
 
-const isContainerList = computed(() => router.currentRoute.value.name === "ContainerList");
-
-onUnmounted(async () => {
-  await store.dispatch("container/setFilter", "");
-});
 </script>

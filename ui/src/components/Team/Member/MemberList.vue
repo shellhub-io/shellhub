@@ -26,9 +26,9 @@
         </th>
       </tr>
     </thead>
-    <tbody v-if="namespace" data-test="member-table-rows">
+    <tbody v-if="members" data-test="member-table-rows">
       <slot name="rows">
-        <tr v-for="(member, i) in namespace" :key="i" class="text-center">
+        <tr v-for="member in members" :key="member.id" class="text-center">
           <td>
             <v-icon> mdi-account </v-icon>
             {{ member.email }}
@@ -38,7 +38,7 @@
             {{ member.role }}
           </td>
 
-          <td class="text-center">
+          <td class="text-center text-capitalize">
             {{ member.status }}
             <v-tooltip
               v-if="member.added_at !== '0001-01-01T00:00:00Z'"
@@ -120,13 +120,14 @@
 import { computed } from "vue";
 import axios, { AxiosError } from "axios";
 import { formatFullDateTime } from "@/utils/date";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import MemberDelete from "./MemberDelete.vue";
 import MemberEdit from "./MemberEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const headers = [
   {
@@ -151,24 +152,25 @@ const headers = [
   },
 ];
 
-const store = useStore();
+const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
-const tenant = computed(() => store.getters["auth/tenant"]);
-const namespace = computed(() => store.getters["namespaces/get"].members);
+const tenant = authStore.tenantId;
+const members = computed(() => namespacesStore.currentNamespace.members);
 
 const hasAuthorizationEditMember = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.editMember);
 };
 
 const hasAuthorizationRemoveMember = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.removeMember);
 };
 
 const getNamespace = async () => {
   try {
-    await store.dispatch("namespaces/get", tenant.value);
+    await namespacesStore.fetchNamespace(tenant);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -188,5 +190,5 @@ const refresh = async () => {
 
 const isNamespaceOwner = (role: string) => role === "owner";
 
-defineExpose({ namespace });
+defineExpose({ namespace: members });
 </script>

@@ -163,18 +163,20 @@ import { computed, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import BaseDialog from "../BaseDialog.vue";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
+import useTagsStore from "@/store/modules/tags";
 
 const { firewallRule, hasAuthorization } = defineProps<{
   firewallRule: IFirewallRule;
   hasAuthorization: boolean;
 }>();
 
-const store = useStore();
+const firewallRulesStore = useFirewallRulesStore();
+const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
@@ -183,7 +185,7 @@ const action = ref<IFirewallRule["action"]>("allow");
 const selectedIPOption = ref("all");
 const selectedUsernameOption = ref("all");
 const selectedFilterOption = ref(FormFilterOptions.All);
-const availableTags = computed(() => store.getters["tags/list"]);
+const availableTags = computed(() => tagsStore.tags);
 
 const {
   value: priority,
@@ -285,7 +287,7 @@ const handleFilterUpdate = async () => {
   if (selectedFilterOption.value === FormFilterOptions.Hostname) setHostnameError("This field is required");
   if (selectedFilterOption.value === FormFilterOptions.Tags) {
     setSelectedTagsError();
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   }
 };
 
@@ -315,7 +317,7 @@ const setFilterData = async () => {
       hostname.value = firewallRule.filter.hostname;
     } else if ("tags" in firewallRule.filter) {
       selectedFilterOption.value = FormFilterOptions.Tags;
-      await store.dispatch("tags/fetch");
+      await tagsStore.fetchTags();
       selectedTags.value = Array.from(firewallRule.filter.tags);
     } else {
       selectedFilterOption.value = FormFilterOptions.All;
@@ -378,7 +380,7 @@ const editFirewallRule = async () => {
   if (hasErrors.value) return;
 
   try {
-    await store.dispatch("firewallRules/put", constructUpdatedFirewallRule());
+    await firewallRulesStore.updateFirewallRule(constructUpdatedFirewallRule() as IFirewallRule);
     snackbar.showSuccess("Firewall rule updated successfully.");
     update();
   } catch (error: unknown) {

@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -5,9 +6,9 @@ import MockAdapter from "axios-mock-adapter";
 import ChangePassword from "@/components/User/ChangePassword.vue";
 import { usersApi } from "@/api/http";
 import { store, key } from "@/store";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -18,17 +19,17 @@ type ChangePasswordWrapper = VueWrapper<InstanceType<typeof ChangePassword>>;
 
 describe("Change Password", () => {
   let wrapper: ChangePasswordWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
+  const usersStore = useUsersStore();
   const vuetify = createVuetify();
-
-  let mockUser: MockAdapter;
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   const authData = {
-    status: "success",
     token: "",
-    user: "test",
+    username: "test",
     name: "test",
-    tenant: "fake-tenant",
+    tenantId: "fake-tenant",
     email: "test@test.com",
     id: "507f1f77bcf86cd799439011",
     role: "owner",
@@ -39,20 +40,14 @@ describe("Change Password", () => {
   };
 
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant");
-    envVariables.isCloud = true;
+    mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
+    mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
+    authStore.$patch(authData);
 
     wrapper = mount(ChangePassword, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [[store, key], vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -80,9 +75,9 @@ describe("Change Password", () => {
   });
 
   it("Successfully Change Password", async () => {
-    mockUser.onPatch("http://localhost:3000/api/users").reply(200);
+    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(200);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "patchPassword");
 
     wrapper.vm.showDialog = true;
     await flushPromises();
@@ -93,20 +88,20 @@ describe("Change Password", () => {
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
 
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith("users/patchPassword", {
+    expect(storeSpy).toHaveBeenCalledWith({
       name: "test",
-      username: undefined,
+      username: "test",
       email: "test@test.com",
-      recovery_email: undefined,
+      recovery_email: "",
       currentPassword: "xxxxxx",
       newPassword: "x1x2x3",
     });
   });
 
   it("Fails to Change Password", async () => {
-    mockUser.onPatch("http://localhost:3000/api/users").reply(403);
+    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(403);
 
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(usersStore, "patchPassword");
 
     wrapper.vm.showDialog = true;
     await flushPromises();
@@ -118,11 +113,11 @@ describe("Change Password", () => {
     await wrapper.findComponent('[data-test="change-password-btn"]').trigger("click");
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith("users/patchPassword", {
+    expect(storeSpy).toHaveBeenCalledWith({
       name: "test",
-      username: undefined,
+      username: "test",
       email: "test@test.com",
-      recovery_email: undefined,
+      recovery_email: "",
       currentPassword: "xxxxxx",
       newPassword: "x1x2x3",
     });

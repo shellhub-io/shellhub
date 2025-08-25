@@ -132,9 +132,9 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import { useStore } from "../store";
+import useUsersStore from "@/store/modules/users";
 
-const store = useStore();
+const usersStore = useUsersStore();
 const router = useRouter();
 const route = useRoute();
 const showPassword = ref(false);
@@ -227,7 +227,7 @@ const setupAccount = async () => {
         password: password.value,
       };
 
-      await store.dispatch("users/setup", setupData);
+      await usersStore.setup(setupData);
 
       alertType.value = "success";
       alertMessage.value = "Successfully created your account. Redirecting to login...";

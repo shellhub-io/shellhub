@@ -1,42 +1,20 @@
-import { Module } from "vuex";
-import { AxiosResponse } from "axios";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 import getStats from "../api/stats";
 import { IStats } from "@/interfaces/IStats";
-import { State } from "..";
 
-export interface StatsState {
-  stats: IStats;
-}
+const useStatsStore = defineStore("stats", () => {
+  const stats = ref({} as IStats);
 
-export const stats: Module<StatsState, State> = {
-  namespaced: true,
-  state: {
-    stats: {} as IStats,
-  },
+  const fetchStats = async () => {
+    const res = await getStats();
+    stats.value = res.data as IStats;
+  };
 
-  getters: {
-    stats: (state) => state.stats,
-  },
+  return {
+    stats,
+    fetchStats,
+  };
+});
 
-  mutations: {
-    setStats: (state, res: AxiosResponse) => {
-      state.stats = res.data;
-    },
-
-    clearListState: (state) => {
-      state.stats = {} as IStats;
-    },
-  },
-
-  actions: {
-    async get({ commit }) {
-      const res = await getStats();
-      commit("setStats", res);
-      return res;
-    },
-
-    async clear({ commit }) {
-      commit("clearListState");
-    },
-  },
-};
+export default useStatsStore;

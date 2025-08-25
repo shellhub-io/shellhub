@@ -71,24 +71,17 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { onMounted, ref, watch } from "vue";
-import { LocationQueryValue, useRoute, useRouter } from "vue-router";
+import { ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import * as yup from "yup";
-import { useStore } from "../store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useUsersStore from "@/store/modules/users";
 
-type TUpdatePassword = {
-  id: LocationQueryValue | LocationQueryValue[];
-  token: LocationQueryValue | LocationQueryValue[];
-  password: string;
-};
-
-const store = useStore();
+const usersStore = useUsersStore();
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbar();
-const data = ref({} as TUpdatePassword);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 
@@ -128,14 +121,6 @@ const {
   },
 );
 
-onMounted(() => {
-  data.value = {
-    id: route.query.id,
-    token: route.query.token,
-    password: "",
-  };
-});
-
 watch(password, () => {
   if (password.value === passwordConfirm.value) {
     resetPasswordConfirm();
@@ -146,7 +131,7 @@ watch(password, () => {
   }
 });
 
-const hasErros = () => {
+const hasErrors = () => {
   if (password.value === "") {
     setPasswordError("this is a required field");
     return true;
@@ -169,13 +154,14 @@ const hasErros = () => {
 };
 
 const updatePassword = async () => {
-  if (hasErros()) return;
+  if (hasErrors()) return;
   try {
-    data.value = {
-      ...data.value,
+    const data = {
+      id: route.query.id as string,
+      token: route.query.token as string,
       password: password.value,
     };
-    await store.dispatch("users/updatePassword", data.value);
+    await usersStore.updatePassword(data);
     await router.push({ name: "Login" });
     snackbar.showSuccess("Password updated successfully.");
   } catch (error: unknown) {

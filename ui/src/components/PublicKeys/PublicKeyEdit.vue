@@ -134,12 +134,13 @@ import {
   onUpdated,
 } from "vue";
 import * as yup from "yup";
-import { useStore } from "@/store";
 import { IPublicKey } from "@/interfaces/IPublicKey";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
+import usePublicKeysStore from "@/store/modules/public_keys";
+import useTagsStore from "@/store/modules/tags";
 
 const props = defineProps<{
   publicKey: IPublicKey;
@@ -148,7 +149,8 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const store = useStore();
+const publicKeysStore = usePublicKeysStore();
+const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const choiceFilter = ref("hostname");
 const validateLength = ref(true);
@@ -232,13 +234,13 @@ const hasTags = computed(() => {
 
 watch(choiceFilter, async () => {
   if (choiceFilter.value === "tags") {
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   }
 });
 
 const tagNames = computed({
   get() {
-    return store.getters["tags/list"];
+    return tagsStore.tags;
   },
   set(val) {
     tagChoices.value = val;
@@ -341,16 +343,17 @@ const hasError = () => {
 
 const open = () => {
   showDialog.value = true;
+  name.value = props.publicKey.name;
   publicKeyData.value = props.publicKey.data;
 };
 
-onMounted(async () => {
-  await setLocalVariable();
+onMounted(() => {
+  setLocalVariable();
 });
 
-onUpdated(async () => {
+onUpdated(() => {
   handleUpdate();
-  await setLocalVariable();
+  setLocalVariable();
   keyLocal.value.data = publicKeyData.value;
 });
 
@@ -375,12 +378,11 @@ const edit = async () => {
   if (!hasError()) {
     chooseFilter();
     chooseUsername();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data) };
+
+    const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data as string) };
 
     try {
-      await store.dispatch("publicKeys/put", keySend);
+      await publicKeysStore.updatePublicKey(keySend as IPublicKey);
       snackbar.showSuccess("Public key updated successfully.");
       update();
     } catch (error: unknown) {

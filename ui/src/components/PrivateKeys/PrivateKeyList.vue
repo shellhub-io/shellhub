@@ -11,8 +11,8 @@
         </th>
       </tr>
     </thead>
-    <tbody v-if="getListPrivateKeys.length">
-      <tr v-for="(privateKey, i) in getListPrivateKeys" :key="i">
+    <tbody v-if="privateKeys.length">
+      <tr v-for="(privateKey, i) in privateKeys" :key="i">
         <td class="text-center" data-test="privateKey-name">
           {{ privateKey.name }}
         </td>
@@ -52,21 +52,22 @@
       </tr>
     </tbody>
     <div v-else sm="12" class="text-start mt-2 mb-3" data-test="no-private-key-warning">
-      <span class="ml-4">No data avaliable</span>
+      <span class="ml-4">No data available</span>
     </div>
   </v-table>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { useStore } from "@/store";
 import PrivateKeyDelete from "./PrivateKeyDelete.vue";
 import PrivateKeyEdit from "./PrivateKeyEdit.vue";
 import handleError from "@/utils/handleError";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { convertToFingerprint } from "@/utils/validate";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
-const store = useStore();
+const privateKeysStore = usePrivateKeysStore();
+
 const headers = [
   {
     text: "Name",
@@ -87,11 +88,11 @@ const headers = [
     sortable: false,
   },
 ];
-const getListPrivateKeys = computed(() => store.getters["privateKey/list"]);
+const privateKeys = computed(() => privateKeysStore.privateKeys);
 
-const getPrivateKeys = async () => {
+const getPrivateKeys = () => {
   try {
-    await store.dispatch("privateKey/fetch");
+    privateKeysStore.getPrivateKeyList();
   } catch (error: unknown) {
     handleError(error);
   }

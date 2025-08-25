@@ -2,7 +2,7 @@
   <div class="d-flex pa-0 align-center">
     <h1>Device Details</h1>
   </div>
-  <v-card class="mt-2 bg-v-theme-surface" v-if="!deviceIsEmpty">
+  <v-card class="mt-2 bg-v-theme-surface" v-if="device.uid">
     <v-card-title class="pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
         <TerminalConnectButton
@@ -30,7 +30,7 @@
           <v-list class="bg-v-theme-surface" lines="two" density="compact">
             <DeviceRename
               :uid="device.uid"
-              @newHostname="receiveName"
+              :name="device.name"
               data-test="device-rename-component"
             />
 
@@ -143,14 +143,12 @@
     v-model="showWebEndpointCreate"
     :uid="device.uid"
     :useDevicesList="false"
-    @update="getWebEndpoints"
   />
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "../store";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
@@ -165,15 +163,18 @@ import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
+import useAuthStore from "@/store/modules/auth";
+import useDevicesStore from "@/store/modules/devices";
 
 type DeviceResolver = "uid" | "hostname";
 
-const store = useStore();
+const authStore = useAuthStore();
+const devicesStore = useDevicesStore();
 const route = useRoute();
 const snackbar = useSnackbar();
 const { identifier } = route.params;
 const resolver = route.query.resolver as DeviceResolver || "uid";
-const device = computed(() => store.getters["devices/get"]);
+const device = computed(() => devicesStore.device);
 const deviceUid = computed(() => device.value.uid);
 const showWebEndpointCreate = ref(false);
 
@@ -181,33 +182,21 @@ const sshidAddress = (item) => `${item.namespace}.${item.name}@${window.location
 
 onMounted(async () => {
   try {
-    await store.dispatch("devices/get", { [resolver]: identifier });
+    await devicesStore.fetchDevice({ [resolver]: identifier });
   } catch (error: unknown) {
     snackbar.showError("There was an error loading the device details.");
     handleError(error);
   }
 });
 
-const deviceIsEmpty = computed(
-  () => store.getters["devices/get"]
-        && Object.keys(store.getters["devices/get"]).length === 0,
-);
-
 const hasAuthorizationCreateWebEndpoint = () => {
-  const role = store.getters["auth/role"];
-  return role !== "" && hasPermission(authorizer.role[role], actions.tunnel.create);
-};
-
-const getWebEndpoints = async () => {
-  await store.dispatch("tunnels/get", deviceUid.value);
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 
 const refreshDevices = async () => {
   try {
-    await store.dispatch("devices/get", deviceUid.value);
-    if (envVariables.isEnterprise) {
-      await store.dispatch("tunnels/get", deviceUid.value);
-    }
+    await devicesStore.fetchDevice({ uid: deviceUid.value });
   } catch (error: unknown) {
     snackbar.showError("There was an error loading the device details.");
     handleError(error);
@@ -215,11 +204,7 @@ const refreshDevices = async () => {
 };
 
 const hasAuthorizationFormUpdate = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
-};
-
-const receiveName = (params: string) => {
-  device.value.name = params;
 };
 </script>

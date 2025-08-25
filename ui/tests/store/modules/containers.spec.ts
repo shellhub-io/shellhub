@@ -1,168 +1,134 @@
+import { describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
 import { containersApi } from "@/api/http";
-import { store } from "@/store";
+import useContainersStore from "@/store/modules/containers";
+import { IContainer } from "@/interfaces/IContainer";
 
-const initialContainers = {
-  data: [
-    { uid: "a582b47a42d", name: "Device 1" },
-    { uid: "a582b47a42e", name: "Device 2" },
-  ],
-  headers: {
-    "x-total-count": 2,
-  },
-};
+describe("Containers Pinia Store", () => {
+  setActivePinia(createPinia());
+  const mockContainers = new MockAdapter(containersApi.getAxios());
+  const containersStore = useContainersStore();
 
-describe("Containers store", () => {
-  let mockContainers: MockAdapter;
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    mockContainers = new MockAdapter(containersApi.getAxios());
+  describe("initial state", () => {
+    it("should have initial state values", () => {
+      expect(containersStore.containers).toEqual([]);
+      expect(containersStore.container).toEqual({});
+      expect(containersStore.containerCount).toBe(0);
+      expect(containersStore.showContainers).toBe(false);
+    });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-  });
+  describe("actions", () => {
+    it("should fetch container list successfully", async () => {
+      const containersData = [
+        { uid: "a582b47a42d", name: "Container 1" },
+        { uid: "a582b47a42e", name: "Container 2" },
+      ];
 
-  it("Returns containers default variables", () => {
-    const defaultState = {
-      containers: [],
-      container: {},
-      numberContainers: 0,
-      showContainers: false,
-      page: 1,
-      perPage: 10,
-      filter: "",
-      status: "accepted",
-      sortStatusField: undefined,
-      sortStatusString: "asc",
-    };
+      mockContainers.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=accepted").reply(200, containersData, {
+        "x-total-count": "2",
+      });
 
-    expect(store.getters["container/list"]).toEqual(defaultState.containers);
-    expect(store.getters["container/get"]).toEqual(defaultState.container);
-    expect(store.getters["container/getShowContainers"]).toEqual(defaultState.showContainers);
-    expect(store.getters["container/getNumberContainers"]).toEqual(defaultState.numberContainers);
-    expect(store.getters["container/getPage"]).toEqual(defaultState.page);
-    expect(store.getters["container/getPerPage"]).toEqual(defaultState.perPage);
-    expect(store.getters["container/getFilter"]).toEqual(defaultState.filter);
-    expect(store.getters["container/getStatus"]).toEqual(defaultState.status);
-    expect(store.getters["container/getSortStatusField"]).toEqual(defaultState.sortStatusField);
-    expect(store.getters["container/getSortStatusString"]).toEqual(defaultState.sortStatusString);
-  });
+      await containersStore.fetchContainerList({ page: 1, perPage: 10, status: "accepted" });
 
-  it("Fetches containers and updates state accordingly", async () => {
-    const devices = [{ uid: "1", name: "Device 1" }, { uid: "2", name: "Device 2" }];
-    const totalCount = 2;
-
-    mockContainers.onGet("http://localhost:3000/api/containers?filter=&page=1&per_page=10&status=accepted")
-      .reply(200, devices, { "x-total-count": totalCount });
-
-    await store.dispatch("container/fetch", {
-      page: 1,
-      perPage: 10,
-      filter: "",
-      status: "accepted",
-      sortStatusField: undefined,
-      sortStatusString: "asc",
+      expect(containersStore.containers).toEqual(containersData);
+      expect(containersStore.containerCount).toBe(2);
     });
 
-    expect(store.getters["container/list"]).toEqual(devices);
-    expect(store.getters["container/getNumberContainers"]).toEqual(totalCount);
-  });
+    it("should handle empty container list", async () => {
+      mockContainers.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=accepted").reply(200, [], {
+        "x-total-count": "0",
+      });
 
-  it("Removes a container from the state", async () => {
-    // Mock the API call
-    mockContainers.onDelete("http://localhost:3000/api/containers/a582b47a42d").reply(200);
+      await containersStore.fetchContainerList({ page: 1, perPage: 10, status: "accepted" });
 
-    const storeSpy = vi.spyOn(store, "dispatch");
-    // Call the action
-    await store.dispatch("container/remove", "a582b47a42d");
+      expect(containersStore.containers).toEqual([]);
+      expect(containersStore.containerCount).toBe(0);
+    });
 
-    expect(storeSpy).toBeCalledWith("container/remove", "a582b47a42d");
-  });
+    it("should fetch container by ID", async () => {
+      const containerData = { uid: "a582b47a42d", name: "Container 1" };
 
-  it("Renames a device in the state", async () => {
-    const containerToUpdate = { uid: "a582b47a42d", name: "Device 1" };
-    const newName = "Updated Device 1";
-    const updatedContainer = { ...containerToUpdate, name: newName };
-    // Set initial state
-    store.commit("devices/setDevices", initialContainers);
-    const storeSpy = vi.spyOn(store, "dispatch");
+      mockContainers.onGet("http://localhost:3000/api/containers/a582b47a42d").reply(200, containerData);
 
-    // Mock the API call
-    mockContainers.onPut(`http://localhost:3000/api/containers/${containerToUpdate.uid}`).reply(200);
+      await containersStore.getContainer("a582b47a42d");
 
-    // Call the action
-    await store.dispatch("container/rename", updatedContainer);
+      expect(containersStore.container).toEqual(containerData);
+    });
 
-    // Assert the device was renamed in the state
-    expect(storeSpy).toBeCalledWith("container/rename", updatedContainer);
-  });
+    it("should remove container", async () => {
+      mockContainers.onDelete("http://localhost:3000/api/containers/a582b47a42d").reply(200);
 
-  it("Gets a device by its UID and updates state", async () => {
-    const uid = "a582b47a42d";
-    const container = { uid, name: "Device 1" };
+      await expect(containersStore.removeContainer("a582b47a42d")).resolves.not.toThrow();
+    });
 
-    // Mock the API call
-    mockContainers.onGet(`http://localhost:3000/api/containers/${uid}`).reply(200, container);
+    it("should rename container", async () => {
+      const renameData = { uid: "a582b47a42d", name: { name: "Updated Container 1" } };
 
-    await store.dispatch("container/get", uid);
+      // Set initial container state
+      containersStore.container = { uid: "a582b47a42d", name: "Container 1" } as IContainer;
 
-    expect(store.getters["container/get"]).toEqual(container);
-  });
+      mockContainers.onPut("http://localhost:3000/api/containers/a582b47a42d").reply(200);
 
-  it("Accepts a device and updates state", async () => {
-    const uid = "a582b47a42d";
-    const storeSpy = vi.spyOn(store, "dispatch");
+      await containersStore.renameContainer(renameData);
 
-    // Mock the API call
-    mockContainers.onPatch(`http://localhost:3000/api/containers/${uid}/accept`).reply(200);
+      expect(containersStore.container.name).toBe("Updated Container 1");
+    });
 
-    await store.dispatch("container/accept", uid);
+    it("should accept container", async () => {
+      mockContainers.onPatch("http://localhost:3000/api/containers/a582b47a42d/accept").reply(200);
 
-    expect(storeSpy).toBeCalledWith("container/accept", uid);
-  });
+      await expect(containersStore.acceptContainer("a582b47a42d")).resolves.not.toThrow();
+    });
 
-  it("Rejects a device and updates state", async () => {
-    const uid = "a582b47a42d";
-    const storeSpy = vi.spyOn(store, "dispatch");
+    it("should reject container", async () => {
+      mockContainers.onPatch("http://localhost:3000/api/containers/a582b47a42d/reject").reply(200);
 
-    // Mock the API call
-    mockContainers.onPatch(`http://localhost:3000/api/containers/${uid}/reject`).reply(200);
+      await expect(containersStore.rejectContainer("a582b47a42d")).resolves.not.toThrow();
+    });
 
-    await store.dispatch("container/reject", uid);
+    it("should handle fetch container list error", async () => {
+      mockContainers.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=accepted").reply(500);
 
-    expect(storeSpy).toBeCalledWith("container/reject", uid);
-  });
+      await expect(containersStore.fetchContainerList({ page: 1, perPage: 10, status: "accepted" })).rejects.toThrow();
 
-  it("Sets filter and updates state", async () => {
-    const filter = "some_filter";
+      expect(containersStore.containers).toEqual([]);
+      expect(containersStore.containerCount).toBe(0);
+    });
 
-    await store.dispatch("container/setFilter", filter);
+    it("should handle fetch container by ID error", async () => {
+      mockContainers.onGet("http://localhost:3000/api/containers/a582b47a42d").reply(404);
 
-    expect(store.getters["container/getFilter"]).toEqual(filter);
-  });
+      await expect(containersStore.getContainer("a582b47a42d")).rejects.toThrow();
 
-  it("Searches for devices and updates state", async () => {
-    const devices = [{ uid: "1", name: "Device 1" }, { uid: "2", name: "Device 2" }];
-    const totalCount = 2;
-    const data = {
-      page: 1,
-      perPage: 10,
-      filter: "some_filter",
-    };
+      expect(containersStore.container).toEqual({});
+    });
 
-    // eslint-disable-next-line vue/max-len
-    mockContainers.onGet(`http://localhost:3000/api/containers?filter=${data.filter}&page=${data.page}&per_page=${data.perPage}&status=accepted`)
-      .reply(200, devices, { "x-total-count": totalCount });
+    it("should handle remove container error", async () => {
+      mockContainers.onDelete("http://localhost:3000/api/containers/a582b47a42d").reply(500);
 
-    await store.dispatch("container/search", data);
+      await expect(containersStore.removeContainer("a582b47a42d")).rejects.toThrow();
+    });
 
-    expect(store.getters["container/list"]).toEqual(devices);
-    expect(store.getters["container/getNumberContainers"]).toEqual(totalCount);
-    expect(store.getters["container/getFilter"]).toEqual(data.filter);
+    it("should handle rename container error", async () => {
+      const renameData = { uid: "a582b47a42d", name: { name: "Updated Container 1" } };
+
+      mockContainers.onPut("http://localhost:3000/api/containers/a582b47a42d").reply(400);
+
+      await expect(containersStore.renameContainer(renameData)).rejects.toThrow();
+    });
+
+    it("should handle accept container error", async () => {
+      mockContainers.onPatch("http://localhost:3000/api/containers/a582b47a42d/accept").reply(500);
+
+      await expect(containersStore.acceptContainer("a582b47a42d")).rejects.toThrow();
+    });
+
+    it("should handle reject container error", async () => {
+      mockContainers.onPatch("http://localhost:3000/api/containers/a582b47a42d/reject").reply(500);
+
+      await expect(containersStore.rejectContainer("a582b47a42d")).rejects.toThrow();
+    });
   });
 });

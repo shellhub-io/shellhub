@@ -14,7 +14,7 @@
       <v-spacer />
     </div>
 
-    <FirewallRuleAdd @update="refresh" />
+    <FirewallRuleAdd @update="fetchFirewallRules" />
   </div>
 
   <p v-if="showHelp" class="mt-n4 mb-2" data-test="firewall-helper">
@@ -44,7 +44,7 @@
           IP addresses to a specific or a group of devices using a given username.</p>
       </template>
       <template #action>
-        <FirewallRuleAdd @update="refresh" />
+        <FirewallRuleAdd @update="fetchFirewallRules" />
       </template>
     </NoItemsMessage>
   </div>
@@ -52,24 +52,24 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useStore } from "../store";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import { envVariables } from "../envVariables";
 import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
 import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const showHelp = ref(false);
-const store = useStore();
+const firewallRulesStore = useFirewallRulesStore();
 const snackbar = useSnackbar();
 const hasFirewallRule = computed(
-  () => store.getters["firewallRules/getNumberFirewalls"] > 0,
+  () => firewallRulesStore.firewallRuleCount > 0,
 );
 
-const refresh = async () => {
+const fetchFirewallRules = async () => {
   try {
-    await store.dispatch("firewallRules/refresh");
+    await firewallRulesStore.fetchFirewallRuleList();
   } catch (error: unknown) {
     snackbar.showError("Failed to load the firewall rules list.");
     handleError(error);
@@ -78,10 +78,7 @@ const refresh = async () => {
 
 onMounted(async () => {
   try {
-    store.dispatch("firewallRules/resetPagePerpage");
-    if (!envVariables.isCommunity) {
-      await refresh();
-    }
+    if (!envVariables.isCommunity) await fetchFirewallRules();
   } catch (error: unknown) {
     handleError(error);
   }

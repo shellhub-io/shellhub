@@ -48,11 +48,13 @@ import {
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { envVariables } from "@/envVariables";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import Player from "./Player.vue";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import useSessionsStore from "@/store/modules/sessions";
+import useUsersStore from "@/store/modules/users";
 
 const props = defineProps<{
   uid: string;
@@ -61,7 +63,9 @@ const props = defineProps<{
 }>();
 
 const showDialog = ref(false);
-const store = useStore();
+const authStore = useAuthStore();
+const sessionsStore = useSessionsStore();
+const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const disabled = computed(() => !props.recorded || !props.authenticated);
 const loading = ref(false);
@@ -72,7 +76,7 @@ const tooltipMessage = computed(() => props.recorded
   : "This session was not recorded.");
 
 const hasAuthorizationToPlay = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.session.play);
 };
 
@@ -80,8 +84,7 @@ const disableTooltip = computed(() => isCommunity.value || (hasAuthorizationToPl
 
 const getSessionLogs = async () => {
   if (props.recorded) {
-    await store.dispatch("sessions/getSessionLogs", props.uid);
-    logs.value = store.getters["sessions/getLogs"];
+    logs.value = await sessionsStore.getSessionLogs(props.uid);
   }
 };
 
@@ -100,7 +103,7 @@ const displayDialog = async () => {
 
 const openDialog = () => {
   if (envVariables.isCommunity) {
-    store.commit("users/setShowPaywall", true);
+    usersStore.showPaywall = true;
     return;
   }
   displayDialog();

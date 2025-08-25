@@ -168,14 +168,20 @@ import { IFirewallRule } from "@/interfaces/IFirewallRule";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
+import useTagsStore from "@/store/modules/tags";
+import useUsersStore from "@/store/modules/users";
 
 const snackbar = useSnackbar();
-const store = useStore();
+const authStore = useAuthStore();
+const firewallRulesStore = useFirewallRulesStore();
+const tagsStore = useTagsStore();
+const usersStore = useUsersStore();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const active = ref(true);
@@ -183,7 +189,7 @@ const action = ref<IFirewallRule["action"]>("allow");
 const selectedIPOption = ref("all");
 const selectedUsernameOption = ref("all");
 const selectedFilterOption = ref(FormFilterOptions.All);
-const availableTags = computed(() => store.getters["tags/list"]);
+const availableTags = computed(() => tagsStore.tags);
 const {
   value: priority,
   errorMessage: priorityError,
@@ -248,7 +254,7 @@ const filterSelectOptions = [
 ];
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.firewall.create);
 });
 
@@ -280,7 +286,7 @@ const handleFilterUpdate = async () => {
   if (selectedFilterOption.value === FormFilterOptions.Hostname) setHostnameError("This field is required");
   if (selectedFilterOption.value === FormFilterOptions.Tags) {
     setSelectedTagsError();
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   }
 };
 
@@ -340,12 +346,12 @@ const addFirewallRule = async () => {
   if (hasErrors.value) return;
 
   if (envVariables.isCommunity) {
-    store.commit("users/setShowPaywall", true);
+    usersStore.showPaywall = true;
     return;
   }
 
   try {
-    await store.dispatch("firewallRules/post", constructNewFirewallRule());
+    await firewallRulesStore.createFirewallRule(constructNewFirewallRule() as IFirewallRule);
     snackbar.showSuccess("Successfully created a new firewall rule.");
     update();
   } catch (error: unknown) {

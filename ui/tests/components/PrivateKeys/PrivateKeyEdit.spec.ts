@@ -1,13 +1,11 @@
+import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
 import PrivateKeyEdit from "@/components/PrivateKeys/PrivateKeyEdit.vue";
-import { namespacesApi, usersApi } from "@/api/http";
-import { store, key } from "@/store";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 type PrivateKeyEditWrapper = VueWrapper<InstanceType<typeof PrivateKeyEdit>>;
 
@@ -21,81 +19,30 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
+const mockPrivateKey = {
+  id: 1,
+  name: "test-name",
+  data: "test-data",
+  hasPassphrase: false,
+  fingerprint: "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
+};
+
 describe("Private Key Edit", () => {
   let wrapper: PrivateKeyEditWrapper;
-
+  setActivePinia(createPinia());
+  const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
-  let mockUser: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
-  const mockObject = {
-    id: 1,
-    name: "test-name",
-    data: "test-data",
-    hasPassphrase: false,
-    fingerprint: "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
-  };
-
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
     wrapper = mount(PrivateKeyEdit, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
-        privateKey: mockObject,
+        privateKey: mockPrivateKey,
       },
     });
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
   });
 
   it("Is a Vue instance", () => {
@@ -137,7 +84,7 @@ describe("Private Key Edit", () => {
   });
 
   it("Checks if the edit function updates the store on success", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(privateKeysStore, "editPrivateKey");
     wrapper.vm.initializeFormData();
     const privateKeyPayload = {
       name: wrapper.vm.name,
@@ -147,7 +94,7 @@ describe("Private Key Edit", () => {
       hasPassphrase: wrapper.vm.hasPassphrase,
     };
     await wrapper.vm.edit();
-    expect(storeSpy).toHaveBeenCalledWith("privateKey/edit", privateKeyPayload);
+    expect(storeSpy).toHaveBeenCalledWith(privateKeyPayload);
     expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Private key updated successfully.");
   });
 

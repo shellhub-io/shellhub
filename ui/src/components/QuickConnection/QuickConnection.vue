@@ -32,7 +32,6 @@
                 single-line
                 hide-details
                 v-model.trim="filter"
-                @keyup="searchDevices"
                 prepend-inner-icon="mdi-magnify"
                 density="comfortable"
                 data-test="search-text"
@@ -59,7 +58,7 @@
             </v-col>
           </v-row>
 
-          <QuickConnectionList ref="listRef" />
+          <QuickConnectionList ref="listRef" :filter />
         </v-card-text>
 
         <v-card-actions>
@@ -90,20 +89,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from "vue";
+import { ref } from "vue";
 import { useMagicKeys } from "@vueuse/core";
-import axios, { AxiosError } from "axios";
 import QuickConnectionList from "./QuickConnectionList.vue";
-import { useStore } from "@/store";
-import handleError from "@/utils/handleError";
-import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 
 const showDialog = ref(false);
-const snackbar = useSnackbar();
 const filter = ref("");
 const listRef = ref<InstanceType<typeof QuickConnectionList> | null>(null);
-const store = useStore();
 
 const headers = [
   { label: "Hostname" },
@@ -125,53 +118,6 @@ useMagicKeys({
       listRef.value?.rootEl?.focus?.();
     }
   },
-});
-
-const searchDevices = () => {
-  let encodedFilter = "";
-
-  if (filter.value.trim()) {
-    const filterObj = [
-      {
-        type: "property",
-        params: { name: "name", operator: "contains", value: filter.value },
-      },
-    ];
-    encodedFilter = btoa(JSON.stringify(filterObj));
-  }
-
-  if (!showDialog.value) {
-    encodedFilter = "";
-  }
-
-  store.dispatch("devices/searchQuickConnection", {
-    page: store.getters["devices/getPage"],
-    perPage: store.getters["devices/getPerPage"],
-    filter: encodedFilter,
-    status: store.getters["devices/getStatus"],
-  }).catch(() => {
-    snackbar.showError("An error occurred while searching for devices.");
-  });
-};
-
-watch(showDialog, async (isOpen) => {
-  if (!isOpen) return;
-
-  try {
-    await store.dispatch("stats/get");
-  } catch (err: unknown) {
-    const error = err as AxiosError;
-    if (axios.isAxiosError(error) && error.response?.status === 403) {
-      snackbar.showError("You don't have permission to access this feature.");
-    } else {
-      snackbar.showError("An error occurred while fetching stats.");
-    }
-    handleError(error);
-  }
-});
-
-onUnmounted(() => {
-  store.dispatch("devices/setFilter", "");
 });
 </script>
 
