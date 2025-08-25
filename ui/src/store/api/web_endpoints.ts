@@ -1,20 +1,20 @@
 import { webEndpointsApi } from "@/api/http";
 
-const getWebEndpoints = (
-  filter: string | undefined,
+export const getWebEndpoints = (
   page: number,
   perPage: number,
-  sortBy?: "created_at" | "updated_at" | "address" | "uid",
-  orderBy?: "asc" | "desc",
+  filter?: string,
+  sortField?: "created_at" | "updated_at" | "address" | "uid",
+  sortOrder?: "asc" | "desc",
 ) => webEndpointsApi.listWebEndpoints(
   filter,
   page,
   perPage,
-  sortBy,
-  orderBy,
+  sortField,
+  sortOrder,
 );
 
-const createWebEndpoints = (uid: string, host: string, port: number, ttl: number) => webEndpointsApi.createWebEndpoint(
+export const createWebEndpoint = (uid: string, host: string, port: number, ttl: number) => webEndpointsApi.createWebEndpoint(
   {
     uid,
     host,
@@ -23,6 +23,4 @@ const createWebEndpoints = (uid: string, host: string, port: number, ttl: number
   },
 );
 
-const deleteWebEndpoints = (address: string) => webEndpointsApi.deleteWebEndpoint(address);
-
-export { getWebEndpoints, createWebEndpoints, deleteWebEndpoints };
+export const deleteWebEndpoint = (address: string) => webEndpointsApi.deleteWebEndpoint(address);

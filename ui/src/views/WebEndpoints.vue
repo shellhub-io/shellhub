@@ -34,7 +34,7 @@
     </v-col>
   </v-row>
 
-  <div v-if="show" class="mt-2" data-test="web-endpoints-table-component">
+  <div v-if="showList" class="mt-2" data-test="web-endpoints-table-component">
     <WebEndpointList />
   </div>
 
@@ -69,45 +69,36 @@ import { computed, ref } from "vue";
 import WebEndpointList from "@/components/WebEndpoints/WebEndpointList.vue";
 import NoItemsMessage from "@/components/NoItemsMessage.vue";
 import useSnackbar from "@/helpers/snackbar";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
 import useAuthStore from "@/store/modules/auth";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
-const store = useStore();
 const authStore = useAuthStore();
+const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
 const filter = ref("");
-const show = computed(() => store.getters["webEndpoints/getShowWebEndpoints"]);
+const showList = computed(() => webEndpointsStore.showWebEndpoints);
 const showWebEndpointCreate = ref(false);
 
 const hasAuthorizationCreateWebEndpoint = () => {
   const { role } = authStore;
-  return role !== "" && hasPermission(authorizer.role[role], actions.tunnel.create);
+  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 
 const searchWebEndpoints = async () => {
-  let encodedFilter = "";
+  const addressFilter = [{
+    type: "property",
+    params: { name: "address", operator: "contains", value: filter.value },
+  }];
 
-  if (filter.value) {
-    const filterToEncodeBase64 = [
-      {
-        type: "property",
-        params: { name: "address", operator: "contains", value: filter.value },
-      },
-    ];
-    encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-  }
+  const encodedFilter = filter.value ? btoa(JSON.stringify(addressFilter)) : undefined;
 
   try {
-    await store.dispatch("webEndpoints/search", {
-      page: store.getters["webEndpoints/getPage"],
-      perPage: store.getters["webEndpoints/getPerPage"],
-      filter: encodedFilter,
-    });
-  } catch {
-    snackbar.showError("Failed to load Web Endpoints.");
+    await webEndpointsStore.fetchWebEndpointsList({ filter: encodedFilter });
+  } catch (error) {
+    snackbar.showError("Failed to load web endpoints.");
   }
 };
 

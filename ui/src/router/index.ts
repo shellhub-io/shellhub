@@ -1,6 +1,5 @@
 import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized, NavigationGuardNext } from "vue-router";
 import { envVariables } from "../envVariables";
-import { store } from "@/store";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 import useAuthStore from "@/store/modules/auth";
 import useContainersStore from "@/store/modules/containers";
@@ -8,6 +7,7 @@ import useDevicesStore from "@/store/modules/devices";
 import useLayoutStore, { Layout } from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
 import useUsersStore from "@/store/modules/users";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const namespacesStore = useNamespacesStore();
@@ -293,13 +293,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "WebEndpoints",
     component: WebEndpoints,
     beforeEnter: async (to, from, next) => {
-      await store.dispatch("webEndpoints/get", {
-        page: store.getters["webEndpoints/getPage"],
-        perPage: store.getters["webEndpoints/getPerPage"],
-        filter: store.getters["webEndpoints/getFilter"],
-        sortBy: store.getters["webEndpoints/getSortBy"],
-        orderBy: store.getters["webEndpoints/getOrderBy"],
-      });
+      await useWebEndpointsStore().fetchWebEndpointsList();
       next();
     },
   },

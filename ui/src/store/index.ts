@@ -1,20 +1,12 @@
-import { InjectionKey } from "vue";
-import { createStore, Store, useStore as vuexUseStore } from "vuex";
+import { createStore, useStore as vuexUseStore } from "vuex";
 
-import { webEndpoints, WebEndpointsState } from "./modules/web_endpoints";
+export const key = Symbol("store");
 
-export interface State {
-  webEndpoints: WebEndpointsState;
-}
-
-export const key: InjectionKey<Store<State>> = Symbol("store");
-
-export const store = createStore<State>({
+export const store = createStore({
   modules: {
-    webEndpoints,
   },
 });
 
-export function useStore(): Store<State> {
+export function useStore() {
   return vuexUseStore(key);
 }

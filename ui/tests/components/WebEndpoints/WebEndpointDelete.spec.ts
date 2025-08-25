@@ -7,6 +7,7 @@ import { store, key } from "@/store";
 import WebEndpointDelete from "@/components/WebEndpoints/WebEndpointDelete.vue";
 import { webEndpointsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
 type WebEndpointDeleteWrapper = VueWrapper<InstanceType<typeof WebEndpointDelete>>;
 
@@ -19,6 +20,7 @@ describe("WebEndpointDelete.vue", () => {
   let wrapper: WebEndpointDeleteWrapper;
   const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
   setActivePinia(createPinia());
+  const webEndpointsStore = useWebEndpointsStore();
   const vuetify = createVuetify();
 
   beforeEach(() => {
@@ -51,7 +53,7 @@ describe("WebEndpointDelete.vue", () => {
   });
 
   it("emits update and shows success snackbar when delete succeeds", async () => {
-    const spy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(webEndpointsStore, "deleteWebEndpoint");
     mockWebEndpointsApi
       .onDelete("http://localhost:3000/api/web-endpoints/fake-address")
       .reply(200);
@@ -60,9 +62,7 @@ describe("WebEndpointDelete.vue", () => {
     await wrapper.findComponent('[data-test="delete-btn"]').trigger("click");
     await flushPromises();
 
-    expect(spy).toHaveBeenCalledWith("webEndpoints/delete", {
-      address: "fake-address",
-    });
+    expect(storeSpy).toHaveBeenCalledWith("fake-address");
 
     expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Web Endpoint deleted successfully.");
     expect(wrapper.emitted("update")).toBeTruthy();

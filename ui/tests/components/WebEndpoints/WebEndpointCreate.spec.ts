@@ -5,22 +5,26 @@ import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { store, key } from "@/store";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
-import { webEndpointsApi } from "@/api/http";
+import { devicesApi, webEndpointsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
 type WebEndpointCreateWrapper = VueWrapper<InstanceType<typeof WebEndpointCreate>>;
 
 describe("WebEndpointCreate.vue", () => {
   let wrapper: WebEndpointCreateWrapper;
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
   const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
   setActivePinia(createPinia());
+  const webEndpointsStore = useWebEndpointsStore();
   const vuetify = createVuetify();
 
   beforeEach(() => {
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, []);
     wrapper = mount(WebEndpointCreate, {
       attachTo: document.body,
       global: {
-        plugins: [[store, key], vuetify, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         uid: "fake-uid",
@@ -49,7 +53,7 @@ describe("WebEndpointCreate.vue", () => {
   it("successfully creates a Web Endpoint", async () => {
     mockWebEndpointsApi.onPost("http://localhost:3000/api/web-endpoints").reply(200);
 
-    const spy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(webEndpointsStore, "createWebEndpoint");
 
     await wrapper.findComponent('[data-test="host-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue("8080");
@@ -57,7 +61,7 @@ describe("WebEndpointCreate.vue", () => {
 
     await flushPromises();
 
-    expect(spy).toHaveBeenCalledWith("webEndpoints/create", {
+    expect(storeSpy).toHaveBeenCalledWith({
       uid: "fake-uid",
       host: "127.0.0.1",
       port: 8080,
@@ -68,7 +72,7 @@ describe("WebEndpointCreate.vue", () => {
   it("successfully creates a Web Endpoint with custom timeout", async () => {
     mockWebEndpointsApi.onPost("http://localhost:3000/api/web-endpoints").reply(200);
 
-    const spy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(webEndpointsStore, "createWebEndpoint");
 
     await wrapper.findComponent('[data-test="host-text"]').setValue("127.0.0.1");
     await wrapper.findComponent('[data-test="port-text"]').setValue("8080");
@@ -78,7 +82,7 @@ describe("WebEndpointCreate.vue", () => {
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
     await flushPromises();
 
-    expect(spy).toHaveBeenCalledWith("webEndpoints/create", {
+    expect(storeSpy).toHaveBeenCalledWith({
       uid: "fake-uid",
       host: "127.0.0.1",
       port: 8080,
@@ -102,7 +106,7 @@ describe("WebEndpointCreate.vue", () => {
   it("successfully creates a Web Endpoint using device selector", async () => {
     mockWebEndpointsApi.onPost("http://localhost:3000/api/web-endpoints").reply(200);
 
-    const spy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(webEndpointsStore, "createWebEndpoint");
 
     wrapper.unmount();
     wrapper = mount(WebEndpointCreate, {
@@ -133,7 +137,7 @@ describe("WebEndpointCreate.vue", () => {
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
     await flushPromises();
 
-    expect(spy).toHaveBeenCalledWith("webEndpoints/create", {
+    expect(storeSpy).toHaveBeenCalledWith({
       uid: "device-abc",
       host: "127.0.0.1",
       port: 8080,

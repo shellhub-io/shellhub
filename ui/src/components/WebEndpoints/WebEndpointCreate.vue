@@ -50,7 +50,6 @@
                 variant="outlined"
                 return-object
                 hide-details
-                @click:control="fetchDevices"
                 @update:search="fetchDevices"
                 data-test="web-endpoint-autocomplete"
               >
@@ -122,26 +121,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useDevicesStore from "@/store/modules/devices";
-
-interface DeviceOption {
-  uid: string;
-  name: string;
-  info: {
-    id: string;
-    pretty_name: string;
-  };
-  [key: string]: unknown;
-}
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
+import { IDevice } from "@/interfaces/IDevice";
 
 const props = defineProps<{
   uid?: string;
@@ -149,14 +139,14 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["update"]);
-const store = useStore();
 const devicesStore = useDevicesStore();
+const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const alertText = ref();
 
-const selectedDevice = ref<DeviceOption | null>(null);
-const deviceOptions = ref<DeviceOption[]>([]);
+const selectedDevice = ref<IDevice | null>(null);
+const deviceOptions = ref<IDevice[]>([]);
 const loadingDevices = ref(false);
 
 const predefinedTimeouts = ref([
@@ -223,21 +213,19 @@ const close = () => { resetFields(); showDialog.value = false; };
 const update = () => { emit("update"); close(); };
 
 const fetchDevices = async (searchQuery?: string) => {
-  if (!searchQuery && deviceOptions.value.length > 0) return;
-
   loadingDevices.value = true;
 
   const filter = searchQuery
     ? btoa(JSON.stringify([
       { type: "property", params: { name: "name", operator: "contains", value: searchQuery } },
     ]))
-    : "";
-
+    : undefined;
   try {
     await devicesStore.fetchDeviceList({ filter });
     deviceOptions.value = devicesStore.devices;
-  } catch {
+  } catch (error) {
     snackbar.showError("Failed to load devices.");
+    handleError(error);
   }
 
   loadingDevices.value = false;
@@ -251,8 +239,8 @@ const addWebEndpoint = async () => {
     : props.uid;
 
   try {
-    await store.dispatch("webEndpoints/create", {
-      uid: deviceUid,
+    await webEndpointsStore.createWebEndpoint({
+      uid: deviceUid as string,
       host: host.value,
       port: port.value,
       ttl: timeout.value,
@@ -271,4 +259,6 @@ const addWebEndpoint = async () => {
     }
   }
 };
+
+onMounted(async () => { if (props.useDevicesList) await fetchDevices(); });
 </script>
