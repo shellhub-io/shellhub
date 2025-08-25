@@ -143,14 +143,12 @@
     v-model="showWebEndpointCreate"
     :uid="device.uid"
     :useDevicesList="false"
-    @update="getWebEndpoints"
   />
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "../store";
 import { displayOnlyTenCharacters } from "../utils/string";
 import showTag from "../utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
@@ -170,7 +168,6 @@ import useDevicesStore from "@/store/modules/devices";
 
 type DeviceResolver = "uid" | "hostname";
 
-const store = useStore();
 const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
 const route = useRoute();
@@ -197,16 +194,9 @@ const hasAuthorizationCreateWebEndpoint = () => {
   return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
 };
 
-const getWebEndpoints = async () => {
-  await store.dispatch("webEndpoints/get", deviceUid.value);
-};
-
 const refreshDevices = async () => {
   try {
     await devicesStore.fetchDevice({ uid: deviceUid.value });
-    if (envVariables.isEnterprise) {
-      await getWebEndpoints();
-    }
   } catch (error: unknown) {
     snackbar.showError("There was an error loading the device details.");
     handleError(error);

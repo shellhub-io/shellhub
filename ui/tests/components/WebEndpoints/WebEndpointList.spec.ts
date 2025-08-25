@@ -1,11 +1,9 @@
 import { setActivePinia, createPinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import { createRouter, createWebHistory } from "vue-router";
-import { routes } from "@/router";
-import { store, key } from "@/store";
+import { router } from "@/router";
 import WebEndpointList from "@/components/WebEndpoints/WebEndpointList.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { webEndpointsApi } from "@/api/http";
@@ -43,33 +41,16 @@ const mockEndpoints = [
 
 describe("WebEndpointList.vue", () => {
   let wrapper: WebEndpointListWrapper;
-  let mockWebEndpoints: MockAdapter;
-  const router = createRouter({
-    history: createWebHistory(),
-    routes,
-  });
+  const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
+
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(async () => {
-    router.push("/");
-    await router.isReady();
-
-    mockWebEndpoints = new MockAdapter(webEndpointsApi.getAxios());
-    mockWebEndpoints
-      .onGet("http://localhost:3000/api/web-endpoints?filter=&page=1&per_page=10&sort_by=uid&order_by=asc")
+    mockWebEndpointsApi.onGet("http://localhost:3000/api/web-endpoints?page=1&per_page=10")
       .reply(200, mockEndpoints, { "x-total-count": "1" });
 
-    store.commit("webEndpoints/setWebEndpoints", {
-      data: mockEndpoints,
-      headers: { "x-total-count": "1" },
-    });
-
-    wrapper = mount(WebEndpointList, {
-      global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-      },
-    });
+    wrapper = mount(WebEndpointList, { global: { plugins: [vuetify, router, SnackbarPlugin] } });
   });
 
   it("is a Vue instance", () => {
@@ -103,12 +84,14 @@ describe("WebEndpointList.vue", () => {
   });
 
   it("renders empty state if no web endpoints", async () => {
-    store.commit("webEndpoints/setWebEndpoints", {
-      data: [],
-      headers: { "x-total-count": "0" },
-    });
+    wrapper.unmount();
 
-    await wrapper.vm.$nextTick();
+    mockWebEndpointsApi.onGet("http://localhost:3000/api/web-endpoints?page=1&per_page=10")
+      .reply(200, [], { "x-total-count": "0" });
+
+    wrapper = mount(WebEndpointList, { global: { plugins: [vuetify, router, SnackbarPlugin] } });
+
+    await flushPromises();
 
     expect(wrapper.text()).toContain("No data available");
   });

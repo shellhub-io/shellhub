@@ -4,64 +4,51 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { nextTick } from "vue";
-import { store, key } from "@/store";
 import WebEndpoints from "@/views/WebEndpoints.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { webEndpointsApi } from "@/api/http";
 import { router } from "@/router";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
+import { IWebEndpoint } from "@/interfaces/IWebEndpoints";
 
 type WebEndpointsWrapper = VueWrapper<InstanceType<typeof WebEndpoints>>;
 
-const mockEndpoints = {
-  data: [
-    {
-      address: "123abc",
-      full_address: "localhost:8080",
-      device: {
-        uid: "device-abc",
-        name: "device-abc-name",
-        info: {
-          id: "linuxmint",
-          pretty_name: "Linux Mint",
-        },
+const mockWebEndpoints = [
+  {
+    address: "123abc",
+    full_address: "localhost:8080",
+    device_uid: "device-abc",
+    device: {
+      uid: "device-abc",
+      name: "device-abc-name",
+      info: {
+        id: "linuxmint",
+        pretty_name: "Linux Mint",
       },
-      host: "localhost",
-      port: 8080,
-      expires_in: "2099-01-01T00:00:00Z",
     },
-  ],
-  headers: { "x-total-count": "1" },
-};
+    host: "localhost",
+    port: 8080,
+    expires_in: "2099-01-01T00:00:00Z",
+  },
+] as IWebEndpoint[];
 
 describe("WebEndpoints.vue", () => {
   let wrapper: WebEndpointsWrapper;
   const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
   setActivePinia(createPinia());
+  const webEndpointsStore = useWebEndpointsStore();
   const vuetify = createVuetify();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockWebEndpointsApi
-      .onGet("http://localhost:3000/api/web-endpoints?filter=&page=1&per_page=10&sort_by=uid&order_by=asc")
-      .reply(200, mockEndpoints.data, mockEndpoints.headers);
+      .onGet("http://localhost:3000/api/web-endpoints?page=1&per_page=10")
+      .reply(200, mockWebEndpoints, { "x-total-count": "1" });
 
-    store.commit("webEndpoints/setWebEndpoints", {
-      data: mockEndpoints.data,
-      headers: mockEndpoints.headers,
-    });
-
-    store.commit("webEndpoints/setPagePerPage", {
-      page: 1,
-      perPage: 10,
-      filter: "",
-      sortBy: "uid",
-      orderBy: "asc",
-    });
-
-    store.commit("webEndpoints/setShowWebEndpoints");
+    await webEndpointsStore.fetchWebEndpointsList();
 
     wrapper = mount(WebEndpoints, {
       global: {
-        plugins: [[store, key], router, vuetify, SnackbarPlugin],
+        plugins: [router, vuetify, SnackbarPlugin],
       },
     });
   });
@@ -77,9 +64,8 @@ describe("WebEndpoints.vue", () => {
   });
 
   it("renders NoItemsMessage when show = false", async () => {
-    store.commit("webEndpoints/clearListEndpoints");
+    webEndpointsStore.showWebEndpoints = false;
     await nextTick();
-
     expect(wrapper.find('[data-test="web-endpoints-table-component"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
   });
@@ -90,14 +76,14 @@ describe("WebEndpoints.vue", () => {
   });
 
   it("filters web endpoints when typing in the search input", async () => {
-    const spy = vi.spyOn(store, "dispatch");
+    // eslint-disable-next-line vue/max-len
+    mockWebEndpointsApi.onGet("http://localhost:3000/api/web-endpoints?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhZGRyZXNzIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoibG9jYWxob3N0In19XQ%3D%3D&page=1&per_page=10").reply(200, mockWebEndpoints, { "x-total-count": "1" });
+    const storeSpy = vi.spyOn(webEndpointsStore, "fetchWebEndpointsList");
 
     await wrapper.getComponent('[data-test="search-text"]').setValue("localhost");
     await wrapper.getComponent('[data-test="search-text"]').trigger("keyup");
 
-    expect(spy).toHaveBeenCalledWith("webEndpoints/search", expect.objectContaining({
-      page: 1,
-      perPage: 10,
+    expect(storeSpy).toHaveBeenCalledWith(expect.objectContaining({
       // eslint-disable-next-line vue/max-len
       filter: "W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJhZGRyZXNzIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoibG9jYWxob3N0In19XQ==",
     }));

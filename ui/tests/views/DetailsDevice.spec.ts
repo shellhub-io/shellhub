@@ -7,7 +7,6 @@ import { nextTick } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 import DetailsDevice from "@/views/DetailsDevice.vue";
 import { devicesApi } from "@/api/http";
-import { store, key } from "@/store";
 import { routes } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useDevicesStore from "@/store/modules/devices";
@@ -65,12 +64,14 @@ describe("Details Device", () => {
 
     mockDevicesApi.onGet("http://localhost:3000/api/devices/resolve?uid=123456")
       .reply(200, device);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted")
+      .reply(200, [device]);
 
     devicesStore.device = device;
 
     wrapper = mount(DetailsDevice, {
       global: {
-        plugins: [[store, key], vuetify, [router], SnackbarPlugin],
+        plugins: [vuetify, [router], SnackbarPlugin],
       },
     });
   });
