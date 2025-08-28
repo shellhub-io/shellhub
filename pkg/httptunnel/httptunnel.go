@@ -100,17 +100,67 @@ func (t *Tunnel) Router() http.Handler {
 		return nil
 	})
 
+	const ConnectionPathV2 = "/connection"
+
+	e.GET(ConnectionPathV2, func(c echo.Context) error {
+		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		key, err := t.ConnectionHandler(c.Request())
+		if err != nil {
+			conn.Close()
+
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		requestID := c.Request().Header.Get("X-Request-ID")
+		parts := strings.Split(key, ":")
+		tenant := parts[0]
+		device := parts[1]
+
+		t.connman.Bind(
+			key,
+			wsconnadapter.
+				New(conn).
+				WithID(requestID).
+				WithDevice(tenant, device),
+		)
+
+		return nil
+	})
+
 	e.GET(t.DialerPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
 
 	return e
 }
 
+// Dial dials to a key.
+//
+// Deprecated: use [DialTo] instead as it is more explicit.
 func (t *Tunnel) Dial(ctx context.Context, id string) (net.Conn, error) {
-	return t.connman.Dial(ctx, id)
+	conn, _, err := t.connman.Dial(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+// TODO: V1 and v2 aren't good names as we don't have a v1 yet.
+const (
+	ConnectionV1 byte = 1
+	ConnectionV2 byte = 2
+)
+
+// DialTo dials to a specific device within a namespace.
+func (t *Tunnel) DialTo(ctx context.Context, tenant, uid string) (net.Conn, byte, error) {
+	return t.connman.Dial(ctx, strings.Join([]string{tenant, uid}, ":"))
 }
 
 func (t *Tunnel) SendRequest(ctx context.Context, id string, req *http.Request) (*http.Response, error) {
-	conn, err := t.connman.Dial(ctx, id)
+	conn, _, err := t.connman.Dial(ctx, id)
 	if err != nil {
 		return nil, err
 	}

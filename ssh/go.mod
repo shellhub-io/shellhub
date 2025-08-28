@@ -7,8 +7,10 @@ require (
 	github.com/gliderlabs/ssh v0.3.8
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/websocket v1.5.3
+	github.com/hashicorp/yamux v0.1.2
 	github.com/labstack/echo-contrib v0.17.4
 	github.com/labstack/echo/v4 v4.13.4
+	github.com/multiformats/go-multistream v0.6.1
 	github.com/pires/go-proxyproto v0.8.0
 	github.com/shellhub-io/shellhub v0.13.4
 	github.com/sirupsen/logrus v1.9.3
@@ -37,6 +39,7 @@ require (
 	github.com/leodido/go-urn v1.2.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/multiformats/go-varint v0.0.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/redis/go-redis/v9 v9.0.3 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect

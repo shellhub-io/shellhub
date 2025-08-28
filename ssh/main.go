@@ -48,9 +48,9 @@ func main() {
 	}
 
 	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", tunnel.Config{
-		Tunnels:       env.WebEndpoints,
-		TunnelsDomain: env.WebEndpointsDomain,
-		RedisURI:      env.RedisURI,
+		WebEndpoints:       env.WebEndpoints,
+		WebEndpointsDomain: env.WebEndpointsDomain,
+		RedisURI:           env.RedisURI,
 	})
 	if err != nil {
 		log.WithError(err).

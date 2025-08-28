@@ -45,7 +45,6 @@ import (
 	"io"
 	"math/rand"
 	"net"
-	"net/http"
 	"net/netip"
 	"net/url"
 	"os"
@@ -57,7 +56,6 @@ import (
 
 	"github.com/Masterminds/semver"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
@@ -385,74 +383,124 @@ func (a *Agent) isClosed() bool {
 func (a *Agent) Close() error {
 	a.closed.Store(true)
 
-	return a.tunnel.Close()
+	// return a.tunnel.Close()
+	return nil
 }
 
-func sshHandler(serv *server.Server) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		hj, ok := c.Response().Writer.(http.Hijacker)
-		if !ok {
-			return c.String(http.StatusInternalServerError, "webserver doesn't support hijacking")
-		}
+type DummyNetAddr struct{}
 
-		conn, _, err := hj.Hijack()
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "failed to hijack connection")
-		}
+// Network implements net.Addr.
+func (d *DummyNetAddr) Network() string {
+	return "dummy"
+}
 
-		id := c.Param("id")
-		httpConn := c.Request().Context().Value("http-conn").(net.Conn)
-		serv.Sessions.Store(id, httpConn)
-		serv.HandleConn(httpConn)
+// String implements net.Addr.
+func (d *DummyNetAddr) String() string {
+	return "dummy"
+}
 
-		conn.Close()
+type DummyConnFromReadWriteCloser struct {
+	rwc io.ReadWriteCloser
+}
 
-		return nil
+func NewDummyConnFromReadWriteCloser(rwc io.ReadWriteCloser) net.Conn {
+	return &DummyConnFromReadWriteCloser{
+		rwc: rwc,
 	}
 }
 
+// Close implements net.Conn.
+// Subtle: this method shadows the method (ReadWriteCloser).Close of DummyConnFromReadWriteCloser.ReadWriteCloser.
+func (d *DummyConnFromReadWriteCloser) Close() error {
+	return d.rwc.Close()
+}
+
+// Read implements net.Conn.
+// Subtle: this method shadows the method (ReadWriteCloser).Read of DummyConnFromReadWriteCloser.ReadWriteCloser.
+func (d *DummyConnFromReadWriteCloser) Read(b []byte) (n int, err error) {
+	return d.rwc.Read(b)
+}
+
+// Write implements net.Conn.
+// Subtle: this method shadows the method (ReadWriteCloser).Write of DummyConnFromReadWriteCloser.ReadWriteCloser.
+func (d *DummyConnFromReadWriteCloser) Write(b []byte) (n int, err error) {
+	return d.rwc.Write(b)
+}
+
+// LocalAddr implements net.Conn.
+func (d *DummyConnFromReadWriteCloser) LocalAddr() net.Addr {
+	return &DummyNetAddr{}
+}
+
+// RemoteAddr implements net.Conn.
+func (d *DummyConnFromReadWriteCloser) RemoteAddr() net.Addr {
+	return &DummyNetAddr{}
+}
+
+// SetDeadline implements net.Conn.
+func (d *DummyConnFromReadWriteCloser) SetDeadline(t time.Time) error {
+	return nil
+}
+
+// SetReadDeadline implements net.Conn.
+func (d *DummyConnFromReadWriteCloser) SetReadDeadline(t time.Time) error {
+	return nil
+}
+
+// SetWriteDeadline implements net.Conn.
+func (d *DummyConnFromReadWriteCloser) SetWriteDeadline(t time.Time) error {
+	return nil
+}
+
 // httpProxyHandler handlers proxy connections to the required address.
-func httpProxyHandler(agent *Agent) func(c echo.Context) error {
+func httpProxyHandler(agent *Agent) tunnel.Handler {
 	const ProxyHandlerNetwork = "tcp"
 
-	return func(c echo.Context) error {
-		logger := log.WithFields(log.Fields{
-			"remote":    c.Request().RemoteAddr,
-			"namespace": c.Request().Header.Get("X-Namespace"),
-			"path":      c.Request().Header.Get("X-Path"),
-			"version":   AgentVersion,
-		})
-
-		errorResponse := func(err error, msg string, code int) error {
-			logger.WithError(err).Debug(msg)
-
-			return c.String(code, msg)
-		}
-
-		host, port, err := net.SplitHostPort(c.Param("addr"))
+	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
+		headers, err := ctx.Headers()
 		if err != nil {
-			return errorResponse(err, "failed because address is invalid", http.StatusInternalServerError)
+			log.WithError(err).Error("failed to get the headers from the connection")
+
+			return err
 		}
+
+		id := headers["id"]
+		host := headers["host"]
+		port := headers["port"]
+
+		logger := log.WithFields(log.Fields{
+			"id":   id,
+			"host": host,
+			"port": port,
+		})
 
 		if _, ok := agent.mode.(*ConnectorMode); ok {
 			cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 			if err != nil {
-				return errorResponse(err, "failed to connect to the Docker Engine", http.StatusInternalServerError)
+				log.WithError(err).Error("failed to create the Docker client")
+
+				return ctx.Error(errors.New("failed to connect to the Docker Engine"))
 			}
 
 			container, err := cli.ContainerInspect(context.Background(), agent.server.ContainerID)
 			if err != nil {
-				return errorResponse(err, "failed to inspect the container", http.StatusInternalServerError)
+				log.WithError(err).Error("failed to inspect the container")
+
+				return ctx.Error(errors.New("failed to inspect the container"))
 			}
 
 			var target string
 
 			addr, err := netip.ParseAddr(host)
 			if err != nil {
-				return errorResponse(err, "failed to parse the for lookback checkage", http.StatusInternalServerError)
+				log.WithError(err).Error("failed to parse the address on proxy")
+
+				return ctx.Error(errors.New("failed to parse the address on proxy"))
 			}
 
 			if addr.IsLoopback() {
+				log.Trace("host is a loopback address, using the container IP address")
+
 				for _, network := range container.NetworkSettings.Networks {
 					target = network.IPAddress
 
@@ -462,14 +510,14 @@ func httpProxyHandler(agent *Agent) func(c echo.Context) error {
 				for _, network := range container.NetworkSettings.Networks {
 					subnet, err := netip.ParsePrefix(fmt.Sprintf("%s/%d", network.Gateway, network.IPPrefixLen))
 					if err != nil {
-						logger.WithError(err).Trace("Failed to parse the gateway on proxy")
+						logger.WithError(err).Error("failed to parse the gateway on proxy")
 
 						continue
 					}
 
 					ip, err := netip.ParseAddr(host)
 					if err != nil {
-						logger.WithError(err).Trace("Failed to parse the address on proxy")
+						logger.WithError(err).Error("failed to parse the address on proxy")
 
 						continue
 					}
@@ -483,41 +531,38 @@ func httpProxyHandler(agent *Agent) func(c echo.Context) error {
 			}
 
 			if target == "" {
-				return errorResponse(nil, "address not found on the device", http.StatusInternalServerError)
+				return ctx.Error(errors.New("address not found on the device"))
 			}
 
 			host = target
 		}
 
-		// NOTE: Gets the to address to connect to. This address can be just a port, :8080, or the host and port,
-		// localhost:8080.
-		addr := fmt.Sprintf("%s:%s", host, port)
+		ErrFailedDialToAddressAndPort := errors.New("failed to dial to the address and port")
 
-		in, err := net.Dial(ProxyHandlerNetwork, addr)
+		logger.Trace("proxy handler connecting to the address")
+
+		in, err := net.Dial(ProxyHandlerNetwork, net.JoinHostPort(host, port))
 		if err != nil {
-			return errorResponse(err, "failed to connect to the server on device", http.StatusInternalServerError)
+			logger.WithError(err).Error("proxy handler failed to dial to the address")
+
+			return ctx.Error(ErrFailedDialToAddressAndPort)
 		}
 
 		defer in.Close()
 
-		// NOTE: Inform to the connection that the dial was successfully.
-		if err := c.NoContent(http.StatusOK); err != nil {
-			return errorResponse(err, "failed to send the ok status code back to server", http.StatusInternalServerError)
-		}
+		logger.Trace("proxy handler dialed to the address")
 
-		// NOTE: Hijacks the connection to control the data transferred to the client connected. This way, we don't
-		// depend upon anything externally, only the data.
-		out, _, err := c.Response().Hijack()
-		if err != nil {
-			return errorResponse(err, "failed to hijack connection", http.StatusInternalServerError)
-		}
+		// TODO: Add consts for status values.
+		if err := ctx.Status("ok"); err != nil {
+			logger.WithError(err).Error("proxy handler failed to send status response")
 
-		defer out.Close() // nolint:errcheck
+			return err
+		}
 
 		wg := new(sync.WaitGroup)
 		done := sync.OnceFunc(func() {
 			defer in.Close()
-			defer out.Close()
+			defer rwc.Close()
 
 			logger.Trace("close called on in and out connections")
 		})
@@ -527,7 +572,7 @@ func httpProxyHandler(agent *Agent) func(c echo.Context) error {
 			defer done()
 			defer wg.Done()
 
-			io.Copy(in, out) //nolint:errcheck
+			io.Copy(in, rwc) //nolint:errcheck
 		}()
 
 		wg.Add(1)
@@ -535,29 +580,60 @@ func httpProxyHandler(agent *Agent) func(c echo.Context) error {
 			defer done()
 			defer wg.Done()
 
-			io.Copy(out, in) //nolint:errcheck
+			io.Copy(rwc, in) //nolint:errcheck
 		}()
 
-		logger.WithError(err).Trace("proxy handler waiting for data pipe")
+		logger.WithError(err).Info("proxy handler waiting for data pipe")
+
 		wg.Wait()
 
-		logger.WithError(err).Trace("proxy handler done")
+		logger.WithError(err).Info("proxy handler done")
 
 		return nil
 	}
 }
 
-func sshCloseHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		id := c.Param("id")
-		serv.CloseSession(id)
+func sshHandler(agent *Agent) tunnel.Handler {
+	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
+		defer rwc.Close()
+
+		headers, err := ctx.Headers()
+		if err != nil {
+			log.WithError(err).Error("failed to get the headers from the connection")
+
+			return err
+		}
+
+		id := headers["id"]
+
+		conn := NewDummyConnFromReadWriteCloser(rwc)
+
+		agent.server.Sessions.Store(id, conn)
+		agent.server.HandleConn(conn)
+
+		return nil
+	}
+}
+
+func sshCloseHandler(agent *Agent) tunnel.Handler {
+	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
+		headers, err := ctx.Headers()
+		if err != nil {
+			log.WithError(err).Error("failed to get the headers from the connection")
+
+			return err
+		}
+
+		id := headers["id"]
+
+		agent.server.CloseSession(id)
 
 		log.WithFields(
 			log.Fields{
 				"id":             id,
 				"version":        AgentVersion,
-				"tenant_id":      a.authData.Namespace,
-				"server_address": a.config.ServerAddress,
+				"tenant_id":      agent.authData.Namespace,
+				"server_address": agent.config.ServerAddress,
 			},
 		).Info("A tunnel connection was closed")
 
@@ -569,11 +645,11 @@ func sshCloseHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
-	a.tunnel = tunnel.NewBuilder().
-		WithSSHHandler(sshHandler(a.server)).
-		WithSSHCloseHandler(sshCloseHandler(a, a.server)).
-		WithHTTPProxyHandler(httpProxyHandler(a)).
-		Build()
+	a.tunnel = tunnel.NewTunnel()
+
+	a.tunnel.Handle("/ssh/open", sshHandler(a))
+	a.tunnel.Handle("/ssh/close", sshCloseHandler(a))
+	a.tunnel.Handle("/http/proxy", httpProxyHandler(a))
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
@@ -602,7 +678,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
-			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
+			conn, err := a.cli.Connect(ctx, a.authData.Token, "/connection")
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":        AgentVersion,
@@ -627,19 +703,15 @@ func (a *Agent) Listen(ctx context.Context) error {
 			a.listening <- true
 
 			{
-				// NOTE: Tunnel'll only realize that it lost its connection to the ShellHub SSH when the next
-				// "keep-alive" connection fails. As a result, it will take this interval to reconnect to its server.
-				err := a.tunnel.Listen(listener)
-
-				log.WithError(err).WithFields(log.Fields{
-					"namespace":      namespace,
-					"hostname":       tenantName,
-					"server_address": a.config.ServerAddress,
-					"ssh_server":     sshEndpoint,
-					"sshid":          sshid,
-				}).Info("Tunnel listener closed")
-
-				listener.Close() // nolint:errcheck
+				if err := a.tunnel.Listen(conn); err != nil {
+					log.WithError(err).WithFields(log.Fields{
+						"namespace":      namespace,
+						"hostname":       tenantName,
+						"server_address": a.config.ServerAddress,
+						"ssh_server":     sshEndpoint,
+						"sshid":          sshid,
+					}).Error("Tunnel listener exited with error")
+				}
 			}
 
 			a.listening <- false

@@ -3,6 +3,7 @@ package tunnel
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"github.com/multiformats/go-multistream"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	log "github.com/sirupsen/logrus"
@@ -39,16 +41,16 @@ func NewMessageFromError(err error) Message {
 }
 
 type Config struct {
-	// Tunnels defines if tunnel's feature is enabled.
-	Tunnels bool
-	// TunnelsDomain define the domain of tunnels feature when it's enabled.
-	TunnelsDomain string
+	// WebEndpoints defines if web endpoints feature is enabled.
+	WebEndpoints bool
+	// WebEndpointsDomain define the domain of web endpoints feature when it's enabled.
+	WebEndpointsDomain string
 	// RedisURI is the redis URI connection.
 	RedisURI string
 }
 
 func (c Config) Validate() error {
-	if c.Tunnels && c.TunnelsDomain == "" {
+	if c.WebEndpoints && c.WebEndpointsDomain == "" {
 		return errors.New("tunnels feature is enabled, but tunnel's domain is empty")
 	}
 
@@ -162,30 +164,45 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 
 		tenant := c.Request().Header.Get("X-Tenant-ID")
 
-		conn, err := tunnel.Dial(ctx, fmt.Sprintf("%s:%s", tenant, data.Device))
+		conn, version, err := tunnel.Dial(ctx, tenant, data.Device)
 		if err != nil {
 			log.WithError(err).Error("could not found the connection to this device")
 
 			return err
 		}
 
-		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/close/%s", data.UID), nil)
-		if err != nil {
-			log.WithError(err).Error("failed to create a the request for the device")
+		switch version {
+		case httptunnel.ConnectionV1:
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/close/%s", data.UID), nil)
+			if err != nil {
+				log.WithError(err).Error("failed to create a the request for the device")
 
-			return err
-		}
+				return err
+			}
 
-		if err := req.Write(conn); err != nil {
-			log.WithError(err).Error("failed to perform the HTTP request to the device to close the session")
+			if err := req.Write(conn); err != nil {
+				log.WithError(err).Error("failed to perform the HTTP request to the device to close the session")
 
-			return err
+				return err
+			}
+		case httptunnel.ConnectionV2:
+			if err := multistream.SelectProtoOrFail("/ssh/close", conn); err != nil {
+				log.WithError(err).Error("failed to select the protocol")
+			}
+
+			json.NewEncoder(conn).Encode(map[string]string{
+				"id": data.UID,
+			})
+		default:
+			log.WithField("version", version).Error("unknown connection version")
+
+			return ErrDeviceTunnelDial
 		}
 
 		return c.NoContent(http.StatusOK)
 	})
 
-	if config.Tunnels {
+	if config.WebEndpoints {
 		// The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes the
 		// `X-Address` and `X-Path` headers, which specify the tunnel's address and the target path on the server, returning
 		// an error related to the connection to device or what was returned from the server inside the tunnel.
@@ -217,7 +234,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 				"device":     endpoint.Device,
 			})
 
-			in, err := tunnel.Dial(c.Request().Context(), fmt.Sprintf("%s:%s", endpoint.Namespace, endpoint.DeviceUID))
+			in, version, err := tunnel.Dial(c.Request().Context(), endpoint.Namespace, endpoint.DeviceUID)
 			if err != nil {
 				logger.WithError(err).Error("failed to dial to device")
 
@@ -229,25 +246,51 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 			logger.Trace("new web endpoint connection initialized")
 			defer logger.Trace("web endpoint connection doned")
 
-			// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to all
-			// hosts on the agent because we aren't specifying any host, on the port specified. The proxy route accepts
-			// connections for any port, but this route should only connect to the HTTP server.
-			req, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", endpoint.Host, endpoint.Port), nil)
+			switch version {
+			case httptunnel.ConnectionV1:
+				// NOTE: Connects to the HTTP proxy before doing the actual request. In this case, we are connecting to
+				// all hosts on the agent because we aren't specifying any host, on the port specified. The proxy route
+				// accepts connections for any port, but this route should only connect to the HTTP server.
+				if err := c.Request().Write(in); err != nil {
+					logger.WithError(err).Error("failed to write the request to the agent")
 
-			if err := req.Write(in); err != nil {
-				logger.WithError(err).Error("failed to write the request to the agent")
+					return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
+				}
 
-				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
+				if resp, err := http.ReadResponse(bufio.NewReader(in), c.Request()); err != nil || resp.StatusCode != http.StatusOK {
+					logger.WithError(err).Error("failed to connect to HTTP port on device")
+
+					return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
+				}
+			case httptunnel.ConnectionV2:
+				if err := multistream.SelectProtoOrFail("/http/proxy", in); err != nil {
+					log.WithError(err).Error("failed to select the protocol")
+				}
+
+				if err := json.NewEncoder(in).Encode(map[string]string{
+					"id":   requestID,
+					"host": endpoint.Host,
+					"port": fmt.Sprintf("%d", endpoint.Port),
+				}); err != nil {
+					logger.WithError(err).Error("failed to send the connection headers")
+
+					return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
+				}
+
+				result := map[string]string{}
+				if err := json.NewDecoder(in).Decode(&result); err != nil || result["status"] != "ok" {
+					logger.WithField("message", result["message"]).Error("failed to connect to HTTP port on device")
+
+					return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
+				}
+			default:
+				log.WithField("version", version).Error("unknown connection version")
+
+				return ErrDeviceTunnelDial
 			}
 
-			if resp, err := http.ReadResponse(bufio.NewReader(in), req); err != nil || resp.StatusCode != http.StatusOK {
-				logger.WithError(err).Error("failed to connect to HTTP port on device")
-
-				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
-			}
-
-			req = c.Request()
-			req.Host = strings.Join([]string{address, config.TunnelsDomain}, ".")
+			req := c.Request()
+			req.Host = strings.Join([]string{address, config.WebEndpointsDomain}, ".")
 			req.URL, err = url.Parse(path)
 			if err != nil {
 				logger.WithError(err).Error("failed to parse the path")
@@ -261,10 +304,18 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
 			}
 
+			log.WithFields(log.Fields{
+				"request-id": requestID,
+				"method":     req.Method,
+				"url":        req.URL.String(),
+				"host":       req.Host,
+				"headers":    req.Header,
+			}).Debug("request to device")
+
 			ctr := http.NewResponseController(c.Response())
 			out, _, err := ctr.Hijack()
 			if err != nil {
-				logger.WithError(err).Error("failed to hijact the http request")
+				logger.WithError(err).Error("failed to hijack the http request")
 
 				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelHijackRequest))
 			}
@@ -324,6 +375,6 @@ func (t *Tunnel) GetRouter() *echo.Echo {
 }
 
 // Dial trys to get a connetion to a device specifying a key, what is a combination of tenant and device's UID.
-func (t *Tunnel) Dial(ctx context.Context, key string) (net.Conn, error) {
-	return t.Tunnel.Dial(ctx, key)
+func (t *Tunnel) Dial(ctx context.Context, tenant, uid string) (net.Conn, byte, error) {
+	return t.Tunnel.DialTo(ctx, tenant, uid)
 }

@@ -1,6 +1,7 @@
 package session
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -12,6 +13,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/gorilla/websocket"
+	"github.com/multiformats/go-multistream"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -544,23 +546,50 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	return nil
 }
 
+var ErrDialUnknown = errors.New("unknown protocol version")
+
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	conn, err := s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
+	defer ctx.Unlock()
+
+	conn, version, err := s.tunnel.DialTo(ctx, s.Device.TenantID, s.Device.UID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
-	if err = req.Write(conn); err != nil {
-		return err
+	switch version {
+	case httptunnel.ConnectionV1:
+		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
+		if err = req.Write(conn); err != nil {
+			return err
+		}
+	case httptunnel.ConnectionV2:
+		// TODO: Add constants for protocols.
+		if err := multistream.SelectProtoOrFail("/ssh/open", conn); err != nil {
+			log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Error("Failed to select /ssh/open protocol")
+
+			return errors.Join(ErrDial, err)
+		}
+
+		if err := json.NewEncoder(conn).Encode(map[string]string{
+			"id": s.UID,
+		}); err != nil {
+			log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Error("Failed to send headers")
+
+			return errors.Join(ErrDial, err)
+		}
+	default:
+		log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID, "version": version}).
+			Error("Unknown protocol version")
+
+		return errors.Join(ErrDial, ErrDialUnknown)
 	}
 
 	s.Agent.Conn = conn
-
-	ctx.Unlock()
 
 	return nil
 }
