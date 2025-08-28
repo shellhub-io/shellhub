@@ -1,9 +1,7 @@
 package httptunnel
 
 import (
-	"bufio"
 	"context"
-	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -107,34 +105,4 @@ func (t *Tunnel) Router() http.Handler {
 
 func (t *Tunnel) Dial(ctx context.Context, id string) (net.Conn, error) {
 	return t.connman.Dial(ctx, id)
-}
-
-func (t *Tunnel) SendRequest(ctx context.Context, id string, req *http.Request) (*http.Response, error) {
-	conn, err := t.connman.Dial(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := req.Write(conn); err != nil {
-		return nil, err
-	}
-
-	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-func (t *Tunnel) ForwardResponse(resp *http.Response, w http.ResponseWriter) {
-	for key, values := range resp.Header {
-		for _, value := range values {
-			w.Header().Add(key, value)
-		}
-	}
-
-	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body) // nolint:errcheck
-	resp.Body.Close()
 }

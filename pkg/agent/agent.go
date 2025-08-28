@@ -58,6 +58,7 @@ import (
 	"github.com/Masterminds/semver"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
@@ -569,11 +570,22 @@ func sshCloseHandler(a *Agent, serv *server.Server) func(c echo.Context) error {
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
-	a.tunnel = tunnel.NewBuilder().
-		WithSSHHandler(sshHandler(a.server)).
-		WithSSHCloseHandler(sshCloseHandler(a, a.server)).
-		WithHTTPProxyHandler(httpProxyHandler(a)).
-		Build()
+	// a.tunnel = tunnel.NewBuilder().
+	// 	WithSSHHandler(sshHandler(a.server)).
+	// 	WithSSHCloseHandler(sshCloseHandler(a, a.server)).
+	// 	WithHTTPProxyHandler(httpProxyHandler(a)).
+	// 	Build()
+
+	go a.server.ListenAndServe()
+
+	a.tunnel = tunnel.NewTunnel(a.config.PrivateKey, a.authData)
+	a.tunnel.Handler = func(s network.Stream) {
+		fmt.Printf("New stream from: %s\n", s.Conn().RemotePeer())
+
+		a.server.HandleConn(NewStreamConn(s))
+
+		log.Printf("Stream from %s closed\n", s.Conn().RemotePeer())
+	}
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
@@ -602,19 +614,19 @@ func (a *Agent) Listen(ctx context.Context) error {
 				"{sshEndpoint}", strings.Split(sshEndpoint, ":")[0],
 			).Replace("{namespace}.{tenantName}@{sshEndpoint}")
 
-			listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
-			if err != nil {
-				log.WithError(err).WithFields(log.Fields{
-					"version":        AgentVersion,
-					"tenant_id":      a.authData.Namespace,
-					"server_address": a.config.ServerAddress,
-					"ssh_server":     sshEndpoint,
-					"sshid":          sshid,
-				}).Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
-				time.Sleep(time.Second * 10)
+			// listener, err := a.cli.NewReverseListener(ctx, a.authData.Token, "/ssh/connection")
+			// if err != nil {
+			// 	log.WithError(err).WithFields(log.Fields{
+			// 		"version":        AgentVersion,
+			// 		"tenant_id":      a.authData.Namespace,
+			// 		"server_address": a.config.ServerAddress,
+			// 		"ssh_server":     sshEndpoint,
+			// 		"sshid":          sshid,
+			// 	}).Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+			// 	time.Sleep(time.Second * 10)
 
-				continue
-			}
+			// 	continue
+			// }
 
 			log.WithFields(log.Fields{
 				"namespace":      namespace,
@@ -629,7 +641,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 			{
 				// NOTE: Tunnel'll only realize that it lost its connection to the ShellHub SSH when the next
 				// "keep-alive" connection fails. As a result, it will take this interval to reconnect to its server.
-				err := a.tunnel.Listen(listener)
+				err := a.tunnel.Listen()
 
 				log.WithError(err).WithFields(log.Fields{
 					"namespace":      namespace,
@@ -639,7 +651,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 					"sshid":          sshid,
 				}).Info("Tunnel listener closed")
 
-				listener.Close() // nolint:errcheck
+				// listener.Close() // nolint:errcheck
 			}
 
 			a.listening <- false
@@ -765,3 +777,37 @@ func GetInfo(cfg *Config) (*models.Info, error) {
 
 	return info, nil
 }
+
+type StreamConn struct {
+	stream network.Stream
+}
+
+func NewStreamConn(s network.Stream) net.Conn { return &StreamConn{stream: s} }
+
+func (c *StreamConn) Read(b []byte) (int, error) {
+	log.Printf("StreamConn Read: requesting %d bytes\n", len(b))
+	log.Println(string(b))
+
+	return c.stream.Read(b)
+}
+
+func (c *StreamConn) Write(b []byte) (int, error) {
+	log.Printf("StreamConn Write: sending %d bytes\n", len(b))
+	log.Println(string(b))
+
+	return c.stream.Write(b)
+}
+func (c *StreamConn) Close() error { return c.stream.Close() }
+
+func (c *StreamConn) LocalAddr() net.Addr  { return dummyAddr("libp2p-local") }
+func (c *StreamConn) RemoteAddr() net.Addr { return dummyAddr("libp2p-remote") }
+
+func (c *StreamConn) SetDeadline(t time.Time) error      { return nil }
+func (c *StreamConn) SetReadDeadline(t time.Time) error  { return nil }
+func (c *StreamConn) SetWriteDeadline(t time.Time) error { return nil }
+
+// dummyAddr is a tiny net.Addr implementation for compatibility.
+type dummyAddr string
+
+func (d dummyAddr) Network() string { return string(d) }
+func (d dummyAddr) String() string  { return string(d) }

@@ -1,5 +1,5 @@
 # base stage
-FROM golang:1.23-alpine3.19 AS base
+FROM golang:1.23.12-alpine3.21 AS base
 
 ARG GOPROXY
 

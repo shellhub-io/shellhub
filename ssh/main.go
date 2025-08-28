@@ -46,8 +46,9 @@ func main() {
 		log.WithError(err).
 			Fatal("failed to connect to redis cache")
 	}
+	t := tunnel.NewFoo()
 
-	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", tunnel.Config{
+	tun, err := tunnel.NewTunnel(t, "/ssh/connection", "/ssh/revdial", tunnel.Config{
 		Tunnels:       env.WebEndpoints,
 		TunnelsDomain: env.WebEndpointsDomain,
 		RedisURI:      env.RedisURI,
@@ -94,7 +95,7 @@ func main() {
 		errs <- server.NewServer(&server.Options{
 			ConnectTimeout:               env.ConnectTimeout,
 			AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
-		}, tun.Tunnel, cache).ListenAndServe()
+		}, t, cache).ListenAndServe()
 	}()
 
 	if err := <-errs; err != nil {

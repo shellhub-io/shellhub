@@ -1,8 +1,8 @@
 module github.com/shellhub-io/shellhub/cli
 
-go 1.23.0
+go 1.23.8
 
-toolchain go1.23.9
+toolchain go1.24.6
 
 require (
 	github.com/shellhub-io/shellhub v0.13.4
@@ -17,7 +17,7 @@ require (
 	github.com/bodgit/plumbing v1.2.0 // indirect
 	github.com/bodgit/sevenzip v1.3.0 // indirect
 	github.com/bodgit/windows v1.0.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/connesc/cipherio v0.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect

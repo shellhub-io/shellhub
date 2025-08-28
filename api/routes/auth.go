@@ -119,6 +119,8 @@ func (h *Handler) AuthDevice(c gateway.Context) error {
 		return err
 	}
 
+	res.ServerAddress = "/dns4/localhost/tcp/9000/ws/p2p/QmYhwoBYY2mPScKJSN34YKC7KqZJz3HdL4nLAiBG4yRD2h"
+
 	return c.JSON(http.StatusOK, res)
 }
 

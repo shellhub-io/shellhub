@@ -112,8 +112,10 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 	}
 
 	server.sshd = &gliderssh.Server{
-		PasswordHandler:        server.passwordHandler,
-		PublicKeyHandler:       server.publicKeyHandler,
+		PasswordHandler: func(ctx gliderssh.Context, password string) bool {
+			return true
+		},
+		// PublicKeyHandler:       server.publicKeyHandler,
 		Handler:                server.sessionHandler,
 		SessionRequestCallback: server.sessionRequestCallback,
 		SubsystemHandlers: map[string]gliderssh.SubsystemHandler{

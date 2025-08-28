@@ -115,6 +115,7 @@ services:
       - ui
     ports:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTP_PORT}:80
+      - 9000:9000
     networks:
       - shellhub
     healthcheck:

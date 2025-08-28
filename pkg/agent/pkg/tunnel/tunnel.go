@@ -2,102 +2,171 @@ package tunnel
 
 import (
 	"context"
-	"net"
-	"net/http"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
+	"fmt"
+	"log"
+	"os"
+	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/libp2p/go-libp2p"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/client"
+	"github.com/multiformats/go-multiaddr"
+	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 type Tunnel struct {
-	router           *echo.Echo
-	srv              *http.Server
-	HTTPProxyHandler func(e echo.Context) error
-	SSHHandler       func(e echo.Context) error
-	SSHCloseHandler  func(e echo.Context) error
+	peer    host.Host
+	Handler func(network.Stream)
 }
 
-type Builder struct {
-	tunnel *Tunnel
+const (
+	SSHProtocol = "/ssh/1.0.0"
+)
+
+type Data struct {
+	Namespace string `json:"namespace"`
+	UID       string `json:"uid"`
 }
 
-func NewBuilder() *Builder {
-	return &Builder{
-		tunnel: NewTunnel(),
+func NewTunnel(privFile string, auth *models.DeviceAuthResponse) *Tunnel {
+	pemData, err := os.ReadFile(privFile)
+	if err != nil {
+		fmt.Println("Error reading PEM file:", err)
+		panic(err)
 	}
-}
 
-func (t *Builder) WithHTTPProxyHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.HTTPProxyHandler = handler
+	block, _ := pem.Decode(pemData)
+	if block == nil || block.Type != "RSA PRIVATE KEY" {
+		fmt.Println("Failed to decode PEM block or incorrect type")
 
-	return t
-}
+		panic(err)
+	}
 
-func (t *Builder) WithSSHHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.SSHHandler = handler
+	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		fmt.Println("Error parsing RSA private key:", err)
+		panic(err)
+	}
 
-	return t
-}
+	privKey, err := crypto.UnmarshalRsaPrivateKey(x509.MarshalPKCS1PrivateKey(privateKey))
+	if err != nil {
+		fmt.Println("Error unmarshaling RSA private key:", err)
+		panic(err)
+	}
 
-func (t *Builder) WithSSHCloseHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.SSHCloseHandler = handler
-
-	return t
-}
-
-func (t *Builder) Build() *Tunnel {
-	return t.tunnel
-}
-
-func NewTunnel() *Tunnel {
-	e := echo.New()
+	h, err := libp2p.New(
+		libp2p.NoListenAddrs,
+		libp2p.Identity(privKey),
+		libp2p.EnableRelay(),
+	)
+	if err != nil {
+		panic(err)
+	}
 
 	t := &Tunnel{
-		router: e,
-		srv: &http.Server{ //nolint:gosec
-			Handler: e,
-			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
-				return context.WithValue(ctx, "http-conn", c) //nolint:revive
-			},
-		},
-		SSHHandler: func(_ echo.Context) error {
-			panic("ConnHandler can not be nil")
-		},
-		SSHCloseHandler: func(_ echo.Context) error {
-			panic("CloseHandler can not be nil")
-		},
-		HTTPProxyHandler: func(_ echo.Context) error {
-			panic("ProxyHandler can not be nil")
-		},
+		peer: h,
 	}
-	e.GET("/ssh/:id", func(e echo.Context) error {
-		return t.SSHHandler(e)
+
+	h.SetStreamHandler(SSHProtocol, func(s network.Stream) {
+		fmt.Println("New stream from:", s.Conn().RemotePeer())
+
+		t.Handler(s)
 	})
-	e.GET("/ssh/close/:id", func(e echo.Context) error {
-		return t.SSHCloseHandler(e)
-	})
-	e.CONNECT("/http/proxy/:addr", func(e echo.Context) error {
-		// NOTE: The CONNECT HTTP method requests that a proxy establish a HTTP tunnel to this server, and if
-		// successful, blindly forward data in both directions until the tunnel is closed.
-		//
-		// https://en.wikipedia.org/wiki/HTTP_tunnel
-		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
-		return t.HTTPProxyHandler(e)
-	})
+
+	time.Sleep(3 * time.Second)
+
+	fmt.Println("------------------------------")
+	fmt.Println("agent id: ", h.ID())
+	fmt.Println("------------------------------")
+
+	ma, err := multiaddr.NewMultiaddr(auth.ServerAddress)
+	if err != nil {
+		log.Println("multiaddr.NewMultiaddr err:", err)
+
+		panic(err)
+	}
+
+	relay1info, err := peer.AddrInfoFromP2pAddr(ma)
+	if err != nil {
+		log.Println("peer.AddrInfoFromP2pAddr err:", err)
+
+		panic(err)
+	}
+
+	ctx := context.TODO()
+
+	_, err = client.Reserve(context.Background(), h, *relay1info)
+	if err != nil {
+		log.Printf("unreachable2 failed to receive a relay reservation from relay1. %v", err)
+		panic(err)
+	}
+
+	if err := h.Connect(ctx, *relay1info); err != nil {
+		log.Println("h.Connect err:", err)
+
+		panic(err)
+	}
+
+	s, err := h.NewStream(ctx, relay1info.ID, "/register/1.0.0")
+	if err != nil {
+		log.Println("h.NewStream err:", err)
+		panic(err)
+	}
+
+	data := Data{
+		Namespace: auth.Namespace,
+		UID:       auth.UID,
+	}
+
+	d, err := json.Marshal(data)
+	if err != nil {
+		log.Println("json.Marshal err:", err)
+		panic(err)
+	}
+
+	s.Write(d)
+
+	// relayaddr, err := multiaddr.NewMultiaddr("/p2p/" + "" + "/p2p-circuit/p2p/" + "")
+	// if err != nil {
+	// 	return nil
+	// }
+
+	// for _, a := range peer.Addrs() {
+	// 	fmt.Printf(" - %s/p2p/%s\n", a.String(), peer.ID())
+	// }
 
 	return t
 }
 
 // Listen to reverse listener.
-func (t *Tunnel) Listen(l *revdial.Listener) error {
-	return t.srv.Serve(l)
+func (t *Tunnel) Listen() error {
+	// ctx := context.TODO()
+
+	// ma, err := multiaddr.NewMultiaddr(addrStr)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// addr, err := peer.AddrInfoFromP2pAddr(ma)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// TODO: Warp connect's error into a custom error.
+	// t.peer.Connect(ctx, *addr)
+
+	time.Sleep(10 * time.Hour)
+
+	return nil
 }
 
 // Close closes the tunnel.
 func (t *Tunnel) Close() error {
-	if err := t.router.Close(); err != nil {
-		return err
-	}
-
-	return t.srv.Close()
+	return nil
 }

@@ -17,10 +17,10 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
+	"github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -146,7 +146,7 @@ type Session struct {
 	Client *Client
 
 	api    internalclient.Client
-	tunnel *httptunnel.Tunnel
+	tunnel *tunnel.Foo
 	// Events is a connection to the endpoint to save session's events.
 	Events *Events
 
@@ -235,7 +235,7 @@ func (s *Seats) SetPty(seat int, status bool) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Cache) (*Session, error) {
+func NewSession(ctx gliderssh.Context, tunnel *tunnel.Foo, cache cache.Cache) (*Session, error) {
 	snap := getSnapshot(ctx)
 
 	api, err := internalclient.NewClient()
@@ -548,7 +548,7 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	conn, err := s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
+	conn, err := s.tunnel.Dial(ctx, s.Device.Namespace+"/"+s.Device.UID)
 	if err != nil {
 		return errors.Join(ErrDial, err)
 	}

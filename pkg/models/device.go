@@ -66,6 +66,8 @@ type DeviceAuthResponse struct {
 	Token     string `json:"token"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+
+	ServerAddress string `json:"server_address"`
 }
 
 type DeviceIdentity struct {
