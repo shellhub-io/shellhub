@@ -5,7 +5,10 @@
             "data": "test",
             "filter": {
                 "hostname": ".*",
-                "tags": ["tag-1"]
+                "tag_ids": [
+                    "6791d3ae04ba86e6d7a0514d",
+                    "6791d3be5a201d874c4c2885"
+                ]
             },
             "fingerprint": "fingerprint",
             "name": "public_key",

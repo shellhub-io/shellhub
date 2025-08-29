@@ -10,11 +10,10 @@ const (
 	DeviceConnect
 	DeviceRename
 	DeviceDetails
-	DeviceCreateTag
-	DeviceUpdateTag
-	DeviceRemoveTag
-	DeviceRenameTag
-	DeviceDeleteTag
+
+	TagCreate
+	TagUpdate
+	TagDelete
 
 	SessionPlay
 	SessionClose
@@ -24,16 +23,10 @@ const (
 	FirewallCreate
 	FirewallEdit
 	FirewallRemove
-	FirewallAddTag
-	FirewallRemoveTag
-	FirewallUpdateTag
 
 	PublicKeyCreate
 	PublicKeyEdit
 	PublicKeyRemove
-	PublicKeyAddTag
-	PublicKeyRemoveTag
-	PublicKeyUpdateTag
 
 	NamespaceUpdate
 	NamespaceAddMember
@@ -78,11 +71,10 @@ var operatorPermissions = []Permission{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
-	DeviceCreateTag,
-	DeviceUpdateTag,
-	DeviceRemoveTag,
-	DeviceRenameTag,
-	DeviceDeleteTag,
+
+	TagCreate,
+	TagUpdate,
+	TagDelete,
 
 	SessionDetails,
 }
@@ -95,11 +87,10 @@ var adminPermissions = []Permission{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
-	DeviceCreateTag,
-	DeviceUpdateTag,
-	DeviceRemoveTag,
-	DeviceRenameTag,
-	DeviceDeleteTag,
+
+	TagCreate,
+	TagUpdate,
+	TagDelete,
 
 	SessionPlay,
 	SessionClose,
@@ -109,16 +100,10 @@ var adminPermissions = []Permission{
 	FirewallCreate,
 	FirewallEdit,
 	FirewallRemove,
-	FirewallAddTag,
-	FirewallRemoveTag,
-	FirewallUpdateTag,
 
 	PublicKeyCreate,
 	PublicKeyEdit,
 	PublicKeyRemove,
-	PublicKeyAddTag,
-	PublicKeyRemoveTag,
-	PublicKeyUpdateTag,
 
 	NamespaceUpdate,
 	NamespaceAddMember,
@@ -146,11 +131,10 @@ var ownerPermissions = []Permission{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
-	DeviceCreateTag,
-	DeviceUpdateTag,
-	DeviceRemoveTag,
-	DeviceRenameTag,
-	DeviceDeleteTag,
+
+	TagCreate,
+	TagUpdate,
+	TagDelete,
 
 	SessionPlay,
 	SessionClose,
@@ -160,16 +144,10 @@ var ownerPermissions = []Permission{
 	FirewallCreate,
 	FirewallEdit,
 	FirewallRemove,
-	FirewallAddTag,
-	FirewallRemoveTag,
-	FirewallUpdateTag,
 
 	PublicKeyCreate,
 	PublicKeyEdit,
 	PublicKeyRemove,
-	PublicKeyAddTag,
-	PublicKeyRemoveTag,
-	PublicKeyUpdateTag,
 
 	NamespaceUpdate,
 	NamespaceAddMember,
