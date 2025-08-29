@@ -12,8 +12,6 @@ import (
 
 	pkgresponses "github.com/shellhub-io/shellhub/api/pkg/responses"
 
-	query "github.com/shellhub-io/shellhub/pkg/api/query"
-
 	requests "github.com/shellhub-io/shellhub/pkg/api/requests"
 
 	responses "github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -1178,9 +1176,9 @@ func (_m *Service) ListNamespaces(ctx context.Context, req *requests.NamespaceLi
 	return r0, r1, r2
 }
 
-// ListPublicKeys provides a mock function with given fields: ctx, paginator
-func (_m *Service) ListPublicKeys(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
-	ret := _m.Called(ctx, paginator)
+// ListPublicKeys provides a mock function with given fields: ctx, req
+func (_m *Service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPublicKeys")
@@ -1189,25 +1187,25 @@ func (_m *Service) ListPublicKeys(ctx context.Context, paginator query.Paginator
 	var r0 []models.PublicKey
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.PublicKey, int, error)); ok {
-		return rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ListPublicKeys) ([]models.PublicKey, int, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.PublicKey); ok {
-		r0 = rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ListPublicKeys) []models.PublicKey); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.PublicKey)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, paginator)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ListPublicKeys) int); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, paginator)
+	if rf, ok := ret.Get(2).(func(context.Context, *requests.ListPublicKeys) error); ok {
+		r2 = rf(ctx, req)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1215,9 +1213,9 @@ func (_m *Service) ListPublicKeys(ctx context.Context, paginator query.Paginator
 	return r0, r1, r2
 }
 
-// ListSessions provides a mock function with given fields: ctx, paginator
-func (_m *Service) ListSessions(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
-	ret := _m.Called(ctx, paginator)
+// ListSessions provides a mock function with given fields: ctx, req
+func (_m *Service) ListSessions(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListSessions")
@@ -1226,25 +1224,25 @@ func (_m *Service) ListSessions(ctx context.Context, paginator query.Paginator) 
 	var r0 []models.Session
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.Session, int, error)); ok {
-		return rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ListSessions) ([]models.Session, int, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.Session); ok {
-		r0 = rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.ListSessions) []models.Session); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, paginator)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.ListSessions) int); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, paginator)
+	if rf, ok := ret.Get(2).(func(context.Context, *requests.ListSessions) error); ok {
+		r2 = rf(ctx, req)
 	} else {
 		r2 = ret.Error(2)
 	}
