@@ -47,7 +47,7 @@ func TestDeviceList(t *testing.T) {
 				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
 				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
 			},
-			fixtures: []string{fixtureNamespaces, fixtureDevices},
+			fixtures: []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -65,8 +65,19 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
@@ -83,8 +94,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -101,8 +115,26 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+								{
+									ID:        "6791d3be5a201d874c4c2885",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "development",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
@@ -119,8 +151,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "pending",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      true,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 				},
 				len: 4,
@@ -134,7 +169,7 @@ func TestDeviceList(t *testing.T) {
 				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
 				s.Options().Paginate(&query.Paginator{Page: 2, PerPage: 2}),
 			},
-			fixtures: []string{fixtureNamespaces, fixtureDevices},
+			fixtures: []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -152,8 +187,26 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+								{
+									ID:        "6791d3be5a201d874c4c2885",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "development",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
@@ -170,8 +223,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "pending",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      true,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 				},
 				len: 4,
@@ -185,7 +241,7 @@ func TestDeviceList(t *testing.T) {
 				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
 				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
 			},
-			fixtures: []string{fixtureNamespaces, fixtureDevices},
+			fixtures: []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -203,8 +259,19 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
@@ -221,8 +288,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -239,8 +309,26 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+								{
+									ID:        "6791d3be5a201d874c4c2885",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "development",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
@@ -257,8 +345,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "pending",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      true,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 				},
 				len: 4,
@@ -272,7 +363,7 @@ func TestDeviceList(t *testing.T) {
 				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderDesc}),
 				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
 			},
-			fixtures: []string{fixtureNamespaces, fixtureDevices},
+			fixtures: []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -290,8 +381,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "pending",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      true,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -308,8 +402,26 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+								{
+									ID:        "6791d3be5a201d874c4c2885",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "development",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
@@ -326,8 +438,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 					{
 						CreatedAt:       time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
@@ -344,8 +459,19 @@ func TestDeviceList(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
 						Acceptable:      false,
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 				},
 				len: 4,
@@ -360,7 +486,7 @@ func TestDeviceList(t *testing.T) {
 				s.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
 				s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
 			},
-			fixtures: []string{fixtureNamespaces, fixtureDevices},
+			fixtures: []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: []models.Device{
 					{
@@ -378,8 +504,11 @@ func TestDeviceList(t *testing.T) {
 						Status:          "pending",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{},
 						Acceptable:      true,
+						Taggable: models.Taggable{
+							TagIDs: []string{},
+							Tags:   []models.Tag{},
+						},
 					},
 				},
 				len: 1,
@@ -430,7 +559,7 @@ func TestDeviceResolve(t *testing.T) {
 			description: "succeeds resolving device by UID",
 			resolver:    store.DeviceUIDResolver,
 			value:       "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -446,9 +575,27 @@ func TestDeviceResolve(t *testing.T) {
 					Status:          "accepted",
 					RemoteAddr:      "",
 					Position:        nil,
-					Tags:            []string{"tag-1"},
-					Acceptable:      false,
 					Namespace:       "namespace-1",
+					Acceptable:      false,
+					Taggable: models.Taggable{
+						TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+						Tags: []models.Tag{
+							{
+								ID:        "6791d3ae04ba86e6d7a0514d",
+								CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								Name:      "production",
+								TenantID:  "00000000-0000-4000-0000-000000000000",
+							},
+							{
+								ID:        "6791d3be5a201d874c4c2885",
+								CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								Name:      "development",
+								TenantID:  "00000000-0000-4000-0000-000000000000",
+							},
+						},
+					},
 				},
 				err: nil,
 			},
@@ -457,7 +604,7 @@ func TestDeviceResolve(t *testing.T) {
 			description: "succeeds resolving device by hostname",
 			resolver:    store.DeviceHostnameResolver,
 			value:       "device-3",
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -473,9 +620,27 @@ func TestDeviceResolve(t *testing.T) {
 					Status:          "accepted",
 					RemoteAddr:      "",
 					Position:        nil,
-					Tags:            []string{"tag-1"},
-					Acceptable:      false,
 					Namespace:       "namespace-1",
+					Acceptable:      false,
+					Taggable: models.Taggable{
+						TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+						Tags: []models.Tag{
+							{
+								ID:        "6791d3ae04ba86e6d7a0514d",
+								CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								Name:      "production",
+								TenantID:  "00000000-0000-4000-0000-000000000000",
+							},
+							{
+								ID:        "6791d3be5a201d874c4c2885",
+								CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								Name:      "development",
+								TenantID:  "00000000-0000-4000-0000-000000000000",
+							},
+						},
+					},
 				},
 				err: nil,
 			},
@@ -484,7 +649,7 @@ func TestDeviceResolve(t *testing.T) {
 			description: "succeeds resolving device by MAC",
 			resolver:    store.DeviceMACResolver,
 			value:       "mac-3",
-			fixtures:    []string{fixtureNamespaces, fixtureDevices},
+			fixtures:    []string{fixtureNamespaces, fixtureTags, fixtureDevices},
 			expected: Expected{
 				dev: &models.Device{
 					CreatedAt:       time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -500,9 +665,27 @@ func TestDeviceResolve(t *testing.T) {
 					Status:          "accepted",
 					RemoteAddr:      "",
 					Position:        nil,
-					Tags:            []string{"tag-1"},
-					Acceptable:      false,
 					Namespace:       "namespace-1",
+					Acceptable:      false,
+					Taggable: models.Taggable{
+						TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+						Tags: []models.Tag{
+							{
+								ID:        "6791d3ae04ba86e6d7a0514d",
+								CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								Name:      "production",
+								TenantID:  "00000000-0000-4000-0000-000000000000",
+							},
+							{
+								ID:        "6791d3be5a201d874c4c2885",
+								CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+								Name:      "development",
+								TenantID:  "00000000-0000-4000-0000-000000000000",
+							},
+						},
+					},
 				},
 				err: nil,
 			},

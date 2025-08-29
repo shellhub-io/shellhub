@@ -28,7 +28,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is not found due to fingerprint",
 			fingerprint: "nonexistent",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixturePublicKeys},
+			fixtures:    []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
 				err:    store.ErrNoDocuments,
@@ -38,7 +38,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is not found due to tenant",
 			fingerprint: "fingerprint",
 			tenant:      "nonexistent",
-			fixtures:    []string{fixturePublicKeys},
+			fixtures:    []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
 				err:    store.ErrNoDocuments,
@@ -48,7 +48,7 @@ func TestPublicKeyGet(t *testing.T) {
 			description: "succeeds when public key is found",
 			fingerprint: "fingerprint",
 			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixturePublicKeys},
+			fixtures:    []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: &models.PublicKey{
 					Data:        []byte("test"),
@@ -59,7 +59,25 @@ func TestPublicKeyGet(t *testing.T) {
 						Name: "public_key",
 						Filter: models.PublicKeyFilter{
 							Hostname: ".*",
-							Tags:     []string{"tag-1"},
+							Taggable: models.Taggable{
+								TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+								Tags: []models.Tag{
+									{
+										ID:        "6791d3ae04ba86e6d7a0514d",
+										CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										Name:      "production",
+										TenantID:  "00000000-0000-4000-0000-000000000000",
+									},
+									{
+										ID:        "6791d3be5a201d874c4c2885",
+										CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										Name:      "development",
+										TenantID:  "00000000-0000-4000-0000-000000000000",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -109,7 +127,7 @@ func TestPublicKeyList(t *testing.T) {
 		{
 			description: "succeeds when public key list len is greater than 1",
 			opts:        []store.QueryOption{s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1})},
-			fixtures:    []string{fixturePublicKeys},
+			fixtures:    []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: []models.PublicKey{
 					{
@@ -121,7 +139,25 @@ func TestPublicKeyList(t *testing.T) {
 							Name: "public_key",
 							Filter: models.PublicKeyFilter{
 								Hostname: ".*",
-								Tags:     []string{"tag-1"},
+								Taggable: models.Taggable{
+									TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+									Tags: []models.Tag{
+										{
+											ID:        "6791d3ae04ba86e6d7a0514d",
+											CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+											UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+											Name:      "production",
+											TenantID:  "00000000-0000-4000-0000-000000000000",
+										},
+										{
+											ID:        "6791d3be5a201d874c4c2885",
+											CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+											UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+											Name:      "development",
+											TenantID:  "00000000-0000-4000-0000-000000000000",
+										},
+									},
+								},
 							},
 						},
 					},
@@ -237,11 +273,29 @@ func TestPublicKeyUpdate(t *testing.T) {
 					Name: "edited_key",
 					Filter: models.PublicKeyFilter{
 						Hostname: ".*",
-						Tags:     []string{"edited-tag"},
+						Taggable: models.Taggable{
+							TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+							Tags: []models.Tag{
+								{
+									ID:        "6791d3ae04ba86e6d7a0514d",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "production",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+								{
+									ID:        "6791d3be5a201d874c4c2885",
+									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+									Name:      "development",
+									TenantID:  "00000000-0000-4000-0000-000000000000",
+								},
+							},
+						},
 					},
 				},
 			},
-			fixtures: []string{fixturePublicKeys},
+			fixtures: []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: &models.PublicKey{
 					Data:        []byte("test"),
@@ -252,7 +306,25 @@ func TestPublicKeyUpdate(t *testing.T) {
 						Name: "edited_key",
 						Filter: models.PublicKeyFilter{
 							Hostname: ".*",
-							Tags:     []string{"edited-tag"},
+							Taggable: models.Taggable{
+								TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
+								Tags: []models.Tag{
+									{
+										ID:        "6791d3ae04ba86e6d7a0514d",
+										CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										Name:      "production",
+										TenantID:  "00000000-0000-4000-0000-000000000000",
+									},
+									{
+										ID:        "6791d3be5a201d874c4c2885",
+										CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+										Name:      "development",
+										TenantID:  "00000000-0000-4000-0000-000000000000",
+									},
+								},
+							},
 						},
 					},
 				},

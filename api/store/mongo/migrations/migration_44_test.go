@@ -4,14 +4,33 @@ import (
 	"context"
 	"sort"
 	"testing"
+	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration44(t *testing.T) {
+	type PublicKeyFilter struct {
+		Hostname string   `json:"hostname,omitempty" bson:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
+		Tags     []string `json:"tags,omitempty" bson:"tags,omitempty" validate:"required_without=Hostname,excluded_with=Hostname,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+	}
+
+	type PublicKeyFields struct {
+		Name     string          `json:"name"`
+		Username string          `json:"username" bson:"username" validate:"regexp"`
+		Filter   PublicKeyFilter `json:"filter" bson:"filter" validate:"required"`
+	}
+
+	type PublicKey struct {
+		Data            []byte    `json:"data"`
+		Fingerprint     string    `json:"fingerprint"`
+		CreatedAt       time.Time `json:"created_at" bson:"created_at"`
+		TenantID        string    `json:"tenant_id" bson:"tenant_id"`
+		PublicKeyFields `bson:",inline"`
+	}
+
 	cases := []struct {
 		description string
 		Test        func(t *testing.T)
@@ -21,49 +40,49 @@ func TestMigration44(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				keyTagDuplicated := &models.PublicKey{
+				keyTagDuplicated := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag2"},
 						},
 					},
 				}
 
-				keyTagWithoutDuplication := &models.PublicKey{
+				keyTagWithoutDuplication := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2"},
 						},
 					},
 				}
 
-				keyTagNoDuplicated := &models.PublicKey{
+				keyTagNoDuplicated := &PublicKey{
 					Fingerprint: "fingerprint1",
 					TenantID:    "tenant1",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key1",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag3"},
 						},
 					},
 				}
 
-				keyHostname := &models.PublicKey{
+				keyHostname := &PublicKey{
 					Fingerprint: "fingerprint2",
 					TenantID:    "tenant2",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key2",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Hostname: ".*",
 						},
 					},
@@ -79,7 +98,7 @@ func TestMigration44(t *testing.T) {
 				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[43:44]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
-				key := new(models.PublicKey)
+				key := new(PublicKey)
 				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
@@ -96,37 +115,37 @@ func TestMigration44(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				keyTagDuplicated := &models.PublicKey{
+				keyTagDuplicated := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag2"},
 						},
 					},
 				}
 
-				keyTagNoDuplicated := &models.PublicKey{
+				keyTagNoDuplicated := &PublicKey{
 					Fingerprint: "fingerprint1",
 					TenantID:    "tenant1",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key1",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag3"},
 						},
 					},
 				}
 
-				keyHostname := &models.PublicKey{
+				keyHostname := &PublicKey{
 					Fingerprint: "fingerprint2",
 					TenantID:    "tenant2",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key2",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Hostname: ".*",
 						},
 					},
@@ -142,7 +161,7 @@ func TestMigration44(t *testing.T) {
 				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[43:44]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
-				key := new(models.PublicKey)
+				key := new(PublicKey)
 				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyTagNoDuplicated.TenantID})
 				assert.NoError(t, result.Err())
 
@@ -159,37 +178,37 @@ func TestMigration44(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				keyTagDuplicated := &models.PublicKey{
+				keyTagDuplicated := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag2"},
 						},
 					},
 				}
 
-				keyTagNoDuplicated := &models.PublicKey{
+				keyTagNoDuplicated := &PublicKey{
 					Fingerprint: "fingerprint1",
 					TenantID:    "tenant1",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key1",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag3"},
 						},
 					},
 				}
 
-				keyHostname := &models.PublicKey{
+				keyHostname := &PublicKey{
 					Fingerprint: "fingerprint2",
 					TenantID:    "tenant2",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key2",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Hostname: ".*",
 						},
 					},
@@ -205,7 +224,7 @@ func TestMigration44(t *testing.T) {
 				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[43:44]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
-				key := new(models.PublicKey)
+				key := new(PublicKey)
 				result := c.Database("test").Collection("public_keys").FindOne(context.TODO(), bson.M{"tenant_id": keyHostname.TenantID})
 				assert.NoError(t, result.Err())
 

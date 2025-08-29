@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	mongodb "go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -33,6 +34,7 @@ const (
 	fixtureUsers          = "users"           // Check "store.mongo.fixtures.users" for fixture iefo
 	fixtureNamespaces     = "namespaces"      // Check "store.mongo.fixtures.namespaces" for fixture info
 	fixtureRecoveryTokens = "recovery_tokens" // Check "store.mongo.fixtures.recovery_tokens" for fixture info
+	fixtureTags           = "tags"            // Check "store.mongo.fixtures.tags" for fixture info
 )
 
 func TestMain(m *testing.M) {
@@ -50,6 +52,7 @@ func TestMain(m *testing.M) {
 		mongotest.SimpleConvertObjID("public_keys", "_id"),
 		mongotest.SimpleConvertBytes("public_keys", "data"),
 		mongotest.SimpleConvertTime("public_keys", "created_at"),
+		SimpleConvertArrayObjID("public_keys", "filter", "tag_ids"),
 		mongotest.SimpleConvertObjID("private_keys", "_id"),
 		mongotest.SimpleConvertBytes("private_keys", "data"),
 		mongotest.SimpleConvertTime("private_keys", "created_at"),
@@ -59,12 +62,14 @@ func TestMain(m *testing.M) {
 		mongotest.SimpleConvertTime("devices", "created_at"),
 		mongotest.SimpleConvertTime("devices", "last_seen"),
 		mongotest.SimpleConvertTime("devices", "status_updated_at"),
+		SimpleConvertArrayObjID("devices", "tag_ids"),
 		mongotest.SimpleConvertObjID("firewall_rules", "_id"),
 		mongotest.SimpleConvertObjID("sessions", "_id"),
 		mongotest.SimpleConvertTime("sessions", "started_at"),
 		mongotest.SimpleConvertTime("sessions", "last_seen"),
 		mongotest.SimpleConvertObjID("active_sessions", "_id"),
 		mongotest.SimpleConvertTime("active_sessions", "last_seen"),
+		mongotest.SimpleConvertObjID("tags", "_id"),
 	}
 
 	if err := srv.Up(ctx); err != nil {
@@ -94,4 +99,35 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
+}
+
+func SimpleConvertArrayObjID(collectionName string, fieldPath ...string) mongotest.PreInsertFunc {
+	return func(collName string, doc mongotest.DocData) (mongotest.DocData, error) {
+		if collName != collectionName || len(fieldPath) == 0 {
+			return doc, nil
+		}
+
+		convertNestedField(doc, fieldPath)
+
+		return doc, nil
+	}
+}
+
+func convertNestedField(current map[string]any, parts []string) {
+	switch len(parts) {
+	case 0:
+		return
+	case 1:
+		if arr, ok := current[parts[0]].([]any); ok {
+			for i, id := range arr {
+				arr[i], _ = primitive.ObjectIDFromHex(id.(string))
+			}
+		}
+
+		return
+	default:
+		if next, ok := current[parts[0]].(map[string]any); ok {
+			convertNestedField(next, parts[1:])
+		}
+	}
 }

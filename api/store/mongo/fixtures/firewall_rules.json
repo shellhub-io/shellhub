@@ -4,7 +4,9 @@
             "action": "allow",
             "active": true,
             "filter": {
-                "tags": ["tag-1"]
+                "tag_ids": [
+                    "6791d3ae04ba86e6d7a0514d"
+                ]
             },
             "priority": 1,
             "source_ip": ".*",
@@ -15,7 +17,9 @@
             "action": "allow",
             "active": true,
             "filter": {
-                "tags": ["tag-1"]
+                "tag_ids": [
+                    "6791d3be5a201d874c4c2885"
+                ]
             },
             "priority": 2,
             "source_ip": "192.168.1.10",
@@ -26,7 +30,7 @@
             "action": "allow",
             "active": true,
             "filter": {
-                "tags": []
+                "tag_ids": []
             },
             "priority": 3,
             "source_ip": "10.0.0.0/24",
@@ -37,7 +41,9 @@
             "action": "deny",
             "active": true,
             "filter": {
-                "tags": ["tag-1"]
+                "tag_ids": [
+                    "6791d3ae04ba86e6d7a0514d"
+                ]
             },
             "priority": 4,
             "source_ip": "172.16.0.0/16",
