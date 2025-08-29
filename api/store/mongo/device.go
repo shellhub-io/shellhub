@@ -39,6 +39,14 @@ func (s *Store) DeviceList(ctx context.Context, acceptable store.DeviceAcceptabl
 				},
 			},
 		},
+		{
+			"$lookup": bson.M{
+				"from":         "tags",
+				"localField":   "tag_ids",
+				"foreignField": "_id",
+				"as":           "tags",
+			},
+		},
 	}
 
 	for _, opt := range opts {
