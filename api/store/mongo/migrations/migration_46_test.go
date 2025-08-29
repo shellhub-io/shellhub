@@ -4,14 +4,33 @@ import (
 	"context"
 	"sort"
 	"testing"
+	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestMigration46(t *testing.T) {
+	type PublicKeyFilter struct {
+		Hostname string   `json:"hostname,omitempty" bson:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
+		Tags     []string `json:"tags,omitempty" bson:"tags,omitempty" validate:"required_without=Hostname,excluded_with=Hostname,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+	}
+
+	type PublicKeyFields struct {
+		Name     string          `json:"name"`
+		Username string          `json:"username" bson:"username" validate:"regexp"`
+		Filter   PublicKeyFilter `json:"filter" bson:"filter" validate:"required"`
+	}
+
+	type PublicKey struct {
+		Data            []byte    `json:"data"`
+		Fingerprint     string    `json:"fingerprint"`
+		CreatedAt       time.Time `json:"created_at" bson:"created_at"`
+		TenantID        string    `json:"tenant_id" bson:"tenant_id"`
+		PublicKeyFields `bson:",inline"`
+	}
+
 	cases := []struct {
 		description string
 		Test        func(t *testing.T)
@@ -21,25 +40,25 @@ func TestMigration46(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				keyUsernameEmpty := &models.PublicKey{
+				keyUsernameEmpty := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: "",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag3"},
 						},
 					},
 				}
 
-				keyUsernameRegexp := &models.PublicKey{
+				keyUsernameRegexp := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag3"},
 						},
 					},
@@ -51,7 +70,7 @@ func TestMigration46(t *testing.T) {
 				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[45:46]...)
 				assert.NoError(t, migrates.Up(context.Background(), migrate.AllAvailable))
 
-				key := new(models.PublicKey)
+				key := new(PublicKey)
 				result := c.Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameEmpty.TenantID})
 				assert.NoError(t, result.Err())
 
@@ -68,25 +87,25 @@ func TestMigration46(t *testing.T) {
 			func(t *testing.T) {
 				t.Helper()
 
-				keyUsernameEmpty := &models.PublicKey{
+				keyUsernameEmpty := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: "",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag3"},
 						},
 					},
 				}
 
-				keyUsernameRegexp := &models.PublicKey{
+				keyUsernameRegexp := &PublicKey{
 					Fingerprint: "fingerprint",
 					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
+					PublicKeyFields: PublicKeyFields{
 						Name:     "key",
 						Username: ".*",
-						Filter: models.PublicKeyFilter{
+						Filter: PublicKeyFilter{
 							Tags: []string{"tag1", "tag2", "tag3"},
 						},
 					},
@@ -98,7 +117,7 @@ func TestMigration46(t *testing.T) {
 				migrates := migrate.NewMigrate(c.Database("test"), GenerateMigrations()[45:46]...)
 				assert.NoError(t, migrates.Down(context.Background(), migrate.AllAvailable))
 
-				key := new(models.PublicKey)
+				key := new(PublicKey)
 				result := c.Database("test").Collection("public_keys").FindOne(context.Background(), bson.M{"tenant_id": keyUsernameRegexp.TenantID})
 				assert.NoError(t, result.Err())
 

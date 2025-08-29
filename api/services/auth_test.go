@@ -439,7 +439,7 @@ func TestAuthDevice(t *testing.T) {
 							Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 							PublicKey:       "public-key",
 							RemoteAddr:      "127.0.0.1",
-							Tags:            []string{},
+							Taggable:        models.Taggable{TagIDs: []string{}},
 							Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
 							Info: &models.DeviceInfo{
 								ID:         "device-id",
@@ -506,7 +506,7 @@ func TestAuthDevice(t *testing.T) {
 							Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 							PublicKey:       "public-key",
 							RemoteAddr:      "127.0.0.1",
-							Tags:            []string{},
+							Taggable:        models.Taggable{TagIDs: []string{}},
 							Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
 							Info: &models.DeviceInfo{
 								ID:         "device-id",
@@ -577,7 +577,7 @@ func TestAuthDevice(t *testing.T) {
 							Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 							PublicKey:       "public-key",
 							RemoteAddr:      "127.0.0.1",
-							Tags:            []string{},
+							Taggable:        models.Taggable{TagIDs: []string{}},
 							Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
 							Info: &models.DeviceInfo{
 								ID:         "device-id",
@@ -665,7 +665,7 @@ func TestAuthDevice(t *testing.T) {
 							Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 							PublicKey:       "public-key",
 							RemoteAddr:      "127.0.0.1",
-							Tags:            []string{},
+							Taggable:        models.Taggable{TagIDs: []string{}},
 							Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
 							Info: &models.DeviceInfo{
 								ID:         "device-id",
@@ -745,7 +745,7 @@ func TestAuthDevice(t *testing.T) {
 							Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 							PublicKey:       "public-key",
 							RemoteAddr:      "127.0.0.1",
-							Tags:            []string{},
+							Taggable:        models.Taggable{TagIDs: []string{}},
 							Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
 							Info: &models.DeviceInfo{
 								ID:         "device-id",
@@ -819,7 +819,7 @@ func TestAuthDevice(t *testing.T) {
 							Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 							PublicKey:       "public-key",
 							RemoteAddr:      "127.0.0.1",
-							Tags:            []string{},
+							Taggable:        models.Taggable{TagIDs: []string{}},
 							Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
 							Info:            nil,
 						},

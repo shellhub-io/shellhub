@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"regexp"
+	"slices"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -32,24 +33,25 @@ type Request struct {
 }
 
 func (s *service) EvaluateKeyFilter(_ context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
-	if key.Filter.Hostname != "" {
+	switch {
+	case key.Filter.Hostname != "":
 		ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
 		if err != nil {
 			return false, err
 		}
 
 		return ok, nil
-	} else if len(key.Filter.Tags) > 0 {
-		for _, tag := range dev.Tags {
-			if contains(key.Filter.Tags, tag) {
+	case len(key.Filter.TagIDs) > 0:
+		for _, tagID := range dev.TagIDs {
+			if slices.Contains(key.Filter.TagIDs, tagID) {
 				return true, nil
 			}
 		}
 
 		return false, nil
+	default:
+		return true, nil
 	}
-
-	return true, nil
 }
 
 func (s *service) EvaluateKeyUsername(_ context.Context, key *models.PublicKey, username string) (bool, error) {
@@ -76,15 +78,26 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error) {
 	// Checks if public key filter type is Tags.
 	// If it is, checks if there are, at least, one tag on the public key filter and if the all tags exist on database.
+	tagIDs := []string{}
 	if req.Filter.Tags != nil {
-		tags, _, err := s.store.TagsGet(ctx, tenant)
+		tags, _, err := s.store.TagList(ctx, s.store.Options().InNamespace(tenant))
 		if err != nil {
 			return nil, NewErrTagEmpty(tenant, err)
 		}
 
-		for _, tag := range req.Filter.Tags {
-			if !contains(tags, tag) {
-				return nil, NewErrTagNotFound(tag, nil)
+		for _, tagName := range req.Filter.Tags {
+			found := false
+			for _, tag := range tags {
+				if tagName == tag.Name {
+					tagIDs = append(tagIDs, tag.ID)
+					found = true
+
+					break
+				}
+			}
+
+			if !found {
+				return nil, NewErrTagNotFound(tagName, nil)
 			}
 		}
 	}
@@ -115,7 +128,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 			Username: req.Username,
 			Filter: models.PublicKeyFilter{
 				Hostname: req.Filter.Hostname,
-				Tags:     req.Filter.Tags,
+				Taggable: models.Taggable{TagIDs: tagIDs, Tags: nil},
 			},
 		},
 	}
@@ -127,7 +140,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 
 	return &responses.PublicKeyCreate{
 		Data:        model.Data,
-		Filter:      responses.PublicKeyFilter(model.Filter),
+		Filter:      responses.PublicKeyFilter{Hostname: model.Filter.Hostname, Tags: req.Filter.Tags},
 		Name:        model.Name,
 		Username:    model.Username,
 		TenantID:    model.TenantID,
@@ -146,15 +159,26 @@ func (s *service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKe
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {
 	// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
 	// filter and if the all tags exist on database.
+	tagIDs := []string{}
 	if key.Filter.Tags != nil {
-		tags, _, err := s.store.TagsGet(ctx, tenant)
+		tags, _, err := s.store.TagList(ctx, s.store.Options().InNamespace(tenant))
 		if err != nil {
 			return nil, NewErrTagEmpty(tenant, err)
 		}
 
-		for _, tag := range key.Filter.Tags {
-			if !contains(tags, tag) {
-				return nil, NewErrTagNotFound(tag, nil)
+		for _, tagName := range key.Filter.Tags {
+			found := false
+			for _, tag := range tags {
+				if tagName == tag.Name {
+					tagIDs = append(tagIDs, tag.ID)
+					found = true
+
+					break
+				}
+			}
+
+			if !found {
+				return nil, NewErrTagNotFound(tagName, nil)
 			}
 		}
 	}
@@ -165,7 +189,7 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 			Username: key.Username,
 			Filter: models.PublicKeyFilter{
 				Hostname: key.Filter.Hostname,
-				Tags:     key.Filter.Tags,
+				Taggable: models.Taggable{TagIDs: tagIDs, Tags: nil},
 			},
 		},
 	}
