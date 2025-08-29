@@ -11,8 +11,8 @@ import (
 //
 // A PublicKeyFilter can contain either Hostname, string, or Tags, slice of strings never both.
 type PublicKeyFilter struct {
-	Hostname string   `json:"hostname,omitempty" bson:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
-	Tags     []string `json:"tags,omitempty" bson:"tags,omitempty" validate:"required_without=Hostname,excluded_with=Hostname,max=3,unique,dive,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+	Hostname string `json:"hostname,omitempty" bson:"hostname,omitempty" validate:"required_without=Tags,excluded_with=Tags,regexp"`
+	Taggable `json:",inline" bson:",inline"`
 }
 
 type PublicKeyFields struct {
