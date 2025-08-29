@@ -2,7 +2,7 @@
   <BaseDialog
     v-model="showDialog"
     scrollable
-    @click:outside="close"
+    @close="close"
     data-test="dialog"
   >
     <v-card class="bg-grey-darken-4 bg-v-theme-surface pa-3">
