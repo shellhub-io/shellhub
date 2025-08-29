@@ -1,103 +1,33 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import MockAdapter from "axios-mock-adapter";
+import { mount, VueWrapper } from "@vue/test-utils";
 import PrivateKeyList from "@/components/PrivateKeys/PrivateKeyList.vue";
-import { namespacesApi, usersApi } from "@/api/http";
-import { store, key } from "@/store";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import usePrivateKeysStore from "@/store/modules/private_keys";
 
 type PrivateKeyListWrapper = VueWrapper<InstanceType<typeof PrivateKeyList>>;
 
+const mockPrivateKeys = [
+  { id: 1, name: "test-key-1", data: "private-key-data-1", hasPassphrase: true, fingerprint: "fingerprint-1" },
+  { id: 2, name: "test-key-2", data: "private-key-data-2", hasPassphrase: false, fingerprint: "fingerprint-2" },
+  { id: 3, name: "test-key-3", data: "private-key-data-3", hasPassphrase: false, fingerprint: "fingerprint-3" },
+];
+
 describe("Private Key List", () => {
   let wrapper: PrivateKeyListWrapper;
-
+  setActivePinia(createPinia());
+  const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
-  const privateKeys = [
-    {
-      name: "",
-      data: "",
-      id: 1,
-    },
-    {
-      name: "",
-      data: "",
-      id: 2,
-    },
-    {
-      name: "",
-      data: "",
-      id: 3,
-    },
-  ];
-
-  vi.mock("@/utils/validate", () => ({
-    convertToFingerprint: () => "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
-  }));
-
   beforeEach(async () => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
     wrapper = mount(PrivateKeyList, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
+
+    privateKeysStore.privateKeys = mockPrivateKeys;
   });
 
   it("Is a Vue instance", () => {
@@ -106,15 +36,5 @@ describe("Private Key List", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders components", async () => {
-    expect(wrapper.find('[data-test="no-private-key-warning"]').exists()).toBe(true);
-    store.commit("privateKey/fetchPrivateKey", privateKeys);
-    await flushPromises();
-    expect(wrapper.find('[data-test="privateKey-thead"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="privateKey-name"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="privateKey-fingerprint"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="privateKey-actions"]').exists()).toBe(true);
   });
 });

@@ -1,18 +1,24 @@
-/* eslint-disable camelcase */
 import { RouteRecordRaw, createRouter, createWebHistory, RouteLocationNormalized, NavigationGuardNext } from "vue-router";
 import { envVariables } from "../envVariables";
-import { store } from "@/store";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
+import useAuthStore from "@/store/modules/auth";
+import useContainersStore from "@/store/modules/containers";
+import useDevicesStore from "@/store/modules/devices";
+import useLayoutStore, { Layout } from "@/store/modules/layout";
+import useNamespacesStore from "@/store/modules/namespaces";
+import useUsersStore from "@/store/modules/users";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+  const namespacesStore = useNamespacesStore();
   try {
-    await store.dispatch("namespaces/lookupUserStatus", {
-      tenant: to.query["tenant-id"] || from.query["tenant-id"],
-      id: to.query["user-id"] || from.query["user-id"],
-      sig: to.query.sig || from.query.sig,
+    await namespacesStore.lookupUserStatus({
+      tenant: (to.query["tenant-id"] || from.query["tenant-id"]) as string,
+      id: (to.query["user-id"] || from.query["user-id"]) as string,
+      sig: (to.query.sig || from.query.sig) as string,
     });
-    const userStatus = store.getters["namespaces/getUserStatus"];
-    const isLoggedIn = store.getters["auth/isLoggedIn"];
+    const { userStatus } = namespacesStore;
+    const { isLoggedIn } = useAuthStore();
 
     switch (userStatus) {
       case "invited":
@@ -83,7 +89,7 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     beforeEnter: (to, from, next) => {
-      if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
+      if (envVariables.isCommunity && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
       next();
@@ -178,7 +184,7 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/sign-up",
     name: "SignUp",
     beforeEnter: (to, from, next) => {
-      if (envVariables.isCommunity && !store.getters["users/getSystemInfo"].setup) {
+      if (envVariables.isCommunity && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
       next();
@@ -197,7 +203,7 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     beforeEnter: (to, from, next) => {
-      if (!envVariables.isCommunity || store.getters["users/getSystemInfo"].setup) {
+      if (!envVariables.isCommunity || useUsersStore().systemInfo.setup) {
         next({ name: "Login" });
       }
       next();
@@ -233,13 +239,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Devices",
     component: Devices,
     beforeEnter: async (to, from, next) => {
-      await store.dispatch("devices/fetch", {
-        page: store.getters["devices/getPage"],
-        perPage: store.getters["devices/getPerPage"],
-        filter: store.getters["devices/getFilter"],
-        status: "",
-        committable: false,
-      });
+      await useDevicesStore().fetchDeviceList();
       next();
     },
     redirect: { name: "DeviceList" },
@@ -266,13 +266,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Containers",
     component: Containers,
     beforeEnter: async (to, from, next) => {
-      await store.dispatch("container/fetch", {
-        page: store.getters["container/getPage"],
-        perPage: store.getters["container/getPerPage"],
-        filter: store.getters["container/getFilter"],
-        status: "",
-        committable: false,
-      });
+      await useContainersStore().fetchContainerList();
       next();
     },
     redirect: { name: "ContainerList" },
@@ -299,13 +293,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "WebEndpoints",
     component: WebEndpoints,
     beforeEnter: async (to, from, next) => {
-      await store.dispatch("webEndpoints/get", {
-        page: store.getters["webEndpoints/getPage"],
-        perPage: store.getters["webEndpoints/getPerPage"],
-        filter: store.getters["webEndpoints/getFilter"],
-        sortBy: store.getters["webEndpoints/getSortBy"],
-        orderBy: store.getters["webEndpoints/getOrderBy"],
-      });
+      await useWebEndpointsStore().fetchWebEndpointsList();
       next();
     },
   },
@@ -315,7 +303,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: Connectors,
     beforeEnter: (to, from, next) => {
       if (envVariables.isCommunity && envVariables.premiumPaywall) {
-        store.commit("users/setShowPaywall", true);
+        useUsersStore().showPaywall = true;
       }
       next();
     },
@@ -351,7 +339,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: FirewallRules,
     beforeEnter: (to, from, next) => {
       if (envVariables.isCommunity && envVariables.premiumPaywall) {
-        store.commit("users/setShowPaywall", true);
+        useUsersStore().showPaywall = true;
       }
       next();
     },
@@ -436,13 +424,12 @@ export const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    await store.dispatch("users/fetchSystemInfo");
-
-    const isLoggedIn: boolean = store.getters["auth/isLoggedIn"];
+    await useUsersStore().fetchSystemInfo();
+    const { isLoggedIn } = useAuthStore();
     const requiresAuth = to.meta.requiresAuth ?? true;
 
     const layout = to.meta.layout || "AppLayout";
-    await store.dispatch("layout/setLayout", layout);
+    useLayoutStore().layout = layout as Layout;
 
     if (!isLoggedIn) {
       if (requiresAuth) {

@@ -1,78 +1,72 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
-import { store } from "@/store";
+import { createPinia, setActivePinia } from "pinia";
 import { sshApi } from "@/api/http";
+import usePublicKeysStore from "@/store/modules/public_keys";
 
-const publicKeyObject = {
+const mockPublicKey = {
   data: "test-key",
+  fingerprint: "fake-fingerprint",
+  created_at: "2020-05-01T00:00:00.000Z",
+  tenant_id: "fake-tenant",
+  name: "example",
   filter: {
     hostname: ".*",
   },
-  name: "example",
   username: ".*",
 };
 
-const publicKeyList = [
-  {
-    data: "test-key",
-    fingerprint: "fake-fingerprint",
-    created_at: "2020-05-01T00:00:00.000Z",
-    tenant_id: "fake-tenant",
-    name: "example",
-    filter:
-    {
-      hostname: ".*",
-    },
-    username: ".*",
-  },
-];
+describe("Public Keys Store", () => {
+  localStorage.setItem("tenant", "fake-tenant");
+  setActivePinia(createPinia());
+  const publicKeysStore = usePublicKeysStore();
+  const mockSshApi = new MockAdapter(sshApi.getAxios());
 
-describe("Public keys store", () => {
-  let mockSsh: MockAdapter;
+  mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?page=1&per_page=10").reply(200, [mockPublicKey], { "x-total-count": 1 });
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant");
-    mockSsh = new MockAdapter(sshApi.getAxios());
+    publicKeysStore.publicKeys = [];
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
+  it("should have initial state values", () => {
+    expect(publicKeysStore.publicKeys).toEqual([]);
+    expect(publicKeysStore.publicKeyCount).toEqual(0);
   });
 
-  it("Return publicKeys default variables", () => {
-    expect(store.getters["publicKeys/list"]).toEqual([]);
-    expect(store.getters["publicKeys/get"]).toEqual({});
-    expect(store.getters["publicKeys/getNumberPublicKeys"]).toEqual(0);
-    expect(store.getters["publicKeys/getPage"]).toEqual(1);
-    expect(store.getters["publicKeys/getPerPage"]).toEqual(10);
+  it("should fetch public keys successfully", async () => {
+    await publicKeysStore.fetchPublicKeyList();
+    expect(publicKeysStore.publicKeys).toEqual([mockPublicKey]);
+    expect(publicKeysStore.publicKeyCount).toEqual([mockPublicKey].length);
   });
 
-  it("Test Create Public Key action", async () => {
-    const reqSpy = vi.spyOn(store, "dispatch");
+  it("should create public key successfully", async () => {
+    mockSshApi.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
 
-    // Mock the API call for creating public key
-    mockSsh.onPost("http://localhost:3000/api/sshkeys/public-keys").reply(200);
+    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
+    await publicKeysStore.createPublicKey(mockPublicKey);
 
-    // Trigger the create public key action
-    await store.dispatch("publicKeys/post", publicKeyObject);
-
-    // Check if the state has been updated correctly
-    expect(reqSpy).toHaveBeenCalled();
+    expect(storeSpy).toHaveBeenCalledWith(mockPublicKey);
   });
 
-  it("Test Get Public Key action", async () => {
-    const reqSpy = vi.spyOn(store, "dispatch");
+  it("should update public key successfully", async () => {
+    const updatedKey = { ...mockPublicKey, name: "updated-name" };
 
-    // Mock the API call for getting public key
-    mockSsh.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, publicKeyList);
+    mockSshApi.onPut(`http://localhost:3000/api/sshkeys/public-keys/${updatedKey.fingerprint}`).reply(200);
 
-    // Trigger the create public key action
-    await store.dispatch("publicKeys/fetch", { page: 1, perPage: 10, filter: "" });
+    const storeSpy = vi.spyOn(publicKeysStore, "updatePublicKey");
+    await publicKeysStore.updatePublicKey(updatedKey);
+    expect(storeSpy).toHaveBeenCalledWith(updatedKey);
+  });
 
-    // Check if the state has been updated correctly
-    expect(reqSpy).toHaveBeenCalled();
-    expect(store.getters["publicKeys/list"]).toEqual(publicKeyList);
+  it("should delete public key successfully", async () => {
+    publicKeysStore.publicKeys = [mockPublicKey];
+    const { fingerprint } = mockPublicKey;
+
+    mockSshApi.onDelete(`http://localhost:3000/api/sshkeys/public-keys/${encodeURIComponent(fingerprint)}`).reply(200);
+
+    await publicKeysStore.deletePublicKey(fingerprint);
+
+    expect(publicKeysStore.publicKeys).toEqual([]);
+    expect(publicKeysStore.publicKeyCount).toEqual(0);
   });
 });

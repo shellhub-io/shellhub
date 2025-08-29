@@ -23,7 +23,7 @@ export interface IDevice {
   identity: Identity;
   info: InfoDetails;
   public_key: string;
-  tenant_id:string;
+  tenant_id: string;
   last_seen: string;
   online: boolean;
   namespace: string;
@@ -54,21 +54,12 @@ export interface FetchDevicesParams {
   page?: number;
   filter?: string;
   status?: "accepted" | "pending" | "rejected";
-  sortStatusField: string;
-  sortStatusString: string;
-}
-
-export interface SortDevicesParams {
-  sortStatusField: string;
-  sortStatusString: string;
+  sortField?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface IDeviceMethods {
   fetchDevices: (params: FetchDevicesParams) => Promise<void>;
-  setSort: (params: SortDevicesParams) => void;
-  getFilter: () => string;
   getList: () => IDevice[];
-  getSortStatusField: () => string;
-  getSortStatusString: () => string;
-  getNumber: () => number;
+  getCount: () => number;
 }

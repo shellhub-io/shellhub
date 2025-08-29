@@ -5,7 +5,7 @@
       v-model:itemsPerPage="itemsPerPage"
       :headers
       :items="sessions"
-      :totalCount="numberSessions"
+      :totalCount="sessionCount"
       :loading
       :itemsPerPageOptions="[10, 20, 50, 100]"
       data-test="sessions-list"
@@ -132,13 +132,14 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
-import { useStore } from "@/store";
 import { formatShortDateTime } from "@/utils/date";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useSessionsStore from "@/store/modules/sessions";
 
 const headers = [
   {
@@ -174,23 +175,24 @@ const headers = [
     value: "actions",
   },
 ];
-const store = useStore();
+const authStore = useAuthStore();
+const sessionsStore = useSessionsStore();
 const router = useRouter();
 const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
-const sessions = computed(() => store.getters["sessions/list"]);
-const numberSessions = computed(
-  () => store.getters["sessions/getNumberSessions"],
+const sessions = computed(() => sessionsStore.sessions);
+const sessionCount = computed(
+  () => sessionsStore.sessionCount,
 );
 
-const getSessions = async (perPageValue: number, pageValue: number) => {
+const getSessions = async () => {
   try {
     loading.value = true;
-    await store.dispatch("sessions/fetch", {
-      page: pageValue,
-      perPage: perPageValue,
+    await sessionsStore.fetchSessionList({
+      page: page.value,
+      perPage: itemsPerPage.value,
     });
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -207,12 +209,13 @@ const getSessions = async (perPageValue: number, pageValue: number) => {
   }
 };
 
-onMounted(async () => {
-  await getSessions(itemsPerPage.value, page.value);
-});
+const hasAuthorizationRemoveRecord = () => {
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.session.removeRecord);
+};
 
 watch([page, itemsPerPage], async () => {
-  await getSessions(itemsPerPage.value, page.value);
+  await getSessions();
 });
 
 const redirectToSession = (sessionUid: string) => {
@@ -224,20 +227,12 @@ const redirectDevice = (deviceUid: string) => {
 };
 
 const refreshSessions = async () => {
-  await getSessions(itemsPerPage.value, page.value);
+  await getSessions();
 };
 
-const hasAuthorizationRemoveRecord = () => {
-  const role = store.getters["auth/role"];
-  if (role !== "") {
-    return hasPermission(
-      authorizer.role[role],
-      actions.session.removeRecord,
-    );
-  }
-
-  return false;
-};
+onMounted(async () => {
+  await getSessions();
+});
 </script>
 
 <style scoped>

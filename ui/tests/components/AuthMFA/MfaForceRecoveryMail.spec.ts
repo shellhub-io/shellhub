@@ -1,80 +1,44 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MfaForceRecoveryMail from "@/components/AuthMFA/MfaForceRecoveryMail.vue";
-import { namespacesApi, usersApi } from "@/api/http";
-import { store, key } from "@/store";
+import { usersApi } from "@/api/http";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
 type MfaForceRecoveryMailWrapper = VueWrapper<InstanceType<typeof MfaForceRecoveryMail>>;
 
 describe("Force Adding a Recovery Mail", () => {
-  const node = document.createElement("div");
-  node.setAttribute("id", "app");
-  document.body.appendChild(node);
-
   let wrapper: MfaForceRecoveryMailWrapper;
-
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
+  const usersStore = useUsersStore();
   const vuetify = createVuetify();
 
-  let mock: MockAdapter;
-
-  let mockNamespace: MockAdapter;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
+  const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
   const authData = {
-    status: "",
     token: "",
-    user: "test",
+    username: "test",
     name: "test",
-    tenant: "fake-tenant-data",
+    tenantId: "fake-tenant-data",
     email: "test@test.com",
     id: "xxxxxxxx",
-    recovery_email: "recover@mail.com",
+    recoveryEmail: "recover@mail.com",
     role: "owner",
     mfa: true,
   };
 
   beforeEach(() => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
-    // Create a mock adapter for the mfaApi and namespacesApi instances
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mock = new MockAdapter(usersApi.getAxios());
+    authStore.$patch(authData);
 
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-
-    // Commit auth and namespace data to the Vuex store
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-
-    // Mount the MfaDisable component with necessary dependencies
     wrapper = mount(MfaForceRecoveryMail, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
@@ -82,16 +46,14 @@ describe("Force Adding a Recovery Mail", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
-    mock.reset();
+    mockUsersApi.reset();
   });
 
   it("Is a Vue instance", () => {
-    // Test if the wrapper represents a Vue instance
     expect(wrapper.vm).toBeTruthy();
   });
 
   it("Renders the component", () => {
-    // Test if the component renders as expected
     expect(wrapper.html()).toMatchSnapshot();
   });
 
@@ -110,36 +72,36 @@ describe("Force Adding a Recovery Mail", () => {
   it("Adds a recovery mail", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    const storeSpy = vi.spyOn(store, "dispatch");
-    mock.onPatch("http://localhost:3000/api/users").reply(200);
+    const storeSpy = vi.spyOn(usersStore, "patchData");
+    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(200);
     await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test2@test.com");
     await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith("users/patchData", { id: "xxxxxxxx", recovery_email: "test2@test.com" });
+    expect(storeSpy).toHaveBeenCalledWith({ recovery_email: "test2@test.com" });
     expect(wrapper.vm.recoveryEmailError).toBe(undefined);
   });
 
   it("Adds a recovery mail (Fail)", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    const storeSpy = vi.spyOn(store, "dispatch");
-    mock.onPatch("http://localhost:3000/api/users").reply(400);
+    const storeSpy = vi.spyOn(usersStore, "patchData");
+    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(400);
     await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test");
     await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith("users/patchData", { id: "xxxxxxxx", recovery_email: "test" });
+    expect(storeSpy).toHaveBeenCalledWith({ recovery_email: "test" });
     expect(wrapper.vm.recoveryEmailError).toBe("This recovery email is invalid");
   });
 
   it("Adds a recovery mail (Fail, Same Email)", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    const storeSpy = vi.spyOn(store, "dispatch");
-    mock.onPatch("http://localhost:3000/api/users").reply(409);
+    const storeSpy = vi.spyOn(usersStore, "patchData");
+    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(409);
     await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test@test.com");
     await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
     await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith("users/patchData", { id: "xxxxxxxx", recovery_email: "test@test.com" });
+    expect(storeSpy).toHaveBeenCalledWith({ recovery_email: "test@test.com" });
     expect(wrapper.vm.recoveryEmailError).toBe("This recovery email is already in use");
   });
 });

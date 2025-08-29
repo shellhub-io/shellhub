@@ -1,12 +1,12 @@
+import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { store, key } from "@/store";
 import TagFormUpdate from "@/components/Tags/TagFormUpdate.vue";
-import { router } from "@/router";
-import { namespacesApi, devicesApi } from "@/api/http";
+import { devicesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useDevicesStore from "@/store/modules/devices";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -54,99 +54,21 @@ const devices = [
   },
 ];
 
-const members = [
-  {
-    id: "xxxxxxxx",
-    username: "test",
-    role: "owner",
-  },
-];
-
-const billingData = {
-  active: false,
-  status: "canceled",
-  customer_id: "cus_test",
-  subscription_id: "sub_test",
-  current_period_end: 2068385820,
-  created_at: "",
-  updated_at: "",
-  invoices: [],
-};
-
-const namespaceData = {
-  name: "test",
-  owner: "xxxxxxxx",
-  tenant_id: "fake-tenant-data",
-  members,
-  max_devices: 3,
-  devices_count: 3,
-  devices: 2,
-  created_at: "",
-  billing: billingData,
-};
-
-const authData = {
-  status: "",
-  token: "",
-  user: "test",
-  name: "test",
-  tenant: "fake-tenant-data",
-  email: "test@test.com",
-  id: "xxxxxxxx",
-  role: "owner",
-};
-
-const customerData = {
-  id: "cus_test",
-  name: "test",
-  email: "test@test.com",
-  payment_methods: [
-    {
-      id: "test_id",
-      number: "xxxxxxxxxxxx4242",
-      brand: "visa",
-      exp_month: 3,
-      exp_year: 2029,
-      cvc: "",
-      default: true,
-    },
-  ],
-};
-
-const stats = {
-  registered_devices: 3,
-  online_devices: 1,
-  active_sessions: 0,
-  pending_devices: 0,
-  rejected_devices: 0,
-};
-
 describe("Tag Form Update", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TagFormUpdate>>;
-
+  setActivePinia(createPinia());
+  const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-  let mockDevices: MockAdapter;
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
 
   beforeEach(async () => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=accepted").reply(200, devices);
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, stats);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("customer/setCustomer", customerData);
-    store.commit("devices/setDeviceChooserStatus", true);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);
+    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, ["test2"]);
 
     wrapper = mount(TagFormUpdate, {
       global: {
-        plugins: [[store, key], vuetify, router],
+        plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
@@ -179,15 +101,15 @@ describe("Tag Form Update", async () => {
 
   it("Successfully add tags", async () => {
     await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });
-    mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(200);
+    mockDevicesApi.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(200);
     const dialog = new DOMWrapper(document.body);
-    const StoreSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(devicesStore, "updateDeviceTags");
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="deviceTag-combobox"').setValue(["tag-test"]);
     await dialog.find('[data-test="save-btn"]').trigger("click");
     await flushPromises();
-    expect(StoreSpy).toHaveBeenCalledWith("devices/updateDeviceTag", {
+    expect(storeSpy).toHaveBeenCalledWith({
       uid: "a582b47a42d",
       tags: { tags: ["test"] },
     });
@@ -195,7 +117,7 @@ describe("Tag Form Update", async () => {
 
   it("Failed to add tags", async () => {
     await wrapper.setProps({ deviceUid: devices[0].uid, tagsList: devices[0].tags });
-    mockDevices.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(403);
+    mockDevicesApi.onPut("http://localhost:3000/api/devices/a582b47a42d/tags").reply(403);
     const dialog = new DOMWrapper(document.body);
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");

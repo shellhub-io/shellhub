@@ -2,7 +2,7 @@
   <v-switch
     hide-details
     inset
-    v-model="sessionRecordingStatus"
+    v-model="isSessionRecordingEnabled"
     :disabled="!hasAuthorization"
     color="primary"
     data-test="session-recording-switch"
@@ -13,59 +13,52 @@
 import { computed, onMounted } from "vue";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useSessionRecordingStore from "@/store/modules/session_recording";
 
-const props = defineProps({
-  hasTenant: {
-    type: Boolean,
-    default: false,
-  },
-});
+const { tenantId } = defineProps<{ tenantId: string }>();
 
-const store = useStore();
+const authStore = useAuthStore();
 const snackbar = useSnackbar();
+const sessionRecordingStore = useSessionRecordingStore();
 
-const updateSessionRecordingStatus = async (value: boolean) => {
+const updateSessionRecordingStatus = async (isEnabled: boolean) => {
   const data = {
-    id: localStorage.getItem("tenant"),
-    status: value,
+    id: tenantId,
+    status: isEnabled,
   };
   try {
-    await store.dispatch("sessionRecording/setStatus", data);
-    snackbar.showSuccess(`Session recording was successfully ${value ? "enabled" : "disabled"}.`);
+    await sessionRecordingStore.setStatus(data);
+    snackbar.showSuccess(`Session recording was successfully ${isEnabled ? "enabled" : "disabled"}.`);
   } catch (error: unknown) {
     snackbar.showError("Failed to update session recording status.");
     handleError(error);
   }
 };
 
-const sessionRecordingStatus = computed({
-  get: () => store.getters["sessionRecording/isEnabled"],
-  set: async (value: boolean) => {
-    await updateSessionRecordingStatus(value);
+const isSessionRecordingEnabled = computed({
+  get: () => sessionRecordingStore.isEnabled,
+  set: async (isEnabled: boolean) => {
+    await updateSessionRecordingStatus(isEnabled);
+    return isEnabled;
   },
 });
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
-  if (role === "") return false;
-
-  return hasPermission(
-    authorizer.role[role],
-    actions.namespace.enableSessionRecord,
-  );
+  const { role } = authStore;
+  return !!role && hasPermission(authorizer.role[role], actions.namespace.enableSessionRecord);
 });
 
 onMounted(async () => {
   try {
-    if (props.hasTenant) await store.dispatch("sessionRecording/getStatus");
+    if (tenantId) await sessionRecordingStore.getStatus();
   } catch (error: unknown) {
     snackbar.showError("Failed to fetch session recording status.");
     handleError(error);
   }
 });
 
-defineExpose({ sessionRecordingStatus });
+defineExpose({ isSessionRecordingEnabled });
 </script>

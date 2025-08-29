@@ -1,20 +1,19 @@
 import { createApp } from "vue";
+import { createPinia } from "pinia";
 import * as Sentry from "@sentry/vue";
 import { BrowserTracing } from "@sentry/vue";
 import { configure as configGtag } from "vue-gtag";
 import { createChatWoot } from "@productdevbook/chatwoot/vue";
 import { envVariables } from "./envVariables";
 import vuetify from "./plugins/vuetify";
-import { key, store } from "./store";
 import { router } from "./router";
 import App from "./App.vue";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import "@/nodespecific";
-
 import { loadFonts } from "./plugins/webfontloader";
-
 import { SnackbarPlugin } from "./plugins/snackbar";
 
+const pinia = createPinia();
 const app = createApp(App);
 
 Sentry.init({
@@ -36,7 +35,7 @@ loadFonts();
 
 app.use(vuetify);
 app.use(router);
-app.use(store, key);
+app.use(pinia);
 
 configGtag({
   tagId: envVariables.googleAnalyticsID || "",

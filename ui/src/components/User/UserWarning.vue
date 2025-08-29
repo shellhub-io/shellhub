@@ -1,6 +1,6 @@
 <template>
   <DeviceChooser
-    v-if="hasWarning"
+    v-if="showDeviceChooser"
     data-test="device-chooser-component"
   />
 
@@ -15,23 +15,24 @@
   />
 
   <BillingWarning
+    v-model="showBillingWarning"
     data-test="billing-warning-component"
   />
 
   <AnnouncementsModal
     v-model="showAnnouncements"
-    :announcement="announcement"
+    :announcement="currentAnnouncement"
     data-test="announcements-modal-component"
   />
 
   <DeviceAcceptWarning
-    v-model:show="showDeviceWarning"
-    @update="showDeviceWarning = false"
+    v-if="showDuplicationWarning"
     data-test="device-accept-warning-component"
   />
 
   <RecoveryHelper
-    v-model="showRecoverHelper"
+    v-if="showRecoverHelper"
+    v-model:showDialog="showRecoverHelper"
     data-test="recovery-helper-component"
   />
 
@@ -51,7 +52,6 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Welcome from "../Welcome/Welcome.vue";
 import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
-import { useStore } from "@/store";
 import { envVariables } from "@/envVariables";
 import BillingWarning from "../Billing/BillingWarning.vue";
 import DeviceChooser from "../Devices/DeviceChooser.vue";
@@ -62,46 +62,51 @@ import RecoveryHelper from "../AuthMFA/RecoveryHelper.vue";
 import MfaForceRecoveryMail from "../AuthMFA/MfaForceRecoveryMail.vue";
 import PaywallDialog from "./PaywallDialog.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useAnnouncementStore from "@/store/modules/announcement";
+import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
+import useDevicesStore from "@/store/modules/devices";
+import useNamespacesStore from "@/store/modules/namespaces";
+import useStatsStore from "@/store/modules/stats";
+import useUsersStore from "@/store/modules/users";
 
 defineOptions({
   inheritAttrs: false,
 });
 
 const snackbar = useSnackbar();
-const store = useStore();
+const announcementStore = useAnnouncementStore();
+const authStore = useAuthStore();
+const billingStore = useBillingStore();
+const devicesStore = useDevicesStore();
+const namespacesStore = useNamespacesStore();
+const statsStore = useStatsStore();
+const usersStore = useUsersStore();
 const router = useRouter();
 const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
-const showDeviceWarning = computed(() => store.getters["users/deviceDuplicationError"]);
-const showRecoverHelper = computed(() => store.getters["auth/showRecoveryModal"]);
-const showForceRecoveryMail = computed(() => store.getters["auth/showForceRecoveryMail"]);
-const showPaywall = computed(() => store.getters["users/showPaywall"]);
-const stats = computed(() => store.getters["stats/stats"]);
-const announcements = computed(() => store.getters["announcement/list"]);
-const announcement = computed(() => store.getters["announcement/get"]);
-const hasNamespaces = computed(
-  () => store.getters["namespaces/getNumberNamespaces"] !== 0,
-);
-const hasWarning = computed(
-  () => store.getters["devices/getDeviceChooserStatus"],
-);
-const statusWarning = async () => {
-  const bill = store.getters["namespaces/get"].billing;
+const showDuplicationWarning = computed(() => !!devicesStore.duplicatedDeviceName);
+const showRecoverHelper = computed(() => authStore.showRecoveryModal);
+const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
+const showPaywall = computed(() => usersStore.showPaywall);
+const stats = computed(() => statsStore.stats);
+const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
+const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
+const showBillingWarning = computed({
+  get() {
+    return billingStore.showBillingWarning;
+  },
+  set(value: boolean) {
+    billingStore.showBillingWarning = value;
+  },
+});
 
-  if (bill === undefined) {
-    await store.dispatch("namespaces/get", localStorage.getItem("tenant"));
-  }
-
-  return (
-    store.getters["stats/stats"].registered_devices > 3
-        && !store.getters["billing/active"]
-  );
-};
-
-const billingWarning = async () => {
-  const status = await statusWarning();
-  await store.dispatch("devices/setDeviceChooserStatus", status);
+const setShowDeviceChooser = async () => {
+  await billingStore.getSubscriptionInfo();
+  const showDeviceChooser = stats.value.registered_devices > 3 && !billingStore.isActive;
+  devicesStore.showDeviceChooser = showDeviceChooser;
 };
 
 const namespaceHasBeenShown = (tenant: string) => (
@@ -120,37 +125,29 @@ const hasDevices = computed(() => (
 const showScreenWelcome = async () => {
   let status = false;
 
-  const tenantID = await store.getters["namespaces/get"].tenant_id;
+  const tenantID = namespacesStore.currentNamespace.tenant_id;
   if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
-    store.dispatch("auth/setShowWelcomeScreen", tenantID);
+    authStore.setShowWelcomeScreen(tenantID);
     status = true;
   }
 
   showWelcome.value = status;
 };
 
-const checkAnnouncements = async () => {
-  if (!envVariables.announcementsEnable) {
-    return;
-  }
+const checkForNewAnnouncements = async () => {
+  if (!envVariables.announcementsEnable) return;
 
   try {
-    await store.dispatch("announcement/getListAnnouncements", {
-      page: 1,
-      perPage: 1,
-      orderBy: "desc",
-    });
+    const announcements = await announcementStore.fetchAnnouncements();
 
-    if (announcements.value.length > 0) {
-      const announcementTest = announcements.value[0];
-      await store.dispatch(
-        "announcement/getAnnouncement",
-        announcementTest.uuid,
-      );
+    if (announcements.length > 0) {
+      const latestAnnouncement = announcements[0];
+      await announcementStore.fetchById(latestAnnouncement.uuid);
 
-      const announcementStorage = localStorage.getItem("announcement");
-      const lastAnnouncementEncoded = btoa(JSON.stringify(announcement.value));
-      if (announcementStorage !== lastAnnouncementEncoded) {
+      const storedAnnouncementHash = localStorage.getItem("announcement");
+      const currentAnnouncementHash = btoa(JSON.stringify(currentAnnouncement));
+
+      if (storedAnnouncementHash !== currentAnnouncementHash) {
         showAnnouncements.value = true;
       }
     }
@@ -161,36 +158,27 @@ const checkAnnouncements = async () => {
 
 const showDialogs = async () => {
   try {
-    if (!store.getters["auth/isLoggedIn"]) return;
+    if (!authStore.isLoggedIn) return;
 
-    await store.dispatch("namespaces/fetch", {
-      page: 1,
-      perPage: 30,
-    });
+    await namespacesStore.fetchNamespaceList({ perPage: 30 });
 
     if (hasNamespaces.value) {
-      await store.dispatch("stats/get");
+      await statsStore.fetchStats();
 
       showScreenWelcome();
-      if (envVariables.isCloud && !store.getters["billing/active"]) {
-        await billingWarning();
-      }
-    } else {
-      // this shows the namespace instructions when the user has no namespace
-      showInstructions.value = true;
-    }
+
+      if (envVariables.isCloud && !billingStore.isActive) await setShowDeviceChooser();
+    } else showInstructions.value = true;
   } catch (error: unknown) {
     snackbar.showError("An error occurred while fetching the namespaces.");
     handleError(error);
   }
 };
 
-onMounted(() => {
-  showDialogs();
-  checkAnnouncements();
+onMounted(async () => {
+  await showDialogs();
+  await checkForNewAnnouncements();
 
-  if (showRecoverHelper.value === true) {
-    router.push("/settings");
-  }
+  if (showRecoverHelper.value === true) router.push("/settings");
 });
 </script>

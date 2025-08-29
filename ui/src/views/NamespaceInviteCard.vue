@@ -36,9 +36,11 @@
 import { computed, onMounted, ref } from "vue";
 import axios from "axios";
 import { useRouter, useRoute } from "vue-router";
-import { useStore } from "@/store";
+import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
-const store = useStore();
+const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -79,12 +81,12 @@ const acceptInvite = async () => {
     const tenant = (route.query["tenant-id"] || route.query.tenantid) as string;
     const sig = route.query.sig as string;
 
-    await store.dispatch("namespaces/acceptInvite", { tenant, sig });
+    await namespacesStore.acceptInvite({ tenant, sig });
 
     message.value = "Your invitation has been successfully accepted! You are now a member of the namespace.";
 
-    await store.dispatch("auth/enterInvitedNamespace", { tenant_id: tenant });
-    await store.dispatch("namespaces/fetch", { page: 1, perPage: 10, filter: "" });
+    await authStore.enterInvitedNamespace(tenant);
+    await namespacesStore.fetchNamespaceList();
     await router.push({ name: "Home" });
     close();
   } catch (error) {

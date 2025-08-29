@@ -1,79 +1,52 @@
-import { useStore } from "@/store";
-import { FetchContainerParams, IContainerMethods, SortContainersParams } from "@/interfaces/IContainer";
-import { FetchDevicesParams, IDeviceMethods, SortDevicesParams } from "@/interfaces/IDevice";
+import { FetchContainerParams, IContainerMethods } from "@/interfaces/IContainer";
+import { FetchDevicesParams, IDeviceMethods } from "@/interfaces/IDevice";
+import useContainersStore from "@/store/modules/containers";
+import useDevicesStore from "@/store/modules/devices";
 
 export function getContainerStoreMethods(): IContainerMethods {
-  const store = useStore();
+  const containersStore = useContainersStore();
 
-  const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, sortStatusString }: FetchContainerParams) => {
-    await store.dispatch("container/fetch", {
+  const fetchDevices = async ({ perPage, page, filter, status, sortField, sortOrder }: FetchContainerParams) => {
+    await containersStore.fetchContainerList({
       perPage,
       page,
       filter,
       status,
-      sortStatusField,
-      sortStatusString,
+      sortField,
+      sortOrder,
     });
   };
 
-  const setSort = ({ sortStatusField, sortStatusString }: SortContainersParams) => {
-    store.dispatch("container/setSortStatus", {
-      sortStatusField,
-      sortStatusString,
-    });
-  };
-
-  const getFilter = () => store.getters["container/getFilter"];
-  const getList = () => store.getters["container/list"];
-  const getSortStatusField = () => store.getters["container/getSortStatusField"];
-  const getSortStatusString = () => store.getters["container/getSortStatusString"];
-  const getNumber = () => store.getters["container/getNumberContainers"];
+  const getList = () => containersStore.containers;
+  const getCount = () => containersStore.containerCount;
 
   return {
     fetchDevices,
-    setSort,
-    getFilter,
     getList,
-    getSortStatusField,
-    getSortStatusString,
-    getNumber,
+    getCount,
   };
 }
 
 export function getDeviceStoreMethods(): IDeviceMethods {
-  const store = useStore();
+  const devicesStore = useDevicesStore();
 
-  const fetchDevices = async ({ perPage, page, filter, status, sortStatusField, sortStatusString }: FetchDevicesParams) => {
-    await store.dispatch("devices/fetch", {
+  const fetchDevices = async ({ perPage, page, filter, status, sortField, sortOrder }: FetchDevicesParams) => {
+    await devicesStore.fetchDeviceList({
       perPage,
       page,
       filter,
       status,
-      sortStatusField,
-      sortStatusString,
+      sortField,
+      sortOrder,
     });
   };
 
-  const setSort = ({ sortStatusField, sortStatusString }: SortDevicesParams) => {
-    store.dispatch("devices/setSortStatus", {
-      sortStatusField,
-      sortStatusString,
-    });
-  };
-
-  const getFilter = () => store.getters["devices/getFilter"];
-  const getList = () => store.getters["devices/list"];
-  const getSortStatusField = () => store.getters["devices/getSortStatusField"];
-  const getSortStatusString = () => store.getters["devices/getSortStatusString"];
-  const getNumber = () => store.getters["devices/getNumberDevices"];
+  const getList = () => devicesStore.devices;
+  const getCount = () => devicesStore.deviceCount;
 
   return {
     fetchDevices,
-    setSort,
-    getFilter,
     getList,
-    getSortStatusField,
-    getSortStatusString,
-    getNumber,
+    getCount,
   };
 }

@@ -1,87 +1,31 @@
-import { Module } from "vuex";
-import * as apiAnnouncement from "../api/announcement";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import * as announcementApi from "../api/announcement";
 import { IAnnouncement, IAnnouncementShort } from "@/interfaces/IAnnouncement";
-import { State } from "..";
 
-export interface AnnouncementState {
-  announcements: Array<IAnnouncementShort>;
-  announcement: IAnnouncement;
-  page: number;
-  perPage: number;
-  orderBy: "asc" | "desc";
-}
+const useAnnouncementStore = defineStore("announcement", () => {
+  const currentAnnouncement = ref<IAnnouncement>({} as IAnnouncement);
 
-export const announcement: Module<AnnouncementState, State> = {
-  namespaced: true,
-  state: {
-    announcements: [],
-    announcement: {} as IAnnouncement,
-    page: 1,
-    perPage: 10,
-    orderBy: "asc",
-  },
-  getters: {
-    list: (state) => state.announcements,
-    get: (state) => state.announcement,
-    getPage: (state) => state.page,
-    getPerPage: (state) => state.perPage,
-    getOrderBy: (state) => state.orderBy,
-  },
-  mutations: {
-    setAnnouncements: (state, res) => {
-      state.announcements = res;
-    },
+  const fetchAnnouncements = async (data?: { page: number, perPage: number, sortOrder?: "asc" | "desc" }) => {
+    const res = await announcementApi.fetchAnnouncements(data?.page || 1, data?.perPage || 1, data?.sortOrder || "desc");
+    return (res.data ?? []) as IAnnouncementShort[];
+  };
 
-    setAnnouncement: (state, res) => {
-      state.announcement = res;
-    },
+  const fetchById = async (uuid: string) => {
+    try {
+      const res = await announcementApi.getAnnouncement(uuid);
+      currentAnnouncement.value = res.data as IAnnouncement;
+    } catch (error) {
+      currentAnnouncement.value = {} as IAnnouncement;
+      throw error;
+    }
+  };
 
-    setPageAndPerPage: (state, { page, perPage }) => {
-      state.page = page;
-      state.perPage = perPage;
-    },
+  return {
+    currentAnnouncement,
+    fetchAnnouncements,
+    fetchById,
+  };
+});
 
-    setOrderBy: (state, orderBy) => {
-      state.orderBy = orderBy;
-    },
-
-    clearAnnouncements: (state) => {
-      state.announcements = [];
-    },
-
-    clearAnnouncement: (state) => {
-      state.announcement = {} as IAnnouncement;
-    },
-  },
-
-  actions: {
-    async getListAnnouncements({ commit }, { page, perPage, orderBy }) {
-      try {
-        const res = await apiAnnouncement.getListAnnouncements(page, perPage, orderBy);
-
-        if (res.data) {
-          commit("setAnnouncements", res.data);
-          commit("setPageAndPerPage", { page, perPage });
-          commit("setOrderBy", orderBy);
-          return res.data;
-        }
-
-        commit("clearAnnouncements");
-        return false;
-      } catch (error) {
-        commit("clearAnnouncements");
-        throw error;
-      }
-    },
-
-    async getAnnouncement({ commit }, uuid) {
-      try {
-        const res = await apiAnnouncement.getAnnouncement(uuid);
-        commit("setAnnouncement", res.data);
-      } catch (error) {
-        commit("clearAnnouncement");
-        throw error;
-      }
-    },
-  },
-};
+export default useAnnouncementStore;

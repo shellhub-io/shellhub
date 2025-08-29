@@ -1,12 +1,14 @@
+import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
-import { key, store } from "@/store";
 import NotificationsMenu from "@/components/AppBar/Notifications/NotificationsMenu.vue";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { containersApi, devicesApi } from "@/api/http";
 import { router } from "@/router";
+import useAuthStore from "@/store/modules/auth";
+import useNotificationsStore from "@/store/modules/notifications";
 
 const deviceData = [{
   uid: "a582b47a42d",
@@ -22,43 +24,27 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
-const authData = {
-  status: "success",
-  token: "",
-  user: "test",
-  name: "test",
-  tenant: "fake-tenant-data",
-  email: "test@test.com",
-  id: "xxxxxxxx",
-  role: "owner",
-  mfa: {
-    enable: false,
-    validate: false,
-  },
-};
-
-let mockDevices: MockAdapter;
-let mockContainers: MockAdapter;
+const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
 describe("Notifications Menu", async () => {
   let wrapper: VueWrapper<InstanceType<typeof NotificationsMenu>>;
   const vuetify = createVuetify();
-
-  mockDevices = new MockAdapter(devicesApi.getAxios());
-  mockContainers = new MockAdapter(containersApi.getAxios());
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
+  const notificationsStore = useNotificationsStore();
 
   const mockPendingNotifications = (deviceData, containerData, status = 200) => {
-    mockDevices.onGet("http://localhost:3000/api/devices?filter=&page=1&per_page=10&status=pending").reply(status, deviceData);
-    mockContainers.onGet("http://localhost:3000/api/containers?filter=&page=1&per_page=10&status=pending").reply(status, containerData);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending").reply(status, deviceData);
+    mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending").reply(status, containerData);
   };
 
   beforeEach(async () => {
-    store.commit("auth/authSuccess", authData);
+    authStore.role = "owner";
     mockPendingNotifications(deviceData, containerData);
-
     wrapper = mount(NotificationsMenu, {
       global: {
-        plugins: [[store, key], router, vuetify],
+        plugins: [router, vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
@@ -75,14 +61,14 @@ describe("Notifications Menu", async () => {
   });
 
   it("Calls fetch on before mount", () => {
-    const fetchSpy = vi.spyOn(store, "dispatch");
+    const fetchSpy = vi.spyOn(notificationsStore, "fetchNotifications");
     wrapper = mount(NotificationsMenu, {
       global: {
-        plugins: [[store, key], router, vuetify],
+        plugins: [router, vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
-    expect(fetchSpy).toHaveBeenCalledWith("notifications/fetch");
+    expect(fetchSpy).toHaveBeenCalled();
   });
 
   it("Shows correct number of notifications in badge", () => {
@@ -122,7 +108,7 @@ describe("Notifications Menu", async () => {
   });
 
   it("Shows permission error message when user lacks permission", async () => {
-    store.commit("auth/authSuccess", { ...authData, role: "observer" });
+    authStore.role = "observer";
 
     const icon = wrapper.find("[data-test='notifications-badge'] i");
     await icon.trigger("click");

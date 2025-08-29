@@ -1,53 +1,153 @@
-import { describe, expect, it } from "vitest";
-import { store } from "@/store";
+import { describe, expect, it, beforeEach } from "vitest";
+import MockAdapter from "axios-mock-adapter";
+import { createPinia, setActivePinia } from "pinia";
+import { namespacesApi } from "@/api/http";
+import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
+import useNamespacesStore from "@/store/modules/namespaces";
+
+const namespaceData: INamespace = {
+  name: "examplespace",
+  owner: "507f1f77bcf86cd799439011",
+  tenant_id: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
+  members: [
+    {
+      id: "507f1f77bcf86cd799439011",
+      role: "administrator",
+    },
+  ] as INamespaceMember[],
+  settings: {
+    session_record: true,
+    connection_announcement: "",
+  },
+  max_devices: 3,
+  devices_accepted_count: 0,
+  devices_pending_count: 0,
+  devices_rejected_count: 0,
+  created_at: "2025-05-01T00:00:00.000Z",
+  billing: null,
+};
 
 describe("Namespaces Store", () => {
-  const namespaceData = {
-    data: {
-      name: "examplespace",
-      owner: "507f1f77bcf86cd799439011",
+  setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+
+  beforeEach(() => {
+    namespacesStore.currentNamespace = {} as INamespace;
+    namespacesStore.namespaceList = [];
+    namespacesStore.userStatus = undefined;
+  });
+
+  it("should have initial state values", () => {
+    expect(namespacesStore.currentNamespace).toEqual({});
+    expect(namespacesStore.namespaceList).toEqual([]);
+    expect(namespacesStore.userStatus).toBeUndefined();
+  });
+
+  it("should fetch namespace list successfully", async () => {
+    const namespacesData = [namespaceData];
+
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=10").reply(200, namespacesData);
+
+    await namespacesStore.fetchNamespaceList({ page: 1, perPage: 10 });
+
+    expect(namespacesStore.namespaceList).toEqual(namespacesData);
+  });
+
+  it("should fetch namespace by id successfully", async () => {
+    const tenantId = "3dd0d1f8-8246-4519-b11a-a3dd33717f65";
+
+    mockNamespacesApi.onGet(`http://localhost:3000/api/namespaces/${tenantId}`).reply(200, namespaceData);
+
+    await namespacesStore.fetchNamespace(tenantId);
+
+    expect(namespacesStore.currentNamespace).toEqual(namespaceData);
+  });
+
+  it("should create namespace successfully", async () => {
+    const tenantId = "new-tenant-id";
+
+    mockNamespacesApi.onPost("http://localhost:3000/api/namespaces").reply(200, { tenant_id: tenantId });
+
+    const result = await namespacesStore.createNamespace("newnamespace");
+
+    expect(result).toEqual(tenantId);
+  });
+
+  it("should edit namespace successfully", async () => {
+    const editData = {
       tenant_id: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
-      members: [
-        {
-          id: "507f1f77bcf86cd799439011",
-          role: "administrator",
-        },
-      ],
-      settings: {
-        session_record: true,
-        connection_announcement: "",
-      },
-      max_devices: 3,
-      device_count: 0,
-      created_at: "2020-05-01T00:00:00.000Z",
-      billing: null,
-    },
-  };
+      name: "updatedspace",
+    };
 
-  it("Returns namespaces with default variables", () => {
-    expect(store.getters["namespaces/list"]).toEqual([]);
-    expect(store.getters["namespaces/get"]).toEqual({});
-    expect(store.getters["namespaces/getNumberNamespaces"]).toEqual(0);
-    expect(store.getters["namespaces/owner"]).toEqual(false);
-    expect(store.getters["namespaces/billing"]).toEqual({});
+    const updatedNamespace = { ...namespaceData, name: "updatedspace" };
+
+    mockNamespacesApi.onPut(`http://localhost:3000/api/namespaces/${editData.tenant_id}`).reply(200, updatedNamespace);
+
+    await namespacesStore.editNamespace(editData);
+
+    expect(namespacesStore.currentNamespace).toEqual(updatedNamespace);
   });
 
-  it("Commits setNamespaces mutation", async () => {
-    const mockData = { data: [], headers: { "x-total-count": "0" } };
-    store.commit("namespaces/setNamespaces", mockData);
-    expect(store.getters["namespaces/list"]).toEqual(mockData.data);
-    expect(store.getters["namespaces/getNumberNamespaces"]).toEqual(parseInt(mockData.headers["x-total-count"], 10));
+  it("should delete namespace successfully", async () => {
+    namespacesStore.currentNamespace = namespaceData;
+    namespacesStore.namespaceList = [namespaceData];
+
+    const tenantId = "3dd0d1f8-8246-4519-b11a-a3dd33717f65";
+
+    mockNamespacesApi.onDelete(`http://localhost:3000/api/namespaces/${tenantId}`).reply(200);
+
+    await namespacesStore.deleteNamespace(tenantId);
+
+    expect(namespacesStore.currentNamespace).toEqual({});
+    expect(namespacesStore.namespaceList).toEqual([]);
   });
 
-  it("Commits setNamespace mutation", async () => {
-    const mockData = { data: {} };
-    store.commit("namespaces/setNamespace", mockData);
-    expect(store.getters["namespaces/get"]).toEqual(mockData.data);
+  it("should switch namespace successfully", async () => {
+    const tenantId = "new-tenant-id";
+    const switchResponse = {
+      token: "new-token",
+      role: "admin",
+    };
+
+    mockNamespacesApi.onGet(`http://localhost:3000/api/auth/token/${tenantId}`).reply(200, switchResponse);
+
+    await namespacesStore.switchNamespace(tenantId);
+
+    expect(localStorage.getItem("token")).toEqual("new-token");
+    expect(localStorage.getItem("tenant")).toEqual(tenantId);
+    expect(localStorage.getItem("role")).toEqual("admin");
   });
 
-  it("putNamespace mutation", async () => {
-    store.commit("namespaces/setNamespace", namespaceData);
-    expect(store.getters["namespaces/get"]).toEqual(namespaceData.data);
+  it("should lookup user status successfully", async () => {
+    const lookupData = {
+      tenant: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
+      id: "user-id",
+      sig: "signature",
+    };
+    const statusResponse = { status: "invited" };
+
+    const url = `http://localhost:3000/api/namespaces/${lookupData.tenant}/members/${lookupData.id}/accept-invite`
+        + `?sig=${lookupData.sig}`;
+
+    mockNamespacesApi.onGet(url).reply(200, statusResponse);
+
+    await namespacesStore.lookupUserStatus(lookupData);
+    expect(namespacesStore.userStatus).toEqual("invited");
   });
-  // Add more tests for other actions and mutations
+
+  it("should handle fetch namespace list error", async () => {
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=10").reply(500);
+    await expect(namespacesStore.fetchNamespaceList()).rejects.toThrow();
+  });
+
+  it("should handle fetch namespace error", async () => {
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/invalid-id").reply(404);
+    await expect(namespacesStore.fetchNamespace("invalid-id")).rejects.toThrow();
+  });
+
+  it("should handle create namespace error", async () => {
+    mockNamespacesApi.onPost("http://localhost:3000/api/namespaces").reply(400);
+    await expect(namespacesStore.createNamespace("invalidname")).rejects.toThrow();
+  });
 });

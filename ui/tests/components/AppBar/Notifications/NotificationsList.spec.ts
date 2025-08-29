@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, afterEach } from "vitest";
@@ -5,7 +6,6 @@ import NotificationsList from "@/components/AppBar/Notifications/NotificationsLi
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
 import { INotification } from "@/interfaces/INotification";
-import { key, store } from "@/store";
 
 const mockNotifications = [
   {
@@ -29,11 +29,12 @@ const mockNotifications = [
 describe("Notifications List", async () => {
   let wrapper: VueWrapper<InstanceType<typeof NotificationsList>>;
   const vuetify = createVuetify();
+  setActivePinia(createPinia());
 
   beforeEach(async () => {
     wrapper = mount(NotificationsList, {
       global: {
-        plugins: [[store, key], router, vuetify, SnackbarPlugin],
+        plugins: [router, vuetify, SnackbarPlugin],
       },
       props: {
         notifications: mockNotifications as INotification[],

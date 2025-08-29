@@ -64,10 +64,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useDevicesStore from "@/store/modules/devices";
+import useTagsStore from "@/store/modules/tags";
 
 const props = defineProps<{
   deviceUid: string;
@@ -77,7 +78,8 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
-const store = useStore();
+const devicesStore = useDevicesStore();
+const tagsStore = useTagsStore();
 const showDialog = ref(false);
 const hasTags = computed(() => props.tagsList.length > 0);
 const inputTags = ref<string[]>([]);
@@ -105,17 +107,12 @@ const save = async () => {
   try {
     tagsError.value = "";
 
-    await store.dispatch("devices/updateDeviceTag", {
+    await devicesStore.updateDeviceTags({
       uid: props.deviceUid,
       tags: { tags: inputTags.value },
     });
 
-    await store.dispatch("tags/setTags", {
-      data: inputTags.value,
-      headers: {
-        "x-total-count": inputTags.value.length,
-      },
-    });
+    tagsStore.fetchTags();
     showDialog.value = false;
     snackbar.showSuccess("Tags updated successfully.");
 

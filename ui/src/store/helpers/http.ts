@@ -1,6 +1,7 @@
 import Axios from "axios";
 import { router } from "@/router";
-import { store } from "..";
+import useAuthStore from "../modules/auth";
+import useSpinnerStore from "@/store/modules/spinner";
 
 export default () => {
   const axios = Axios.create({
@@ -10,9 +11,12 @@ export default () => {
     },
   });
 
+  const { logout } = useAuthStore();
+  const spinnerStore = useSpinnerStore();
+
   axios.interceptors.request.use(
     (config) => {
-      store.dispatch("spinner/setStatus", true);
+      spinnerStore.status = true;
       return config;
     },
     async (error) => {
@@ -22,13 +26,13 @@ export default () => {
 
   axios.interceptors.response.use(
     (response) => {
-      store.dispatch("spinner/setStatus", false);
+      spinnerStore.status = false;
       return response;
     },
     async (error) => {
-      store.dispatch("spinner/setStatus", false);
+      spinnerStore.status = false;
       if (error.response.status === 401) {
-        await store.dispatch("auth/logout");
+        logout();
         await router.push({ name: "Login" });
       }
       throw error;

@@ -37,34 +37,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType, watch } from "vue";
+import { computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
+import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
-const props = defineProps({
-  messageKind: {
-    type: String as PropType<"sig" | "normal">,
-    required: true,
-  },
-  show: {
-    type: Boolean,
-    required: true,
-  },
-  username: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  messageKind: "sig" | "normal";
+  show: boolean;
+  username: string;
+}>();
+
 const emit = defineEmits(["show"]);
-
-const store = useStore();
+const authStore = useAuthStore();
+const usersStore = useUsersStore();
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
 
-const token = computed(() => store.getters["users/getSignToken"]);
+const token = computed(() => usersStore.signUpToken);
 
 const showMessage = computed({
   get: () => props.show,
@@ -78,7 +71,7 @@ const buttonDataTest = computed(() => (isNormalMessage.value ? "resendEmail-btn"
 
 const resendEmail = async () => {
   try {
-    await store.dispatch("users/resendEmail", props.username);
+    await usersStore.resendEmail(props.username);
     snackbar.showSuccess("Email successfully sent.");
   } catch (error) {
     snackbar.showError("Failed to send email.");
@@ -108,7 +101,7 @@ const handleAction = async () => {
 
 watch(showMessage, (newValue) => {
   if (newValue && props.messageKind === "sig") {
-    store.commit("auth/setToken", token.value);
+    authStore.token = token.value as string;
     setTimeout(redirect, 5000);
   }
 });

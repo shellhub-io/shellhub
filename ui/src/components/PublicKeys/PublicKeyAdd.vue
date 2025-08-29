@@ -127,17 +127,22 @@ import { computed, nextTick, ref, watch } from "vue";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { validateKey } from "@/utils/validate";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import usePublicKeysStore from "@/store/modules/public_keys";
+import { IPublicKeyCreate } from "@/interfaces/IPublicKey";
+import useTagsStore from "@/store/modules/tags";
 
 const { size } = defineProps<{ size?: string }>();
 
 const emit = defineEmits(["update"]);
-const store = useStore();
+const authStore = useAuthStore();
+const publicKeysStore = usePublicKeysStore();
+const tagsStore = useTagsStore();
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 const validateLength = ref(true);
@@ -206,10 +211,10 @@ const {
   initialValue: "",
 });
 
-const tagNames = computed(() => store.getters["tags/list"]);
+const tagNames = computed(() => tagsStore.tags);
 
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.publicKey.create);
 });
 
@@ -229,7 +234,7 @@ watch(tagChoices, (list) => {
 
 watch(choiceFilter, async () => {
   if (choiceFilter.value === "tags") {
-    await store.dispatch("tags/fetch");
+    await tagsStore.fetchTags();
   }
 });
 
@@ -337,12 +342,10 @@ const create = async () => {
       chooseUsername();
       const keySend = {
         ...keyLocal.value,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         data: btoa(publicKeyData.value),
         name: name.value,
       };
-      await store.dispatch("publicKeys/post", keySend);
+      await publicKeysStore.createPublicKey(keySend as IPublicKeyCreate);
       snackbar.showSuccess("Public key created successfully.");
       update();
       resetFields();

@@ -1,5 +1,5 @@
 export interface IPrivateKey {
-  id: number,
+  id: number;
   name: string;
   data: string;
   hasPassphrase: boolean;

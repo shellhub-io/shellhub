@@ -74,12 +74,14 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import useUsersStore from "@/store/modules/users";
 
-const store = useStore();
+const authStore = useAuthStore();
+const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 
@@ -131,10 +133,7 @@ const {
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
-const name = computed(() => store.getters["auth/currentName"]);
-const email = computed(() => store.getters["auth/email"]);
-const username = computed(() => store.getters["auth/currentUser"]);
-const recoveryEmail = computed(() => store.getters["auth/recoveryEmail"]);
+const { name, email, username, recoveryEmail } = authStore;
 
 const close = () => {
   showDialog.value = false;
@@ -155,16 +154,16 @@ const hasUpdatePasswordError = computed(() => (
 const updatePassword = async () => {
   if (!hasUpdatePasswordError.value) {
     const data = {
-      name: name.value,
-      username: username.value,
-      email: email.value,
-      recovery_email: recoveryEmail.value,
+      name,
+      username,
+      email,
+      recovery_email: recoveryEmail,
       currentPassword: currentPassword.value,
       newPassword: newPassword.value,
     };
 
     try {
-      await store.dispatch("users/patchPassword", data);
+      await usersStore.patchPassword(data);
       snackbar.showSuccess("Password updated successfully.");
       close();
     } catch (error: unknown) {

@@ -5,7 +5,7 @@
       v-model:itemsPerPage="itemsPerPage"
       :headers="computedHeaders"
       :items
-      :totalCount="numberDevices"
+      :totalCount="deviceCount"
       :loading
       :itemsPerPageOptions="[10, 20, 50, 100]"
       @update:sort="sortByItem"
@@ -22,7 +22,7 @@
           <td class="text-center">
             <TerminalConnectButton
               :deviceUid="item.uid"
-              :sshid="sshidAddress(item)"
+              :sshid="getSshid(item)"
               :online="item.online"
               data-test="terminal-connect-btn"
             />
@@ -51,7 +51,7 @@
                         @keypress.enter="handleSshidClick(item, copyText)"
                         class="hover-text"
                       >
-                        {{ sshidAddress(item) }}
+                        {{ getSshid(item) }}
                       </span>
                     </template>
                     <span>{{ shouldOpenTerminalHelper() ? "Show connection instructions" : "Copy ID" }}</span>
@@ -256,7 +256,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import { store } from "@/store";
 import { actions, authorizer } from "@/authorizer";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
@@ -273,6 +272,7 @@ import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import { formatFullDateTime } from "@/utils/date";
 import { IContainerMethods } from "@/interfaces/IContainer";
+import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{
   storeMethods: IDeviceMethods | IContainerMethods;
@@ -281,21 +281,22 @@ const props = defineProps<{
   variant: "device" | "container";
 }>();
 
-const { fetchDevices, setSort, getFilter, getList, getSortStatusField, getSortStatusString, getNumber } = props.storeMethods;
-
+const { fetchDevices, getList, getCount } = props.storeMethods;
+const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
-const filter = computed(() => getFilter());
 const items = computed(() => getList());
-const numberDevices = computed(() => getNumber());
+const deviceCount = computed(() => getCount());
 const showDeviceAcceptButton = ref(false);
 const showDeviceRejectButton = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
 const status = computed(() => props.status);
+const sortField = ref();
+const sortOrder = ref();
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
-const userId = computed(() => store.getters["auth/id"]);
+const userId = authStore.id;
 
 const headers = [
   {
@@ -348,74 +349,37 @@ const headersSecondary = [
 
 const computedHeaders = computed(() => props.header === "primary" ? headers : headersSecondary);
 
-onMounted(async () => {
+const getDevices = async () => {
   try {
     loading.value = true;
     await fetchDevices({
       perPage: itemsPerPage.value,
       page: page.value,
-      filter: filter.value,
-      status: status.value,
-      sortStatusField: "",
-      sortStatusString: "",
-    });
-  } catch (error: unknown) {
-    handleError(error);
-  } finally {
-    loading.value = false;
-  }
-});
-
-const getDevices = async (perPageValue: number, pageValue: number, filter: string) => {
-  try {
-    loading.value = true;
-    await fetchDevices({
-      perPage: perPageValue,
-      page: pageValue,
       status: props.status,
-      filter,
-      sortStatusField: getSortStatusField(),
-      sortStatusString: getSortStatusString(),
+      sortField: sortField.value,
+      sortOrder: sortOrder.value,
     });
-    loading.value = false;
   } catch (error: unknown) {
     handleError(error);
   }
+  loading.value = false;
 };
-
-const getSortOrder = () => {
-  const currentOrder = getSortStatusString();
-  if (currentOrder === "asc") return "desc";
-  return "asc";
-};
-
-const sortByItem = async (field: string) => {
-  setSort({
-    sortStatusField: field,
-    sortStatusString: getSortOrder(),
-  });
-  await getDevices(itemsPerPage.value, page.value, filter.value);
-};
-
-watch([page, itemsPerPage], async () => {
-  await getDevices(itemsPerPage.value, page.value, filter.value);
-});
 
 const redirectToDevice = (deviceId: string) => {
   router.push({ name: "DeviceDetails", params: { identifier: deviceId } });
 };
 
-const sshidAddress = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+const getSshid = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
 const openTerminalHelper = (item: IDevice) => {
-  selectedSshid.value = sshidAddress(item);
+  selectedSshid.value = getSshid(item);
   showTerminalHelper.value = true;
 };
 
 const shouldOpenTerminalHelper = () => {
   try {
     const dispensedUsers = JSON.parse(localStorage.getItem("dispenseTerminalHelper") || "[]");
-    return !dispensedUsers.includes(userId.value);
+    return !dispensedUsers.includes(userId);
   } catch {
     return true;
   }
@@ -426,24 +390,44 @@ const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
     openTerminalHelper(item);
     return;
   }
-  copyFn(sshidAddress(item));
-};
-
-const refreshDevices = async () => {
-  await getDevices(itemsPerPage.value, page.value, filter.value);
+  copyFn(getSshid(item));
 };
 
 const hasAuthorizationFormUpdate = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
 };
 
 const hasAuthorizationRemove = () => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.device.remove);
 };
 
-defineExpose({ page, getSortStatusField, getSortStatusString, showTerminalHelper, openTerminalHelper });
+const getSortOrder = () => {
+  const currentOrder = sortOrder.value;
+  if (currentOrder === "asc") return "desc";
+  return "asc";
+};
+
+const sortByItem = async (field: string) => {
+  sortField.value = field;
+  sortOrder.value = getSortOrder();
+  await getDevices();
+};
+
+watch([page, itemsPerPage], async () => {
+  await getDevices();
+});
+
+const refreshDevices = async () => {
+  await getDevices();
+};
+
+onMounted(async () => {
+  await getDevices();
+});
+
+defineExpose({ page, showTerminalHelper, openTerminalHelper });
 </script>
 
 <style scoped>

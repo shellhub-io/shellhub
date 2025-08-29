@@ -1,20 +1,20 @@
+import { setActivePinia, createPinia } from "pinia";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach } from "vitest";
-import { store, key } from "@/store";
 import TerminalConnectButton from "@/components/Terminal/TerminalConnectButton.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Terminal Connect Button", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalConnectButton>>;
-
+  setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   beforeEach(async () => {
     wrapper = mount(TerminalConnectButton, {
       global: {
-        plugins: [[store, key], router, vuetify, SnackbarPlugin],
+        plugins: [router, vuetify, SnackbarPlugin],
       },
       props: {
         online: true,

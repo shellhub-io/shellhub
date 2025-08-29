@@ -3,7 +3,7 @@
     v-model:page="page"
     v-model:itemsPerPage="itemsPerPage"
     :headers="headers"
-    :items="items"
+    :items="webEndpoints"
     :totalCount="totalCount"
     :loading="loading"
     :itemsPerPageOptions="[10, 20, 50]"
@@ -12,7 +12,7 @@
   >
     <template #rows>
       <tr
-        v-for="endpoint in items"
+        v-for="endpoint in webEndpoints"
         :key="endpoint.address"
         :class="isExpired(endpoint.expires_in) ? 'text-warning' : ''"
       >
@@ -33,12 +33,12 @@
 
         <td data-test="web-endpoint-url">
           <a
-            :href="`${urlProtocol}//${endpoint.full_address}`"
+            :href="`${protocol}//${endpoint.full_address}`"
             target="_blank"
             rel="noopener noreferrer"
             @click="handleClick"
           >
-            {{ `${urlProtocol}//${endpoint.full_address}` }}
+            {{ `${protocol}//${endpoint.full_address}` }}
           </a>
         </td>
 
@@ -61,26 +61,27 @@
 import { ref, watch, computed, onMounted } from "vue";
 import moment from "moment";
 import { useRouter } from "vue-router";
-import { useStore } from "@/store";
 import DataTable from "@/components/DataTable.vue";
 import WebEndpointDelete from "@/components/WebEndpoints/WebEndpointDelete.vue";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
-import { IWebEndpoints } from "@/interfaces/IWebEndpoints";
+import { IWebEndpoint } from "@/interfaces/IWebEndpoints";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
+import handleError from "@/utils/handleError";
 
 type SortField = "created_at" | "updated_at" | "address" | "uid";
 
-const store = useStore();
+const webEndpointsStore = useWebEndpointsStore();
 const router = useRouter();
 
-const items = computed<IWebEndpoints[]>(() => store.getters["webEndpoints/listWebEndpoints"]);
-const totalCount = computed(() => store.getters["webEndpoints/getTotalCount"]);
+const webEndpoints = computed<IWebEndpoint[]>(() => webEndpointsStore.webEndpoints);
+const totalCount = computed(() => webEndpointsStore.webEndpointCount);
 
-const page = ref(store.getters["webEndpoints/getPage"]);
-const itemsPerPage = ref(store.getters["webEndpoints/getPerPage"]);
+const page = ref(1);
+const itemsPerPage = ref(10);
 const loading = ref(false);
-
-const sortBy = ref<SortField>(store.getters["webEndpoints/getSortBy"]);
-const sortDesc = ref<boolean>(store.getters["webEndpoints/getOrderBy"] === "desc");
+const sortField = ref<SortField>();
+const sortOrder = ref<"asc" | "desc">();
+const { protocol } = window.location;
 
 const headers = [
   { text: "Device", value: "device", sortable: false },
@@ -94,49 +95,34 @@ const headers = [
 const fetchWebEndpoints = async () => {
   loading.value = true;
   try {
-    await store.dispatch("webEndpoints/get", {
+    await webEndpointsStore.fetchWebEndpointsList({
       page: page.value,
       perPage: itemsPerPage.value,
-      filter: store.getters["webEndpoints/getFilter"],
-      sortBy: sortBy.value,
-      orderBy: sortDesc.value ? "desc" : "asc",
+      sortField: sortField.value,
+      sortOrder: sortOrder.value,
     });
-
-    store.commit("webEndpoints/setPagePerPage", {
-      page: page.value,
-      perPage: itemsPerPage.value,
-      filter: store.getters["webEndpoints/getFilter"],
-      sortBy: sortBy.value,
-      orderBy: sortDesc.value ? "desc" : "asc",
-    });
-  } finally {
-    loading.value = false;
-  }
-};
-
-const sortByItem = (field: string) => {
-  const validFields: SortField[] = ["created_at", "updated_at", "address", "uid"];
-  if (!validFields.includes(field as SortField)) return;
-
-  if (sortBy.value === field) {
-    sortDesc.value = !sortDesc.value;
-  } else {
-    sortBy.value = field as SortField;
-    sortDesc.value = false;
+  } catch (error) {
+    handleError(error);
   }
 
-  fetchWebEndpoints();
+  loading.value = false;
 };
 
-watch([page, itemsPerPage], () => {
-  fetchWebEndpoints();
+const getSortOrder = () => sortOrder.value === "asc" ? "desc" : "asc";
+
+const sortByItem = async (field: SortField) => {
+  sortField.value = field;
+  sortOrder.value = getSortOrder();
+  await fetchWebEndpoints();
+};
+
+watch([page, itemsPerPage], async () => {
+  await fetchWebEndpoints();
 });
 
-const refresh = () => {
-  fetchWebEndpoints();
+const refresh = async () => {
+  await fetchWebEndpoints();
 };
-
-const urlProtocol = ref(window.location.protocol);
 
 const isExpired = (date: string) => date !== "0001-01-01T00:00:00Z" && moment().utc().isAfter(moment(date));
 

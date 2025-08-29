@@ -1,62 +1,47 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import Home from "@/views/Home.vue";
-import { namespacesApi, usersApi, devicesApi } from "@/api/http";
-import { store, key } from "@/store";
+import { devicesApi } from "@/api/http";
 import { router } from "@/router";
-import { envVariables } from "@/envVariables";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { INamespace } from "@/interfaces/INamespace";
 
 type HomeWrapper = VueWrapper<InstanceType<typeof Home>>;
 
 describe("Home", () => {
   let wrapper: HomeWrapper;
-
+  setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  let mockUser: MockAdapter;
-
-  let mockDevices: MockAdapter;
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   const members = [
     {
       id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
+      role: "owner" as const,
     },
   ];
 
   const namespaceData = {
+    billing: null,
     name: "test",
     owner: "test",
     tenant_id: "fake-tenant-data",
     members,
     settings: {
       session_record: true,
+      connection_announcement: "",
     },
     max_devices: 3,
-    devices_count: 3,
+    devices_accepted_count: 0,
+    devices_rejected_count: 0,
+    devices_pending_count: 0,
     created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
   };
 
   const statsMock = {
@@ -67,44 +52,19 @@ describe("Home", () => {
     rejected_devices: 0,
   };
 
-  const res = {
-    data: [namespaceData],
-    headers: {
-      "x-total-count": 1,
-    },
-  };
-
   beforeEach(async () => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
+    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
 
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("namespaces/setNamespaces", res);
+    namespacesStore.namespaceList = [namespaceData] as INamespace[];
 
     wrapper = mount(Home, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
-        config: {
-          errorHandler: () => { /* ignore global error handler */ },
-        },
+        plugins: [vuetify, router, SnackbarPlugin],
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
     wrapper.unmount();
   });
 
@@ -124,7 +84,7 @@ describe("Home", () => {
   });
 
   it("Displays error message if API call fails with 403 status code", async () => {
-    mockDevices.onGet("http://localhost:3000/api/stats").reply(403);
+    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(403);
 
     await flushPromises();
 

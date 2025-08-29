@@ -43,40 +43,16 @@
 import { computed } from "vue";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
-import { useStore } from "@/store";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
 
-const store = useStore();
+const authStore = useAuthStore();
 
+const showWarningDialog = defineModel({ default: false });
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
 });
 
-const close = () => {
-  if (store.getters["users/statusUpdateAccountDialog"]) {
-    store.dispatch("users/setStatusUpdateAccountDialog", false);
-  } else if (
-    store.getters["users/statusUpdateAccountDialogByDeviceAction"]
-  ) {
-    store.dispatch(
-      "users/setStatusUpdateAccountDialogByDeviceAction",
-      false,
-    );
-  }
-};
-
-const showWarningDialog = computed({
-  get() {
-    return (
-      (store.getters["users/statusUpdateAccountDialog"]
-            && store.getters["stats/stats"].registered_devices === 3
-            && !store.getters["billing/active"])
-          || store.getters["users/statusUpdateAccountDialogByDeviceAction"]
-    );
-  },
-  set() {
-    close();
-  },
-});
+const close = () => { showWarningDialog.value = false; };
 </script>

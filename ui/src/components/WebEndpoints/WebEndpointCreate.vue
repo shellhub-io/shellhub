@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="dialog" max-width="450" @click:outside="close()">
+  <BaseDialog v-model="showDialog" @click:outside="close()">
     <v-card data-test="tunnel-create-dialog" class="bg-v-theme-surface">
       <v-card-title class="bg-primary" data-test="create-dialog-title">
         Create Device Web Endpoint
@@ -50,7 +50,6 @@
                 variant="outlined"
                 return-object
                 hide-details
-                @click:control="() => fetchDevices()"
                 @update:search="fetchDevices"
                 data-test="web-endpoint-autocomplete"
               >
@@ -122,42 +121,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useDevicesStore from "@/store/modules/devices";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
+import { IDevice } from "@/interfaces/IDevice";
 
-interface DeviceOption {
-  uid: string;
-  name: string;
-  info: {
-    id: string;
-    pretty_name: string;
-  };
-  [key: string]: unknown;
-}
-
-const props = defineProps({
-  uid: { type: String, required: false, default: "" },
-  useDevicesList: {
-    type: Boolean,
-    required: true,
-  },
-});
+const props = defineProps<{
+  uid?: string;
+  useDevicesList: boolean;
+}>();
 
 const emit = defineEmits(["update"]);
-const store = useStore();
+const devicesStore = useDevicesStore();
+const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
-const dialog = defineModel({ default: false });
+const showDialog = defineModel({ default: false });
 const alertText = ref();
 
-const selectedDevice = ref<DeviceOption | null>(null);
-const deviceOptions = ref<DeviceOption[]>([]);
+const selectedDevice = ref<IDevice | null>(null);
+const deviceOptions = ref<IDevice[]>([]);
 const loadingDevices = ref(false);
 
 const predefinedTimeouts = ref([
@@ -220,34 +209,26 @@ const hasErrors = computed(() => {
 });
 
 const resetFields = () => { resetPort(); resetHost(); selectedTimeout.value = -1; resetCustomTimeout(); };
-const close = () => { resetFields(); dialog.value = false; };
+const close = () => { resetFields(); showDialog.value = false; };
 const update = () => { emit("update"); close(); };
 
-const fetchDevices = async (val?: string) => {
-  if (!val && deviceOptions.value.length > 0) return;
-
+const fetchDevices = async (searchQuery?: string) => {
   loadingDevices.value = true;
 
-  const filter = val
+  const filter = searchQuery
     ? btoa(JSON.stringify([
-      { type: "property", params: { name: "name", operator: "contains", value: val } },
+      { type: "property", params: { name: "name", operator: "contains", value: searchQuery } },
     ]))
-    : "";
-
+    : undefined;
   try {
-    await store.dispatch("devices/search", {
-      page: 1,
-      perPage: 10,
-      filter,
-      status: "accepted",
-    });
-
-    deviceOptions.value = store.getters["devices/list"];
-  } catch {
+    await devicesStore.fetchDeviceList({ filter });
+    deviceOptions.value = devicesStore.devices;
+  } catch (error) {
     snackbar.showError("Failed to load devices.");
-  } finally {
-    loadingDevices.value = false;
+    handleError(error);
   }
+
+  loadingDevices.value = false;
 };
 
 const addWebEndpoint = async () => {
@@ -258,8 +239,8 @@ const addWebEndpoint = async () => {
     : props.uid;
 
   try {
-    await store.dispatch("webEndpoints/create", {
-      uid: deviceUid,
+    await webEndpointsStore.createWebEndpoint({
+      uid: deviceUid as string,
       host: host.value,
       port: port.value,
       ttl: timeout.value,
@@ -279,4 +260,5 @@ const addWebEndpoint = async () => {
   }
 };
 
+onMounted(async () => { if (props.useDevicesList) await fetchDevices(); });
 </script>

@@ -1,7 +1,7 @@
 import { rulesApi } from "@/api/http";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
 
-export const postFirewall = async (data: IFirewallRule) => rulesApi.createFirewallRule({
+export const createFirewallRule = async (data: IFirewallRule) => rulesApi.createFirewallRule({
   priority: data.priority,
   action: data.action,
   active: data.active,
@@ -10,11 +10,9 @@ export const postFirewall = async (data: IFirewallRule) => rulesApi.createFirewa
   username: data.username,
 });
 
-export const fetchFirewalls = async (perPage: number, page: number) => rulesApi.getFirewallRules(page, perPage);
+export const fetchFirewallRuleList = async (perPage: number, page: number) => rulesApi.getFirewallRules(page, perPage);
 
-export const getFirewall = async (id: string) => rulesApi.getFirewallRule(id);
-
-export const putFirewall = async (data: IFirewallRule) => rulesApi.updateFirewallRule(data.id, {
+export const updateFirewallRule = async (data: IFirewallRule) => rulesApi.updateFirewallRule(data.id, {
   priority: data.priority,
   action: data.action,
   active: data.active,
@@ -23,4 +21,4 @@ export const putFirewall = async (data: IFirewallRule) => rulesApi.updateFirewal
   username: data.username,
 });
 
-export const removeFirewall = async (id: string) => rulesApi.deleteFirewallRule(id);
+export const removeFirewallRule = async (id: string) => rulesApi.deleteFirewallRule(id);

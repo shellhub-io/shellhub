@@ -1,72 +1,26 @@
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import FirewallRules from "@/views/FirewallRules.vue";
-import { namespacesApi, usersApi, rulesApi } from "@/api/http";
-import { store, key } from "@/store";
-import { envVariables } from "@/envVariables";
+import { rulesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { router } from "@/router";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
+import { IFirewallRule } from "@/interfaces/IFirewallRule";
 
 type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
 
 describe("Firewall Rules", () => {
   let wrapper: FirewallRulesWrapper;
-
+  setActivePinia(createPinia());
+  const firewallRulesStore = useFirewallRulesStore();
   const vuetify = createVuetify();
 
-  let mockNamespace: MockAdapter;
+  const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
-  let mockUser: MockAdapter;
-
-  let mockRules: MockAdapter;
-
-  const members = [
+  const firewallRules = [
     {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-  };
-
-  const authData = {
-    status: "success",
-    token: "",
-    user: "test",
-    name: "test",
-    tenant: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-    mfa: {
-      enable: false,
-      validate: false,
-    },
-  };
-
-  const res = {
-    data: [namespaceData],
-    headers: {
-      "x-total-count": 1,
-    },
-  };
-
-  const firewallRule = {
-    data: [{
       priority: 1,
       action: "allow",
       active: true,
@@ -75,43 +29,21 @@ describe("Firewall Rules", () => {
       },
       source_ip: ".*",
       username: ".*",
-    }],
-    headers: {
-      "x-total-count": 1,
     },
-  };
+  ];
 
   beforeEach(async () => {
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockUser = new MockAdapter(usersApi.getAxios());
-    mockRules = new MockAdapter(rulesApi.getAxios());
-
-    mockRules.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRule.data);
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockUser.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("auth/changeData", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-    store.commit("namespaces/setNamespaces", res);
-    store.commit("firewallRules/setFirewalls", firewallRule);
-    store.commit("firewallRules/setFirewall", firewallRule.data[0]);
-
+    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRules);
+    firewallRulesStore.firewallRules = firewallRules as IFirewallRule[];
+    firewallRulesStore.firewallRuleCount = 1;
     wrapper = mount(FirewallRules, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
     wrapper.unmount();
   });
 
@@ -138,12 +70,12 @@ describe("Firewall Rules", () => {
   });
 
   it("Shows the no items message when there are no firewall rules", () => {
-    mockRules.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, []);
-    store.commit("firewallRules/setFirewalls", { data: [], headers: { "x-total-count": 0 } });
-    wrapper.unmount();
+    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, []);
+    firewallRulesStore.firewallRules = [];
+    firewallRulesStore.firewallRuleCount = 0;
     wrapper = mount(FirewallRules, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, SnackbarPlugin],
       },
     });
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);

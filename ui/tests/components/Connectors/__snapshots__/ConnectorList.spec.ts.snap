@@ -18,7 +18,7 @@ exports[`Connector List > Renders the component 1`] = `
         <tbody>
           <tr data-v-6fdd6bd6="">
             <td data-v-6fdd6bd6="" class="text-center">
-              <div data-v-6fdd6bd6="" data-test="status-connector" class="disabled text-center"></div>
+              <div data-v-6fdd6bd6="" data-test="status-connector" class="enabled text-center"></div>
             </td>
             <td data-v-6fdd6bd6="" class="text-center">
               <div data-v-6fdd6bd6="" class="d-flex justify-center" data-test="switch-enable">

@@ -47,19 +47,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted } from "vue";
 import { useField } from "vee-validate";
 import axios from "axios";
 import * as yup from "yup";
-import { useStore } from "@/store";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
-const store = useStore();
+const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
-const namespace = computed(() => store.getters["namespaces/get"]);
-const tenant = computed(() => store.getters["auth/tenant"]);
+const namespace = computed(() => namespacesStore.currentNamespace);
+const { tenantId } = authStore;
 const showDialog = defineModel({ default: false });
 const emit = defineEmits(["update"]);
 
@@ -78,17 +80,18 @@ const {
 );
 
 const close = () => {
-  connectionAnnouncement.value = namespace.value.settings.connection_announcement;
+  connectionAnnouncement.value = namespace.value.settings.connection_announcement || "";
   showDialog.value = false;
 };
 
-watch(namespace, (ns) => {
-  connectionAnnouncement.value = ns.settings.connection_announcement;
-});
-
-onMounted(() => {
-  if (!store.getters["auth/isLoggedIn"]) return;
-  store.dispatch("namespaces/get", tenant.value);
+onMounted(async () => {
+  if (!authStore.isLoggedIn) return;
+  try {
+    await namespacesStore.fetchNamespace(tenantId);
+    connectionAnnouncement.value = namespace.value.settings.connection_announcement || "";
+  } catch (error) {
+    handleError(error);
+  }
 });
 
 const handleUpdateNameError = (error: unknown): void => {
@@ -109,18 +112,14 @@ const handleUpdateNameError = (error: unknown): void => {
 
 const updateAnnouncement = async () => {
   try {
-    await store.dispatch("namespaces/put", {
-      tenant_id: tenant.value,
+    await namespacesStore.editNamespace({
+      tenant_id: tenantId,
       settings: {
         connection_announcement: connectionAnnouncement.value,
       },
     });
 
-    await store.dispatch("namespaces/fetch", {
-      page: 1,
-      perPage: 10,
-      filter: "",
-    });
+    await namespacesStore.fetchNamespaceList();
 
     emit("update");
     snackbar.showSuccess("Connection announcement updated successfully.");

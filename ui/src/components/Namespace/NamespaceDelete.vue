@@ -7,7 +7,7 @@
 
       <v-card-text class="mt-4 mb-3 pb-1">
         <div
-          v-if="billingActive"
+          v-if="isBillingActive"
           data-test="content-subscription-text"
         >
           <p class="mb-2">
@@ -38,7 +38,7 @@
           variant="text"
           data-test="remove-btn"
           @click="remove()"
-          :disabled="billingActive || !hasAuthorization"
+          :disabled="isBillingActive || !hasAuthorization"
         >
           Remove
         </v-btn>
@@ -48,57 +48,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
+import useAuthStore from "@/store/modules/auth";
+import useBillingStore from "@/store/modules/billing";
+import useNamespacesStore from "@/store/modules/namespaces";
 import { envVariables } from "@/envVariables";
 
 const props = defineProps<{ tenant: string }>();
 const emit = defineEmits(["billing-in-debt"]);
 
-const store = useStore();
+const authStore = useAuthStore();
+const billingStore = useBillingStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel({ default: false });
-const name = ref("");
+const { name } = namespacesStore.currentNamespace;
 const tenant = computed(() => props.tenant);
-const billingActive = computed(() => store.getters["billing/active"]);
+const isBillingActive = computed(() => billingStore.isActive);
 const hasAuthorization = computed(() => {
-  const role = store.getters["auth/role"];
+  const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.namespace.remove);
-});
-
-const getSubscriptionInfo = async () => {
-  if (billingActive.value) {
-    try {
-      await store.dispatch("billing/getSubscription");
-    } catch (error: unknown) {
-      snackbar.showError("An error occurred while fetching subscription information.");
-      handleError(error);
-    }
-  }
-};
-
-onMounted(() => {
-  if (hasAuthorization.value && envVariables.isCloud) {
-    getSubscriptionInfo();
-  }
-
-  name.value = store.getters["namespaces/get"].name;
 });
 
 const remove = async () => {
   try {
-    await store.dispatch("namespaces/remove", tenant.value);
+    await namespacesStore.deleteNamespace(tenant.value);
     snackbar.showSuccess("Namespace deleted successfully.");
-    await store.dispatch("auth/logout");
+    authStore.logout();
     await router.push({ name: "Login" });
     showDialog.value = false;
   } catch (error: unknown) {
@@ -116,4 +101,10 @@ const remove = async () => {
     handleError(error);
   }
 };
+
+onMounted(async () => {
+  if (hasAuthorization.value && envVariables.isCloud) {
+    await billingStore.getSubscriptionInfo();
+  }
+});
 </script>

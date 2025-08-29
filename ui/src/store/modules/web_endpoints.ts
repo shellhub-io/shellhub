@@ -1,126 +1,54 @@
-import { Module } from "vuex";
-import { State } from "../index";
-import * as apiTunnel from "../api/web_endpoints";
-import { IWebEndpoints, IWebEndpointsCreate, IWebEndpointsDelete } from "@/interfaces/IWebEndpoints";
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import * as webEndpointsApi from "../api/web_endpoints";
+import { FetchWebEndpointsParams, IWebEndpoint, IWebEndpointsCreate } from "@/interfaces/IWebEndpoints";
 
-export interface WebEndpointsState {
-  web_endpoints: Array<IWebEndpoints>;
-  page: number;
-  perPage: number;
-  filter: string;
-  sortBy: "created_at" | "updated_at" | "address" | "uid";
-  orderBy: "asc" | "desc";
-  numberEndpoints: number;
-  showWebEndpoints: boolean;
-}
+const useWebEndpointsStore = defineStore("webEndpoints", () => {
+  const webEndpoints = ref<Array<IWebEndpoint>>([]);
+  const webEndpointCount = ref(0);
+  const showWebEndpoints = ref(false);
 
-export const webEndpoints: Module<WebEndpointsState, State> = {
-  namespaced: true,
-  state: {
-    web_endpoints: [],
-    page: 1,
-    perPage: 10,
-    filter: "",
-    sortBy: "uid",
-    orderBy: "asc",
-    numberEndpoints: 0,
-    showWebEndpoints: false,
-  },
-
-  getters: {
-    listWebEndpoints: (state) => state.web_endpoints,
-    getFilter: (state) => state.filter,
-    getPage: (state) => state.page,
-    getPerPage: (state) => state.perPage,
-    getTotalCount: (state) => state.numberEndpoints,
-    getSortBy: (state) => state.sortBy,
-    getOrderBy: (state) => state.orderBy,
-    getShowWebEndpoints: (state) => state.showWebEndpoints,
-  },
-
-  mutations: {
-    setWebEndpoints: (state, res) => {
-      state.web_endpoints = res.data;
-      state.numberEndpoints = parseInt(res.headers["x-total-count"], 10);
-    },
-
-    setShowWebEndpoints: (state) => {
-      state.showWebEndpoints = true;
-    },
-
-    setPagePerPage: (state, data) => {
-      state.page = data.page;
-      state.perPage = data.perPage;
-      state.filter = data.filter;
-      state.sortBy = data.sortBy;
-      state.orderBy = data.orderBy;
-    },
-
-    setFilter: (state, filter) => {
-      state.filter = filter;
-    },
-
-    setSortStatus: (state, data) => {
-      state.sortBy = data.sortBy;
-      state.orderBy = data.orderBy;
-    },
-
-    clearListEndpoints: (state) => {
-      state.web_endpoints = [];
-      state.numberEndpoints = 0;
-      state.showWebEndpoints = false;
-    },
-  },
-
-  actions: {
-    async get({ commit }, data) {
-      try {
-        const res = await apiTunnel.getWebEndpoints(
-          data.filter,
-          data.page,
-          data.perPage,
-          data.sortBy,
-          data.orderBy,
-        );
-        if (res.data.length) {
-          commit("setShowWebEndpoints");
-        }
-        commit("setWebEndpoints", res);
-        commit("setPagePerPage", data);
-      } catch (error) {
-        commit("clearListEndpoints");
-        commit("setShowWebEndpoints");
-        throw error;
+  const fetchWebEndpointsList = async (data?: FetchWebEndpointsParams) => {
+    try {
+      const res = await webEndpointsApi.getWebEndpoints(
+        data?.page || 1,
+        data?.perPage || 10,
+        data?.filter,
+        data?.sortField,
+        data?.sortOrder,
+      );
+      if (res.data.length) {
+        showWebEndpoints.value = true;
       }
-    },
+      webEndpoints.value = res.data as IWebEndpoint[];
+      webEndpointCount.value = parseInt(res.headers["x-total-count"], 10);
+    } catch (error) {
+      webEndpoints.value = [];
+      webEndpointCount.value = 0;
+      showWebEndpoints.value = false;
+      throw error;
+    }
+  };
 
-    async search({ commit, state }, data) {
-      try {
-        const res = await apiTunnel.getWebEndpoints(
-          data.filter,
-          data.page,
-          data.perPage,
-          state.sortBy,
-          state.orderBy,
-        );
-        commit("setWebEndpoints", res);
-        commit("setFilter", data.filter);
-      } catch (error) {
-        commit("clearListEndpoints");
-        throw error;
-      }
-    },
+  const createWebEndpoint = async (data: IWebEndpointsCreate) => {
+    const { uid, host, port, ttl } = data;
+    const res = await webEndpointsApi.createWebEndpoint(uid, host, port, ttl);
+    return res;
+  };
 
-    async delete(_, data: IWebEndpointsDelete) {
-      const { address } = data;
-      const res = await apiTunnel.deleteWebEndpoints(address);
-      return res;
-    },
+  const deleteWebEndpoint = async (address: string) => {
+    const res = await webEndpointsApi.deleteWebEndpoint(address);
+    return res;
+  };
 
-    async create(_, data: IWebEndpointsCreate) {
-      const { uid, host, port, ttl } = data;
-      const res = await apiTunnel.createWebEndpoints(uid, host, port, ttl);
-      return res;
-    },
-  },
-};
+  return {
+    webEndpoints,
+    webEndpointCount,
+    showWebEndpoints,
+    fetchWebEndpointsList,
+    deleteWebEndpoint,
+    createWebEndpoint,
+  };
+});
+
+export default useWebEndpointsStore;

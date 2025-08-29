@@ -1,47 +1,16 @@
+import { setActivePinia, createPinia } from "pinia";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
 import { nextTick } from "vue";
-import { store, key } from "@/store";
 import FirewallRuleEdit from "@/components/firewall/FirewallRuleEdit.vue";
-import { envVariables } from "@/envVariables";
-import { router } from "@/router";
-import { namespacesApi, rulesApi, tagsApi } from "@/api/http";
+import { rulesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
+import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 type FirewallRuleEditWrapper = VueWrapper<InstanceType<typeof FirewallRuleEdit>>;
-
-const members = [
-  {
-    id: "xxxxxxxx",
-    username: "test",
-    role: "owner",
-  },
-];
-
-const namespaceData = {
-  name: "user",
-  owner: "xxxxxxxx",
-  tenant_id: "fake-tenant-data",
-  members,
-  max_devices: 3,
-  devices_count: 3,
-  devices: 2,
-  created_at: "",
-};
-
-const authData = {
-  status: "",
-  token: "",
-  user: "test",
-  name: "test",
-  tenant: "fake-tenant-data",
-  email: "test@test.com",
-  id: "xxxxxxxx",
-  role: "owner",
-};
 
 const firewallRule = {
   id: "1000",
@@ -65,10 +34,11 @@ const mockSnackbar = {
 describe("Firewall Rule Edit", () => {
   let wrapper: FirewallRuleEditWrapper;
   const vuetify = createVuetify();
-
+  setActivePinia(createPinia());
+  const firewallRulesStore = useFirewallRulesStore();
   const mountWrapper = (firewallRuleProp: IFirewallRule = firewallRule) => mount(FirewallRuleEdit, {
     global: {
-      plugins: [[store, key], vuetify, router],
+      plugins: [vuetify],
       provide: { [SnackbarInjectionKey]: mockSnackbar },
     },
     props: {
@@ -77,27 +47,11 @@ describe("Firewall Rule Edit", () => {
     },
   });
 
-  let mockNamespace: MockAdapter;
-  let mockTags: MockAdapter;
-  let mockFirewall: MockAdapter;
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
+  const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
   beforeEach(async () => {
-    const el = document.createElement("div");
-    document.body.appendChild(el);
-    vi.useFakeTimers();
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockFirewall = new MockAdapter(rulesApi.getAxios());
-    mockTags = new MockAdapter(tagsApi.getAxios());
-
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockTags.onGet("http://localhost:3000/api/tags").reply(200, ["tag1", "tag2"]);
-
-    store.commit("auth/authSuccess", authData);
-    store.commit("namespaces/setNamespace", namespaceData);
-
+    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, ["tag1", "tag2"]);
     wrapper = mountWrapper();
   });
 
@@ -153,15 +107,15 @@ describe("Firewall Rule Edit", () => {
   });
 
   it("Successful on editing firewall rules", async () => {
-    const storeSpy = vi.spyOn(store, "dispatch");
+    const storeSpy = vi.spyOn(firewallRulesStore, "updateFirewallRule");
 
-    mockFirewall.onPut("http://localhost:3000/api/firewall/rules/1000").reply(200);
+    mockRulesApi.onPut("http://localhost:3000/api/firewall/rules/1000").reply(200);
 
     await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="firewall-rule-edit-btn"]').trigger("click");
 
-    expect(storeSpy).toBeCalledWith("firewallRules/put", {
+    expect(storeSpy).toBeCalledWith({
       id: "1000",
       action: "allow",
       priority: 1,
@@ -175,7 +129,7 @@ describe("Firewall Rule Edit", () => {
   });
 
   it("Fails on editing firewall rules", async () => {
-    mockFirewall.onPut("http://localhost:3000/api/firewall/rules/1000").reply(403);
+    mockRulesApi.onPut("http://localhost:3000/api/firewall/rules/1000").reply(403);
 
     await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
 

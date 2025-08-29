@@ -1,4 +1,4 @@
-// AppLayout.spec.ts
+import { createPinia, setActivePinia } from "pinia";
 import { defineComponent, nextTick } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
@@ -7,18 +7,19 @@ import MockAdapter from "axios-mock-adapter";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { store, key } from "@/store";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { devicesApi, containersApi } from "@/api/http";
 import { envVariables } from "@/envVariables";
+import useSpinnerStore from "@/store/modules/spinner";
 
 let mockDevices: MockAdapter;
 let mockContainers: MockAdapter;
 
 describe("App Layout Component", () => {
   let wrapper;
-
+  setActivePinia(createPinia());
+  const spinnerStore = useSpinnerStore();
   const vuetify = createVuetify({
     components,
     directives,
@@ -34,25 +35,25 @@ describe("App Layout Component", () => {
   });
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    localStorage.setItem("theme", "dark");
 
     envVariables.hasWebEndpoints = true;
     envVariables.isCloud = true;
-    store.dispatch("spinner/setStatus", true);
+    spinnerStore.status = true;
 
     mockDevices = new MockAdapter(devicesApi.getAxios());
     mockContainers = new MockAdapter(containersApi.getAxios());
 
     mockDevices
-      .onGet("http://localhost/api/devices?filter=&page=1&per_page=10&status=pending")
+      .onGet("http://localhost/api/devices?page=1&per_page=10&status=pending")
       .reply(200);
     mockContainers
-      .onGet("http://localhost/api/containers?filter=&page=1&per_page=10&status=pending")
+      .onGet("http://localhost/api/containers?page=1&per_page=10&status=pending")
       .reply(200);
 
     wrapper = mount(AppWrapperComponent, {
       global: {
-        plugins: [[store, key], vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router, SnackbarPlugin],
         stubs: {
           "router-link": {
             template: "<a><slot /></a>",
@@ -96,7 +97,7 @@ describe("App Layout Component", () => {
   });
 
   it("Renders loading screen", async () => {
-    await store.dispatch("spinner/setStatus", true);
+    spinnerStore.status = true;
     await flushPromises();
 
     const layoutWrapper = wrapper.findComponent(AppLayout);

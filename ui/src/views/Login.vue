@@ -59,7 +59,7 @@
           color="primary"
           prepend-inner-icon="mdi-account"
           v-model="username"
-          :disabled="!ssoStatus.local && envVariables.isEnterprise"
+          :disabled="!authentication?.local && envVariables.isEnterprise"
           :rules="rules"
           required
           label="Username or email address"
@@ -71,7 +71,7 @@
           prepend-inner-icon="mdi-lock"
           :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           v-model="password"
-          :disabled="!ssoStatus.local && envVariables.isEnterprise"
+          :disabled="!authentication?.local && envVariables.isEnterprise"
           :rules="rules"
           label="Password"
           required
@@ -81,7 +81,7 @@
         />
         <v-card-actions class="justify-center pa-0">
           <v-btn
-            :disabled="!validForm || (!ssoStatus.local && envVariables.isEnterprise)"
+            :disabled="!validForm || (!authentication?.local && envVariables.isEnterprise)"
             data-test="login-btn"
             color="primary"
             :variant="validForm ? 'elevated' : 'tonal'"
@@ -122,7 +122,7 @@
         </router-link>
       </v-card-subtitle>
     </v-col>
-    <div v-if="ssoStatus.saml && envVariables.isEnterprise" data-test="or-divider-sso">
+    <div v-if="authentication?.saml && envVariables.isEnterprise" data-test="or-divider-sso">
       <v-row class="mb-2">
         <v-col class="mr-1">
           <v-divider />
@@ -151,18 +151,24 @@
 import { onMounted, ref, computed, reactive, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import { useStore } from "../store";
 import isCloudEnvironment from "../utils/cloudUtils";
 import handleError from "../utils/handleError";
 import useSnackbar from "../helpers/snackbar";
 import useCountdown from "@/utils/countdownTimeout";
 import { envVariables } from "@/envVariables";
+import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
+import useStatsStore from "@/store/modules/stats";
+import { IStats } from "@/interfaces/IStats";
+import useUsersStore from "@/store/modules/users";
 
-const store = useStore();
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbar();
-
+const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
+const statsStore = useStatsStore();
+const usersStore = useUsersStore();
 const showPassword = ref(false);
 const loginToken = ref(false);
 const invalid = reactive({ title: "", msg: "", timeout: false });
@@ -173,13 +179,12 @@ const validForm = ref(false);
 const cloudEnvironment = isCloudEnvironment();
 const invalidCredentials = ref(false);
 const isCountdownFinished = ref(false);
-const isMfa = computed(() => store.getters["auth/isMfa"]);
-const loginTimeout = computed(() => store.getters["auth/getLoginTimeout"]);
-const ssoStatus = computed(() => store.getters["users/getSystemInfo"].authentication);
-const samlUrl = computed(() => store.getters["users/getSamlURL"]);
+const isMfaEnabled = computed(() => authStore.isMfaEnabled);
+const loginTimeout = computed(() => authStore.loginTimeout);
+const isLoggedIn = computed(() => authStore.isLoggedIn);
+const authentication = computed(() => usersStore.systemInfo.authentication);
 // Alerts for user status on accept namespace invitation logic
-const userStatus = computed(() => store.getters["namespaces/getUserStatus"]);
-const isLoggedIn = computed(() => store.getters["auth/isLoggedIn"]);
+const userStatus = computed(() => namespacesStore.userStatus);
 
 const cameFromAcceptInvite = computed(() => isLoggedIn.value === false && route.query.redirect?.includes("/accept-invite"));
 
@@ -214,8 +219,8 @@ watch(countdown, (newValue) => {
 });
 
 const redirectToSaml = async () => {
-  await store.dispatch("users/fetchSamlUrl");
-  window.location.replace(samlUrl.value);
+  const samlUrl = await usersStore.getSamlUrl();
+  window.location.replace(samlUrl);
 };
 
 onMounted(async () => {
@@ -225,23 +230,23 @@ onMounted(async () => {
 
   loginToken.value = true;
 
-  await store.dispatch("stats/clear");
-  await store.dispatch("namespaces/clearNamespaceList");
-  await store.dispatch("auth/logout");
-  await store.dispatch("auth/loginToken", route.query.token);
+  namespacesStore.namespaceList = [];
+  authStore.logout();
+  statsStore.stats = {} as IStats;
+  await authStore.loginWithToken(route.query.token as string);
 
   window.location.href = "/";
 });
 
 const login = async () => {
   try {
-    await store.dispatch("auth/login", { username: username.value, password: password.value });
+    await authStore.login({ username: username.value, password: password.value });
 
     const redirectPath = route.query.redirect ? route.query.redirect.toString() : "/";
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { redirect, ...cleanedQuery } = route.query;
 
-    if (isMfa.value === true) {
+    if (isMfaEnabled.value === true) {
       await router.push({ name: "MfaLogin" });
       localStorage.setItem("name", username.value);
     } else {
@@ -287,6 +292,6 @@ const login = async () => {
 defineExpose({
   invalidCredentials,
   validForm,
-  ssoStatus,
+  authentication,
 });
 </script>

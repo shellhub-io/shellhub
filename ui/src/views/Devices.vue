@@ -6,14 +6,14 @@
     <h1>Devices</h1>
     <v-col md="6">
       <v-text-field
-        v-if="show"
+        v-if="showDevices"
         label="Search by hostname"
         variant="outlined"
         color="primary"
         single-line
         hide-details
         v-model.trim="filter"
-        v-on:keyup="searchDevices"
+        @update:model-value="searchDevices"
         prepend-inner-icon="mdi-magnify"
         density="compact"
         data-test="search-text"
@@ -25,7 +25,7 @@
       <DeviceAdd />
     </div>
   </div>
-  <div class="mt-2" v-if="show" data-test="device-table-component">
+  <div class="mt-2" v-if="showDevices" data-test="device-table-component">
     <Device />
   </div>
 
@@ -54,49 +54,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onUnmounted } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "../store";
 import Device from "../components/Devices/Device.vue";
 import DeviceAdd from "../components/Devices/DeviceAdd.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import useSnackbar from "@/helpers/snackbar";
+import useDevicesStore from "@/store/modules/devices";
 
-const store = useStore();
+const devicesStore = useDevicesStore();
 const router = useRouter();
 const snackbar = useSnackbar();
 const filter = ref("");
-const show = computed(() => store.getters["devices/getShowDevices"]);
+const showDevices = computed(() => devicesStore.showDevices);
+const isDeviceList = computed(() => router.currentRoute.value.name === "DeviceList");
 
-const searchDevices = () => {
-  let encodedFilter = "";
+const searchDevices = async () => {
+  const filterToEncodeBase64 = [{
+    type: "property",
+    params: { name: "name", operator: "contains", value: filter.value },
+  }];
 
-  if (filter.value) {
-    const filterToEncodeBase64 = [
-      {
-        type: "property",
-        params: { name: "name", operator: "contains", value: filter.value },
-      },
-    ];
-    encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-  }
+  const encodedFilter = filter.value ? btoa(JSON.stringify(filterToEncodeBase64)) : undefined;
 
   try {
-    store.dispatch("devices/search", {
-      page: store.getters["devices/getPage"],
-      perPage: store.getters["devices/getPerPage"],
-      filter: encodedFilter,
-      status: store.getters["devices/getStatus"],
-    });
+    await devicesStore.fetchDeviceList({ filter: encodedFilter });
   } catch {
     snackbar.showError("Failed to load devices.");
   }
 };
-
-const isDeviceList = computed(() => router.currentRoute.value.name === "DeviceList");
-
-onUnmounted(async () => {
-  await store.dispatch("devices/setFilter", "");
-});
 </script>

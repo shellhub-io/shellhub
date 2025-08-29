@@ -64,18 +64,12 @@ exports[`Namespace Details > Renders the component 1`] = `
           <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="id">id:</span><span data-v-1bdec118="" tabindex="0" class="link field-value" data-test="6256b739302b50b6cc5eafcc">6256b739302b50b6cc5eafcc</span></div>
         </li>
         <li data-v-1bdec118="" class="ml-8">
-          <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="username">username:</span><span data-v-1bdec118="" data-test="antony" class="field-value">antony</span></div>
-        </li>
-        <li data-v-1bdec118="" class="ml-8">
           <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="role">role:</span><span data-v-1bdec118="" data-test="owner" class="field-value">owner</span></div>
         </li>
       </ul>
       <ul data-v-1bdec118="">
         <li data-v-1bdec118="" class="ml-8">
           <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="id">id:</span><span data-v-1bdec118="" tabindex="0" class="link field-value" data-test="7326b239302b50b6cc5eafdd">7326b239302b50b6cc5eafdd</span></div>
-        </li>
-        <li data-v-1bdec118="" class="ml-8">
-          <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="username">username:</span><span data-v-1bdec118="" data-test="test" class="field-value">test</span></div>
         </li>
         <li data-v-1bdec118="" class="ml-8">
           <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="role">role:</span><span data-v-1bdec118="" data-test="administrator" class="field-value">administrator</span></div>
