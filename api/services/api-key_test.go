@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmock "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -404,6 +405,8 @@ func TestListAPIKey(t *testing.T) {
 	}
 
 	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
 		description   string
@@ -420,8 +423,20 @@ func TestListAPIKey(t *testing.T) {
 				Sorter:    query.Sorter{By: "expires_in", Order: query.OrderAsc},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("APIKeyList", ctx, "00000000-0000-4000-0000-000000000000", query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "expires_in", Order: query.OrderAsc}).
+					On("APIKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(nil, 0, errors.New("error")).
 					Once()
 			},
@@ -439,8 +454,20 @@ func TestListAPIKey(t *testing.T) {
 				Sorter:    query.Sorter{By: "expires_in", Order: query.OrderAsc},
 			},
 			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
 				storeMock.
-					On("APIKeyList", ctx, "00000000-0000-4000-0000-000000000000", query.Paginator{Page: 1, PerPage: 10}, query.Sorter{By: "expires_in", Order: query.OrderAsc}).
+					On("APIKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.APIKey{
 							{

@@ -7,22 +7,18 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 const (
-	GetPublicKeysURL       = "/sshkeys/public-keys"
-	GetPublicKeyURL        = "/sshkeys/public-keys/:fingerprint/:tenant"
-	CreatePublicKeyURL     = "/sshkeys/public-keys"
-	UpdatePublicKeyURL     = "/sshkeys/public-keys/:fingerprint"
-	DeletePublicKeyURL     = "/sshkeys/public-keys/:fingerprint"
-	CreatePrivateKeyURL    = "/sshkeys/private-keys"
-	EvaluateKeyURL         = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
-	AddPublicKeyTagURL     = "/sshkeys/public-keys/:fingerprint/tags"      // Add a tag to a public key.
-	RemovePublicKeyTagURL  = "/sshkeys/public-keys/:fingerprint/tags/:tag" // Remove a tag to a public key.
-	UpdatePublicKeyTagsURL = "/sshkeys/public-keys/:fingerprint/tags"      // Update all tags from a public key.
+	GetPublicKeysURL    = "/sshkeys/public-keys"
+	GetPublicKeyURL     = "/sshkeys/public-keys/:fingerprint/:tenant"
+	CreatePublicKeyURL  = "/sshkeys/public-keys"
+	UpdatePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
+	DeletePublicKeyURL  = "/sshkeys/public-keys/:fingerprint"
+	CreatePrivateKeyURL = "/sshkeys/private-keys"
+	EvaluateKeyURL      = "/sshkeys/public-keys/evaluate/:fingerprint/:username"
 )
 
 const (
@@ -30,15 +26,20 @@ const (
 )
 
 func (h *Handler) GetPublicKeys(c gateway.Context) error {
-	paginator := query.NewPaginator()
-	if err := c.Bind(paginator); err != nil {
+	req := new(requests.ListPublicKeys)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
 		return err
 	}
 
 	// TODO: normalize is not required when request is privileged
-	paginator.Normalize()
+	req.Paginator.Normalize()
 
-	list, count, err := h.service.ListPublicKeys(c.Ctx(), *paginator)
+	list, count, err := h.service.ListPublicKeys(c.Ctx(), req)
 	if err != nil {
 		return err
 	}
@@ -176,70 +177,4 @@ func (h *Handler) EvaluateKey(c gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, usernameOk && filterOk)
-}
-
-func (h *Handler) AddPublicKeyTag(c gateway.Context) error {
-	var req requests.PublicKeyTagAdd
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	if err := h.service.AddPublicKeyTag(c.Ctx(), tenant, req.Fingerprint, req.Tag); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) RemovePublicKeyTag(c gateway.Context) error {
-	var req requests.PublicKeyTagRemove
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	if err := h.service.RemovePublicKeyTag(c.Ctx(), tenant, req.Fingerprint, req.Tag); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func (h *Handler) UpdatePublicKeyTags(c gateway.Context) error {
-	var req requests.PublicKeyTagsUpdate
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	if err := h.service.UpdatePublicKeyTags(c.Ctx(), tenant, req.Fingerprint, req.Tags); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
 }

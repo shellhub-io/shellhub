@@ -59,7 +59,7 @@ func TestPublicKeyGet(t *testing.T) {
 						Name: "public_key",
 						Filter: models.PublicKeyFilter{
 							Hostname: ".*",
-							Tags:     []string{"tag-1"},
+							Taggable: models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 						},
 					},
 				},
@@ -92,11 +92,13 @@ func TestPublicKeyList(t *testing.T) {
 
 	cases := []struct {
 		description string
+		opts        []store.QueryOption
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when public key list is empty",
+			opts:        []store.QueryOption{s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1})},
 			fixtures:    []string{},
 			expected: Expected{
 				pubKey: []models.PublicKey{},
@@ -106,6 +108,7 @@ func TestPublicKeyList(t *testing.T) {
 		},
 		{
 			description: "succeeds when public key list len is greater than 1",
+			opts:        []store.QueryOption{s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1})},
 			fixtures:    []string{fixturePublicKeys},
 			expected: Expected{
 				pubKey: []models.PublicKey{
@@ -118,7 +121,7 @@ func TestPublicKeyList(t *testing.T) {
 							Name: "public_key",
 							Filter: models.PublicKeyFilter{
 								Hostname: ".*",
-								Tags:     []string{"tag-1"},
+								Taggable: models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 							},
 						},
 					},
@@ -138,7 +141,7 @@ func TestPublicKeyList(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			pubKey, count, err := s.PublicKeyList(ctx, query.Paginator{Page: -1, PerPage: -1})
+			pubKey, count, err := s.PublicKeyList(ctx, tc.opts...)
 			assert.Equal(t, tc.expected, Expected{pubKey: pubKey, len: count, err: err})
 		})
 	}
@@ -234,7 +237,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 					Name: "edited_key",
 					Filter: models.PublicKeyFilter{
 						Hostname: ".*",
-						Tags:     []string{"edited-tag"},
+						Taggable: models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 					},
 				},
 			},
@@ -249,7 +252,7 @@ func TestPublicKeyUpdate(t *testing.T) {
 						Name: "edited_key",
 						Filter: models.PublicKeyFilter{
 							Hostname: ".*",
-							Tags:     []string{"edited-tag"},
+							Taggable: models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 						},
 					},
 				},

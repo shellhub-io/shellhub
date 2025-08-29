@@ -21,13 +21,13 @@ func TestSessionList(t *testing.T) {
 
 	cases := []struct {
 		description string
-		paginator   query.Paginator
+		opts        []store.QueryOption
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when sessions are found",
-			paginator:   query.Paginator{Page: -1, PerPage: -1},
+			opts:        []store.QueryOption{s.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1})},
 			fixtures: []string{
 				fixtureNamespaces,
 				fixtureDevices,
@@ -59,7 +59,7 @@ func TestSessionList(t *testing.T) {
 							Status:          "accepted",
 							RemoteAddr:      "",
 							Position:        nil,
-							Tags:            []string{"tag-1"},
+							Taggable:        models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 							Acceptable:      false,
 						},
 						Active:        true,
@@ -93,7 +93,7 @@ func TestSessionList(t *testing.T) {
 							Status:          "accepted",
 							RemoteAddr:      "",
 							Position:        nil,
-							Tags:            []string{"tag-1"},
+							Taggable:        models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 							Acceptable:      false,
 						},
 						Active:        false,
@@ -127,7 +127,7 @@ func TestSessionList(t *testing.T) {
 							Status:          "accepted",
 							RemoteAddr:      "",
 							Position:        nil,
-							Tags:            []string{"tag-1"},
+							Taggable:        models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 							Acceptable:      false,
 						},
 						Active:        false,
@@ -161,7 +161,7 @@ func TestSessionList(t *testing.T) {
 							Status:          "accepted",
 							RemoteAddr:      "",
 							Position:        nil,
-							Tags:            []string{"tag-1"},
+							Taggable:        models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 							Acceptable:      false,
 						},
 						Active:        false,
@@ -196,7 +196,7 @@ func TestSessionList(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			s, count, err := s.SessionList(ctx, tc.paginator)
+			s, count, err := s.SessionList(ctx, tc.opts...)
 
 			sort(tc.expected.s)
 			sort(s)
@@ -265,7 +265,7 @@ func TestSessionGet(t *testing.T) {
 						Status:          "accepted",
 						RemoteAddr:      "",
 						Position:        nil,
-						Tags:            []string{"tag-1"},
+						Taggable:        models.Taggable{TagsID: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"}, Tags: nil},
 						Acceptable:      false,
 					},
 					Active:        true,

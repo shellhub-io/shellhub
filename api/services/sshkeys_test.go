@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mocks"
+	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -26,7 +27,7 @@ const (
 )
 
 func TestEvaluateKeyFilter(t *testing.T) {
-	mock := &mocks.Store{}
+	mock := &storemock.Store{}
 
 	ctx := context.TODO()
 
@@ -134,11 +135,13 @@ func TestEvaluateKeyFilter(t *testing.T) {
 }
 
 func TestListPublicKeys(t *testing.T) {
-	mock := &mocks.Store{}
+	storeMock := &storemock.Store{}
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	clockMock.On("Now").Return(now).Twice()
 
-	s := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
 	ctx := context.TODO()
 
@@ -156,24 +159,52 @@ func TestListPublicKeys(t *testing.T) {
 	cases := []struct {
 		description   string
 		keys          []models.PublicKey
-		paginator     query.Paginator
+		req           *requests.ListPublicKeys
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "Fails when the query is invalid",
-			paginator:   query.Paginator{Page: -1, PerPage: 10},
+			req: &requests.ListPublicKeys{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+			},
 			requiredMocks: func() {
-				mock.On("PublicKeyList", ctx, query.Paginator{Page: -1, PerPage: 10}).Return(nil, 0, errors.New("error", "", 0)).Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("PublicKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return(nil, 0, errors.New("error", "", 0)).
+					Once()
 			},
 			expected: Expected{nil, 0, errors.New("error", "", 0)},
 		},
 		{
 			description: "Successful list the keys",
 			keys:        keys,
-			paginator:   query.Paginator{Page: 1, PerPage: 10},
+			req: &requests.ListPublicKeys{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+			},
 			requiredMocks: func() {
-				mock.On("PublicKeyList", ctx, query.Paginator{Page: 1, PerPage: 10}).Return(keys, len(keys), nil).Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				storeMock.
+					On("PublicKeyList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return(keys, len(keys), nil).
+					Once()
 			},
 			expected: Expected{keys, len(keys), nil},
 		},
@@ -182,16 +213,16 @@ func TestListPublicKeys(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
-			returnedKeys, count, err := s.ListPublicKeys(ctx, tc.paginator)
+			returnedKeys, count, err := s.ListPublicKeys(ctx, tc.req)
 			assert.Equal(t, tc.expected, Expected{returnedKeys, count, err})
 		})
 	}
 
-	mock.AssertExpectations(t)
+	storeMock.AssertExpectations(t)
 }
 
 func TestGetPublicKeys(t *testing.T) {
-	mock := &mocks.Store{}
+	mock := &storemock.Store{}
 
 	clockMock.On("Now").Return(now).Twice()
 
@@ -266,7 +297,7 @@ func TestGetPublicKeys(t *testing.T) {
 }
 
 func TestUpdatePublicKeys(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -445,7 +476,7 @@ func TestUpdatePublicKeys(t *testing.T) {
 }
 
 func TestDeletePublicKeys(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 
@@ -547,7 +578,7 @@ func TestDeletePublicKeys(t *testing.T) {
 }
 
 func TestCreatePublicKeys(t *testing.T) {
-	mock := new(mocks.Store)
+	mock := new(storemock.Store)
 
 	ctx := context.TODO()
 

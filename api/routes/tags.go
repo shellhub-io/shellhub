@@ -1,78 +1,43 @@
 package routes
 
 import (
-	"net/http"
-	"strconv"
-
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
 )
 
 const (
-	// GetTagsURL gets all tags from all collections.
-	GetTagsURL = "/tags"
-	// RenameTagURL renames a tag in all collections.
-	RenameTagURL = "/tags/:tag"
-	// DeleteTagsURL deletes a tag from all collections.
-	DeleteTagsURL = "/tags/:tag"
+	URLGetTags              = "/tags"
+	URLUpdateTag            = "/tags/:name"
+	URLDeleteTag            = "/tags/:name"
+	URLPushTagToDevice      = "/devices/:uid/tags/:name"
+	URLPullTagFromDevice    = "/devices/:uid/tags/:name"
+	URLPushTagToPublicKey   = "/sshkeys/:fingerprint/tags/:name"
+	URLPullTagFromPublicKey = "/sshkeys/:fingerprint/tags/:name"
 )
 
 func (h *Handler) GetTags(c gateway.Context) error {
-	var tenant string
-	if t := c.Tenant(); t != nil {
-		tenant = t.ID
-	}
-
-	tags, count, err := h.service.GetTags(c.Ctx(), tenant)
-	if err != nil {
-		return err
-	}
-
-	c.Response().Header().Set("X-Total-Count", strconv.Itoa(count))
-
-	return c.JSON(http.StatusOK, tags)
+	return nil
 }
 
-func (h *Handler) RenameTag(c gateway.Context) error {
-	var req requests.TagRename
-	var tenant string
-	if t := c.Tenant(); t != nil {
-		tenant = t.ID
-	}
-
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	if err := h.service.RenameTag(c.Ctx(), tenant, req.Tag, req.NewTag); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
+func (h *Handler) UpdateTag(c gateway.Context) error {
+	return nil
 }
 
 func (h *Handler) DeleteTag(c gateway.Context) error {
-	var req requests.TagDelete
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
+	return nil
+}
 
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
+func (h *Handler) PushTagToDevice(c gateway.Context) error {
+	return nil
+}
 
-	var tenant string
-	if t := c.Tenant(); t != nil {
-		tenant = t.ID
-	}
+func (h *Handler) PullTagFromDevice(c gateway.Context) error {
+	return nil
+}
 
-	if err := h.service.DeleteTag(c.Ctx(), tenant, req.Tag); err != nil {
-		return err
-	}
+func (h *Handler) PushTagToPublicKey(c gateway.Context) error {
+	return nil
+}
 
-	return c.NoContent(http.StatusOK)
+func (h *Handler) PullTagFromPublicKey(c gateway.Context) error {
+	return nil
 }

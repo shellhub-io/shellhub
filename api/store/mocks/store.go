@@ -8,8 +8,6 @@ import (
 	models "github.com/shellhub-io/shellhub/pkg/models"
 	mock "github.com/stretchr/testify/mock"
 
-	query "github.com/shellhub-io/shellhub/pkg/api/query"
-
 	store "github.com/shellhub-io/shellhub/api/store"
 )
 
@@ -101,9 +99,16 @@ func (_m *Store) APIKeyDelete(ctx context.Context, tenantID string, name string)
 	return r0
 }
 
-// APIKeyList provides a mock function with given fields: ctx, tenantID, paginator, sorter
-func (_m *Store) APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
-	ret := _m.Called(ctx, tenantID, paginator, sorter)
+// APIKeyList provides a mock function with given fields: ctx, opts
+func (_m *Store) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.APIKey, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for APIKeyList")
@@ -112,25 +117,25 @@ func (_m *Store) APIKeyList(ctx context.Context, tenantID string, paginator quer
 	var r0 []models.APIKey
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Sorter) ([]models.APIKey, int, error)); ok {
-		return rf(ctx, tenantID, paginator, sorter)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.APIKey, int, error)); ok {
+		return rf(ctx, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, query.Paginator, query.Sorter) []models.APIKey); ok {
-		r0 = rf(ctx, tenantID, paginator, sorter)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.APIKey); ok {
+		r0 = rf(ctx, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.APIKey)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, query.Paginator, query.Sorter) int); ok {
-		r1 = rf(ctx, tenantID, paginator, sorter)
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, query.Paginator, query.Sorter) error); ok {
-		r2 = rf(ctx, tenantID, paginator, sorter)
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -191,62 +196,6 @@ func (_m *Store) APIKeyUpdate(ctx context.Context, tenantID string, name string,
 	}
 
 	return r0
-}
-
-// DeviceBulkDeleteTag provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) DeviceBulkDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceBulkDeleteTag")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, tag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, tag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// DeviceBulkRenameTag provides a mock function with given fields: ctx, tenant, currentTag, newTag
-func (_m *Store) DeviceBulkRenameTag(ctx context.Context, tenant string, currentTag string, newTag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, currentTag, newTag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceBulkRenameTag")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, currentTag, newTag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = rf(ctx, tenant, currentTag, newTag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenant, currentTag, newTag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // DeviceBulkUpdate provides a mock function with given fields: ctx, uids, changes
@@ -360,46 +309,16 @@ func (_m *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
 	return r0
 }
 
-// DeviceGetTags provides a mock function with given fields: ctx, tenant
-func (_m *Store) DeviceGetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	ret := _m.Called(ctx, tenant)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceGetTags")
+// DeviceList provides a mock function with given fields: ctx, acceptable, opts
+func (_m *Store) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
 	}
-
-	var r0 []string
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, int, error)); ok {
-		return rf(ctx, tenant)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
-		r0 = rf(ctx, tenant)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
-		r1 = rf(ctx, tenant)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = rf(ctx, tenant)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// DeviceList provides a mock function with given fields: ctx, status, pagination, filters, sorter, acceptable
-func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pagination query.Paginator, filters query.Filters, sorter query.Sorter, acceptable store.DeviceAcceptable) ([]models.Device, int, error) {
-	ret := _m.Called(ctx, status, pagination, filters, sorter, acceptable)
+	var _ca []interface{}
+	_ca = append(_ca, ctx, acceptable)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceList")
@@ -408,66 +327,30 @@ func (_m *Store) DeviceList(ctx context.Context, status models.DeviceStatus, pag
 	var r0 []models.Device
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) ([]models.Device, int, error)); ok {
-		return rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(0).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) ([]models.Device, int, error)); ok {
+		return rf(ctx, acceptable, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) []models.Device); ok {
-		r0 = rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(0).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) []models.Device); ok {
+		r0 = rf(ctx, acceptable, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) int); ok {
-		r1 = rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(1).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, acceptable, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.DeviceStatus, query.Paginator, query.Filters, query.Sorter, store.DeviceAcceptable) error); ok {
-		r2 = rf(ctx, status, pagination, filters, sorter, acceptable)
+	if rf, ok := ret.Get(2).(func(context.Context, store.DeviceAcceptable, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, acceptable, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
 
 	return r0, r1, r2
-}
-
-// DevicePullTag provides a mock function with given fields: ctx, uid, tag
-func (_m *Store) DevicePullTag(ctx context.Context, uid models.UID, tag string) error {
-	ret := _m.Called(ctx, uid, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DevicePullTag")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// DevicePushTag provides a mock function with given fields: ctx, uid, tag
-func (_m *Store) DevicePushTag(ctx context.Context, uid models.UID, tag string) error {
-	ret := _m.Called(ctx, uid, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DevicePushTag")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // DeviceResolve provides a mock function with given fields: ctx, resolver, value, opts
@@ -505,41 +388,6 @@ func (_m *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolve
 	}
 
 	return r0, r1
-}
-
-// DeviceSetTags provides a mock function with given fields: ctx, uid, tags
-func (_m *Store) DeviceSetTags(ctx context.Context, uid models.UID, tags []string) (int64, int64, error) {
-	ret := _m.Called(ctx, uid, tags)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeviceSetTags")
-	}
-
-	var r0 int64
-	var r1 int64
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) (int64, int64, error)); ok {
-		return rf(ctx, uid, tags)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, []string) int64); ok {
-		r0 = rf(ctx, uid, tags)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID, []string) int64); ok {
-		r1 = rf(ctx, uid, tags)
-	} else {
-		r1 = ret.Get(1).(int64)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, models.UID, []string) error); ok {
-		r2 = rf(ctx, uid, tags)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
 }
 
 // DeviceUpdate provides a mock function with given fields: ctx, tenant, uid, changes
@@ -741,9 +589,16 @@ func (_m *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID str
 	return r0
 }
 
-// NamespaceList provides a mock function with given fields: ctx, paginator, filters
-func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.Namespace, int, error) {
-	ret := _m.Called(ctx, paginator, filters)
+// NamespaceList provides a mock function with given fields: ctx, opts
+func (_m *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceList")
@@ -752,25 +607,25 @@ func (_m *Store) NamespaceList(ctx context.Context, paginator query.Paginator, f
 	var r0 []models.Namespace
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) ([]models.Namespace, int, error)); ok {
-		return rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.Namespace, int, error)); ok {
+		return rf(ctx, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) []models.Namespace); ok {
-		r0 = rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.Namespace); ok {
+		r0 = rf(ctx, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Namespace)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters) int); ok {
-		r1 = rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters) error); ok {
-		r2 = rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -930,62 +785,6 @@ func (_m *Store) PrivateKeyGet(ctx context.Context, fingerprint string) (*models
 	return r0, r1
 }
 
-// PublicKeyBulkDeleteTag provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) PublicKeyBulkDeleteTag(ctx context.Context, tenant string, tag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PublicKeyBulkDeleteTag")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, tag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, tag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// PublicKeyBulkRenameTag provides a mock function with given fields: ctx, tenant, currentTag, newTag
-func (_m *Store) PublicKeyBulkRenameTag(ctx context.Context, tenant string, currentTag string, newTag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, currentTag, newTag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PublicKeyBulkRenameTag")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, currentTag, newTag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = rf(ctx, tenant, currentTag, newTag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenant, currentTag, newTag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // PublicKeyCreate provides a mock function with given fields: ctx, key
 func (_m *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
 	ret := _m.Called(ctx, key)
@@ -1052,46 +851,16 @@ func (_m *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID 
 	return r0, r1
 }
 
-// PublicKeyGetTags provides a mock function with given fields: ctx, tenant
-func (_m *Store) PublicKeyGetTags(ctx context.Context, tenant string) ([]string, int, error) {
-	ret := _m.Called(ctx, tenant)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PublicKeyGetTags")
+// PublicKeyList provides a mock function with given fields: ctx, opts
+func (_m *Store) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
 	}
-
-	var r0 []string
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, int, error)); ok {
-		return rf(ctx, tenant)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
-		r0 = rf(ctx, tenant)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
-		r1 = rf(ctx, tenant)
-	} else {
-		r1 = ret.Get(1).(int)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = rf(ctx, tenant)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// PublicKeyList provides a mock function with given fields: ctx, paginator
-func (_m *Store) PublicKeyList(ctx context.Context, paginator query.Paginator) ([]models.PublicKey, int, error) {
-	ret := _m.Called(ctx, paginator)
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PublicKeyList")
@@ -1100,96 +869,25 @@ func (_m *Store) PublicKeyList(ctx context.Context, paginator query.Paginator) (
 	var r0 []models.PublicKey
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.PublicKey, int, error)); ok {
-		return rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.PublicKey, int, error)); ok {
+		return rf(ctx, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.PublicKey); ok {
-		r0 = rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.PublicKey); ok {
+		r0 = rf(ctx, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.PublicKey)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, paginator)
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, paginator)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
-// PublicKeyPullTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
-func (_m *Store) PublicKeyPullTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
-	ret := _m.Called(ctx, tenant, fingerprint, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PublicKeyPullTag")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenant, fingerprint, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// PublicKeyPushTag provides a mock function with given fields: ctx, tenant, fingerprint, tag
-func (_m *Store) PublicKeyPushTag(ctx context.Context, tenant string, fingerprint string, tag string) error {
-	ret := _m.Called(ctx, tenant, fingerprint, tag)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PublicKeyPushTag")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenant, fingerprint, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// PublicKeySetTags provides a mock function with given fields: ctx, tenant, fingerprint, tags
-func (_m *Store) PublicKeySetTags(ctx context.Context, tenant string, fingerprint string, tags []string) (int64, int64, error) {
-	ret := _m.Called(ctx, tenant, fingerprint, tags)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PublicKeySetTags")
-	}
-
-	var r0 int64
-	var r1 int64
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) (int64, int64, error)); ok {
-		return rf(ctx, tenant, fingerprint, tags)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) int64); ok {
-		r0 = rf(ctx, tenant, fingerprint, tags)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, []string) int64); ok {
-		r1 = rf(ctx, tenant, fingerprint, tags)
-	} else {
-		r1 = ret.Get(1).(int64)
-	}
-
-	if rf, ok := ret.Get(2).(func(context.Context, string, string, []string) error); ok {
-		r2 = rf(ctx, tenant, fingerprint, tags)
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1359,9 +1057,16 @@ func (_m *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Sessio
 	return r0, r1
 }
 
-// SessionList provides a mock function with given fields: ctx, paginator
-func (_m *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
-	ret := _m.Called(ctx, paginator)
+// SessionList provides a mock function with given fields: ctx, opts
+func (_m *Store) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionList")
@@ -1370,25 +1075,25 @@ func (_m *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]
 	var r0 []models.Session
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) ([]models.Session, int, error)); ok {
-		return rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.Session, int, error)); ok {
+		return rf(ctx, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator) []models.Session); ok {
-		r0 = rf(ctx, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.Session); ok {
+		r0 = rf(ctx, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator) int); ok {
-		r1 = rf(ctx, paginator)
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator) error); ok {
-		r2 = rf(ctx, paginator)
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1396,9 +1101,16 @@ func (_m *Store) SessionList(ctx context.Context, paginator query.Paginator) ([]
 	return r0, r1, r2
 }
 
-// SessionListEvents provides a mock function with given fields: ctx, uid, seat, event, paginator
-func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, paginator query.Paginator) ([]models.SessionEvent, int, error) {
-	ret := _m.Called(ctx, uid, seat, event, paginator)
+// SessionListEvents provides a mock function with given fields: ctx, uid, seat, event, opts
+func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, uid, seat, event)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionListEvents")
@@ -1407,25 +1119,25 @@ func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int
 	var r0 []models.SessionEvent
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) ([]models.SessionEvent, int, error)); ok {
-		return rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) ([]models.SessionEvent, int, error)); ok {
+		return rf(ctx, uid, seat, event, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) []models.SessionEvent); ok {
-		r0 = rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) []models.SessionEvent); ok {
+		r0 = rf(ctx, uid, seat, event, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.SessionEvent)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) int); ok {
-		r1 = rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(1).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, uid, seat, event, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.UID, int, models.SessionEventType, query.Paginator) error); ok {
-		r2 = rf(ctx, uid, seat, event, paginator)
+	if rf, ok := ret.Get(2).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, uid, seat, event, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1571,64 +1283,36 @@ func (_m *Store) SystemSet(ctx context.Context, key string, value interface{}) e
 	return r0
 }
 
-// TagsDelete provides a mock function with given fields: ctx, tenant, tag
-func (_m *Store) TagsDelete(ctx context.Context, tenant string, tag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, tag)
+// TagConflicts provides a mock function with given fields: ctx, tenantID, target
+func (_m *Store) TagConflicts(ctx context.Context, tenantID string, target *models.TagConflicts) ([]string, bool, error) {
+	ret := _m.Called(ctx, tenantID, target)
 
 	if len(ret) == 0 {
-		panic("no return value specified for TagsDelete")
-	}
-
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, tag)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
-		r0 = rf(ctx, tenant, tag)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, tag)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// TagsGet provides a mock function with given fields: ctx, tenant
-func (_m *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, error) {
-	ret := _m.Called(ctx, tenant)
-
-	if len(ret) == 0 {
-		panic("no return value specified for TagsGet")
+		panic("no return value specified for TagConflicts")
 	}
 
 	var r0 []string
-	var r1 int
+	var r1 bool
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, int, error)); ok {
-		return rf(ctx, tenant)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.TagConflicts) ([]string, bool, error)); ok {
+		return rf(ctx, tenantID, target)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
-		r0 = rf(ctx, tenant)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.TagConflicts) []string); ok {
+		r0 = rf(ctx, tenantID, target)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
-		r1 = rf(ctx, tenant)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *models.TagConflicts) bool); ok {
+		r1 = rf(ctx, tenantID, target)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Get(1).(bool)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = rf(ctx, tenant)
+	if rf, ok := ret.Get(2).(func(context.Context, string, *models.TagConflicts) error); ok {
+		r2 = rf(ctx, tenantID, target)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -1636,32 +1320,192 @@ func (_m *Store) TagsGet(ctx context.Context, tenant string) ([]string, int, err
 	return r0, r1, r2
 }
 
-// TagsRename provides a mock function with given fields: ctx, tenant, oldTag, newTag
-func (_m *Store) TagsRename(ctx context.Context, tenant string, oldTag string, newTag string) (int64, error) {
-	ret := _m.Called(ctx, tenant, oldTag, newTag)
+// TagCreate provides a mock function with given fields: ctx, tag
+func (_m *Store) TagCreate(ctx context.Context, tag *models.Tag) (string, error) {
+	ret := _m.Called(ctx, tag)
 
 	if len(ret) == 0 {
-		panic("no return value specified for TagsRename")
+		panic("no return value specified for TagCreate")
 	}
 
-	var r0 int64
+	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return rf(ctx, tenant, oldTag, newTag)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Tag) (string, error)); ok {
+		return rf(ctx, tag)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = rf(ctx, tenant, oldTag, newTag)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Tag) string); ok {
+		r0 = rf(ctx, tag)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, tenant, oldTag, newTag)
+	if rf, ok := ret.Get(1).(func(context.Context, *models.Tag) error); ok {
+		r1 = rf(ctx, tag)
 	} else {
 		r1 = ret.Error(1)
 	}
 
 	return r0, r1
+}
+
+// TagDelete provides a mock function with given fields: ctx, id
+func (_m *Store) TagDelete(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TagDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TagList provides a mock function with given fields: ctx, opts
+func (_m *Store) TagList(ctx context.Context, opts ...store.QueryOption) ([]models.Tag, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TagList")
+	}
+
+	var r0 []models.Tag
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.Tag, int, error)); ok {
+		return rf(ctx, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.Tag); ok {
+		r0 = rf(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Tag)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// TagPullFromTarget provides a mock function with given fields: ctx, id, target, targetIDs
+func (_m *Store) TagPullFromTarget(ctx context.Context, id string, target models.TagTarget, targetIDs ...string) error {
+	_va := make([]interface{}, len(targetIDs))
+	for _i := range targetIDs {
+		_va[_i] = targetIDs[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, id, target)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TagPullFromTarget")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.TagTarget, ...string) error); ok {
+		r0 = rf(ctx, id, target, targetIDs...)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TagPushToTarget provides a mock function with given fields: ctx, id, target, targetID
+func (_m *Store) TagPushToTarget(ctx context.Context, id string, target models.TagTarget, targetID string) error {
+	ret := _m.Called(ctx, id, target, targetID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TagPushToTarget")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, models.TagTarget, string) error); ok {
+		r0 = rf(ctx, id, target, targetID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TagResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) TagResolve(ctx context.Context, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, resolver, value)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TagResolve")
+	}
+
+	var r0 *models.Tag
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.TagResolver, string, ...store.QueryOption) (*models.Tag, error)); ok {
+		return rf(ctx, resolver, value, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.TagResolver, string, ...store.QueryOption) *models.Tag); ok {
+		r0 = rf(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Tag)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.TagResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TagUpdate provides a mock function with given fields: ctx, id, changes
+func (_m *Store) TagUpdate(ctx context.Context, id string, changes *models.TagChanges) error {
+	ret := _m.Called(ctx, id, changes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TagUpdate")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.TagChanges) error); ok {
+		r0 = rf(ctx, id, changes)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // TunnelUpdateDeviceUID provides a mock function with given fields: ctx, tenantID, oldUID, newUID
@@ -1823,9 +1667,16 @@ func (_m *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, 
 	return r0, r1
 }
 
-// UserList provides a mock function with given fields: ctx, paginator, filters
-func (_m *Store) UserList(ctx context.Context, paginator query.Paginator, filters query.Filters) ([]models.User, int, error) {
-	ret := _m.Called(ctx, paginator, filters)
+// UserList provides a mock function with given fields: ctx, opts
+func (_m *Store) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserList")
@@ -1834,25 +1685,25 @@ func (_m *Store) UserList(ctx context.Context, paginator query.Paginator, filter
 	var r0 []models.User
 	var r1 int
 	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) ([]models.User, int, error)); ok {
-		return rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.User, int, error)); ok {
+		return rf(ctx, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, query.Paginator, query.Filters) []models.User); ok {
-		r0 = rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.User); ok {
+		r0 = rf(ctx, opts...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, query.Paginator, query.Filters) int); ok {
-		r1 = rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, query.Paginator, query.Filters) error); ok {
-		r2 = rf(ctx, paginator, filters)
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
 	} else {
 		r2 = ret.Error(2)
 	}

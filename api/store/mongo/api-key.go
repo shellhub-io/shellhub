@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	"github.com/shellhub-io/shellhub/api/store/mongo/queries"
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -63,21 +61,21 @@ func (s *Store) APIKeyConflicts(ctx context.Context, tenantID string, target *mo
 }
 
 func (s *Store) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, value string, opts ...store.QueryOption) (*models.APIKey, error) {
-	matchStage := bson.M{}
+	query := []bson.M{}
 	switch resolver {
 	case store.APIKeyIDResolver:
-		matchStage["_id"] = value
+		query = append(query, bson.M{"$match": bson.M{"_id": value}})
 	case store.APIKeyNameResolver:
-		matchStage["name"] = value
+		query = append(query, bson.M{"$match": bson.M{"name": value}})
 	}
 
 	for _, opt := range opts {
-		if err := opt(context.WithValue(ctx, "query", &matchStage)); err != nil {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
 			return nil, err
 		}
 	}
 
-	cursor, err := s.db.Collection("api_keys").Aggregate(ctx, []bson.M{{"$match": matchStage}})
+	cursor, err := s.db.Collection("api_keys").Aggregate(ctx, query)
 	if err != nil {
 		return nil, FromMongoError(err)
 	}
@@ -93,17 +91,15 @@ func (s *Store) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver
 	return apiKey, nil
 }
 
-func (s *Store) APIKeyList(ctx context.Context, tenantID string, paginator query.Paginator, sorter query.Sorter) ([]models.APIKey, int, error) {
-	query := []bson.M{
-		{
-			"$match": bson.M{
-				"tenant_id": tenantID,
-			},
-		},
+func (s *Store) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.APIKey, int, error) {
+	query := []bson.M{}
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, 0, err
+		}
 	}
 
-	queryCount := append(query, bson.M{"$count": "count"})
-	count, err := AggregateCount(ctx, s.db.Collection("api_keys"), queryCount)
+	count, err := CountAllMatchingDocuments(ctx, s.db.Collection("api_keys"), query)
 	if err != nil {
 		return nil, 0, FromMongoError(err)
 	}
@@ -111,9 +107,6 @@ func (s *Store) APIKeyList(ctx context.Context, tenantID string, paginator query
 	if count == 0 {
 		return []models.APIKey{}, 0, nil
 	}
-
-	query = append(query, queries.FromSorter(&sorter)...)
-	query = append(query, queries.FromPaginator(&paginator)...)
 
 	cursor, err := s.db.Collection("api_keys").Aggregate(ctx, query)
 	if err != nil {
