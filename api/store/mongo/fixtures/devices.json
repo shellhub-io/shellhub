@@ -14,8 +14,8 @@
             "public_key": "",
             "remote_addr": "",
             "status": "accepted",
-            "tags": [
-                "tag-1"
+            "tag_ids": [
+                "6791d3ae04ba86e6d7a0514d"
             ],
             "tenant_id": "00000000-0000-4000-0000-000000000000",
             "uid": "5300530e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809f"
@@ -34,7 +34,7 @@
             "public_key": "",
             "remote_addr": "",
             "status": "accepted",
-            "tags": [],
+            "tag_ids": [],
             "tenant_id": "00000000-0000-4000-0000-000000000000",
             "uid": "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e"
         },
@@ -52,8 +52,9 @@
             "public_key": "",
             "remote_addr": "",
             "status": "accepted",
-            "tags": [
-                "tag-1"
+            "tag_ids": [
+                "6791d3ae04ba86e6d7a0514d",
+                "6791d3be5a201d874c4c2885"
             ],
             "tenant_id": "00000000-0000-4000-0000-000000000000",
             "uid": "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"
@@ -72,7 +73,7 @@
             "public_key": "",
             "remote_addr": "",
             "status": "pending",
-            "tags": [],
+            "tag_ids": [],
             "tenant_id": "00000000-0000-4000-0000-000000000000",
             "uid": "3300330e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809d"
         }

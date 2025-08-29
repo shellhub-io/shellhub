@@ -6,20 +6,55 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
-	pubKey := new(models.PublicKey)
-	if err := s.db.Collection("public_keys").FindOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}).Decode(&pubKey); err != nil {
-		return nil, FromMongoError(err)
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"fingerprint": fingerprint,
+				"tenant_id":   tenantID,
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "tags",
+				"localField":   "filter.tag_ids",
+				"foreignField": "_id",
+				"as":           "filter.tags",
+			},
+		},
 	}
 
-	return pubKey, nil
+	cursor, err := s.db.Collection("public_keys").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	pubKey := new(models.PublicKey)
+	if cursor.Next(ctx) {
+		return nil, FromMongoError(cursor.Decode(&pubKey))
+	}
+
+	return nil, FromMongoError(mongo.ErrNoDocuments)
 }
 
 func (s *Store) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
-	query := []bson.M{}
+	query := []bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "tags",
+				"localField":   "filter.tag_ids",
+				"foreignField": "_id",
+				"as":           "filter.tags",
+			},
+		},
+	}
+
 	for _, opt := range opts {
 		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
 			return nil, 0, err
@@ -52,9 +87,31 @@ func (s *Store) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([
 }
 
 func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
-	_, err := s.db.Collection("public_keys").InsertOne(ctx, key)
+	bsonBytes, err := bson.Marshal(key)
+	if err != nil {
+		return FromMongoError(err)
+	}
 
-	return FromMongoError(err)
+	doc := make(bson.M)
+	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
+		return FromMongoError(err)
+	}
+
+	// WORKAROUND: Convert string TagIDs to MongoDB ObjectIDs for referential integrity
+	// with the tags collection where _id is ObjectID type
+	if len(key.Filter.TagIDs) > 0 {
+		tagIDs := doc["filter"].(bson.M)["tag_ids"].(bson.A)
+		for i, id := range tagIDs {
+			objID, _ := primitive.ObjectIDFromHex(id.(string))
+			tagIDs[i] = objID
+		}
+	}
+
+	if _, err := s.db.Collection("public_keys").InsertOne(ctx, doc); err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
