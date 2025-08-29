@@ -1,10 +1,10 @@
 <template>
   <BaseDialog
     v-model="showDialog"
+    @close="close"
     scrollable
     transition="dialog-bottom-transition"
     data-test="dialog"
-    @click:outside="close()"
   >
     <v-card class="bg-v-theme-surface content" data-test="card-first-page">
       <v-container>

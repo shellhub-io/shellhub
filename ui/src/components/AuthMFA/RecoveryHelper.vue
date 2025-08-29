@@ -1,6 +1,7 @@
 <template>
   <BaseDialog
     v-model="showDialog"
+    @close="close"
     transition="dialog-bottom-transition"
     persistent
   >
