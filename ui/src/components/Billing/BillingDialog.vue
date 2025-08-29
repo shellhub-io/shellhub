@@ -1,8 +1,8 @@
 <template>
   <BaseDialog
     v-model="showCheckoutDialog"
+    @close="resetDialog"
     transition="dialog-bottom-transition"
-    @click:outside="resetDialog"
     data-test="checkout-dialog"
   >
     <v-window v-model="el">
