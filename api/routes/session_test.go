@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -399,7 +401,7 @@ func TestEventSession(t *testing.T) {
 
 				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(conn, nil).Once()
 
-				mock.On("EventSession", gomock.Anything, models.UID(uid), gomock.Anything).
+				mock.On("SaveEventSession", gomock.Anything, models.UID(uid), gomock.Anything).
 					Return(errors.New("not able record")).Once()
 			},
 			expected: http.StatusInternalServerError,
@@ -422,7 +424,7 @@ func TestEventSession(t *testing.T) {
 
 				webSocketUpgraderMock.On("Upgrade", gomock.Anything, gomock.Anything).Return(conn, nil).Once()
 
-				mock.On("EventSession", gomock.Anything, models.UID(uid),
+				mock.On("SaveEventSession", gomock.Anything, models.UID(uid),
 					gomock.Anything).Return(nil).Once()
 
 				conn.On("ReadJSON", gomock.Anything).Return(&websocket.CloseError{
@@ -467,4 +469,196 @@ func TestEventSession(t *testing.T) {
 			mock.AssertExpectations(t)
 		})
 	}
+}
+
+func TestListEventsSession(t *testing.T) {
+	mock := new(mocks.Service)
+
+	cases := []struct {
+		title           string
+		req             *requests.SessionListEvents
+		requiredMocks   func()
+		expectedStatus  int
+		expectedCounter string
+		expectedBody    string
+	}{
+		{
+			title: "fails to list session's events when input data is invalid",
+			req: &requests.SessionListEvents{
+				UID:       "",
+				Paginator: query.Paginator{},
+				Sorter:    query.Sorter{},
+				Filters:   query.Filters{},
+			},
+			requiredMocks:   func() {},
+			expectedStatus:  http.StatusBadRequest,
+			expectedCounter: "",
+			expectedBody:    "",
+		},
+		{
+			title: "fails to list session's events when cannot validate input params",
+			req: &requests.SessionListEvents{
+				UID:       "",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Sorter:    query.Sorter{By: "name", Order: "asc"},
+				Filters:   query.Filters{},
+			},
+			requiredMocks:   func() {},
+			expectedStatus:  http.StatusBadRequest,
+			expectedCounter: "",
+			expectedBody:    "",
+		},
+		{
+			title: "fails to list session's events when service fails because session doesn't exist",
+			req: &requests.SessionListEvents{
+				UID:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Sorter:    query.Sorter{By: "name", Order: "asc"},
+				Filters:   query.Filters{},
+			},
+			requiredMocks: func() {
+				mock.
+					On("ListEventsSession",
+						gomock.Anything,
+						models.UID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+						gomock.Anything,
+						gomock.Anything,
+						gomock.Anything,
+					).
+					Return(nil, 0, svc.ErrSessionNotFound).
+					Once()
+			},
+			expectedStatus:  http.StatusNotFound,
+			expectedCounter: "",
+			expectedBody:    "",
+		},
+		{
+			title: "fails to list session's events when service fails",
+			req: &requests.SessionListEvents{
+				UID:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Sorter:    query.Sorter{By: "name", Order: "asc"},
+				Filters:   query.Filters{},
+			},
+			requiredMocks: func() {
+				mock.
+					On("ListEventsSession",
+						gomock.Anything,
+						models.UID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+						gomock.Anything,
+						gomock.Anything,
+						gomock.Anything,
+					).
+					Return(nil, 0, errors.New("")).
+					Once()
+			},
+			expectedStatus:  http.StatusInternalServerError,
+			expectedCounter: "",
+			expectedBody:    "",
+		},
+		{
+			title: "success to list session's events when it is empty",
+			req: &requests.SessionListEvents{
+				UID:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Sorter:    query.Sorter{By: "name", Order: "asc"},
+				Filters:   query.Filters{},
+			},
+			requiredMocks: func() {
+				mock.
+					On("ListEventsSession",
+						gomock.Anything,
+						models.UID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+						gomock.Anything,
+						gomock.Anything,
+						gomock.Anything,
+					).
+					Return([]models.SessionEvent{}, 0, nil).
+					Once()
+			},
+			expectedStatus:  http.StatusOK,
+			expectedCounter: "0",
+			expectedBody:    `[]` + "\n",
+		},
+		{
+			title: "success to list session's events with one item",
+			req: &requests.SessionListEvents{
+				UID:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Sorter:    query.Sorter{By: "name", Order: "asc"},
+				Filters:   query.Filters{},
+			},
+			requiredMocks: func() {
+				mock.
+					On("ListEventsSession",
+						gomock.Anything,
+						models.UID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+						gomock.Anything,
+						gomock.Anything,
+						gomock.Anything,
+					).
+					Return([]models.SessionEvent{
+						{},
+					}, 1, nil).
+					Once()
+			},
+			expectedStatus:  http.StatusOK,
+			expectedCounter: "1",
+			expectedBody:    `[{"session":"","type":"","timestamp":"0001-01-01T00:00:00Z","data":null,"seat":0}]` + "\n",
+		},
+		{
+			title: "success to list session's events with more than one item",
+			req: &requests.SessionListEvents{
+				UID:       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Sorter:    query.Sorter{By: "name", Order: "asc"},
+				Filters:   query.Filters{},
+			},
+			requiredMocks: func() {
+				mock.
+					On("ListEventsSession",
+						gomock.Anything,
+						models.UID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+						gomock.Anything,
+						gomock.Anything,
+						gomock.Anything,
+					).
+					Return([]models.SessionEvent{
+						{},
+						{},
+					}, 2, nil).
+					Once()
+			},
+			expectedStatus:  http.StatusOK,
+			expectedCounter: "2",
+			expectedBody:    `[{"session":"","type":"","timestamp":"0001-01-01T00:00:00Z","data":null,"seat":0},{"session":"","type":"","timestamp":"0001-01-01T00:00:00Z","data":null,"seat":0}]` + "\n",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.title, func(t *testing.T) {
+			tc.requiredMocks()
+
+			urlVal := &url.Values{}
+			urlVal.Set("page", strconv.Itoa(tc.req.Page))
+			urlVal.Set("per_page", strconv.Itoa(tc.req.PerPage))
+			urlVal.Set("sort_by", tc.req.By)
+			urlVal.Set("order_by", tc.req.Order)
+
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/sessions/%s/events?"+urlVal.Encode(), tc.req.UID), nil)
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+
+			rec := httptest.NewRecorder()
+
+			e := NewRouter(mock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, tc.expectedCounter, rec.Header().Get("X-Total-Count"))
+			assert.Equal(t, tc.expectedBody, rec.Body.String())
+		})
+	}
+
+	mock.AssertExpectations(t)
 }

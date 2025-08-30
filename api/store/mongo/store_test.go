@@ -33,6 +33,7 @@ const (
 	fixtureUsers          = "users"           // Check "store.mongo.fixtures.users" for fixture iefo
 	fixtureNamespaces     = "namespaces"      // Check "store.mongo.fixtures.namespaces" for fixture info
 	fixtureRecoveryTokens = "recovery_tokens" // Check "store.mongo.fixtures.recovery_tokens" for fixture info
+	fixtureSessionsEvents = "sessions_events" // Check "store.mongo.fixtures.sessions_events" for fixture info
 )
 
 func TestMain(m *testing.M) {

@@ -13,13 +13,14 @@ import (
 )
 
 const (
-	GetSessionsURL      = "/sessions"
-	GetSessionURL       = "/sessions/:uid"
-	UpdateSessionURL    = "/sessions/:uid"
-	CreateSessionURL    = "/sessions"
-	FinishSessionURL    = "/sessions/:uid/finish"
-	KeepAliveSessionURL = "/sessions/:uid/keepalive"
-	EventsSessionsURL   = "/sessions/:uid/events"
+	GetSessionsURL        = "/sessions"
+	GetSessionURL         = "/sessions/:uid"
+	UpdateSessionURL      = "/sessions/:uid"
+	CreateSessionURL      = "/sessions"
+	FinishSessionURL      = "/sessions/:uid/finish"
+	KeepAliveSessionURL   = "/sessions/:uid/keepalive"
+	EventsSessionsURL     = "/sessions/:uid/events"
+	ListEventsSessionsURL = "/sessions/:uid/events"
 )
 
 const (
@@ -164,7 +165,7 @@ func (h *Handler) EventSession(c gateway.Context) error {
 			return err
 		}
 
-		if err := h.service.EventSession(c.Ctx(), models.UID(req.UID), &models.SessionEvent{
+		if err := h.service.SaveEventSession(c.Ctx(), models.UID(req.UID), &models.SessionEvent{
 			Session:   req.UID,
 			Type:      models.SessionEventType(r.Type),
 			Timestamp: r.Timestamp,
@@ -174,4 +175,32 @@ func (h *Handler) EventSession(c gateway.Context) error {
 			return err
 		}
 	}
+}
+
+func (h *Handler) ListEventsSession(c gateway.Context) error {
+	req := new(requests.SessionListEvents)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	req.Paginator.Normalize()
+	req.Sorter.Normalize()
+
+	if err := req.Filters.Unmarshal(); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	events, counter, err := h.service.ListEventsSession(c.Ctx(), models.UID(req.UID), req.Paginator, req.Filters, req.Sorter)
+	if err != nil {
+		return err
+	}
+
+	c.Response().Header().Set("X-Total-Count", strconv.Itoa(counter))
+
+	return c.JSON(http.StatusOK, events)
 }
