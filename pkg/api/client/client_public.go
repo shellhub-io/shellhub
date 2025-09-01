@@ -3,10 +3,14 @@ package client
 import (
 	"context"
 	"errors"
+	"net"
+	"net/http"
+	"net/url"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -115,4 +119,21 @@ func (c *client) NewReverseListener(ctx context.Context, token string, connPath 
 	}
 
 	return c.reverser.NewListener()
+}
+
+func (c *client) Connect(ctx context.Context, token string, path string) (net.Conn, error) {
+	if token == "" {
+		return nil, errors.New("token is empty")
+	}
+
+	u, err := url.JoinPath(c.http.BaseURL, path)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, _, err := DialContext(ctx, u, http.Header{
+		"Authorization": []string{"Bearer " + token},
+	})
+
+	return wsconnadapter.New(conn), err
 }

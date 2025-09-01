@@ -10,7 +10,7 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
+	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	"github.com/shellhub-io/shellhub/ssh/server/auth"
 	"github.com/shellhub-io/shellhub/ssh/server/channels"
@@ -29,7 +29,7 @@ type Options struct {
 type Server struct {
 	sshd   *gliderssh.Server
 	opts   *Options
-	tunnel *httptunnel.Tunnel
+	dialer *dialer.Dialer
 }
 
 var (
@@ -43,10 +43,10 @@ var (
 	AccessDeniedMessage string
 )
 
-func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Server {
+func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server {
 	server := &Server{ // nolint: exhaustruct
 		opts:   opts,
-		tunnel: tunnel,
+		dialer: dialer,
 	}
 
 	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
@@ -79,7 +79,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Ser
 				return message(InvalidSSHIDMessage)
 			}
 
-			sess, err := session.NewSession(ctx, tunnel, cache)
+			sess, err := session.NewSession(ctx, dialer, cache)
 			if err != nil {
 				logger.WithError(err).Error("failed to create the session")
 
