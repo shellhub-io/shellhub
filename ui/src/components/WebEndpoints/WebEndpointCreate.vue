@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="showDialog" @click:outside="close()">
+  <BaseDialog v-model="showDialog" @close="close">
     <v-card data-test="tunnel-create-dialog" class="bg-v-theme-surface">
       <v-card-title class="bg-primary" data-test="create-dialog-title">
         Create Device Web Endpoint
@@ -111,7 +111,7 @@
       </v-container>
       <v-card-actions>
         <v-spacer />
-        <v-btn data-test="close-btn" @click="close()"> Close </v-btn>
+        <v-btn data-test="close-btn" @click="close"> Close </v-btn>
         <v-btn :disabled="hasErrors" color="primary" data-test="create-tunnel-btn" @click="addWebEndpoint()">
           Create Web Endpoint
         </v-btn>
