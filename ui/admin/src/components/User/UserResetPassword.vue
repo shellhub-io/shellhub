@@ -14,7 +14,7 @@
     <span>Enable Local Authentication</span>
   </v-tooltip>
 
-  <BaseDialog v-model="showDialog" @click:outside="close">
+  <BaseDialog v-model="showDialog" @close="close">
     <v-card>
       <v-card-title class="text-h5 pb-2">Enable Local Authentication</v-card-title>
       <v-divider />
