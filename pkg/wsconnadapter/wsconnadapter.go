@@ -35,24 +35,24 @@ type Adapter struct {
 	CreatedAt  time.Time
 }
 
-func (a *Adapter) WithID(requestID string) *Adapter {
-	a.Logger = a.Logger.WithFields(log.Fields{
-		"request-id": requestID,
-	})
+type Option func(*Adapter)
 
-	return a
+func WithID(id string) Option {
+	return func(a *Adapter) {
+		a.UUID = id
+	}
 }
 
-func (a *Adapter) WithDevice(tenant string, device string) *Adapter {
-	a.Logger = a.Logger.WithFields(log.Fields{
-		"tenant": tenant,
-		"device": device,
-	})
-
-	return a
+func WithDevice(tenant string, device string) Option {
+	return func(a *Adapter) {
+		a.Logger = a.Logger.WithFields(log.Fields{
+			"tenant": tenant,
+			"device": device,
+		})
+	}
 }
 
-func New(conn *websocket.Conn) *Adapter {
+func New(conn *websocket.Conn, options ...Option) *Adapter {
 	adapter := &Adapter{
 		conn: conn,
 		Logger: log.NewEntry(&log.Logger{
@@ -62,6 +62,10 @@ func New(conn *websocket.Conn) *Adapter {
 			Level:     log.StandardLogger().Level,
 		}),
 		CreatedAt: clock.Now(),
+	}
+
+	for _, option := range options {
+		option(adapter)
 	}
 
 	return adapter

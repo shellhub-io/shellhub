@@ -1,4 +1,4 @@
-package connman
+package dialer
 
 import (
 	"testing"

@@ -17,8 +17,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
-	"github.com/shellhub-io/shellhub/pkg/httptunnel"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	log "github.com/sirupsen/logrus"
@@ -146,7 +146,7 @@ type Session struct {
 	Client *Client
 
 	api    internalclient.Client
-	tunnel *httptunnel.Tunnel
+	dialer *dialer.Dialer
 	// Events is a connection to the endpoint to save session's events.
 	Events *Events
 
@@ -235,7 +235,7 @@ func (s *Seats) SetPty(seat int, status bool) {
 // the session without registering, connecting to the agent, etc.
 //
 // It's designed to be used within New.
-func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Cache) (*Session, error) {
+func NewSession(ctx gliderssh.Context, dialer *dialer.Dialer, cache cache.Cache) (*Session, error) {
 	snap := getSnapshot(ctx)
 
 	api, err := internalclient.NewClient()
@@ -316,7 +316,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 	session := &Session{
 		UID:    ctx.SessionID(),
 		api:    api,
-		tunnel: tunnel,
+		dialer: dialer,
 		Events: &Events{
 			mu:   sync.Mutex{},
 			conn: events,
@@ -544,23 +544,28 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 	return nil
 }
 
+var ErrDialUnknown = errors.New("unknown protocol version")
+
+// Dial establishes the underlying transport to the target device. For V1
+// transports an HTTP GET request is issued (legacy reverse tunnel). For
+// V2 transports a multistream protocol selection is performed using the
+// ProtoSSHOpen identifier followed by a JSON envelope with the session
+// id. After this method returns s.Agent.Conn is a raw channel ready for
+// SSH key exchange and channel opens.
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
 	ctx.Lock()
-	conn, err := s.tunnel.Dial(ctx, s.Device.TenantID+":"+s.Device.UID)
+	defer ctx.Unlock()
+
+	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHOpenTarget{SessionID: s.UID})
 	if err != nil {
+		log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).WithError(err).Error("failed to open ssh session")
+
 		return errors.Join(ErrDial, err)
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", s.UID), nil)
-	if err = req.Write(conn); err != nil {
-		return err
-	}
-
 	s.Agent.Conn = conn
-
-	ctx.Unlock()
 
 	return nil
 }
