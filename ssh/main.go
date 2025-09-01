@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"runtime"
 	"time"
 
 	"github.com/labstack/echo-contrib/pprof"
+	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
-	"github.com/shellhub-io/shellhub/ssh/pkg/tunnel"
-	"github.com/shellhub-io/shellhub/ssh/server"
+	"github.com/shellhub-io/shellhub/ssh/http"
+	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
+	ssh "github.com/shellhub-io/shellhub/ssh/server"
 	"github.com/shellhub-io/shellhub/ssh/web"
 	log "github.com/sirupsen/logrus"
 )
@@ -47,17 +48,20 @@ func main() {
 			Fatal("failed to connect to redis cache")
 	}
 
-	tun, err := tunnel.NewTunnel("/ssh/connection", "/ssh/revdial", tunnel.Config{
-		Tunnels:       env.WebEndpoints,
-		TunnelsDomain: env.WebEndpointsDomain,
-		RedisURI:      env.RedisURI,
-	})
+	cli, err := internalclient.NewClient(internalclient.WithAsynqWorker(env.RedisURI))
 	if err != nil {
 		log.WithError(err).
 			Fatal("failed to create the internalclient")
 	}
 
-	router := tun.GetRouter()
+	d := dialer.NewDialer(cli)
+
+	h := http.NewServer(d, cli, &http.Config{
+		WebEndpoints:       env.WebEndpoints,
+		WebEndpointsDomain: env.WebEndpointsDomain,
+	})
+
+	router := h.Router
 
 	web.NewSSHServerBridge(router, cache)
 
@@ -67,6 +71,11 @@ func main() {
 
 		log.Info("Profiling enabled at http://0.0.0.0:8080/debug/pprof/")
 	}
+
+	s := ssh.NewServer(d, cache, &ssh.Options{
+		ConnectTimeout:               env.ConnectTimeout,
+		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
+	})
 
 	errs := make(chan error)
 
@@ -79,7 +88,7 @@ func main() {
 			}
 		}()
 
-		errs <- http.ListenAndServe(ListenAddress, router) //nolint:gosec
+		errs <- h.ListenAndServe(ListenAddress)
 	}()
 
 	go func() {
@@ -91,10 +100,7 @@ func main() {
 			}
 		}()
 
-		errs <- server.NewServer(&server.Options{
-			ConnectTimeout:               env.ConnectTimeout,
-			AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
-		}, tun.Tunnel, cache).ListenAndServe()
+		errs <- s.ListenAndServe()
 	}()
 
 	if err := <-errs; err != nil {
