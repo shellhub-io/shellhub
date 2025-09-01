@@ -26,7 +26,7 @@
     <span>Edit</span>
   </v-tooltip>
 
-  <BaseDialog v-model="showDialog" @click:outside="close" transition="dialog-bottom-transition">
+  <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
     <v-card>
       <v-card-title class="text-h5 pb-2">{{ titleCard }}</v-card-title>
       <v-divider />

@@ -1,7 +1,7 @@
 <template>
   <v-btn class="mr-6" @click="showDialog = true" v-bind="$attrs">Export CSV</v-btn>
 
-  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
+  <BaseDialog v-model="showDialog" @close="closeDialog" transition="dialog-bottom-transition">
     <v-card>
       <v-card-title class="text-h5 pb-2">Export users data</v-card-title>
       <v-divider />
