@@ -3,8 +3,7 @@
     v-model="showDialog"
     threshold="md"
     transition="dialog-bottom-transition"
-    @click:outside="close"
-    @keydown.esc="close"
+    @close="close"
   >
     <v-card color="background" data-test="card-dialog">
       <v-container class="px-6">
