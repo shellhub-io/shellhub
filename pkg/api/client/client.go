@@ -28,7 +28,12 @@ type publicAPI interface {
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
+	// NewReverseListener creates a new reverse listener to be used by the Agent to connect to ShellHub's SSH server.
+	//
+	//Deprecated: Use Connect instead.
 	NewReverseListener(ctx context.Context, token string, connPath string) (*revdial.Listener, error)
+	// Connect creates a new connection to be used by the Agent to connect to ShellHub's SSH server.
+	Connect(ctx context.Context, token string, path string) (net.Conn, error)
 }
 
 //go:generate mockery --name=Client --filename=client.go
