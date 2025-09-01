@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="showDialog" @click:outside="close">
+  <BaseDialog v-model="showDialog" @close="close">
     <v-card data-test="namespace-add-card" class="bg-v-theme-surface rounded" rounded>
       <template v-if="!isCommunityVersion">
         <v-card-title class="bg-primary d-flex justify-space-between align-center text-h5 pa-4">

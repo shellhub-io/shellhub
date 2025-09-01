@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="showDialog" @click:outside="close">
+  <BaseDialog v-model="showDialog" @close="close">
     <v-card data-test="password-change-card" class="bg-v-theme-surface">
       <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
         Change Connection Announcement
