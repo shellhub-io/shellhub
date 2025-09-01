@@ -2,20 +2,19 @@
   <BaseDialog
     v-model="showDialog"
     :forceFullscreen="!showLoginForm"
-    @click:outside="close"
-    @keydown.esc="close"
+    @close="close"
   >
     <v-card data-test="terminal-card" class="bg-v-theme-surface">
       <v-card-title
         class="text-h5 pa-4 bg-primary d-flex align-center justify-space-between"
       >
         Terminal
-        <v-icon v-if="!showLoginForm" @click="close()" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
+        <v-icon v-if="!showLoginForm" @click="close" data-test="close-terminal-btn" size="24">mdi-close</v-icon>
       </v-card-title>
 
       <TerminalLoginForm
         v-if="showLoginForm"
-        @submit="(params) => handleSubmit(params)"
+        @submit="handleSubmit"
         @close="close"
       />
       <Terminal

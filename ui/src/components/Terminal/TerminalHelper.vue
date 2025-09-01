@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="showDialog" @click:outside="clearData" transition="dialog-bottom-transition" data-test="dialog">
+  <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition" data-test="dialog">
     <v-card class="bg-v-theme-surface">
       <v-card-title class="text-h6 pa-4 bg-primary" data-test="dialog-title">
         Generate a SSH command line
@@ -125,7 +125,7 @@ watch(showDialog, (isOpen) => {
   }
 });
 
-const clearData = () => {
+const close = () => {
   username.value = "";
   showDialog.value = false;
 };
