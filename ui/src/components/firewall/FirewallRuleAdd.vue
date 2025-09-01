@@ -19,7 +19,7 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
+    <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-3 bg-primary" data-test="firewall-rule-title">
           New Firewall Rule
