@@ -1,31 +1,9 @@
-// stores/instance.ts
 import { defineStore } from "pinia";
 import * as apiInstance from "../api/instance";
-import { IAdminSAMLConfig } from "../../interfaces/IInstance";
+import { IAdminAuth, IAdminUpdateSAML } from "../../interfaces/IInstance";
 
-export interface InstanceState {
-  authenticationSettings: {
-    local?: {
-      enabled: boolean;
-    };
-    saml?: {
-      enabled: boolean;
-      auth_url: string;
-      assertion_url: string;
-      idp: {
-        entity_id: string;
-        binding: {
-          post?: string;
-          redirect?: string;
-        };
-        certificates: string[];
-      };
-      sp: {
-        sign_requests: boolean;
-        certificate?: string;
-      };
-    };
-  };
+interface InstanceState {
+  authenticationSettings: IAdminAuth;
 }
 
 export const useInstanceStore = defineStore("instance", {
@@ -47,7 +25,7 @@ export const useInstanceStore = defineStore("instance", {
           certificates: [],
         },
         sp: {
-          sign_requests: false,
+          sign_auth_requests: false,
           certificate: "",
         },
       },
@@ -72,7 +50,7 @@ export const useInstanceStore = defineStore("instance", {
       await this.fetchAuthenticationSettings();
     },
 
-    async updateSamlAuthentication(data: IAdminSAMLConfig) {
+    async updateSamlAuthentication(data: IAdminUpdateSAML) {
       await apiInstance.configureSAMLAuthentication(data);
       await this.fetchAuthenticationSettings();
     },
