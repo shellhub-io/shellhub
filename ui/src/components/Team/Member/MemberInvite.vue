@@ -22,7 +22,7 @@
 
     <BaseDialog
       v-model="showDialog"
-      @click:outside="close()"
+      @close="close"
     >
       <v-card
         data-test="namespace-new-member-dialog"
