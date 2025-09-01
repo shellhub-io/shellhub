@@ -82,26 +82,26 @@
           </v-col>
         </v-row>
 
-        <v-row v-if="ssoSettings.saml?.idp.binding.post">
+        <v-row v-if="'post' in binding && binding?.post">
           <v-col md="auto" sm="auto">
             <v-card tile :elevation="0" data-test="idp-signon-post-label">IdP SignOn POST URL</v-card>
           </v-col>
           <v-spacer />
           <v-col md="auto" sm="auto" class="ml-auto">
             <v-card tile :elevation="0" data-test="idp-signon-post-value">
-              {{ ssoSettings.saml?.idp.binding.post }}
+              {{ binding?.post }}
             </v-card>
           </v-col>
         </v-row>
 
-        <v-row v-if="ssoSettings.saml?.idp.binding.redirect">
+        <v-row v-if="'redirect' in binding && binding?.redirect">
           <v-col md="auto" sm="auto">
             <v-card tile :elevation="0" data-test="idp-signon-redirect-label">IdP SignOn Redirect URL</v-card>
           </v-col>
           <v-spacer />
           <v-col md="auto" sm="auto" class="ml-auto">
             <v-card tile :elevation="0" data-test="idp-signon-redirect-value">
-              {{ ssoSettings.saml?.idp.binding.redirect }}
+              {{ binding?.redirect }}
             </v-card>
           </v-col>
         </v-row>
@@ -185,8 +185,9 @@ onMounted(async () => {
   await instanceStore.fetchAuthenticationSettings();
 });
 
-const ssoSettings = computed(() => instanceStore.getAuthenticationSettings);
-const certificate = computed(() => instanceStore.getAuthenticationSettings?.saml?.sp?.certificate);
+const ssoSettings = computed(() => instanceStore.authenticationSettings);
+const certificate = computed(() => ssoSettings.value.saml?.sp?.certificate);
+const binding = computed(() => ssoSettings.value.saml?.idp.binding);
 
 const localEnabled = computed({
   get: () => instanceStore.isLocalAuthEnabled,
