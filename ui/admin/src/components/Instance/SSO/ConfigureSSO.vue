@@ -1,5 +1,5 @@
 <template>
-  <BaseDialog v-model="showDialog" @click:outside="close">
+  <BaseDialog v-model="showDialog" @close="close">
     <v-card>
       <v-card-title class="text-h5 pb-2" data-test="dialog-title">Configure Single Sign-on</v-card-title>
       <v-container>
