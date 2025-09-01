@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
@@ -49,7 +49,7 @@ const authData = {
       },
     },
     sp: {
-      sign_requests: true,
+      sign_auth_requests: true,
       certificate: "test",
     },
   },
@@ -57,17 +57,13 @@ const authData = {
 
 describe("Authentication", () => {
   let wrapper: SettingsAuthenticationWrapper;
-  let mockAdminApi: MockAdapter;
+  const mockAdminApi = new MockAdapter(adminApi.getAxios());
+  setActivePinia(createPinia());
+  const instanceStore = useInstanceStore();
+  const vuetify = createVuetify();
 
   beforeEach(async () => {
-    setActivePinia(createPinia());
-
-    const vuetify = createVuetify();
-
-    mockAdminApi = new MockAdapter(adminApi.getAxios());
     mockAdminApi.onGet("http://localhost:3000/admin/api/authentication").reply(200, authData);
-
-    const instanceStore = useInstanceStore();
 
     vi.spyOn(instanceStore, "fetchAuthenticationSettings").mockResolvedValue(undefined);
     vi.spyOn(instanceStore, "updateLocalAuthentication").mockResolvedValue(undefined);
@@ -80,8 +76,6 @@ describe("Authentication", () => {
         plugins: [vuetify, routes, SnackbarPlugin],
       },
     });
-
-    await flushPromises();
   });
 
   it("is a Vue instance", () => {
@@ -98,7 +92,6 @@ describe("Authentication", () => {
   });
 
   it("calls updateLocalAuthentication when clicking switch", async () => {
-    const instanceStore = useInstanceStore();
     const spy = vi.spyOn(instanceStore, "updateLocalAuthentication");
 
     await wrapper.find("[data-test='local-auth-switch']").trigger("click");

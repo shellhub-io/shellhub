@@ -1,5 +1,5 @@
 import { adminApi } from "@admin/api/http";
-import { IAdminSAMLConfig } from "@admin/interfaces/IInstance";
+import { IAdminUpdateSAML } from "@admin/interfaces/IInstance";
 
 const getAuthenticationSettings = async () => adminApi.getAuthenticationSettings();
 
@@ -8,7 +8,7 @@ const configureLocalAuthentication = async (
 ) => adminApi.configureLocalAuthentication({ enable: status });
 
 const configureSAMLAuthentication = async (
-  data: IAdminSAMLConfig,
+  data: IAdminUpdateSAML,
 ) => adminApi.configureSAMLAuthentication(data);
 
 export { getAuthenticationSettings, configureLocalAuthentication, configureSAMLAuthentication };

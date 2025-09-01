@@ -1,82 +1,58 @@
-// stores/instance.ts
 import { defineStore } from "pinia";
-import * as apiInstance from "../api/instance";
-import { IAdminSAMLConfig } from "../../interfaces/IInstance";
+import { ref, computed } from "vue";
+import { IAdminAuth, IAdminUpdateSAML } from "@admin/interfaces/IInstance";
+import * as instanceApi from "../api/instance";
 
-export interface InstanceState {
-  authenticationSettings: {
-    local?: {
-      enabled: boolean;
-    };
-    saml?: {
-      enabled: boolean;
-      auth_url: string;
-      assertion_url: string;
+const useInstanceStore = defineStore("instance", () => {
+  const authenticationSettings = ref<IAdminAuth>({
+    local: {
+      enabled: false,
+    },
+    saml: {
+      enabled: false,
+      auth_url: "",
+      assertion_url: "",
       idp: {
-        entity_id: string;
+        entity_id: "",
         binding: {
-          post?: string;
-          redirect?: string;
-        };
-        certificates: string[];
-      };
+          post: "",
+          redirect: "",
+        },
+        certificates: [],
+      },
       sp: {
-        sign_requests: boolean;
-        certificate?: string;
-      };
-    };
+        sign_auth_requests: false,
+        certificate: "",
+      },
+    },
+  });
+
+  const isLocalAuthEnabled = computed(() => authenticationSettings.value?.local?.enabled);
+  const isSamlEnabled = computed(() => authenticationSettings.value?.saml?.enabled);
+
+  const fetchAuthenticationSettings = async () => {
+    const response = await instanceApi.getAuthenticationSettings();
+    authenticationSettings.value = response.data as IAdminAuth;
   };
-}
 
-export const useInstanceStore = defineStore("instance", {
-  state: (): InstanceState => ({
-    authenticationSettings: {
-      local: {
-        enabled: false,
-      },
-      saml: {
-        enabled: false,
-        auth_url: "",
-        assertion_url: "",
-        idp: {
-          entity_id: "",
-          binding: {
-            post: "",
-            redirect: "",
-          },
-          certificates: [],
-        },
-        sp: {
-          sign_requests: false,
-          certificate: "",
-        },
-      },
-    },
-  }),
+  const updateLocalAuthentication = async (status: boolean) => {
+    await instanceApi.configureLocalAuthentication(status);
+    await fetchAuthenticationSettings();
+  };
 
-  getters: {
-    getAuthenticationSettings: (state) => state.authenticationSettings,
-    isLocalAuthEnabled: (state) => state.authenticationSettings?.local?.enabled,
-    isSamlEnabled: (state) => state.authenticationSettings?.saml?.enabled,
+  const updateSamlAuthentication = async (data: IAdminUpdateSAML) => {
+    await instanceApi.configureSAMLAuthentication(data);
+    await fetchAuthenticationSettings();
+  };
 
-  },
-
-  actions: {
-    async fetchAuthenticationSettings() {
-      const response = await apiInstance.getAuthenticationSettings();
-      this.authenticationSettings = response.data as never;
-    },
-
-    async updateLocalAuthentication(status: boolean) {
-      await apiInstance.configureLocalAuthentication(status);
-      await this.fetchAuthenticationSettings();
-    },
-
-    async updateSamlAuthentication(data: IAdminSAMLConfig) {
-      await apiInstance.configureSAMLAuthentication(data);
-      await this.fetchAuthenticationSettings();
-    },
-  },
+  return {
+    authenticationSettings,
+    isLocalAuthEnabled,
+    isSamlEnabled,
+    fetchAuthenticationSettings,
+    updateLocalAuthentication,
+    updateSamlAuthentication,
+  };
 });
 
 export default useInstanceStore;

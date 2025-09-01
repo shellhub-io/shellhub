@@ -176,7 +176,7 @@ import { ref, computed } from "vue";
 import useInstanceStore from "@admin/store/modules/instance";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import { IAdminSAMLConfig } from "@admin/interfaces/IInstance";
+import { IAdminUpdateSAML } from "@admin/interfaces/IInstance";
 import useSnackbar from "@/helpers/snackbar";
 import { isX509CertificateValid } from "@/utils/sshKeys";
 import BaseDialog from "@/components/BaseDialog.vue";
@@ -315,7 +315,7 @@ const normalizeCertificate = (c: string) => c.replace(
 );
 
 const updateSAMLConfiguration = async (): Promise<void> => {
-  const idpConfig: IAdminSAMLConfig["idp"] = useMetadataUrl.value
+  const idpConfig: IAdminUpdateSAML["idp"] = useMetadataUrl.value
     ? { metadata_url: IdPMetadataURL.value }
     : {
       entity_id: entityID.value,
@@ -343,7 +343,7 @@ const updateSAMLConfiguration = async (): Promise<void> => {
     }
   }
 
-  const data: IAdminSAMLConfig = {
+  const data: IAdminUpdateSAML = {
     enable: true,
     idp: idpConfig,
     sp: { sign_requests: signRequest.value },
