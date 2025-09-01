@@ -2,6 +2,7 @@
   <BaseDialog
     v-if="hasAuthorization"
     v-model="showDialog"
+    @close="close"
     data-test="device-chooser-dialog"
   >
     <v-card

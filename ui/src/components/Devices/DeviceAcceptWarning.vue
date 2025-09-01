@@ -2,6 +2,7 @@
   <BaseDialog
     v-if="hasAuthorization"
     v-model="showDialog"
+    @close="close"
     transition="dialog-bottom-transition"
     data-test="device-accept-warning-dialog"
   >
@@ -20,7 +21,7 @@
       <v-card-actions>
         <v-spacer />
 
-        <v-btn variant="text" data-test="close-btn" @click="close()"> Close </v-btn>
+        <v-btn variant="text" data-test="close-btn" @click="close"> Close </v-btn>
       </v-card-actions>
     </v-card>
   </BaseDialog>

@@ -9,7 +9,7 @@
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog" data-test="device-rename-dialog" @click:outside="close">
+  <BaseDialog v-model="showDialog" data-test="device-rename-dialog" @close="close">
     <v-card class="bg-v-theme-surface" data-test="device-rename-card">
       <v-card-title class="text-h5 pa-5 bg-primary" data-test="text-title">
         Rename Device

@@ -2,7 +2,7 @@ import { setActivePinia, createPinia } from "pinia";
 import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { expect, describe, it, beforeEach } from "vitest";
 import DeviceActionButton from "@/components/Devices/DeviceActionButton.vue";
 import { router } from "@/router";
 import { devicesApi } from "@/api/http";
@@ -95,14 +95,10 @@ describe("Device Action Button", () => {
     expect(wrapper.vm.showDialog).toBe(true);
   });
 
-  it("Closing dialog sets dialog value to false", async () => {
-    vi.spyOn(console, "warn").mockImplementation((message) => {
-      if (message.includes("click:outside")) return;
-      console.log(message);
-    });
+  it("Closing dialog sets showDialog value to false", async () => {
     wrapper.vm.showDialog = true;
-    const dialogComponent = wrapper.findComponent({ name: "VDialog" });
-    await dialogComponent.vm.$emit("click:outside");
+    const dialogComponent = wrapper.findComponent({ name: "BaseDialog" });
+    await dialogComponent.vm.$emit("close");
     expect(wrapper.vm.showDialog).toBe(false);
   });
 

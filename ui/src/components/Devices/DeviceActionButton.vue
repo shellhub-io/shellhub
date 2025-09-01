@@ -24,7 +24,7 @@
         <span data-test="tooltip-text"> You don't have this kind of authorization. </span>
       </v-tooltip>
     </v-list-item>
-    <BaseDialog v-model="showDialog" @click:outside="close" data-test="device-action-dialog">
+    <BaseDialog v-model="showDialog" @close="close" data-test="device-action-dialog">
       <v-card class="bg-v-theme-surface">
         <v-card-title class="text-h5 pa-5 bg-primary">
           {{ capitalizeText(variant) }} {{ capitalizeText(action) }}
