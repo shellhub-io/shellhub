@@ -1,7 +1,7 @@
 <template>
   <v-btn @click="showDialog = true" class="mr-2" data-test="namespaces-export-btn">Export CSV</v-btn>
 
-  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
+  <BaseDialog v-model="showDialog" @close="closeDialog" transition="dialog-bottom-transition">
     <v-card>
       <v-card-title class="text-h5 pb-2">Export namespaces data</v-card-title>
       <v-divider />
