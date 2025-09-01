@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject } from "vue";
 
 type Header = {
   text: string;
@@ -79,7 +79,7 @@ defineEmits(["update:sort"]);
 const page = defineModel<number>("page", { required: true, type: Number });
 const itemsPerPage = defineModel("itemsPerPage", { required: true, type: Number });
 const pageQuantity = computed(() => Math.ceil(props.totalCount / itemsPerPage.value) || 1);
-const isAdmin = window.location.pathname.startsWith("/admin");
+const isAdmin: boolean = inject("isAdmin", false);
 
 const goToFirstPage = () => { page.value = 1; };
 </script>
