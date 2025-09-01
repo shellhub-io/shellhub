@@ -16,7 +16,7 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <BaseDialog v-model="showDialog" @update:modelValue="(value: boolean) => !value && close()">
+    <BaseDialog v-model="showDialog" @close="close">
       <v-card data-test="api-key-generate-dialog" class="bg-v-theme-surface">
         <v-card-title class="bg-primary">New Api Key</v-card-title>
 
