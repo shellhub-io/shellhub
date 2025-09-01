@@ -2,102 +2,85 @@ package tunnel
 
 import (
 	"context"
+	"errors"
+	"io"
 	"net"
-	"net/http"
+	"os"
+	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/gorilla/websocket"
+	"github.com/hashicorp/yamux"
+	"github.com/multiformats/go-multistream"
+	log "github.com/sirupsen/logrus"
 )
 
 type Tunnel struct {
-	router           *echo.Echo
-	srv              *http.Server
-	HTTPProxyHandler func(e echo.Context) error
-	SSHHandler       func(e echo.Context) error
-	SSHCloseHandler  func(e echo.Context) error
-}
-
-type Builder struct {
-	tunnel *Tunnel
-}
-
-func NewBuilder() *Builder {
-	return &Builder{
-		tunnel: NewTunnel(),
-	}
-}
-
-func (t *Builder) WithHTTPProxyHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.HTTPProxyHandler = handler
-
-	return t
-}
-
-func (t *Builder) WithSSHHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.SSHHandler = handler
-
-	return t
-}
-
-func (t *Builder) WithSSHCloseHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.SSHCloseHandler = handler
-
-	return t
-}
-
-func (t *Builder) Build() *Tunnel {
-	return t.tunnel
+	mux *multistream.MultistreamMuxer[string]
 }
 
 func NewTunnel() *Tunnel {
-	e := echo.New()
-
-	t := &Tunnel{
-		router: e,
-		srv: &http.Server{ //nolint:gosec
-			Handler: e,
-			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
-				return context.WithValue(ctx, "http-conn", c) //nolint:revive
-			},
-		},
-		SSHHandler: func(_ echo.Context) error {
-			panic("ConnHandler can not be nil")
-		},
-		SSHCloseHandler: func(_ echo.Context) error {
-			panic("CloseHandler can not be nil")
-		},
-		HTTPProxyHandler: func(_ echo.Context) error {
-			panic("ProxyHandler can not be nil")
-		},
+	return &Tunnel{
+		mux: multistream.NewMultistreamMuxer[string](),
 	}
-	e.GET("/ssh/:id", func(e echo.Context) error {
-		return t.SSHHandler(e)
-	})
-	e.GET("/ssh/close/:id", func(e echo.Context) error {
-		return t.SSHCloseHandler(e)
-	})
-	e.CONNECT("/http/proxy/:addr", func(e echo.Context) error {
-		// NOTE: The CONNECT HTTP method requests that a proxy establish a HTTP tunnel to this server, and if
-		// successful, blindly forward data in both directions until the tunnel is closed.
-		//
-		// https://en.wikipedia.org/wiki/HTTP_tunnel
-		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
-		return t.HTTPProxyHandler(e)
-	})
-
-	return t
 }
 
-// Listen to reverse listener.
-func (t *Tunnel) Listen(l *revdial.Listener) error {
-	return t.srv.Serve(l)
+func (t *Tunnel) Handle(protocol string, handler Handler) {
+	t.mux.AddHandler(protocol, func(protocol string, rwc io.ReadWriteCloser) error {
+		log.WithField("protocol", protocol).Debug("handling connection")
+		defer log.WithField("protocol", protocol).Debug("handling connection closed")
+
+		// TODO: Should we receive a context from outside?
+		return handler(NewContext(context.TODO(), rwc), rwc)
+	})
 }
 
-// Close closes the tunnel.
-func (t *Tunnel) Close() error {
-	if err := t.router.Close(); err != nil {
+// ErrTunnelDisconnect is returned when the tunnel connection is closed.
+var ErrTunnelDisconnect = errors.New("tunnel disconnected")
+
+func (t *Tunnel) Listen(conn net.Conn) error {
+	session, err := yamux.Server(conn, &yamux.Config{
+		AcceptBacklog:          256,
+		EnableKeepAlive:        true,
+		KeepAliveInterval:      35 * time.Second,
+		ConnectionWriteTimeout: 15 * time.Second,
+		MaxStreamWindowSize:    256 * 1024,
+		StreamCloseTimeout:     5 * time.Minute,
+		StreamOpenTimeout:      75 * time.Second,
+		LogOutput:              os.Stderr,
+	})
+	if err != nil {
+		log.WithError(err).Error("failed to create muxed session")
+
 		return err
 	}
 
-	return t.srv.Close()
+	for {
+		stream, err := session.Accept()
+		if err != nil {
+			defer session.Close()
+
+			log.WithError(err).Trace("failed to accept stream")
+
+			switch {
+			case websocket.IsCloseError(err, websocket.CloseAbnormalClosure):
+				return errors.Join(ErrTunnelDisconnect, err)
+			}
+
+			return err
+		}
+
+		log.Trace("new stream accepted")
+
+		go func() {
+			log.Trace("handling stream")
+
+			if err := t.mux.Handle(stream); err != nil {
+				log.WithError(err).Trace("failed to handle stream")
+
+				_ = stream.Close()
+			}
+
+			log.Trace("stream handled")
+		}()
+	}
 }
