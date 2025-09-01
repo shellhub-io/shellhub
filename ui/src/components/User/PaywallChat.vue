@@ -2,8 +2,6 @@
   <BaseDialog
     v-model="showDialog"
     transition="dialog-bottom-transition"
-    @click:outside="close"
-    @keydown.esc="close"
   >
     <v-card color="background" data-test="card-dialog">
       <v-container>
@@ -39,7 +37,7 @@
           </v-col>
         </v-row>
         <v-card-actions data-test="card-actions">
-          <v-btn @click="close()" class="mt-4" variant="text" data-test="close-btn">
+          <v-btn @click="showDialog = false" class="mt-4" variant="text" data-test="close-btn">
             Close
           </v-btn>
           <v-spacer />
@@ -62,10 +60,6 @@
 import BaseDialog from "../BaseDialog.vue";
 
 const showDialog = defineModel({ default: false });
-
-const close = () => {
-  showDialog.value = false;
-};
 
 defineExpose({ showDialog });
 </script>
