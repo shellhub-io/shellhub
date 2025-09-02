@@ -94,6 +94,7 @@ const useAuthStore = defineStore("auth", () => {
   };
 
   const recoverMfa = async (code: string) => {
+    name.value = localStorage.getItem("name") || "";
     const resp = await authApi.recoverMfa({ identifier: name.value, recovery_code: code });
     if (resp.status === 200) {
       persistAuth(resp.data);
@@ -129,7 +130,8 @@ const useAuthStore = defineStore("auth", () => {
   };
 
   const requestMfaReset = async () => {
-    await authApi.requestResetMfa(email.value);
+    name.value = localStorage.getItem("name") || "";
+    await authApi.requestResetMfa(name.value);
   };
 
   const resetMfa = async (data: IMfaReset) => {
