@@ -4,175 +4,120 @@
   <div class="pb-2">
     <h1 data-test="auth-header">Authentication</h1>
   </div>
-  <v-card class="w-100" border="8" data-test="auth-card">
-    <v-container fluid data-test="license-container">
+  <v-card class="w-100 pa-4" data-test="auth-card">
+    <v-card-item class="pa-0">
+      <v-card-title class="text-center" data-test="auth-status-header">Authentication Status</v-card-title>
+      <v-row class="my-0">
+        <span data-test="local-auth-label">Local Authentication</span>
+        <v-switch
+          v-model="isLocalAuthEnabled"
+          @click.prevent="changeLocalAuthStatus"
+          :color="isLocalAuthEnabled ? 'success' : 'error'"
+          data-test="local-auth-switch"
+          hide-details
+        />
+      </v-row>
+      <v-row class="my-0">
+        <span data-test="saml-auth-label">SAML Authentication</span>
+        <v-switch
+          v-model="isSamlEnabled"
+          @click.prevent="changeSamlAuthStatus"
+          :color="isSamlEnabled ? 'success' : 'error'"
+          data-test="saml-auth-switch"
+          hide-details
+        />
+      </v-row>
+    </v-card-item>
+
+    <v-card-item v-if="isSamlEnabled" class="pa-0">
+      <v-divider class="mt-4 mb-4" />
+      <v-card-title class="text-center" data-test="sso-header">Single Sign-on (SSO)</v-card-title>
+      <v-card-subtitle
+        class="text-center"
+        data-test="sso-subtitle"
+      >
+        Single Sign-On (SSO) simplifies access by enabling users to authenticate
+        once and securely access multiple applications.
+      </v-card-subtitle>
+
       <v-row>
-        <v-col>
-          <h6 class="text-h6 text-center" data-test="auth-status-header">Authentication Status</h6>
-        </v-col>
+        <div class="d-flex flex-column w-75">
+          <span>Assertion URL</span>
+          <span v-if="smAndUp" class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular">
+            The Assertion URL is the endpoint where the IdP will redirect users after
+            successful authentication. Many IdPs require this URL to be registered in
+            their list of allowed callback URLs.
+          </span>
+        </div>
+        <v-btn
+          @click="copyAssertionURL(ssoSettings.saml?.assertion_url)"
+          data-test="copy-assertion-btn"
+        >
+          Copy Assertion URL
+        </v-btn>
+      </v-row>
+
+      <v-row v-if="'post' in binding && binding?.post">
+        <span data-test="idp-signon-post-label">IdP SignOn POST URL</span>
+        <span data-test="idp-signon-post-value">
+          {{ binding?.post }}
+        </span>
+      </v-row>
+
+      <v-row v-if="'redirect' in binding && binding?.redirect">
+        <span data-test="idp-signon-redirect-label">IdP SignOn Redirect URL</span>
+        <span data-test="idp-signon-redirect-value">
+          {{ binding?.redirect }}
+        </span>
       </v-row>
 
       <v-row>
-        <v-col md="auto" sm="auto">
-          <v-card tile :elevation="0" data-test="local-auth-label">Local Authentication</v-card>
-        </v-col>
-        <v-spacer />
-        <v-col md="auto" sm="auto" class="ml-auto pt-0">
-          <v-switch
-            v-model="localEnabled"
-            @click="changeLocalAuthStatus"
-            :color="localEnabled ? 'success' : 'error'"
-            data-test="local-auth-switch"
-            hide-details
-          />
-        </v-col>
+        <span data-test="idp-entity-label">IdP Entity ID</span>
+        <span data-test="idp-entity-value">
+          {{ ssoSettings.saml?.idp.entity_id }}
+        </span>
       </v-row>
 
-      <v-row>
-        <v-col md="auto" sm="auto">
-          <v-card tile :elevation="0" data-test="saml-auth-label">SAML Authentication</v-card>
-        </v-col>
-        <v-spacer />
-        <v-col md="auto" sm="auto" class="ml-auto pt-0">
-          <v-switch
-            v-model="samlEnabled"
-            @click="changeSamlAuthStatus"
-            :color="samlEnabled ? 'success' : 'error'"
-            data-test="saml-auth-switch"
-            hide-details
-          />
-        </v-col>
+      <v-row v-if="certificate">
+        <div class="d-flex flex-column w-75">
+
+          <span data-test="certificate-label">SP Certificate</span>
+          <span v-if="smAndUp" class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular">
+            The SP Certificate is an X.509 certificate that IdPs use to verify requests
+            from ShellHub. Upload it to your IdP to validate the authenticity of authentication
+            requests.
+          </span>
+        </div>
+        <v-btn
+          class="align-content-lg-center text-none text-uppercase"
+          @click="downloadSSOCertificate"
+          data-test="download-certificate-btn"
+        >Download SP Certificate</v-btn>
       </v-row>
 
-      <div v-if="samlEnabled">
-        <v-row>
-          <v-divider class="mt-4 mb-4" />
-        </v-row>
-
-        <v-row>
-          <v-col>
-            <v-card-title class="text-h6 text-center" data-test="sso-header">Single Sign-on (SSO)</v-card-title>
-            <v-card-subtitle
-              class="text-center"
-              data-test="sso-subtitle"
-            >
-              Single Sign-On (SSO) simplifies access by enabling users to authenticate
-              once and securely access multiple applications.
-            </v-card-subtitle>
-          </v-col>
-        </v-row>
-
-        <v-row cols="12" class="mt-2">
-          <v-col md="10" sm="8">
-            <v-card tile :elevation="0" data-test="idp-signon-label">Assertion URL</v-card>
-            <v-card-subtitle class="pl-0">
-              The Assertion URL is the endpoint where the IdP will redirect users after
-              successful authentication. Many IdPs require this URL to be registered in
-              their list of allowed callback URLs.
-            </v-card-subtitle>
-          </v-col>
-          <v-spacer />
-          <v-col md="2" sm="4" class="ml-auto d-flex w-100 justify-end align-center">
+      <v-card-actions class="justify-end pa-0 mt-4">
+        <v-tooltip location="top">
+          <template v-slot:activator="{ props }">
             <v-btn
-              @click="copyAssertionURL(ssoSettings.saml?.assertion_url)"
-              data-test="copy-assertion-btn"
+              v-bind="props"
+              @click="redirectToAuthURL(ssoSettings.saml?.auth_url)"
+              data-test="redirect-auth-btn"
             >
-              Copy Assertion URL
+              Test Auth Integration
             </v-btn>
-          </v-col>
-        </v-row>
-
-        <v-row v-if="'post' in binding && binding?.post">
-          <v-col md="auto" sm="auto">
-            <v-card tile :elevation="0" data-test="idp-signon-post-label">IdP SignOn POST URL</v-card>
-          </v-col>
-          <v-spacer />
-          <v-col md="auto" sm="auto" class="ml-auto">
-            <v-card tile :elevation="0" data-test="idp-signon-post-value">
-              {{ binding?.post }}
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <v-row v-if="'redirect' in binding && binding?.redirect">
-          <v-col md="auto" sm="auto">
-            <v-card tile :elevation="0" data-test="idp-signon-redirect-label">IdP SignOn Redirect URL</v-card>
-          </v-col>
-          <v-spacer />
-          <v-col md="auto" sm="auto" class="ml-auto">
-            <v-card tile :elevation="0" data-test="idp-signon-redirect-value">
-              {{ binding?.redirect }}
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <v-row>
-          <v-col md="auto" sm="auto">
-            <v-card tile :elevation="0" data-test="idp-entity-label">IdP Entity ID</v-card>
-          </v-col>
-          <v-spacer />
-          <v-col md="auto" sm="auto" class="ml-auto mb-3">
-            <v-card tile :elevation="0" data-test="idp-entity-value">
-              {{ ssoSettings.saml?.idp.entity_id }}
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <v-row cols=12 v-if="certificate">
-          <v-col md="10" sm="8">
-            <v-card tile :elevation="0" data-test="certificate-label">SP Certificate</v-card>
-            <v-card-subtitle class="pl-0 text-overflow">
-              The SP Certificate is an X.509 certificate that IdPs use to verify requests
-              from ShellHub. Upload it to your IdP to validate the authenticity of authentication
-              requests.
-            </v-card-subtitle>
-          </v-col>
-          <v-spacer />
-          <v-col md="2" sm="4" class="d-flex w-100 justify-end align-center">
-            <v-btn
-              class="align-content-lg-center text-none text-uppercase"
-              @click="downloadSSOCertificates"
-              data-test="download-certificate-btn"
-            >Download SP Certificate</v-btn>
-          </v-col>
-        </v-row>
-
-        <v-row cols="12">
-          <v-col md="10" sm="6">
-            <v-card tile :elevation="0" data-test="sso-config-label">SSO Configuration</v-card>
-          </v-col>
-          <v-spacer />
-          <v-col md="1" sm="3" class="ml-auto d-flex w-100 justify-end align-center">
-            <v-tooltip location="top center" contained target="cursor" offset="-10">
-              <template v-slot:activator="{ props }">
-                <v-row v-bind="props">
-                  <v-col>
-                    <v-btn
-                      v-bind="props"
-                      @click="redirectToAuthURL(ssoSettings.saml?.auth_url)"
-                      data-test="redirect-auth-btn"
-                    >
-                      Test Auth Integration
-                    </v-btn>
-                  </v-col>
-                </v-row>
-              </template>
-              <span>Opens a new window directly calling the Authentication URL
-              </span>
-            </v-tooltip>
-          </v-col>
-          <v-col md="1" sm="3" class="ml-auto d-flex w-100 justify-end align-center">
-            <v-btn @click="showSSODialog = true" data-test="sso-config-btn">{{ ssoSettings.saml?.enabled ? "Edit" : "Configure" }}</v-btn>
-          </v-col>
-        </v-row>
-      </div>
-    </v-container>
+          </template>
+          <span>Opens a new window directly calling the Authentication URL</span>
+        </v-tooltip>
+        <v-btn @click="showSSODialog = true" data-test="sso-config-btn">{{ ssoSettings.saml?.enabled ? "Edit" : "Configure" }}</v-btn>
+      </v-card-actions>
+    </v-card-item>
   </v-card>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import axios from "axios";
+import { AxiosError } from "axios";
+import { useDisplay } from "vuetify";
 import useInstanceStore from "@admin/store/modules/instance";
 import useSnackbar from "@/helpers/snackbar";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
@@ -180,95 +125,44 @@ import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
 const showSSODialog = ref(false);
 const snackbar = useSnackbar();
 const instanceStore = useInstanceStore();
-
-onMounted(async () => {
-  await instanceStore.fetchAuthenticationSettings();
-});
-
+const { smAndUp } = useDisplay();
 const ssoSettings = computed(() => instanceStore.authenticationSettings);
 const certificate = computed(() => ssoSettings.value.saml?.sp?.certificate);
 const binding = computed(() => ssoSettings.value.saml?.idp.binding);
+const isLocalAuthEnabled = computed(() => instanceStore.isLocalAuthEnabled);
+const isSamlEnabled = computed(() => instanceStore.isSamlEnabled);
 
-const localEnabled = computed({
-  get: () => instanceStore.isLocalAuthEnabled,
-  set: (val: boolean) => {
-    instanceStore.updateLocalAuthentication(val);
-  },
-});
+const disableSaml = async () => {
+  await instanceStore.updateSamlAuthentication({
+    enable: false,
+    idp: {
+      entity_id: "",
+      binding: { post: "", redirect: "" },
+      certificate: "",
+    },
+    sp: { sign_requests: false },
+  });
+};
 
-const samlEnabled = computed({
-  get: () => instanceStore.isSamlEnabled,
-  set: (val: boolean) => {
-    if (val === false) {
-      const payload = {
-        enable: false,
-        idp: {
-          entity_id: "",
-          signon_url: "",
-          certificate: "",
-        },
-        sp: {
-          sign_requests: false,
-        },
-      };
-
-      instanceStore.updateSamlAuthentication(payload);
-    } else {
-      showSSODialog.value = true;
-    }
-  },
-});
-
-const changeLocalAuthStatus = async () => {
-  try {
-    await instanceStore.updateLocalAuthentication(!localEnabled.value);
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      switch (error.status) {
-        case 400:
-          snackbar.showError("You cannot disable all authentication methods.");
-          break;
-        default:
-          snackbar.showError("An error occurred while updating local authentication.");
-          break;
-      }
-    }
-  }
+const handleAuthUpdateError = (error: unknown) => {
+  if ((error as AxiosError).status === 400) snackbar.showError("You cannot disable all authentication methods.");
+  else snackbar.showError("An error occurred while updating local authentication.");
 };
 
 const changeSamlAuthStatus = async () => {
   try {
-    if (samlEnabled.value) {
-      const payload = {
-        enable: false,
-        idp: {
-          entity_id: "",
-          signon_url: "",
-          certificate: "",
-        },
-        sp: {
-          sign_requests: false,
-        },
-      };
-
-      await instanceStore.updateSamlAuthentication(payload);
-    } else {
-      showSSODialog.value = true;
-    }
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      switch (error.status) {
-        case 400:
-          snackbar.showError("You cannot disable all authentication methods.");
-          break;
-        default:
-          snackbar.showError("An error occurred while updating SAML authentication.");
-      }
-    }
-  }
+    if (isSamlEnabled.value) await disableSaml();
+    else showSSODialog.value = true;
+  } catch (error: unknown) { handleAuthUpdateError(error); }
 };
 
-const downloadSSOCertificates = () => {
+const changeLocalAuthStatus = async () => {
+  try {
+    await instanceStore.updateLocalAuthentication(!isLocalAuthEnabled.value);
+  } catch (error: unknown) { handleAuthUpdateError(error); }
+};
+
+const downloadSSOCertificate = () => {
   if (!certificate.value) {
     snackbar.showError("No certificates available to download.");
     return;
@@ -287,16 +181,25 @@ const downloadSSOCertificates = () => {
   URL.revokeObjectURL(url);
 };
 
-const redirectToAuthURL = (value: string | undefined) => {
-  window.open(value, "_blank");
-};
+const redirectToAuthURL = (url?: string) => { window.open(url, "_blank"); };
 
-const copyAssertionURL = (value: string | undefined) => {
-  if (value) {
-    navigator.clipboard.writeText(value);
+const copyAssertionURL = (url?: string) => {
+  if (url) {
+    navigator.clipboard.writeText(url);
     snackbar.showInfo("Authentication URL copied to clipboard.");
   }
 };
 
-defineExpose({ showSSODialog, samlEnabled, certificate });
+onMounted(async () => { await instanceStore.fetchAuthenticationSettings(); });
+
+defineExpose({ showSSODialog, isSamlEnabled, certificate });
 </script>
+
+<style lang="scss" scoped>
+.v-row {
+  margin: 1.25rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
