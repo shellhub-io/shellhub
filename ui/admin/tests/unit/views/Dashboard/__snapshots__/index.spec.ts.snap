@@ -72,7 +72,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-card-text text-h5 pl-0">0</div>
             <div class="v-card-subtitle">Registered devices</div>
           </div>
-          <div class="v-card-item__append"><i class="mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
+          <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
         <div class="v-card-actions"><a class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle" tabindex="0" href="/admin/devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
@@ -113,7 +113,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-card-text text-h5 pl-0">0</div>
             <div class="v-card-subtitle">Devices are online and ready for connecting</div>
           </div>
-          <div class="v-card-item__append"><i class="mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
+          <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
         <div class="v-card-actions"><a class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle" tabindex="0" href="/admin/devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
@@ -154,7 +154,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-card-text text-h5 pl-0">0</div>
             <div class="v-card-subtitle">Active SSH Sessions opened by users</div>
           </div>
-          <div class="v-card-item__append"><i class="mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
+          <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
         <div class="v-card-actions"><a class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle" tabindex="0" href="/admin/sessions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Sessions</span>
@@ -195,7 +195,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-card-text text-h5 pl-0">0</div>
             <div class="v-card-subtitle">Pending devices</div>
           </div>
-          <div class="v-card-item__append"><i class="mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
+          <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
         <div class="v-card-actions"><a class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle" tabindex="0" href="/admin/devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
@@ -236,7 +236,7 @@ exports[`Dashboard > Renders the component 1`] = `
             <div class="v-card-text text-h5 pl-0">0</div>
             <div class="v-card-subtitle">Rejected devices</div>
           </div>
-          <div class="v-card-item__append"><i class="mdi-devices mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
+          <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
         <div class="v-card-actions"><a class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle" tabindex="0" href="/admin/devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>

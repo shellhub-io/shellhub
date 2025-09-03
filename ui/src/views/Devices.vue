@@ -33,7 +33,7 @@
     v-else
     class="mt-2"
     item="Devices"
-    icon="mdi-cellphone-link"
+    icon="mdi-developer-board"
     data-test="no-items-message-component"
   >
     <template #content>

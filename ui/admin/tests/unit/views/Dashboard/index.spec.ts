@@ -30,7 +30,7 @@ const cardsContent = [
   {
     title: "Registered Devices",
     content: "Registered devices",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
     stat: stats.registered_devices,
@@ -38,7 +38,7 @@ const cardsContent = [
   {
     title: "Online Devices",
     content: "Devices are online and ready for connecting",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
     stat: stats.online_devices,
@@ -46,7 +46,7 @@ const cardsContent = [
   {
     title: "Active Sessions",
     content: "Active SSH Sessions opened by users",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "View all Sessions",
     path: "sessions",
     stat: stats.active_sessions,
@@ -54,7 +54,7 @@ const cardsContent = [
   {
     title: "Pending Devices",
     content: "Pending devices",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
     stat: stats.pending_devices,
@@ -62,7 +62,7 @@ const cardsContent = [
   {
     title: "Rejected Devices",
     content: "Rejected devices",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
     stat: stats.rejected_devices,
