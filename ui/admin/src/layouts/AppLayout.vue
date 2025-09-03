@@ -229,7 +229,7 @@ const items = reactive([
     path: "/users",
   },
   {
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     title: "Devices",
     path: "/devices",
   },
