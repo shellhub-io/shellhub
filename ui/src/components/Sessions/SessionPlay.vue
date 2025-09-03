@@ -67,32 +67,33 @@ const authStore = useAuthStore();
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const snackbar = useSnackbar();
-const disabled = computed(() => !props.recorded || !props.authenticated);
 const loading = ref(false);
 const logs = ref<string | null>(null);
-const isCommunity = computed(() => envVariables.isCommunity);
-const tooltipMessage = computed(() => props.recorded
+const { isCommunity } = envVariables;
+const disabled = !props.recorded || !props.authenticated;
+const tooltipMessage = props.recorded
   ? "You don't have permission to play this session."
-  : "This session was not recorded.");
+  : "This session was not recorded.";
 
 const hasAuthorizationToPlay = () => {
   const { role } = authStore;
   return !!role && hasPermission(authorizer.role[role], actions.session.play);
 };
 
-const disableTooltip = computed(() => isCommunity.value || (hasAuthorizationToPlay() && props.recorded));
+const disableTooltip = computed(() => isCommunity || (hasAuthorizationToPlay() && props.recorded));
 
 const getSessionLogs = async () => {
-  if (props.recorded) {
-    logs.value = await sessionsStore.getSessionLogs(props.uid);
-  }
+  if (!props.recorded) return false;
+  logs.value = await sessionsStore.getSessionLogs(props.uid);
+  return typeof logs.value === "string";
 };
 
 const displayDialog = async () => {
   try {
     loading.value = true;
-    await getSessionLogs();
-    showDialog.value = true;
+    const hasLogs = await getSessionLogs();
+    if (hasLogs) showDialog.value = true;
+    else snackbar.showError("The session logs were deleted or not recorded.");
   } catch (error: unknown) {
     snackbar.showError("Failed to play the session.");
     handleError(error);
@@ -101,12 +102,12 @@ const displayDialog = async () => {
   loading.value = false;
 };
 
-const openDialog = () => {
-  if (envVariables.isCommunity) {
+const openDialog = async () => {
+  if (isCommunity) {
     usersStore.showPaywall = true;
     return;
   }
-  displayDialog();
+  await displayDialog();
 };
 
 const closeDialog = () => {
