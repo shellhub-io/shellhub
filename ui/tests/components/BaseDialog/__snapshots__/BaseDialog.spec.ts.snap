@@ -3,7 +3,7 @@
 exports[`BaseDialog > Renders the component 1`] = `
 "<body>
   <div class="v-overlay-container">
-    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog" style="z-index: 2400;" aria-modal="true" role="dialog">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <div class="v-overlay__scrim"></div>
       </transition-stub>

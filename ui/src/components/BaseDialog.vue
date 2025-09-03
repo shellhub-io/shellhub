@@ -4,6 +4,7 @@
     @update:model-value="handleModelValueChange"
     :fullscreen
     :max-width
+    scrollable
   >
     <slot />
   </v-dialog>
@@ -35,3 +36,11 @@ const handleModelValueChange = (value: boolean) => { if (!value) emit("close"); 
 
 defineExpose({ fullscreen, maxWidth });
 </script>
+
+<style scoped>
+:deep(.v-overlay__scrim) {
+  background-color:rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+  opacity: 1;
+}
+</style>
