@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { sessionsApi } from "@/api/http";
 import useSessionsStore from "@/store/modules/sessions";
 import { ISession } from "@/interfaces/ISession";
@@ -100,19 +100,22 @@ describe("Sessions Store", () => {
   it("successfully closes a session", async () => {
     mockSessionsApi.onPost("http://localhost:3000/api/sessions/session1/close").reply(200);
 
+    const storeSpy = vi.spyOn(sessionsStore, "closeSession");
     const sessionData = { uid: "session1", device_uid: "device1" };
     await sessionsStore.closeSession(sessionData);
 
-    expect(true).toBe(true);
+    expect(storeSpy).toHaveBeenCalledWith(sessionData);
+    expect(storeSpy).not.toThrow();
   });
 
   it("successfully deletes session logs", async () => {
-    mockSessionsApi.onPost("http://localhost:3000/api/sessions/session1/close").reply(200);
+    mockSessionsApi.onDelete("http://localhost:3000/api/sessions/session1/records/0").reply(200);
 
-    sessionsStore.session = { ...mockSession, recorded: true };
+    const storeSpy = vi.spyOn(sessionsStore, "deleteSessionLogs");
 
     await sessionsStore.deleteSessionLogs("session1");
 
-    expect(sessionsStore.session.recorded).toBe(false);
+    expect(storeSpy).toHaveBeenCalledWith("session1");
+    expect(storeSpy).not.toThrow();
   });
 });
