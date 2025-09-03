@@ -11,83 +11,415 @@
     Add Device
   </v-btn>
 
-  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition" data-test="device-add-dialog">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test="dialog-title">
-        Registering a device
-      </v-card-title>
+  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition" data-test="device-add-dialog" threshold="md">
+    <v-card class="bg-v-theme-surface border">
+      <v-toolbar color="primary" class="bg-v-theme-surface border-b px-4 py-2">
+        <v-avatar size="48" color="primary" rounded="rounded" variant="tonal" class="border border-primary border-opacity-100 mr-3">
+          <v-icon size="24">mdi-developer-board</v-icon>
+        </v-avatar>
+        <div>
+          <v-toolbar-title class="text-h6">Adding a device</v-toolbar-title>
+          <div class="text-caption text-medium-emphasis">Choose an installation method and get your device connected</div>
+        </div>
+        <v-spacer />
+        <v-btn
+          icon="mdi-close"
+          variant="text"
+          @click="showDialog = false"
+          data-test="close-btn"
+        />
+      </v-toolbar>
 
-      <v-card-text class="mt-4 mb-0 pb-1" data-test="dialog-text">
-        <p class="text-body-2 mb-2">
-          In order to register a device on ShellHub, you need to install
-          ShellHub agent onto it.
-        </p>
+      <v-card-text class="mt-2 mb-4" data-test="dialog-text">
 
-        <p class="text-body-2 mb-2">
-          The easiest way to install ShellHub agent is with our automatic
-          one-line installation script, which works with all Linux distributions
-          that have Docker installed and properly set up.
-        </p>
+        <v-expansion-panels
+          v-model="selectedPanel"
+          variant="accordion"
+          elevation="0"
+          class="bg-v-theme-surface"
+        >
+          <v-expansion-panel
+            v-for="method in installMethods"
+            :key="method.value"
+            :value="method.value"
+            class="bg-v-theme-surface"
+          >
+            <v-expansion-panel-title>
+              <div class="d-flex align-center w-100">
+                <v-icon :icon="method.icon" size="large" class="mr-3" :color="method.color" />
+                <div class="flex-grow-1">
+                  <div class="text-h6">{{ method.name }}</div>
+                  <div class="text-body-2 text-medium-emphasis">{{ method.description }}</div>
+                </div>
+                <v-chip
+                  v-if="method.recommended"
+                  size="small"
+                  variant="tonal"
+                  color="success"
+                  class="ml-2"
+                >
+                  <v-icon size="small" class="mr-1">mdi-star</v-icon>
+                  recommended
+                </v-chip>
+              </div>
+            </v-expansion-panel-title>
 
-        <p class="text-body-2 font-weight-bold mt-4">
-          Run the following command on your device:
-        </p>
-        <CopyWarning :copied-item="'Command'">
-          <template #default="{ copyText }">
-            <v-text-field
-              :model-value="command()"
-              @click:append="copyText(command())"
-              class="code mt-1"
-              variant="outlined"
-              append-icon="mdi-content-copy"
-              readonly
-              active
-              data-test="command-field"
-              density="compact"
-            /></template> </CopyWarning>
+            <v-expansion-panel-text>
+              <div class="pa-4">
+                <h6 class="text-subtitle-2 mb-3">Requirements:</h6>
+                <div class="requirements mb-4">
+                  <div v-for="req in method.requirements" :key="req.text" class="d-flex align-center mb-2">
+                    <v-icon
+                      size="small"
+                      color="success"
+                      class="mr-2"
+                    >
+                      mdi-check
+                    </v-icon>
+                    <span class="text-body-2">{{ req.text }}</span>
+                  </div>
+                </div>
 
-        <v-divider />
+                <!-- Script-based installation -->
+                <v-alert
+                  v-if="!isManualInstall(method.value)"
+                  color="primary"
+                  variant="tonal"
+                  class="mb-3"
+                  title="Installation"
+                  icon="mdi-package-down"
+                >
+                  Ready to install? Copy the command below and run it on your target device:
+                  <v-text-field
+                    :model-value="getCommand(method.value)"
+                    class="code mt-3"
+                    variant="outlined"
+                    readonly
+                    density="compact"
+                    hide-details
+                  >
+                    <template #append>
+                      <v-btn
+                        icon="mdi-content-copy"
+                        color="primary"
+                        variant="flat"
+                        rounded
+                        size="small"
+                        @click="copyCommand(method.value)"
+                      />
+                    </template>
+                  </v-text-field>
 
-        <p class="text-caption mt-2 mb-0">
+                  <!-- Advanced Options inside the alert -->
+                  <v-expansion-panels
+                    v-model="methodAdvancedPanels[method.value]"
+                    variant="accordion"
+                    elevation="0"
+                    class="mt-4"
+                  >
+                    <v-expansion-panel
+                      value="advanced"
+                      bg-color="transparent"
+                    >
+                      <v-expansion-panel-title class="py-2">
+                        <div class="d-flex align-center w-100">
+                          <v-icon icon="mdi-tune" size="small" class="mr-2" />
+                          <div class="flex-grow-1">
+                            <div class="text-subtitle-2">Advanced Options</div>
+                            <div class="text-caption">Configure additional environment variables</div>
+                          </div>
+                        </div>
+                      </v-expansion-panel-title>
+
+                      <v-expansion-panel-text>
+                        <div class="pa-2">
+                          <v-row>
+                            <v-col cols="12" sm="6">
+                              <v-text-field
+                                v-model="advancedOptions.preferredHostname"
+                                label="Preferred Hostname"
+                                placeholder="e.g., my-device"
+                                variant="outlined"
+                                density="compact"
+                                hint="Override device hostname"
+                                persistent-hint
+                              />
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                              <v-text-field
+                                v-model="advancedOptions.preferredIdentity"
+                                label="Preferred Identity"
+                                placeholder="e.g., server-01"
+                                variant="outlined"
+                                density="compact"
+                                hint="Override device identity"
+                                persistent-hint
+                              />
+                            </v-col>
+                          </v-row>
+                        </div>
+                      </v-expansion-panel-text>
+                    </v-expansion-panel>
+                  </v-expansion-panels>
+                </v-alert>
+
+                <!-- Manual installation -->
+                <v-alert
+                  v-else
+                  color="warning"
+                  variant="tonal"
+                  class="mb-3"
+                  title="Manual Installation Required"
+                  icon="mdi-book-open-variant"
+                >
+                  This method requires manual configuration and build system integration. Please follow the detailed documentation:
+                  <div class="mt-3">
+                    <v-btn
+                      :href="getDocumentationUrl(method.value)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      color="warning"
+                      variant="outlined"
+                      prepend-icon="mdi-open-in-new"
+                      size="small"
+                    >
+                      View Documentation
+                    </v-btn>
+                  </div>
+                </v-alert>
+              </div>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </v-card-text>
+
+      <!-- Footer Toolbar -->
+      <v-toolbar color="primary" class="bg-v-theme-surface border-t px-6 py-2">
+        <v-spacer />
+        <div class="text-caption text-medium-emphasis text-center">
           Check the
           <a
             :href="'https://docs.shellhub.io/user-guides/devices/adding'"
             target="_blank"
             rel="noopener noreferrer"
             data-test="documentation-link"
-          >documentation</a
-          >
+            class="text-primary text-decoration-none"
+          >documentation</a>
           for more information and alternative install methods.
-        </p>
-      </v-card-text>
-
-      <v-card-actions>
+        </div>
         <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = !showDialog">
-          Close
-        </v-btn>
-      </v-card-actions>
+      </v-toolbar>
     </v-card>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import CopyWarning from "@/components/User/CopyWarning.vue";
 import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useSnackbar from "@/helpers/snackbar";
+
+enum InstallMethod {
+  AUTO = "auto",
+  DOCKER = "docker",
+  PODMAN = "podman",
+  SNAP = "snap",
+  STANDALONE = "standalone",
+  WSL = "wsl",
+  YOCTO = "yocto",
+  BUILDROOT = "buildroot",
+  FREEBSD = "freebsd"
+}
+
+interface InstallRequirement {
+  text: string;
+}
+
+interface InstallMethodConfig {
+  value: InstallMethod;
+  name: string;
+  icon: string;
+  color: string;
+  recommended: boolean;
+  description: string;
+  requirements: InstallRequirement[];
+}
 
 const { size } = defineProps<{ size?: string }>();
 const authStore = useAuthStore();
+const snackbar = useSnackbar();
 const showDialog = ref(false);
+const selectedPanel = ref(["auto"]); // Auto panel expanded by default
+const methodAdvancedPanels = ref<Record<string, string[]>>({});
 const { tenantId } = authStore;
 
-const command = () => {
-  const port = window.location.port ? `:${window.location.port}` : "";
-  const { hostname } = window.location;
+const MANUAL_INSTALL_METHODS = [InstallMethod.YOCTO, InstallMethod.BUILDROOT, InstallMethod.FREEBSD];
 
-  // eslint-disable-next-line vue/max-len
-  return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${window.location.protocol}//${hostname}${port} sh`;
+const DOCUMENTATION_URLS: Partial<Record<InstallMethod, string>> = {
+  [InstallMethod.YOCTO]: "https://docs.shellhub.io/overview/supported-platforms/yocto",
+  [InstallMethod.BUILDROOT]: "https://docs.shellhub.io/overview/supported-platforms/buildroot",
+  [InstallMethod.FREEBSD]: "https://docs.shellhub.io/overview/supported-platforms/freebsd",
+};
+
+const advancedOptions = ref({
+  preferredHostname: "",
+  preferredIdentity: "",
+});
+
+const installMethods: InstallMethodConfig[] = [
+  {
+    value: InstallMethod.AUTO,
+    name: "Auto",
+    icon: "mdi-auto-fix",
+    color: "primary",
+    recommended: true,
+    description: "Automatically detects and uses the best available installation method",
+    requirements: [
+      { text: "Linux system with curl" },
+      { text: "Internet connection" },
+      { text: "Tries: Docker → Podman → Snap → Standalone" },
+    ],
+  },
+  {
+    value: InstallMethod.DOCKER,
+    name: "Docker",
+    icon: "mdi-docker",
+    color: "blue",
+    recommended: false,
+    description: "Best performance and isolation using Docker containers",
+    requirements: [
+      { text: "Docker daemon running" },
+      { text: "Access to /var/run/docker.sock" },
+      { text: "Sufficient privileges (root/sudo)" },
+    ],
+  },
+  {
+    value: InstallMethod.PODMAN,
+    name: "Podman",
+    icon: "mdi-cube-outline",
+    color: "purple",
+    recommended: false,
+    description: "Alternative to Docker with rootless capabilities",
+    requirements: [
+      { text: "Podman daemon running" },
+      { text: "Access to /var/run/podman/podman.sock" },
+      { text: "Sufficient privileges (root/sudo)" },
+    ],
+  },
+  {
+    value: InstallMethod.SNAP,
+    name: "Snap",
+    icon: "mdi-package-variant",
+    color: "green",
+    recommended: false,
+    description: "Easy installation with automatic updates via Snap store",
+    requirements: [
+      { text: "Snap package manager installed" },
+      { text: "Snapd service running" },
+      { text: "Network access to Snap Store" },
+    ],
+  },
+  {
+    value: InstallMethod.STANDALONE,
+    name: "Standalone",
+    icon: "mdi-server",
+    color: "orange",
+    recommended: false,
+    description: "Direct installation using runc and systemd services",
+    requirements: [
+      { text: "systemd-based Linux system" },
+      { text: "Root/sudo privileges required" },
+      { text: "Used when containers unavailable" },
+    ],
+  },
+  {
+    value: InstallMethod.WSL,
+    name: "WSL",
+    icon: "mdi-microsoft-windows",
+    color: "cyan",
+    recommended: false,
+    description: "Optimized for Windows Subsystem for Linux environments",
+    requirements: [
+      { text: "WSL2 with systemd enabled" },
+      { text: "Mirrored networking mode" },
+      { text: "Root/sudo privileges required" },
+    ],
+  },
+  {
+    value: InstallMethod.YOCTO,
+    name: "Yocto Project",
+    icon: "mdi-chip",
+    color: "teal",
+    recommended: false,
+    description: "For embedded systems built with Yocto Project framework",
+    requirements: [
+      { text: "Yocto Project build environment" },
+      { text: "Custom layer and recipe creation" },
+      { text: "Manual integration required" },
+    ],
+  },
+  {
+    value: InstallMethod.BUILDROOT,
+    name: "Buildroot",
+    icon: "mdi-memory",
+    color: "indigo",
+    recommended: false,
+    description: "For embedded systems using Buildroot build system",
+    requirements: [
+      { text: "Buildroot build environment" },
+      { text: "Custom package configuration" },
+      { text: "Manual integration required" },
+    ],
+  },
+  {
+    value: InstallMethod.FREEBSD,
+    name: "FreeBSD",
+    icon: "mdi-freebsd",
+    color: "red",
+    recommended: false,
+    description: "For FreeBSD systems using the official port",
+    requirements: [
+      { text: "FreeBSD operating system" },
+      { text: "Ports tree installed" },
+      { text: "Manual compilation and setup" },
+    ],
+  },
+];
+
+const isManualInstall = (method: string) => MANUAL_INSTALL_METHODS.includes(method as InstallMethod);
+
+const getDocumentationUrl = (method: string) => DOCUMENTATION_URLS[method as InstallMethod] || DOCUMENTATION_URLS[InstallMethod.AUTO];
+
+const getCommand = (method: string) => {
+  const port = window.location.port ? `:${window.location.port}` : "";
+  const baseUrl = `${window.location.protocol}//${window.location.hostname}${port}`;
+
+  const envVars = [
+    method !== InstallMethod.AUTO ? `INSTALL_METHOD=${method}` : "",
+    `TENANT_ID=${tenantId}`,
+    `SERVER_ADDRESS=${baseUrl}`,
+    advancedOptions.value.preferredHostname ? `PREFERRED_HOSTNAME="${advancedOptions.value.preferredHostname}"` : "",
+    advancedOptions.value.preferredIdentity ? `PREFERRED_IDENTITY="${advancedOptions.value.preferredIdentity}"` : "",
+  ].filter(Boolean);
+
+  return [
+    "curl -sSf",
+    `${baseUrl}/install.sh`,
+    "|",
+    ...envVars,
+    "sh",
+  ].join(" ");
+};
+
+const copyCommand = async (methodValue: string) => {
+  try {
+    const command = getCommand(methodValue);
+    await navigator.clipboard.writeText(command);
+    snackbar.showSuccess("Installation command copied to clipboard!");
+  } catch (err) {
+    console.error("Failed to copy: ", err);
+    snackbar.showError("Failed to copy command to clipboard.");
+  }
 };
 </script>
 
@@ -97,4 +429,5 @@ const command = () => {
   font-size: 85%;
   font-weight: normal;
 }
+
 </style>
