@@ -2,8 +2,8 @@
   <BaseDialog v-model="showDialog" @close="close">
     <v-card>
       <v-card-title class="text-h5 pb-2" data-test="dialog-title">Configure Single Sign-on</v-card-title>
-      <v-container>
-        <v-card-text>
+      <v-card-text>
+        <v-form>
           <v-checkbox
             v-model="useMetadataUrl"
             label="Use IDP Metadata URL"
@@ -61,7 +61,6 @@
               :error-messages="x509CertificateErrorMessage"
             />
           </div>
-
           <v-expansion-panels>
             <v-expansion-panel>
               <v-expansion-panel-title data-test="advanced-settings-title">Advanced Settings</v-expansion-panel-title>
@@ -74,23 +73,18 @@
                   data-test="saml-mappings-table"
                 >
                   <template v-slot:top>
-                    <v-row cols="12">
-                      <v-col cols="9">
-                        <h3>SAML Mappings</h3>
-                      </v-col>
-                      <v-col cols="3">
-                        <v-btn
-                          color="primary"
-                          :disabled="mappings.length >= 2"
-                          @click="addMapping"
-                          data-test="add-mapping-btn"
-                        >
-                          Add Mapping
-                        </v-btn>
-                      </v-col>
+                    <v-row class="justify-space-between align-center mb-3">
+                      <h3>SAML Mappings</h3>
+                      <v-btn
+                        color="primary"
+                        :disabled="mappings.length >= 2"
+                        @click="addMapping"
+                        data-test="add-mapping-btn"
+                      >
+                        Add Mapping
+                      </v-btn>
                     </v-row>
                   </template>
-
                   <template v-slot:headers>
                     <tr>
                       <th v-for="(header, i) in tableHeaders" :key="i" :class="`text-${header.align}`">
@@ -98,7 +92,6 @@
                       </th>
                     </tr>
                   </template>
-
                   <template v-slot:item="{ item, index }">
                     <tr>
                       <td>
@@ -122,31 +115,22 @@
                           data-test="saml-mapping-value"
                         />
                       </td>
-                      <td>
-                        <v-row>
-                          <v-col align="center" class="pt-0 px-0 pb-1">
-                            <v-btn color="red" elevation="0" @click="removeMapping(index)" data-test="remove-mapping-btn">
-                              <v-icon>mdi-delete</v-icon>
-                            </v-btn>
-                          </v-col>
-                        </v-row>
+                      <td class="text-center">
+                        <v-btn color="red" icon="mdi-delete" elevation="0" @click="removeMapping(index)" data-test="remove-mapping-btn" />
                       </td>
                     </tr>
                   </template>
                 </v-data-table>
-                <v-tooltip location="bottom" contained target="cursor" offset="-20">
+                <v-tooltip location="bottom" contained offset="-10">
                   <template v-slot:activator="{ props }">
-                    <v-row v-bind="props">
-                      <v-col>
-                        <v-checkbox
-                          class="mt-4"
-                          v-model="signRequest"
-                          label="Sign authorization requests"
-                          hide-details
-                          data-test="sign-request-checkbox"
-                        />
-                      </v-col>
-                    </v-row>
+                    <v-checkbox
+                      v-bind="props"
+                      class="mt-4"
+                      v-model="signRequest"
+                      label="Sign authorization requests"
+                      hide-details
+                      data-test="sign-request-checkbox"
+                    />
                   </template>
                   <span>A security feature where the SP cryptographically signs authentication
                     requests sent to the IdP. You must upload the generated certificate to your
@@ -156,13 +140,12 @@
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
-        </v-card-text>
-      </v-container>
+        </v-form>
+      </v-card-text>
       <v-card-actions>
         <v-btn @click="close()" data-test="close-btn">
           Close
         </v-btn>
-        <v-spacer />
         <v-btn :disabled="hasErrors" @click="updateSAMLConfiguration" color="primary" data-test="save-btn">
           Save Configuration
         </v-btn>
