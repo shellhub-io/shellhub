@@ -59,7 +59,7 @@
           color="primary"
           prepend-inner-icon="mdi-account"
           v-model="username"
-          :disabled="!authentication?.local && envVariables.isEnterprise"
+          :disabled="!authentication?.local && isEnterprise"
           :rules="rules"
           required
           label="Username or email address"
@@ -71,7 +71,7 @@
           prepend-inner-icon="mdi-lock"
           :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
           v-model="password"
-          :disabled="!authentication?.local && envVariables.isEnterprise"
+          :disabled="!authentication?.local && isEnterprise"
           :rules="rules"
           label="Password"
           required
@@ -81,7 +81,7 @@
         />
         <v-card-actions class="justify-center pa-0">
           <v-btn
-            :disabled="!validForm || (!authentication?.local && envVariables.isEnterprise)"
+            :disabled="!validForm || (!authentication?.local && isEnterprise)"
             data-test="login-btn"
             color="primary"
             :variant="validForm ? 'elevated' : 'tonal'"
@@ -94,7 +94,7 @@
 
       </v-col>
     </v-form>
-    <v-col v-if="cloudEnvironment">
+    <v-col v-if="isCloud">
       <v-card-subtitle
         class="d-flex align-center justify-center pa-4 mx-auto pt-0 pb-0"
         data-test="forgotPassword-card"
@@ -122,7 +122,7 @@
         </router-link>
       </v-card-subtitle>
     </v-col>
-    <div v-if="authentication?.saml && envVariables.isEnterprise" data-test="or-divider-sso">
+    <div v-if="authentication?.saml && isEnterprise" data-test="or-divider-sso">
       <v-row class="mb-2">
         <v-col class="mr-1">
           <v-divider />
@@ -151,7 +151,6 @@
 import { onMounted, ref, computed, reactive, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
-import isCloudEnvironment from "../utils/cloudUtils";
 import handleError from "../utils/handleError";
 import useSnackbar from "../helpers/snackbar";
 import useCountdown from "@/utils/countdownTimeout";
@@ -176,7 +175,7 @@ const username = ref("");
 const password = ref("");
 const rules = [(v: string) => v ? true : "This is a required field"];
 const validForm = ref(false);
-const cloudEnvironment = isCloudEnvironment();
+const { isCloud, isEnterprise } = envVariables;
 const invalidCredentials = ref(false);
 const isCountdownFinished = ref(false);
 const isMfaEnabled = computed(() => authStore.isMfaEnabled);
