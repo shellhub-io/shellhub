@@ -24,7 +24,6 @@
           color="red darken-1"
           variant="text"
           data-test="leave-btn"
-          :disabled="!hasAuthorization"
           @click="leave()"
         >
           Leave
@@ -37,25 +36,16 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
 
 const namespacesStore = useNamespacesStore();
-const authStore = useAuthStore();
 const router = useRouter();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const tenant = computed(() => localStorage.getItem("tenant") as string);
-
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.leave);
-});
 
 const leave = async () => {
   try {

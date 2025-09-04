@@ -1,10 +1,10 @@
 <template>
   <div>
-    <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
+    <v-tooltip location="bottom" class="text-center" :disabled="canGenerateApiKey">
       <template v-slot:activator="{ props }">
         <div v-bind="props">
           <v-btn
-            :disabled="!hasAuthorization"
+            :disabled="!canGenerateApiKey"
             color="primary"
             @click="showDialog = true"
             data-test="api-key-generate-main-btn"
@@ -57,7 +57,7 @@
             </v-col>
             <v-col>
               <RoleSelect
-                v-if="hasAuthorization"
+                v-if="canGenerateApiKey"
                 v-model="selectedRole"
                 data-test="api-key-generate-role"
               />
@@ -102,13 +102,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import moment from "moment";
 import * as yup from "yup";
 import axios from "axios";
 import { useField } from "vee-validate";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
@@ -116,19 +115,14 @@ import BaseDialog from "@/components/BaseDialog.vue";
 import RoleSelect from "@/components/Team/RoleSelect.vue";
 import { BasicRole } from "@/interfaces/INamespace";
 import useApiKeysStore from "@/store/modules/api_keys";
-import useAuthStore from "@/store/modules/auth";
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 const apiKeyStore = useApiKeysStore();
-const authStore = useAuthStore();
 const showDialog = ref(false);
 const errorMessage = ref("");
 const generatedApiKey = ref("");
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.apiKey.create);
-});
+const canGenerateApiKey = hasPermission("apiKey:create");
 
 const {
   value: keyName,

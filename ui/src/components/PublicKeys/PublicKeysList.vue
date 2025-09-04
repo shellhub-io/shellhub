@@ -74,13 +74,13 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationFormDialogEdit"
+                  :disabled="canEditPublicKey"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <PublicKeyEdit
                         :publicKey="item"
-                        :hasAuthorization="hasAuthorizationFormDialogEdit"
+                        :hasAuthorization="canEditPublicKey"
                         @update="refreshPublicKeys"
                       />
                     </div>
@@ -91,13 +91,13 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationFormDialogRemove"
+                  :disabled="canRemovePublicKey"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <PublicKeyDelete
                         :fingerprint="item.fingerprint"
-                        :hasAuthorization="hasAuthorizationFormDialogRemove"
+                        :hasAuthorization="canRemovePublicKey"
                         @update="refreshPublicKeys"
                       />
                     </div>
@@ -115,7 +115,6 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { actions, authorizer } from "@/authorizer";
 import isHostname from "@/utils/isHostname";
 import hasPermission from "@/utils/permission";
 import {
@@ -130,7 +129,6 @@ import PublicKeyDelete from "./PublicKeyDelete.vue";
 import PublicKeyEdit from "./PublicKeyEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import usePublicKeysStore from "@/store/modules/public_keys";
 
 const headers = [
@@ -159,7 +157,6 @@ const headers = [
     value: "actions",
   },
 ];
-const authStore = useAuthStore();
 const publicKeysStore = usePublicKeysStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
@@ -167,15 +164,8 @@ const itemsPerPage = ref(10);
 const page = ref(1);
 const publicKeys = computed(() => publicKeysStore.publicKeys);
 const publicKeyCount = computed(() => publicKeysStore.publicKeyCount);
-const hasAuthorizationFormDialogEdit = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.edit);
-});
-
-const hasAuthorizationFormDialogRemove = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.remove);
-});
+const canEditPublicKey = hasPermission("publicKey:edit");
+const canRemovePublicKey = hasPermission("publicKey:remove");
 
 const getPublicKeysList = async () => {
   try {
@@ -199,5 +189,5 @@ const refreshPublicKeys = async () => {
   await getPublicKeysList();
 };
 
-defineExpose({ publicKeys, hasAuthorizationFormDialogEdit, hasAuthorizationFormDialogRemove });
+defineExpose({ publicKeys, canEditPublicKey, canRemovePublicKey });
 </script>

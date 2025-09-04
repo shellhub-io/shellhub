@@ -39,7 +39,7 @@
                 v-bind="$attrs"
                 @click="showWebEndpointCreate = true"
                 data-test="tunnel-create-dialog-btn"
-                :disabled="!hasAuthorizationCreateWebEndpoint"
+                :disabled="!canCreateWebEndpoint"
               >
                 <div class="d-flex align-center">
                   <div class="mr-2" data-test="create-icon">
@@ -53,7 +53,7 @@
             <TagFormUpdate
               :device-uid="device.uid"
               :tags-list="device.tags"
-              :has-authorization="hasAuthorizationFormUpdate()"
+              :has-authorization="canUpdateDeviceTag"
               @update="refreshDevices"
               data-test="tag-form-update-component"
             />
@@ -158,17 +158,14 @@ import DeviceRename from "../components/Devices/DeviceRename.vue";
 import TerminalConnectButton from "../components/Terminal/TerminalConnectButton.vue";
 import { formatFullDateTime } from "@/utils/date";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
-import useAuthStore from "@/store/modules/auth";
 import useDevicesStore from "@/store/modules/devices";
 
 type DeviceResolver = "uid" | "hostname";
 
-const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -189,10 +186,9 @@ onMounted(async () => {
   }
 });
 
-const hasAuthorizationCreateWebEndpoint = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
-};
+const canCreateWebEndpoint = hasPermission("webEndpoint:create");
+
+const canUpdateDeviceTag = hasPermission("tag:update");
 
 const refreshDevices = async () => {
   try {
@@ -203,8 +199,4 @@ const refreshDevices = async () => {
   }
 };
 
-const hasAuthorizationFormUpdate = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
-};
 </script>

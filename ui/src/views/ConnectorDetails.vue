@@ -8,7 +8,7 @@
         <v-row>
           <v-col class="pr-0">
             <v-switch
-              @click="toggleConnectorState()"
+              @click="toggleConnectorState"
               v-model="connector.enable"
               inset
               hide-details
@@ -53,7 +53,7 @@
           <v-tooltip
             location="bottom"
             class="text-center"
-            :disabled="hasAuthorizationEdit()"
+            :disabled="canEditConnector"
           >
             <template v-slot:activator="{ props }">
               <div v-bind="props">
@@ -62,8 +62,8 @@
                   :secure="connector.secure"
                   :portAddress="connector.port"
                   :uid="connector.uid"
-                  :hasAuthorization="hasAuthorizationEdit()"
-                  @update="refresh()"
+                  :hasAuthorization="canEditConnector"
+                  @update="refresh"
                 />
               </div>
             </template>
@@ -73,14 +73,14 @@
           <v-tooltip
             location="bottom"
             class="text-center"
-            :disabled="hasAuthorizationRemove()"
+            :disabled="canRemoveConnector"
           >
             <template v-slot:activator="{ props }">
               <div v-bind="props">
                 <ConnectorDelete
                   :uid="connector.uid"
-                  :hasAuthorization="hasAuthorizationRemove()"
-                  @update="redirectContainers()"
+                  :hasAuthorization="canRemoveConnector"
+                  @update="redirectContainers"
                 />
               </div>
             </template>
@@ -160,14 +160,11 @@ import { storeToRefs } from "pinia";
 import ConnectorDelete from "../components/Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../components/Connector/ConnectorEdit.vue";
 import hasPermission from "../utils/permission";
-import { actions, authorizer } from "../authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useConnectorStore from "@/store/modules/connectors";
 import { IConnectorPayload } from "@/interfaces/IConnector";
 
-const authStore = useAuthStore();
 const connectorStore = useConnectorStore();
 const router = useRouter();
 const route = useRoute();
@@ -222,15 +219,9 @@ const redirectContainers = async () => {
   await router.push({ name: "containers" });
 };
 
-const hasAuthorizationEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
-};
+const canEditConnector = hasPermission("connector:edit");
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
-};
+const canRemoveConnector = hasPermission("connector:remove");
 
 const getConnector = async () => {
   try {

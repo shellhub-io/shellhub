@@ -108,8 +108,14 @@ describe("Notifications Menu", async () => {
   });
 
   it("Shows permission error message when user lacks permission", async () => {
+    wrapper.unmount();
     authStore.role = "observer";
-
+    wrapper = mount(NotificationsMenu, {
+      global: {
+        plugins: [router, vuetify],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
+      },
+    });
     const icon = wrapper.find("[data-test='notifications-badge'] i");
     await icon.trigger("click");
 

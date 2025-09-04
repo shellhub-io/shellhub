@@ -38,7 +38,7 @@
           variant="text"
           data-test="remove-btn"
           @click="remove()"
-          :disabled="isBillingActive || !hasAuthorization"
+          :disabled="isBillingActive || !canDeleteNamespace"
         >
           Remove
         </v-btn>
@@ -52,7 +52,6 @@ import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
@@ -74,10 +73,7 @@ const showDialog = defineModel({ default: false });
 const { name } = namespacesStore.currentNamespace;
 const tenant = computed(() => props.tenant);
 const isBillingActive = computed(() => billingStore.isActive);
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.remove);
-});
+const canDeleteNamespace = hasPermission("namespace:delete");
 
 const remove = async () => {
   try {
@@ -103,7 +99,7 @@ const remove = async () => {
 };
 
 onMounted(async () => {
-  if (hasAuthorization.value && envVariables.isCloud) {
+  if (canDeleteNamespace && envVariables.isCloud) {
     await billingStore.getSubscriptionInfo();
   }
 });

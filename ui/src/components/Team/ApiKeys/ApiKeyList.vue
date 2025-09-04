@@ -39,7 +39,7 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationRemoveKey()"
+                  :disabled="canDeleteApiKey"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
@@ -47,7 +47,7 @@
                         :key-name="item.name"
                         :key-id="item.id"
                         :key-role="item.role"
-                        :has-authorization="hasAuthorizationRemoveKey()"
+                        :has-authorization="canDeleteApiKey"
                         :disabled="hasKeyExpired(item.expires_in)"
                         @update="refresh()"
                       />
@@ -59,13 +59,13 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationRemoveKey()"
+                  :disabled="canDeleteApiKey"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <ApiKeyDelete
                         :keyId="item.name"
-                        :has-authorization="hasAuthorizationRemoveKey()"
+                        :has-authorization="canDeleteApiKey"
                         @update="refresh()"
                       />
                     </div>
@@ -87,13 +87,11 @@ import axios, { AxiosError } from "axios";
 import moment from "moment";
 import DataTable from "@/components/DataTable.vue";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import ApiKeyDelete from "./ApiKeyDelete.vue";
 import ApiKeyEdit from "./ApiKeyEdit.vue";
 import useSnackbar from "@/helpers/snackbar";
 import useApiKeysStore from "@/store/modules/api_keys";
-import useAuthStore from "@/store/modules/auth";
 
 const headers = [
   {
@@ -121,14 +119,10 @@ const page = ref(1);
 const sortField = ref<string>("name");
 const sortOrder = ref<"asc" | "desc">("asc");
 const apiKeyStore = useApiKeysStore();
-const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const apiKeysCount = computed(() => apiKeyStore.apiKeysCount);
 const apiKeys = computed(() => apiKeyStore.apiKeys);
-const hasAuthorizationRemoveKey = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.apiKey.delete);
-};
+const canDeleteApiKey = hasPermission("apiKey:delete");
 
 const now = moment().utc();
 

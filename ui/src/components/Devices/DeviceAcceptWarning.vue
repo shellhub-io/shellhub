@@ -1,6 +1,6 @@
 <template>
   <BaseDialog
-    v-if="hasAuthorization"
+    v-if="canSubscribeToBilling"
     v-model="showDialog"
     @close="close"
     transition="dialog-bottom-transition"
@@ -29,21 +29,15 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useDevicesStore from "@/store/modules/devices";
 
-const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
 const duplicatedDeviceName = computed(() => devicesStore.duplicatedDeviceName);
 const showDialog = computed(() => !!duplicatedDeviceName.value);
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
-});
+const canSubscribeToBilling = hasPermission("billing:subscribe");
 
 const close = () => { devicesStore.duplicatedDeviceName = ""; };
 </script>

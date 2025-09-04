@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
+    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="canCreatePublicKey">
       <template v-slot:activator="{ props }">
         <div v-bind="props">
           <v-btn
@@ -9,7 +9,7 @@
             tabindex="0"
             variant="elevated"
             aria-label="Add Public Key"
-            :disabled="!hasAuthorization"
+            :disabled="!canCreatePublicKey"
             @keypress.enter="showDialog = true"
             :size="size"
             data-test="public-key-add-btn"
@@ -126,13 +126,11 @@ import { useField } from "vee-validate";
 import { computed, nextTick, ref, watch } from "vue";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { isKeyValid } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import { IPublicKeyCreate } from "@/interfaces/IPublicKey";
 import useTagsStore from "@/store/modules/tags";
@@ -140,7 +138,6 @@ import useTagsStore from "@/store/modules/tags";
 const { size } = defineProps<{ size?: string }>();
 
 const emit = defineEmits(["update"]);
-const authStore = useAuthStore();
 const publicKeysStore = usePublicKeysStore();
 const tagsStore = useTagsStore();
 const showDialog = ref(false);
@@ -213,10 +210,7 @@ const {
 
 const tagNames = computed(() => tagsStore.tags);
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.create);
-});
+const canCreatePublicKey = hasPermission("publicKey:create");
 
 watch(tagChoices, (list) => {
   if (list.length > 3) {

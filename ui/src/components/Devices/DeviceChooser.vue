@@ -1,6 +1,6 @@
 <template>
   <BaseDialog
-    v-if="hasAuthorization"
+    v-if="canChooseDevices"
     v-model="showDialog"
     @close="close"
     data-test="device-chooser-dialog"
@@ -110,17 +110,14 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
-import { actions, authorizer } from "@/authorizer";
 import DeviceListChooser from "./DeviceListChooser.vue";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useDevicesStore from "@/store/modules/devices";
 import { IDevice } from "@/interfaces/IDevice";
 
-const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 
@@ -137,10 +134,7 @@ const disableButton = computed(() => (
     && tab.value === "all"
 ));
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.device.chooser);
-});
+const canChooseDevices = hasPermission("device:choose");
 
 const tabItems = ref({
   suggested: {

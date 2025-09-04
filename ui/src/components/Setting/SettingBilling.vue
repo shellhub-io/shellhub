@@ -1,5 +1,5 @@
 <template>
-  <SettingOwnerInfo v-if="!hasAuthorization" data-test="settings-owner-info-component" />
+  <SettingOwnerInfo v-if="!canSubscribeToBilling" data-test="settings-owner-info-component" />
   <v-container fluid v-else>
     <BillingDialog v-model="dialogCheckout" @reload="reload" />
     <v-card
@@ -41,7 +41,7 @@
         >
           <v-card-item
             style="grid-template-columns: max-content 1.5fr 2fr"
-            v-if="hasAuthorization"
+            v-if="canSubscribeToBilling"
             data-test="billing-portal-section"
           >
             <template #prepend>
@@ -92,7 +92,7 @@
             </template>
           </v-card-item>
           <v-divider data-test="billing-divider" />
-          <div v-if="hasAuthorization && isBillingActive" data-test="billing-active-section">
+          <div v-if="canSubscribeToBilling && isBillingActive" data-test="billing-active-section">
             <v-card-item
               style="grid-template-columns: max-content 1.5fr 2fr"
               v-if="message"
@@ -156,17 +156,14 @@ import {
 import { storeToRefs } from "pinia";
 import { useEventListener } from "@vueuse/core";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import BillingDialog from "../Billing/BillingDialog.vue";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
 import formatCurrency from "@/utils/currency";
 import { formatUnixToDate } from "@/utils/date";
 import handleError from "@/utils/handleError";
-import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useNamespacesStore from "@/store/modules/namespaces";
 
-const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const namespacesStore = useNamespacesStore();
 const { billing: billingInfo, isActive: isBillingActive, status: billingStatus } = storeToRefs(billingStore);
@@ -179,10 +176,7 @@ const messageType = ref();
 const formattedDate = ref();
 const formattedCurrency = ref();
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
-});
+const canSubscribeToBilling = hasPermission("billing:subscribe");
 
 useEventListener("pageshow", (event) => {
   const historyPage = event.persisted
@@ -219,7 +213,7 @@ const handleErrors = async () => {
 };
 
 const getSubscriptionInfo = async () => {
-  if (hasAuthorization.value) {
+  if (canSubscribeToBilling) {
     try {
       await billingStore.getSubscriptionInfo();
       const invoice = billingStore.invoices[0];

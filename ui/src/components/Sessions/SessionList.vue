@@ -109,7 +109,7 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationRemoveRecord()"
+                  :disabled="canRemoveSessionRecord"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
@@ -117,7 +117,7 @@
                         v-if="session.active"
                         :uid="session.uid"
                         :device="session.device"
-                        :hasAuthorization="hasAuthorizationRemoveRecord()"
+                        :hasAuthorization="canRemoveSessionRecord"
                         @update="refreshSessions"
                         data-test="session-close-component"
                       />
@@ -139,14 +139,12 @@ import { ref, onMounted, watch, computed } from "vue";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import { formatShortDateTime } from "@/utils/date";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useSessionsStore from "@/store/modules/sessions";
 
 const headers = [
@@ -183,7 +181,6 @@ const headers = [
     value: "actions",
   },
 ];
-const authStore = useAuthStore();
 const sessionsStore = useSessionsStore();
 const router = useRouter();
 const snackbar = useSnackbar();
@@ -217,10 +214,7 @@ const getSessions = async () => {
   }
 };
 
-const hasAuthorizationRemoveRecord = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.session.removeRecord);
-};
+const canRemoveSessionRecord = hasPermission("session:removeRecord");
 
 watch([page, itemsPerPage], async () => {
   await getSessions();

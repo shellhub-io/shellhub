@@ -52,33 +52,27 @@
 
 <script setup lang="ts">
 import { computed, onBeforeMount } from "vue";
-import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import NotificationsList from "./NotificationsList.vue";
-import useAuthStore from "@/store/modules/auth";
 import useNotificationsStore from "@/store/modules/notifications";
 
-const authStore = useAuthStore();
 const notificationsStore = useNotificationsStore();
 const snackbar = useSnackbar();
 const notifications = computed(() => notificationsStore.notifications);
 const notificationCount = computed(() => notificationsStore.notificationCount);
-const canViewNotifications = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.notification.view);
-});
-const showNotifications = computed(() => notificationCount.value > 0 && canViewNotifications.value);
+const canViewNotifications = hasPermission("notification:view");
+const showNotifications = computed(() => notificationCount.value > 0 && canViewNotifications);
 const emptyCardMessage = computed(() => (
-  canViewNotifications.value ? "You don't have notifications" : "You don't have permission to view notifications"
+  canViewNotifications ? "You don't have notifications" : "You don't have permission to view notifications"
 ));
 
 const fetchNotifications = async () => {
   try {
     await notificationsStore.fetchNotifications();
   } catch (error: unknown) {
-    if (canViewNotifications.value) {
+    if (canViewNotifications) {
       snackbar.showError("Failed to load notifications.");
       handleError(error);
     }

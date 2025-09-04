@@ -3,7 +3,7 @@
     hide-details
     inset
     v-model="isSessionRecordingEnabled"
-    :disabled="!hasAuthorization"
+    :disabled="!canUpdateSessionRecording"
     color="primary"
     data-test="session-recording-switch"
   />
@@ -12,15 +12,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useSessionRecordingStore from "@/store/modules/session_recording";
 
 const { tenantId } = defineProps<{ tenantId: string }>();
 
-const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const sessionRecordingStore = useSessionRecordingStore();
 
@@ -46,10 +43,7 @@ const isSessionRecordingEnabled = computed({
   },
 });
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.enableSessionRecord);
-});
+const canUpdateSessionRecording = hasPermission("namespace:updateSessionRecording");
 
 onMounted(async () => {
   try {

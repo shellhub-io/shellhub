@@ -79,13 +79,13 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationFormDialogEdit()"
+                  :disabled="canEditFirewallRule"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <FirewallRuleEdit
                         :firewallRule="item"
-                        :hasAuthorization="hasAuthorizationFormDialogEdit()"
+                        :hasAuthorization="canEditFirewallRule"
                         @update="refreshFirewallRules"
                       />
                     </div>
@@ -96,7 +96,7 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationFormDialogRemove()"
+                  :disabled="canRemoveFirewallRule"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
@@ -104,7 +104,7 @@
                         v-if="item.id"
                         :id="item.id"
                         @update="refreshFirewallRules"
-                        :hasAuthorization="hasAuthorizationFormDialogEdit()"
+                        :hasAuthorization="canEditFirewallRule"
                       />
                     </div>
                   </template>
@@ -122,7 +122,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import { actions, authorizer } from "@/authorizer";
 import isHostname from "@/utils/isHostname";
 import { capitalizeText, displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import showTag from "@/utils/tag";
@@ -132,7 +131,6 @@ import FirewallRuleDelete from "./FirewallRuleDelete.vue";
 import FirewallRuleEdit from "./FirewallRuleEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const headers = [
@@ -166,7 +164,6 @@ const headers = [
   },
 ];
 
-const authStore = useAuthStore();
 const firewallRulesStore = useFirewallRulesStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
@@ -211,10 +208,7 @@ const refreshFirewallRules = async () => {
   }
 };
 
-const hasAuthorizationFormDialogEdit = () => hasPermission(authorizer.role[authStore.role], actions.firewall.edit);
+const canEditFirewallRule = hasPermission("firewall:edit");
 
-const hasAuthorizationFormDialogRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.remove);
-};
+const canRemoveFirewallRule = hasPermission("firewall:remove");
 </script>

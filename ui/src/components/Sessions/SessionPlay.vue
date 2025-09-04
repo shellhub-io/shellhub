@@ -46,13 +46,11 @@ import {
   ref,
 } from "vue";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
 import Player from "./Player.vue";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useSessionsStore from "@/store/modules/sessions";
 import useUsersStore from "@/store/modules/users";
 
@@ -63,7 +61,6 @@ const props = defineProps<{
 }>();
 
 const showDialog = ref(false);
-const authStore = useAuthStore();
 const sessionsStore = useSessionsStore();
 const usersStore = useUsersStore();
 const snackbar = useSnackbar();
@@ -75,12 +72,9 @@ const tooltipMessage = props.recorded
   ? "You don't have permission to play this session."
   : "This session was not recorded.";
 
-const hasAuthorizationToPlay = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.session.play);
-};
+const canPlaySession = hasPermission("session:play");
 
-const disableTooltip = computed(() => isCommunity || (hasAuthorizationToPlay() && props.recorded));
+const disableTooltip = computed(() => isCommunity || (canPlaySession && props.recorded));
 
 const getSessionLogs = async () => {
   if (!props.recorded) return false;
