@@ -91,7 +91,7 @@ import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
-import { formatFullDateTime } from "../../hooks/date";
+import { formatFullDateTime } from "@/utils/date";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "../../hooks/tag";
 import handleError from "@/utils/handleError";

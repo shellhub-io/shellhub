@@ -42,7 +42,7 @@ exports[`Public Keys > Renders the component 1`] = `
                   <div>All devices</div>
                 </td>
                 <td class="text-center" data-test="public-key-username">All users</td>
-                <td class="text-center" data-test="public-key-created-at"></td>
+                <td class="text-center" data-test="public-key-created-at">Wed, Jan 1st 25, 12:00:00 am</td>
                 <td class="text-center" data-test="public-key-actions"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" data-test="public-key-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
