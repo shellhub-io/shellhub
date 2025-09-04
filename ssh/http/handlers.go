@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -164,15 +165,9 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	done := sync.OnceFunc(func() {
-		// underlying connection closed by done() after copy
-		defer out.Close()
-
-		logger.Trace("close called on in and out connections")
-	})
+	starTime := time.Now()
 
 	go func() {
-		defer done()
 		defer wg.Done()
 
 		if _, err := io.Copy(conn, out); err != nil {
@@ -183,7 +178,6 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	}()
 
 	go func() {
-		defer done()
 		defer wg.Done()
 
 		if _, err := io.Copy(out, conn); err != nil {
@@ -195,7 +189,9 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 
 	wg.Wait()
 
-	logger.Debug("http proxy is done")
+	logger.WithFields(log.Fields{
+		"duration": time.Since(starTime).String(),
+	}).Info("web endpoint request completed")
 
 	return nil
 }
