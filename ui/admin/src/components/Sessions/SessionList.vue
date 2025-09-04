@@ -93,7 +93,7 @@ import { useRouter } from "vue-router";
 import useSessionsStore from "@admin/store/modules/sessions";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
-import { getTimeFromNow, formatFullDateTime } from "../../hooks/date";
+import { getTimeFromNow, formatFullDateTime } from "@/utils/date";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 
