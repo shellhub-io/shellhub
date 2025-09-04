@@ -38,50 +38,103 @@ func (t *Tunnel) Handle(protocol string, handler Handler) {
 var ErrTunnelDisconnect = errors.New("tunnel disconnected")
 
 type Config struct {
-	// AcceptBacklog is used to limit how many streams may be
+	// YamuxAcceptBacklog is used to limit how many streams may be
 	// waiting an accept.
-	AcceptBacklog int `json:"accept_backlog"`
+	YamuxAcceptBacklog int `json:"yamux_accept_backlog"`
 
 	// EnableKeepalive is used to do a period keep alive
 	// messages using a ping.
-	EnableKeepAlive bool `json:"enable_keep_alive"`
+	YamuxEnableKeepAlive bool `json:"yamux_enable_keep_alive"`
 
-	// KeepAliveInterval is how often to perform the keep alive
-	KeepAliveInterval time.Duration `json:"keep_alive_interval"`
+	// YamuxKeepAliveInterval is how often to perform the keep alive
+	YamuxKeepAliveInterval time.Duration `json:"yamux_keep_alive_interval"`
 
-	// ConnectionWriteTimeout is meant to be a "safety valve" timeout after
+	// YamuxConnectionWriteTimeout is meant to be a "safety valve" timeout after
 	// we which will suspect a problem with the underlying connection and
 	// close it. This is only applied to writes, where's there's generally
 	// an expectation that things will move along quickly.
-	ConnectionWriteTimeout time.Duration `json:"connection_write_timeout"`
+	YamuxConnectionWriteTimeout time.Duration `json:"yamux_connection_write_timeout"`
 
-	// MaxStreamWindowSize is used to control the maximum
+	// YamuxMaxStreamWindowSize is used to control the maximum
 	// window size that we allow for a stream.
-	MaxStreamWindowSize uint32 `json:"max_stream_window_size"`
+	YamuxMaxStreamWindowSize uint32 `json:"yamux_max_stream_window_size"`
 
-	// StreamOpenTimeout is the maximum amount of time that a stream will
+	// YamuxStreamOpenTimeout is the maximum amount of time that a stream will
 	// be allowed to remain in pending state while waiting for an ack from the peer.
 	// Once the timeout is reached the session will be gracefully closed.
-	// A zero value disables the StreamOpenTimeout allowing unbounded
+	// A zero value disables the YamuxStreamOpenTimeout allowing unbounded
 	// blocking on OpenStream calls.
-	StreamOpenTimeout time.Duration `json:"stream_open_timeout"`
+	YamuxStreamOpenTimeout time.Duration `json:"yamux_stream_open_timeout"`
 
-	// StreamCloseTimeout is the maximum time that a stream will allowed to
+	// YamuxStreamCloseTimeout is the maximum time that a stream will allowed to
 	// be in a half-closed state when `Close` is called before forcibly
 	// closing the connection. Forcibly closed connections will empty the
 	// receive buffer, drop any future packets received for that stream,
 	// and send a RST to the remote side.
-	StreamCloseTimeout time.Duration `json:"stream_close_timeout"`
+	YamuxStreamCloseTimeout time.Duration `json:"yamux_stream_close_timeout"`
+}
+
+// NewConfigFromMap creates a new Config from a map[string]any received from auth data from the server
+// or returns the default config if the map is nil. If a key is missing, the default value is used.
+func NewConfigFromMap(m map[string]any) *Config {
+	cfg := DefaultConfig
+
+	if v, ok := m["yamux_accept_backlog"].(int); ok {
+		cfg.YamuxAcceptBacklog = v
+	}
+
+	if v, ok := m["yamux_enable_keep_alive"].(bool); ok {
+		cfg.YamuxEnableKeepAlive = v
+	}
+
+	if v, ok := m["yamux_keep_alive_interval"].(time.Duration); ok {
+		cfg.YamuxKeepAliveInterval = v
+	}
+
+	if v, ok := m["yamux_connection_write_timeout"].(time.Duration); ok {
+		cfg.YamuxConnectionWriteTimeout = v
+	}
+
+	if v, ok := m["yamux_max_stream_window_size"].(uint32); ok {
+		cfg.YamuxMaxStreamWindowSize = v
+	}
+
+	if v, ok := m["yamux_stream_open_timeout"].(time.Duration); ok {
+		cfg.YamuxStreamOpenTimeout = v
+	}
+
+	if v, ok := m["yamux_stream_close_timeout"].(time.Duration); ok {
+		cfg.YamuxStreamCloseTimeout = v
+	}
+
+	return &cfg
+}
+
+func YamuxConfigFromConfig(cfg *Config) *yamux.Config {
+	if cfg == nil {
+		cfg = &DefaultConfig
+	}
+
+	return &yamux.Config{
+		AcceptBacklog:          cfg.YamuxAcceptBacklog,
+		EnableKeepAlive:        cfg.YamuxEnableKeepAlive,
+		KeepAliveInterval:      cfg.YamuxKeepAliveInterval,
+		ConnectionWriteTimeout: cfg.YamuxConnectionWriteTimeout,
+		MaxStreamWindowSize:    cfg.YamuxMaxStreamWindowSize,
+		StreamCloseTimeout:     cfg.YamuxStreamCloseTimeout,
+		StreamOpenTimeout:      cfg.YamuxStreamOpenTimeout,
+		LogOutput:              os.Stderr,
+	}
 }
 
 var DefaultConfig = Config{
-	AcceptBacklog:          256,
-	EnableKeepAlive:        true,
-	KeepAliveInterval:      35 * time.Second,
-	ConnectionWriteTimeout: 15 * time.Second,
-	MaxStreamWindowSize:    256 * 1024,
-	StreamCloseTimeout:     5 * time.Minute,
-	StreamOpenTimeout:      75 * time.Second,
+	YamuxAcceptBacklog:          256,
+	YamuxEnableKeepAlive:        true,
+	YamuxKeepAliveInterval:      35 * time.Second,
+	YamuxConnectionWriteTimeout: 15 * time.Second,
+	YamuxMaxStreamWindowSize:    256 * 1024,
+	YamuxStreamCloseTimeout:     5 * time.Minute,
+	YamuxStreamOpenTimeout:      75 * time.Second,
 }
 
 func (t *Tunnel) Listen(conn net.Conn, cfg *Config) error {
@@ -89,20 +142,32 @@ func (t *Tunnel) Listen(conn net.Conn, cfg *Config) error {
 		cfg = &DefaultConfig
 	}
 
-	session, err := yamux.Server(conn, &yamux.Config{
-		AcceptBacklog:          cfg.AcceptBacklog,
-		EnableKeepAlive:        cfg.EnableKeepAlive,
-		KeepAliveInterval:      cfg.KeepAliveInterval,
-		ConnectionWriteTimeout: cfg.ConnectionWriteTimeout,
-		MaxStreamWindowSize:    cfg.MaxStreamWindowSize,
-		StreamCloseTimeout:     cfg.StreamCloseTimeout,
-		StreamOpenTimeout:      cfg.StreamOpenTimeout,
-		LogOutput:              os.Stderr,
-	})
-	if err != nil {
-		log.WithError(err).Error("failed to create muxed session")
+	var session *yamux.Session
+	var err error
 
-		return err
+	session, err = yamux.Server(conn, YamuxConfigFromConfig(cfg))
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"yamux_accept_backlog":           cfg.YamuxAcceptBacklog,
+			"yamux_enable_keep_alive":        cfg.YamuxEnableKeepAlive,
+			"yamux_keep_alive_interval":      cfg.YamuxKeepAliveInterval,
+			"yamux_connection_write_timeout": cfg.YamuxConnectionWriteTimeout,
+			"yamux_max_stream_window_size":   cfg.YamuxMaxStreamWindowSize,
+			"yamux_stream_close_timeout":     cfg.YamuxStreamCloseTimeout,
+			"yamux_stream_open_timeout":      cfg.YamuxStreamOpenTimeout,
+		}).Error("failed to create muxed session")
+
+		// NOTE: If we fail to create the session, we should try again with the [DefaultConfig] as the client
+		// could be using different settings.
+		log.WithError(err).Warning("trying to create muxed session with default config")
+		session, err = yamux.Server(conn, YamuxConfigFromConfig(&DefaultConfig))
+		if err != nil {
+			log.WithError(err).Error("failed to create muxed session with default config")
+
+			return err
+		}
+
+		log.WithError(err).Warning("muxed session created with default config due to error with custom config")
 	}
 
 	for {
