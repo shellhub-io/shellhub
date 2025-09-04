@@ -64,13 +64,13 @@ exports[`Details Sessions > Renders the component 1`] = `
     <div>
       <div class="text-overline mt-3">Started:</div>
       <div data-test="sessionStartedAt-field">
-        <p></p>
+        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
       </div>
     </div>
     <div>
       <div>Last seen:</div>
       <div data-test="sessionLastSeen-field">
-        <p></p>
+        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
       </div>
     </div>
   </div>
