@@ -646,7 +646,7 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 			a.listening <- true
 
-			if err := a.tunnel.Listen(conn, &tunnel.DefaultConfig); err != nil {
+			if err := a.tunnel.Listen(conn, tunnel.NewConfigFromMap(a.authData.Config)); err != nil {
 				logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
