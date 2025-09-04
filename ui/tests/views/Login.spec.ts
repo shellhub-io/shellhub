@@ -23,9 +23,7 @@ describe("Login", () => {
     envVariables.isCloud = true;
 
     wrapper = mount(Login, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+      global: { plugins: [vuetify, router, SnackbarPlugin] },
     });
   });
 
@@ -53,7 +51,12 @@ describe("Login", () => {
   });
 
   it("Renders enterprise only fragments", async () => {
+    wrapper.unmount();
+    envVariables.isCloud = false;
     envVariables.isEnterprise = true;
+    wrapper = mount(Login, {
+      global: { plugins: [vuetify, router, SnackbarPlugin] },
+    });
 
     await flushPromises();
 
@@ -61,7 +64,7 @@ describe("Login", () => {
     expect(wrapper.find('[data-test="or-divider-sso"]').exists()).toBe(true);
   });
 
-  it("disables fields and login button when envVariables.isEnterprise is true", async () => {
+  it("disables fields and login button when isEnterprise is true", async () => {
     envVariables.isCloud = false;
     envVariables.isEnterprise = true;
 
@@ -215,9 +218,9 @@ describe("Login", () => {
       wrapper.findComponent('[data-test="username-text"]').setValue(username);
       wrapper.findComponent('[data-test="password-text"]').setValue("wrongpassword");
       wrapper.findComponent('[data-test="form"]').trigger("submit");
-      // eslint-disable-next-line no-await-in-loop
-      await flushPromises();
     }
+
+    await flushPromises();
 
     // Ensure the account is locked out
     expect(wrapper.findComponent('[data-test="invalid-login-alert"]').exists()).toBeTruthy();
