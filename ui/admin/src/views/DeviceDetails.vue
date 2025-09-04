@@ -124,7 +124,7 @@ import { useRoute } from "vue-router";
 import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminDevice } from "../interfaces/IDevice";
-import displayOnlyTenCharacters from "../hooks/string";
+import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "../hooks/tag";
 
 const route = useRoute();

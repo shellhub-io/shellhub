@@ -124,7 +124,7 @@ import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
 import { Filter, HostnameFilter } from "@/interfaces/IFilter";
-import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
+import { capitalizeText, displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";
 import DataTable from "../DataTable.vue";
@@ -210,12 +210,6 @@ const refreshFirewallRules = async () => {
     handleError(error);
   }
 };
-
-const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
-
-const formatUsername = (username: string) => username === ".*" ? "All users" : username;
-
-const formatHostnameFilter = (filter: HostnameFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
 const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
 

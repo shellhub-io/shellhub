@@ -99,7 +99,7 @@ import { AdminFilter, AdminHostnameFilter } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminFirewallRule } from "../interfaces/IFirewallRule";
 import showTag from "../hooks/tag";
-import displayOnlyTenCharacters from "../hooks/string";
+import { displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -118,12 +118,6 @@ onMounted(async () => {
 });
 
 const firewallRuleIsEmpty = computed(() => !firewallRulesStore.getFirewall || !firewallRulesStore.getFirewall.id);
-
-const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
-
-const formatUsername = (username: string) => (username === ".*" ? "All users" : username);
-
-const formatHostnameFilter = (filter: AdminHostnameFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
 
 const isHostname = (filter: AdminFilter): filter is AdminHostnameFilter => "hostname" in filter;
 

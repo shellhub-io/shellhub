@@ -92,7 +92,7 @@ import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import { formatFullDateTime } from "../../hooks/date";
-import displayOnlyTenCharacters from "../../hooks/string";
+import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "../../hooks/tag";
 import handleError from "@/utils/handleError";
 
