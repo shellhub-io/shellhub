@@ -10,6 +10,7 @@ import { webEndpointsApi } from "@/api/http";
 import { router } from "@/router";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 import { IWebEndpoint } from "@/interfaces/IWebEndpoints";
+import useAuthStore from "@/store/modules/auth";
 
 type WebEndpointsWrapper = VueWrapper<InstanceType<typeof WebEndpoints>>;
 
@@ -36,6 +37,7 @@ describe("WebEndpoints.vue", () => {
   let wrapper: WebEndpointsWrapper;
   const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
   setActivePinia(createPinia());
+  const authStore = useAuthStore();
   const webEndpointsStore = useWebEndpointsStore();
   const vuetify = createVuetify();
 
@@ -44,6 +46,7 @@ describe("WebEndpoints.vue", () => {
       .onGet("http://localhost:3000/api/web-endpoints?page=1&per_page=10")
       .reply(200, mockWebEndpoints, { "x-total-count": "1" });
 
+    authStore.role = "owner";
     await webEndpointsStore.fetchWebEndpointsList();
 
     wrapper = mount(WebEndpoints, {

@@ -28,12 +28,12 @@
               />
             </template>
             <v-list class="bg-v-theme-surface" lines="two" density="compact">
-              <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorizationEdit()">
+              <v-tooltip location="bottom" class="text-center" :disabled="canEditTag">
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <TagEdit
                       :tag="tag"
-                      :has-authorization="hasAuthorizationEdit()"
+                      :has-authorization="canEditTag"
                       @update="getTags()"
                     />
                   </div>
@@ -41,12 +41,12 @@
                 <span> You don't have this kind of authorization. </span>
               </v-tooltip>
 
-              <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorizationRemove()">
+              <v-tooltip location="bottom" class="text-center" :disabled="canRemoveTag">
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <TagRemove
                       :tag="tag"
-                      :has-authorization="hasAuthorizationRemove()"
+                      :has-authorization="canRemoveTag"
                       @update="getTags()"
                     />
                   </div>
@@ -66,16 +66,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useTagsStore from "@/store/modules/tags";
 
-const authStore = useAuthStore();
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const headers = ref([
@@ -95,15 +92,9 @@ const headers = ref([
 
 const tags = computed(() => tagsStore.tags);
 
-const hasAuthorizationEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.edit);
-};
+const canEditTag = hasPermission("tag:edit");
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.remove);
-};
+const canRemoveTag = hasPermission("tag:remove");
 
 const getTags = async () => {
   try {

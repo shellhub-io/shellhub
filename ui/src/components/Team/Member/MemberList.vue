@@ -69,14 +69,14 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationEditMember()"
+                  :disabled="canEditMember"
                 >
                   <template v-slot:activator="{ props }">
                     <div :v-bind="props">
                       <MemberEdit
                         :member="member"
                         @update="refresh"
-                        :hasAuthorization="hasAuthorizationEditMember()"
+                        :hasAuthorization="canEditMember"
                       />
                     </div>
                   </template>
@@ -86,14 +86,14 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationRemoveMember()"
+                  :disabled="canRemoveMember"
                 >
                   <template v-slot:activator="{ props }">
                     <div :v-bind="props">
                       <MemberDelete
                         :member="member"
                         @update="refresh"
-                        :hasAuthorization="hasAuthorizationRemoveMember()"
+                        :hasAuthorization="canRemoveMember"
                       />
                     </div>
                   </template>
@@ -121,7 +121,6 @@ import { computed } from "vue";
 import axios, { AxiosError } from "axios";
 import { formatFullDateTime } from "@/utils/date";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import MemberDelete from "./MemberDelete.vue";
 import MemberEdit from "./MemberEdit.vue";
 import handleError from "@/utils/handleError";
@@ -158,15 +157,9 @@ const snackbar = useSnackbar();
 const tenant = authStore.tenantId;
 const members = computed(() => namespacesStore.currentNamespace.members);
 
-const hasAuthorizationEditMember = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.editMember);
-};
+const canEditMember = hasPermission("namespace:editMember");
 
-const hasAuthorizationRemoveMember = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.removeMember);
-};
+const canRemoveMember = hasPermission("namespace:removeMember");
 
 const getNamespace = async () => {
   try {

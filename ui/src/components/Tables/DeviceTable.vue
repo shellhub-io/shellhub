@@ -130,14 +130,14 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationFormUpdate()"
+                  :disabled="canUpdateDeviceTag"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <TagFormUpdate
                         :device-uid="item.uid"
                         :tags-list="item.tags"
-                        :has-authorization="hasAuthorizationFormUpdate()"
+                        :has-authorization="canUpdateDeviceTag"
                         @update="refreshDevices"
                       />
                     </div>
@@ -148,14 +148,14 @@
                 <v-tooltip
                   location="bottom"
                   class="text-center"
-                  :disabled="hasAuthorizationRemove()"
+                  :disabled="canRemoveDevice"
                 >
                   <template v-slot:activator="{ props }">
                     <div v-bind="props">
                       <DeviceDelete
                         :variant
                         :uid="item.uid"
-                        :hasAuthorization="hasAuthorizationRemove()"
+                        :hasAuthorization="canRemoveDevice"
                         @update="refreshDevices"
                       />
                     </div>
@@ -256,7 +256,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import { actions, authorizer } from "@/authorizer";
 import DataTable from "../DataTable.vue";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
 import DeviceActionButton from "../Devices/DeviceActionButton.vue";
@@ -393,15 +392,9 @@ const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
   copyFn(getSshid(item));
 };
 
-const hasAuthorizationFormUpdate = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
-};
+const canUpdateDeviceTag = hasPermission("tag:update");
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.device.remove);
-};
+const canRemoveDevice = hasPermission("device:remove");
 
 const getSortOrder = () => {
   const currentOrder = sortOrder.value;

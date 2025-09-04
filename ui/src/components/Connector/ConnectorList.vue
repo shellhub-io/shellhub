@@ -86,7 +86,7 @@
               <v-tooltip
                 location="bottom"
                 class="text-center"
-                :disabled="hasAuthorizationEdit()"
+                :disabled="canEditConnector"
               >
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
@@ -95,7 +95,7 @@
                       :secure="item.secure"
                       :portAddress="item.port"
                       :uid="item.uid"
-                      :hasAuthorization="hasAuthorizationEdit()"
+                      :hasAuthorization="canEditConnector"
                       @update="refresh()"
                     />
                   </div>
@@ -106,13 +106,13 @@
               <v-tooltip
                 location="bottom"
                 class="text-center"
-                :disabled="hasAuthorizationRemove()"
+                :disabled="canRemoveConnector"
               >
                 <template v-slot:activator="{ props }">
                   <div v-bind="props">
                     <ConnectorDelete
                       :uid="item.uid"
-                      :hasAuthorization="hasAuthorizationRemove()"
+                      :hasAuthorization="canRemoveConnector"
                       @update="refresh()"
                     />
                   </div>
@@ -136,11 +136,9 @@ import ConnectorDelete from "../Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../Connector/ConnectorEdit.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { router } from "@/router";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useConnectorStore from "@/store/modules/connectors";
 import { IConnector } from "@/interfaces/IConnector";
 
@@ -170,19 +168,12 @@ const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
-const authStore = useAuthStore();
 const connectorStore = useConnectorStore();
 const { connectors, connectorCount } = storeToRefs(connectorStore);
 
-const hasAuthorizationEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
-};
+const canEditConnector = hasPermission("connector:edit");
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
-};
+const canRemoveConnector = hasPermission("connector:remove");
 
 const getConnectors = async () => {
   try {

@@ -27,7 +27,7 @@
         aria-label="Tunnel Create Dialog"
         @keypress.enter="showWebEndpointCreate = true"
         data-test="tunnel-create-dialog-btn"
-        :disabled="!hasAuthorizationCreateWebEndpoint"
+        :disabled="!canCreateWebEndpoint"
       >
         Create Web Endpoint
       </v-btn>
@@ -54,7 +54,7 @@
         aria-label="Tunnel Create Dialog"
         @keypress.enter="showWebEndpointCreate = true"
         data-test="tunnel-create-dialog-btn"
-        :disabled="!hasAuthorizationCreateWebEndpoint"
+        :disabled="!canCreateWebEndpoint"
       >
         Create Web Endpoint
       </v-btn>
@@ -70,22 +70,16 @@ import WebEndpointList from "@/components/WebEndpoints/WebEndpointList.vue";
 import NoItemsMessage from "@/components/NoItemsMessage.vue";
 import useSnackbar from "@/helpers/snackbar";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
-import useAuthStore from "@/store/modules/auth";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
-const authStore = useAuthStore();
 const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
 const filter = ref("");
 const showList = computed(() => webEndpointsStore.showWebEndpoints);
 const showWebEndpointCreate = ref(false);
 
-const hasAuthorizationCreateWebEndpoint = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
-};
+const canCreateWebEndpoint = hasPermission("webEndpoint:create");
 
 const searchWebEndpoints = async () => {
   const addressFilter = [{

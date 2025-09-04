@@ -71,6 +71,7 @@ describe("Setting Namespace", () => {
     mockUsersApi.onGet("http://localhost:3000/api/users/security").reply(200, true);
 
     authStore.tenantId = "fake-tenant";
+    authStore.role = "owner";
 
     wrapper = mount(SettingNamespace, {
       global: {

@@ -12,7 +12,7 @@
       Accept
     </v-btn>
     <v-list-item v-else @click="showDialog = true" data-test="list-item">
-      <v-tooltip location="bottom" class="text-center" :disabled="hasAuthorization">
+      <v-tooltip location="bottom" class="text-center" :disabled="canPerformDeviceAction">
         <template v-slot:activator="{ props }">
           <span v-bind="props">
             <v-list-item-title data-test="action-item">
@@ -52,13 +52,11 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { AxiosError } from "axios";
-import { authorizer, actions } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { capitalizeText } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
 import useNotificationsStore from "@/store/modules/notifications";
@@ -78,7 +76,6 @@ const props = withDefaults(defineProps<DeviceActionButtonProps>(), {
 });
 
 const emit = defineEmits(["update"]);
-const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
 const { fetchNotifications } = useNotificationsStore();
@@ -89,10 +86,7 @@ const icon = {
   reject: "mdi-close",
   remove: "mdi-delete",
 }[props.action];
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.device[props.action]);
-});
+const canPerformDeviceAction = hasPermission(`device:${props.action}`);
 
 const showDialog = ref(false);
 
@@ -155,7 +149,7 @@ const acceptDevice = async () => {
 };
 
 const handleClick = async () => {
-  if (hasAuthorization.value) {
+  if (canPerformDeviceAction) {
     const currentDeviceAction = {
       accept: acceptDevice,
       reject: rejectDevice,
@@ -169,7 +163,7 @@ const handleClick = async () => {
   }
 };
 
-defineExpose({ showDialog, hasAuthorization });
+defineExpose({ showDialog, canPerformDeviceAction });
 </script>
 
 <style scoped>

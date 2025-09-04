@@ -39,6 +39,7 @@ describe("Public Key List", () => {
   beforeEach(async () => {
     mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, mockPublicKeys);
     publicKeysStore.publicKeys = mockPublicKeys.data;
+    authStore.role = "owner";
     wrapper = mount(PublicKeysList, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
@@ -66,13 +67,18 @@ describe("Public Key List", () => {
   });
 
   it("Handles authorization for editing and removing keys", async () => {
-    authStore.role = "owner";
-    expect(wrapper.vm.hasAuthorizationFormDialogEdit).toBeTruthy();
-    expect(wrapper.vm.hasAuthorizationFormDialogRemove).toBeTruthy();
+    expect(wrapper.vm.canEditPublicKey).toBeTruthy();
+    expect(wrapper.vm.canRemovePublicKey).toBeTruthy();
 
+    wrapper.unmount();
     authStore.role = "observer";
-    expect(wrapper.vm.hasAuthorizationFormDialogEdit).toBeFalsy();
-    expect(wrapper.vm.hasAuthorizationFormDialogRemove).toBeFalsy();
+    wrapper = mount(PublicKeysList, {
+      global: {
+        plugins: [vuetify, router, SnackbarPlugin],
+      },
+    });
+    expect(wrapper.vm.canEditPublicKey).toBeFalsy();
+    expect(wrapper.vm.canRemovePublicKey).toBeFalsy();
   });
 
   it("Checks if the public key list is not empty", () => {

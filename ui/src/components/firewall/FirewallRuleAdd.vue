@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="hasAuthorization">
+    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="canCreateFirewallRule">
       <template v-slot:activator="{ props }">
         <div v-bind="props">
           <v-btn
@@ -9,7 +9,7 @@
             color="primary"
             tabindex="0"
             variant="elevated"
-            :disabled="!hasAuthorization"
+            :disabled="!canCreateFirewallRule"
             data-test="firewall-add-rule-btn"
           >
             Add Rule
@@ -165,20 +165,17 @@ import { computed, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
-import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 import useTagsStore from "@/store/modules/tags";
 import useUsersStore from "@/store/modules/users";
 
 const snackbar = useSnackbar();
-const authStore = useAuthStore();
 const firewallRulesStore = useFirewallRulesStore();
 const tagsStore = useTagsStore();
 const usersStore = useUsersStore();
@@ -253,10 +250,7 @@ const filterSelectOptions = [
   { value: "tags", title: "Restrict rule by device tags" },
 ];
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.create);
-});
+const canCreateFirewallRule = hasPermission("firewall:create");
 
 const setSelectedTagsError = () => {
   if (selectedTags.value.length > 3) selectedTagsError.value = "You can select up to 3 tags only.";

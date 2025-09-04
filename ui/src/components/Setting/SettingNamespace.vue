@@ -24,7 +24,7 @@
               <v-btn
                 v-if="!editDataStatus"
                 @click="editDataStatus = !editDataStatus"
-                :disabled="hasAuthorizationEdit"
+                :disabled="!canRenameNamespace"
                 color="primary"
                 variant="text"
                 class="bg-secondary border"
@@ -192,7 +192,6 @@ import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
@@ -292,10 +291,7 @@ const updateName = async () => {
   }
 };
 
-const hasAuthorizationEdit = computed(() => {
-  const { role } = authStore;
-  return !!role && !hasPermission(authorizer.role[role], actions.namespace.rename);
-});
+const canRenameNamespace = hasPermission("namespace:rename");
 
 onMounted(async () => {
   if (tenantId) await getNamespace();

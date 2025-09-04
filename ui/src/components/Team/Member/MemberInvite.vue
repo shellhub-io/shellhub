@@ -3,12 +3,12 @@
     <v-tooltip
       location="bottom"
       class="text-center"
-      :disabled="hasAuthorization()"
+      :disabled="canAddMember"
     >
       <template v-slot:activator="{ props }">
         <div v-bind="props">
           <v-btn
-            :disabled="!hasAuthorization()"
+            :disabled="!canAddMember"
             color="primary"
             @click="showDialog = true"
             data-test="invite-dialog-btn"
@@ -162,7 +162,6 @@ import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import multiavatar from "@multiavatar/multiavatar";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
@@ -192,10 +191,7 @@ const {
   initialValue: "",
 });
 
-const hasAuthorization = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.addMember);
-};
+const canAddMember = hasPermission("namespace:addMember");
 
 const getAvatar = (index: number) => multiavatar(`${Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - index + 1)) + index}`);
 

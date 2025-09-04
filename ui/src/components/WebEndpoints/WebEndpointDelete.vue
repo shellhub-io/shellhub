@@ -6,7 +6,7 @@
     density="comfortable"
     size="default"
     icon="mdi-delete"
-    :disabled="!hasAuthorizationDeleteWebEndpoint"
+    :disabled="!canDeleteWebEndpoint"
     data-test="web-endpoint-delete-dialog-btn"
   />
   <BaseDialog v-model="showDialog">
@@ -37,11 +37,9 @@
 
 <script setup lang="ts">
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
 defineOptions({
@@ -52,7 +50,6 @@ const props = defineProps<{ address: string }>();
 
 const emit = defineEmits(["update"]);
 const showDialog = defineModel({ default: false });
-const authStore = useAuthStore();
 const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
 
@@ -61,10 +58,7 @@ const update = () => {
   showDialog.value = false;
 };
 
-const hasAuthorizationDeleteWebEndpoint = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.webendpoint.delete);
-};
+const canDeleteWebEndpoint = hasPermission("webEndpoint:delete");
 
 const remove = async () => {
   try {

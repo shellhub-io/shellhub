@@ -111,11 +111,9 @@ import { envVariables } from "@/envVariables";
 import { IConnectorPayload } from "@/interfaces/IConnector";
 import { parseCertificate, parsePrivateKey } from "@/utils/sshKeys";
 import hasPermission from "@/utils/permission";
-import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
 import useUsersStore from "@/store/modules/users";
 
 const props = defineProps<{
@@ -127,7 +125,6 @@ const props = defineProps<{
   initialSecure?: boolean;
 }>();
 
-const authStore = useAuthStore();
 const usersStore = useUsersStore();
 const showDialog = defineModel<boolean>({ default: false });
 const emit = defineEmits(["update"]);
@@ -136,10 +133,7 @@ const snackbar = useSnackbar();
 // eslint-disable-next-line vue/max-len
 const ipAddressRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})$/;
 
-const hasAuthorizationAdd = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.add);
-};
+const canAddConnector = hasPermission("connector:add");
 
 const {
   value: address,
@@ -192,7 +186,7 @@ const key = ref<File>();
 const keyError = ref<string>("");
 
 // eslint-disable-next-line vue/max-len
-const hasError = computed(() => !!addressError.value || !!portError.value || !!keyError.value || !!certificateError.value || !!caCertificateError.value || !hasAuthorizationAdd() || (isSecure.value && (!caCertificate.value || !certificate.value || !key.value)));
+const hasError = computed(() => !!addressError.value || !!portError.value || !!keyError.value || !!certificateError.value || !!caCertificateError.value || !canAddConnector || (isSecure.value && (!caCertificate.value || !certificate.value || !key.value)));
 
 const readFile = async (file) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();

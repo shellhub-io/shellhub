@@ -1,6 +1,6 @@
 <template>
   <BaseDialog
-    v-if="hasAuthorization"
+    v-if="canSubscribeToBilling"
     v-model="showWarningDialog"
     transition="dialog-bottom-transition"
     data-test="billing-warning-dialog"
@@ -40,19 +40,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
 import BaseDialog from "../BaseDialog.vue";
-import useAuthStore from "@/store/modules/auth";
-
-const authStore = useAuthStore();
 
 const showWarningDialog = defineModel({ default: false });
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
-});
+const canSubscribeToBilling = hasPermission("billing:subscribe");
 
 const close = () => { showWarningDialog.value = false; };
 </script>

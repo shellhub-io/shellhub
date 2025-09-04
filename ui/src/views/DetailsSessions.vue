@@ -33,7 +33,7 @@
             <v-tooltip
               location="bottom"
               class="text-center"
-              :disabled="hasAuthorizationPlay()"
+              :disabled="canPlaySession"
               data-test="sessionPlay-tooltip"
             >
               <template v-slot:activator="{ props }">
@@ -53,7 +53,7 @@
             <v-tooltip
               location="bottom"
               class="text-center"
-              :disabled="hasAuthorizationRemoveRecord()"
+              :disabled="canRemoveSessionRecord"
               data-test="session-close-tooltip"
             >
               <template v-slot:activator="{ props }">
@@ -62,7 +62,7 @@
                     v-if="session.active"
                     :uid="session.uid"
                     :device="session.device"
-                    :hasAuthorization="hasAuthorizationRemoveRecord()"
+                    :hasAuthorization="canRemoveSessionRecord"
                     @update="getSession"
                     data-test="session-close-component"
                   />
@@ -74,7 +74,7 @@
             <v-tooltip
               location="bottom"
               class="text-center"
-              :disabled="hasAuthorizationRemoveRecord()"
+              :disabled="canRemoveSessionRecord"
               data-test="session-delete-tooltip"
             >
               <template v-slot:activator="{ props }">
@@ -82,7 +82,7 @@
                   <SessionDelete
                     v-if="session.uid"
                     :uid="session.uid"
-                    :hasAuthorization="hasAuthorizationRemoveRecord()"
+                    :hasAuthorization="canRemoveSessionRecord"
                     @update="getSession"
                     data-test="session-delete-record-component"
                   />
@@ -163,23 +163,22 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { formatFullDateTime, getTimeFromNow } from "..//utils/date";
-import hasPermission from "..//utils/permission";
-import { authorizer, actions } from "../authorizer";
-import SessionDelete from "../components/Sessions/SessionDelete.vue";
-import SessionClose from "../components/Sessions/SessionClose.vue";
-import SessionPlay from "../components/Sessions/SessionPlay.vue";
+import { formatFullDateTime, getTimeFromNow } from "@/utils/date";
+import hasPermission from "@/utils/permission";
+import SessionDelete from "@/components/Sessions/SessionDelete.vue";
+import SessionClose from "@/components/Sessions/SessionClose.vue";
+import SessionPlay from "@/components/Sessions/SessionPlay.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useSessionsStore from "@/store/modules/sessions";
 
-const authStore = useAuthStore();
 const sessionsStore = useSessionsStore();
 const route = useRoute();
 const snackbar = useSnackbar();
 const sessionId = computed(() => route.params.id as string);
 const session = computed(() => sessionsStore.session);
+const canRemoveSessionRecord = hasPermission("session:removeRecord");
+const canPlaySession = hasPermission("session:play");
 
 const getSession = async () => {
   try {
@@ -193,14 +192,4 @@ const getSession = async () => {
 onMounted(async () => {
   await getSession();
 });
-
-const hasAuthorizationRemoveRecord = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.session.removeRecord);
-};
-
-const hasAuthorizationPlay = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.session.play);
-};
 </script>
