@@ -109,7 +109,7 @@ import * as yup from "yup";
 import { computed, ref, watch } from "vue";
 import { envVariables } from "@/envVariables";
 import { IConnectorPayload } from "@/interfaces/IConnector";
-import { parseCertificate, parsePrivateKeySsh } from "@/utils/validate";
+import { parseCertificate, parsePrivateKey } from "@/utils/sshKeys";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
@@ -213,7 +213,7 @@ const validateFile = async (certificate, type) => {
     const content = await readFile(certificate);
     switch (type) {
       case "key":
-        parsePrivateKeySsh(content);
+        parsePrivateKey(content);
         break;
       case "ca":
         parseCertificate(content);

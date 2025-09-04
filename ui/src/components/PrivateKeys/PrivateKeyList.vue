@@ -63,7 +63,7 @@ import PrivateKeyDelete from "./PrivateKeyDelete.vue";
 import PrivateKeyEdit from "./PrivateKeyEdit.vue";
 import handleError from "@/utils/handleError";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
-import { convertToFingerprint } from "@/utils/validate";
+import { convertToFingerprint } from "@/utils/sshKeys";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const privateKeysStore = usePrivateKeysStore();

@@ -178,7 +178,7 @@ import { useField } from "vee-validate";
 import * as yup from "yup";
 import { IAdminSAMLConfig } from "@admin/interfaces/IInstance";
 import useSnackbar from "@/helpers/snackbar";
-import { validateX509Certificate } from "@/utils/validate";
+import { isX509CertificateValid } from "@/utils/sshKeys";
 import BaseDialog from "@/components/BaseDialog.vue";
 
 const useMetadataUrl = ref(false);
@@ -246,10 +246,7 @@ const close = () => {
   resetFields();
 };
 
-const isCertificateValid = computed(() => {
-  if (!x509Certificate.value.trim()) return false;
-  return validateX509Certificate(x509Certificate.value);
-});
+const isCertificateValid = computed(() => isX509CertificateValid(x509Certificate.value));
 
 const handleCertificateChange = (value: string) => {
   x509Certificate.value = value.trim();
@@ -267,7 +264,7 @@ const handleCertificateChange = (value: string) => {
     return;
   }
 
-  if (!validateX509Certificate(x509Certificate.value)) {
+  if (!isCertificateValid.value) {
     x509CertificateErrorMessage.value = "Invalid X.509 certificate.";
     return;
   }
