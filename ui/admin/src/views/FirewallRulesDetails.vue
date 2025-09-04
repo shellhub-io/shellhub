@@ -95,7 +95,7 @@
 import { computed, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
-import { AdminFilter, AdminHostnameFilter } from "@admin/interfaces/IFilter";
+import isHostname from "@/utils/isHostname";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminFirewallRule } from "../interfaces/IFirewallRule";
 import showTag from "@/utils/tag";
@@ -118,8 +118,6 @@ onMounted(async () => {
 });
 
 const firewallRuleIsEmpty = computed(() => !firewallRulesStore.getFirewall || !firewallRulesStore.getFirewall.id);
-
-const isHostname = (filter: AdminFilter): filter is AdminHostnameFilter => "hostname" in filter;
 
 defineExpose({ firewallRule });
 </script>

@@ -116,7 +116,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { actions, authorizer } from "@/authorizer";
-import { Filter, HostnameFilter } from "@/interfaces/IFilter";
+import isHostname from "@/utils/isHostname";
 import hasPermission from "@/utils/permission";
 import {
   displayOnlyTenCharacters,
@@ -198,8 +198,6 @@ watch([page, itemsPerPage], async () => {
 const refreshPublicKeys = async () => {
   await getPublicKeysList();
 };
-
-const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
 
 defineExpose({ publicKeys, hasAuthorizationFormDialogEdit, hasAuthorizationFormDialogRemove });
 </script>
