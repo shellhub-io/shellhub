@@ -1,10 +1,3 @@
-const showTag = (str: string) => {
-  if (str !== undefined) {
-    if (str.length > 10) {
-      return true;
-    }
-  }
-  return false;
-};
+const showTag = (tag: string) => tag.length > 10;
 
 export default showTag;
