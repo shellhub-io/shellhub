@@ -106,7 +106,7 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	logger := log.WithFields(log.Fields{
 		"request-id": requestID,
 		"namespace":  endpoint.Namespace,
-		"device":     endpoint.Device,
+		"device":     endpoint.DeviceUID,
 	})
 
 	// Prepare V1 CONNECT handshake request (only used if version=V1 inside target implementation)
