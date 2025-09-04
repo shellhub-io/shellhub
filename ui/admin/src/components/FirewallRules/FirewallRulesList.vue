@@ -82,7 +82,7 @@ import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import { AdminFilter, AdminHostnameFilter } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
-import showTag from "../../hooks/tag";
+import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import handleError from "@/utils/handleError";
 

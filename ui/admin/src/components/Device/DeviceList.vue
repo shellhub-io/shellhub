@@ -93,7 +93,7 @@ import DataTable from "@/components/DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import { formatFullDateTime } from "@/utils/date";
 import { displayOnlyTenCharacters } from "@/utils/string";
-import showTag from "../../hooks/tag";
+import showTag from "@/utils/tag";
 import handleError from "@/utils/handleError";
 
 const router = useRouter();

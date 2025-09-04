@@ -150,7 +150,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { displayOnlyTenCharacters } from "../utils/string";
-import showTag from "../utils/tag";
+import showTag from "@/utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
