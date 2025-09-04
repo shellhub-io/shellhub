@@ -40,9 +40,9 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import { saveAs } from "file-saver";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import getFilter from "@admin/hooks/namespaceExport";
 import { AdminNamespaceFilterOptions } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
+import getFilter from "@/utils/namespaceExport";
 import handleError from "@/utils/handleError";
 import BaseDialog from "@/components/BaseDialog.vue";
 
