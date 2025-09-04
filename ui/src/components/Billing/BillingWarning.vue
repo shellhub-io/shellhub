@@ -49,10 +49,7 @@ import useAuthStore from "@/store/modules/auth";
 const authStore = useAuthStore();
 
 const showWarningDialog = defineModel({ default: false });
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.billing.subscribe));
 
 const close = () => { showWarningDialog.value = false; };
 </script>

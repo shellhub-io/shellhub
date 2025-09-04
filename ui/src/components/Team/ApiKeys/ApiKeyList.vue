@@ -125,10 +125,7 @@ const authStore = useAuthStore();
 const snackbar = useSnackbar();
 const apiKeysCount = computed(() => apiKeyStore.apiKeysCount);
 const apiKeys = computed(() => apiKeyStore.apiKeys);
-const hasAuthorizationRemoveKey = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.apiKey.delete);
-};
+const hasAuthorizationRemoveKey = () => hasPermission(authorizer.role[authStore.role], actions.apiKey.delete);
 
 const now = moment().utc();
 

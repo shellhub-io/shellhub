@@ -89,10 +89,7 @@ const icon = {
   reject: "mdi-close",
   remove: "mdi-delete",
 }[props.action];
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.device[props.action]);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.device[props.action]));
 
 const showDialog = ref(false);
 

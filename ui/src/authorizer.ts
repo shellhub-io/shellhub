@@ -134,7 +134,7 @@ export const actions: { [key: string]: any } = {
   },
 };
 
-export const authorizer : { [key: string]: any } = {
+export const authorizer: { [key: string]: any } = {
   permissions: {
     owner: [
       // Device

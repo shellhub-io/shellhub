@@ -213,13 +213,7 @@ const refreshFirewallRules = async () => {
 
 const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
 
-const hasAuthorizationFormDialogEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.edit);
-};
+const hasAuthorizationFormDialogEdit = () => hasPermission(authorizer.role[authStore.role], actions.firewall.edit);
 
-const hasAuthorizationFormDialogRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.remove);
-};
+const hasAuthorizationFormDialogRemove = () => hasPermission(authorizer.role[authStore.role], actions.firewall.remove);
 </script>

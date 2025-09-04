@@ -24,7 +24,7 @@
               <v-btn
                 v-if="!editDataStatus"
                 @click="editDataStatus = !editDataStatus"
-                :disabled="hasAuthorizationEdit"
+                :disabled="!hasAuthorizationEdit"
                 color="primary"
                 variant="text"
                 class="bg-secondary border"
@@ -292,10 +292,7 @@ const updateName = async () => {
   }
 };
 
-const hasAuthorizationEdit = computed(() => {
-  const { role } = authStore;
-  return !!role && !hasPermission(authorizer.role[role], actions.namespace.rename);
-});
+const hasAuthorizationEdit = computed(() => hasPermission(authorizer.role[authStore.role], actions.namespace.rename));
 
 onMounted(async () => {
   if (tenantId) await getNamespace();

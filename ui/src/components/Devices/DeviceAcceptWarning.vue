@@ -40,10 +40,7 @@ const devicesStore = useDevicesStore();
 const duplicatedDeviceName = computed(() => devicesStore.duplicatedDeviceName);
 const showDialog = computed(() => !!duplicatedDeviceName.value);
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.billing.subscribe));
 
 const close = () => { devicesStore.duplicatedDeviceName = ""; };
 </script>

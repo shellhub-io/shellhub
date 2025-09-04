@@ -61,10 +61,7 @@ const update = () => {
   showDialog.value = false;
 };
 
-const hasAuthorizationDeleteWebEndpoint = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.webendpoint.delete);
-};
+const hasAuthorizationDeleteWebEndpoint = () => hasPermission(authorizer.role[authStore.role], actions.webendpoint.delete);
 
 const remove = async () => {
   try {

@@ -192,10 +192,7 @@ const {
   initialValue: "",
 });
 
-const hasAuthorization = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.addMember);
-};
+const hasAuthorization = () => hasPermission(authorizer.role[authStore.role], actions.namespace.addMember);
 
 const getAvatar = (index: number) => multiavatar(`${Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - index + 1)) + index}`);
 

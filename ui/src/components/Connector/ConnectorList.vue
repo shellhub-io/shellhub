@@ -174,15 +174,9 @@ const authStore = useAuthStore();
 const connectorStore = useConnectorStore();
 const { connectors, connectorCount } = storeToRefs(connectorStore);
 
-const hasAuthorizationEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
-};
+const hasAuthorizationEdit = () => hasPermission(authorizer.role[authStore.role], actions.connector.edit);
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
-};
+const hasAuthorizationRemove = () => hasPermission(authorizer.role[authStore.role], actions.connector.remove);
 
 const getConnectors = async () => {
   try {

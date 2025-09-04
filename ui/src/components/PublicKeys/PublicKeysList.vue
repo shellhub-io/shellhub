@@ -167,15 +167,9 @@ const itemsPerPage = ref(10);
 const page = ref(1);
 const publicKeys = computed(() => publicKeysStore.publicKeys);
 const publicKeyCount = computed(() => publicKeysStore.publicKeyCount);
-const hasAuthorizationFormDialogEdit = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.edit);
-});
+const hasAuthorizationFormDialogEdit = computed(() => hasPermission(authorizer.role[authStore.role], actions.publicKey.edit));
 
-const hasAuthorizationFormDialogRemove = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.remove);
-});
+const hasAuthorizationFormDialogRemove = computed(() => hasPermission(authorizer.role[authStore.role], actions.publicKey.remove));
 
 const getPublicKeysList = async () => {
   try {

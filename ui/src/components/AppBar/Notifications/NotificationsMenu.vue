@@ -65,10 +65,7 @@ const notificationsStore = useNotificationsStore();
 const snackbar = useSnackbar();
 const notifications = computed(() => notificationsStore.notifications);
 const notificationCount = computed(() => notificationsStore.notificationCount);
-const canViewNotifications = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.notification.view);
-});
+const canViewNotifications = computed(() => hasPermission(authorizer.role[authStore.role], actions.notification.view));
 const showNotifications = computed(() => notificationCount.value > 0 && canViewNotifications.value);
 const emptyCardMessage = computed(() => (
   canViewNotifications.value ? "You don't have notifications" : "You don't have permission to view notifications"

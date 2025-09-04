@@ -46,10 +46,7 @@ const isSessionRecordingEnabled = computed({
   },
 });
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.enableSessionRecord);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.namespace.enableSessionRecord));
 
 onMounted(async () => {
   try {

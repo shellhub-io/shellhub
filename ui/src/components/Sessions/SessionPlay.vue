@@ -75,10 +75,7 @@ const tooltipMessage = computed(() => props.recorded
   ? "You don't have permission to play this session."
   : "This session was not recorded.");
 
-const hasAuthorizationToPlay = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.session.play);
-};
+const hasAuthorizationToPlay = () => hasPermission(authorizer.role[authStore.role], actions.session.play);
 
 const disableTooltip = computed(() => isCommunity.value || (hasAuthorizationToPlay() && props.recorded));
 

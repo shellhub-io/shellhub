@@ -213,10 +213,7 @@ const {
 
 const tagNames = computed(() => tagsStore.tags);
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.create);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.publicKey.create));
 
 watch(tagChoices, (list) => {
   if (list.length > 3) {

@@ -222,15 +222,9 @@ const redirectContainers = async () => {
   await router.push({ name: "containers" });
 };
 
-const hasAuthorizationEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.edit);
-};
+const hasAuthorizationEdit = () => hasPermission(authorizer.role[authStore.role], actions.connector.edit);
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.remove);
-};
+const hasAuthorizationRemove = () => hasPermission(authorizer.role[authStore.role], actions.connector.remove);
 
 const getConnector = async () => {
   try {

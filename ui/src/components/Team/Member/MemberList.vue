@@ -158,15 +158,9 @@ const snackbar = useSnackbar();
 const tenant = authStore.tenantId;
 const members = computed(() => namespacesStore.currentNamespace.members);
 
-const hasAuthorizationEditMember = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.editMember);
-};
+const hasAuthorizationEditMember = () => hasPermission(authorizer.role[authStore.role], actions.namespace.editMember);
 
-const hasAuthorizationRemoveMember = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.removeMember);
-};
+const hasAuthorizationRemoveMember = () => hasPermission(authorizer.role[authStore.role], actions.namespace.removeMember);
 
 const getNamespace = async () => {
   try {
