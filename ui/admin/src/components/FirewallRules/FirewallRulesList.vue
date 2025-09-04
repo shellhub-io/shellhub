@@ -79,7 +79,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
-import { AdminFilter, AdminHostnameFilter } from "@admin/interfaces/IFilter";
+import isHostname from "@/utils/isHostname";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
 import showTag from "@/utils/tag";
@@ -124,8 +124,6 @@ const headers = ref([
     value: "actions",
   },
 ]);
-
-const isHostname = (filter: AdminFilter): filter is AdminHostnameFilter => "hostname" in filter;
 
 const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
 
