@@ -98,7 +98,7 @@ import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import { AdminFilter, AdminHostnameFilter } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminFirewallRule } from "../interfaces/IFirewallRule";
-import showTag from "../hooks/tag";
+import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 
 const route = useRoute();
