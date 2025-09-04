@@ -70,6 +70,12 @@ type DeviceAuthResponse struct {
 	Token     string `json:"token"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+	// Config holds device-specific configuration settings.
+	// This can include various parameters that the device needs to operate correctly.
+	// The structure of this map can vary depending on the device type and its requirements.
+	// Example configurations might include network settings, operational modes, or feature toggles.
+	// It's designed to be flexible to accommodate different device needs.
+	Config map[string]any `json:"config,omitempty"`
 }
 
 type DeviceIdentity struct {
