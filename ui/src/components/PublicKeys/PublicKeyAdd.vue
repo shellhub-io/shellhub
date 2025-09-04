@@ -128,7 +128,7 @@ import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
 import hasPermission from "@/utils/permission";
-import { validateKey } from "@/utils/validate";
+import { isKeyValid } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
@@ -243,8 +243,8 @@ watch(publicKeyData, async () => {
     setPublicKeyDataError("Field is required");
   }
 
-  if (await validateKey("public", publicKeyData.value)) {
-    setPublicKeyDataError("This is not valid key");
+  if (!isKeyValid("public", publicKeyData.value)) {
+    setPublicKeyDataError("Invalid public key data");
   }
 });
 

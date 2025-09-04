@@ -9,9 +9,9 @@ import usePrivateKeysStore from "@/store/modules/private_keys";
 
 type PrivateKeyEditWrapper = VueWrapper<InstanceType<typeof PrivateKeyEdit>>;
 
-vi.mock("@/utils/validate", () => ({
-  createKeyFingerprint: () => "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
-  validateKey: () => true,
+vi.mock("@/utils/sshKeys", () => ({
+  convertToFingerprint: () => "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX",
+  isKeyValid: () => true,
 }));
 
 const mockSnackbar = {
