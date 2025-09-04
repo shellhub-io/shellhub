@@ -79,7 +79,7 @@ import { useField } from "vee-validate";
 import { ref } from "vue";
 import * as yup from "yup";
 import handleError from "@/utils/handleError";
-import { createKeyFingerprint, parsePrivateKeySsh, validateKey } from "@/utils/validate";
+import { convertToFingerprint, isKeyValid, parsePrivateKey } from "@/utils/sshKeys";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
@@ -119,7 +119,7 @@ const {
 
 const validatePrivateKeyData = () => {
   try {
-    parsePrivateKeySsh(keyLocal.value, passphrase.value || undefined);
+    parsePrivateKey(keyLocal.value, passphrase.value || undefined);
     setKeyLocalError("");
     hasPassphrase.value = false;
   } catch (err: unknown) {
@@ -179,7 +179,7 @@ const handleEditError = (error: Error) => {
     return;
   }
 
-  if (!validateKey("private", keyLocal.value, passphrase.value || undefined)) {
+  if (!isKeyValid("private", keyLocal.value, passphrase.value || undefined)) {
     setKeyLocalError("Invalid private key data");
     return;
   }
@@ -187,12 +187,12 @@ const handleEditError = (error: Error) => {
   snackbar.showError("Failed to update private key.");
 };
 
-const edit = async () => {
+const edit = () => {
   if (hasValidationError()) return;
 
   try {
-    const fingerprint = createKeyFingerprint(keyLocal.value, passphrase.value);
-    await privateKeysStore.editPrivateKey({
+    const fingerprint = convertToFingerprint(keyLocal.value, passphrase.value);
+    privateKeysStore.editPrivateKey({
       id: privateKey.id,
       name: name.value,
       data: keyLocal.value,
