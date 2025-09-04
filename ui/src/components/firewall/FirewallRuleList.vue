@@ -123,7 +123,7 @@
 import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
-import { Filter, HostnameFilter } from "@/interfaces/IFilter";
+import isHostname from "@/utils/isHostname";
 import { capitalizeText, displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";
@@ -211,12 +211,7 @@ const refreshFirewallRules = async () => {
   }
 };
 
-const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
-
-const hasAuthorizationFormDialogEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.edit);
-};
+const hasAuthorizationFormDialogEdit = () => hasPermission(authorizer.role[authStore.role], actions.firewall.edit);
 
 const hasAuthorizationFormDialogRemove = () => {
   const { role } = authStore;
