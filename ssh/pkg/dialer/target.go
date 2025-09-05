@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/multiformats/go-multistream"
+	log "github.com/sirupsen/logrus"
 )
 
 type Target interface {
@@ -22,12 +23,17 @@ type SSHOpenTarget struct{ SessionID string }
 func (t SSHOpenTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
 	case ConnectionVersion1:
-		// Legacy: HTTP GET /ssh/<id>
+		log.Debug("preparing SSH open target for connection version 1")
+
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", t.SessionID), nil)
 		if err := req.Write(conn); err != nil {
+			log.Errorf("failed to write HTTP request: %v", err)
+
 			return nil, err
 		}
 	case ConnectionVersion2:
+		log.Debug("preparing SSH open target for connection version 2")
+
 		if err := multistream.SelectProtoOrFail(ProtoSSHOpen, conn); err != nil {
 			return nil, err
 		}

@@ -42,20 +42,16 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-	"io"
 	"math/rand"
 	"net"
-	"net/netip"
 	"net/url"
 	"os"
 	"runtime"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/Masterminds/semver"
-	dockerclient "github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
 	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
@@ -110,6 +106,10 @@ type Config struct {
 	// MaxRetryConnectionTimeout specifies the maximum time, in seconds, that an agent will wait
 	// before attempting to reconnect to the ShellHub server. Default is 60 seconds.
 	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
+
+	// ConnectionVersion specifies the version of the connection protocol to use.
+	// Supported values are 1 and 2. Default is 1.
+	ConnectionVersion int `env:"CONNECTION_VERSION,default=1"`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
@@ -159,12 +159,11 @@ type Agent struct {
 	cli        client.Client
 	serverInfo *models.Info
 	server     *server.Server
-	tunnel     *tunnel.Tunnel
 	listening  chan bool
 	closed     atomic.Bool
 	mode       Mode
-	// conn is the current connection to the server.
-	conn net.Conn
+	// listener is the current connection to the server.
+	listener atomic.Pointer[net.Listener]
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
@@ -370,237 +369,44 @@ func (a *Agent) isClosed() bool {
 func (a *Agent) Close() error {
 	a.closed.Store(true)
 
-	return a.conn.Close()
-}
-
-// httpProxyHandler handlers proxy connections to the required address.
-func httpProxyHandler(agent *Agent) tunnel.Handler {
-	const ProxyHandlerNetwork = "tcp"
-
-	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
-		headers, err := ctx.Headers()
-		if err != nil {
-			log.WithError(err).Error("failed to get the headers from the connection")
-
-			return err
-		}
-
-		id := headers["id"]
-		host := headers["host"]
-		port := headers["port"]
-
-		logger := log.WithFields(log.Fields{
-			"id":   id,
-			"host": host,
-			"port": port,
-		})
-
-		if _, ok := agent.mode.(*ConnectorMode); ok {
-			cli, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
-			if err != nil {
-				log.WithError(err).Error("failed to create the Docker client")
-
-				return ctx.Error(errors.New("failed to connect to the Docker Engine"))
-			}
-
-			container, err := cli.ContainerInspect(context.Background(), agent.server.ContainerID)
-			if err != nil {
-				log.WithError(err).Error("failed to inspect the container")
-
-				return ctx.Error(errors.New("failed to inspect the container"))
-			}
-
-			var target string
-
-			addr, err := netip.ParseAddr(host)
-			if err != nil {
-				log.WithError(err).Error("failed to parse the address on proxy")
-
-				return ctx.Error(errors.New("failed to parse the address on proxy"))
-			}
-
-			if addr.IsLoopback() {
-				log.Trace("host is a loopback address, using the container IP address")
-
-				for _, network := range container.NetworkSettings.Networks {
-					target = network.IPAddress
-
-					break
-				}
-			} else {
-				for _, network := range container.NetworkSettings.Networks {
-					subnet, err := netip.ParsePrefix(fmt.Sprintf("%s/%d", network.Gateway, network.IPPrefixLen))
-					if err != nil {
-						logger.WithError(err).Error("failed to parse the gateway on proxy")
-
-						continue
-					}
-
-					ip, err := netip.ParseAddr(host)
-					if err != nil {
-						logger.WithError(err).Error("failed to parse the address on proxy")
-
-						continue
-					}
-
-					if subnet.Contains(ip) {
-						target = ip.String()
-
-						break
-					}
-				}
-			}
-
-			if target == "" {
-				return ctx.Error(errors.New("address not found on the device"))
-			}
-
-			host = target
-		}
-
-		ErrFailedDialToAddressAndPort := errors.New("failed to dial to the address and port")
-
-		logger.Trace("proxy handler connecting to the address")
-
-		in, err := net.Dial(ProxyHandlerNetwork, net.JoinHostPort(host, port))
-		if err != nil {
-			logger.WithError(err).Error("proxy handler failed to dial to the address")
-
-			return ctx.Error(ErrFailedDialToAddressAndPort)
-		}
-
-		defer in.Close()
-
-		logger.Trace("proxy handler dialed to the address")
-
-		// TODO: Add consts for status values.
-		if err := ctx.Status("ok"); err != nil {
-			logger.WithError(err).Error("proxy handler failed to send status response")
-
-			return err
-		}
-
-		wg := new(sync.WaitGroup)
-		done := sync.OnceFunc(func() {
-			defer in.Close()
-			defer rwc.Close()
-
-			logger.Trace("close called on in and out connections")
-		})
-
-		wg.Add(1)
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			if _, err := io.Copy(in, rwc); err != nil && err != io.EOF {
-				logger.WithError(err).Error("proxy handler copy from rwc to in failed")
-			}
-		}()
-
-		wg.Add(1)
-		go func() {
-			defer done()
-			defer wg.Done()
-
-			if _, err := io.Copy(rwc, in); err != nil && err != io.EOF {
-				logger.WithError(err).Error("proxy handler copy from in to rwc failed")
-			}
-		}()
-
-		logger.WithError(err).Info("proxy handler waiting for data pipe")
-
-		wg.Wait()
-
-		logger.WithError(err).Info("proxy handler done")
-
+	l := a.listener.Load()
+	if l == nil {
 		return nil
 	}
+
+	return (*l).Close()
 }
 
-func sshHandler(agent *Agent) tunnel.Handler {
-	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
-		defer rwc.Close()
-
-		headers, err := ctx.Headers()
-		if err != nil {
-			log.WithError(err).Error("failed to get the headers from the connection")
-
-			return err
-		}
-
-		id := headers["id"]
-
-		conn, ok := rwc.(net.Conn)
-		if !ok {
-			log.Error("failed to cast the ReadWriteCloser to net.Conn")
-
-			return errors.New("failed to cast the ReadWriteCloser to net.Conn")
-		}
-
-		agent.server.Sessions.Store(id, conn)
-		agent.server.HandleConn(conn)
-
-		return nil
-	}
-}
-
-func sshCloseHandler(agent *Agent) tunnel.Handler {
-	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
-		defer rwc.Close()
-
-		headers, err := ctx.Headers()
-		if err != nil {
-			log.WithError(err).Error("failed to get the headers from the connection")
-
-			return err
-		}
-
-		id := headers["id"]
-
-		agent.server.CloseSession(id)
-
-		log.WithFields(
-			log.Fields{
-				"id":             id,
-				"version":        AgentVersion,
-				"tenant_id":      agent.authData.Namespace,
-				"server_address": agent.config.ServerAddress,
-			},
-		).Info("A tunnel connection was closed")
-
-		return nil
-	}
-}
-
-const (
-	// HandleSSHOpen is the protocol used to open a new SSH connection.
-	HandleSSHOpen = "/ssh/open/1.0.0"
-	// HandleSSHClose is the protocol used to close an existing SSH connection.
-	HandleSSHClose = "/ssh/close/1.0.0"
-	// HandleHTTPProxy is the protocol used to open a new HTTP proxy connection.
-	HandleHTTPProxy = "/http/proxy/1.0.0"
-)
-
-// Listen creates the SSH server and listening for connections.
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
-	a.tunnel = tunnel.NewTunnel()
+	switch a.config.ConnectionVersion {
+	case 1:
+		return a.listenV1(ctx)
+	case 2:
+		return a.listenV2(ctx)
+	default:
+		return fmt.Errorf("unsupported connection version: %d", a.config.ConnectionVersion)
+	}
+}
 
-	a.tunnel.Handle(HandleSSHOpen, sshHandler(a))
-	a.tunnel.Handle(HandleSSHClose, sshCloseHandler(a))
-	a.tunnel.Handle(HandleHTTPProxy, httpProxyHandler(a))
+func (a *Agent) listenV1(ctx context.Context) error {
+	tun := tunnel.NewTunnelV1()
+
+	tun.Handle(HandleSSHOpenV1, sshHandlerV1(a))
+	tun.Handle(HandleSSHCloseV1, sshCloseHandlerV1(a))
+	tun.Handle(HandleHTTPProxyV1, httpProxyHandlerV1(a))
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
 	logger := log.WithFields(log.Fields{
-		"version":        AgentVersion,
-		"tenant_id":      a.authData.Namespace,
-		"server_address": a.config.ServerAddress,
-		"ssh_endpoint":   a.serverInfo.Endpoints.SSH,
-		"api_endpoint":   a.serverInfo.Endpoints.API,
-		"sshid":          fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
+		"version":            AgentVersion,
+		"tenant_id":          a.authData.Namespace,
+		"server_address":     a.config.ServerAddress,
+		"ssh_endpoint":       a.serverInfo.Endpoints.SSH,
+		"api_endpoint":       a.serverInfo.Endpoints.API,
+		"connection_version": a.config.ConnectionVersion,
+		"sshid":              fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
 	})
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -614,9 +420,15 @@ func (a *Agent) Listen(ctx context.Context) error {
 				return
 			}
 
-			DefaultShellHubConnectPath := "/connection"
+			ShellHubConnectV1Path := "/ssh/connection"
 
-			conn, err := a.cli.Connect(ctx, a.authData.Token, DefaultShellHubConnectPath)
+			logger.Debug("Using tunnel version 1")
+
+			listener, err := a.cli.NewReverseListenerV1(
+				ctx,
+				a.authData.Token,
+				ShellHubConnectV1Path,
+			)
 			if err != nil {
 				logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
 
@@ -624,14 +436,79 @@ func (a *Agent) Listen(ctx context.Context) error {
 
 				continue
 			}
-
-			a.conn = conn
+			a.listener.Store(&listener)
 
 			logger.Info("Server connection established")
 
 			a.listening <- true
 
-			if err := a.tunnel.Listen(conn, tunnel.NewConfigFromMap(a.authData.Config)); err != nil {
+			if err := tun.Listen(ctx, listener); err != nil {
+				logger.WithError(err).Error("Tunnel listener exited with error")
+			}
+
+			a.listening <- false
+		}
+	}()
+
+	<-ctx.Done()
+
+	return a.Close()
+}
+
+func (a *Agent) listenV2(ctx context.Context) error {
+	tun := tunnel.NewTunnelV2(a.cli)
+
+	tun.Handle(HandleSSHOpenV2, sshHandlerV2(a))
+	tun.Handle(HandleSSHCloseV2, sshCloseHandlerV2(a))
+	tun.Handle(HandleHTTPProxyV2, httpProxyHandlerV2(a))
+
+	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
+
+	logger := log.WithFields(log.Fields{
+		"version":            AgentVersion,
+		"tenant_id":          a.authData.Namespace,
+		"server_address":     a.config.ServerAddress,
+		"ssh_endpoint":       a.serverInfo.Endpoints.SSH,
+		"api_endpoint":       a.serverInfo.Endpoints.API,
+		"connection_version": a.config.ConnectionVersion,
+		"sshid":              fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
+	})
+
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		for {
+			if a.isClosed() {
+				logger.Info("Stopped listening for connections")
+
+				cancel()
+
+				return
+			}
+
+			ShellHubConnectV2Path := "/connection"
+
+			logger.Debug("Using tunnel version 2")
+
+			listener, err := a.cli.NewReverseListenerV2(
+				ctx,
+				a.authData.Token,
+				ShellHubConnectV2Path,
+				client.NewReverseV2ConfigFromMap(a.authData.Config),
+			)
+			if err != nil {
+				logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+
+				time.Sleep(time.Second * 10)
+
+				continue
+			}
+			a.listener.Store(&listener)
+
+			logger.Info("Server connection established")
+
+			a.listening <- true
+
+			if err := tun.Listen(ctx, listener); err != nil {
 				logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
