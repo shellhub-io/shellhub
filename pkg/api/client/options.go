@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/client/reverser"
 	"github.com/sirupsen/logrus"
 )
 
@@ -66,7 +67,7 @@ func WithLogger(logger *logrus.Logger) Opt {
 	}
 }
 
-func WithReverser(reverser IReverser) Opt {
+func WithReverser(reverser reverser.Reverser) Opt {
 	return func(c *client) error {
 		c.reverser = reverser
 

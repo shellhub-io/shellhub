@@ -8,15 +8,10 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
+	"github.com/shellhub-io/shellhub/pkg/api/client/reverser"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 )
-
-//go:generate mockery --name=IReverser --filename=reverser.go
-type IReverser interface {
-	Auth(ctx context.Context, token string, connPath string) error
-	NewListener() (*revdial.Listener, error)
-}
 
 type Reverser struct {
 	conn *websocket.Conn
@@ -26,7 +21,7 @@ type Reverser struct {
 	host string
 }
 
-var _ IReverser = new(Reverser)
+var _ reverser.Reverser = new(Reverser)
 
 func NewReverser(host string) *Reverser {
 	return &Reverser{
