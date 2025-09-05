@@ -6,7 +6,7 @@ export const postTag = async (data: IContainerPostTag) => tagsApi.createContaine
 export const fetchContainers = async (
   page: number,
   perPage: number,
-  status: "accepted" | "rejected" | "pending",
+  status?: "accepted" | "rejected" | "pending",
   filter?: string,
   sortField?: string,
   sortOrder?: "asc" | "desc",

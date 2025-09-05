@@ -266,7 +266,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Containers",
     component: Containers,
     beforeEnter: async (to, from, next) => {
-      await useContainersStore().fetchContainerList();
+      await useContainersStore().setContainerListVisibility();
       next();
     },
     redirect: { name: "ContainerList" },

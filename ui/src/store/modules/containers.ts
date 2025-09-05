@@ -22,12 +22,16 @@ const useContainersStore = defineStore("containers", () => {
 
       containers.value = res.data as IContainer[];
       containerCount.value = parseInt(res.headers["x-total-count"], 10);
-      if (containerCount.value) showContainers.value = true;
     } catch (error) {
       containers.value = [];
       containerCount.value = 0;
       throw error;
     }
+  };
+
+  const setContainerListVisibility = async () => {
+    const { headers } = await containerApi.fetchContainers(1, 1);
+    if (parseInt(headers["x-total-count"], 10)) showContainers.value = true;
   };
 
   const acceptContainer = async (uid: string) => {
@@ -63,6 +67,7 @@ const useContainersStore = defineStore("containers", () => {
     containerCount,
     showContainers,
     fetchContainerList,
+    setContainerListVisibility,
     removeContainer,
     renameContainer,
     getContainer,
