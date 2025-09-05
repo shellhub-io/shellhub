@@ -38,19 +38,22 @@ exports[`Sessions View > Renders the component 1`] = `
                   </div>
                 </td>
                 <td data-v-459ab1b4="" class="text-center">
-                  <p data-v-459ab1b4="" tabindex="0" class="link">00-00-00-00-00-01</p>
+                  <p data-v-459ab1b4="" tabindex="0" class="link"><button data-v-459ab1b4="" type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain text-none border rounded bg-v-theme-background"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator="">00-00-00-00-00-01</span>
+                      <!---->
+                      <!---->
+                    </button></p>
                 </td>
                 <td data-v-459ab1b4="" class="text-center">
                   <!--v-if--><span data-v-459ab1b4="">test</span>
                 </td>
-                <td data-v-459ab1b4="" class="text-center"><i data-v-459ab1b4="" class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-2"></i>
+                <td data-v-459ab1b4="" class="text-center"><i data-v-459ab1b4="" class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-3"></i>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
                 <td data-v-459ab1b4="" class="text-center"><code data-v-459ab1b4="" class="v-code bg-tabs">192.168.0.1</code></td>
                 <td data-v-459ab1b4="" class="text-center"><span data-v-459ab1b4=""></span></td>
                 <td data-v-459ab1b4="" class="text-center"><span data-v-459ab1b4=""></span></td>
-                <td data-v-459ab1b4="" class="text-center"><button data-v-459ab1b4="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" data-test="session-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <td data-v-459ab1b4="" class="text-center"><button data-v-459ab1b4="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-4" data-test="session-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
@@ -82,7 +85,7 @@ exports[`Sessions View > Renders the component 1`] = `
           <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-8">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -106,7 +109,7 @@ exports[`Sessions View > Renders the component 1`] = `
                   <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-6" outlined="" value="10">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-7" outlined="" value="10">
                   </div>
                   <!---->
                 </div>

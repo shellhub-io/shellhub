@@ -211,7 +211,7 @@ const items = reactive([
     path: "/",
   },
   {
-    icon: "mdi-cellphone-link",
+    icon: "mdi-developer-board",
     title: "Devices",
     path: "/devices",
   },

@@ -28,7 +28,15 @@
               tabindex="0"
               class="link"
             >
-              {{ session.device.name }}
+              <v-btn
+                class="text-none border rounded bg-v-theme-background"
+                prepend-icon="mdi-developer-board"
+                variant="plain"
+                density="default"
+                size="default"
+              >
+                {{ session.device.name }}
+              </v-btn>
             </p>
           </td>
 

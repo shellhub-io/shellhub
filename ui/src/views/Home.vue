@@ -39,7 +39,7 @@ const items = computed<StatCardItem[]>(() => [
   {
     title: "Registered Devices",
     content: "Registered devices into the tenancy account",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "Add Device",
     path: "devices",
     stat: stats.value.registered_devices || 0,
@@ -47,7 +47,7 @@ const items = computed<StatCardItem[]>(() => [
   {
     title: "Online Devices",
     content: "Devices are online and ready for connecting",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
     stat: stats.value.online_devices || 0,
@@ -55,7 +55,7 @@ const items = computed<StatCardItem[]>(() => [
   {
     title: "Active Sessions",
     content: "Active SSH Sessions opened by users",
-    icon: "mdi-devices",
+    icon: "mdi-developer-board",
     buttonLabel: "View all Sessions",
     path: "sessions",
     stat: stats.value.active_sessions || 0,

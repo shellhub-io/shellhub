@@ -47,7 +47,7 @@ onMounted(async () => {
       {
         title: "Registered Devices",
         content: "Registered devices",
-        icon: "mdi-devices",
+        icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
         stat: itemsStats.value.registered_devices ?? 0,
@@ -55,7 +55,7 @@ onMounted(async () => {
       {
         title: "Online Devices",
         content: "Devices are online and ready for connecting",
-        icon: "mdi-devices",
+        icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
         stat: itemsStats.value.online_devices ?? 0,
@@ -63,7 +63,7 @@ onMounted(async () => {
       {
         title: "Active Sessions",
         content: "Active SSH Sessions opened by users",
-        icon: "mdi-devices",
+        icon: "mdi-developer-board",
         buttonLabel: "View all Sessions",
         path: "sessions",
         stat: itemsStats.value.active_sessions ?? 0,
@@ -71,7 +71,7 @@ onMounted(async () => {
       {
         title: "Pending Devices",
         content: "Pending devices",
-        icon: "mdi-devices",
+        icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
         stat: itemsStats.value.pending_devices ?? 0,
@@ -79,7 +79,7 @@ onMounted(async () => {
       {
         title: "Rejected Devices",
         content: "Rejected devices",
-        icon: "mdi-devices",
+        icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
         stat: itemsStats.value.rejected_devices ?? 0,

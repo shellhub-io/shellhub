@@ -35,7 +35,7 @@ exports[`Devices View > Renders the component 1`] = `
   <!---->
   <!---->
   <div class="v-card-title d-flex flex-column justify-center pa-5 ga-6">
-    <div><i class="mdi-cellphone-link mdi v-icon notranslate v-theme--light v-icon--size-x-large" aria-hidden="true" data-test="message-icon"></i></div>
+    <div><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large" aria-hidden="true" data-test="message-icon"></i></div>
     <div class="text-sm-h5 text-wrap font-weight-medium" data-test="message-title"> Looks like you don't have any Devices</div>
   </div>
   <div class="v-card-text pb-0 px-4 py-1 d-flex flex-column ga-2 text-subtitle-1" data-test="message-content">
