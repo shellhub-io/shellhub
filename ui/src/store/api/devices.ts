@@ -6,7 +6,7 @@ export const addTag = async (data: IDevicePostTag) => tagsApi.createDeviceTag(da
 export const fetchDevices = async (
   page: number,
   perPage: number,
-  status: "accepted" | "rejected" | "pending",
+  status?: "accepted" | "rejected" | "pending",
   filter?: string,
   sortStatusField?: string,
   sortStatusString?: "asc" | "desc",

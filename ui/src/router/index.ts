@@ -239,7 +239,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Devices",
     component: Devices,
     beforeEnter: async (to, from, next) => {
-      await useDevicesStore().fetchDeviceList();
+      await useDevicesStore().setDeviceListVisibility();
       next();
     },
     redirect: { name: "DeviceList" },

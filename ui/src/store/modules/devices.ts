@@ -37,6 +37,11 @@ const useDevicesStore = defineStore("devices", () => {
     }
   };
 
+  const setDeviceListVisibility = async () => {
+    const { headers } = await devicesApi.fetchDevices(1, 1);
+    if (parseInt(headers["x-total-count"], 10)) showDevices.value = true;
+  };
+
   const fetchOnlineDevices = async (filter?: string) => {
     try {
       const res = await devicesApi.fetchDevices(
@@ -120,6 +125,7 @@ const useDevicesStore = defineStore("devices", () => {
     duplicatedDeviceName,
 
     fetchDeviceList,
+    setDeviceListVisibility,
     fetchOnlineDevices,
     removeDevice,
     renameDevice,
