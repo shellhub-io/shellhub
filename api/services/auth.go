@@ -137,7 +137,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			Identity:        &models.DeviceIdentity{MAC: req.Identity.MAC},
 			PublicKey:       req.PublicKey,
 			RemoteAddr:      req.RealIP,
-			Tags:            []string{},
+			Taggable:        models.Taggable{TagIDs: []string{}, Tags: nil},
 			Position:        &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
 		}
 
