@@ -1,0 +1,52 @@
+package migrations
+
+import (
+	"context"
+	"time"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/uptrace/bun"
+)
+
+func init() {
+	migrations.MustRegister(migration001Up, migration001Down)
+}
+
+func migration001Up(ctx context.Context, db *bun.DB) error {
+	_, err := db.ExecContext(ctx, `
+		DROP TYPE IF EXISTS namespace_scope;
+		CREATE TYPE namespace_scope AS ENUM ('personal', 'team');
+	`)
+	if err != nil {
+		return err
+	}
+
+	table := &struct {
+		bun.BaseModel          `bun:"table:namespaces"`
+		ID                     string    `bun:"id,type:uuid,pk"`
+		CreatedAt              time.Time `bun:"created_at,type:timestamptz,notnull"`
+		UpdatedAt              time.Time `bun:"updated_at,type:timestamptz,notnull"`
+		Scope                  string    `bun:"scope,type:namespace_scope,notnull"`
+		Name                   string    `bun:"name,type:varchar(64),notnull"`
+		MaxDevices             int       `bun:"max_devices,type:integer,notnull"`
+		RecordSessions         bool      `bun:"record_sessions,notnull"`
+		ConnectionAnnouncement string    `bun:"connection_announcement,type:text,nullzero"`
+	}{}
+
+	if _, err := db.NewCreateTable().Model(table).IfNotExists().Exec(ctx); err != nil {
+		log.WithError(err).Error("failed to apply migration 003")
+
+		return err
+	}
+
+	return nil
+}
+
+func migration001Down(ctx context.Context, db *bun.DB) error {
+	_, err := db.ExecContext(ctx, `
+		DROP TABLE IF EXISTS namespaces;
+		DROP TYPE IF EXISTS namespace_scope;
+	`)
+
+	return err
+}
