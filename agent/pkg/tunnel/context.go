@@ -76,4 +76,4 @@ func NewContext(ctx context.Context, rwc io.ReadWriteCloser) Context {
 	}
 }
 
-type Handler func(ctx Context, rwc io.ReadWriteCloser) error
+type HandlerFunc func(ctx Context, rwc io.ReadWriteCloser) error
