@@ -13,8 +13,8 @@ import (
 	"time"
 
 	resty "github.com/go-resty/resty/v2"
+	"github.com/shellhub-io/shellhub/pkg/api/client/reverser"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,12 +28,12 @@ type publicAPI interface {
 	Endpoints() (*models.Endpoints, error)
 	AuthDevice(req *models.DeviceAuthRequest) (*models.DeviceAuthResponse, error)
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
-	// NewReverseListener creates a new reverse listener to be used by the Agent to connect to ShellHub's SSH server.
-	//
-	//Deprecated: Use Connect instead.
-	NewReverseListener(ctx context.Context, token string, connPath string) (*revdial.Listener, error)
-	// Connect creates a new connection to be used by the Agent to connect to ShellHub's SSH server.
-	Connect(ctx context.Context, token string, path string) (net.Conn, error)
+	// NewReverseListener creates a new reverse listener to be used by the Agent to connect to ShellHub's SSH server
+	// using RevDial protocol.
+	NewReverseListenerV1(ctx context.Context, token string, path string) (net.Listener, error)
+	// NewReverseListenerV2 creates a new reverse listener to be used by the Agent to connect to ShellHub's SSH server
+	// using Yamux protocol.
+	NewReverseListenerV2(ctx context.Context, token string, path string, cfg *ReverseListenerV2Config) (net.Listener, error)
 }
 
 //go:generate mockery --name=Client --filename=client.go
@@ -49,7 +49,7 @@ type client struct {
 	http   *resty.Client
 	logger *log.Logger
 	// reverser is used to create a reverse listener to Agent from ShellHub's SSH server.
-	reverser IReverser
+	reverser reverser.Reverser
 }
 
 var ErrParseAddress = fmt.Errorf("could not parse the address to the required format")
