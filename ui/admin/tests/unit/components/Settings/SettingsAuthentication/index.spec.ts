@@ -49,7 +49,7 @@ const authData = {
       },
     },
     sp: {
-      sign_requests: true,
+      sign_auth_requests: true,
       certificate: "test",
     },
   },
