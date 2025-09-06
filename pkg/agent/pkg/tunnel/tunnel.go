@@ -2,57 +2,98 @@ package tunnel
 
 import (
 	"context"
+	"errors"
+	"io"
 	"net"
 	"net/http"
+	"strings"
 
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
-	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/multiformats/go-multistream"
+	"github.com/shellhub-io/shellhub/pkg/api/client"
+	log "github.com/sirupsen/logrus"
 )
 
-type Tunnel struct {
-	router           *echo.Echo
-	srv              *http.Server
-	HTTPProxyHandler func(e echo.Context) error
-	SSHHandler       func(e echo.Context) error
-	SSHCloseHandler  func(e echo.Context) error
+type HandlerConstraint interface {
+	~func(echo.Context) error | HandlerFunc
 }
 
-type Builder struct {
-	tunnel *Tunnel
+type Tunnel[H HandlerConstraint] interface {
+	Handle(protocol string, handler H)
+	Listen(ctx context.Context, listener net.Listener) error
+	Close() error
 }
 
-func NewBuilder() *Builder {
-	return &Builder{
-		tunnel: NewTunnel(),
+type TunnelV2 struct {
+	mux *multistream.MultistreamMuxer[string]
+	cli client.Client
+}
+
+func NewTunnelV2(cli client.Client) Tunnel[HandlerFunc] {
+	return &TunnelV2{
+		mux: multistream.NewMultistreamMuxer[string](),
+		cli: cli,
 	}
 }
 
-func (t *Builder) WithHTTPProxyHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.HTTPProxyHandler = handler
+func (t *TunnelV2) Handle(protocol string, handler HandlerFunc) {
+	t.mux.AddHandler(protocol, func(protocol string, rwc io.ReadWriteCloser) error {
+		log.WithField("protocol", protocol).Debug("handling connection")
+		defer log.WithField("protocol", protocol).Debug("handling connection closed")
 
-	return t
+		// TODO: Should we receive a context from outside?
+		return handler(NewContext(context.TODO(), rwc), rwc)
+	})
 }
 
-func (t *Builder) WithSSHHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.SSHHandler = handler
+func (t *TunnelV2) Listen(ctx context.Context, listener net.Listener) error {
+	for {
+		stream, err := listener.Accept()
+		if err != nil {
+			log.WithError(err).Trace("failed to accept stream")
 
-	return t
+			switch {
+			case websocket.IsCloseError(err, websocket.CloseAbnormalClosure):
+				return errors.Join(ErrTunnelDisconnect, err)
+			}
+
+			return err
+		}
+
+		log.Trace("new stream accepted")
+
+		go func() {
+			log.Trace("handling stream")
+
+			if err := t.mux.Handle(stream); err != nil {
+				log.WithError(err).Trace("failed to handle stream")
+
+				_ = stream.Close()
+			}
+
+			log.Trace("stream handled")
+		}()
+	}
 }
 
-func (t *Builder) WithSSHCloseHandler(handler func(e echo.Context) error) *Builder {
-	t.tunnel.SSHCloseHandler = handler
-
-	return t
+// Close implements Tunnel.
+func (t *TunnelV2) Close() error {
+	panic("unimplemented")
 }
 
-func (t *Builder) Build() *Tunnel {
-	return t.tunnel
+// ErrTunnelDisconnect is returned when the tunnel connection is closed.
+var ErrTunnelDisconnect = errors.New("tunnel disconnected")
+
+type TunnelV1 struct {
+	router *echo.Echo
+	srv    *http.Server
 }
 
-func NewTunnel() *Tunnel {
+func NewTunnelV1() *TunnelV1 {
 	e := echo.New()
 
-	t := &Tunnel{
+	t := &TunnelV1{
 		router: e,
 		srv: &http.Server{ //nolint:gosec
 			Handler: e,
@@ -60,41 +101,30 @@ func NewTunnel() *Tunnel {
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
-		SSHHandler: func(_ echo.Context) error {
-			panic("ConnHandler can not be nil")
-		},
-		SSHCloseHandler: func(_ echo.Context) error {
-			panic("CloseHandler can not be nil")
-		},
-		HTTPProxyHandler: func(_ echo.Context) error {
-			panic("ProxyHandler can not be nil")
-		},
 	}
-	e.GET("/ssh/:id", func(e echo.Context) error {
-		return t.SSHHandler(e)
-	})
-	e.GET("/ssh/close/:id", func(e echo.Context) error {
-		return t.SSHCloseHandler(e)
-	})
-	e.CONNECT("/http/proxy/:addr", func(e echo.Context) error {
-		// NOTE: The CONNECT HTTP method requests that a proxy establish a HTTP tunnel to this server, and if
-		// successful, blindly forward data in both directions until the tunnel is closed.
-		//
-		// https://en.wikipedia.org/wiki/HTTP_tunnel
-		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
-		return t.HTTPProxyHandler(e)
-	})
 
 	return t
 }
 
-// Listen to reverse listener.
-func (t *Tunnel) Listen(l *revdial.Listener) error {
-	return t.srv.Serve(l)
+func (t *TunnelV1) Handle(protocol string, handler echo.HandlerFunc) {
+	parts := strings.SplitN(protocol, "://", 2)
+
+	method := parts[0]
+	path := parts[1]
+
+	t.router.Add(method, path, func(c echo.Context) error {
+		log.WithField("protocol", protocol).Debug("handling connection")
+		defer log.WithField("protocol", protocol).Debug("handling connection closed")
+
+		return handler(c)
+	})
 }
 
-// Close closes the tunnel.
-func (t *Tunnel) Close() error {
+func (t *TunnelV1) Listen(ctx context.Context, listener net.Listener) error {
+	return t.srv.Serve(listener)
+}
+
+func (t *TunnelV1) Close() error {
 	if err := t.router.Close(); err != nil {
 		return err
 	}

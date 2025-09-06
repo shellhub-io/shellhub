@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	mock "github.com/jarcoal/httpmock"
-	reversermock "github.com/shellhub-io/shellhub/pkg/api/client/mocks"
+	reversermock "github.com/shellhub-io/shellhub/pkg/api/client/reverser/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/stretchr/testify/assert"
@@ -415,7 +415,7 @@ func TestAuthPublicKey(t *testing.T) {
 }
 
 func TestReverseListener(t *testing.T) {
-	mock := new(reversermock.IReverser)
+	mock := new(reversermock.Reverser)
 
 	tests := []struct {
 		description   string
@@ -468,7 +468,7 @@ func TestReverseListener(t *testing.T) {
 
 			test.requiredMocks()
 
-			_, err = cli.NewReverseListener(ctx, test.token, "")
+			_, err = cli.NewReverseListenerV1(ctx, test.token, "")
 			assert.Equal(t, err, test.expected)
 		})
 	}
