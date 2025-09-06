@@ -27,9 +27,8 @@ import {
 
 // SSH signing utilities
 import {
-  parsePrivateKeySsh,
   generateSignature,
-} from "@/utils/validate";
+} from "@/utils/sshKeys";
 
 import handleError from "@/utils/handleError";
 
@@ -111,10 +110,9 @@ const setupTerminalEvents = () => {
 const signWebSocketChallenge = async (
   key: string,
   base64Challenge: Base64URLString,
-): Promise<Base64URLString> => {
+) => {
   const challengeBuffer = Buffer.from(base64Challenge, "base64");
-  const parsedKey = parsePrivateKeySsh(key, passphrase);
-  return generateSignature(parsedKey, challengeBuffer);
+  return generateSignature(key, challengeBuffer, passphrase);
 };
 
 // Parses and handles JSON-structured WebSocket messages (e.g., challenge-response).

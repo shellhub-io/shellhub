@@ -74,10 +74,7 @@ const showDialog = defineModel({ default: false });
 const { name } = namespacesStore.currentNamespace;
 const tenant = computed(() => props.tenant);
 const isBillingActive = computed(() => billingStore.isActive);
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.remove);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.namespace.remove));
 
 const remove = async () => {
   try {

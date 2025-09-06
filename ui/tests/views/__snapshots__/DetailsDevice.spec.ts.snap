@@ -80,7 +80,7 @@ exports[`Details Device > Renders the component 1`] = `
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
       <div data-test="device-last-seen-field">
-        <p></p>
+        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
       </div>
     </div>
   </div>
@@ -169,7 +169,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
       <div data-test="device-last-seen-field">
-        <p></p>
+        <p>No date found</p>
       </div>
     </div>
   </div>
@@ -258,7 +258,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
       <div data-test="device-last-seen-field">
-        <p></p>
+        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
       </div>
     </div>
   </div>
@@ -347,7 +347,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
       <div data-test="device-last-seen-field">
-        <p></p>
+        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
       </div>
     </div>
   </div>
@@ -420,7 +420,7 @@ exports[`Details Device > Renders the component when device status is not accept
     <div>
       <div class="text-overline mt-3">Last Seen:</div>
       <div data-test="device-last-seen-field">
-        <p></p>
+        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
       </div>
     </div>
   </div>

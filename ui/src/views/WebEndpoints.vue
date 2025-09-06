@@ -82,10 +82,7 @@ const filter = ref("");
 const showList = computed(() => webEndpointsStore.showWebEndpoints);
 const showWebEndpointCreate = ref(false);
 
-const hasAuthorizationCreateWebEndpoint = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
-};
+const hasAuthorizationCreateWebEndpoint = () => hasPermission(authorizer.role[authStore.role], actions.tunnel.create);
 
 const searchWebEndpoints = async () => {
   const addressFilter = [{

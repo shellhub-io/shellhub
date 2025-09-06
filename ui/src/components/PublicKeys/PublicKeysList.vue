@@ -116,7 +116,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { actions, authorizer } from "@/authorizer";
-import { Filter, HostnameFilter } from "@/interfaces/IFilter";
+import isHostname from "@/utils/isHostname";
 import hasPermission from "@/utils/permission";
 import {
   displayOnlyTenCharacters,
@@ -167,15 +167,9 @@ const itemsPerPage = ref(10);
 const page = ref(1);
 const publicKeys = computed(() => publicKeysStore.publicKeys);
 const publicKeyCount = computed(() => publicKeysStore.publicKeyCount);
-const hasAuthorizationFormDialogEdit = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.edit);
-});
+const hasAuthorizationFormDialogEdit = computed(() => hasPermission(authorizer.role[authStore.role], actions.publicKey.edit));
 
-const hasAuthorizationFormDialogRemove = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.publicKey.remove);
-});
+const hasAuthorizationFormDialogRemove = computed(() => hasPermission(authorizer.role[authStore.role], actions.publicKey.remove));
 
 const getPublicKeysList = async () => {
   try {
@@ -198,8 +192,6 @@ watch([page, itemsPerPage], async () => {
 const refreshPublicKeys = async () => {
   await getPublicKeysList();
 };
-
-const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
 
 defineExpose({ publicKeys, hasAuthorizationFormDialogEdit, hasAuthorizationFormDialogRemove });
 </script>

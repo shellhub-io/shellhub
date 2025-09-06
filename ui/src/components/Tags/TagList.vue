@@ -95,15 +95,9 @@ const headers = ref([
 
 const tags = computed(() => tagsStore.tags);
 
-const hasAuthorizationEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.edit);
-};
+const hasAuthorizationEdit = () => hasPermission(authorizer.role[authStore.role], actions.tag.edit);
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.remove);
-};
+const hasAuthorizationRemove = () => hasPermission(authorizer.role[authStore.role], actions.tag.remove);
 
 const getTags = async () => {
   try {

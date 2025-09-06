@@ -21,7 +21,7 @@ describe("Public Keys", () => {
   const mockPublicKeys = [{
     data: "",
     fingerprint: "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:01",
-    created_at: "",
+    created_at: "2025-01-01T00:00:00.000Z",
     tenant_id: "00000000-0000-4000-0000-000000000000",
     name: "public-key-test",
     username: ".*",

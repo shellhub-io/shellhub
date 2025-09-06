@@ -137,10 +137,7 @@ const disableButton = computed(() => (
     && tab.value === "all"
 ));
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.device.chooser);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.device.chooser));
 
 const tabItems = ref({
   suggested: {

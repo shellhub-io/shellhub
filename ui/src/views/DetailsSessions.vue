@@ -194,13 +194,7 @@ onMounted(async () => {
   await getSession();
 });
 
-const hasAuthorizationRemoveRecord = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.session.removeRecord);
-};
+const hasAuthorizationRemoveRecord = () => hasPermission(authorizer.role[authStore.role], actions.session.removeRecord);
 
-const hasAuthorizationPlay = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.session.play);
-};
+const hasAuthorizationPlay = () => hasPermission(authorizer.role[authStore.role], actions.session.play);
 </script>

@@ -179,10 +179,7 @@ const messageType = ref();
 const formattedDate = ref();
 const formattedCurrency = ref();
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.billing.subscribe);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.billing.subscribe));
 
 useEventListener("pageshow", (event) => {
   const historyPage = event.persisted

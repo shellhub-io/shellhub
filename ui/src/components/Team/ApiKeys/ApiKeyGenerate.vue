@@ -125,10 +125,7 @@ const authStore = useAuthStore();
 const showDialog = ref(false);
 const errorMessage = ref("");
 const generatedApiKey = ref("");
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.apiKey.create);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.apiKey.create));
 
 const {
   value: keyName,

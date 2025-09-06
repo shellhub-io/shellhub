@@ -123,8 +123,8 @@
 import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import { actions, authorizer } from "@/authorizer";
-import { Filter, HostnameFilter } from "@/interfaces/IFilter";
-import { capitalizeText, displayOnlyTenCharacters } from "@/utils/string";
+import isHostname from "@/utils/isHostname";
+import { capitalizeText, displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";
 import DataTable from "../DataTable.vue";
@@ -211,21 +211,7 @@ const refreshFirewallRules = async () => {
   }
 };
 
-const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
+const hasAuthorizationFormDialogEdit = () => hasPermission(authorizer.role[authStore.role], actions.firewall.edit);
 
-const formatUsername = (username: string) => username === ".*" ? "All users" : username;
-
-const formatHostnameFilter = (filter: HostnameFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
-
-const isHostname = (filter: Filter): filter is HostnameFilter => "hostname" in filter;
-
-const hasAuthorizationFormDialogEdit = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.edit);
-};
-
-const hasAuthorizationFormDialogRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.remove);
-};
+const hasAuthorizationFormDialogRemove = () => hasPermission(authorizer.role[authStore.role], actions.firewall.remove);
 </script>

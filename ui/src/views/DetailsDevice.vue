@@ -150,7 +150,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { displayOnlyTenCharacters } from "../utils/string";
-import showTag from "../utils/tag";
+import showTag from "@/utils/tag";
 import DeviceIcon from "../components/Devices/DeviceIcon.vue";
 import TagFormUpdate from "../components/Tags/TagFormUpdate.vue";
 import DeviceDelete from "../components/Devices/DeviceDelete.vue";
@@ -189,10 +189,7 @@ onMounted(async () => {
   }
 });
 
-const hasAuthorizationCreateWebEndpoint = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tunnel.create);
-};
+const hasAuthorizationCreateWebEndpoint = () => hasPermission(authorizer.role[authStore.role], actions.tunnel.create);
 
 const refreshDevices = async () => {
   try {
@@ -203,8 +200,5 @@ const refreshDevices = async () => {
   }
 };
 
-const hasAuthorizationFormUpdate = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
-};
+const hasAuthorizationFormUpdate = () => hasPermission(authorizer.role[authStore.role], actions.tag.deviceUpdate);
 </script>

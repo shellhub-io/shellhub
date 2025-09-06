@@ -76,7 +76,7 @@
 import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import { createKeyFingerprint, parsePrivateKeySsh, validateKey } from "@/utils/validate";
+import { convertToFingerprint, isKeyValid, parsePrivateKey } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
@@ -131,7 +131,7 @@ const hasValidationError = () => {
     return true;
   }
 
-  if (!validateKey("private", privateKeyData.value, passphrase.value || undefined)) {
+  if (!isKeyValid("private", privateKeyData.value, passphrase.value || undefined)) {
     setPrivateKeyDataError("Invalid private key data");
     return true;
   }
@@ -141,7 +141,7 @@ const hasValidationError = () => {
 
 const validatePrivateKeyData = () => {
   try {
-    parsePrivateKeySsh(privateKeyData.value, passphrase.value || undefined);
+    parsePrivateKey(privateKeyData.value, passphrase.value || undefined);
   } catch (err) {
     if ((err as { name: string }).name === "KeyEncryptedError") {
       hasPassphrase.value = true;
@@ -195,8 +195,8 @@ const create = async () => {
   if (hasValidationError()) return;
 
   try {
-    const fingerprint = createKeyFingerprint(privateKeyData.value, passphrase.value);
-    await privateKeysStore.addPrivateKey({
+    const fingerprint = convertToFingerprint(privateKeyData.value, passphrase.value);
+    privateKeysStore.addPrivateKey({
       name: name.value,
       data: privateKeyData.value,
       hasPassphrase: hasPassphrase.value,

@@ -52,10 +52,7 @@ const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const tenant = computed(() => localStorage.getItem("tenant") as string);
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.namespace.leave);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.namespace.leave));
 
 const leave = async () => {
   try {

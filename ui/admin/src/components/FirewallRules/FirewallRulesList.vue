@@ -79,11 +79,11 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
-import { AdminFilter, AdminHostnameFilter } from "@admin/interfaces/IFilter";
+import isHostname from "@/utils/isHostname";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
-import showTag from "../../hooks/tag";
-import displayOnlyTenCharacters from "../../hooks/string";
+import showTag from "@/utils/tag";
+import { displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import handleError from "@/utils/handleError";
 
 const router = useRouter();
@@ -125,14 +125,6 @@ const headers = ref([
   },
 ]);
 
-const formatSourceIP = (ip: string) => (ip === ".*" ? "Any IP" : ip);
-
-const formatUsername = (username: string) => username === ".*" ? "All users" : username;
-
-const formatHostnameFilter = (filter: AdminHostnameFilter) => filter.hostname === ".*" ? "All devices" : filter.hostname;
-
-const isHostname = (filter: AdminFilter): filter is AdminHostnameFilter => "hostname" in filter;
-
 const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesDetails", params: { id: ruleId } });
 
 const fetchFirewallRules = async () => {
@@ -149,8 +141,8 @@ const fetchFirewallRules = async () => {
   loading.value = false;
 };
 
-watch([itemsPerPage, page], () => {
-  fetchFirewallRules();
+watch([itemsPerPage, page], async () => {
+  await fetchFirewallRules();
 });
 
 onMounted(async () => {

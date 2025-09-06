@@ -393,15 +393,9 @@ const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
   copyFn(getSshid(item));
 };
 
-const hasAuthorizationFormUpdate = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.tag.deviceUpdate);
-};
+const hasAuthorizationFormUpdate = () => hasPermission(authorizer.role[authStore.role], actions.tag.deviceUpdate);
 
-const hasAuthorizationRemove = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.device.remove);
-};
+const hasAuthorizationRemove = () => hasPermission(authorizer.role[authStore.role], actions.device.remove);
 
 const getSortOrder = () => {
   const currentOrder = sortOrder.value;

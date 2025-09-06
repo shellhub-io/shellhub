@@ -253,10 +253,7 @@ const filterSelectOptions = [
   { value: "tags", title: "Restrict rule by device tags" },
 ];
 
-const hasAuthorization = computed(() => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.firewall.create);
-});
+const hasAuthorization = computed(() => hasPermission(authorizer.role[authStore.role], actions.firewall.create));
 
 const setSelectedTagsError = () => {
   if (selectedTags.value.length > 3) selectedTagsError.value = "You can select up to 3 tags only.";

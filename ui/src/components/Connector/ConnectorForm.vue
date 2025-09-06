@@ -109,7 +109,7 @@ import * as yup from "yup";
 import { computed, ref, watch } from "vue";
 import { envVariables } from "@/envVariables";
 import { IConnectorPayload } from "@/interfaces/IConnector";
-import { parseCertificate, parsePrivateKeySsh } from "@/utils/validate";
+import { parseCertificate, parsePrivateKey } from "@/utils/sshKeys";
 import hasPermission from "@/utils/permission";
 import { actions, authorizer } from "@/authorizer";
 import handleError from "@/utils/handleError";
@@ -136,10 +136,7 @@ const snackbar = useSnackbar();
 // eslint-disable-next-line vue/max-len
 const ipAddressRegex = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})$/;
 
-const hasAuthorizationAdd = () => {
-  const { role } = authStore;
-  return !!role && hasPermission(authorizer.role[role], actions.connector.add);
-};
+const hasAuthorizationAdd = () => hasPermission(authorizer.role[authStore.role], actions.connector.add);
 
 const {
   value: address,
@@ -213,7 +210,7 @@ const validateFile = async (certificate, type) => {
     const content = await readFile(certificate);
     switch (type) {
       case "key":
-        parsePrivateKeySsh(content);
+        parsePrivateKey(content);
         break;
       case "ca":
         parseCertificate(content);

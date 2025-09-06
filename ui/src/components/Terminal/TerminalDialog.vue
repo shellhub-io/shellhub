@@ -45,7 +45,7 @@ import Terminal from "./Terminal.vue";
 import BaseDialog from "../BaseDialog.vue";
 
 // Utility to create key fingerprint for private key auth
-import { createKeyFingerprint } from "@/utils/validate";
+import { convertToFingerprint } from "@/utils/sshKeys";
 
 // Props: Device UID to connect the terminal session to
 const { deviceUid } = defineProps<{
@@ -76,7 +76,7 @@ const connect = async (params: IConnectToTerminal) => {
 // Handles private key-based connection
 const connectWithPrivateKey = async (params: IConnectToTerminal) => {
   const { username, privateKey, passphrase } = params;
-  const fingerprint = createKeyFingerprint(privateKey, passphrase);
+  const fingerprint = convertToFingerprint(privateKey as string, passphrase);
   await connect({ username, fingerprint });
 };
 
