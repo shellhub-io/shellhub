@@ -16,7 +16,7 @@ exports[`Devices View > Renders the component 1`] = `
     <!---->
   </div>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border text-center mt-2" data-test="no-items-message-component">
+<div data-v-94cd2bfb="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border text-center position-relative mt-2" data-test="no-items-message-component">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -34,15 +34,85 @@ exports[`Devices View > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div class="v-card-title d-flex flex-column justify-center pa-5 ga-6">
-    <div><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large" aria-hidden="true" data-test="message-icon"></i></div>
-    <div class="text-sm-h5 text-wrap font-weight-medium" data-test="message-title"> Looks like you don't have any Devices</div>
+  <div data-v-94cd2bfb="" class="v-skeleton-loader v-theme--light bg-v-theme-surface position-absolute w-100 h-100 opacity-10 border skeleton-loader" aria-live="polite" aria-label="Loading..." role="alert">
+    <div class="v-skeleton-loader__bone v-skeleton-loader__table-tbody">
+      <div class="v-skeleton-loader__bone v-skeleton-loader__table-row-divider">
+        <div class="v-skeleton-loader__bone v-skeleton-loader__table-row">
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+        </div>
+        <div class="v-skeleton-loader__bone v-skeleton-loader__divider"></div>
+      </div>
+      <div class="v-skeleton-loader__bone v-skeleton-loader__table-row-divider">
+        <div class="v-skeleton-loader__bone v-skeleton-loader__table-row">
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+        </div>
+        <div class="v-skeleton-loader__bone v-skeleton-loader__divider"></div>
+      </div>
+      <div class="v-skeleton-loader__bone v-skeleton-loader__table-row-divider">
+        <div class="v-skeleton-loader__bone v-skeleton-loader__table-row">
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+        </div>
+        <div class="v-skeleton-loader__bone v-skeleton-loader__divider"></div>
+      </div>
+      <div class="v-skeleton-loader__bone v-skeleton-loader__table-row-divider">
+        <div class="v-skeleton-loader__bone v-skeleton-loader__table-row">
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+        </div>
+        <div class="v-skeleton-loader__bone v-skeleton-loader__divider"></div>
+      </div>
+      <div class="v-skeleton-loader__bone v-skeleton-loader__table-row-divider">
+        <div class="v-skeleton-loader__bone v-skeleton-loader__table-row">
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+        </div>
+        <div class="v-skeleton-loader__bone v-skeleton-loader__divider"></div>
+      </div>
+      <div class="v-skeleton-loader__bone v-skeleton-loader__table-row-divider">
+        <div class="v-skeleton-loader__bone v-skeleton-loader__table-row">
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+          <div class="v-skeleton-loader__bone v-skeleton-loader__text"></div>
+        </div>
+        <div class="v-skeleton-loader__bone v-skeleton-loader__divider"></div>
+      </div>
+    </div>
   </div>
-  <div class="v-card-text pb-0 px-4 py-1 d-flex flex-column ga-2 text-subtitle-1" data-test="message-content">
+  <div data-v-94cd2bfb="" class="v-card-title d-flex flex-column justify-center pa-5 ga-6 position-relative card-title">
+    <div data-v-94cd2bfb=""><i data-v-94cd2bfb="" class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large" aria-hidden="true" data-test="message-icon"></i></div>
+    <div data-v-94cd2bfb="" class="text-sm-h5 text-wrap font-weight-medium" data-test="message-title"> Looks like you don't have any Devices</div>
+  </div>
+  <div data-v-94cd2bfb="" class="v-card-text pb-0 px-4 py-1 d-flex flex-column ga-2 text-subtitle-1 position-relative card-content" data-test="message-content">
     <p>In order to register a device on ShellHub, you need to install ShellHub agent onto it.</p>
     <p>The easiest way to install ShellHub agent is with our automatic one-line installation script, which works with all Linux distributions that have Docker installed and properly set up. <a rel="noopener noreferrer" target="_blank" href="https://docs.shellhub.io/user-guides/devices/adding">See More</a>. </p>
   </div>
-  <div class="v-card-actions justify-center pt-8 pb-0"><button data-v-51a05120="" type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" tabindex="0" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  <div data-v-94cd2bfb="" class="v-card-actions justify-center pt-8 pb-0 position-relative card-actions"><button data-v-51a05120="" type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" tabindex="0" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""> Add Device </span>
       <!---->
       <!---->
