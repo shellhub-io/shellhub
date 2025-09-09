@@ -1,42 +1,34 @@
 <template>
-  <v-row class="align-center">
-    <v-col cols="12" sm="4" md="3">
-      <h1 class="text-center text-sm-left">Web Endpoints</h1>
-    </v-col>
+  <v-row class="align-center justify-space-between flex-column flex-sm-row mb-2 ga-4">
+    <h1 class="text-center text-sm-left">Web Endpoints</h1>
 
-    <v-col cols="12" sm="4" md="6">
-      <v-text-field
-        label="Search by Address"
-        variant="outlined"
-        color="primary"
-        single-line
-        hide-details
-        v-model.trim="filter"
-        v-on:keyup="searchWebEndpoints"
-        prepend-inner-icon="mdi-magnify"
-        density="compact"
-        data-test="search-text"
-      />
-    </v-col>
-
-    <v-col cols="12" sm="4" md="3" class="d-flex justify-center justify-sm-end mt-2 mt-sm-0">
-      <v-btn
-        @click="showWebEndpointCreate = true"
-        color="primary"
-        variant="elevated"
-        aria-label="Tunnel Create Dialog"
-        @keypress.enter="showWebEndpointCreate = true"
-        data-test="tunnel-create-dialog-btn"
-        :disabled="!canCreateWebEndpoint"
-      >
-        Create Web Endpoint
-      </v-btn>
-    </v-col>
+    <v-text-field
+      v-if="showList"
+      class="w-75 w-sm-auto"
+      label="Search by Address"
+      variant="outlined"
+      color="primary"
+      single-line
+      hide-details
+      v-model.trim="filter"
+      @keyup="searchWebEndpoints"
+      prepend-inner-icon="mdi-magnify"
+      density="compact"
+      data-test="search-text"
+    />
+    <v-btn
+      @click="showWebEndpointCreate = true"
+      color="primary"
+      variant="elevated"
+      @keypress.enter="showWebEndpointCreate = true"
+      data-test="tunnel-create-dialog-btn"
+      :disabled="!canCreateWebEndpoint"
+    >
+      Create Web Endpoint
+    </v-btn>
   </v-row>
 
-  <div v-if="showList" class="mt-2" data-test="web-endpoints-table-component">
-    <WebEndpointList />
-  </div>
+  <WebEndpointList v-if="showList" class="mt-2" data-test="web-endpoints-table-component" />
 
   <NoItemsMessage
     v-else
@@ -45,6 +37,11 @@
     icon="mdi-web"
     data-test="no-items-message-component"
   >
+    <template #content>
+      <p>Web Endpoints enable secure, direct access to HTTP services on devices with the ShellHub Agent,
+        eliminating the need for SSH local port forwarding.</p>
+      <p>This simplifies connectivity, allowing users to access web-based interfaces seamlessly from their browser.</p>
+    </template>
     <template #action>
       <v-btn
         @click="showWebEndpointCreate = true"

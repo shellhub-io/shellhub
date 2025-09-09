@@ -25,8 +25,10 @@
             <p
               @click="redirectDevice(endpoint.device_uid)"
               @keyup="redirectDevice(endpoint.device_uid)"
-              class="link"
-            >{{ endpoint.device?.name }}</p>
+              class="link text-truncate"
+            >
+              {{ endpoint.device?.name }}
+            </p>
             <small class="text-medium-emphasis">{{ endpoint.device?.info?.pretty_name }}</small>
           </div>
         </td>
