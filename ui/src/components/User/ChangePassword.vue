@@ -22,6 +22,7 @@
 
           <v-text-field
             v-model="newPassword"
+            @update:model-value="handleNewPasswordChange"
             label="New password"
             :append-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
             :type="showNewPassword ? 'text' : 'password'"
@@ -35,6 +36,7 @@
 
           <v-text-field
             v-model="newPasswordConfirm"
+            @update:model-value="handleNewPasswordChange"
             label="Confirm new password"
             :append-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
             :type="showConfirmPassword ? 'text' : 'password'"
@@ -73,7 +75,7 @@
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import { computed, ref } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
@@ -88,8 +90,9 @@ const showDialog = defineModel({ default: false });
 const {
   value: currentPassword,
   errorMessage: currentPasswordError,
+  setErrors: setCurrentPasswordError,
   resetField: resetCurrentPassword,
-} = useField<string>("currentPassword", yup.string().required(), {
+} = useField<string>("currentPassword", yup.string().required("This field is required"), {
   initialValue: "",
 });
 
@@ -102,7 +105,7 @@ const {
   "newPassword",
   yup
     .string()
-    .required()
+    .required("This field is required")
     .min(5, "Your password should be 5-32 characters long")
     .max(32, "Your password should be 5-32 characters long"),
   {
@@ -119,7 +122,7 @@ const {
   "newPasswordConfirm",
   yup
     .string()
-    .required()
+    .required("This field is required")
     .test(
       "passwords-match",
       "Passwords do not match",
@@ -135,6 +138,17 @@ const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 const { name, email, username, recoveryEmail } = authStore;
 
+const handleNewPasswordChange = () => {
+  if (!newPasswordConfirm.value || !newPassword.value) return;
+
+  if (newPassword.value !== newPasswordConfirm.value) {
+    setNewPasswordConfirmError("Passwords do not match");
+    return;
+  }
+
+  setNewPasswordConfirmError("");
+};
+
 const close = () => {
   showDialog.value = false;
   resetCurrentPassword();
@@ -143,42 +157,41 @@ const close = () => {
 };
 
 const hasUpdatePasswordError = computed(() => (
-  Boolean(currentPasswordError.value)
-        || Boolean(newPasswordError.value)
-        || Boolean(newPasswordConfirmError.value)
-        || newPassword.value === ""
-        || newPasswordConfirm.value === ""
-        || currentPassword.value === ""
+  !!currentPasswordError.value
+  || !!newPasswordError.value
+  || !!newPasswordConfirmError.value
+  || !currentPassword.value
+  || !newPassword.value
+  || !newPasswordConfirm.value
 ));
 
 const updatePassword = async () => {
-  if (!hasUpdatePasswordError.value) {
-    const data = {
-      name,
-      username,
-      email,
-      recovery_email: recoveryEmail,
-      currentPassword: currentPassword.value,
-      newPassword: newPassword.value,
-    };
+  if (hasUpdatePasswordError.value) return;
 
-    try {
-      await usersStore.patchPassword(data);
-      snackbar.showSuccess("Password updated successfully.");
-      close();
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response?.status === 403) {
-          setNewPasswordError("Your password doesn't match");
-          setNewPasswordConfirmError("Your password doesn't match");
-          snackbar.showError("An error occurred while updating the password.");
-        }
-      } else {
-        snackbar.showError("An error occurred while updating the password.");
-        handleError(error);
+  const data = {
+    name,
+    username,
+    email,
+    recovery_email: recoveryEmail,
+    currentPassword: currentPassword.value,
+    newPassword: newPassword.value,
+  };
+
+  try {
+    await usersStore.patchPassword(data);
+    snackbar.showSuccess("Password updated successfully.");
+    close();
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        setNewPasswordError("Your password doesn't match");
+        setNewPasswordConfirmError("Your password doesn't match");
+      } else if (error.response?.status === 400) {
+        setCurrentPasswordError("Your current password is incorrect");
       }
     }
+    snackbar.showError("An error occurred while updating the password.");
+    handleError(error);
   }
 };
 
