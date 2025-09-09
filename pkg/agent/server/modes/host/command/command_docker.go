@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
 )
 
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
-	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, u.HomeDir, command...)
+	nscommand, _ := nsenterCommandWrapper(u.UID, u.GID, u.HomeDir, u.Username, command...)
 
 	cmd := exec.Command(nscommand[0], nscommand[1:]...) //nolint:gosec
 	cmd.Env = []string{
@@ -29,16 +28,7 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 	return cmd
 }
 
-func getWrappedCommand(nsArgs []string, uid, gid uint32, home string) []string {
-	setPrivCmd := []string{
-		"/usr/bin/setpriv",
-		"--init-groups",
-		"--ruid",
-		strconv.Itoa(int(uid)),
-		"--regid",
-		strconv.Itoa(int(gid)),
-	}
-
+func getWrappedCommand(nsArgs []string, uid, gid uint32, home string, username string) []string {
 	nsenterCmd := append([]string{
 		"/usr/bin/nsenter",
 		"-t",
@@ -47,16 +37,21 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, home string) []string {
 
 	nsenterCmd = append(nsenterCmd,
 		[]string{
-			"-S",
-			strconv.Itoa(int(uid)),
 			fmt.Sprintf("--wdns=%s", home),
 		}...,
 	)
 
-	return append(setPrivCmd, nsenterCmd...)
+	suCmd := []string{
+		"su",
+		"-",
+		username,
+		"-c",
+	}
+
+	return append(nsenterCmd, suCmd...)
 }
 
-func nsenterCommandWrapper(uid, gid uint32, home string, command ...string) ([]string, error) {
+func nsenterCommandWrapper(uid, gid uint32, home string, username string, command ...string) ([]string, error) {
 	if _, err := os.Stat("/usr/bin/nsenter"); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
@@ -80,7 +75,18 @@ func nsenterCommandWrapper(uid, gid uint32, home string, command ...string) ([]s
 		args = append(args, params)
 	}
 
-	return append(getWrappedCommand(args, uid, gid, home), command...), nil
+	wrappedCmd := getWrappedCommand(args, uid, gid, home, username)
+
+	// Join the command arguments into a single string for su -c
+	fullCommand := ""
+	for i, cmd := range command {
+		if i > 0 {
+			fullCommand += " "
+		}
+		fullCommand += cmd
+	}
+
+	return append(wrappedCmd, fullCommand), nil
 }
 
 // SFTPServerCommand creates the command used by agent to start the SFTP server used in a SFTP connection.
