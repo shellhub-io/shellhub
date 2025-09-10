@@ -22,22 +22,7 @@
           </td>
 
           <td class="text-center" v-if="session.device">
-            <p
-              @click="redirectDevice(session.device.uid)"
-              @keyup="redirectDevice(session.device.uid)"
-              tabindex="0"
-              class="link"
-            >
-              <v-btn
-                class="text-none border rounded bg-v-theme-background"
-                prepend-icon="mdi-developer-board"
-                variant="plain"
-                density="default"
-                size="default"
-              >
-                {{ session.device.name }}
-              </v-btn>
-            </p>
+            <DeviceLink :device-uid="session.device.uid" :device-name="session.device.name" />
           </td>
 
           <td class="text-center">
@@ -144,6 +129,7 @@ import { formatShortDateTime } from "@/utils/date";
 import DataTable from "../DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
+import DeviceLink from "../Devices/DeviceLink.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
@@ -228,10 +214,6 @@ watch([page, itemsPerPage], async () => {
 
 const redirectToSession = (sessionUid: string) => {
   router.push({ name: "SessionDetails", params: { id: sessionUid } });
-};
-
-const redirectDevice = (deviceUid: string) => {
-  router.push({ name: "DeviceDetails", params: { identifier: deviceUid } });
 };
 
 const refreshSessions = async () => {
