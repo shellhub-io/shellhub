@@ -452,7 +452,7 @@ func TestEventSession(t *testing.T) {
 			req.Header.Set("Sec-WebSocket-Version", "13")
 			req.Header.Set("Sec-WebSocket-Key", "test")
 
-			e := NewRouter(mock, func(_ *echo.Echo, handler *Handler) error {
+			e := NewRouter(mock, func(_ *echo.Echo, handler *Handler, _ *HandlerConfig) error {
 				handler.WebSocketUpgrader = webSocketUpgraderMock
 
 				return nil
