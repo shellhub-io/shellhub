@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	metrics "github.com/shellhub-io/shellhub/ssh/metrics"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/pkg/host"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
@@ -558,12 +559,20 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	ctx.Lock()
 	defer ctx.Unlock()
 
+	start := time.Now()
 	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHOpenTarget{SessionID: s.UID})
+	elapsed := time.Since(start).Seconds()
+
 	if err != nil {
 		log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).WithError(err).Error("failed to open ssh session")
+		metrics.ObserveDialDuration("failure", elapsed)
+
+		metrics.IncDialFailure(err.Error())
 
 		return errors.Join(ErrDial, err)
 	}
+
+	metrics.ObserveDialDuration("success", elapsed)
 
 	s.Agent.Conn = conn
 
