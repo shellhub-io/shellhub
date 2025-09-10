@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	metrics "github.com/shellhub-io/shellhub/ssh/metrics"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/ssh/pkg/target"
 	"github.com/shellhub-io/shellhub/ssh/server/auth"
@@ -32,6 +34,19 @@ type Server struct {
 	dialer *dialer.Dialer
 }
 
+// connWithOnClose wraps a net.Conn and performs a callback when closed to update metrics.
+type connWithOnClose struct {
+	net.Conn
+	onClose func()
+}
+
+func (c *connWithOnClose) Close() error {
+	err := c.Conn.Close()
+	c.onClose()
+
+	return err
+}
+
 var (
 	//go:embed messages/invalid_ssh_id.txt
 	InvalidSSHIDMessage string
@@ -52,9 +67,14 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 	server.sshd = &gliderssh.Server{ // nolint: exhaustruct
 		Addr: ":2222",
 		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
+			metrics.IncConnectionsActive()
+			metrics.IncConnectionsTotal()
+
 			ctx.SetValue("conn", conn)
 
-			return conn
+			return &connWithOnClose{Conn: conn, onClose: sync.OnceFunc(
+				func() { metrics.DecConnectionsActive() },
+			)}
 		},
 		BannerHandler: func(ctx gliderssh.Context) string {
 			logger := log.WithFields(

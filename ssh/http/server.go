@@ -6,9 +6,11 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/shellhub-io/shellhub/ssh/metrics"
 	"github.com/shellhub-io/shellhub/ssh/pkg/dialer"
 )
 
@@ -29,6 +31,8 @@ func NewMessageFromError(err error) Message {
 // subdomains to be resolved and forwarded through the reverse tunnel
 // transport (supporting both legacy V1 and yamux/multistream V2).
 type Config struct {
+	// Metrics enables the Prometheus metrics endpoint at /metrics.
+	Metrics bool
 	// WebEndpoints enables the web endpoints (HTTP proxy) feature.
 	WebEndpoints bool
 	// WebEndpointsDomain is the base domain used when constructing the
@@ -134,6 +138,15 @@ func NewServer(d *dialer.Dialer, cli internalclient.Client, cfg *Config) *Server
 
 	r.POST(HandleSSHClosePath, handlers.HandleSSHClose)
 	r.GET(HandleHealthcheckPath, handlers.HandleHealthcheck)
+
+	if cfg.Metrics {
+		const HandleMetricsPath = "/metrics"
+
+		p := metrics.NewMetrics()
+		r.GET(HandleMetricsPath, echo.WrapHandler(
+			promhttp.HandlerFor(p, promhttp.HandlerOpts{})),
+		)
+	}
 
 	if cfg.WebEndpoints {
 		// NOTE: The `/http/proxy` endpoint is invoked by the NGINX gateway when a tunnel URL is accessed. It processes

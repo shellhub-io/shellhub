@@ -4,6 +4,7 @@ import (
 	"net"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	metrics "github.com/shellhub-io/shellhub/ssh/metrics"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 )
@@ -27,16 +28,22 @@ func PasswordHandler(ctx gliderssh.Context, passwd string) bool {
 			conn.Close()
 		}
 
+		metrics.RecordAuthFailure()
+
 		return false
 	}
 
 	if err := sess.Auth(ctx, session.AuthPassword(passwd)); err != nil {
 		logger.Warn("failed to authenticate on device using password")
 
+		metrics.RecordAuthFailure()
+
 		return false
 	}
 
 	logger.Info("succeeded to use password authentication.")
+
+	metrics.RecordAuthSuccess()
 
 	return true
 }
