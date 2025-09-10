@@ -4,6 +4,7 @@ import (
 	"net"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	metrics "github.com/shellhub-io/shellhub/ssh/metrics"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -29,16 +30,22 @@ func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool
 			conn.Close()
 		}
 
+		metrics.RecordAuthFailure()
+
 		return false
 	}
 
 	if err := sess.Auth(ctx, session.AuthPublicKey(publicKey)); err != nil {
 		logger.Warn("failed to authenticate on device using public key")
 
+		metrics.RecordAuthFailure()
+
 		return false
 	}
 
 	logger.Info("succeeded to use public key authentication.")
+
+	metrics.RecordAuthSuccess()
 
 	return true
 }

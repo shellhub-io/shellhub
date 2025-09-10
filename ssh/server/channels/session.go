@@ -6,6 +6,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	metrics "github.com/shellhub-io/shellhub/ssh/metrics"
 	"github.com/shellhub-io/shellhub/ssh/session"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -112,6 +113,11 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 		}
 
 		logger.Info("session channel started")
+
+		metrics.IncSessionsTotal()
+		metrics.IncSessionsActive()
+		defer metrics.DecSessionsActive()
+
 		defer logger.Info("session channel done")
 
 		seat, err := sess.NewSeat()

@@ -33,6 +33,10 @@ type Envs struct {
 	AllowPublickeyAccessBelow060 bool   `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
 	WebEndpoints                 bool   `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
 	WebEndpointsDomain           string `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
+	// Metrics enables the Prometheus metrics endpoint at /metrics.
+	// It is disabled by default to avoid exposing internal metrics
+	// to the public internet unless explicitly enabled.
+	Metrics bool `env:"SHELLHUB_METRICS,default=false"`
 }
 
 func main() {
@@ -57,6 +61,7 @@ func main() {
 	d := dialer.NewDialer(cli)
 
 	h := http.NewServer(d, cli, &http.Config{
+		Metrics:            env.Metrics,
 		WebEndpoints:       env.WebEndpoints,
 		WebEndpointsDomain: env.WebEndpointsDomain,
 	})
