@@ -114,7 +114,14 @@ services:
     networks:
       - shellhub
     healthcheck:
-      test: "curl -f -k -L http://gateway/healthcheck || exit 1"
+      test: >
+        sh -c '
+        if [ "$SHELLHUB_PROXY" = "true" ]; then
+          curl -f -k -L --haproxy-protocol http://gateway/healthcheck || exit 1
+        else
+          curl -f -k -L http://gateway/healthcheck || exit 1
+        fi
+        '
       interval: 30s
       start_period: 10s
   cli:
