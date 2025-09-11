@@ -433,14 +433,19 @@ if grep -qi Microsoft /proc/version; then
   echo "🔍 Detected WSL environment..."
 
   WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
-  WSL_VERSION=$($WSL_EXE -l -v | tr -d '\0' | grep ${WSL_DISTRO_NAME} | awk '{print $NF}' | tr -d -c '0-9')
+  WSL_VERSION=$($WSL_EXE -v | tr -d '\0' | grep "WSL version" | awk -F'[ .:]+' '{print $3}')
 
   if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
     echo "❌ ERROR: WSL version 2 is required to run ShellHub."
     exit 1
   fi
 
-  INSTALL_METHOD="wsl"
+  if  grep -qi 'NAME="Ubuntu"' /etc/os-release; then
+    INSTALL_METHOD="wsl"
+  else
+    echo "❌ Error: Only Ubuntu is supported in WSL."
+    exit 1
+  fi
 fi
 
 [ -z "$INSTALL_METHOD" ] && INSTALL_METHOD="standalone"
