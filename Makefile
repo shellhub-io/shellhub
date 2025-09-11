@@ -18,7 +18,7 @@ export COMPOSE_TEMPLATE
 
 # Generate required private key for api service
 api_private_key:
-	@$(KEYGEN) genrsa -out api_private_key 2048
+	@$(KEYGEN) genpkey -algorithm RSA -out api_private_key -pkeyopt rsa_keygen_bits:2048
 
 # Generate required public key for api service
 api_public_key:
@@ -26,7 +26,7 @@ api_public_key:
 
 # Generate required private key for ssh service
 ssh_private_key:
-	@$(KEYGEN) genrsa -out ssh_private_key 2048
+	@$(KEYGEN) genpkey -algorithm RSA -out ssh_private_key -pkeyopt rsa_keygen_bits:2048
 
 .PHONY: keygen
 # Generate required keys
