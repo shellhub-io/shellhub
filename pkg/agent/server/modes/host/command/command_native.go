@@ -28,6 +28,28 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 		groups = append(groups, u.GID)
 	}
 
+	// NOTE: The `exec.Command` only resolves, as documentation says, the first item on the command slice, what is, in
+	// this case, the shell (e.g. /bin/bash). So we need to resolve the target command path by ourselves.
+	// If we don't do that, the shell will try to find the command in its own PATH, what may lead to a "command not
+	// found" error if the PATH is not correctly set.
+	target, err := exec.LookPath(command[2])
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{
+				"command": command[2],
+				"path":    os.Getenv("PATH"),
+			}).
+			Warn("failed to resolve command path, using the command as is")
+
+		target = command[2]
+	}
+
+	// NOTE: After the resolution, we set the command[2] to the resolved path.
+	command[2] = target
+
+	// TODO: Remove this debug line before merge.
+	log.Println(os.Getenv("PATH"))
+
 	cmd := exec.Command(command[0], command[1:]...) //nolint:gosec
 	cmd.Env = []string{
 		"TERM=" + term,
