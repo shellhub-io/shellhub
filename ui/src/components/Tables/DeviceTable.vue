@@ -75,12 +75,12 @@
                     class="mr-1"
                     data-test="tag-chip"
                   >
-                    {{ displayOnlyTenCharacters(tag) }}
+                    {{ displayOnlyTenCharacters(tag.name) }}
                   </v-chip>
                 </template>
 
-                <span v-if="showTag(tag)">
-                  {{ tag }}
+                <span v-if="showTag(tag.name)">
+                  {{ tag.name }}
                 </span>
               </v-tooltip>
             </div>
