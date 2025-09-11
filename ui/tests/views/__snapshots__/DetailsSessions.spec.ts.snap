@@ -52,7 +52,7 @@ exports[`Details Sessions > Renders the component 1`] = `
     </div>
     <div>
       <div class="text-overline mt-3">Authenticated:</div>
-      <div data-test="sessionAuthenticated-field"><i class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-8"></i>
+      <div data-test="sessionAuthenticated-field"><i class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-6"></i>
         <!--teleport start-->
         <!--teleport end-->
       </div>

@@ -17,8 +17,22 @@
               :authenticated="session.authenticated"
               :uid="session.uid"
               :recorded="session.recorded"
+              v-slot="{ loading, disabled, openDialog }"
               data-test="session-play-component"
-            />
+            >
+              <v-btn
+                color="primary"
+                prepend-icon="mdi-play"
+                variant="outlined"
+                :loading
+                density="comfortable"
+                data-test="connect-btn"
+                @click="openDialog"
+                :disabled
+              >
+                Play
+              </v-btn>
+            </SessionPlay>
           </td>
 
           <td class="text-center" v-if="session.device">

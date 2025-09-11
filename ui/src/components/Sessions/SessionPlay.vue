@@ -3,18 +3,7 @@
     <v-tooltip location="bottom" :disabled="disableTooltip">
       <template v-slot:activator="{ props }">
         <div v-bind="props">
-          <v-btn
-            color="primary"
-            prepend-icon="mdi-play"
-            variant="outlined"
-            :loading
-            density="comfortable"
-            data-test="connect-btn"
-            @click="openDialog"
-            :disabled="!isCommunity && disabled"
-          >
-            Play
-          </v-btn>
+          <slot :loading :disabled :openDialog />
         </div>
       </template>
       <span>{{ tooltipMessage }}</span>
@@ -67,10 +56,10 @@ const snackbar = useSnackbar();
 const loading = ref(false);
 const logs = ref<string | null>(null);
 const { isCommunity } = envVariables;
-const disabled = !props.recorded || !props.authenticated;
-const tooltipMessage = props.recorded
+const disabled = computed(() => !isCommunity && (!props.recorded || !props.authenticated));
+const tooltipMessage = computed(() => props.recorded
   ? "You don't have permission to play this session."
-  : "This session was not recorded.";
+  : "This session was not recorded.");
 
 const canPlaySession = hasPermission("session:play");
 

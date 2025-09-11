@@ -30,26 +30,23 @@
             />
           </template>
           <v-list class="bg-v-theme-surface" lines="two" density="compact">
-            <v-tooltip
-              location="bottom"
-              class="text-center"
-              :disabled="canPlaySession"
-              data-test="sessionPlay-tooltip"
+            <SessionPlay
+              :uid="session.uid"
+              :recorded="session.recorded"
+              :authenticated="session.authenticated"
+              v-slot="{ loading, disabled, openDialog }"
             >
-              <template v-slot:activator="{ props }">
-                <div v-bind="props">
-                  <SessionPlay
-                    v-if="session.authenticated && session.recorded"
-                    :authenticated="session.authenticated"
-                    :uid="session.uid"
-                    :recorded="session.recorded"
-                    data-test="session-play-component"
-                  />
-                </div>
-              </template>
-              <span> You don't have this kind of authorization. </span>
-            </v-tooltip>
-
+              <div>
+                <v-list-item @click="openDialog" :loading :disabled>
+                  <div class="d-flex align-center">
+                    <v-icon icon="mdi-play" class="mr-2" />
+                    <v-list-item-title>
+                      Play Session
+                    </v-list-item-title>
+                  </div>
+                </v-list-item>
+              </div>
+            </SessionPlay>
             <v-tooltip
               location="bottom"
               class="text-center"
@@ -178,7 +175,6 @@ const snackbar = useSnackbar();
 const sessionId = computed(() => route.params.id as string);
 const session = computed(() => sessionsStore.session);
 const canRemoveSessionRecord = hasPermission("session:removeRecord");
-const canPlaySession = hasPermission("session:play");
 
 const getSession = async () => {
   try {
