@@ -3,7 +3,6 @@
     class="text-none border rounded bg-v-theme-background"
     @click="redirectToDeviceDetails()"
     prepend-icon="mdi-developer-board"
-    variant="plain"
     density="default"
     size="default"
   >

@@ -2,154 +2,139 @@
   <div class="d-flex pa-0 align-center">
     <h1>Session Details</h1>
   </div>
-  <v-card class="mt-2 bg-v-theme-surface" v-if="session.uid" data-test="sessionDetails-card">
-    <v-card-title class="pa-4 d-flex align-center justify-space-between">
+  <v-card class="mt-2 border rounded bg-background" v-if="session.uid" data-test="session-details-card" elevation="0">
+    <v-card-title class="bg-v-theme-surface pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
-        <v-icon v-if="session.active" color="success" size="small" data-test="sessionActive-icon">
-          mdi-check-circle
-        </v-icon>
-        <v-tooltip location="bottom" v-else>
+        <v-tooltip location="bottom" :disabled="session.active">
           <template v-slot:activator="{ props }">
-            <v-icon v-bind="props" size="small" data-test="sessionInactive-icon"> mdi-check-circle </v-icon>
+            <v-icon
+              v-bind="props"
+              :color="session.active ? 'success' : 'white'"
+              size="small"
+              data-test="session-active-icon"
+              icon="mdi-check-circle" />
           </template>
           <span>{{ getTimeFromNow(session.last_seen) }}</span>
         </v-tooltip>
-        <span class="ml-2" v-if="session.device" data-test="sessionDeviceName">{{ session.device.name }}</span>
+        <DeviceLink v-if="session.device" :device-uid="session.device.uid" :device-name="session.device.name" class="ml-2" />
       </div>
 
-      <div>
-        <v-menu location="bottom" scrim eager>
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              variant="plain"
-              class="border rounded bg-v-theme-background"
-              density="comfortable"
-              size="default"
-              icon="mdi-format-list-bulleted"
-            />
-          </template>
-          <v-list class="bg-v-theme-surface" lines="two" density="compact">
-            <SessionPlay
-              :uid="session.uid"
-              :recorded="session.recorded"
-              :authenticated="session.authenticated"
-              v-slot="{ loading, disabled, openDialog }"
-            >
-              <div>
-                <v-list-item @click="openDialog" :loading :disabled>
-                  <div class="d-flex align-center">
-                    <v-icon icon="mdi-play" class="mr-2" />
-                    <v-list-item-title>
-                      Play Session
-                    </v-list-item-title>
-                  </div>
-                </v-list-item>
+      <v-menu location="bottom" scrim eager>
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            variant="plain"
+            class="border rounded bg-v-theme-background"
+            density="comfortable"
+            size="default"
+            icon="mdi-format-list-bulleted"
+          />
+        </template>
+        <v-list class="bg-v-theme-surface" lines="two" density="compact">
+          <SessionPlay
+            :uid="session.uid"
+            :recorded="session.recorded"
+            :authenticated="session.authenticated"
+            v-slot="{ loading, disabled, openDialog }"
+          >
+            <div>
+              <v-list-item @click="openDialog" :loading :disabled>
+                <div class="d-flex align-center">
+                  <v-icon icon="mdi-play" class="mr-2" />
+                  <v-list-item-title>
+                    Play Session
+                  </v-list-item-title>
+                </div>
+              </v-list-item>
+            </div>
+          </SessionPlay>
+          <v-tooltip
+            location="bottom"
+            class="text-center"
+            :disabled="canRemoveSessionRecord"
+            data-test="session-close-tooltip"
+          >
+            <template v-slot:activator="{ props }">
+              <div v-bind="props">
+                <SessionClose
+                  v-if="session.active"
+                  :uid="session.uid"
+                  :device="session.device"
+                  :hasAuthorization="canRemoveSessionRecord"
+                  @update="getSession"
+                  data-test="session-close-component"
+                />
               </div>
-            </SessionPlay>
-            <v-tooltip
-              location="bottom"
-              class="text-center"
-              :disabled="canRemoveSessionRecord"
-              data-test="session-close-tooltip"
-            >
-              <template v-slot:activator="{ props }">
-                <div v-bind="props">
-                  <SessionClose
-                    v-if="session.active"
-                    :uid="session.uid"
-                    :device="session.device"
-                    :hasAuthorization="canRemoveSessionRecord"
-                    @update="getSession"
-                    data-test="session-close-component"
-                  />
-                </div>
-              </template>
-              <span> You don't have this kind of authorization. </span>
-            </v-tooltip>
+            </template>
+            <span> You don't have this kind of authorization. </span>
+          </v-tooltip>
 
-            <v-tooltip
-              location="bottom"
-              class="text-center"
-              :disabled="canRemoveSessionRecord"
-              data-test="session-delete-tooltip"
-            >
-              <template v-slot:activator="{ props }">
-                <div v-bind="props">
-                  <SessionDelete
-                    v-if="session.uid"
-                    :uid="session.uid"
-                    :hasAuthorization="canRemoveSessionRecord"
-                    @update="getSession"
-                    data-test="session-delete-record-component"
-                  />
+          <v-tooltip
+            location="bottom"
+            class="text-center"
+            :disabled="canRemoveSessionRecord"
+            data-test="session-delete-tooltip"
+          >
+            <template v-slot:activator="{ props }">
+              <div v-bind="props">
+                <SessionDelete
+                  :uid="session.uid"
+                  :hasAuthorization="canRemoveSessionRecord"
+                  @update="getSession"
+                  data-test="session-delete-record-component"
+                />
 
-                </div>
-              </template>
-              <span> You don't have this kind of authorization. </span>
-            </v-tooltip>
-          </v-list>
-        </v-menu>
-      </div>
+              </div>
+            </template>
+            <span> You don't have this kind of authorization. </span>
+          </v-tooltip>
+        </v-list>
+      </v-menu>
     </v-card-title>
 
     <v-divider />
 
     <v-card-text class="pa-4 pt-0">
-      <div>
-        <div class="text-overline mt-3">uid:</div>
-        <div data-test="sessionUid-field">
-          <p>{{ session.uid }}</p>
-        </div>
-      </div>
+      <v-row class="py-3">
+        <v-col cols="12" md="6" class="my-0 py-0">
+          <div data-test="session-uid-field">
+            <div class="item-title">UID:</div>
+            <p class="text-truncate">{{ session.uid }}</p>
+          </div>
 
-      <div>
-        <div class="text-overline mt-3">user:</div>
-        <div data-test="sessionUser-field">
-          <p>{{ session.username }}</p>
-        </div>
-      </div>
+          <div data-test="session-user-field">
+            <div class="item-title">User:</div>
+            <p>{{ session.username }}</p>
+          </div>
 
-      <div>
-        <div class="text-overline mt-3">Authenticated:</div>
-        <div data-test="sessionAuthenticated-field">
-          <v-tooltip location="bottom" v-if="session.authenticated">
-            <template v-slot:activator="{ props }">
-              <v-icon v-bind="props" color="success"> mdi-shield-check </v-icon>
-            </template>
-            <span>User has been authenticated</span>
-          </v-tooltip>
-          <v-tooltip bottom v-else>
-            <template v-slot:activator="{ props }">
-              <v-icon v-bind="props" color="error"> mdi-shield-alert </v-icon>
-            </template>
-            <span>User has not been authenticated</span>
-          </v-tooltip>
-        </div>
-      </div>
+          <div data-test="session-authenticated-field">
+            <div class="item-title">Authenticated:</div>
+            <v-tooltip location="bottom">
+              <template v-slot:activator="{ props }">
+                <v-icon v-bind="props" :color="authenticatedTooltipAttrs.color" :icon="authenticatedTooltipAttrs.icon" />
+              </template>
+              <span>{{ authenticatedTooltipAttrs.text }}</span>
+            </v-tooltip>
+          </div>
+        </v-col>
 
-      <div>
-        <div class="text-overline mt-3">IP address:</div>
-        <div data-test="sessionIpAddress-field">
-          <code class="bg-tabs pa-1">
-            {{ session.ip_address }}
-          </code>
-        </div>
-      </div>
+        <v-col cols="12" md="6" class="my-0 py-0">
+          <div data-test="session-ip-address-field">
+            <div class="item-title">IP address:</div>
+            <code class="bg-tabs pa-1">{{ session.ip_address }}</code>
+          </div>
 
-      <div>
-        <div class="text-overline mt-3">Started:</div>
-        <div data-test="sessionStartedAt-field">
-          <p>{{ formatFullDateTime(session.started_at) }}</p>
-        </div>
-      </div>
+          <div data-test="session-started-at-field">
+            <div class="item-title">Started:</div>
+            <p>{{ formatFullDateTime(session.started_at) }}</p>
+          </div>
 
-      <div>
-        <div>Last seen:</div>
-        <div data-test="sessionLastSeen-field">
-          <p>{{ formatFullDateTime(session.last_seen) }}</p>
-        </div>
-      </div>
+          <div data-test="session-last-seen-field">
+            <div class="item-title">Last seen:</div>
+            <p>{{ formatFullDateTime(session.last_seen) }}</p>
+          </div>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
   <v-card class="mt-2 pa-4" v-else>
@@ -165,6 +150,7 @@ import hasPermission from "@/utils/permission";
 import SessionDelete from "@/components/Sessions/SessionDelete.vue";
 import SessionClose from "@/components/Sessions/SessionClose.vue";
 import SessionPlay from "@/components/Sessions/SessionPlay.vue";
+import DeviceLink from "@/components/Devices/DeviceLink.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useSessionsStore from "@/store/modules/sessions";
@@ -175,6 +161,9 @@ const snackbar = useSnackbar();
 const sessionId = computed(() => route.params.id as string);
 const session = computed(() => sessionsStore.session);
 const canRemoveSessionRecord = hasPermission("session:removeRecord");
+const authenticatedTooltipAttrs = computed(() => session.value.authenticated
+  ? { color: "success", icon: "mdi-shield-check", text: "User has been authenticated" }
+  : { color: "error", icon: "mdi-shield-alert", text: "User has not been authenticated" });
 
 const getSession = async () => {
   try {
@@ -189,3 +178,15 @@ onMounted(async () => {
   await getSession();
 });
 </script>
+
+<style lang="scss" scoped>
+.item-title {
+  margin-top: 0.75rem;
+  // Vuetify's text-overline styles
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1666666667em;
+  line-height: 2.667;
+}
+</style>
