@@ -93,11 +93,11 @@ describe("Details Sessions", () => {
   });
 
   it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="sessionUid-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sessionUser-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sessionAuthenticated-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sessionIpAddress-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sessionStartedAt-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sessionLastSeen-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-uid-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-user-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-authenticated-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-ip-address-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-started-at-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-last-seen-field"]').exists()).toBe(true);
   });
 });

@@ -36,7 +36,7 @@
           </td>
 
           <td class="text-center" v-if="session.device">
-            <DeviceLink :device-uid="session.device.uid" :device-name="session.device.name" />
+            <DeviceLink variant="plain" :device-uid="session.device.uid" :device-name="session.device.name" />
           </td>
 
           <td class="text-center">
