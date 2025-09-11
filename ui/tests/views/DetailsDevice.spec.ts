@@ -48,7 +48,7 @@ describe("Details Device", () => {
       latitude: 0,
       longitude: 0,
     },
-    tags: [],
+    tags: ["tag"],
     public_url: false,
     public_url_address: "",
     acceptable: false,

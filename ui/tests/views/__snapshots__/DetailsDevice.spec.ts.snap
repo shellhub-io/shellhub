@@ -1,10 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Details Device > Renders the component 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Device Details</h1>
+"<div data-v-46133275="" class="d-flex pa-0 align-center">
+  <h1 data-v-46133275="">Device Details</h1>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
+<div data-v-46133275="" class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -22,8 +22,8 @@ exports[`Details Device > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center">
+  <div data-v-46133275="" class="v-card-title pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
+    <div data-v-46133275="" class="d-flex align-center ml-2">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
         <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Connect</span>
@@ -40,47 +40,52 @@ exports[`Details Device > Renders the component 1`] = `
       <!---->
       <!---->
       <!---->
-      <!----><span class="ml-4">00-00-00-00-00-01</span>
-    </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-        <!---->
-        <!---->
-      </button>
-      <!--teleport start-->
-      <!--teleport end-->
-    </div>
+      <!----><span data-v-46133275="" class="ml-6">00-00-00-00-00-01</span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+      <!---->
+      <!---->
+    </button>
+    <!--teleport start-->
+    <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-  <div class="v-card-text pa-4 pt-0">
-    <div>
-      <div class="text-overline mt-3">uid:</div>
-      <div data-test="device-uid-field">
-        <p>123456</p>
+  <hr data-v-46133275="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div data-v-46133275="" class="v-card-text pa-4 pt-0">
+    <div data-v-46133275="" class="v-row py-3">
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-uid-field">
+          <div data-v-46133275="" class="item-title">UID:</div>
+          <p data-v-46133275="" class="text-truncate">123456</p>
+        </div>
+        <div data-v-46133275="" data-test="device-mac-field">
+          <div data-v-46133275="" class="item-title">MAC:</div><code data-v-46133275="">00-00-00-00-00-01</code>
+        </div>
+        <div data-v-46133275="" data-test="device-pretty-name-field">
+          <div data-v-46133275="" class="item-title">Operating System:</div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">linux</span></div>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">mac:</div>
-      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="device-version-field">
-        <p>latest</p>
-      </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Tags:</div>
-      <div data-test="device-tags-field"></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="device-last-seen-field">
-        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-version-field">
+          <div data-v-46133275="" class="item-title">Agent Version:</div>
+          <p data-v-46133275="">latest</p>
+        </div>
+        <div data-v-46133275="" data-test="device-tags-field">
+          <div data-v-46133275="" class="item-title">Tags:</div>
+          <div data-v-46133275=""><span data-v-46133275="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2" draggable="false" aria-describedby="v-tooltip-v-5"><!----><span class="v-chip__underlay"></span>
+            <!---->
+            <!---->
+            <div class="v-chip__content" data-no-activator="">tag</div>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
+        </div>
+        <div data-v-46133275="" data-test="device-last-seen-field">
+          <div data-v-46133275="" class="item-title">Last Seen:</div>
+          <p data-v-46133275="">Thursday, January 2nd 2025, 12:00:00 am</p>
+        </div>
       </div>
     </div>
   </div>
@@ -90,10 +95,10 @@ exports[`Details Device > Renders the component 1`] = `
 `;
 
 exports[`Details Device > Renders the component when device has no last seen date 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Device Details</h1>
+"<div data-v-46133275="" class="d-flex pa-0 align-center">
+  <h1 data-v-46133275="">Device Details</h1>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
+<div data-v-46133275="" class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -111,8 +116,8 @@ exports[`Details Device > Renders the component when device has no last seen dat
   </div>
   <!---->
   <!---->
-  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center">
+  <div data-v-46133275="" class="v-card-title pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
+    <div data-v-46133275="" class="d-flex align-center ml-2">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
         <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Connect</span>
@@ -129,47 +134,52 @@ exports[`Details Device > Renders the component when device has no last seen dat
       <!---->
       <!---->
       <!---->
-      <!----><span class="ml-4">00-00-00-00-00-01</span>
-    </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-        <!---->
-        <!---->
-      </button>
-      <!--teleport start-->
-      <!--teleport end-->
-    </div>
+      <!----><span data-v-46133275="" class="ml-6">00-00-00-00-00-01</span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+      <!---->
+      <!---->
+    </button>
+    <!--teleport start-->
+    <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-  <div class="v-card-text pa-4 pt-0">
-    <div>
-      <div class="text-overline mt-3">uid:</div>
-      <div data-test="device-uid-field">
-        <p>123456</p>
+  <hr data-v-46133275="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div data-v-46133275="" class="v-card-text pa-4 pt-0">
+    <div data-v-46133275="" class="v-row py-3">
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-uid-field">
+          <div data-v-46133275="" class="item-title">UID:</div>
+          <p data-v-46133275="" class="text-truncate">123456</p>
+        </div>
+        <div data-v-46133275="" data-test="device-mac-field">
+          <div data-v-46133275="" class="item-title">MAC:</div><code data-v-46133275="">00-00-00-00-00-01</code>
+        </div>
+        <div data-v-46133275="" data-test="device-pretty-name-field">
+          <div data-v-46133275="" class="item-title">Operating System:</div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">linux</span></div>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">mac:</div>
-      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="device-version-field">
-        <p>latest</p>
-      </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Tags:</div>
-      <div data-test="device-tags-field"></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="device-last-seen-field">
-        <p>No date found</p>
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-version-field">
+          <div data-v-46133275="" class="item-title">Agent Version:</div>
+          <p data-v-46133275="">latest</p>
+        </div>
+        <div data-v-46133275="" data-test="device-tags-field">
+          <div data-v-46133275="" class="item-title">Tags:</div>
+          <div data-v-46133275=""><span data-v-46133275="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2" draggable="false" aria-describedby="v-tooltip-v-5"><!----><span class="v-chip__underlay"></span>
+            <!---->
+            <!---->
+            <div class="v-chip__content" data-no-activator="">tag</div>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
+        </div>
+        <div data-v-46133275="" data-test="device-last-seen-field">
+          <div data-v-46133275="" class="item-title">Last Seen:</div>
+          <p data-v-46133275="">No date found</p>
+        </div>
       </div>
     </div>
   </div>
@@ -179,10 +189,10 @@ exports[`Details Device > Renders the component when device has no last seen dat
 `;
 
 exports[`Details Device > Renders the component when device has no tags 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Device Details</h1>
+"<div data-v-46133275="" class="d-flex pa-0 align-center">
+  <h1 data-v-46133275="">Device Details</h1>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
+<div data-v-46133275="" class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -200,8 +210,8 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
   </div>
   <!---->
   <!---->
-  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center">
+  <div data-v-46133275="" class="v-card-title pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
+    <div data-v-46133275="" class="d-flex align-center ml-2">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
         <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact green-border"><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Connect</span>
@@ -218,47 +228,41 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
       <!---->
       <!---->
       <!---->
-      <!----><span class="ml-4">00-00-00-00-00-01</span>
-    </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-        <!---->
-        <!---->
-      </button>
-      <!--teleport start-->
-      <!--teleport end-->
-    </div>
+      <!----><span data-v-46133275="" class="ml-6">00-00-00-00-00-01</span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+      <!---->
+      <!---->
+    </button>
+    <!--teleport start-->
+    <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-  <div class="v-card-text pa-4 pt-0">
-    <div>
-      <div class="text-overline mt-3">uid:</div>
-      <div data-test="device-uid-field">
-        <p>123456</p>
+  <hr data-v-46133275="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div data-v-46133275="" class="v-card-text pa-4 pt-0">
+    <div data-v-46133275="" class="v-row py-3">
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-uid-field">
+          <div data-v-46133275="" class="item-title">UID:</div>
+          <p data-v-46133275="" class="text-truncate">123456</p>
+        </div>
+        <div data-v-46133275="" data-test="device-mac-field">
+          <div data-v-46133275="" class="item-title">MAC:</div><code data-v-46133275="">00-00-00-00-00-01</code>
+        </div>
+        <div data-v-46133275="" data-test="device-pretty-name-field">
+          <div data-v-46133275="" class="item-title">Operating System:</div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">linux</span></div>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">mac:</div>
-      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="device-version-field">
-        <p>latest</p>
-      </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Tags:</div>
-      <div data-test="device-tags-field"></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="device-last-seen-field">
-        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-version-field">
+          <div data-v-46133275="" class="item-title">Agent Version:</div>
+          <p data-v-46133275="">latest</p>
+        </div>
+        <!--v-if-->
+        <div data-v-46133275="" data-test="device-last-seen-field">
+          <div data-v-46133275="" class="item-title">Last Seen:</div>
+          <p data-v-46133275="">Thursday, January 2nd 2025, 12:00:00 am</p>
+        </div>
       </div>
     </div>
   </div>
@@ -268,10 +272,10 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
 `;
 
 exports[`Details Device > Renders the component when device is offline 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Device Details</h1>
+"<div data-v-46133275="" class="d-flex pa-0 align-center">
+  <h1 data-v-46133275="">Device Details</h1>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
+<div data-v-46133275="" class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -289,8 +293,8 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
   </div>
   <!---->
   <!---->
-  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center">
+  <div data-v-46133275="" class="v-card-title pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
+    <div data-v-46133275="" class="d-flex align-center ml-2">
       <div data-v-35d3a308="" class="v-row d-flex align-center flex-column">
         <div data-v-35d3a308="" class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-compact"><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" data-test="connect-btn" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">Offline</span>
@@ -307,47 +311,52 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
       <!---->
       <!---->
       <!---->
-      <!----><span class="ml-4">00-00-00-00-00-01</span>
-    </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-        <!---->
-        <!---->
-      </button>
-      <!--teleport start-->
-      <!--teleport end-->
-    </div>
+      <!----><span data-v-46133275="" class="ml-6">00-00-00-00-00-01</span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+      <!---->
+      <!---->
+    </button>
+    <!--teleport start-->
+    <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-  <div class="v-card-text pa-4 pt-0">
-    <div>
-      <div class="text-overline mt-3">uid:</div>
-      <div data-test="device-uid-field">
-        <p>123456</p>
+  <hr data-v-46133275="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div data-v-46133275="" class="v-card-text pa-4 pt-0">
+    <div data-v-46133275="" class="v-row py-3">
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-uid-field">
+          <div data-v-46133275="" class="item-title">UID:</div>
+          <p data-v-46133275="" class="text-truncate">123456</p>
+        </div>
+        <div data-v-46133275="" data-test="device-mac-field">
+          <div data-v-46133275="" class="item-title">MAC:</div><code data-v-46133275="">00-00-00-00-00-01</code>
+        </div>
+        <div data-v-46133275="" data-test="device-pretty-name-field">
+          <div data-v-46133275="" class="item-title">Operating System:</div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">linux</span></div>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">mac:</div>
-      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="device-version-field">
-        <p>latest</p>
-      </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Tags:</div>
-      <div data-test="device-tags-field"></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="device-last-seen-field">
-        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-version-field">
+          <div data-v-46133275="" class="item-title">Agent Version:</div>
+          <p data-v-46133275="">latest</p>
+        </div>
+        <div data-v-46133275="" data-test="device-tags-field">
+          <div data-v-46133275="" class="item-title">Tags:</div>
+          <div data-v-46133275=""><span data-v-46133275="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2" draggable="false" aria-describedby="v-tooltip-v-5"><!----><span class="v-chip__underlay"></span>
+            <!---->
+            <!---->
+            <div class="v-chip__content" data-no-activator="">tag</div>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
+        </div>
+        <div data-v-46133275="" data-test="device-last-seen-field">
+          <div data-v-46133275="" class="item-title">Last Seen:</div>
+          <p data-v-46133275="">Thursday, January 2nd 2025, 12:00:00 am</p>
+        </div>
       </div>
     </div>
   </div>
@@ -357,10 +366,10 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
 `;
 
 exports[`Details Device > Renders the component when device status is not accepted 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Device Details</h1>
+"<div data-v-46133275="" class="d-flex pa-0 align-center">
+  <h1 data-v-46133275="">Device Details</h1>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 bg-v-theme-surface">
+<div data-v-46133275="" class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -378,49 +387,54 @@ exports[`Details Device > Renders the component when device status is not accept
   </div>
   <!---->
   <!---->
-  <div class="v-card-title pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center">
-      <!--v-if--><span class="ml-4">00-00-00-00-00-01</span>
-    </div>
-    <div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-        <!---->
-        <!---->
-      </button>
-      <!--teleport start-->
-      <!--teleport end-->
-    </div>
+  <div data-v-46133275="" class="v-card-title pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
+    <div data-v-46133275="" class="d-flex align-center ml-2">
+      <!--v-if--><span data-v-46133275="" class="ml-6">00-00-00-00-00-01</span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+      <!---->
+      <!---->
+    </button>
+    <!--teleport start-->
+    <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-  <div class="v-card-text pa-4 pt-0">
-    <div>
-      <div class="text-overline mt-3">uid:</div>
-      <div data-test="device-uid-field">
-        <p>123456</p>
+  <hr data-v-46133275="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div data-v-46133275="" class="v-card-text pa-4 pt-0">
+    <div data-v-46133275="" class="v-row py-3">
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-uid-field">
+          <div data-v-46133275="" class="item-title">UID:</div>
+          <p data-v-46133275="" class="text-truncate">123456</p>
+        </div>
+        <div data-v-46133275="" data-test="device-mac-field">
+          <div data-v-46133275="" class="item-title">MAC:</div><code data-v-46133275="">00-00-00-00-00-01</code>
+        </div>
+        <div data-v-46133275="" data-test="device-pretty-name-field">
+          <div data-v-46133275="" class="item-title">Operating System:</div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">linux</span></div>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">mac:</div>
-      <div data-test="device-mac-field"><code>00-00-00-00-00-01</code></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Operating System:</div>
-      <div data-test="device-pretty-name-field"><i data-test="type-icon" class="fl-tux mr-1 mr-2" style="font-size: 20px;"></i><span>linux</span></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Agent Version:</div>
-      <div data-test="device-version-field">
-        <p>latest</p>
-      </div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Tags:</div>
-      <div data-test="device-tags-field"></div>
-    </div>
-    <div>
-      <div class="text-overline mt-3">Last Seen:</div>
-      <div data-test="device-last-seen-field">
-        <p>Thursday, January 2nd 2025, 12:00:00 am</p>
+      <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-46133275="" data-test="device-version-field">
+          <div data-v-46133275="" class="item-title">Agent Version:</div>
+          <p data-v-46133275="">latest</p>
+        </div>
+        <div data-v-46133275="" data-test="device-tags-field">
+          <div data-v-46133275="" class="item-title">Tags:</div>
+          <div data-v-46133275=""><span data-v-46133275="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-2" draggable="false" aria-describedby="v-tooltip-v-5"><!----><span class="v-chip__underlay"></span>
+            <!---->
+            <!---->
+            <div class="v-chip__content" data-no-activator="">tag</div>
+            <!---->
+            <!----></span>
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
+        </div>
+        <div data-v-46133275="" data-test="device-last-seen-field">
+          <div data-v-46133275="" class="item-title">Last Seen:</div>
+          <p data-v-46133275="">Thursday, January 2nd 2025, 12:00:00 am</p>
+        </div>
       </div>
     </div>
   </div>
@@ -430,10 +444,10 @@ exports[`Details Device > Renders the component when device status is not accept
 `;
 
 exports[`Details Device > Renders the component when deviceIsEmpty is true 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Device Details</h1>
+"<div data-v-46133275="" class="d-flex pa-0 align-center">
+  <h1 data-v-46133275="">Device Details</h1>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-v-theme-surface">
+<div data-v-46133275="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-v-theme-surface">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -451,7 +465,7 @@ exports[`Details Device > Renders the component when deviceIsEmpty is true 1`] =
   </div>
   <!---->
   <!---->
-  <p class="text-center">Something is wrong, try again !</p>
+  <p data-v-46133275="" class="text-center">Something is wrong, try again !</p>
   <!---->
   <!----><span class="v-card__underlay"></span>
 </div>"
