@@ -19,23 +19,6 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
-    strategy:
-      matrix:
-        dockerfile: [amd64, arm32v6, arm32v7, arm64v8, i386]
-        include:
-        # includes a new variable of npm with a value of 2
-        # for the matrix leg matching the os and version
-        - dockerfile: amd64
-          arch: amd64
-        - dockerfile: arm32v6
-          arch: arm/6
-        - dockerfile: arm32v7
-          arch: arm/7
-        - dockerfile: arm64v8
-          arch: arm64/8
-        - dockerfile: i386
-          arch: i386
-
     steps:
       - name: checkout code
         uses: actions/checkout@v5
@@ -53,97 +36,61 @@ jobs:
       - name: Set github reference env
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
 
-      - name: Set docker build option env
-        if: "github.event_name != 'pull_request'"
-        run: echo "BUILD_OPTION=--provenance=false --push" >> $GITHUB_ENV
-
-      - name: build image
-        if: "!contains(github.ref, 'refs/tags/v')"
+      - name: Set image tag
         run: |
-          docker buildx build ${{ env.BUILD_OPTION }} -f agent/Dockerfile.${{ matrix.dockerfile }} \
-            --tag shellhubio/agent:${{ github.sha }}-${{ matrix.dockerfile }} \
-            --platform linux/${{ matrix.arch }} .
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "IMAGE_TAG=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+            echo "BUILD_ARGS=--build-arg SHELLHUB_VERSION=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
+            echo "BUILD_ARGS=" >> $GITHUB_ENV
+          fi
 
-      - name: build image from github tag
+      - name: Build and push multiarch image
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6,linux/386 \
+            --file agent/Dockerfile \
+            --tag shellhubio/agent:${{ env.IMAGE_TAG }} \
+            ${{ env.BUILD_ARGS }} \
+            ${{ github.event_name != 'pull_request' && '--push' || '' }} \
+            --provenance=false \
+            .
+
+      - name: Export architecture-specific rootfs
         if: "contains(github.ref, 'refs/tags/v')"
         run: |
-          docker buildx build ${{ env.BUILD_OPTION }} -f agent/Dockerfile.${{ matrix.dockerfile }} \
-            --tag shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }} \
-            --build-arg SHELLHUB_VERSION=${{ env.RELEASE_VERSION }} \
-            --platform linux/${{ matrix.arch }} .
+          mkdir -p rootfs
+          for arch in amd64 arm64v8 armv7 armv6 i386; do
+            case $arch in
+              amd64) platform="linux/amd64" ;;
+              arm64v8) platform="linux/arm64/v8" ;;
+              armv7) platform="linux/arm/v7" ;;
+              armv6) platform="linux/arm/v6" ;;
+              i386) platform="linux/386" ;;
+            esac
+            
+            # Build single architecture image for export
+            docker buildx build \
+              --platform $platform \
+              --file agent/Dockerfile \
+              --tag shellhubio/agent:${{ env.IMAGE_TAG }}-$arch \
+              ${{ env.BUILD_ARGS }} \
+              --load \
+              --provenance=false \
+              .
+            
+            # Export rootfs
+            docker export $(docker create shellhubio/agent:${{ env.IMAGE_TAG }}-$arch) | gzip > rootfs/rootfs-$arch.tar.gz
+          done
 
-      - name: export rootfs
-        if: "contains(github.ref, 'refs/tags/v')"
-        run: |
-          docker export $(docker create shellhubio/agent:${{ env.RELEASE_VERSION }}-${{ matrix.dockerfile }}) | gzip > rootfs-${{ matrix.dockerfile }}.tar.gz
-
-      - name: upload rootfs artifact
+      - name: Upload rootfs artifacts
         if: "contains(github.ref, 'refs/tags/v')"
         uses: actions/upload-artifact@v4
         with:
-          name: rootfs-${{ matrix.dockerfile }}
-          path: rootfs-${{ matrix.dockerfile }}.tar.gz
+          name: rootfs-artifacts
+          path: rootfs/*.tar.gz
 
-  multiarch:
-    if: github.event_name != 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v5
-
-      - name: Set github reference env
-        run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
-
-      - name: login to docker hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: build multiarch image
-        if: "!contains(github.ref, 'refs/tags/v')"
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
-        run: |
-            echo "Creating the manifest"
-            docker manifest create -a shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 shellhubio/agent:${{ github.sha }}-arm32v6 shellhubio/agent:${{ github.sha }}-arm32v7 shellhubio/agent:${{ github.sha }}-arm64v8
-
-            echo "Running amd64 manifest annotation"
-            docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-amd64 --os linux --arch amd64
-
-            archname=(arm32v6 arm32v7 arm64v8)
-            arch=(arm arm arm64)
-            variant=(v6 v7 v8)
-
-            for ((i = 0; i < 3; i++))  ; do
-              echo "Running ${archname[i]} manifest annotation"
-              docker manifest annotate shellhubio/agent:${{ github.sha }} shellhubio/agent:${{ github.sha }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
-            done
-
-            echo "Pushing multiarch manifest"
-            docker manifest push shellhubio/agent:${{ github.sha }}
-
-      - name: build multiarch image from github tag
-        if: contains(github.ref, 'refs/tags/v')
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
-        run: |
-            echo "Creating the manifest"
-            docker manifest create -a shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v6 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm32v7 shellhubio/agent:${{ env.RELEASE_VERSION }}-arm64v8
-
-            echo "Running amd64 manifest annotation"
-            docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-amd64 --os linux --arch amd64
-
-            archname=(arm32v6 arm32v7 arm64v8)
-            arch=(arm arm arm64)
-            variant=(v6 v7 v8)
-
-            for ((i = 0; i < 3; i++))  ; do
-              echo "Running ${archname[i]} manifest annotation"
-              docker manifest annotate shellhubio/agent:${{ env.RELEASE_VERSION }} shellhubio/agent:${{ env.RELEASE_VERSION }}-${archname[i]} --os linux --arch ${arch[i]} --variant ${variant[i]}
-            done
-
-            echo "Pushing multiarch manifest"
-            docker manifest push shellhubio/agent:${{ env.RELEASE_VERSION }}
 
   vendored-tarball:
     if: "contains(github.ref, 'refs/tags/v')"
@@ -168,26 +115,10 @@ jobs:
     needs: vendored-tarball
     runs-on: ubuntu-latest
     steps:
-      - name: download amd64
+      - name: download rootfs artifacts
         uses: actions/download-artifact@v5
         with:
-          name: rootfs-amd64
-      - name: download arm32v6
-        uses: actions/download-artifact@v5
-        with:
-          name: rootfs-arm32v6
-      - name: download arm32v7
-        uses: actions/download-artifact@v5
-        with:
-          name: rootfs-arm32v7
-      - name: download arm64v8
-        uses: actions/download-artifact@v5
-        with:
-          name: rootfs-arm64v8
-      - name: download i386
-        uses: actions/download-artifact@v5
-        with:
-          name: rootfs-i386
+          name: rootfs-artifacts
       - name: download vendored tarball
         uses: actions/download-artifact@v5
         with:
