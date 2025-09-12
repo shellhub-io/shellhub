@@ -1,13 +1,13 @@
 import MockAdapter from "axios-mock-adapter";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import { useAnnouncementStore } from "@admin/store/modules/announcement";
+import useAnnouncementStore from "@admin/store/modules/announcement";
 import { adminApi } from "@admin/api/http";
+import routes from "@admin/router";
+import Announcements from "@admin/views/Announcements.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import Announcements from "../../../../src/views/Announcements.vue";
 
 type AnnouncementsWrapper = VueWrapper<InstanceType<typeof Announcements>>;
 
@@ -20,8 +20,6 @@ const announcements = [
   },
 ];
 
-const numberAnnouncements = 1;
-
 describe("Announcement Details", () => {
   let wrapper: AnnouncementsWrapper;
 
@@ -31,10 +29,11 @@ describe("Announcement Details", () => {
   beforeEach(() => {
     const pinia = createPinia();
     setActivePinia(pinia);
-
     const announcementStore = useAnnouncementStore();
+
+    vi.spyOn(announcementStore, "fetchAnnouncementList").mockResolvedValue();
     announcementStore.announcements = announcements;
-    announcementStore.numberAnnouncements = numberAnnouncements;
+    announcementStore.announcementCount = 1;
 
     const vuetify = createVuetify();
 

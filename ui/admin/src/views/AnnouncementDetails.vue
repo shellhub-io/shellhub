@@ -57,7 +57,7 @@ const md = new MarkdownIt();
 const announcementStore = useAnnouncementStore();
 const route = useRoute();
 const announcementId = computed(() => route.params.uuid);
-const announcement = computed(() => announcementStore.getAnnouncement);
+const announcement = computed(() => announcementStore.announcement);
 const contentToHtml = ref("");
 const date = ref("");
 

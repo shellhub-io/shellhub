@@ -108,7 +108,7 @@ const postAnnouncement = () => {
 
   try {
     const contentInHtml = turndownService.turndown(announcement.value);
-    announcementStore.postAnnouncement({
+    announcementStore.createAnnouncement({
       title: title.value,
       content: contentInHtml,
     });

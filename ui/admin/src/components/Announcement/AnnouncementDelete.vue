@@ -48,12 +48,12 @@ const props = defineProps<{ uuid: string }>();
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
-const announcement = useAnnouncementStore();
+const announcementStore = useAnnouncementStore();
 const snackbar = useSnackbar();
 
 const remove = async () => {
   try {
-    await announcement.deleteAnnouncement(props.uuid);
+    await announcementStore.deleteAnnouncement(props.uuid);
     emit("update");
     snackbar.showSuccess("Announcement deleted successfully.");
     showDialog.value = false;
