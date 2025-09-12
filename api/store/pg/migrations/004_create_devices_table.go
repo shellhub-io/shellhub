@@ -45,7 +45,7 @@ func migration004Up(ctx context.Context, db *bun.DB) error {
 	_, err = db.NewCreateTable().
 		Model(deviceTable).
 		IfNotExists().
-		ForeignKey(`("namespace_id") REFERENCES namespaces("id")`).
+		ForeignKey(`("namespace_id") REFERENCES namespaces("id") ON DELETE CASCADE`).
 		Exec(ctx)
 	if err != nil {
 		log.WithError(err).Error("failed to apply migration 004")

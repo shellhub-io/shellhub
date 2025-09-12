@@ -31,6 +31,7 @@ type Device struct {
 	Latitude       float64   `bun:"latitude,type:numeric"`
 
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
+	Tags      []*Tag     `bun:"rel:has-many,join:id=device_id,join:namespace_id=namespace_id,m2m:device_tags,on_delete:cascade"`
 }
 
 func DeviceFromModel(model *models.Device) *Device {
@@ -43,6 +44,7 @@ func DeviceFromModel(model *models.Device) *Device {
 		Status:      string(model.Status),
 		Name:        model.Name,
 		PublicKey:   model.PublicKey,
+		Tags:        []*Tag{},
 	}
 
 	if model.DisconnectedAt != nil {
@@ -66,6 +68,13 @@ func DeviceFromModel(model *models.Device) *Device {
 		device.Platform = model.Info.Platform
 	}
 
+	if len(model.Tags) > 0 {
+		device.Tags = make([]*Tag, len(model.Tags))
+		for i, t := range model.Tags {
+			device.Tags[i] = TagFromModel(&t)
+		}
+	}
+
 	return device
 }
 
@@ -83,7 +92,9 @@ func DeviceToModel(entity *Device) *models.Device {
 		Namespace:      entity.Namespace.Name,
 		DisconnectedAt: nil,
 		RemoteAddr:     "",
-		Tags:           []string{},
+		Taggable: models.Taggable{
+			Tags: []models.Tag{},
+		},
 		Position: &models.DevicePosition{
 			Longitude: entity.Longitude,
 			Latitude:  entity.Latitude,
@@ -103,6 +114,13 @@ func DeviceToModel(entity *Device) *models.Device {
 	if !entity.DisconnectedAt.IsZero() {
 		disconnectedAt := entity.DisconnectedAt
 		device.DisconnectedAt = &disconnectedAt
+	}
+
+	if len(entity.Tags) > 0 {
+		device.Tags = make([]models.Tag, len(entity.Tags))
+		for i, t := range entity.Tags {
+			device.Tags[i] = *TagToModel(t)
+		}
 	}
 
 	return device

@@ -17,21 +17,33 @@ type PublicKey struct {
 	UpdatedAt   time.Time `bun:"updated_at"`
 	Name        string    `bun:"name"`
 	Data        []byte    `bun:"data,type:bytea"`
+
+	Tags []*Tag `bun:"rel:has-many,join:id=public_key_id,join:namespace_id=namespace_id,m2m:public_key_tags,on_delete:cascade"`
 }
 
 func PublicKeyFromModel(model *models.PublicKey) *PublicKey {
-	return &PublicKey{
+	publicKey := &PublicKey{
 		NamespaceID: model.TenantID,
 		Fingerprint: model.Fingerprint,
 		CreatedAt:   model.CreatedAt,
 		UpdatedAt:   time.Time{},
 		Name:        model.PublicKeyFields.Name,
 		Data:        model.Data,
+		Tags:        []*Tag{},
 	}
+
+	if len(model.Filter.Tags) > 0 {
+		publicKey.Tags = make([]*Tag, len(model.Filter.Tags))
+		for i, t := range model.Filter.Tags {
+			publicKey.Tags[i] = TagFromModel(&t)
+		}
+	}
+
+	return publicKey
 }
 
 func PublicKeyToModel(entity *PublicKey) *models.PublicKey {
-	return &models.PublicKey{
+	publicKey := &models.PublicKey{
 		TenantID:    entity.NamespaceID,
 		Fingerprint: entity.Fingerprint,
 		Data:        entity.Data,
@@ -41,8 +53,19 @@ func PublicKeyToModel(entity *PublicKey) *models.PublicKey {
 			Username: "",
 			Filter: models.PublicKeyFilter{
 				Hostname: "",
-				Tags:     []string{},
+				Taggable: models.Taggable{
+					Tags: []models.Tag{},
+				},
 			},
 		},
 	}
+
+	if len(entity.Tags) > 0 {
+		publicKey.Filter.Tags = make([]models.Tag, len(entity.Tags))
+		for i, t := range entity.Tags {
+			publicKey.Filter.Tags[i] = *TagToModel(t)
+		}
+	}
+
+	return publicKey
 }
