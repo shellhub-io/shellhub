@@ -121,81 +121,25 @@ func (pg *Pg) TagUpdate(ctx context.Context, id string, changes *models.TagChang
 }
 
 func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTarget, targetID string) error {
-	// First verify the tag exists
 	tag := new(entity.Tag)
-	err := pg.driver.NewSelect().
-		Model(tag).
-		Where("id = ?", id).
-		Scan(ctx)
-	if err != nil {
+	if err := pg.driver.NewSelect().Model(tag).Where("id = ?", id).Scan(ctx); err != nil {
 		return fromSqlError(err)
 	}
 
-	var res bun.Result
 	switch target {
 	case store.TagTargetDevice:
-		res, err = pg.driver.NewInsert().
-			Model(&struct {
-				bun.BaseModel `bun:"table:device_tags"`
-				DeviceID      string `bun:"device_id,pk"`
-				TagID         string `bun:"tag_id,pk"`
-				CreatedAt     any    `bun:"created_at"`
-			}{
-				DeviceID:  targetID,
-				TagID:     id,
-				CreatedAt: bun.Ident("NOW()"),
-			}).
-			On("CONFLICT (device_id, tag_id) DO NOTHING").
-			Exec(ctx)
+		deviceTag := entity.NewDeviceTag(tag.ID, targetID)
+		deviceTag.CreatedAt = clock.Now()
+
+		if _, err := pg.driver.NewInsert().Model(deviceTag).On("CONFLICT (device_id, tag_id) DO NOTHING").Exec(ctx); err != nil {
+			return fromSqlError(err)
+		}
 	case store.TagTargetPublicKey:
-		res, err = pg.driver.NewInsert().
-			Model(&struct {
-				bun.BaseModel `bun:"table:public_key_tags"`
-				PublicKeyID   string `bun:"public_key_id,pk"`
-				TagID         string `bun:"tag_id,pk"`
-				CreatedAt     any    `bun:"created_at"`
-			}{
-				PublicKeyID: targetID,
-				TagID:       id,
-				CreatedAt:   bun.Ident("NOW()"),
-			}).
-			On("CONFLICT (public_key_id, tag_id) DO NOTHING").
-			Exec(ctx)
-	default:
-		return store.ErrInvalidTagTarget
-	}
+		publickeyTag := entity.NewPublicKeyTag(tag.ID, targetID)
+		publickeyTag.CreatedAt = clock.Now()
 
-	if err != nil {
-		return fromSqlError(err)
-	}
-
-	// Check if the target exists by verifying we could insert/update
-	if rows, _ := res.RowsAffected(); rows == 0 {
-		// Could be because relationship already exists or target doesn't exist
-		// We need to check if target exists
-		switch target {
-		case store.TagTargetDevice:
-			count, err := pg.driver.NewSelect().
-				Model((*entity.Device)(nil)).
-				Where("id = ?", targetID).
-				Count(ctx)
-			if err != nil {
-				return fromSqlError(err)
-			}
-			if count == 0 {
-				return store.ErrNoDocuments
-			}
-		case store.TagTargetPublicKey:
-			count, err := pg.driver.NewSelect().
-				Model((*entity.PublicKey)(nil)).
-				Where("id = ?", targetID).
-				Count(ctx)
-			if err != nil {
-				return fromSqlError(err)
-			}
-			if count == 0 {
-				return store.ErrNoDocuments
-			}
+		if _, err := pg.driver.NewInsert().Model(publickeyTag).On("CONFLICT (public_key_id, tag_id) DO NOTHING").Exec(ctx); err != nil {
+			return fromSqlError(err)
 		}
 	}
 
@@ -203,46 +147,38 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 }
 
 func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.TagTarget, targetIDs ...string) error {
-	// First verify the tag exists
 	tag := new(entity.Tag)
-	err := pg.driver.NewSelect().
-		Model(tag).
-		Where("id = ?", id).
-		Scan(ctx)
-	if err != nil {
+	if err := pg.driver.NewSelect().Model(tag).Where("id = ?", id).Scan(ctx); err != nil {
 		return fromSqlError(err)
 	}
 
-	var res bun.Result
 	switch target {
 	case store.TagTargetDevice:
-		query := pg.driver.NewDelete().
-			Model((*struct {
-				bun.BaseModel `bun:"table:device_tags"`
-			})(nil)).
-			Where("tag_id = ?", id)
-
+		query := pg.driver.NewDelete().Model((*entity.DeviceTag)(nil)).Where("tag_id = ?", id)
 		if len(targetIDs) > 0 {
 			query = query.Where("device_id IN (?)", bun.In(targetIDs))
 		}
 
-		res, err = query.Exec(ctx)
+		if _, err := query.Exec(ctx); err != nil {
+			return fromSqlError(err)
+		}
 	case store.TagTargetPublicKey:
-		query := pg.driver.NewDelete().
-			Model((*struct {
-				bun.BaseModel `bun:"table:public_key_tags"`
-			})(nil)).
-			Where("tag_id = ?", id)
-
+		query := pg.driver.NewDelete().Model((*entity.PublicKeyTag)(nil)).Where("tag_id = ?", id)
 		if len(targetIDs) > 0 {
 			query = query.Where("public_key_id IN (?)", bun.In(targetIDs))
 		}
 
-		res, err = query.Exec(ctx)
-	default:
-		return store.ErrInvalidTagTarget
+		if _, err := query.Exec(ctx); err != nil {
+			return fromSqlError(err)
+		}
 	}
 
+	return nil
+}
+
+func (pg *Pg) TagDelete(ctx context.Context, id string) error {
+	// Cascade will delete the relationships
+	res, err := pg.driver.NewDelete().Model((*entity.Tag)(nil)).Where("id = ?", id).Exec(ctx)
 	if err != nil {
 		return fromSqlError(err)
 	}
@@ -252,44 +188,4 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 	}
 
 	return nil
-}
-
-func (pg *Pg) TagDelete(ctx context.Context, id string) error {
-	return pg.driver.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		// Delete the tag itself
-		res, err := tx.NewDelete().
-			Model((*entity.Tag)(nil)).
-			Where("id = ?", id).
-			Exec(ctx)
-		if err != nil {
-			return fromSqlError(err)
-		}
-
-		if rows, _ := res.RowsAffected(); rows == 0 {
-			return store.ErrNoDocuments
-		}
-
-		// Delete all relationships (CASCADE should handle this, but being explicit)
-		_, err = tx.NewDelete().
-			Model((*struct {
-				bun.BaseModel `bun:"table:device_tags"`
-			})(nil)).
-			Where("tag_id = ?", id).
-			Exec(ctx)
-		if err != nil {
-			return fromSqlError(err)
-		}
-
-		_, err = tx.NewDelete().
-			Model((*struct {
-				bun.BaseModel `bun:"table:public_key_tags"`
-			})(nil)).
-			Where("tag_id = ?", id).
-			Exec(ctx)
-		if err != nil {
-			return fromSqlError(err)
-		}
-
-		return nil
-	})
 }

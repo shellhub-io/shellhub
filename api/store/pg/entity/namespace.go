@@ -29,7 +29,6 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 	namespace := &Namespace{
 		ID:        model.TenantID,
 		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
 		Type:      string(model.Type),
 		Name:      model.Name,
 		Settings: NamespaceSettings{
@@ -45,7 +44,6 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 			UserID:      member.ID,
 			NamespaceID: model.TenantID,
 			CreatedAt:   member.AddedAt,
-			UpdatedAt:   member.UpdatedAt,
 			Status:      string(member.Status),
 			Role:        string(member.Role),
 		}
