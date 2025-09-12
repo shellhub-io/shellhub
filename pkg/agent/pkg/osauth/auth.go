@@ -222,7 +222,7 @@ func parseShadowLine(line string) (shadowEntry, error) {
 }
 
 func parseIntString(value string) int {
-	if value != "" {
+	if value == "" {
 		return 0
 	}
 
