@@ -9,17 +9,15 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type AnnouncementEditWrapper = VueWrapper<InstanceType<typeof AnnouncementEdit>>;
 
-const announcement = {
+const shortAnnouncement = {
   uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
   title: "Announcement 1",
-  content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
   date: "2022-12-15T19:45:45.618Z",
 };
 
-const propAnnouncement = {
-  uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
-  title: "Announcement 1",
-  date: "2022-12-15T19:45:45.618Z",
+const announcement = {
+  ...shortAnnouncement,
+  content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
 };
 
 describe("Announcement Edit", () => {
@@ -28,11 +26,11 @@ describe("Announcement Edit", () => {
 
   beforeEach(() => {
     setActivePinia(createPinia());
+    const announcementStore = useAnnouncementStore();
 
-    const store = useAnnouncementStore();
-    store.announcement = announcement;
-    vi.spyOn(store, "fetchAnnouncement").mockImplementation(async () => {
-      store.announcement = announcement;
+    announcementStore.announcement = announcement;
+    vi.spyOn(announcementStore, "fetchAnnouncement").mockImplementation(async () => {
+      announcementStore.announcement = announcement;
     });
 
     wrapper = mount(AnnouncementEdit, {
@@ -40,7 +38,7 @@ describe("Announcement Edit", () => {
         plugins: [vuetify, routes, SnackbarPlugin],
       },
       props: {
-        announcementItem: propAnnouncement,
+        announcementItem: shortAnnouncement,
       },
     });
   });
@@ -55,9 +53,9 @@ describe("Announcement Edit", () => {
 
   it("Renders the correct data", () => {
     expect(wrapper.vm.showDialog).toBe(false);
-    expect(wrapper.vm.announcement.uuid).toBe(propAnnouncement.uuid);
-    expect(wrapper.vm.announcement.title).toBe(propAnnouncement.title);
-    expect(wrapper.vm.announcement.date).toBe(propAnnouncement.date);
+    expect(wrapper.vm.announcement.uuid).toBe(shortAnnouncement.uuid);
+    expect(wrapper.vm.announcement.title).toBe(shortAnnouncement.title);
+    expect(wrapper.vm.announcement.date).toBe(shortAnnouncement.date);
     expect(wrapper.vm.contentInHtml).toBe("");
     expect(wrapper.vm.contentError).toBe(false);
     expect(wrapper.vm.title).toBe(announcement.title);

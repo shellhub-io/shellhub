@@ -16,9 +16,9 @@ describe("Announcement Delete", () => {
 
   beforeEach(() => {
     setActivePinia(createPinia());
+    const announcementStore = useAnnouncementStore();
 
-    const store = useAnnouncementStore();
-    store.announcement = {
+    announcementStore.announcement = {
       uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
       title: "Announcement 1",
       content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",

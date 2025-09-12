@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import routes from "@admin/router";
+import NewAnnouncement from "@admin/views/NewAnnouncement.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import NewAnnouncement from "../../../../src/views/NewAnnouncement.vue";
 
 type NewAnnouncementWrapper = VueWrapper<InstanceType<typeof NewAnnouncement>>;
 
@@ -18,8 +18,8 @@ describe("New Announcement", () => {
 
     const announcementStore = useAnnouncementStore();
 
-    announcementStore.postAnnouncement = vi.fn();
-    announcementStore.fetchAnnouncements = vi.fn();
+    announcementStore.createAnnouncement = vi.fn();
+    announcementStore.fetchAnnouncementList = vi.fn();
 
     const vuetify = createVuetify();
 
