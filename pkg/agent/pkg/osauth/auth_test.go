@@ -122,3 +122,59 @@ func TestPasswdReader(t *testing.T) {
 		})
 	}
 }
+
+func TestParseIntString(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  int
+	}{
+		{
+			name:  "empty string",
+			input: "",
+			want:  0,
+		},
+		{
+			name:  "whitespace only",
+			input: "   ",
+			want:  0,
+		},
+		{
+			name:  "valid integer",
+			input: "42",
+			want:  42,
+		},
+		{
+			name:  "valid with surrounding spaces",
+			input: "  7  ",
+			want:  7,
+		},
+		{
+			name:  "negative integer",
+			input: "-3",
+			want:  -3,
+		},
+		{
+			name:  "plus sign",
+			input: "+5",
+			want:  5,
+		},
+		{
+			name:  "non-numeric",
+			input: "abc",
+			want:  0,
+		},
+		{
+			name:  "mixed numeric and alpha",
+			input: "12abc",
+			want:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parseIntString(tt.input)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
