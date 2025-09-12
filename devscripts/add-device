@@ -10,7 +10,7 @@ MACADDR=$(echo -n 02; dd bs=1 count=5 if=/dev/random 2>/dev/null | hexdump -v -e
 PRIVATE_KEY_FILE=$(mktemp -u)
 PUBLIC_KEY_FILE=$(mktemp -u)
 
-openssl genrsa -out $PRIVATE_KEY_FILE 2048 2> /dev/null
+openssl genpkey -algorithm RSA -out $PRIVATE_KEY_FILE -pkeyopt rsa_keygen_bits:2048 2> /dev/null
 openssl rsa -in $PRIVATE_KEY_FILE -out $PUBLIC_KEY_FILE -pubout 2> /dev/null
 
 PUBLIC_KEY=$(cat $PUBLIC_KEY_FILE)
