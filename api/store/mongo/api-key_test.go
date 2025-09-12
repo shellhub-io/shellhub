@@ -363,71 +363,43 @@ func TestAPIKeyList(t *testing.T) {
 
 func TestAPIKeyUpdate(t *testing.T) {
 	type Expected struct {
-		name string
-		err  error
+		updatedName string
+		err         error
 	}
 
 	cases := []struct {
 		description string
-		tenantID    string
-		name        string
-		changes     *models.APIKeyChanges
+		apiKey      *models.APIKey
 		fixtures    []string
 		expected    Expected
 	}{
 		{
-			description: "fails when name and tenant id does not exists",
-			tenantID:    "nonexistent",
-			name:        "nonexistent",
-			changes:     &models.APIKeyChanges{},
-			fixtures:    []string{fixtureAPIKeys},
+			description: "fails when API key does not exist",
+			apiKey: &models.APIKey{
+				ID:       "nonexistent-id",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "nonexistent",
+			},
+			fixtures: []string{fixtureAPIKeys},
 			expected: Expected{
-				name: "",
-				err:  store.ErrNoDocuments,
+				updatedName: "",
+				err:         store.ErrNoDocuments,
 			},
 		},
 		{
-			description: "fails when name is valid but tenant id not",
-			tenantID:    "nonexistent",
-			name:        "dev",
-			changes:     &models.APIKeyChanges{},
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				name: "",
-				err:  store.ErrNoDocuments,
+			description: "succeeds when API key exists",
+			apiKey: &models.APIKey{
+				ID:        "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+				Name:      "updated-dev",
+				CreatedBy: "507f1f77bcf86cd799439011",
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Role:      "admin",
+				ExpiresIn: 0,
 			},
-		},
-		{
-			description: "fails when tenant id is valid but name not",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			name:        "nonexistent",
-			changes:     &models.APIKeyChanges{},
-			fixtures:    []string{fixtureAPIKeys},
+			fixtures: []string{fixtureAPIKeys},
 			expected: Expected{
-				name: "",
-				err:  store.ErrNoDocuments,
-			},
-		},
-		{
-			description: "succeeds when changes is empty",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			name:        "dev",
-			changes:     &models.APIKeyChanges{},
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				name: "dev",
-				err:  nil,
-			},
-		},
-		{
-			description: "succeeds when changes is not empty",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			name:        "dev",
-			changes:     &models.APIKeyChanges{Name: "new"},
-			fixtures:    []string{fixtureAPIKeys},
-			expected: Expected{
-				name: "new",
-				err:  nil,
+				updatedName: "updated-dev",
+				err:         nil,
 			},
 		},
 	}
@@ -439,61 +411,49 @@ func TestAPIKeyUpdate(t *testing.T) {
 			require.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
 
-			err := s.APIKeyUpdate(ctx, tc.tenantID, tc.name, tc.changes)
+			err := s.APIKeyUpdate(ctx, tc.apiKey)
 			if tc.expected.err != nil {
 				require.Equal(t, tc.expected.err, err)
 
 				return
 			}
 
-			filter := bson.M{"tenant_id": tc.tenantID}
-			if tc.expected.name != "" {
-				filter = bson.M{"name": tc.expected.name}
-			}
+			require.NoError(t, err)
 
 			apiKey := new(models.APIKey)
-			require.NoError(t, db.Collection("api_keys").FindOne(ctx, filter).Decode(apiKey))
-			require.Equal(t, tc.expected.name, apiKey.Name)
-			require.WithinDuration(t, time.Now(), apiKey.UpdatedAt, 10*time.Second)
+			require.NoError(t, db.Collection("api_keys").FindOne(ctx, bson.M{"_id": tc.apiKey.ID}).Decode(apiKey))
+			require.Equal(t, tc.expected.updatedName, apiKey.Name)
+			require.WithinDuration(t, time.Now(), apiKey.UpdatedAt, 1*time.Second)
 		})
 	}
 }
 
-func TestDeleteAPIKey(t *testing.T) {
+func TestAPIKeyDelete(t *testing.T) {
 	cases := []struct {
 		description string
-		tenantID    string
-		name        string
+		apiKey      *models.APIKey
 		fixtures    []string
 		expected    error
 	}{
 		{
-			description: "fails when name and tenant id does not exists",
-			tenantID:    "nonexistent",
-			name:        "nonexistent",
-			fixtures:    []string{fixtureAPIKeys},
-			expected:    store.ErrNoDocuments,
+			description: "fails when API key does not exist",
+			apiKey: &models.APIKey{
+				ID:       "nonexistent-id",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "nonexistent",
+			},
+			fixtures: []string{fixtureAPIKeys},
+			expected: store.ErrNoDocuments,
 		},
 		{
-			description: "fails when name is valid but tenant id not",
-			tenantID:    "nonexistent",
-			name:        "dev",
-			fixtures:    []string{fixtureAPIKeys},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "fails when tenant id is valid but name not",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			name:        "nonexistent",
-			fixtures:    []string{fixtureAPIKeys},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			name:        "dev",
-			fixtures:    []string{fixtureAPIKeys},
-			expected:    nil,
+			description: "succeeds when API key exists",
+			apiKey: &models.APIKey{
+				ID:       "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "dev",
+			},
+			fixtures: []string{fixtureAPIKeys},
+			expected: nil,
 		},
 	}
 
@@ -504,8 +464,14 @@ func TestDeleteAPIKey(t *testing.T) {
 			require.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
 
-			err := s.APIKeyDelete(ctx, tc.tenantID, tc.name)
+			err := s.APIKeyDelete(ctx, tc.apiKey)
 			require.Equal(t, tc.expected, err)
+
+			if tc.expected == nil {
+				count, err := db.Collection("api_keys").CountDocuments(ctx, bson.M{"_id": tc.apiKey.ID})
+				require.NoError(t, err)
+				require.Equal(t, int64(0), count)
+			}
 		})
 	}
 }

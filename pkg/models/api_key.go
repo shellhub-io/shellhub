@@ -45,14 +45,6 @@ func (a *APIKey) IsValid() bool {
 	return now.Before(expiresIn)
 }
 
-// APIKeyChanges specifies the attributes that can be updated for an API key. Any zero values in this
-// struct must be ignored. If an attribute is a pointer type, its zero value is represented as `nil`.
-type APIKeyChanges struct {
-	UpdatedAt time.Time       `bson:"updated_at,omitempty"`
-	Name      string          `bson:"name,omitempty"`
-	Role      authorizer.Role `bson:"role,omitempty"`
-}
-
 // APIKeyConflicts holds API keys attributes that must be unique for each item (per tenant ID) and can be utilized in queries
 // to identify conflicts.
 type APIKeyConflicts struct {

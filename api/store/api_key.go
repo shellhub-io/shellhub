@@ -32,11 +32,9 @@ type APIKeyStore interface {
 	// Returns the list of API keys, the total count of matched documents, and an error if any.
 	APIKeyList(ctx context.Context, opts ...QueryOption) (apiKeys []models.APIKey, count int, err error)
 
-	// APIKeyUpdate updates an API key with the specified name and tenant ID using the given changes.
-	// Any zero values in the changes (e.g., empty strings) will be ignored during the update.
-	// Returns an error if any.
-	APIKeyUpdate(ctx context.Context, tenantID, name string, changes *models.APIKeyChanges) (err error)
+	// APIKeyUpdate updates an API key. It returns an error if any.
+	APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) (err error)
 
-	// APIKeyDelete deletes an API key with the specified name and tenant ID. Returns an error if any.
-	APIKeyDelete(ctx context.Context, tenantID, name string) (err error)
+	// APIKeyDelete deletes an API key. It returns an error if any.
+	APIKeyDelete(ctx context.Context, apiKey *models.APIKey) (err error)
 }

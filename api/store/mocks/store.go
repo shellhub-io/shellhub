@@ -81,17 +81,17 @@ func (_m *Store) APIKeyCreate(ctx context.Context, APIKey *models.APIKey) (strin
 	return r0, r1
 }
 
-// APIKeyDelete provides a mock function with given fields: ctx, tenantID, name
-func (_m *Store) APIKeyDelete(ctx context.Context, tenantID string, name string) error {
-	ret := _m.Called(ctx, tenantID, name)
+// APIKeyDelete provides a mock function with given fields: ctx, apiKey
+func (_m *Store) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
+	ret := _m.Called(ctx, apiKey)
 
 	if len(ret) == 0 {
 		panic("no return value specified for APIKeyDelete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, tenantID, name)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.APIKey) error); ok {
+		r0 = rf(ctx, apiKey)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -180,17 +180,17 @@ func (_m *Store) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolve
 	return r0, r1
 }
 
-// APIKeyUpdate provides a mock function with given fields: ctx, tenantID, name, changes
-func (_m *Store) APIKeyUpdate(ctx context.Context, tenantID string, name string, changes *models.APIKeyChanges) error {
-	ret := _m.Called(ctx, tenantID, name, changes)
+// APIKeyUpdate provides a mock function with given fields: ctx, apiKey
+func (_m *Store) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
+	ret := _m.Called(ctx, apiKey)
 
 	if len(ret) == 0 {
 		panic("no return value specified for APIKeyUpdate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.APIKeyChanges) error); ok {
-		r0 = rf(ctx, tenantID, name, changes)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.APIKey) error); ok {
+		r0 = rf(ctx, apiKey)
 	} else {
 		r0 = ret.Error(0)
 	}
