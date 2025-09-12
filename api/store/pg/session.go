@@ -3,8 +3,8 @@ package pg
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/query"
 )
 
 func (pg *Pg) SessionList(ctx context.Context, paginator query.Paginator) ([]models.Session, int, error) {
