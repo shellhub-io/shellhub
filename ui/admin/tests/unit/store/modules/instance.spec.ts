@@ -22,7 +22,7 @@ describe("Instance Pinia Store", () => {
         certificates: ["cert123"],
       },
       sp: {
-        sign_requests: true,
+        sign_auth_requests: true,
         certificate: "cert",
       },
     },
@@ -50,7 +50,7 @@ describe("Instance Pinia Store", () => {
             certificates: [],
           },
           sp: {
-            sign_requests: false,
+            sign_auth_requests: false,
             certificate: "",
           },
         },
