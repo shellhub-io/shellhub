@@ -1,90 +1,49 @@
-// stores/announcement.ts
 import { defineStore } from "pinia";
-import { Announcement } from "@admin/api/client/api";
-import {
-  postAnnouncement,
-  updateAnnouncement,
-  deleteAnnouncement,
-  getAnnouncement,
-  getListAnnouncements,
-} from "../api/announcement";
+import { ref } from "vue";
+import { IAdminAnnouncement, IAdminAnnouncementRequestBody, IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncement";
+import * as announcementApi from "../api/announcement";
 
-interface AnnouncementState {
-  announcements: Array<Announcement>;
-  announcement: Announcement;
-  numberAnnouncements: number;
-  page: number;
-  perPage: number;
-  orderBy: "asc" | "desc";
-}
+const useAnnouncementStore = defineStore("announcement", () => {
+  const announcements = ref<Array<IAdminAnnouncementShort>>([]);
+  const announcement = ref<IAdminAnnouncement>({} as IAdminAnnouncement);
+  const announcementCount = ref<number>(0);
 
-export const useAnnouncementStore = defineStore("announcement", {
-  state: (): AnnouncementState => ({
-    announcements: [],
-    announcement: {} as Announcement,
-    numberAnnouncements: 0,
-    page: 1,
-    perPage: 10,
-    orderBy: "asc",
-  }),
+  const createAnnouncement = async (announcementData: IAdminAnnouncementRequestBody) => {
+    const { data } = await announcementApi.createAnnouncement(announcementData);
+    announcement.value = data as IAdminAnnouncement;
+  };
 
-  getters: {
-    getAnnouncements: (state) => state.announcements,
-    getAnnouncement: (state) => state.announcement,
-    getNumberAnnouncements: (state) => state.numberAnnouncements,
-    getPage: (state) => state.page,
-    getPerPage: (state) => state.perPage,
-    getOrderBy: (state) => state.orderBy,
-  },
+  const updateAnnouncement = async (uuid: string, announcementData: IAdminAnnouncementRequestBody) => {
+    const { data } = await announcementApi.updateAnnouncement(uuid, announcementData);
+    announcement.value = data as IAdminAnnouncement;
+  };
 
-  actions: {
-    async postAnnouncement(announcement: Announcement) {
-      const { data } = await postAnnouncement(announcement as Required<Announcement>);
-      this.announcement = data;
-    },
+  const fetchAnnouncement = async (uuid: string) => {
+    const { data } = await announcementApi.getAnnouncement(uuid);
+    announcement.value = data as IAdminAnnouncement;
+  };
 
-    async updateAnnouncement(uuid: string, announcement: Announcement) {
-      const { data } = await updateAnnouncement(uuid, announcement as Required<Announcement>);
-      this.announcement = data;
-    },
+  const fetchAnnouncementList = async (data: { page: number; perPage: number; orderBy: "asc" | "desc"; }) => {
+    const res = await announcementApi.fetchAnnouncementList(data.page, data.perPage, data.orderBy);
+    announcements.value = res.data as IAdminAnnouncementShort[];
+    announcementCount.value = parseInt(res.headers["x-total-count"], 10);
+  };
 
-    async fetchAnnouncement(uuid: string) {
-      const { data } = await getAnnouncement(uuid);
-      this.announcement = data;
-    },
+  const deleteAnnouncement = async (uuid: string) => {
+    const { data } = await announcementApi.deleteAnnouncement(uuid);
+    announcement.value = data as IAdminAnnouncement;
+  };
 
-    async fetchAnnouncements({ page, perPage, orderBy }: { page: number; perPage: number; orderBy: "asc" | "desc" }) {
-      const res = await getListAnnouncements(page, perPage, orderBy);
-      if (res.data && res.data.length) {
-        this.announcements = res.data;
-        this.numberAnnouncements = parseInt(res.headers["x-total-count"], 10);
-        return res;
-      }
-      return false;
-    },
-
-    async deleteAnnouncement(uuid: string) {
-      const { data } = await deleteAnnouncement(uuid);
-      this.announcement = data;
-    },
-
-    setPageAndPerPage({ page, perPage }: { page: number; perPage: number }) {
-      this.page = page;
-      this.perPage = perPage;
-    },
-
-    setOrderBy(orderBy: "asc" | "desc") {
-      this.orderBy = orderBy;
-    },
-
-    clearAnnouncements() {
-      this.announcements = [];
-    },
-
-    clearAnnouncement() {
-      this.announcement = {} as Required<Announcement>;
-    },
-  },
+  return {
+    announcements,
+    announcement,
+    announcementCount,
+    createAnnouncement,
+    updateAnnouncement,
+    fetchAnnouncement,
+    fetchAnnouncementList,
+    deleteAnnouncement,
+  };
 });
 
 export default useAnnouncementStore;

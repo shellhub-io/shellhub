@@ -72,10 +72,10 @@ const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
 const announcements = computed(
-  () => announcementStore.getAnnouncements as Array<IAdminAnnouncementShort>,
+  () => announcementStore.announcements as Array<IAdminAnnouncementShort>,
 );
 const announcementCount = computed(
-  () => announcementStore.getNumberAnnouncements,
+  () => announcementStore.announcementCount,
 );
 const headers = ref([
   {
@@ -99,7 +99,7 @@ const headers = ref([
 const fetchAnnouncements = async () => {
   try {
     loading.value = true;
-    await announcementStore.fetchAnnouncements({ perPage: itemsPerPage.value, page: page.value, orderBy: "desc" });
+    await announcementStore.fetchAnnouncementList({ perPage: itemsPerPage.value, page: page.value, orderBy: "desc" });
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to fetch announcements.");
@@ -128,5 +128,5 @@ onMounted(async () => {
   await fetchAnnouncements();
 });
 
-defineExpose({ itemsPerPage, page, loading, numberAnnouncements: announcementCount, announcements });
+defineExpose({ itemsPerPage, page, loading, announcementCount, announcements });
 </script>

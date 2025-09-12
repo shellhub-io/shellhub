@@ -121,7 +121,7 @@ const md = new MarkdownIt();
 const turndownService = new TurndownService();
 const tinyMceKey = computed(() => envVariables.tinyMceKey);
 const tinyMceKeyIsEmpty = computed(() => tinyMceKey.value === "");
-const announcement = computed(() => announcementStore.getAnnouncement);
+const announcement = computed(() => announcementStore.announcement);
 const contentInHtml = ref("");
 const contentError = ref(false);
 
