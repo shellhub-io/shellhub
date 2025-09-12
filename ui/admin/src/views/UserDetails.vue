@@ -5,7 +5,7 @@
     <v-col class="pr-4 text-right">
       <v-tooltip bottom anchor="bottom">
         <template v-slot:activator="{ props }">
-          <v-icon tag="a" dark v-bind="props" @click="loginToken"> mdi-login </v-icon>
+          <v-icon tag="a" dark v-bind="props" @click="loginWithToken"> mdi-login </v-icon>
         </template>
         <span>Login</span>
       </v-tooltip>
@@ -79,9 +79,9 @@ const authStore = useAuthStore();
 const userId = computed(() => route.params.id as string);
 const currentUser = computed(() => userStore.getUser as IUser);
 
-const loginToken = async () => {
+const loginWithToken = async () => {
   try {
-    const token = await authStore.loginToken(userId.value);
+    const token = await authStore.getLoginToken(userId.value);
 
     const url = `/login?token=${token}`;
     window.open(url, "_target");

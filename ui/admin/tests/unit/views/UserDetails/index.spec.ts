@@ -34,7 +34,7 @@ describe("User Details", () => {
     usersStore.user = user;
 
     const authStore = useAuthStore();
-    authStore.loginToken = vi.fn().mockResolvedValue("mock-token");
+    authStore.getLoginToken = vi.fn().mockResolvedValue("mock-token");
 
     const vuetify = createVuetify();
 
