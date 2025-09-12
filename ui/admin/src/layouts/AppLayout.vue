@@ -194,7 +194,7 @@ watch(drawer, () => {
 });
 
 const logout = async () => {
-  await authStore.logout();
+  authStore.logout();
   await router.push("/login");
   createNewClient();
   layoutStore.setLayout("SimpleLayout");
