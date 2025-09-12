@@ -48,12 +48,20 @@ services:
       - ASYNQ_UNIQUENESS_TIMEOUT=${SHELLHUB_ASYNQ_UNIQUENESS_TIMEOUT}
       - REDIS_CACHE_POOL_SIZE=${SHELLHUB_REDIS_CACHE_POOL_SIZE}
       - MAXIMUM_ACCOUNT_LOCKOUT=${SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT}
+      - DATABASE=${SHELLHUB_DATABASE}
+      - POSTGRES_HOST=${SHELLHUB_POSTGRES_HOST}
+      - POSTGRES_PORT=${SHELLHUB_POSTGRES_PORT}
+      - POSTGRES_USER=${SHELLHUB_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${SHELLHUB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${SHELLHUB_POSTGRES_DB}
     depends_on:
       - mongo
       - redis
+      - postgres
     links:
       - mongo
       - redis
+      - postgres
     secrets:
       - api_private_key
       - api_public_key
@@ -131,6 +139,12 @@ services:
     environment:
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
       - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
+      - DATABASE=${SHELLHUB_DATABASE}
+      - POSTGRES_HOST=${SHELLHUB_POSTGRES_HOST}
+      - POSTGRES_PORT=${SHELLHUB_POSTGRES_PORT}
+      - POSTGRES_USER=${SHELLHUB_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${SHELLHUB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${SHELLHUB_POSTGRES_DB}
     networks:
       - shellhub
   mongo:
@@ -147,6 +161,21 @@ services:
     image: redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "no", "--save", "\"\""]
+    networks:
+      - shellhub
+  postgres:
+    image: postgres:17
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SHELLHUB_POSTGRES_USER} -d ${SHELLHUB_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      - POSTGRES_USER=${SHELLHUB_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${SHELLHUB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${SHELLHUB_POSTGRES_DB}
+    ports:
+      - "5432:5432"
     networks:
       - shellhub
 
