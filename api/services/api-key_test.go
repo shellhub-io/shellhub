@@ -513,6 +513,8 @@ func TestListAPIKey(t *testing.T) {
 
 func TestUpdateAPIKey(t *testing.T) {
 	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
 		description   string
@@ -555,6 +557,31 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: NewErrRoleInvalid(),
 		},
 		{
+			description: "fails when api key does not exist for resolve",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "nonexistent",
+				Name:        "newName",
+				Role:        "administrator",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("store.QueryOption")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrAPIKeyNotFound("nonexistent", store.ErrNoDocuments),
+		},
+		{
 			description: "fails when a conflict is found",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
@@ -564,9 +591,24 @@ func TestUpdateAPIKey(t *testing.T) {
 				Role:        "administrator",
 			},
 			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
 					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
@@ -576,7 +618,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: NewErrAPIKeyDuplicated([]string{"name"}),
 		},
 		{
-			description: "fails when api key does not exists",
+			description: "fails when api key save fails",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
 				TenantID:    "00000000-0000-4000-0000-000000000000",
@@ -585,20 +627,42 @@ func TestUpdateAPIKey(t *testing.T) {
 				Role:        "administrator",
 			},
 			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				updatedAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "newName",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "administrator",
+				}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
 					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("APIKeyUpdate", ctx, "00000000-0000-4000-0000-000000000000", "dev", &models.APIKeyChanges{Name: "newName", Role: "administrator"}).
-					Return(errors.New("error")).
+					On("APIKeyUpdate", ctx, updatedAPIKey).
+					Return(errors.New("save error")).
 					Once()
 			},
-			expected: NewErrAPIKeyNotFound("dev", errors.New("error")),
+			expected: errors.New("save error"),
 		},
 		{
 			description: "succeeds",
@@ -610,16 +674,81 @@ func TestUpdateAPIKey(t *testing.T) {
 				Role:        "administrator",
 			},
 			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				updatedAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "newName",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "administrator",
+				}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					Return(existingAPIKey, nil).
 					Once()
 				storeMock.
 					On("APIKeyConflicts", ctx, "00000000-0000-4000-0000-000000000000", &models.APIKeyConflicts{Name: "newName"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("APIKeyUpdate", ctx, "00000000-0000-4000-0000-000000000000", "dev", &models.APIKeyChanges{Name: "newName", Role: "administrator"}).
+					On("APIKeyUpdate", ctx, updatedAPIKey).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds whithout updating the name",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "dev", // mesmo nome
+				Role:        "administrator",
+			},
+			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				updatedAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "administrator",
+				}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					Return(existingAPIKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyUpdate", ctx, updatedAPIKey).
 					Return(nil).
 					Once()
 			},
@@ -647,27 +776,61 @@ func TestUpdateAPIKey(t *testing.T) {
 
 func TestDeleteAPIKey(t *testing.T) {
 	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
 
 	cases := []struct {
 		description   string
-		tenantID      string
 		req           *requests.DeleteAPIKey
 		requiredMocks func(context.Context)
 		expected      error
 	}{
 		{
-			description: "fails when api key does not exists",
+			description: "fails when api key does not exist for resolve",
+			req: &requests.DeleteAPIKey{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "nonexistent",
+			},
+			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "nonexistent", mock.AnythingOfType("store.QueryOption")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrAPIKeyNotFound("nonexistent", store.ErrNoDocuments),
+		},
+		{
+			description: "fails when api key delete fails",
 			req: &requests.DeleteAPIKey{
 				TenantID: "00000000-0000-4000-0000-000000000000",
 				Name:     "dev",
 			},
 			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
 				storeMock.
-					On("APIKeyDelete", ctx, "00000000-0000-4000-0000-000000000000", "dev").
-					Return(errors.New("error")).
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					Return(existingAPIKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyDelete", ctx, existingAPIKey).
+					Return(errors.New("delete error")).
 					Once()
 			},
-			expected: NewErrAPIKeyNotFound("dev", errors.New("error")),
+			expected: errors.New("delete error"),
 		},
 		{
 			description: "succeeds",
@@ -676,8 +839,23 @@ func TestDeleteAPIKey(t *testing.T) {
 				Name:     "dev",
 			},
 			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					ID:       "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
 				storeMock.
-					On("APIKeyDelete", ctx, "00000000-0000-4000-0000-000000000000", "dev").
+					On("APIKeyResolve", ctx, store.APIKeyNameResolver, "dev", mock.AnythingOfType("store.QueryOption")).
+					Return(existingAPIKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyDelete", ctx, existingAPIKey).
 					Return(nil).
 					Once()
 			},
@@ -695,7 +873,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 
-			err = s.DeleteAPIKey(ctx, tc.req)
+			err := s.DeleteAPIKey(ctx, tc.req)
 			require.Equal(t, tc.expected, err)
 		})
 	}

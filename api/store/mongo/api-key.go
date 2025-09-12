@@ -81,7 +81,9 @@ func (s *Store) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver
 	}
 	defer cursor.Close(ctx)
 
-	cursor.Next(ctx)
+	if !cursor.Next(ctx) {
+		return nil, store.ErrNoDocuments
+	}
 
 	apiKey := new(models.APIKey)
 	if err := cursor.Decode(&apiKey); err != nil {
@@ -127,12 +129,10 @@ func (s *Store) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]mo
 	return apiKeys, count, nil
 }
 
-func (s *Store) APIKeyUpdate(ctx context.Context, tenantID, name string, changes *models.APIKeyChanges) error {
-	changes.UpdatedAt = clock.Now()
+func (s *Store) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
+	apiKey.UpdatedAt = clock.Now()
 
-	res, err := s.db.
-		Collection("api_keys").
-		UpdateOne(ctx, bson.M{"tenant_id": tenantID, "name": name}, bson.M{"$set": changes})
+	res, err := s.db.Collection("api_keys").UpdateOne(ctx, bson.M{"_id": apiKey.ID}, bson.M{"$set": apiKey})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -144,15 +144,13 @@ func (s *Store) APIKeyUpdate(ctx context.Context, tenantID, name string, changes
 	return nil
 }
 
-func (s *Store) APIKeyDelete(ctx context.Context, tenantID, name string) error {
-	result, err := s.db.
-		Collection("api_keys").
-		DeleteOne(ctx, bson.M{"tenant_id": tenantID, "name": name})
+func (s *Store) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
+	res, err := s.db.Collection("api_keys").DeleteOne(ctx, bson.M{"_id": apiKey.ID})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	if result.DeletedCount < 1 {
+	if res.DeletedCount < 1 {
 		return store.ErrNoDocuments
 	}
 

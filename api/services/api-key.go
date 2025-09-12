@@ -115,21 +115,49 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		}
 	}
 
-	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{Name: req.Name}); has {
-		return NewErrAPIKeyDuplicated(conflicts)
+	apiKey, err := s.store.APIKeyResolve(ctx, store.APIKeyNameResolver, req.CurrentName, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrAPIKeyNotFound(req.CurrentName, err)
+		default:
+			return err
+		}
 	}
 
-	change := &models.APIKeyChanges{Name: req.Name, Role: req.Role}
-	if err := s.store.APIKeyUpdate(ctx, req.TenantID, req.CurrentName, change); err != nil {
-		return NewErrAPIKeyNotFound(req.CurrentName, err)
+	if apiKey.Name != req.Name {
+		if conflicts, has, _ := s.store.APIKeyConflicts(ctx, req.TenantID, &models.APIKeyConflicts{Name: req.Name}); has {
+			return NewErrAPIKeyDuplicated(conflicts)
+		}
+	}
+
+	if req.Name != "" {
+		apiKey.Name = req.Name
+	}
+	if string(req.Role) != "" {
+		apiKey.Role = req.Role
+	}
+
+	if err := s.store.APIKeyUpdate(ctx, apiKey); err != nil { //nolint:revive
+		return err
 	}
 
 	return nil
 }
 
 func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) error {
-	if err := s.store.APIKeyDelete(ctx, req.TenantID, req.Name); err != nil {
-		return NewErrAPIKeyNotFound(req.Name, err)
+	apiKey, err := s.store.APIKeyResolve(ctx, store.APIKeyNameResolver, req.Name, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrAPIKeyNotFound(req.Name, err)
+		default:
+			return err
+		}
+	}
+
+	if err := s.store.APIKeyDelete(ctx, apiKey); err != nil { //nolint:revive
+		return err
 	}
 
 	return nil
