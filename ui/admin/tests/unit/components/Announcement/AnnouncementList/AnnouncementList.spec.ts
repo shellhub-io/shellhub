@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import AnnouncementList from "@admin/components/Announcement/AnnouncementList.vue";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import AnnouncementList from "../../../../../src/components/Announcement/AnnouncementList.vue";
-import routes from "../../../../../src/router";
 
 type AnnouncementListWrapper = VueWrapper<InstanceType<typeof AnnouncementList>>;
 
@@ -33,10 +33,10 @@ describe("Announcement List", () => {
 
     const announcementStore = useAnnouncementStore();
 
+    vi.spyOn(announcementStore, "fetchAnnouncementList").mockResolvedValue();
     announcementStore.announcements = announcements;
-    announcementStore.numberAnnouncements = announcements.length;
+    announcementStore.announcementCount = 2;
 
-    vi.spyOn(announcementStore, "fetchAnnouncements").mockResolvedValue(false);
     wrapper = mount(AnnouncementList, {
       global: {
         plugins: [vuetify, routes, SnackbarPlugin],
@@ -59,7 +59,7 @@ describe("Announcement List", () => {
   });
 
   it("Renders the correct computed", () => {
-    expect(wrapper.vm.numberAnnouncements).toBe(2);
+    expect(wrapper.vm.announcementCount).toBe(2);
     expect(wrapper.vm.announcements).toEqual(announcements);
   });
 

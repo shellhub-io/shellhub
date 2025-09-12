@@ -1,33 +1,21 @@
-import { adminApi } from "./../../api/http";
+import { adminApi } from "@admin/api/http";
+import { IAdminAnnouncementRequestBody } from "@admin/interfaces/IAnnouncement";
 
-type Announcement = {
-  title: string;
-  content: string;
-};
-
-const postAnnouncement = async (
-  announcement: Announcement,
+export const createAnnouncement = async (
+  announcement: IAdminAnnouncementRequestBody,
 ) => adminApi.createAnnouncement(announcement);
 
-const updateAnnouncement = async (
+export const updateAnnouncement = async (
   uuid: string,
-  announcement: Announcement,
+  announcement: IAdminAnnouncementRequestBody,
 ) => adminApi.updateAnnouncement(uuid, announcement);
 
-const deleteAnnouncement = async (uuid: string) => adminApi.deleteAnnouncement(uuid);
+export const deleteAnnouncement = async (uuid: string) => adminApi.deleteAnnouncement(uuid);
 
-const getListAnnouncements = async (
+export const fetchAnnouncementList = async (
   page: number,
   perPage: number,
   orderBy: "asc" | "desc",
 ) => adminApi.listAnnouncementsAdmin(page, perPage, orderBy);
 
-const getAnnouncement = async (uuid: string) => adminApi.getAnnouncementAdmin(uuid);
-
-export {
-  postAnnouncement,
-  updateAnnouncement,
-  deleteAnnouncement,
-  getListAnnouncements,
-  getAnnouncement,
-};
+export const getAnnouncement = async (uuid: string) => adminApi.getAnnouncementAdmin(uuid);

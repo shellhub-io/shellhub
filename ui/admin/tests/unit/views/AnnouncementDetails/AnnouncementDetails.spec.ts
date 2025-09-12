@@ -3,9 +3,9 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
+import routes from "@admin/router";
+import AnnouncementDetails from "@admin/views/AnnouncementDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import AnnouncementDetails from "../../../../src/views/AnnouncementDetails.vue";
 
 type AnnouncementDetailsWrapper = VueWrapper<InstanceType<typeof AnnouncementDetails>>;
 
@@ -36,11 +36,10 @@ describe("Announcement Details", () => {
   beforeEach(async () => {
     const pinia = createPinia();
     setActivePinia(pinia);
-
     const announcementStore = useAnnouncementStore();
 
-    vi.spyOn(announcementStore, "getAnnouncement", "get").mockReturnValue(announcementDetail);
     announcementStore.fetchAnnouncement = vi.fn().mockResolvedValue(announcementDetail);
+    announcementStore.announcement = announcementDetail;
 
     const vuetify = createVuetify();
 

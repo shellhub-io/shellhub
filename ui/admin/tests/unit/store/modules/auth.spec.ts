@@ -3,17 +3,15 @@ import { setActivePinia, createPinia } from "pinia";
 import useAuthStore from "@admin/store/modules/auth";
 
 describe("Auth", () => {
-  let authStore: ReturnType<typeof useAuthStore>;
+  setActivePinia(createPinia());
+  const authStore = useAuthStore();
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-    authStore = useAuthStore();
-
     localStorage.clear();
   });
 
   it("returns initial states", () => {
-    expect(authStore.authStatus).toBe("");
+    expect(authStore.status).toBe("");
     expect(authStore.token).toBe("");
     expect(authStore.currentUser).toBe("");
     expect(authStore.isLoggedIn).toBe(false);
@@ -27,22 +25,22 @@ describe("Auth", () => {
     const user = "user";
 
     authStore.status = statusLoading;
-    expect(authStore.authStatus).toBe(statusLoading);
+    expect(authStore.status).toBe(statusLoading);
 
     authStore.status = statusError;
-    expect(authStore.authStatus).toBe(statusError);
+    expect(authStore.status).toBe(statusError);
 
     authStore.status = statusSuccess;
     authStore.token = token;
-    authStore.user = user;
+    authStore.currentUser = user;
 
-    expect(authStore.authStatus).toBe(statusSuccess);
+    expect(authStore.status).toBe(statusSuccess);
     expect(authStore.isLoggedIn).toBe(true);
     expect(authStore.currentUser).toBe(user);
 
     authStore.logout();
 
-    expect(authStore.authStatus).toBe("");
+    expect(authStore.status).toBe("");
     expect(authStore.isLoggedIn).toBe(false);
     expect(authStore.currentUser).toBe("");
     expect(authStore.token).toBe("");
