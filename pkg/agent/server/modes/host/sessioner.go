@@ -192,9 +192,9 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 
 	sPty, sWinCh, sIsPty := session.Pty()
 
-	shell := os.Getenv("SHELL")
+	shell := user.Shell
 	if shell == "" {
-		shell = user.Shell
+		shell = os.Getenv("SHELL")
 	}
 
 	term := sPty.Term

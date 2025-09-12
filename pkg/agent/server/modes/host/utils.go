@@ -16,15 +16,14 @@ func generateShellCmd(deviceName string, session gliderssh.Session, term string)
 	username := session.User()
 	envs := session.Environ()
 
-	shell := os.Getenv("SHELL")
-
 	user, err := osauth.LookupUser(username)
 	if err != nil {
 		return nil
 	}
 
+	shell := user.Shell
 	if shell == "" {
-		shell = user.Shell
+		shell = os.Getenv("SHELL")
 	}
 
 	if term == "" {
