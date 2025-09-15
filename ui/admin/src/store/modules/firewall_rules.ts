@@ -1,43 +1,29 @@
-// stores/firewallRules.ts
 import { defineStore } from "pinia";
-import { IAdminFirewallRule } from "../../interfaces/IFirewallRule";
-import * as apiFirewall from "../api/firewall_rules";
+import { ref } from "vue";
+import { IAdminFirewallRule } from "@admin/interfaces/IFirewallRule";
+import * as firewallRulesApi from "../api/firewall_rules";
 
-export interface FirewallRulesState {
-  firewalls: Array<IAdminFirewallRule>;
-  firewall: IAdminFirewallRule;
-  numberFirewalls: number;
-}
+const useFirewallRulesStore = defineStore("firewallRules", () => {
+  const firewallRules = ref<Array<IAdminFirewallRule>>([]);
+  const firewallRulesCount = ref(0);
 
-export const useFirewallRulesStore = defineStore("firewallRules", {
-  state: (): FirewallRulesState => ({
-    firewalls: [],
-    firewall: {} as IAdminFirewallRule,
-    numberFirewalls: 0,
-  }),
+  const fetchFirewallRulesList = async (data?: { page: number; perPage: number }) => {
+    const res = await firewallRulesApi.fetchFirewalls(data?.page || 1, data?.perPage || 10);
+    firewallRules.value = res.data as IAdminFirewallRule[];
+    firewallRulesCount.value = parseInt(res.headers["x-total-count"], 10);
+  };
 
-  getters: {
-    list: (state): Array<IAdminFirewallRule> => state.firewalls,
-    getFirewall: (state): IAdminFirewallRule => state.firewall,
-    getNumberFirewalls: (state): number => state.numberFirewalls,
-  },
+  const fetchFirewallRuleById = async (uid: string) => {
+    const res = await firewallRulesApi.getFirewall(uid);
+    return res.data as IAdminFirewallRule;
+  };
 
-  actions: {
-    async fetch(data: { page: number; perPage: number }) {
-      const res = await apiFirewall.fetchFirewalls(data.page, data.perPage);
-      if (res.data.length) {
-        this.firewalls = res.data as never;
-        this.numberFirewalls = parseInt(res.headers["x-total-count"], 10);
-        return true;
-      }
-      return false;
-    },
-
-    async get(uid) {
-      const res = await apiFirewall.getFirewall(uid);
-      this.firewall = res.data as never;
-    },
-  },
+  return {
+    firewallRules,
+    firewallRulesCount,
+    fetchFirewallRulesList,
+    fetchFirewallRuleById,
+  };
 });
 
 export default useFirewallRulesStore;

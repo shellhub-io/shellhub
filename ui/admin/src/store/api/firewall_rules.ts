@@ -1,7 +1,5 @@
-import { adminApi } from "./../../api/http";
+import { adminApi } from "@admin/api/http";
 
-const fetchFirewalls = async (page : number, perPage: number) => adminApi.getFirewallRulesAdmin(page, perPage);
+export const fetchFirewalls = async (page: number, perPage: number) => adminApi.getFirewallRulesAdmin(page, perPage);
 
-const getFirewall = async (id: number) => adminApi.getFirewallRuleAdmin(id);
-
-export { fetchFirewalls, getFirewall };
+export const getFirewall = async (id: string) => adminApi.getFirewallRuleAdmin(id);

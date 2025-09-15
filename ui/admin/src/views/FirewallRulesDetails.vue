@@ -35,7 +35,7 @@
         <div class="text-overline mt-3">
           <h3>Action:</h3>
         </div>
-        <div :data-test="firewallRule.action">
+        <div :data-test="firewallRule.action" class="text-capitalize">
           <p>{{ firewallRule.action }}</p>
         </div>
       </div>
@@ -110,14 +110,13 @@ const firewallRule = ref({} as IAdminFirewallRule);
 
 onMounted(async () => {
   try {
-    await firewallRulesStore.get(firewallRuleId.value);
-    firewallRule.value = firewallRulesStore.getFirewall;
+    firewallRule.value = await firewallRulesStore.fetchFirewallRuleById(firewallRuleId.value);
   } catch {
     snackbar.showError("Failed to get firewall rule details.");
   }
 });
 
-const firewallRuleIsEmpty = computed(() => !firewallRulesStore.getFirewall || !firewallRulesStore.getFirewall.id);
+const firewallRuleIsEmpty = computed(() => !firewallRule.value || !firewallRule.value.id);
 
 defineExpose({ firewallRule });
 </script>

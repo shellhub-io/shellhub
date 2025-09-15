@@ -17,7 +17,7 @@
         <td>
           {{ firewallRule.priority }}
         </td>
-        <td>
+        <td class="text-capitalize">
           {{ firewallRule.action }}
         </td>
         <td>
@@ -89,8 +89,8 @@ import handleError from "@/utils/handleError";
 const router = useRouter();
 const snackbar = useSnackbar();
 const firewallRulesStore = useFirewallRulesStore();
-const firewallRules = computed(() => firewallRulesStore.list);
-const firewallRulesCount = computed(() => firewallRulesStore.getNumberFirewalls);
+const firewallRules = computed(() => firewallRulesStore.firewallRules);
+const firewallRulesCount = computed(() => firewallRulesStore.firewallRulesCount);
 const loading = ref(false);
 const page = ref(1);
 const itemsPerPage = ref(10);
@@ -130,7 +130,7 @@ const goToFirewallRule = (ruleId: string) => router.push({ name: "firewallRulesD
 const fetchFirewallRules = async () => {
   try {
     loading.value = true;
-    await firewallRulesStore.fetch({
+    await firewallRulesStore.fetchFirewallRulesList({
       page: page.value,
       perPage: itemsPerPage.value,
     });
