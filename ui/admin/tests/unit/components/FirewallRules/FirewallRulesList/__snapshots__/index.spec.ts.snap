@@ -21,7 +21,7 @@ exports[`Firewall Rules List > Renders the component 1`] = `
           <tr>
             <td>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</td>
             <td>4</td>
-            <td>allow</td>
+            <td class="text-capitalize">allow</td>
             <td>127.0.0.1</td>
             <td>shellhub</td>
             <td>

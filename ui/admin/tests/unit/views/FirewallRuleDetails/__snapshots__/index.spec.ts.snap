@@ -51,7 +51,7 @@ exports[`Firewall Rule Details > Renders the component 1`] = `
       <div class="text-overline mt-3">
         <h3>Action:</h3>
       </div>
-      <div data-test="allow">
+      <div data-test="allow" class="text-capitalize">
         <p>allow</p>
       </div>
     </div>

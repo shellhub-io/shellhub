@@ -43,9 +43,9 @@ describe("Firewall Rules List", () => {
     const vuetify = createVuetify();
     const firewallRulesStore = useFirewallRulesStore();
 
-    firewallRulesStore.firewalls = firewallRules;
-    firewallRulesStore.numberFirewalls = firewallRules.length;
-    firewallRulesStore.fetch = vi.fn();
+    firewallRulesStore.firewallRules = firewallRules;
+    firewallRulesStore.firewallRulesCount = firewallRules.length;
+    firewallRulesStore.fetchFirewallRulesList = vi.fn();
 
     wrapper = mount(FirewallRulesList, {
       global: {

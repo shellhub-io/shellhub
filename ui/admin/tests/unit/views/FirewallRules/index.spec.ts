@@ -3,11 +3,26 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import routes from "@admin/router";
+import FirewallRules from "@admin/views/FirewallRules.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import FirewallRules from "../../../../src/views/FirewallRules.vue";
 
 type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
+
+const mockFirewallRules = [
+  {
+    action: "allow" as const,
+    active: true,
+    filter: {
+      tags: ["xxxx", "yyyy"],
+    },
+    id: "5f1996c84d2190a22d5857bb",
+    tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    priority: 4,
+    source_ip: "127.0.0.1",
+    username: "shellhub",
+  },
+];
 
 describe("Firewall Rules", () => {
   let wrapper: FirewallRulesWrapper;
@@ -17,8 +32,10 @@ describe("Firewall Rules", () => {
     setActivePinia(pinia);
 
     const firewallStore = useFirewallRulesStore();
-    vi.spyOn(firewallStore, "getNumberFirewalls", "get").mockReturnValue(1);
-    firewallStore.fetch = vi.fn();
+    firewallStore.fetchFirewallRulesList = vi.fn().mockImplementation(() => {
+      firewallStore.firewallRules = mockFirewallRules;
+      firewallStore.firewallRulesCount = 1;
+    });
 
     const vuetify = createVuetify();
 

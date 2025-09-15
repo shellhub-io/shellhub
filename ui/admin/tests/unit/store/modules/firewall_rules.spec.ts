@@ -1,39 +1,9 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 
-describe("FirewallRules Store (Pinia)", () => {
-  let firewallStore: ReturnType<typeof useFirewallRulesStore>;
-
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    firewallStore = useFirewallRulesStore();
-  });
-
-  const firewalls = [
-    {
-      id: "5f1996c84d2190a22d5857bb",
-      tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      priority: 4,
-      action: "allow" as const,
-      active: true,
-      source_ip: "127.0.0.1",
-      username: "shellhub",
-      filter: { hostname: "shellhub", tags: [] },
-    },
-    {
-      id: "5f1996c84d2190a22d5857cc",
-      tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      priority: 3,
-      action: "deny" as const,
-      active: false,
-      source_ip: "127.0.0.1",
-      username: "shellhub",
-      filter: { hostname: "shellhub", tags: [] },
-    },
-  ];
-
-  const firewallRule = {
+const mockFirewallRules = [
+  {
     id: "5f1996c84d2190a22d5857bb",
     tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     priority: 4,
@@ -42,24 +12,33 @@ describe("FirewallRules Store (Pinia)", () => {
     source_ip: "127.0.0.1",
     username: "shellhub",
     filter: { hostname: "shellhub", tags: [] },
-  };
+  },
+  {
+    id: "5f1996c84d2190a22d5857cc",
+    tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    priority: 3,
+    action: "deny" as const,
+    active: false,
+    source_ip: "127.0.0.1",
+    username: "shellhub",
+    filter: { hostname: "shellhub", tags: [] },
+  },
+];
+
+describe("Firewall Rules Store", () => {
+  setActivePinia(createPinia());
+  const firewallRulesStore = useFirewallRulesStore();
 
   it("returns default values", () => {
-    expect(firewallStore.list).toEqual([]);
-    expect(firewallStore.getFirewall).toEqual({});
-    expect(firewallStore.getNumberFirewalls).toEqual(0);
+    expect(firewallRulesStore.firewallRules).toEqual([]);
+    expect(firewallRulesStore.firewallRulesCount).toEqual(0);
   });
 
   it("sets firewalls and total count", () => {
-    firewallStore.firewalls = firewalls;
-    firewallStore.numberFirewalls = firewalls.length;
+    firewallRulesStore.firewallRules = mockFirewallRules;
+    firewallRulesStore.firewallRulesCount = mockFirewallRules.length;
 
-    expect(firewallStore.list).toEqual(firewalls);
-    expect(firewallStore.getNumberFirewalls).toBe(2);
-  });
-
-  it("sets a single firewall rule", () => {
-    firewallStore.firewall = firewallRule;
-    expect(firewallStore.getFirewall).toEqual(firewallRule);
+    expect(firewallRulesStore.firewallRules).toEqual(mockFirewallRules);
+    expect(firewallRulesStore.firewallRulesCount).toBe(2);
   });
 });

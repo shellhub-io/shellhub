@@ -36,8 +36,7 @@ describe("Firewall Rule Details", () => {
     setActivePinia(pinia);
 
     const firewallStore = useFirewallRulesStore();
-    vi.spyOn(firewallStore, "getFirewall", "get").mockReturnValue(firewallRuleDetail);
-    firewallStore.get = vi.fn().mockResolvedValue(firewallRuleDetail);
+    firewallStore.fetchFirewallRuleById = vi.fn().mockResolvedValue(firewallRuleDetail);
 
     const vuetify = createVuetify();
 
