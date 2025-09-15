@@ -694,7 +694,7 @@ exports[`License > Renders the component 1`] = `
           <div class="v-field__field" data-no-activator="">
             <!----><label class="v-label v-field-label" for="input-v-7">
               <!---->Select license file
-            </label><input type="file" id="input-v-7" aria-describedby="input-v-7-messages" accept=".dat">
+            </label><input type="file" accept=".dat" id="input-v-7" aria-describedby="input-v-7-messages">
             <div class="v-field__input">
               <!---->
             </div>

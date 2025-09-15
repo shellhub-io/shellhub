@@ -34,7 +34,7 @@ exports[`Devices View > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div data-v-94cd2bfb="" class="v-skeleton-loader v-theme--light bg-v-theme-surface position-absolute w-100 h-100 opacity-10 border skeleton-loader" aria-live="polite" aria-label="Loading..." role="alert">
+  <div class="v-skeleton-loader v-theme--light bg-v-theme-surface position-absolute w-100 h-100 opacity-10 border skeleton-loader" aria-live="polite" aria-label="Loading..." role="alert">
     <div class="v-skeleton-loader__bone v-skeleton-loader__table-tbody">
       <div class="v-skeleton-loader__bone v-skeleton-loader__table-row-divider">
         <div class="v-skeleton-loader__bone v-skeleton-loader__table-row">

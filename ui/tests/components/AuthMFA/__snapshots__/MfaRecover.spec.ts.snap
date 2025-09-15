@@ -36,17 +36,17 @@ exports[`RecoverMFA > Renders the component 1`] = `
         </div>
         <!---->
         <div class="v-field__field" data-no-activator="">
-          <!----><label class="v-label v-field-label" for="input-v-0">
+          <!----><label class="v-label v-field-label" for="input-v-1">
             <!---->Recovery Code
           </label>
-          <!----><input size="1" type="text" id="input-v-0" aria-describedby="input-v-0-messages" required="" class="v-field__input" value="">
+          <!----><input size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" required="" class="v-field__input" value="">
           <!---->
         </div>
         <!---->
         <!---->
         <div class="v-field__outline">
           <div class="v-field__outline__start"></div>
-          <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" for="input-v-0" aria-hidden="true">
+          <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="true">
               <!---->Recovery Code
             </label></div>
           <div class="v-field__outline__end"></div>
@@ -55,7 +55,7 @@ exports[`RecoverMFA > Renders the component 1`] = `
       </div>
     </div>
     <!---->
-    <div id="input-v-0-messages" class="v-input__details" role="alert" aria-live="polite">
+    <div id="input-v-1-messages" class="v-input__details" role="alert" aria-live="polite">
       <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
         <!---->
       </transition-group-stub>

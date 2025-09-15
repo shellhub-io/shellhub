@@ -51,12 +51,12 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-0" aria-hidden="false">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="false">
                         <!---->Username
-                      </label><label class="v-label v-field-label" for="input-v-0">
+                      </label><label class="v-label v-field-label" for="input-v-1">
                         <!---->Username
                       </label>
-                      <!----><input autofocus="" size="1" type="text" id="input-v-0" aria-describedby="input-v-0-messages" validate-on-blur="true" class="v-field__input" value="">
+                      <!----><input autofocus="" size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" validate-on-blur="true" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -68,7 +68,7 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                   </div>
                 </div>
                 <!---->
-                <div id="input-v-0-messages" class="v-input__details" role="alert" aria-live="polite">
+                <div id="input-v-1-messages" class="v-input__details" role="alert" aria-live="polite">
                   <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
                     <div class="v-messages__message">Enter an existing user on the device</div>
                   </transition-group-stub>
@@ -78,7 +78,7 @@ exports[`Terminal Dialog > Renders the component 1`] = `
               <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected mt-2" data-test="auth-method-select">
                 <!---->
                 <div class="v-input__control">
-                  <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="v-menu-v-4">
+                  <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="v-menu-v-6">
                     <div class="v-field__overlay"></div>
                     <div class="v-field__loader">
                       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -95,16 +95,16 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-4" aria-hidden="false">
                         <!---->Authentication method
-                      </label><label class="v-label v-field-label" for="input-v-2">
+                      </label><label class="v-label v-field-label" for="input-v-4">
                         <!---->Authentication method
                       </label>
                       <!---->
                       <div class="v-field__input" data-no-activator="">
                         <!---->
                         <!---->
-                        <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" id="input-v-2" aria-describedby="input-v-2-messages" inputmode="none" aria-label="Open" title="Open" value="Password">
+                        <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" id="input-v-4" aria-describedby="input-v-4-messages" inputmode="none" aria-label="Open" title="Open" value="Password">
                       </div>
                       <!---->
                     </div>
@@ -120,7 +120,7 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                   </div>
                 </div>
                 <!---->
-                <div id="input-v-2-messages" class="v-input__details" role="alert" aria-live="polite">
+                <div id="input-v-4-messages" class="v-input__details" role="alert" aria-live="polite">
                   <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
                     <!---->
                   </transition-group-stub>
@@ -147,12 +147,12 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-5" aria-hidden="false">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="false">
                         <!---->Password
-                      </label><label class="v-label v-field-label" for="input-v-5">
+                      </label><label class="v-label v-field-label" for="input-v-8">
                         <!---->Password
                       </label>
-                      <!----><input size="1" type="password" id="input-v-5" aria-describedby="input-v-5-messages" required="" class="v-field__input" value="">
+                      <!----><input size="1" type="password" id="input-v-8" aria-describedby="input-v-8-messages" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -166,7 +166,7 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                   </div>
                 </div>
                 <!---->
-                <div id="input-v-5-messages" class="v-input__details" role="alert" aria-live="polite">
+                <div id="input-v-8-messages" class="v-input__details" role="alert" aria-live="polite">
                   <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
                     <div class="v-messages__message">Enter a valid password for the user on the device</div>
                   </transition-group-stub>

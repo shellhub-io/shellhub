@@ -26,10 +26,10 @@ exports[`Device > Renders the component 1`] = `
           </div>
           <!---->
           <div class="v-field__field" data-no-activator="">
-            <!----><label class="v-label v-field-label" for="input-v-0">
+            <!----><label class="v-label v-field-label" for="input-v-1">
               <!---->Search by hostname
             </label>
-            <!----><input size="1" type="text" id="input-v-0" class="v-field__input" value="">
+            <!----><input size="1" type="text" id="input-v-1" class="v-field__input" value="">
             <!---->
           </div>
           <!---->
@@ -74,13 +74,13 @@ exports[`Device > Renders the component 1`] = `
           <table>
             <thead class="bg-v-theme-background">
               <tr>
-                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-2">Online <!----><!--teleport start--><!--teleport end--></span></th>
-                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-3">Hostname <!----><!--teleport start--><!--teleport end--></span></th>
-                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-4">Info <!----><!--teleport start--><!--teleport end--></span></th>
-                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-5">Namespace <!----><!--teleport start--><!--teleport end--></span></th>
+                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-3">Online <!----><!--teleport start--><!--teleport end--></span></th>
+                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-4">Hostname <!----><!--teleport start--><!--teleport end--></span></th>
+                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-5">Info <!----><!--teleport start--><!--teleport end--></span></th>
+                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-6">Namespace <!----><!--teleport start--><!--teleport end--></span></th>
                 <th class="text-center"><span>Tags</span></th>
-                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-6">Last Seen <!----><!--teleport start--><!--teleport end--></span></th>
-                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-7">Status <!----><!--teleport start--><!--teleport end--></span></th>
+                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-7">Last Seen <!----><!--teleport start--><!--teleport end--></span></th>
+                <th class="text-center"><span tabindex="0" class="cursor-pointer text-decoration-underline" aria-describedby="v-tooltip-v-8">Status <!----><!--teleport start--><!--teleport end--></span></th>
                 <th class="text-center"><span>Actions</span></th>
               </tr>
             </thead>
@@ -100,7 +100,7 @@ exports[`Device > Renders the component 1`] = `
           <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-10">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-12">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -124,7 +124,7 @@ exports[`Device > Renders the component 1`] = `
                   <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-8" outlined="" value="10">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-10" outlined="" value="10">
                   </div>
                   <!---->
                 </div>
