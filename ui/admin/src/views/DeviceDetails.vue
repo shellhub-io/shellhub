@@ -132,17 +132,13 @@ const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
 const deviceId = computed(() => route.params.id);
 const device = ref({} as IAdminDevice);
+const deviceIsEmpty = computed(() => !device.value || Object.keys(device.value).length === 0);
 
 onMounted(async () => {
   try {
-    await devicesStore.get(deviceId.value as string);
-    device.value = devicesStore.getDevice;
-  } catch {
-    snackbar.showError("Failed to get device details.");
-  }
+    device.value = await devicesStore.fetchDeviceById(deviceId.value as string);
+  } catch { snackbar.showError("Failed to get device details."); }
 });
-
-const deviceIsEmpty = computed(() => !device.value || Object.keys(device.value).length === 0);
 
 defineExpose({ device });
 </script>

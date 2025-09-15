@@ -47,11 +47,7 @@ const searchDevices = () => {
   }
 
   try {
-    devicesStore.search({
-      perPage: devicesStore.getPerPage,
-      page: devicesStore.getPage,
-      filter: encodedFilter,
-    });
+    devicesStore.fetchDeviceList({ filter: encodedFilter });
   } catch { snackbar.showError("Failed to fetch the devices."); }
 };
 

@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useDevicesStore from "@admin/store/modules/devices";
+import routes from "@admin/router";
+import DeviceDetails from "@admin/views/DeviceDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import DeviceDetails from "../../../../src/views/DeviceDetails.vue";
 
 type DeviceDetailsWrapper = VueWrapper<InstanceType<typeof DeviceDetails>>;
 
@@ -45,9 +45,8 @@ describe("Device Details", () => {
     const pinia = createPinia();
     setActivePinia(pinia);
 
-    const deviceStore = useDevicesStore();
-    vi.spyOn(deviceStore, "getDevice", "get").mockReturnValue(deviceDetail);
-    deviceStore.get = vi.fn().mockResolvedValue(deviceDetail);
+    const devicesStore = useDevicesStore();
+    devicesStore.fetchDeviceById = vi.fn().mockResolvedValue(deviceDetail);
 
     const vuetify = createVuetify();
 

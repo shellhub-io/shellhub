@@ -3,11 +3,36 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useDevicesStore from "@admin/store/modules/devices";
+import routes from "@admin/router";
+import Device from "@admin/views/Device.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import Device from "../../../../src/views/Device.vue";
 
 type DeviceWrapper = VueWrapper<InstanceType<typeof Device>>;
+
+const mockDevices = [
+  {
+    uid: "cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75",
+    name: "08-97-98-68-7a-97",
+    identity: { mac: "08:97:98:68:7a:97" },
+    info: {
+      id: "ubuntu",
+      pretty_name: "Ubuntu 20.04.4 LTS",
+      version: "latest",
+      arch: "amd64",
+      platform: "docker",
+    },
+    public_key: "---BEGIN RSA KEY---",
+    tenant_id: "00000000-0000-4000-0000-000000000000",
+    last_seen: "2022-06-06T18:51:53.813Z",
+    online: true,
+    namespace: "dev",
+    status: "accepted",
+    created_at: "2022-04-13T11:43:25.218Z",
+    remote_addr: "172.22.0.1",
+    position: { latitude: 0, longitude: 0 },
+    tags: ["tag1"],
+  },
+];
 
 describe("Device", () => {
   let wrapper: DeviceWrapper;
@@ -18,12 +43,10 @@ describe("Device", () => {
 
     const devicesStore = useDevicesStore();
 
-    vi.spyOn(devicesStore, "getPerPage", "get").mockReturnValue(10);
-    vi.spyOn(devicesStore, "getPage", "get").mockReturnValue(1);
-    vi.spyOn(devicesStore, "getNumberDevices", "get").mockReturnValue(1);
-
-    devicesStore.search = vi.fn();
-    devicesStore.fetch = vi.fn();
+    devicesStore.fetchDeviceList = vi.fn().mockImplementation(() => {
+      devicesStore.devices = mockDevices;
+      devicesStore.deviceCount = 1;
+    });
 
     const vuetify = createVuetify();
 
