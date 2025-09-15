@@ -2,7 +2,7 @@
 
 exports[`Quick Connection List > Renders the component 1`] = `
 "<!--v-if-->
-<div data-v-7c65953f="" class="v-list v-list--nav v-theme--light bg-transparent v-list--density-default v-list--one-line content-card" tabindex="0" role="listbox" data-test="devices-list">
+<div data-v-7c65953f="" class="v-list v-list--nav v-theme--light bg-transparent v-list--density-default v-list--one-line content-card" tabindex="0" role="list" data-test="devices-list">
   <div data-v-7c65953f="" class="v-col ma-0 mb-3 pa-0">
     <div data-v-7c65953f="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated" data-test="device-card">
       <!---->
@@ -22,7 +22,7 @@ exports[`Quick Connection List > Renders the component 1`] = `
       </div>
       <!---->
       <!---->
-      <div data-v-7c65953f="" class="v-list-item v-list-item--link v-list-item--nav v-theme--light v-list-item--density-default v-list-item--one-line v-list-item--rounded v-list-item--variant-text ma-0 pa-0 card" tabindex="-2" data-test="device-list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+      <div data-v-7c65953f="" class="v-list-item v-list-item--link v-list-item--nav v-theme--light v-list-item--density-default v-list-item--one-line v-list-item--rounded v-list-item--variant-text ma-0 pa-0 card" tabindex="-2" role="listitem" data-test="device-list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
         <!---->
         <div class="v-list-item__content" data-no-activator="">
           <!---->

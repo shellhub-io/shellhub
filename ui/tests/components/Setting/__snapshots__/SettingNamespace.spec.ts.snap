@@ -54,7 +54,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
       <!---->
     </div>
     <div data-v-80a16399="" class="v-card-text pt-4">
-      <div data-v-80a16399="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="listbox" data-test="profile-details-list">
+      <div data-v-80a16399="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="list" data-test="profile-details-list">
         <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="profile-details-item">
           <div class="v-card-item__prepend"><i data-v-80a16399="" class="mdi-cloud-braces mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="name-icon"></i></div>
           <div class="v-card-item__content">
@@ -86,7 +86,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-1" required="" class="v-field__input" value="test">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-2" required="" class="v-field__input" value="test">
                     <!---->
                   </div>
                   <!---->
@@ -185,7 +185,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                       <!---->
                       <!---->
                     </div>
-                    <div class="v-selection-control__input"><input checked="" id="switch-v-6" aria-disabled="false" type="checkbox" value="true">
+                    <div class="v-selection-control__input"><input checked="" id="switch-v-7" aria-disabled="false" type="checkbox" value="true">
                       <div class="v-switch__thumb">
                         <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->

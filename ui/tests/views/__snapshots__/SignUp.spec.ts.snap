@@ -29,23 +29,23 @@ exports[`Sign Up > Renders the component 1`] = `
               <!---->
             </div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-0">
+              <!----><label class="v-label v-field-label" for="input-v-1">
                 <!---->Name
               </label>
-              <!----><input size="1" type="text" id="input-v-0" aria-describedby="input-v-0-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
             <!---->
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-0" aria-hidden="true">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="true">
                 <!---->Name
               </label>
             </div>
           </div>
         </div>
         <!---->
-        <div id="input-v-0-messages" class="v-input__details" role="alert" aria-live="polite">
+        <div id="input-v-1-messages" class="v-input__details" role="alert" aria-live="polite">
           <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
@@ -75,23 +75,23 @@ exports[`Sign Up > Renders the component 1`] = `
               <!---->
             </div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-2">
+              <!----><label class="v-label v-field-label" for="input-v-4">
                 <!---->Username
               </label>
-              <!----><input size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="text" id="input-v-4" aria-describedby="input-v-4-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
             <!---->
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="true">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-4" aria-hidden="true">
                 <!---->Username
               </label>
             </div>
           </div>
         </div>
         <!---->
-        <div id="input-v-2-messages" class="v-input__details" role="alert" aria-live="polite">
+        <div id="input-v-4-messages" class="v-input__details" role="alert" aria-live="polite">
           <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
@@ -121,23 +121,23 @@ exports[`Sign Up > Renders the component 1`] = `
               <!---->
             </div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-4">
+              <!----><label class="v-label v-field-label" for="input-v-7">
                 <!---->Email
               </label>
-              <!----><input size="1" type="text" id="input-v-4" aria-describedby="input-v-4-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="text" id="input-v-7" aria-describedby="input-v-7-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
             <!---->
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-4" aria-hidden="true">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-7" aria-hidden="true">
                 <!---->Email
               </label>
             </div>
           </div>
         </div>
         <!---->
-        <div id="input-v-4-messages" class="v-input__details" role="alert" aria-live="polite">
+        <div id="input-v-7-messages" class="v-input__details" role="alert" aria-live="polite">
           <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
@@ -167,10 +167,10 @@ exports[`Sign Up > Renders the component 1`] = `
               <!---->
             </div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-6">
+              <!----><label class="v-label v-field-label" for="input-v-10">
                 <!---->Password
               </label>
-              <!----><input size="1" type="password" id="input-v-6" aria-describedby="input-v-6-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="password" id="input-v-10" aria-describedby="input-v-10-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
@@ -178,14 +178,14 @@ exports[`Sign Up > Renders the component 1`] = `
               <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i>
             </div>
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-6" aria-hidden="true">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-10" aria-hidden="true">
                 <!---->Password
               </label>
             </div>
           </div>
         </div>
         <!---->
-        <div id="input-v-6-messages" class="v-input__details" role="alert" aria-live="polite">
+        <div id="input-v-10-messages" class="v-input__details" role="alert" aria-live="polite">
           <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
@@ -215,10 +215,10 @@ exports[`Sign Up > Renders the component 1`] = `
               <!---->
             </div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-8">
+              <!----><label class="v-label v-field-label" for="input-v-13">
                 <!---->Confirm Password
               </label>
-              <!----><input size="1" type="password" id="input-v-8" aria-describedby="input-v-8-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="password" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
@@ -226,14 +226,14 @@ exports[`Sign Up > Renders the component 1`] = `
               <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Confirm Password appended action"></i>
             </div>
             <div class="v-field__outline">
-              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="true">
+              <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-13" aria-hidden="true">
                 <!---->Confirm Password
               </label>
             </div>
           </div>
         </div>
         <!---->
-        <div id="input-v-8-messages" class="v-input__details" role="alert" aria-live="polite">
+        <div id="input-v-13-messages" class="v-input__details" role="alert" aria-live="polite">
           <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
             <!---->
           </transition-group-stub>
@@ -248,8 +248,8 @@ exports[`Sign Up > Renders the component 1`] = `
           <div class="v-selection-control v-selection-control--density-default v-checkbox-btn">
             <div class="v-selection-control__wrapper">
               <!---->
-              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-10" aria-disabled="false" type="checkbox" value="true"></div>
-            </div><label class="v-label v-label--clickable" for="checkbox-v-10">
+              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-15" aria-disabled="false" type="checkbox" value="true"></div>
+            </div><label class="v-label v-label--clickable" for="checkbox-v-15">
               <!----><span class="caption"> I agree to the <a href="https://www.shellhub.io/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></span>
             </label>
           </div>
@@ -263,8 +263,8 @@ exports[`Sign Up > Renders the component 1`] = `
           <div class="v-selection-control v-selection-control--density-default v-checkbox-btn">
             <div class="v-selection-control__wrapper">
               <!---->
-              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-13" aria-disabled="false" type="checkbox" value="true"></div>
-            </div><label class="v-label v-label--clickable" for="checkbox-v-13">
+              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-18" aria-disabled="false" type="checkbox" value="true"></div>
+            </div><label class="v-label v-label--clickable" for="checkbox-v-18">
               <!---->
               <p> I accept to receive news and updates from ShellHub via email. </p>
             </label>

@@ -66,7 +66,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
       <!---->
     </div>
     <div data-v-b3fa301d="" class="v-card-text pt-4">
-      <div data-v-b3fa301d="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="listbox" data-test="profile-details-list">
+      <div data-v-b3fa301d="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="list" data-test="profile-details-list">
         <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
           <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-badge-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
           <div class="v-card-item__content">
@@ -98,7 +98,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-1" required="" class="v-field__input" value="">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-2" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
@@ -147,7 +147,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                     <div class="v-field__field" data-no-activator="">
                       <!---->
                       <!---->
-                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
+                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-5" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -196,7 +196,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-5" required="" class="v-field__input" value="">
+                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-8" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
@@ -245,7 +245,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                     <div class="v-field__field" data-no-activator="">
                       <!---->
                       <!---->
-                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-7" required="" class="v-field__input" value="">
+                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-11" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -316,7 +316,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
               <!----><span class="v-card__underlay"></span>
             </div>
-            <div data-v-b3fa301d="" aria-describedby="v-tooltip-v-10" class="d-flex align-center bg-background">
+            <div data-v-b3fa301d="" aria-describedby="v-tooltip-v-14" class="d-flex align-center bg-background">
               <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-switch v-switch--inset" data-test="switch-mfa">
                 <!---->
                 <div class="v-input__control">
@@ -326,7 +326,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                         <!---->
                         <!---->
                       </div>
-                      <div class="v-selection-control__input"><input disabled="" id="switch-v-11" aria-disabled="true" type="checkbox" value="true">
+                      <div class="v-selection-control__input"><input disabled="" id="switch-v-15" aria-disabled="true" type="checkbox" value="true">
                         <div class="v-switch__thumb">
                           <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                             <!---->
