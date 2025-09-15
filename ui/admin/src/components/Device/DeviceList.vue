@@ -102,8 +102,10 @@ const devicesStore = useDevicesStore();
 const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
-const devices = computed(() => devicesStore.list);
-const devicesCount = computed(() => devicesStore.getNumberDevices);
+const devices = computed(() => devicesStore.devices);
+const devicesCount = computed(() => devicesStore.deviceCount);
+const sortField = ref();
+const sortOrder = ref<"asc" | "desc" | undefined>(undefined);
 
 const headers = ref([
   {
@@ -150,12 +152,11 @@ const fetchDevices = async () => {
   try {
     loading.value = true;
 
-    await devicesStore.fetch({
+    await devicesStore.fetchDeviceList({
       perPage: itemsPerPage.value,
       page: page.value,
-      filter: "",
-      sortStatusField: devicesStore.getSortStatusField,
-      sortStatusString: devicesStore.getSortStatusString,
+      sortField: sortField.value,
+      sortOrder: sortOrder.value,
     });
   } catch (error) {
     handleError(error);
@@ -164,17 +165,11 @@ const fetchDevices = async () => {
   loading.value = false;
 };
 
-const getSortOrder = () => {
-  const currentOrder = devicesStore.getSortStatusString;
-  if (currentOrder === "asc") return "desc";
-  return "asc";
-};
+const getSortOrder = () => sortOrder.value === "asc" ? "desc" : "asc";
 
 const sortByItem = async (field: string) => {
-  devicesStore.setSortStatus({
-    sortStatusField: field,
-    sortStatusString: getSortOrder(),
-  });
+  sortField.value = field;
+  sortOrder.value = getSortOrder();
   await fetchDevices();
 };
 

@@ -57,8 +57,8 @@ describe("Device List", () => {
 
     const devicesStore = useDevicesStore();
     devicesStore.devices = devices;
-    devicesStore.numberDevices = devices.length;
-    devicesStore.fetch = vi.fn();
+    devicesStore.deviceCount = devices.length;
+    devicesStore.fetchDeviceList = vi.fn();
 
     wrapper = mount(DeviceList, {
       global: {

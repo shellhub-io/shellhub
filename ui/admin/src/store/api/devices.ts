@@ -1,26 +1,18 @@
 import { adminApi } from "../../api/http";
 
-const fetchDevices = (
+export const getDevices = (
   page: number,
   perPage: number,
-  search: string,
-  sortStatusField: string,
-  sortStatusString: "asc" | "desc" | undefined,
-) => {
-  if (sortStatusField && sortStatusString) {
-    return adminApi.getDevicesAdmin(
-      search,
-      page,
-      perPage,
-      undefined,
-      sortStatusField,
-      sortStatusString,
-    );
-  }
+  filter?: string,
+  sortField?: string,
+  sortOrder?: "asc" | "desc",
+) => adminApi.getDevicesAdmin(
+  filter,
+  page,
+  perPage,
+  undefined, // status
+  sortField,
+  sortOrder,
+);
 
-  return adminApi.getDevicesAdmin(search, page, perPage);
-};
-
-const getDevice = (uid: string) => adminApi.getDeviceAdmin(uid);
-
-export { fetchDevices, getDevice };
+export const getDevice = (uid: string) => adminApi.getDeviceAdmin(uid);
