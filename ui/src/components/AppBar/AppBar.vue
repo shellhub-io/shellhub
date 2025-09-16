@@ -184,7 +184,7 @@ const logout = async () => {
 
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
-  layoutStore.theme = isDarkMode.value ? "dark" : "light";
+  layoutStore.setTheme(isDarkMode.value ? "dark" : "light");
 };
 
 const openChatwoot = async (): Promise<void> => {
