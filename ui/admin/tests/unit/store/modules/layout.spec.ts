@@ -3,32 +3,24 @@ import { setActivePinia, createPinia } from "pinia";
 import useLayoutStore from "@admin/store/modules/layout";
 
 describe("Layout Pinia Store", () => {
-  let layoutStore: ReturnType<typeof useLayoutStore>;
+  setActivePinia(createPinia());
+  const layoutStore = useLayoutStore();
 
-  const initialLayout = "appLayout";
-  const initialDarkMode = "dark";
-  const newLayout = "defaultLayout";
-  const darkModeStatus = false;
+  beforeEach(() => { localStorage.clear(); });
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    localStorage.clear();
-    layoutStore = useLayoutStore();
+  it("returns default layout and theme", () => {
+    expect(layoutStore.layout).toEqual("AppLayout");
+    expect(layoutStore.theme).toEqual("dark");
   });
 
-  it("returns default layout and dark mode", () => {
-    expect(layoutStore.getLayout).toEqual(initialLayout);
-    expect(layoutStore.getStatusDarkMode).toEqual(initialDarkMode);
+  it("updates layout", () => {
+    layoutStore.layout = "SimpleLayout";
+    expect(layoutStore.layout).toEqual("SimpleLayout");
   });
 
-  it("updates layout when setLayout is called", () => {
-    layoutStore.setLayout(newLayout);
-    expect(layoutStore.getLayout).toEqual(newLayout);
-  });
-
-  it("updates dark mode status when setStatusDarkMode is called", () => {
-    layoutStore.setStatusDarkMode(darkModeStatus);
-    expect(layoutStore.getStatusDarkMode).toEqual("light");
-    expect(localStorage.getItem("statusDarkMode")).toEqual("light");
+  it("updates theme ref and localStorage with setTheme", () => {
+    layoutStore.setTheme("light");
+    expect(layoutStore.theme).toEqual("light");
+    expect(localStorage.getItem("theme")).toEqual("light");
   });
 });

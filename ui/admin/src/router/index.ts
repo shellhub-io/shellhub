@@ -8,7 +8,7 @@ import Namespaces from "@admin/views/Namespaces.vue";
 import Settings from "@admin/views/Settings.vue";
 import { computed } from "vue";
 import useLicenseStore from "@admin/store/modules/license";
-import useLayoutStore from "@admin/store/modules/layout";
+import useLayoutStore, { Layout } from "@admin/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 
@@ -135,8 +135,7 @@ router.beforeEach(
 
     const requiresAuth = to.meta.requiresAuth ?? true;
 
-    const layout = to.meta.layout || "AppLayout";
-    layoutStore.setLayout(layout as string);
+    layoutStore.layout = to.meta.layout as Layout || "AppLayout";
 
     if (!authStore.isLoggedIn && requiresAuth) {
       return next({

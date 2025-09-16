@@ -22,7 +22,7 @@ describe("Login", () => {
     authStore.login = vi.fn();
 
     const layoutStore = useLayoutStore();
-    vi.spyOn(layoutStore, "getLayout", "get").mockReturnValue("simpleLayout");
+    layoutStore.layout = "SimpleLayout";
 
     const licenseStore = useLicenseStore();
     licenseStore.get = vi.fn();

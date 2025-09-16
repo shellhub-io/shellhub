@@ -183,8 +183,8 @@ const expiredLicense = computed(() => licenseStore.isExpired);
 const hasSpinner = computed(() => spinnerStore.getStatus);
 const currentUser = computed(() => authStore.currentUser);
 const currentRoute = computed(() => router.currentRoute);
-const getStatusDarkMode = computed(() => layoutStore.getStatusDarkMode);
-const isDarkMode = ref(getStatusDarkMode.value === "dark");
+const theme = computed(() => layoutStore.theme);
+const isDarkMode = ref(theme.value === "dark");
 const drawer = ref(true);
 
 watch(drawer, () => {
@@ -197,7 +197,7 @@ const logout = async () => {
   authStore.logout();
   await router.push("/login");
   createNewClient();
-  layoutStore.setLayout("SimpleLayout");
+  layoutStore.layout = "SimpleLayout";
 };
 
 const triggerClick = (item: MenuItem): void => {
@@ -212,9 +212,10 @@ const triggerClick = (item: MenuItem): void => {
       break;
   }
 };
+
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
-  layoutStore.setStatusDarkMode(isDarkMode.value);
+  layoutStore.setTheme(isDarkMode.value ? "dark" : "light");
 };
 
 const items = reactive([

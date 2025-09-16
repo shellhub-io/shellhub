@@ -1,28 +1,23 @@
-// stores/layout.ts
 import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export const useLayoutStore = defineStore("layout", {
-  state: () => ({
-    layout: "appLayout" as string,
-    statusDarkMode: (localStorage.getItem("statusDarkMode") || "dark") as string,
-  }),
+export type Layout = "AppLayout" | "SimpleLayout";
+type Theme = "dark" | "light";
 
-  getters: {
-    getLayout: (state) => state.layout,
-    getStatusDarkMode: (state) => state.statusDarkMode,
-  },
+const useLayoutStore = defineStore("layout", () => {
+  const layout = ref<Layout>("AppLayout");
+  const theme = ref<Theme>(localStorage.getItem("theme") as Theme || "dark");
 
-  actions: {
-    setLayout(layout: string) {
-      this.layout = layout;
-    },
+  const setTheme = (newTheme: Theme) => {
+    theme.value = newTheme;
+    localStorage.setItem("theme", newTheme);
+  };
 
-    setStatusDarkMode(status: boolean) {
-      const statusDarkMode = status ? "dark" : "light";
-      this.statusDarkMode = statusDarkMode;
-      localStorage.setItem("statusDarkMode", statusDarkMode);
-    },
-  },
+  return {
+    layout,
+    theme,
+    setTheme,
+  };
 });
 
 export default useLayoutStore;
