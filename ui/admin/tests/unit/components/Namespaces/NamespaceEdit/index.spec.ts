@@ -47,17 +47,13 @@ const mockSnackbar = {
 
 describe("Namespace Edit", () => {
   let wrapper: NamespaceEditWrapper;
+  setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
+  const vuetify = createVuetify();
+  namespacesStore.updateNamespace = vi.fn();
+  namespacesStore.fetchNamespaceList = vi.fn();
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-
-    const vuetify = createVuetify();
-
-    const namespaceStore = useNamespacesStore();
-
-    vi.spyOn(namespaceStore, "put").mockResolvedValue(undefined);
-    vi.spyOn(namespaceStore, "refresh").mockResolvedValue(undefined);
-
     wrapper = mount(NamespaceEdit, {
       global: {
         plugins: [vuetify],
@@ -84,14 +80,10 @@ describe("Namespace Edit", () => {
   });
 
   it("Calls namespace store and snackbar on form submission", async () => {
-    const namespaceStore = useNamespacesStore();
-
     wrapper.vm.onSubmit();
-
     await flushPromises();
-
-    expect(namespaceStore.put).toHaveBeenCalled();
-    expect(namespaceStore.refresh).toHaveBeenCalled();
+    expect(namespacesStore.updateNamespace).toHaveBeenCalled();
+    expect(namespacesStore.fetchNamespaceList).toHaveBeenCalled();
     expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace updated successfully.");
   });
 });

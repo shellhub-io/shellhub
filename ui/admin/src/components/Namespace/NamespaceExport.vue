@@ -77,8 +77,7 @@ const getFilename = () => {
 
 const exportCsv = async () => {
   const encodedFilter = encodeFilter();
-  await namespacesStore.setFilterNamespaces(encodedFilter);
-  const response = await namespacesStore.exportNamespacesToCsv();
+  const response = await namespacesStore.exportNamespacesToCsv(encodedFilter);
   const blob = new Blob([response], { type: "text/csv;charset=utf-8" });
   saveAs(blob, getFilename());
 };
