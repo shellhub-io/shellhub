@@ -1,13 +1,11 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useStatsStore from "@admin/store/modules/stats";
 import routes from "@admin/router";
 import Dashboard from "@admin/views/Dashboard.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-
-type DashboardWrapper = VueWrapper<InstanceType<typeof Dashboard>>;
 
 const stats = {
   registered_users: 0,
@@ -72,25 +70,16 @@ const cardsContent = [
 const numberOfCards = 6;
 
 describe("Dashboard", () => {
-  let wrapper: DashboardWrapper;
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const statsStore = useStatsStore();
+  statsStore.getStats = vi.fn().mockResolvedValue(stats);
+  const vuetify = createVuetify();
 
-  beforeEach(async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-
-    const statsStore = useStatsStore();
-    statsStore.get = vi.fn().mockResolvedValue(undefined);
-    statsStore.stats = stats;
-
-    const vuetify = createVuetify();
-
-    wrapper = mount(Dashboard, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-      },
-    });
-
-    await statsStore.get();
+  const wrapper = mount(Dashboard, {
+    global: {
+      plugins: [pinia, vuetify, routes, SnackbarPlugin],
+    },
   });
 
   it("Is a Vue instance", () => {
@@ -103,7 +92,7 @@ describe("Dashboard", () => {
 
   it("Renders the template with data", async () => {
     expect(wrapper.vm.items).toEqual(cardsContent);
-    expect(wrapper.vm.itemsStats).toEqual(stats);
+    expect(wrapper.vm.stats).toEqual(stats);
     expect(wrapper.vm.hasStatus).toBe(false);
   });
 

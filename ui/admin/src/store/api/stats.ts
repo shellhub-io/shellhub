@@ -1,5 +1,5 @@
-import { adminApi } from "./../../api/http";
+import { adminApi } from "@admin/api/http";
 
-const getStats = async () => adminApi.getStats();
+const getAdminStats = async () => adminApi.getStats();
 
-export default getStats;
+export default getAdminStats;
