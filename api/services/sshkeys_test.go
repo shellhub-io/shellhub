@@ -76,6 +76,24 @@ func TestEvaluateKeyFilter(t *testing.T) {
 			expected: Expected{true, nil},
 		},
 		{
+			description: "fail to evaluate filter tags when DeviceResolve fails",
+			key: &models.PublicKey{
+				PublicKeyFields: models.PublicKeyFields{
+					Filter: models.PublicKeyFilter{
+						Taggable: models.Taggable{TagIDs: []string{"tag1_id", "tag2_id"}},
+					},
+				},
+			},
+			device: models.Device{UID: "uid"},
+			requiredMocks: func() {
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					Return(nil, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{false, NewErrDeviceNotFound("uid", errors.New("error", "", 0))},
+		},
+		{
 			description: "fail to evaluate filter tags when tag does not exist in device",
 			key: &models.PublicKey{
 				PublicKeyFields: models.PublicKeyFields{
@@ -84,10 +102,12 @@ func TestEvaluateKeyFilter(t *testing.T) {
 					},
 				},
 			},
-			device: models.Device{
-				Taggable: models.Taggable{TagIDs: []string{"tag4_id"}},
-			},
+			device: models.Device{UID: "uid"},
 			requiredMocks: func() {
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					Return(&models.Device{UID: "uid", Taggable: models.Taggable{TagIDs: []string{"nonexistent_id"}}}, nil).
+					Once()
 			},
 			expected: Expected{false, nil},
 		},
@@ -100,10 +120,12 @@ func TestEvaluateKeyFilter(t *testing.T) {
 					},
 				},
 			},
-			device: models.Device{
-				Taggable: models.Taggable{TagIDs: []string{"tag1_id"}},
-			},
+			device: models.Device{UID: "uid"},
 			requiredMocks: func() {
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					Return(&models.Device{UID: "uid", Taggable: models.Taggable{TagIDs: []string{"tag1_id"}}}, nil).
+					Once()
 			},
 			expected: Expected{true, nil},
 		},
