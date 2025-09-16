@@ -232,12 +232,12 @@ func (s *Store) TagDelete(ctx context.Context, id string) error {
 
 		tagID, _ := primitive.ObjectIDFromHex(tag.ID)
 
-		if _, err := s.db.Collection("devices").UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"tags": tagID}}); err != nil {
+		if _, err := s.db.Collection("devices").UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"tag_ids": tagID}}); err != nil {
 			return nil, FromMongoError(err)
 		}
 
 		for _, c := range []string{"public_keys", "firewall_rules"} {
-			if _, err := s.db.Collection(c).UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"filters.tags": tagID}}); err != nil {
+			if _, err := s.db.Collection(c).UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"filters.tag_ids": tagID}}); err != nil {
 				return nil, FromMongoError(err)
 			}
 		}
