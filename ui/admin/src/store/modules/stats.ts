@@ -1,27 +1,14 @@
 import { defineStore } from "pinia";
 import { IAdminStats } from "@admin/interfaces/IStats";
-import getStats from "../api/stats";
+import getAdminStats from "../api/stats";
 
-export const useStatsStore = defineStore("stats", {
-  state: () => ({
-    stats: {} as IAdminStats,
-  }),
+const useStatsStore = defineStore("stats", () => {
+  const getStats = async () => {
+    const { data } = await getAdminStats();
+    return data as IAdminStats;
+  };
 
-  getters: {
-    getStats: (state) => state.stats,
-  },
-
-  actions: {
-    async get() {
-      const res = await getStats();
-      this.stats = res.data as IAdminStats;
-      return res;
-    },
-
-    clearListState() {
-      this.stats = {} as IAdminStats;
-    },
-  },
+  return { getStats };
 });
 
 export default useStatsStore;

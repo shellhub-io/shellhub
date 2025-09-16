@@ -20,8 +20,9 @@
 
 <script setup lang="ts">
 import axios, { AxiosError } from "axios";
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import useStatsStore from "@admin/store/modules/stats";
+import { IAdminStats } from "@admin/interfaces/IStats";
 import { StatCardItem } from "@/interfaces/IStats";
 import useSnackbar from "@/helpers/snackbar";
 import StatCard from "@/components/StatCard.vue";
@@ -30,11 +31,11 @@ const snackbar = useSnackbar();
 const statsStore = useStatsStore();
 const items = ref<StatCardItem[]>([]);
 const hasStatus = ref(false);
-const itemsStats = computed(() => statsStore.getStats);
+const stats = ref({} as IAdminStats);
 
 onMounted(async () => {
   try {
-    await statsStore.get();
+    stats.value = await statsStore.getStats();
     items.value = [
       {
         title: "Registered Users",
@@ -42,7 +43,7 @@ onMounted(async () => {
         icon: "mdi-account-group",
         buttonLabel: "View all Users",
         path: "users",
-        stat: itemsStats.value.registered_users ?? 0,
+        stat: stats.value.registered_users ?? 0,
       },
       {
         title: "Registered Devices",
@@ -50,7 +51,7 @@ onMounted(async () => {
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
-        stat: itemsStats.value.registered_devices ?? 0,
+        stat: stats.value.registered_devices ?? 0,
       },
       {
         title: "Online Devices",
@@ -58,7 +59,7 @@ onMounted(async () => {
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
-        stat: itemsStats.value.online_devices ?? 0,
+        stat: stats.value.online_devices ?? 0,
       },
       {
         title: "Active Sessions",
@@ -66,7 +67,7 @@ onMounted(async () => {
         icon: "mdi-developer-board",
         buttonLabel: "View all Sessions",
         path: "sessions",
-        stat: itemsStats.value.active_sessions ?? 0,
+        stat: stats.value.active_sessions ?? 0,
       },
       {
         title: "Pending Devices",
@@ -74,7 +75,7 @@ onMounted(async () => {
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
-        stat: itemsStats.value.pending_devices ?? 0,
+        stat: stats.value.pending_devices ?? 0,
       },
       {
         title: "Rejected Devices",
@@ -82,7 +83,7 @@ onMounted(async () => {
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
-        stat: itemsStats.value.rejected_devices ?? 0,
+        stat: stats.value.rejected_devices ?? 0,
       },
     ];
   } catch (error: unknown) {
@@ -98,5 +99,5 @@ onMounted(async () => {
   }
 });
 
-defineExpose({ items, itemsStats, hasStatus });
+defineExpose({ items, stats, hasStatus });
 </script>
