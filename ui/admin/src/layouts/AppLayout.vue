@@ -141,10 +141,10 @@
 <script setup lang="ts">
 import { watch, ref, computed, reactive } from "vue";
 import { RouteLocationRaw, useRouter } from "vue-router";
-import useSpinnerStore from "@admin/store/modules/spinner";
 import useLicenseStore from "@admin/store/modules/license";
 import useLayoutStore from "@admin/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
+import useSpinnerStore from "@/store/modules/spinner";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import Logo from "../assets/logo-inverted.png";
 import { createNewClient } from "../api/http";
@@ -180,7 +180,7 @@ const isLoggedIn = computed(() => authStore.isLoggedIn);
 
 const expiredLicense = computed(() => licenseStore.isExpired);
 
-const hasSpinner = computed(() => spinnerStore.getStatus);
+const hasSpinner = computed(() => spinnerStore.status);
 const currentUser = computed(() => authStore.currentUser);
 const currentRoute = computed(() => router.currentRoute);
 const theme = computed(() => layoutStore.theme);
