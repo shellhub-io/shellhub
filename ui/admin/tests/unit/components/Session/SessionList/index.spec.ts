@@ -67,18 +67,15 @@ const sessions = [
 
 describe("Sessions List", () => {
   let wrapper: SessionListWrapper;
+  setActivePinia(createPinia());
+  const sessionStore = useSessionsStore();
+  const vuetify = createVuetify();
+
+  sessionStore.sessions = sessions as IAdminSession[];
+  sessionStore.fetchSessionList = vi.fn();
+  sessionStore.sessionCount = sessions.length;
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-
-    const vuetify = createVuetify();
-
-    const sessionStore = useSessionsStore();
-
-    sessionStore.sessions = sessions as IAdminSession[];
-    sessionStore.numberSessions = sessions.length;
-    sessionStore.fetch = vi.fn();
-
     wrapper = mount(SessionList, {
       global: {
         plugins: [vuetify, routes, SnackbarPlugin],
@@ -95,11 +92,9 @@ describe("Sessions List", () => {
   });
 
   it("Renders the template with session data", () => {
-    const dt = wrapper.find("[data-test='session-list']");
-    expect(dt.exists()).toBe(true);
-
-    const store = useSessionsStore();
-    expect(store.getSessions).toEqual(sessions);
-    expect(store.getNumberSessions).toBe(sessions.length);
+    const sessionList = wrapper.find("[data-test='session-list']");
+    expect(sessionList.exists()).toBe(true);
+    expect(sessionStore.sessions).toEqual(sessions);
+    expect(sessionStore.sessionCount).toBe(sessions.length);
   });
 });

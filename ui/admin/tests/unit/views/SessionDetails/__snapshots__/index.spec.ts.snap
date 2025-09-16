@@ -27,65 +27,72 @@ exports[`Session Details > Renders the component 1`] = `
       <div data-v-5ff20c2c="" class="text-overline mt-3">
         <h3 data-v-5ff20c2c="">uid:</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="df33c82dcc7b401b0e4511fd9e0a86a48c5875da6091e89cf37cbbb38819e17e">
+        <p data-v-5ff20c2c="">df33c82dcc7b401b0e4511fd9e0a86a48c5875da6091e89cf37cbbb38819e17e</p>
       </div>
     </div>
-    <!--v-if-->
+    <div data-v-5ff20c2c="">
+      <div data-v-5ff20c2c="" class="text-overline mt-3">
+        <h3 data-v-5ff20c2c="">Device uid:</h3>
+      </div>
+      <div data-v-5ff20c2c="" data-test="cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75">
+        <p data-v-5ff20c2c="" tabindex="0" class="link">cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75</p>
+      </div>
+    </div>
     <div data-v-5ff20c2c="">
       <div data-v-5ff20c2c="" class="text-overline mt-3">
         <h3 data-v-5ff20c2c="">Tenant uid:</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        <p data-v-5ff20c2c="">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
       </div>
     </div>
     <div data-v-5ff20c2c="">
       <div data-v-5ff20c2c="" class="text-overline mt-3">
         <h3 data-v-5ff20c2c="">Username</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="antony">
+        <p data-v-5ff20c2c="">antony</p>
       </div>
     </div>
     <div data-v-5ff20c2c="">
       <div data-v-5ff20c2c="" class="text-overline mt-3">
-        <h3 data-v-5ff20c2c="">Ip Adress:</h3>
+        <h3 data-v-5ff20c2c="">Ip Address:</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="172.22.0.1">
+        <p data-v-5ff20c2c="">172.22.0.1</p>
       </div>
     </div>
     <div data-v-5ff20c2c="">
       <div data-v-5ff20c2c="" class="text-overline mt-3">
         <h3 data-v-5ff20c2c="">Last Seen:</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="2022-05-20T14:03:35.701Z">
+        <p data-v-5ff20c2c="">2022-05-20T14:03:35.701Z</p>
       </div>
     </div>
     <div data-v-5ff20c2c="">
       <div data-v-5ff20c2c="" class="text-overline mt-3">
         <h3 data-v-5ff20c2c="">Active:</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="false">
+        <p data-v-5ff20c2c="">false</p>
       </div>
     </div>
     <div data-v-5ff20c2c="">
       <div data-v-5ff20c2c="" class="text-overline mt-3">
         <h3 data-v-5ff20c2c="">Terminal:</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="xterm.js">
+        <p data-v-5ff20c2c="">xterm.js</p>
       </div>
     </div>
     <div data-v-5ff20c2c="">
       <div data-v-5ff20c2c="" class="text-overline mt-3">
         <h3 data-v-5ff20c2c="">Type:</h3>
       </div>
-      <div data-v-5ff20c2c="">
-        <p data-v-5ff20c2c=""></p>
+      <div data-v-5ff20c2c="" data-test="web">
+        <p data-v-5ff20c2c="">web</p>
       </div>
     </div>
   </div>

@@ -1,47 +1,30 @@
 import { defineStore } from "pinia";
+import { ref } from "vue";
 import { IAdminSession } from "@admin/interfaces/ISession";
-import * as apiSession from "../api/sessions";
+import * as sessionsApi from "../api/sessions";
 
-export const useSessionsStore = defineStore("sessions", {
-  state: () => ({
-    sessions: [] as Array<IAdminSession>,
-    session: {} as IAdminSession,
-    numberSessions: 0,
-  }),
+const useSessionsStore = defineStore("sessions", () => {
+  const sessions = ref<Array<IAdminSession>>([]);
+  const sessionCount = ref<number>(0);
 
-  getters: {
-    getSessions: (state) => state.sessions,
-    getSession: (state) => state.session,
-    getNumberSessions: (state) => state.numberSessions,
-  },
+  const fetchSessionList = async (data: { perPage: number; page: number }) => {
+    const res = await sessionsApi.fetchSessions(data.perPage, data.page);
 
-  actions: {
-    async fetch(data: { perPage: number; page: number }) {
-      const res = await apiSession.fetchSessions(data.perPage, data.page);
+    sessions.value = res.data as Array<IAdminSession>;
+    sessionCount.value = parseInt(res.headers["x-total-count"], 10);
+  };
 
-      if (res.data.length) {
-        this.sessions = res.data as Array<IAdminSession>;
-        this.numberSessions = parseInt(res.headers["x-total-count"], 10);
-        return res;
-      }
+  const fetchSessionById = async (uid: string) => {
+    const { data } = await sessionsApi.getSession(uid);
+    return data as IAdminSession;
+  };
 
-      return false;
-    },
-
-    async get(uid: string) {
-      const res = await apiSession.getSession(uid);
-      this.session = res.data as IAdminSession;
-    },
-
-    clearListSessions() {
-      this.sessions = [];
-      this.numberSessions = 0;
-    },
-
-    clearObjectSession() {
-      this.session = {} as IAdminSession;
-    },
-  },
+  return {
+    sessions,
+    sessionCount,
+    fetchSessionList,
+    fetchSessionById,
+  };
 });
 
 export default useSessionsStore;

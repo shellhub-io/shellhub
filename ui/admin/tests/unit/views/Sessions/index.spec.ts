@@ -2,25 +2,23 @@ import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import { useSessionsStore } from "@admin/store/modules/sessions";
+import useSessionsStore from "@admin/store/modules/sessions";
+import routes from "@admin/router";
+import Sessions from "@admin/views/Sessions.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import Sessions from "../../../../src/views/Sessions.vue";
 
 type SessionsWrapper = VueWrapper<InstanceType<typeof Sessions>>;
 
 describe("Sessions", () => {
   let wrapper: SessionsWrapper;
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const sessionsStore = useSessionsStore();
+  sessionsStore.fetchSessionList = vi.fn();
+
+  const vuetify = createVuetify();
 
   beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-
-    const sessionsStore = useSessionsStore();
-    sessionsStore.fetch = vi.fn();
-
-    const vuetify = createVuetify();
-
     wrapper = mount(Sessions, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],
