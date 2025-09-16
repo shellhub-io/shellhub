@@ -7,7 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
@@ -118,15 +117,67 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	filter := bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}
-
-	pubKey := new(models.PublicKey)
-	if err := s.db.Collection("public_keys").FindOneAndUpdate(ctx, filter, bson.M{"$set": key}, opts).Decode(&pubKey); err != nil {
+	bsonBytes, err := bson.Marshal(key)
+	if err != nil {
 		return nil, FromMongoError(err)
 	}
 
-	return pubKey, nil
+	doc := make(bson.M)
+	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	// WORKAROUND: Convert string TagIDs to MongoDB ObjectIDs for referential integrity
+	// with the tags collection where _id is ObjectID type
+	if filterDoc, ok := doc["filter"].(bson.M); ok {
+		if tagIDs, ok := filterDoc["tag_ids"].(bson.A); ok && len(tagIDs) > 0 {
+			for i, id := range tagIDs {
+				if idStr, ok := id.(string); ok {
+					objID, _ := primitive.ObjectIDFromHex(idStr)
+					tagIDs[i] = objID
+				}
+			}
+		}
+	}
+
+	filter := bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}
+	r, err := s.db.Collection("public_keys").UpdateOne(ctx, filter, bson.M{"$set": doc})
+	if err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	if r.MatchedCount == 0 {
+		return nil, store.ErrNoDocuments
+	}
+
+	pipeline := []bson.M{
+		{
+			"$match": filter,
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "tags",
+				"localField":   "filter.tag_ids",
+				"foreignField": "_id",
+				"as":           "filter.tags",
+			},
+		},
+	}
+
+	cursor, err := s.db.Collection("public_keys").Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	defer cursor.Close(ctx) //nolint:errcheck
+	cursor.Next(ctx)        //nolint:errcheck
+
+	publicKey := new(models.PublicKey)
+	if err := cursor.Decode(&publicKey); err != nil {
+		return nil, FromMongoError(err)
+	}
+
+	return publicKey, nil
 }
 
 func (s *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenantID string) error {
