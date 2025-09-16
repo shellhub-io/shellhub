@@ -63,10 +63,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeMount } from "vue";
+import { computed, onBeforeMount, ref } from "vue";
 import { useRoute } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
-import { IUser } from "@admin/interfaces/IUser";
+import { IAdminUser } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import UserStatusChip from "@admin/components/User/UserStatusChip.vue";
 import useSnackbar from "@/helpers/snackbar";
@@ -74,10 +74,10 @@ import UserDelete from "../components/User/UserDelete.vue";
 
 const route = useRoute();
 const snackbar = useSnackbar();
-const userStore = useUsersStore();
+const usersStore = useUsersStore();
 const authStore = useAuthStore();
 const userId = computed(() => route.params.id as string);
-const currentUser = computed(() => userStore.getUser as IUser);
+const currentUser = ref({} as IAdminUser);
 
 const loginWithToken = async () => {
   try {
@@ -85,17 +85,13 @@ const loginWithToken = async () => {
 
     const url = `/login?token=${token}`;
     window.open(url, "_target");
-  } catch {
-    snackbar.showError("Failed to get the login token.");
-  }
+  } catch { snackbar.showError("Failed to get the login token."); }
 };
 
 onBeforeMount(async () => {
   try {
-    await userStore.get(userId.value);
-  } catch {
-    snackbar.showError("Failed to get user details.");
-  }
+    currentUser.value = await usersStore.fetchUserById(userId.value);
+  } catch { snackbar.showError("Failed to get user details."); }
 });
 
 defineExpose({ currentUser });

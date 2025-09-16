@@ -1,37 +1,24 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
+import routes from "@admin/router";
+import Users from "@admin/views/Users.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import Users from "../../../../src/views/Users.vue";
-
-type UsersWrapper = VueWrapper<InstanceType<typeof Users>>;
 
 describe("Users", () => {
-  let wrapper: UsersWrapper;
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const usersStore = useUsersStore();
+  usersStore.fetchUsersList = vi.fn();
 
-  beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
+  const vuetify = createVuetify();
 
-    const userStore = useUsersStore();
-
-    vi.spyOn(userStore, "getPerPage", "get").mockReturnValue(10);
-    vi.spyOn(userStore, "getPage", "get").mockReturnValue(1);
-    vi.spyOn(userStore, "getNumberUsers", "get").mockReturnValue(1);
-
-    userStore.search = vi.fn();
-    userStore.fetch = vi.fn();
-
-    const vuetify = createVuetify();
-
-    wrapper = mount(Users, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-      },
-    });
+  const wrapper = mount(Users, {
+    global: {
+      plugins: [pinia, vuetify, routes, SnackbarPlugin],
+    },
   });
 
   it("Is a Vue instance", () => {

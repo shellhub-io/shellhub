@@ -1,109 +1,58 @@
 import { defineStore } from "pinia";
-import { UserAdminResponse } from "@admin/api/client";
-import * as apiUser from "../api/users";
-import { IUser } from "../../interfaces/IUser";
+import { ref } from "vue";
+import { IAdminUser, IAdminUserFormData } from "@admin/interfaces/IUser";
+import * as usersApi from "../api/users";
 
-export const useUsersStore = defineStore("users", {
-  state: () => ({
-    users: [] as UserAdminResponse[],
-    user: {} as UserAdminResponse,
-    filter: "",
-    numberUsers: 0,
-    page: 0,
-    perPage: 0,
-    ownedNamespaces: 0,
-    generatedPassword: "",
-  }),
+const useUsersStore = defineStore("users", () => {
+  const users = ref<IAdminUser[]>([]);
+  const usersCount = ref<number>(0);
 
-  getters: {
-    getPerPage: (state) => state.perPage,
-    getUsers: (state) => state.users,
-    getUser: (state) => state.user,
-    getPage: (state) => state.page,
-    getFilter: (state) => state.filter,
-    getNumberUsers: (state) => state.numberUsers,
-    getOwnedNamespaces: (state) => state.ownedNamespaces,
-    getGeneratedPassword: (state) => state.generatedPassword,
-  },
+  const fetchUsersList = async (data?: { page?: number; perPage?: number; filter?: string }) => {
+    const res = await usersApi.fetchUsers(data?.page || 1, data?.perPage || 10, data?.filter);
 
-  actions: {
-    async fetch(data: { page: number; perPage: number; filter: string }) {
-      const { page, perPage, filter } = data;
-      const res = await apiUser.fetchUsers(perPage, page, filter);
+    users.value = res.data as IAdminUser[];
+    usersCount.value = parseInt(res.headers["x-total-count"], 10);
+  };
 
-      if (res.data.length) {
-        this.page = data.page;
-        this.perPage = data.perPage;
-        this.users = res.data;
-        this.numberUsers = parseInt(res.headers["x-total-count"], 10);
-        this.filter = filter;
-        return true;
-      }
-      return false;
-    },
+  const exportUsersToCsv = async (filter: string) => {
+    const { data } = await usersApi.exportUsers(filter);
+    return data;
+  };
 
-    async exportUsersToCsv() {
-      const { data } = await apiUser.exportUsers(this.filter);
-      return data;
-    },
+  const addUser = async (data: IAdminUserFormData) => {
+    await usersApi.addUser(data);
+  };
 
-    async setFilterUsers(filter: string) {
-      this.filter = filter;
-    },
+  const fetchUserById = async (id: string) => {
+    const { data } = await usersApi.getUser(id);
+    return data.user as IAdminUser;
+  };
 
-    async addUser(data) {
-      await apiUser.addUser(data);
-    },
+  const updateUser = async (data: IAdminUserFormData) => {
+    const { id } = data;
+    await usersApi.updateUser(id as string, data);
+  };
 
-    async search(data: { perPage: number; page: number; filter: string }) {
-      try {
-        const res = await apiUser.fetchUsers(data.perPage, data.page, data.filter);
-        this.users = res.data;
-        this.numberUsers = parseInt(res.headers["x-total-count"], 10);
-        this.filter = data.filter;
-      } catch (error) {
-        this.clearListUsers();
-        throw error;
-      }
-    },
+  const deleteUser = async (id: string) => {
+    await usersApi.deleteUser(id);
+  };
 
-    async get(id: string) {
-      const res = await apiUser.getUser(id);
-      const { user, namespacesOwned } = res.data;
-      this.user = user as IUser;
-      this.ownedNamespaces = namespacesOwned as number;
-    },
+  const resetUserPassword = async (id: string) => {
+    const { data } = await usersApi.resetUserPassword(id);
+    return data as string;
+  };
 
-    async put(data) {
-      const { id } = data;
-      await apiUser.putUser(id, data);
-    },
-
-    async remove(id: string) {
-      await apiUser.removeUser(id);
-    },
-
-    async resetUserPassword(id: string) {
-      const res = await apiUser.resetUserPassword(id);
-      this.generatedPassword = res.data.password as string;
-    },
-
-    async refresh() {
-      try {
-        const res = await apiUser.fetchUsers(this.perPage, this.page, this.filter);
-        this.users = res.data;
-        this.numberUsers = parseInt(res.headers["x-total-count"], 10);
-      } catch (error) {
-        this.clearListUsers();
-        throw error;
-      }
-    },
-
-    clearListUsers() {
-      this.users = [];
-      this.numberUsers = 0;
-    },
-  },
+  return {
+    users,
+    usersCount,
+    fetchUsersList,
+    exportUsersToCsv,
+    addUser,
+    fetchUserById,
+    updateUser,
+    deleteUser,
+    resetUserPassword,
+  };
 });
 
 export default useUsersStore;

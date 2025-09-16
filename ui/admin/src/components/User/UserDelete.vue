@@ -44,14 +44,14 @@ const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const router = useRouter();
 const snackbar = useSnackbar();
-const userStore = useUsersStore();
+const usersStore = useUsersStore();
 
 const remove = async () => {
   try {
-    await userStore.remove(props.id);
-    if (props.redirect) router.push("/users");
+    await usersStore.deleteUser(props.id);
     snackbar.showSuccess("User removed successfully.");
-    await userStore.refresh();
+    if (props.redirect) router.push("/users");
+    await usersStore.fetchUsersList();
     showDialog.value = false;
     emit("update");
   } catch (error) {

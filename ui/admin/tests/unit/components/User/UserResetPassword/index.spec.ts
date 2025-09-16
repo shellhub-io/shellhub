@@ -17,16 +17,11 @@ describe("User Reset Password", () => {
   let wrapper: UserResetPasswordWrapper;
   const vuetify = createVuetify();
   const mockProps = { userId: "user123" };
+  setActivePinia(createPinia());
+  const usersStore = useUsersStore();
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-
-    const userStore = useUsersStore();
-
-    userStore.generatedPassword = "mocked-password";
-    vi.spyOn(userStore, "resetUserPassword").mockResolvedValue(undefined);
-    vi.spyOn(userStore, "refresh").mockResolvedValue(undefined);
-
+    vi.spyOn(usersStore, "resetUserPassword").mockResolvedValue("mocked-password");
     wrapper = mount(UserResetPassword, {
       global: {
         plugins: [vuetify],
@@ -37,8 +32,6 @@ describe("User Reset Password", () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
     wrapper.unmount();
   });
 
@@ -69,22 +62,18 @@ describe("User Reset Password", () => {
 
   it("proceeds to step 2 after clicking 'Enable'", async () => {
     const dialog = new DOMWrapper(document.body);
-    const userStore = useUsersStore();
-
     await wrapper.find("[data-test='open-dialog-icon']").trigger("click");
     await dialog.find("[data-test='enable-btn']").trigger("click");
     await flushPromises();
 
-    expect(userStore.resetUserPassword).toHaveBeenCalledWith(mockProps.userId);
+    expect(usersStore.resetUserPassword).toHaveBeenCalledWith(mockProps.userId);
     expect(wrapper.vm.step).toBe("step-2");
   });
 
   it("shows an error when resetUserPassword fails", async () => {
     const dialog = new DOMWrapper(document.body);
 
-    const userStore = useUsersStore();
-
-    vi.spyOn(userStore, "resetUserPassword").mockRejectedValueOnce(new Error("Failure"));
+    vi.spyOn(usersStore, "resetUserPassword").mockRejectedValueOnce(new Error("Failure"));
 
     await wrapper.find("[data-test='open-dialog-icon']").trigger("click");
     await dialog.find("[data-test='enable-btn']").trigger("click");

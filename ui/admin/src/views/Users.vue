@@ -33,27 +33,19 @@ import UserList from "../components/User/UserList.vue";
 import UserFormDialog from "../components/User/UserFormDialog.vue";
 import UserExport from "../components/User/UserExport.vue";
 
-const userStore = useUsersStore();
+const usersStore = useUsersStore();
 const filter = ref("");
 
-const searchUsers = () => {
-  let encodedFilter = "";
+const searchUsers = async () => {
+  const filterToEncodeBase64 = [
+    {
+      type: "property",
+      params: { name: "username", operator: "contains", value: filter.value },
+    },
+  ];
 
-  if (filter.value) {
-    const filterToEncodeBase64 = [
-      {
-        type: "property",
-        params: { name: "username", operator: "contains", value: filter.value },
-      },
-    ];
-    encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-  }
-
-  userStore.search({
-    perPage: userStore.getPerPage,
-    page: userStore.getPage,
-    filter: encodedFilter,
-  });
+  const encodedFilter = filter.value ? btoa(JSON.stringify(filterToEncodeBase64)) : "";
+  await usersStore.fetchUsersList({ filter: encodedFilter });
 };
 
 watchDebounced(filter, () => {

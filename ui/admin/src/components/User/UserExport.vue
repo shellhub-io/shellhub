@@ -52,7 +52,7 @@ const isLoading = ref(false);
 const showDialog = ref(false);
 const selectedFilter = ref<FilterOptions>(FilterOptions.MoreThan);
 const snackbar = useSnackbar();
-const userStore = useUsersStore();
+const usersStore = useUsersStore();
 const { value: numberOfNamespaces,
   errorMessage: numberOfNamespacesError,
 } = useField<number>("numberOfNamespaces", yup.number().integer().required().min(0), { initialValue: 0 });
@@ -81,8 +81,7 @@ const handleSubmit = async () => {
   isLoading.value = true;
   const encodedFilter = encodeFilter();
   try {
-    await userStore.setFilterUsers(encodedFilter);
-    const response = await userStore.exportUsersToCsv();
+    const response = await usersStore.exportUsersToCsv(encodedFilter);
     const blob = new Blob([response], { type: "text/csv;charset=utf-8" });
     saveAs(blob, getFilename());
     snackbar.showSuccess("Exported users successfully.");

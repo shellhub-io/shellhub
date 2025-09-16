@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
@@ -79,10 +79,10 @@ const props = defineProps<{ userId: string }>();
 const emit = defineEmits(["update"]);
 
 const snackbar = useSnackbar();
-const userStore = useUsersStore();
+const usersStore = useUsersStore();
 const showDialog = ref(false);
 const step = ref("step-1");
-const generatedPassword = computed(() => userStore.generatedPassword);
+const generatedPassword = ref("");
 
 const close = () => {
   showDialog.value = false;
@@ -99,7 +99,7 @@ const copyText = (value: string | undefined) => {
 
 const proceedToSecondStep = async () => {
   try {
-    await userStore.resetUserPassword(props.userId);
+    generatedPassword.value = await usersStore.resetUserPassword(props.userId);
     step.value = "step-2";
   } catch (error) {
     snackbar.showError("Failed to reset user password. Please try again.");

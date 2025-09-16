@@ -1,15 +1,13 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import UserFormDialog from "@admin/components/User/UserFormDialog.vue";
-import { IUser } from "@admin/interfaces/IUser";
+import { IAdminUser } from "@admin/interfaces/IUser";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type UserFormDialogWrapper = VueWrapper<InstanceType<typeof UserFormDialog>>;
-
-const user: IUser = {
+const user: IAdminUser = {
   id: "5f1996c84d2190a22d5857bb",
   name: "Antony",
   email: "antony@gmail.com",
@@ -25,31 +23,25 @@ const user: IUser = {
   },
 };
 
-describe("UserFormDialog With prop 'createUser' equals false", () => {
-  let wrapper: UserFormDialogWrapper;
+setActivePinia(createPinia());
+const usersStore = useUsersStore();
+usersStore.updateUser = vi.fn();
+usersStore.fetchUsersList = vi.fn();
+const vuetify = createVuetify();
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const vuetify = createVuetify();
-
-    const userStore = useUsersStore();
-
-    vi.spyOn(userStore, "put").mockResolvedValue(undefined);
-    vi.spyOn(userStore, "refresh").mockResolvedValue(undefined);
-
-    wrapper = mount(UserFormDialog, {
-      props: {
-        titleCard: "Edit User",
-        createUser: false,
-        user,
-      },
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-    });
-
-    wrapper.vm.showDialog = true;
+describe("UserFormDialog (Edit User)", () => {
+  const wrapper = mount(UserFormDialog, {
+    props: {
+      titleCard: "Edit User",
+      createUser: false,
+      user,
+    },
+    global: {
+      plugins: [vuetify, SnackbarPlugin],
+    },
   });
+
+  wrapper.vm.showDialog = true;
 
   it("Is a Vue instance", () => {
     expect(wrapper.exists()).toBe(true);
@@ -74,22 +66,15 @@ describe("UserFormDialog With prop 'createUser' equals false", () => {
   });
 });
 
-describe("UserFormDialog With prop 'createUser' equals true", () => {
-  let wrapper: UserFormDialogWrapper;
-
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const vuetify = createVuetify();
-
-    wrapper = mount(UserFormDialog, {
-      props: {
-        titleCard: "Add User",
-        createUser: true,
-      },
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-    });
+describe("UserFormDialog (Create User)", () => {
+  const wrapper = mount(UserFormDialog, {
+    props: {
+      titleCard: "Add User",
+      createUser: true,
+    },
+    global: {
+      plugins: [vuetify, SnackbarPlugin],
+    },
   });
 
   it("Is a Vue instance", () => {
