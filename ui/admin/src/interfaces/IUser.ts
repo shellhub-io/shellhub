@@ -2,7 +2,7 @@ export type UserStatus = "confirmed" | "invited" | "not-confirmed";
 
 export type UserAuthMethods = Array<"saml" | "local">;
 
-export interface IUser {
+export interface IAdminUser {
   id: string;
   namespaces: number;
   max_namespaces: number;
@@ -16,4 +16,15 @@ export interface IUser {
   preferences: {
     auth_methods: UserAuthMethods;
   }
+}
+
+export interface IAdminUserFormData {
+  name: string;
+  email: string;
+  username: string;
+  password: string;
+  max_namespaces?: number;
+  confirmed?: boolean;
+  status: UserStatus;
+  id?: string;
 }

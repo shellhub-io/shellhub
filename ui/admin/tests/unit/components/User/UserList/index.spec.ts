@@ -1,54 +1,47 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
+import UserList from "@admin/components/User/UserList.vue";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import UserList from "../../../../../src/components/User/UserList.vue";
-import routes from "../../../../../src/router";
-
-type UserListWrapper = VueWrapper<InstanceType<typeof UserList>>;
 
 const mockUsers = [
   {
-    status: "confirmed",
+    status: "confirmed" as const,
     created_at: "2022-04-13T11:42:49.578Z",
     email: "depaulacostaantony@gmail.com",
     id: "6256b739302b50b6cc5eafcc",
     last_login: "0001-01-01T00:00:00Z",
     name: "antony",
     namespaces: 2,
+    max_namespaces: 5,
     password: "dummy",
     username: "antony",
     preferences: {
-      auth_methods: ["saml"],
+      auth_methods: ["saml" as const],
     },
   },
 ];
 
-describe("UserList", () => {
-  let wrapper: UserListWrapper;
+describe("UserList", async () => {
+  setActivePinia(createPinia());
+  const vuetify = createVuetify();
 
-  beforeEach(async () => {
-    setActivePinia(createPinia());
-    const vuetify = createVuetify();
+  const usersStore = useUsersStore();
 
-    const usersStore = useUsersStore();
+  usersStore.users = mockUsers;
+  usersStore.usersCount = mockUsers.length;
+  usersStore.fetchUsersList = vi.fn();
 
-    usersStore.users = mockUsers;
-    usersStore.numberUsers = mockUsers.length;
-
-    vi.spyOn(usersStore, "fetch").mockResolvedValue(true);
-    vi.spyOn(usersStore, "refresh").mockResolvedValue();
-
-    wrapper = mount(UserList, {
-      global: {
-        plugins: [vuetify, routes, SnackbarPlugin],
-      },
-    });
-
-    await wrapper.vm.$nextTick();
+  const wrapper = mount(UserList, {
+    global: {
+      plugins: [vuetify, routes, SnackbarPlugin],
+    },
   });
+
+  await wrapper.vm.$nextTick();
 
   it("Is a Vue instance", () => {
     expect(wrapper.exists()).toBe(true);

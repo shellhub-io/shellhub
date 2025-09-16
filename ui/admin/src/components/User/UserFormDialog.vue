@@ -134,13 +134,13 @@ import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
 import useUsersStore from "@admin/store/modules/users";
-import { IUser } from "@admin/interfaces/IUser";
+import { IAdminUser, IAdminUserFormData } from "@admin/interfaces/IUser";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "@/components/BaseDialog.vue";
 
 const props = defineProps<{
   createUser?: boolean;
-  user?: IUser;
+  user?: IAdminUser;
   titleCard: string;
 }>();
 
@@ -151,7 +151,7 @@ const disableNamespaceCreation = ref(false);
 const maxNamespaces = ref(props.user?.max_namespaces || 0);
 const canChangeStatus = props.user?.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
 const snackbar = useSnackbar();
-const userStore = useUsersStore();
+const usersStore = useUsersStore();
 const statusTooltipMessage = props.user?.status === "invited"
   ? "You cannot change the status of an invited user."
   : "You cannot remove confirmation from a user.";
@@ -208,7 +208,7 @@ const setMaxNamespaces = () => {
   maxNamespaces.value = disableNamespaceCreation.value ? 0 : maxNamespaces.value;
 };
 
-const { handleSubmit } = useForm<IUser>();
+const { handleSubmit } = useForm<IAdminUser>();
 
 const handleErrors = (error: AxiosError) => {
   if (!error.response?.data) return;
@@ -234,14 +234,14 @@ const handleErrors = (error: AxiosError) => {
   });
 };
 
-const submitUser = async (isCreating: boolean, userData: Record<string, unknown>) => {
+const submitUser = async (isCreating: boolean, userData: IAdminUserFormData) => {
   try {
-    const userStoreAction = isCreating ? userStore.addUser : userStore.put;
-    await userStoreAction(userData);
+    const usersStoreAction = isCreating ? usersStore.addUser : usersStore.updateUser;
+    await usersStoreAction(userData);
 
     snackbar.showSuccess(`User ${isCreating ? "added" : "updated"} successfully.`);
 
-    await userStore.refresh();
+    await usersStore.fetchUsersList();
     showDialog.value = false;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -261,7 +261,7 @@ const getStatus = () => {
   return props.user?.status;
 };
 
-const prepareUserData = (): Record<string, unknown> => ({
+const prepareUserData = () => ({
   name: name.value,
   email: email.value,
   username: username.value,
@@ -270,7 +270,7 @@ const prepareUserData = (): Record<string, unknown> => ({
   confirmed: !props.createUser ? isConfirmed.value : undefined,
   status: getStatus(),
   id: !props.createUser ? props.user?.id : undefined,
-});
+}) as IAdminUserFormData;
 
 const validateErrors = (): boolean => !nameError.value && !emailError.value && !usernameError.value;
 

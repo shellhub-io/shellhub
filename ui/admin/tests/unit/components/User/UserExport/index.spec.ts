@@ -1,30 +1,21 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import UserExport from "@admin/components/User/UserExport.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type UserExportWrapper = VueWrapper<InstanceType<typeof UserExport>>;
-
 describe("User Export", () => {
-  let wrapper: UserExportWrapper;
+  setActivePinia(createPinia());
+  const usersStore = useUsersStore();
+  const vuetify = createVuetify();
+  vi.spyOn(usersStore, "exportUsersToCsv").mockResolvedValue("fake-csv-data");
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const vuetify = createVuetify();
-
-    const userStore = useUsersStore();
-
-    vi.spyOn(userStore, "setFilterUsers").mockResolvedValue(undefined);
-    vi.spyOn(userStore, "exportUsersToCsv").mockResolvedValue("fake-csv-data");
-
-    wrapper = mount(UserExport, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-    });
+  const wrapper = mount(UserExport, {
+    global: {
+      plugins: [vuetify, SnackbarPlugin],
+    },
   });
 
   it("Is a Vue instance", () => {

@@ -1,14 +1,12 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
+import { createMemoryHistory, createRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
 import useAuthStore from "@admin/store/modules/auth";
-import { createMemoryHistory, createRouter } from "vue-router";
+import UserDetails from "@admin/views/UserDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import UserDetails from "../../../../src/views/UserDetails.vue";
-
-type UserDetailsWrapper = VueWrapper<InstanceType<typeof UserDetails>>;
 
 const user = {
   status: "confirmed",
@@ -22,41 +20,36 @@ const user = {
   username: "antony",
 };
 
-describe("User Details", () => {
-  let wrapper: UserDetailsWrapper;
+describe("User Details", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
 
-  beforeEach(async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
+  const usersStore = useUsersStore();
+  usersStore.fetchUserById = vi.fn().mockResolvedValue(user);
 
-    const usersStore = useUsersStore();
-    usersStore.get = vi.fn().mockResolvedValue(undefined);
-    usersStore.user = user;
+  const authStore = useAuthStore();
+  authStore.getLoginToken = vi.fn().mockResolvedValue("mock-token");
 
-    const authStore = useAuthStore();
-    authStore.getLoginToken = vi.fn().mockResolvedValue("mock-token");
+  const vuetify = createVuetify();
 
-    const vuetify = createVuetify();
-
-    const router = createRouter({
-      history: createMemoryHistory(),
-      routes: [
-        {
-          path: "/user/:id",
-          name: "userDetails",
-          component: UserDetails,
-        },
-      ],
-    });
-
-    await router.push({ name: "userDetails", params: { id: user.id } });
-    await router.isReady();
-
-    wrapper = mount(UserDetails, {
-      global: {
-        plugins: [pinia, vuetify, router, SnackbarPlugin],
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: "/user/:id",
+        name: "userDetails",
+        component: UserDetails,
       },
-    });
+    ],
+  });
+
+  await router.push({ name: "userDetails", params: { id: user.id } });
+  await router.isReady();
+
+  const wrapper = mount(UserDetails, {
+    global: {
+      plugins: [pinia, vuetify, router, SnackbarPlugin],
+    },
   });
 
   it("Is a Vue instance", () => {

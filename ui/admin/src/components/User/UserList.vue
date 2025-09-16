@@ -64,10 +64,10 @@
             <UserResetPassword
               v-if="userPrefersSAMLAuthentication(item.preferences.auth_methods)"
               :userId="item.id"
-              @update="refreshUsers"
+              @update="fetchUsers"
             />
 
-            <UserDelete :id="item.id" @update="refreshUsers" />
+            <UserDelete :id="item.id" />
           </td>
         </tr>
       </template>
@@ -79,7 +79,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
-import { IUser, UserAuthMethods } from "@admin/interfaces/IUser";
+import { IAdminUser, UserAuthMethods } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/DataTable.vue";
@@ -91,13 +91,13 @@ import handleError from "@/utils/handleError";
 
 const router = useRouter();
 const snackbar = useSnackbar();
-const userStore = useUsersStore();
+const usersStore = useUsersStore();
 const authStore = useAuthStore();
 const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
-const users = computed(() => userStore.getUsers as unknown as IUser[]);
-const userCount = computed(() => userStore.numberUsers);
+const users = computed(() => usersStore.users as IAdminUser[]);
+const userCount = computed(() => usersStore.usersCount);
 const headers = [
   {
     text: "Name",
@@ -132,7 +132,7 @@ const userPrefersSAMLAuthentication = (authMethods: UserAuthMethods) => (
 const fetchUsers = async () => {
   try {
     loading.value = true;
-    await userStore.fetch({
+    await usersStore.fetchUsersList({
       perPage: itemsPerPage.value,
       page: page.value,
       filter: "",
@@ -156,11 +156,7 @@ const loginWithToken = async (userId: string) => {
   }
 };
 
-const refreshUsers = async () => {
-  await userStore.refresh();
-};
-
-const redirectToUser = async (user: IUser) => {
+const redirectToUser = async (user: IAdminUser) => {
   router.push({ name: "userDetails", params: { id: user.id } });
 };
 

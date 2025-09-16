@@ -1,18 +1,18 @@
-import { IUser } from "@admin/interfaces/IUser";
+import { IAdminUserFormData } from "@admin/interfaces/IUser";
 import { UserAdminRequest } from "@admin/api/client";
 import { adminApi } from "@admin/api/http";
 
-const fetchUsers = async (
-  perPage: number,
+export const fetchUsers = async (
   page: number,
+  perPage: number,
   search?: string,
 ) => adminApi.getUsers(search, page, perPage);
 
-const getUser = (id: string) => adminApi.getUser(id);
+export const getUser = (id: string) => adminApi.getUser(id);
 
-const exportUsers = async (filter: string) => adminApi.exportUsers(filter);
+export const exportUsers = async (filter: string) => adminApi.exportUsers(filter);
 
-const addUser = (userData: IUser) => adminApi.createUserAdmin({
+export const addUser = (userData: IAdminUserFormData) => adminApi.createUserAdmin({
   name: userData.name,
   email: userData.email,
   username: userData.username,
@@ -20,7 +20,7 @@ const addUser = (userData: IUser) => adminApi.createUserAdmin({
   max_namespaces: userData.max_namespaces,
 });
 
-const putUser = async (id: string, userData: IUser) => adminApi.adminUpdateUser(id, {
+export const updateUser = async (id: string, userData: IAdminUserFormData) => adminApi.adminUpdateUser(id, {
   name: userData.name,
   email: userData.email,
   username: userData.username,
@@ -29,8 +29,6 @@ const putUser = async (id: string, userData: IUser) => adminApi.adminUpdateUser(
   max_namespaces: userData.max_namespaces,
 } as UserAdminRequest);
 
-const resetUserPassword = async (id: string) => adminApi.adminResetUserPassword(id);
+export const resetUserPassword = async (id: string) => adminApi.adminResetUserPassword(id);
 
-const removeUser = (id: string) => adminApi.deleteUser(id);
-
-export { fetchUsers, getUser, exportUsers, addUser, putUser, resetUserPassword, removeUser };
+export const deleteUser = (id: string) => adminApi.deleteUser(id);

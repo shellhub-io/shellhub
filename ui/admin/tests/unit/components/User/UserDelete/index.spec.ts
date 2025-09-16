@@ -1,36 +1,28 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
 import UserDelete from "@admin/components/User/UserDelete.vue";
 import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type UserDeleteWrapper = VueWrapper<InstanceType<typeof UserDelete>>;
-
 describe("User Delete", () => {
-  let wrapper: UserDeleteWrapper;
+  setActivePinia(createPinia());
+  const usersStore = useUsersStore();
+  const vuetify = createVuetify();
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
+  usersStore.deleteUser = vi.fn();
+  usersStore.fetchUsersList = vi.fn();
 
-    const vuetify = createVuetify();
-
-    const usersStore = useUsersStore();
-
-    vi.spyOn(usersStore, "remove").mockResolvedValue(undefined);
-    vi.spyOn(usersStore, "refresh").mockResolvedValue(undefined);
-
-    wrapper = mount(UserDelete, {
-      props: {
-        id: "6256d9e3ea6f26bc595130fa",
-        redirect: false,
-      },
-      global: {
-        plugins: [vuetify, routes, SnackbarPlugin],
-      },
-    });
+  const wrapper = mount(UserDelete, {
+    props: {
+      id: "6256d9e3ea6f26bc595130fa",
+      redirect: false,
+    },
+    global: {
+      plugins: [vuetify, routes, SnackbarPlugin],
+    },
   });
 
   it("Is a Vue instance", () => {
