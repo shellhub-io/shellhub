@@ -93,8 +93,11 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
+import useSnackbar from "@/helpers/snackbar";
+import handleError from "@/utils/handleError";
 
 const namespacesStore = useNamespacesStore();
+const snackbar = useSnackbar();
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
@@ -103,9 +106,13 @@ const namespace = ref({} as IAdminNamespace);
 const namespaceId = computed(() => route.params.id);
 
 onMounted(async () => {
-  loading.value = true;
-  await namespacesStore.get(namespaceId.value as string);
-  namespace.value = namespacesStore.getNamespace;
+  try {
+    loading.value = true;
+    namespace.value = await namespacesStore.fetchNamespaceById(namespaceId.value as string);
+  } catch (error) {
+    snackbar.showError("Failed to fetch namespace details.");
+    handleError(error);
+  }
   loading.value = false;
 });
 

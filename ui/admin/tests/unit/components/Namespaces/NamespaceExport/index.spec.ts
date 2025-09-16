@@ -2,10 +2,10 @@ import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper, DOMWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import useNamespacesStore from "@admin/store/modules/namespaces";
 import { saveAs } from "file-saver";
+import useNamespacesStore from "@admin/store/modules/namespaces";
+import NamespaceExport from "@admin/components/Namespace/NamespaceExport.vue";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import NamespaceExport from "../../../../../src/components/Namespace/NamespaceExport.vue";
 
 vi.mock("file-saver", () => ({
   saveAs: vi.fn(),
@@ -20,15 +20,12 @@ type NamespaceExportWrapper = VueWrapper<InstanceType<typeof NamespaceExport>>;
 
 describe("NamespaceExport", () => {
   let wrapper: NamespaceExportWrapper;
+  setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
+  const vuetify = createVuetify();
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-    const vuetify = createVuetify();
-
-    const namespaceStore = useNamespacesStore();
-
-    vi.spyOn(namespaceStore, "setFilterNamespaces").mockResolvedValue(undefined);
-    vi.spyOn(namespaceStore, "exportNamespacesToCsv").mockResolvedValue("csv_content");
+    vi.spyOn(namespacesStore, "exportNamespacesToCsv").mockResolvedValue("csv_content");
 
     wrapper = mount(NamespaceExport, {
       attachTo: document.body,
@@ -58,7 +55,6 @@ describe("NamespaceExport", () => {
 
     await flushPromises();
 
-    expect(useNamespacesStore().setFilterNamespaces).toHaveBeenCalled();
     expect(useNamespacesStore().exportNamespacesToCsv).toHaveBeenCalled();
     expect(saveAs).toHaveBeenCalled();
 

@@ -1,38 +1,28 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
+import routes from "@admin/router";
+import Namespaces from "@admin/views/Namespaces.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import Namespaces from "../../../../src/views/Namespaces.vue";
 
 type NamespacesWrapper = VueWrapper<InstanceType<typeof Namespaces>>;
 
 describe("Namespaces", () => {
   let wrapper: NamespacesWrapper;
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const namespacesStore = useNamespacesStore();
+  namespacesStore.fetchNamespaceList = vi.fn();
+  const vuetify = createVuetify();
 
   beforeEach(async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-
-    const namespacesStore = useNamespacesStore();
-    vi.spyOn(namespacesStore, "getPerPage", "get").mockReturnValue(10);
-    vi.spyOn(namespacesStore, "getPage", "get").mockReturnValue(1);
-    vi.spyOn(namespacesStore, "getnumberOfNamespaces", "get").mockReturnValue(1);
-
-    namespacesStore.search = vi.fn();
-    namespacesStore.fetch = vi.fn();
-
-    const vuetify = createVuetify();
-
     wrapper = mount(Namespaces, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],
       },
     });
-
-    await flushPromises();
   });
 
   it("Is a Vue instance", () => {

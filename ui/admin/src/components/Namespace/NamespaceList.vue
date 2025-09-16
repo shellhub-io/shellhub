@@ -65,8 +65,8 @@ import handleError from "@/utils/handleError";
 
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
-const namespaces = computed(() => namespacesStore.list);
-const namespaceCount = computed(() => namespacesStore.getnumberOfNamespaces);
+const namespaces = computed(() => namespacesStore.namespaces);
+const namespaceCount = computed(() => namespacesStore.namespaceCount);
 const router = useRouter();
 const loading = ref(false);
 const page = ref(1);
@@ -101,10 +101,9 @@ const headers = ref([
 const fetchNamespaces = async () => {
   try {
     loading.value = true;
-    await namespacesStore.fetch({
+    await namespacesStore.fetchNamespaceList({
       page: page.value,
       perPage: itemsPerPage.value,
-      filter: "",
     });
   } catch (error) {
     handleError(error);

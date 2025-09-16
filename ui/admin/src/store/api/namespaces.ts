@@ -4,8 +4,8 @@ import { adminApi } from "./../../api/http";
 export const fetchNamespaces = async (
   page: number,
   perPage: number,
-  search: string,
-) => adminApi.getNamespacesAdmin(search, page, perPage);
+  filter?: string,
+) => adminApi.getNamespacesAdmin(filter, page, perPage);
 
 export const exportNamespaces = async (filter: string) => adminApi.exportNamespaces(filter);
 

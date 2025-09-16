@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
+import routes from "@admin/router";
+import NamespaceList from "@admin/components/Namespace/NamespaceList.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../../src/router";
-import NamespaceList from "../../../../../src/components/Namespace/NamespaceList.vue";
 
 type NamespaceListWrapper = VueWrapper<InstanceType<typeof NamespaceList>>;
 
@@ -75,17 +75,15 @@ const namespaces = [
 
 describe("Namespace List", () => {
   let wrapper: NamespaceListWrapper;
+  setActivePinia(createPinia());
+  const namespacesStore = useNamespacesStore();
+  const vuetify = createVuetify();
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-    const vuetify = createVuetify();
+    namespacesStore.namespaces = namespaces;
+    namespacesStore.namespaceCount = namespaces.length;
 
-    const namespaceStore = useNamespacesStore();
-
-    namespaceStore.namespaces = namespaces;
-    namespaceStore.numberNamespaces = namespaces.length;
-
-    vi.spyOn(namespaceStore, "fetch").mockResolvedValue(true);
+    namespacesStore.fetchNamespaceList = vi.fn();
 
     wrapper = mount(NamespaceList, {
       global: {
@@ -100,10 +98,5 @@ describe("Namespace List", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders data in the computed", () => {
-    const store = useNamespacesStore();
-    expect(store.list).toEqual(namespaces);
   });
 });

@@ -33,24 +33,14 @@ const namespacesStore = useNamespacesStore();
 
 const filter = ref("");
 
-const searchNamespaces = () => {
-  let encodedFilter = "";
+const searchNamespaces = async () => {
+  const filterToEncodeBase64 = [{
+    type: "property",
+    params: { name: "name", operator: "contains", value: filter.value },
+  }];
 
-  if (filter.value) {
-    const filterToEncodeBase64 = [
-      {
-        type: "property",
-        params: { name: "name", operator: "contains", value: filter.value },
-      },
-    ];
-    encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-  }
-
-  namespacesStore.search({
-    perPage: namespacesStore.getPerPage,
-    page: namespacesStore.getPage,
-    filter: encodedFilter,
-  });
+  const encodedFilter = filter.value ? btoa(JSON.stringify(filterToEncodeBase64)) : "";
+  await namespacesStore.fetchNamespaceList({ filter: encodedFilter });
 };
 
 defineExpose({ filter });

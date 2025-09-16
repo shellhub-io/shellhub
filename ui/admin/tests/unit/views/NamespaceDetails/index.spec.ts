@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
+import routes from "@admin/router";
+import NamespaceDetails from "@admin/views/NamespaceDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import routes from "../../../../src/router";
-import NamespaceDetails from "../../../../src/views/NamespaceDetails.vue";
 
 type NamespaceDetailsWrapper = VueWrapper<InstanceType<typeof NamespaceDetails>>;
 
@@ -47,17 +47,13 @@ const mockRoute = {
 
 describe("Namespace Details", () => {
   let wrapper: NamespaceDetailsWrapper;
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const namespacesStore = useNamespacesStore();
+  const vuetify = createVuetify();
+  namespacesStore.fetchNamespaceById = vi.fn().mockResolvedValue(namespaceDetail);
 
   beforeEach(async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-
-    const namespaceStore = useNamespacesStore();
-    namespaceStore.get = vi.fn().mockResolvedValue(undefined);
-    namespaceStore.namespace = namespaceDetail;
-
-    const vuetify = createVuetify();
-
     wrapper = mount(NamespaceDetails, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],
@@ -66,8 +62,6 @@ describe("Namespace Details", () => {
         },
       },
     });
-
-    await namespaceStore.get(mockRoute.params.id);
   });
 
   it("Is a Vue instance", () => {

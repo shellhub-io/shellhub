@@ -108,13 +108,13 @@ const hasErrors = () => nameError.value || maxDevicesError.value || sessionRecor
 
 const onSubmit = async () => {
   if (!hasErrors()) {
-    await namespacesStore.put({
+    await namespacesStore.updateNamespace({
       ...props.namespace as IAdminNamespace,
       name: name.value as string,
       max_devices: Number(maxDevices.value),
       settings: { session_record: sessionRecord.value },
     });
-    await namespacesStore.refresh();
+    await namespacesStore.fetchNamespaceList();
     snackbar.showSuccess("Namespace updated successfully.");
     showDialog.value = false;
   } else {
