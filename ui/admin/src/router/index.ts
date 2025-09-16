@@ -6,7 +6,6 @@ import SettingsLicense from "@admin/components/Settings/SettingsLicense.vue";
 import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentication.vue";
 import Namespaces from "@admin/views/Namespaces.vue";
 import Settings from "@admin/views/Settings.vue";
-import { computed } from "vue";
 import useLicenseStore from "@admin/store/modules/license";
 import useLayoutStore, { Layout } from "@admin/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
@@ -145,12 +144,12 @@ router.beforeEach(
     }
 
     if (authStore.isLoggedIn && !to.meta.requiresAuth) {
-      const license = computed(() => licenseStore.getLicense);
+      const { license, getLicense } = licenseStore;
 
       try {
-        await licenseStore.get();
+        await getLicense();
 
-        if (license.value.expired && to.name !== "SettingLicense") {
+        if (license.expired && to.name !== "SettingLicense") {
           snackbar.showError("Your license has expired. Please update it and try again.");
           return next({ name: "SettingLicense" });
         }

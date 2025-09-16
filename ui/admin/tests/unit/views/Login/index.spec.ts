@@ -25,7 +25,7 @@ describe("Login", () => {
     layoutStore.layout = "SimpleLayout";
 
     const licenseStore = useLicenseStore();
-    licenseStore.get = vi.fn();
+    licenseStore.getLicense = vi.fn();
 
     const vuetify = createVuetify();
 
