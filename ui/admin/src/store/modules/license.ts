@@ -1,29 +1,28 @@
 import { defineStore } from "pinia";
-import { GetLicense200Response } from "@admin/api/client/api";
+import { ref, computed } from "vue";
+import { IAdminLicense } from "@admin/interfaces/ILicense";
 import * as apiLicense from "../api/license";
 
-export const useLicenseStore = defineStore("license", {
-  state: (): { license: GetLicense200Response } => ({
-    license: {} as GetLicense200Response,
-  }),
+const useLicenseStore = defineStore("license", () => {
+  const license = ref({} as IAdminLicense);
+  const isExpired = computed(() => (license.value && license.value.expired)
+    || (license.value && license.value.expired === undefined));
 
-  getters: {
-    isExpired: (state): boolean => (state.license && state.license.expired)
-      || (state.license && state.license.expired === undefined),
+  const getLicense = async () => {
+    const res = await apiLicense.getLicense();
+    license.value = res.data as IAdminLicense;
+  };
 
-    getLicense: (state): GetLicense200Response => state.license,
-  },
+  const uploadLicense = async (file: File) => {
+    await apiLicense.uploadLicense(file);
+  };
 
-  actions: {
-    async get() {
-      const res = await apiLicense.getLicense();
-      this.license = res.data;
-    },
-
-    async post(file: File) {
-      await apiLicense.uploadLicense(file);
-    },
-  },
+  return {
+    license,
+    isExpired,
+    getLicense,
+    uploadLicense,
+  };
 });
 
 export default useLicenseStore;

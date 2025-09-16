@@ -219,13 +219,13 @@ const licenseStore = useLicenseStore();
 
 onMounted(async () => {
   try {
-    await licenseStore.get();
+    await licenseStore.getLicense();
   } catch {
     snackbar.showError("Error loading license.");
   }
 });
 
-const license = computed(() => licenseStore.getLicense);
+const license = computed(() => licenseStore.license);
 
 const installedLicense = computed(() => license.value
     && license.value.grace_period !== undefined);
@@ -271,8 +271,8 @@ const rules = [validateLicenseFile];
 const uploadLicense = async () => {
   if (currentFile.value) {
     try {
-      await licenseStore.post(currentFile.value);
-      await licenseStore.get();
+      await licenseStore.uploadLicense(currentFile.value);
+      await licenseStore.getLicense();
       snackbar.showSuccess("License uploaded successfully.");
       licenseUploadStatus.value = false;
     } catch (error) {
