@@ -32,7 +32,7 @@ type Request struct {
 	Namespace string
 }
 
-func (s *service) EvaluateKeyFilter(_ context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
+func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
 	switch {
 	case key.Filter.Hostname != "":
 		ok, err := regexp.MatchString(key.Filter.Hostname, dev.Name)
@@ -42,7 +42,15 @@ func (s *service) EvaluateKeyFilter(_ context.Context, key *models.PublicKey, de
 
 		return ok, nil
 	case len(key.Filter.TagIDs) > 0:
-		for _, tagID := range dev.TagIDs {
+		// NOTE: We need to resolve the device from the store because the "dev" parameter
+		// is constructed from the JSON request body, which doesn't include tag_ids since
+		// the agent doesn't send this information.
+		d, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, dev.UID)
+		if err != nil {
+			return false, NewErrDeviceNotFound(models.UID(dev.UID), err)
+		}
+
+		for _, tagID := range d.TagIDs {
 			if slices.Contains(key.Filter.TagIDs, tagID) {
 				return true, nil
 			}
