@@ -100,8 +100,8 @@ import handleError from "@/utils/handleError";
 const router = useRouter();
 const snackbar = useSnackbar();
 const sessionStore = useSessionsStore();
-const sessions = computed(() => sessionStore.getSessions);
-const sessionCount = computed(() => sessionStore.getNumberSessions);
+const sessions = computed(() => sessionStore.sessions);
+const sessionCount = computed(() => sessionStore.sessionCount);
 const itemsPerPage = ref(10);
 const loading = ref(false);
 const page = ref(1);
@@ -147,7 +147,7 @@ const headers = ref([
 const fetchSessions = async () => {
   try {
     loading.value = true;
-    await sessionStore.fetch({
+    await sessionStore.fetchSessionList({
       perPage: itemsPerPage.value,
       page: page.value,
     });

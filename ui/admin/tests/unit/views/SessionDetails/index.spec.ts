@@ -3,7 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { IAdminSession } from "@admin/interfaces/ISession";
-import { useSessionsStore } from "@admin/store/modules/sessions";
+import useSessionsStore from "@admin/store/modules/sessions";
 import routes from "@admin/router";
 import SessionDetails from "@admin/views/SessionDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
@@ -55,16 +55,13 @@ const mockRoute = {
 
 describe("Session Details", () => {
   let wrapper: SessionDetailsWrapper;
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const sessionsStore = useSessionsStore();
+  sessionsStore.fetchSessionById = vi.fn().mockResolvedValue(sessionDetail);
+  const vuetify = createVuetify();
 
   beforeEach(async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-
-    const sessionsStore = useSessionsStore();
-    sessionsStore.get = vi.fn().mockResolvedValue(sessionDetail);
-
-    const vuetify = createVuetify();
-
     wrapper = mount(SessionDetails, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],
@@ -73,8 +70,6 @@ describe("Session Details", () => {
         },
       },
     });
-
-    await flushPromises();
   });
 
   it("Is a Vue instance", () => {

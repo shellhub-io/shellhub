@@ -50,7 +50,7 @@
 
       <div>
         <div class="text-overline mt-3">
-          <h3>Ip Adress:</h3>
+          <h3>Ip Address:</h3>
         </div>
         <div :data-test="session.ip_address">
           <p>{{ session.ip_address }}</p>
@@ -110,24 +110,21 @@ const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbar();
 const sessionStore = useSessionsStore();
-
-const session = ref({} as IAdminSession);
 const sessionId = computed(() => route.params.id);
-
-onMounted(async () => {
-  try {
-    await sessionStore.get(sessionId.value as string);
-    session.value = sessionStore.getSession;
-  } catch {
-    snackbar.showError("Failed to get session details.");
-  }
-});
+const session = ref({} as IAdminSession);
+const sessionIsEmpty = computed(() => session.value && session.value.device_uid?.length === 0);
 
 const goToDevice = (deviceId: string) => {
   router.push({ name: "deviceDetails", params: { id: deviceId } });
 };
 
-const sessionIsEmpty = computed(() => sessionStore.getSession && sessionStore.getSession.device_uid?.length === 0);
+onMounted(async () => {
+  try {
+    session.value = await sessionStore.fetchSessionById(sessionId.value as string);
+  } catch {
+    snackbar.showError("Failed to get session details.");
+  }
+});
 
 defineExpose({ session });
 </script>
