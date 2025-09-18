@@ -80,7 +80,7 @@ describe("Device Add", () => {
     expect(dialog.find('[data-test="device-add-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="dialog-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="documentation-link"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="close-btn-toolbar"]').exists()).toBe(true);
 
     // Test toolbar elements
     expect(dialog.find(".v-toolbar").exists()).toBe(true);
