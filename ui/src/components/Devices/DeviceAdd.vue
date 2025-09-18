@@ -11,211 +11,202 @@
     Add Device
   </v-btn>
 
-  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition" data-test="device-add-dialog" threshold="md">
-    <v-card class="bg-v-theme-surface border">
-      <v-toolbar color="primary" class="bg-v-theme-surface border-b px-4 py-2">
-        <v-avatar size="48" color="primary" rounded="rounded" variant="tonal" class="border border-primary border-opacity-100 mr-3">
-          <v-icon size="24">mdi-developer-board</v-icon>
-        </v-avatar>
-        <div>
-          <v-toolbar-title class="text-h6">Adding a device</v-toolbar-title>
-          <div class="text-caption text-medium-emphasis">Choose an installation method and get your device connected</div>
-        </div>
-        <v-spacer />
-        <v-btn
-          icon="mdi-close"
-          variant="text"
-          @click="showDialog = false"
-          data-test="close-btn"
-        />
-      </v-toolbar>
+  <WindowDialog
+    v-model="showDialog"
+    transition="dialog-bottom-transition"
+    data-test="device-add-dialog"
+    threshold="md"
+    title="Adding a device"
+    description="Choose an installation method and get your device connected"
+    icon="mdi-developer-board"
+    icon-color="primary"
+    @close="showDialog = false"
+  >
+    <v-card-text class="mt-2 mb-4" data-test="dialog-text">
 
-      <v-card-text class="mt-2 mb-4" data-test="dialog-text">
-
-        <v-expansion-panels
-          v-model="selectedPanel"
-          variant="accordion"
-          elevation="0"
+      <v-expansion-panels
+        v-model="selectedPanel"
+        variant="accordion"
+        elevation="0"
+        class="bg-v-theme-surface"
+      >
+        <v-expansion-panel
+          v-for="method in installMethods"
+          :key="method.value"
+          :value="method.value"
           class="bg-v-theme-surface"
         >
-          <v-expansion-panel
-            v-for="method in installMethods"
-            :key="method.value"
-            :value="method.value"
-            class="bg-v-theme-surface"
-          >
-            <v-expansion-panel-title>
-              <div class="d-flex align-center w-100">
-                <v-icon :icon="method.icon" size="large" class="mr-3" :color="method.color" />
-                <div class="flex-grow-1">
-                  <div class="text-h6">{{ method.name }}</div>
-                  <div class="text-body-2 text-medium-emphasis">{{ method.description }}</div>
-                </div>
-                <v-chip
-                  v-if="method.recommended"
-                  size="small"
-                  variant="tonal"
-                  color="success"
-                  class="ml-2"
-                >
-                  <v-icon size="small" class="mr-1">mdi-star</v-icon>
-                  recommended
-                </v-chip>
+          <v-expansion-panel-title>
+            <div class="d-flex align-center w-100">
+              <v-icon :icon="method.icon" size="large" class="mr-3" :color="method.color" />
+              <div class="flex-grow-1">
+                <div class="text-h6">{{ method.name }}</div>
+                <div class="text-body-2 text-medium-emphasis">{{ method.description }}</div>
               </div>
-            </v-expansion-panel-title>
+              <v-chip
+                v-if="method.recommended"
+                size="small"
+                variant="tonal"
+                color="success"
+                class="ml-2"
+              >
+                <v-icon size="small" class="mr-1">mdi-star</v-icon>
+                recommended
+              </v-chip>
+            </div>
+          </v-expansion-panel-title>
 
-            <v-expansion-panel-text>
-              <div class="pa-4">
-                <h6 class="text-subtitle-2 mb-3">Requirements:</h6>
-                <div class="requirements mb-4">
-                  <div v-for="req in method.requirements" :key="req.text" class="d-flex align-center mb-2">
-                    <v-icon
-                      size="small"
-                      color="success"
-                      class="mr-2"
-                    >
-                      mdi-check
-                    </v-icon>
-                    <span class="text-body-2">{{ req.text }}</span>
-                  </div>
+          <v-expansion-panel-text>
+            <div class="pa-4">
+              <h6 class="text-subtitle-2 mb-3">Requirements:</h6>
+              <div class="requirements mb-4">
+                <div v-for="req in method.requirements" :key="req.text" class="d-flex align-center mb-2">
+                  <v-icon
+                    size="small"
+                    color="success"
+                    class="mr-2"
+                  >
+                    mdi-check
+                  </v-icon>
+                  <span class="text-body-2">{{ req.text }}</span>
                 </div>
+              </div>
 
-                <!-- Script-based installation -->
-                <v-alert
-                  v-if="!isManualInstall(method.value)"
-                  color="primary"
-                  variant="tonal"
-                  class="mb-3"
-                  title="Installation"
-                  icon="mdi-package-down"
+              <!-- Script-based installation -->
+              <v-alert
+                v-if="!isManualInstall(method.value)"
+                color="primary"
+                variant="tonal"
+                class="mb-3"
+                title="Installation"
+                icon="mdi-package-down"
+              >
+                Ready to install? Copy the command below and run it on your target device:
+                <v-text-field
+                  :model-value="getCommand(method.value)"
+                  class="code mt-3"
+                  variant="outlined"
+                  readonly
+                  density="compact"
+                  hide-details
                 >
-                  Ready to install? Copy the command below and run it on your target device:
-                  <v-text-field
-                    :model-value="getCommand(method.value)"
-                    class="code mt-3"
-                    variant="outlined"
-                    readonly
-                    density="compact"
-                    hide-details
-                  >
-                    <template #append>
-                      <v-btn
-                        icon="mdi-content-copy"
-                        color="primary"
-                        variant="flat"
-                        rounded
-                        size="small"
-                        @click="copyCommand(method.value)"
-                      />
-                    </template>
-                  </v-text-field>
-
-                  <!-- Advanced Options inside the alert -->
-                  <v-expansion-panels
-                    v-model="methodAdvancedPanels[method.value]"
-                    variant="accordion"
-                    elevation="0"
-                    class="mt-4"
-                  >
-                    <v-expansion-panel
-                      value="advanced"
-                      bg-color="transparent"
-                    >
-                      <v-expansion-panel-title class="py-2">
-                        <div class="d-flex align-center w-100">
-                          <v-icon icon="mdi-tune" size="small" class="mr-2" />
-                          <div class="flex-grow-1">
-                            <div class="text-subtitle-2">Advanced Options</div>
-                            <div class="text-caption">Configure additional environment variables</div>
-                          </div>
-                        </div>
-                      </v-expansion-panel-title>
-
-                      <v-expansion-panel-text>
-                        <div class="pa-2">
-                          <v-row>
-                            <v-col cols="12" sm="6">
-                              <v-text-field
-                                v-model="advancedOptions.preferredHostname"
-                                label="Preferred Hostname"
-                                placeholder="e.g., my-device"
-                                variant="outlined"
-                                density="compact"
-                                hint="Override device hostname"
-                                persistent-hint
-                              />
-                            </v-col>
-                            <v-col cols="12" sm="6">
-                              <v-text-field
-                                v-model="advancedOptions.preferredIdentity"
-                                label="Preferred Identity"
-                                placeholder="e.g., server-01"
-                                variant="outlined"
-                                density="compact"
-                                hint="Override device identity"
-                                persistent-hint
-                              />
-                            </v-col>
-                          </v-row>
-                        </div>
-                      </v-expansion-panel-text>
-                    </v-expansion-panel>
-                  </v-expansion-panels>
-                </v-alert>
-
-                <!-- Manual installation -->
-                <v-alert
-                  v-else
-                  color="warning"
-                  variant="tonal"
-                  class="mb-3"
-                  title="Manual Installation Required"
-                  icon="mdi-book-open-variant"
-                >
-                  This method requires manual configuration and build system integration. Please follow the detailed documentation:
-                  <div class="mt-3">
+                  <template #append>
                     <v-btn
-                      :href="getDocumentationUrl(method.value)"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      color="warning"
-                      variant="outlined"
-                      prepend-icon="mdi-open-in-new"
+                      icon="mdi-content-copy"
+                      color="primary"
+                      variant="flat"
+                      rounded
                       size="small"
-                    >
-                      View Documentation
-                    </v-btn>
-                  </div>
-                </v-alert>
-              </div>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-card-text>
+                      @click="copyCommand(method.value)"
+                    />
+                  </template>
+                </v-text-field>
 
-      <!-- Footer Toolbar -->
-      <v-toolbar color="primary" class="bg-v-theme-surface border-t px-6 py-2">
-        <v-spacer />
-        <div class="text-caption text-medium-emphasis text-center">
-          Check the
-          <a
-            :href="'https://docs.shellhub.io/user-guides/devices/adding'"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-test="documentation-link"
-            class="text-primary text-decoration-none"
-          >documentation</a>
-          for more information and alternative install methods.
-        </div>
-        <v-spacer />
-      </v-toolbar>
-    </v-card>
-  </BaseDialog>
+                <!-- Advanced Options inside the alert -->
+                <v-expansion-panels
+                  v-model="methodAdvancedPanels[method.value]"
+                  variant="accordion"
+                  elevation="0"
+                  class="mt-4"
+                >
+                  <v-expansion-panel
+                    value="advanced"
+                    bg-color="transparent"
+                  >
+                    <v-expansion-panel-title class="py-2">
+                      <div class="d-flex align-center w-100">
+                        <v-icon icon="mdi-tune" size="small" class="mr-2" />
+                        <div class="flex-grow-1">
+                          <div class="text-subtitle-2">Advanced Options</div>
+                          <div class="text-caption">Configure additional environment variables</div>
+                        </div>
+                      </div>
+                    </v-expansion-panel-title>
+
+                    <v-expansion-panel-text>
+                      <div class="pa-2">
+                        <v-row>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              v-model="advancedOptions.preferredHostname"
+                              label="Preferred Hostname"
+                              placeholder="e.g., my-device"
+                              variant="outlined"
+                              density="compact"
+                              hint="Override device hostname"
+                              persistent-hint
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              v-model="advancedOptions.preferredIdentity"
+                              label="Preferred Identity"
+                              placeholder="e.g., server-01"
+                              variant="outlined"
+                              density="compact"
+                              hint="Override device identity"
+                              persistent-hint
+                            />
+                          </v-col>
+                        </v-row>
+                      </div>
+                    </v-expansion-panel-text>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+              </v-alert>
+
+              <!-- Manual installation -->
+              <v-alert
+                v-else
+                color="warning"
+                variant="tonal"
+                class="mb-3"
+                title="Manual Installation Required"
+                icon="mdi-book-open-variant"
+              >
+                This method requires manual configuration and build system integration. Please follow the detailed documentation:
+                <div class="mt-3">
+                  <v-btn
+                    :href="getDocumentationUrl(method.value)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    color="warning"
+                    variant="outlined"
+                    prepend-icon="mdi-open-in-new"
+                    size="small"
+                  >
+                    View Documentation
+                  </v-btn>
+                </div>
+              </v-alert>
+            </div>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </v-card-text>
+
+    <!-- Footer -->
+    <template #footer>
+      <v-spacer />
+      <div class="text-caption text-medium-emphasis text-center">
+        Check the
+        <a
+          :href="'https://docs.shellhub.io/user-guides/devices/adding'"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-test="documentation-link"
+          class="text-primary text-decoration-none"
+        >documentation</a>
+        for more information and alternative install methods.
+      </div>
+      <v-spacer />
+    </template>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
 
