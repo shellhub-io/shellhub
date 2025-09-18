@@ -9,28 +9,68 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type DeviceWrapper = VueWrapper<InstanceType<typeof Device>>;
 
-const mockDevices = [
+const devices = [
   {
-    uid: "cb1533e2e683aec21aee89b24ac4604b1a1955930362d33fb22e4e03fac52c75",
-    name: "08-97-98-68-7a-97",
-    identity: { mac: "08:97:98:68:7a:97" },
-    info: {
-      id: "ubuntu",
-      pretty_name: "Ubuntu 20.04.4 LTS",
-      version: "latest",
-      arch: "amd64",
-      platform: "docker",
+    uid: "a582b47a42d",
+    name: "39-5e-2a",
+    identity: {
+      mac: "00:00:00:00:00:00",
     },
-    public_key: "---BEGIN RSA KEY---",
-    tenant_id: "00000000-0000-4000-0000-000000000000",
-    last_seen: "2022-06-06T18:51:53.813Z",
-    online: true,
-    namespace: "dev",
+    info: {
+      id: "linuxmint",
+      pretty_name: "Linux Mint 19.3",
+      version: "",
+      arch: "x86_64",
+      platform: "linux",
+    },
+    public_key: "----- PUBLIC KEY -----",
+    tenant_id: "fake-tenant-data",
+    last_seen: "2020-05-20T18:58:53.276Z",
+    created_at: "2020-05-20T18:00:00.000Z",
+    online: false,
+    namespace: "user",
     status: "accepted",
-    created_at: "2022-04-13T11:43:25.218Z",
-    remote_addr: "172.22.0.1",
+    remoteAddr: "127.0.0.1",
     position: { latitude: 0, longitude: 0 },
-    tags: ["tag1"],
+    tags: [
+      {
+        tenant_id: "fake-tenant-data",
+        name: "test-tag",
+        created_at: "",
+        updated_at: "",
+      },
+    ],
+  },
+  {
+    uid: "a582b47a42e",
+    name: "39-5e-2b",
+    identity: {
+      mac: "00:00:00:00:00:00",
+    },
+    info: {
+      id: "linuxmint",
+      pretty_name: "Linux Mint 19.3",
+      version: "",
+      arch: "x86_64",
+      platform: "linux",
+    },
+    public_key: "----- PUBLIC KEY -----",
+    tenant_id: "fake-tenant-data",
+    last_seen: "2020-05-20T19:58:53.276Z",
+    created_at: "2020-05-20T18:00:00.000Z",
+    online: true,
+    namespace: "user",
+    status: "accepted",
+    remoteAddr: "127.0.0.1",
+    position: { latitude: 0, longitude: 0 },
+    tags: [
+      {
+        tenant_id: "fake-tenant-data",
+        name: "test-tag",
+        created_at: "",
+        updated_at: "",
+      },
+    ],
   },
 ];
 
@@ -44,7 +84,7 @@ describe("Device", () => {
     const devicesStore = useDevicesStore();
 
     devicesStore.fetchDeviceList = vi.fn().mockImplementation(() => {
-      devicesStore.devices = mockDevices;
+      devicesStore.devices = devices;
       devicesStore.deviceCount = 1;
     });
 

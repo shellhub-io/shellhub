@@ -86,22 +86,22 @@ exports[`Device > Renders the component 1`] = `
             </thead>
             <tbody>
               <tr data-v-aca44803="">
-                <td data-v-aca44803=""><i data-v-aca44803="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" data-test="success-icon"></i></td>
-                <td data-v-aca44803="">08-97-98-68-7a-97</td>
-                <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-ubuntu" style="font-size: 20px;"></i> Ubuntu 20.04.4 LTS</span></td>
-                <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">dev</span></td>
+                <td data-v-aca44803=""><i data-v-aca44803="" class="mdi-close-circle mdi v-icon notranslate v-theme--light v-icon--size-default" style="color: rgb(229, 57, 53); caret-color: #E53935;" aria-hidden="true" data-test="error-icon"></i></td>
+                <td data-v-aca44803="">39-5e-2a</td>
+                <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-linuxmint" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
+                <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
                 <td data-v-aca44803="">
                   <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-15"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
-                    <div class="v-chip__content" data-no-activator="">tag1</div>
+                    <div class="v-chip__content" data-no-activator="">test-tag</div>
                     <!---->
                     <!----></span>
                     <!--teleport start-->
                     <!--teleport end-->
                   </div>
                 </td>
-                <td data-v-aca44803="">Monday, June 6th 2022, 6:51:53 pm</td>
+                <td data-v-aca44803="">Wednesday, May 20th 2020, 6:58:53 pm</td>
                 <td data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
                   <!---->
                   <!---->
@@ -110,6 +110,35 @@ exports[`Device > Renders the component 1`] = `
                   <!----></span>
                 </td>
                 <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-18"></a>
+                  <!--teleport start-->
+                  <!--teleport end-->
+                </td>
+              </tr>
+              <tr data-v-aca44803="">
+                <td data-v-aca44803=""><i data-v-aca44803="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" data-test="success-icon"></i></td>
+                <td data-v-aca44803="">39-5e-2b</td>
+                <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-linuxmint" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
+                <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
+                <td data-v-aca44803="">
+                  <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-19"><!----><span class="v-chip__underlay"></span>
+                    <!---->
+                    <!---->
+                    <div class="v-chip__content" data-no-activator="">test-tag</div>
+                    <!---->
+                    <!----></span>
+                    <!--teleport start-->
+                    <!--teleport end-->
+                  </div>
+                </td>
+                <td data-v-aca44803="">Wednesday, May 20th 2020, 7:58:53 pm</td>
+                <td data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
+                  <!---->
+                  <!---->
+                  <div class="v-chip__content" data-no-activator="">accepted</div>
+                  <!---->
+                  <!----></span>
+                </td>
+                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-22"></a>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
