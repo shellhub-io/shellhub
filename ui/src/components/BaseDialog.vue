@@ -6,7 +6,12 @@
     :max-width
     scrollable
   >
-    <slot />
+    <v-card class="bg-v-theme-surface border">
+      <!-- Content -->
+      <slot name="content">
+        <slot />
+      </slot>
+    </v-card>
   </v-dialog>
 </template>
 
@@ -14,7 +19,7 @@
 import { computed } from "vue";
 import { useDisplay } from "vuetify";
 
-const props = defineProps<{
+export interface BaseDialogProps {
   /* Thresholds
   * - sm: 600px (default)
   * - md: 960px
@@ -24,7 +29,9 @@ const props = defineProps<{
   */
   threshold?: "sm" | "md" | "lg" | "xl" | "xxl"
   forceFullscreen?: boolean
-}>();
+}
+
+const props = defineProps<BaseDialogProps>();
 
 const emit = defineEmits(["close"]);
 const showDialog = defineModel<boolean>({ required: true });
