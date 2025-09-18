@@ -12,54 +12,42 @@
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog">
-    <v-card class="bg-v-theme-surface" min-height="300">
-      <v-card-title class="text-h5 pa-5 bg-primary" data-test="title">
-        Edit Api Key Name
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-3">
-        <v-text-field
-          v-model="keyName"
-          class="mb-5"
-          label="key name"
-          prepend-icon="mdi-key-outline"
-          :error-messages="keyNameError"
-          required
-          variant="underlined"
-          data-test="key-name-text"
-          messages="Please note that the new name must be unique
-          and not already in use by another key."
-        />
-
-        <RoleSelect
-          v-if="hasAuthorization"
-          v-model="selectedRole"
-          data-test="namespace-generate-role"
-        />
-      </v-card-text>
-
-      <v-card-actions>
-        <v-btn variant="text" @click="showDialog = false" data-test="close-btn"> Close </v-btn>
-        <v-spacer />
-        <v-btn color="success" variant="flat" data-test="edit-btn" @click="edit()" :disabled="!!keyNameError">
-          Edit key
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    @close="showDialog = false"
+    @confirm="handleSubmit"
+    @cancel="showDialog = false"
+    @alert-dismissed="errorMessage = ''"
+    title="Edit API Key"
+    description="Update the name and role for this API key"
+    icon="mdi-pencil"
+    confirm-text="Save Changes"
+    :confirm-disabled="!isFormValid"
+    confirm-data-test="edit-btn"
+    cancel-data-test="close-btn"
+    data-test="edit-dialog"
+    :alert-message="errorMessage"
+    alert-type="error"
+  >
+    <ApiKeyForm
+      ref="formRef"
+      mode="edit"
+      :initial-key-name="keyName"
+      :initial-role="keyRole"
+      :can-manage-roles="hasAuthorization"
+      @submit="editKey"
+      @update:valid="isFormValid = $event"
+    />
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useField } from "vee-validate";
-import * as yup from "yup";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "@/components/BaseDialog.vue";
-import RoleSelect from "@/components/Team/RoleSelect.vue";
+import FormDialog from "@/components/FormDialog.vue";
+import ApiKeyForm from "./ApiKeyForm.vue";
 import { BasicRole } from "@/interfaces/INamespace";
 import useApiKeysStore from "@/store/modules/api_keys";
 
@@ -76,56 +64,40 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
+const errorMessage = ref("");
+const isFormValid = ref(false);
+const formRef = ref();
 const apiKeyStore = useApiKeysStore();
 const snackbar = useSnackbar();
-const selectedRole = ref<BasicRole>(props.keyRole as BasicRole);
-
-const {
-  value: keyName,
-  errorMessage: keyNameError,
-  setErrors: setKeyNameError,
-} = useField<string>(
-  "name",
-  yup
-    .string()
-    .required()
-    .min(3)
-    .max(20)
-    .matches(/^(?!.*\s).*$/, "This field cannot contain any blank spaces"),
-  {
-    initialValue: props.keyName,
-  },
-);
 
 const open = () => {
   showDialog.value = true;
-  keyName.value = props.keyName;
-  selectedRole.value = props.keyRole as BasicRole;
+  errorMessage.value = "";
 };
 
-const update = () => {
-  emit("update");
-  showDialog.value = false;
+const handleSubmit = () => {
+  formRef.value?.submitForm();
 };
 
-const edit = async () => {
+const editKey = async (formData: { name: string; role: BasicRole }) => {
   try {
     await apiKeyStore.editApiKey({
       key: props.keyName,
-      name: keyName.value === props.keyName ? undefined : keyName.value, // Only send name if it has changed
-      role: selectedRole.value,
+      name: formData.name === props.keyName ? undefined : formData.name, // Only send name if it has changed
+      role: formData.role,
     });
 
-    update();
-    snackbar.showSuccess("Api Key edited successfully.");
+    emit("update");
+    showDialog.value = false;
+    snackbar.showSuccess("API Key edited successfully.");
   } catch (error: unknown) {
-    snackbar.showError("Failed to edit Api Key.");
+    snackbar.showError("Failed to edit API Key.");
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 409) {
-        setKeyNameError("An API key with the same name already exists.");
+      const status = error.response?.status;
+      if (status === 409) {
+        errorMessage.value = "An API key with the same name already exists.";
       } else {
-        setKeyNameError("An error occurred while editing your API key");
+        errorMessage.value = "An error occurred while editing your API key.";
         handleError(error);
       }
       return;
@@ -134,5 +106,5 @@ const edit = async () => {
   }
 };
 
-defineExpose({ keyNameError });
+defineExpose({ errorMessage });
 </script>
