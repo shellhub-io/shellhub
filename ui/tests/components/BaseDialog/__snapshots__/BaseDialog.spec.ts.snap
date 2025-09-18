@@ -9,7 +9,29 @@ exports[`BaseDialog > Renders the component 1`] = `
       </transition-stub>
       <transition-stub name="dialog-transition" appear="true" persisted="true" css="true">
         <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
-          <div>Test content</div>
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <div>Test content</div>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
         </div>
       </transition-stub>
     </div>
