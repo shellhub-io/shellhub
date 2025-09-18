@@ -9,12 +9,19 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
 
-const mockFirewallRules = [
+const firewallRules = [
   {
     action: "allow" as const,
     active: true,
     filter: {
-      tags: ["xxxx", "yyyy"],
+      tags: [
+        {
+          tenant_id: "fake-tenant-data",
+          name: "test-tag",
+          created_at: "",
+          updated_at: "",
+        },
+      ],
     },
     id: "5f1996c84d2190a22d5857bb",
     tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -33,7 +40,7 @@ describe("Firewall Rules", () => {
 
     const firewallStore = useFirewallRulesStore();
     firewallStore.fetchFirewallRulesList = vi.fn().mockImplementation(() => {
-      firewallStore.firewallRules = mockFirewallRules;
+      firewallStore.firewallRules = firewallRules;
       firewallStore.firewallRulesCount = 1;
     });
 
