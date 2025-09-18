@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -19,10 +20,17 @@ type SessionService interface {
 }
 
 func (s *service) ListSessions(ctx context.Context, req *requests.ListSessions) ([]models.Session, int, error) {
+	opts := []store.QueryOption{
+		s.store.Options().Paginate(&req.Paginator),
+	}
+
+	if req.TenantID != "" {
+		opts = append(opts, s.store.Options().InNamespace(req.TenantID))
+	}
+
 	return s.store.SessionList(
 		ctx,
-		s.store.Options().InNamespace(req.TenantID),
-		s.store.Options().Paginate(&req.Paginator),
+		opts...,
 	)
 }
 
