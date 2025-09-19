@@ -478,25 +478,24 @@ func TestNamespaceConflicts(t *testing.T) {
 func TestNamespaceUpdate(t *testing.T) {
 	cases := []struct {
 		description string
-		tenant      string
-		changes     *models.NamespaceChanges
+		namespace   *models.Namespace
 		fixtures    []string
 		expected    error
 	}{
 		{
-			description: "fails when tenant is not found",
-			tenant:      "nonexistent",
-			changes: &models.NamespaceChanges{
-				Name: "edited-namespace",
+			description: "fails when namespace is not found",
+			namespace: &models.Namespace{
+				TenantID: "nonexistent",
+				Name:     "edited-namespace",
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: store.ErrNoDocuments,
 		},
 		{
-			description: "succeeds when tenant is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			changes: &models.NamespaceChanges{
-				Name: "edited-namespace",
+			description: "succeeds when namespace is found",
+			namespace: &models.Namespace{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "edited-namespace",
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: nil,
@@ -512,7 +511,7 @@ func TestNamespaceUpdate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.NamespaceUpdate(ctx, tc.tenant, tc.changes)
+			err := s.NamespaceUpdate(ctx, tc.namespace)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -521,21 +520,25 @@ func TestNamespaceUpdate(t *testing.T) {
 func TestNamespaceDelete(t *testing.T) {
 	cases := []struct {
 		description string
-		tenant      string
+		namespace   *models.Namespace
 		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when namespace is not found",
-			tenant:      "nonexistent",
-			fixtures:    []string{fixtureNamespaces},
-			expected:    store.ErrNoDocuments,
+			namespace: &models.Namespace{
+				TenantID: "nonexistent",
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when namespace is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtureNamespaces},
-			expected:    nil,
+			namespace: &models.Namespace{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: nil,
 		},
 	}
 
@@ -548,7 +551,7 @@ func TestNamespaceDelete(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.NamespaceDelete(ctx, tc.tenant)
+			err := s.NamespaceDelete(ctx, tc.namespace)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
