@@ -861,17 +861,17 @@ func (_m *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) err
 	return r0
 }
 
-// PublicKeyDelete provides a mock function with given fields: ctx, fingerprint, tenantID
-func (_m *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenantID string) error {
-	ret := _m.Called(ctx, fingerprint, tenantID)
+// PublicKeyDelete provides a mock function with given fields: ctx, publicKey
+func (_m *Store) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) error {
+	ret := _m.Called(ctx, publicKey)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PublicKeyDelete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, fingerprint, tenantID)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey) error); ok {
+		r0 = rf(ctx, publicKey)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -953,34 +953,22 @@ func (_m *Store) PublicKeyList(ctx context.Context, opts ...store.QueryOption) (
 	return r0, r1, r2
 }
 
-// PublicKeyUpdate provides a mock function with given fields: ctx, fingerprint, tenantID, key
-func (_m *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	ret := _m.Called(ctx, fingerprint, tenantID, key)
+// PublicKeyUpdate provides a mock function with given fields: ctx, publicKey
+func (_m *Store) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) error {
+	ret := _m.Called(ctx, publicKey)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PublicKeyUpdate")
 	}
 
-	var r0 *models.PublicKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) (*models.PublicKey, error)); ok {
-		return rf(ctx, fingerprint, tenantID, key)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.PublicKeyUpdate) *models.PublicKey); ok {
-		r0 = rf(ctx, fingerprint, tenantID, key)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey) error); ok {
+		r0 = rf(ctx, publicKey)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.PublicKey)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, *models.PublicKeyUpdate) error); ok {
-		r1 = rf(ctx, fingerprint, tenantID, key)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // SessionCreate provides a mock function with given fields: ctx, session

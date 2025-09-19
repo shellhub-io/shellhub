@@ -219,117 +219,55 @@ func TestPublicKeyCreate(t *testing.T) {
 }
 
 func TestPublicKeyUpdate(t *testing.T) {
-	type Expected struct {
-		pubKey *models.PublicKey
-		err    error
-	}
-
 	cases := []struct {
 		description string
-		fingerprint string
-		tenant      string
-		key         *models.PublicKeyUpdate
+		publicKey   *models.PublicKey
 		fixtures    []string
-		expected    Expected
+		expected    error
 	}{
 		{
-			description: "succeeds when public key is not found due to fingerprint",
-			fingerprint: "nonexistent",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			key: &models.PublicKeyUpdate{
+			description: "fails when public key is not found due to fingerprint",
+			publicKey: &models.PublicKey{
+				Fingerprint: "nonexistent",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
 				PublicKeyFields: models.PublicKeyFields{
 					Name:   "edited_name",
 					Filter: models.PublicKeyFilter{Hostname: ".*"},
 				},
 			},
 			fixtures: []string{fixturePublicKeys},
-			expected: Expected{
-				pubKey: nil,
-				err:    store.ErrNoDocuments,
-			},
+			expected: store.ErrNoDocuments,
 		},
 		{
-			description: "succeeds when public key is not found due to tenant",
-			fingerprint: "fingerprint",
-			tenant:      "nonexistent",
-			key: &models.PublicKeyUpdate{
+			description: "fails when public key is not found due to tenant",
+			publicKey: &models.PublicKey{
+				Fingerprint: "fingerprint",
+				TenantID:    "nonexistent",
 				PublicKeyFields: models.PublicKeyFields{
 					Name:   "edited_name",
 					Filter: models.PublicKeyFilter{Hostname: ".*"},
 				},
 			},
 			fixtures: []string{fixturePublicKeys},
-			expected: Expected{
-				pubKey: nil,
-				err:    store.ErrNoDocuments,
-			},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when public key is found",
-			fingerprint: "fingerprint",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			key: &models.PublicKeyUpdate{
+			publicKey: &models.PublicKey{
+				Fingerprint: "fingerprint",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
 				PublicKeyFields: models.PublicKeyFields{
 					Name: "edited_key",
 					Filter: models.PublicKeyFilter{
 						Hostname: ".*",
 						Taggable: models.Taggable{
 							TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
-							Tags: []models.Tag{
-								{
-									ID:        "6791d3ae04ba86e6d7a0514d",
-									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-									Name:      "production",
-									TenantID:  "00000000-0000-4000-0000-000000000000",
-								},
-								{
-									ID:        "6791d3be5a201d874c4c2885",
-									CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-									UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-									Name:      "development",
-									TenantID:  "00000000-0000-4000-0000-000000000000",
-								},
-							},
 						},
 					},
 				},
 			},
 			fixtures: []string{fixtureTags, fixturePublicKeys},
-			expected: Expected{
-				pubKey: &models.PublicKey{
-					Data:        []byte("test"),
-					CreatedAt:   time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Fingerprint: "fingerprint",
-					TenantID:    "00000000-0000-4000-0000-000000000000",
-					PublicKeyFields: models.PublicKeyFields{
-						Name: "edited_key",
-						Filter: models.PublicKeyFilter{
-							Hostname: ".*",
-							Taggable: models.Taggable{
-								TagIDs: []string{"6791d3ae04ba86e6d7a0514d", "6791d3be5a201d874c4c2885"},
-								Tags: []models.Tag{
-									{
-										ID:        "6791d3ae04ba86e6d7a0514d",
-										CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-										UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-										Name:      "production",
-										TenantID:  "00000000-0000-4000-0000-000000000000",
-									},
-									{
-										ID:        "6791d3be5a201d874c4c2885",
-										CreatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-										UpdatedAt: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-										Name:      "development",
-										TenantID:  "00000000-0000-4000-0000-000000000000",
-									},
-								},
-							},
-						},
-					},
-				},
-				err: nil,
-			},
+			expected: nil,
 		},
 	}
 
@@ -342,8 +280,8 @@ func TestPublicKeyUpdate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			pubKey, err := s.PublicKeyUpdate(ctx, tc.fingerprint, tc.tenant, tc.key)
-			assert.Equal(t, tc.expected, Expected{pubKey: pubKey, err: err})
+			err := s.PublicKeyUpdate(ctx, tc.publicKey)
+			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
@@ -351,31 +289,36 @@ func TestPublicKeyUpdate(t *testing.T) {
 func TestPublicKeyDelete(t *testing.T) {
 	cases := []struct {
 		description string
-		fingerprint string
-		tenant      string
+		publicKey   *models.PublicKey
 		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when public key is not found due to fingerprint",
-			fingerprint: "nonexistent",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			publicKey: &models.PublicKey{
+				Fingerprint: "nonexistent",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixturePublicKeys},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "fails when public key is not found due to tenant",
-			fingerprint: "fingerprint",
-			tenant:      "nonexistent",
-			fixtures:    []string{fixturePublicKeys},
-			expected:    store.ErrNoDocuments,
+			publicKey: &models.PublicKey{
+				Fingerprint: "fingerprint",
+				TenantID:    "nonexistent",
+			},
+			fixtures: []string{fixturePublicKeys},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when public key is found",
-			fingerprint: "fingerprint",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixturePublicKeys},
-			expected:    nil,
+			publicKey: &models.PublicKey{
+				Fingerprint: "fingerprint",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixturePublicKeys},
+			expected: nil,
 		},
 	}
 
@@ -388,7 +331,7 @@ func TestPublicKeyDelete(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.PublicKeyDelete(ctx, tc.fingerprint, tc.tenant)
+			err := s.PublicKeyDelete(ctx, tc.publicKey)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
