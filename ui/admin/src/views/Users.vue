@@ -38,13 +38,13 @@ const filter = ref("");
 
 const searchUsers = async () => {
   const filterToEncodeBase64 = [
-    {
-      type: "property",
-      params: { name: "username", operator: "contains", value: filter.value },
-    },
+    { type: "property", params: { name: "username", operator: "contains", value: filter.value } },
   ];
 
   const encodedFilter = filter.value ? btoa(JSON.stringify(filterToEncodeBase64)) : "";
+
+  usersStore.setFilter(encodedFilter);
+
   await usersStore.fetchUsersList({ filter: encodedFilter });
 };
 

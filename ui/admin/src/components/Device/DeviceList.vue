@@ -151,7 +151,6 @@ const headers = ref([
 const fetchDevices = async () => {
   try {
     loading.value = true;
-
     await devicesStore.fetchDeviceList({
       perPage: itemsPerPage.value,
       page: page.value,
@@ -161,8 +160,9 @@ const fetchDevices = async () => {
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to fetch devices.");
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
 };
 
 const getSortOrder = () => sortOrder.value === "asc" ? "desc" : "asc";

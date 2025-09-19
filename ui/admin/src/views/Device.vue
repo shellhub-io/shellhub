@@ -38,17 +38,18 @@ const searchDevices = () => {
 
   if (filter.value) {
     const filterToEncodeBase64 = [
-      {
-        type: "property",
-        params: { name: "name", operator: "contains", value: filter.value },
-      },
+      { type: "property", params: { name: "name", operator: "contains", value: filter.value } },
     ];
     encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
   }
 
+  devicesStore.setFilter(encodedFilter);
+
   try {
-    devicesStore.fetchDeviceList({ filter: encodedFilter });
-  } catch { snackbar.showError("Failed to fetch the devices."); }
+    devicesStore.fetchDeviceList({ filter: encodedFilter, page: 1 });
+  } catch {
+    snackbar.showError("Failed to fetch the devices.");
+  }
 };
 
 defineExpose({ filter });
