@@ -1,110 +1,76 @@
 <template>
-  <BaseDialog
+  <FormDialog
     v-if="canChooseDevices"
     v-model="showDialog"
     @close="close"
+    @confirm="accept"
+    @cancel="close"
+    title="Update account or select three devices"
+    icon="mdi-devices"
+    confirm-text="Accept"
+    cancel-text="Close"
+    :confirm-disabled="disableButton"
+    confirm-data-test="accept-btn"
+    cancel-data-test="close-btn"
+    threshold="md"
     data-test="device-chooser-dialog"
   >
-    <v-card
-      class="bg-v-theme-surface"
-      data-test="device-chooser-card"
-    >
-      <v-card-title
-        class="text-headline bg-primary"
-        data-test="title"
-      >
-        Update account or select three devices
-      </v-card-title>
+    <div class="px-6 pt-4">
+      <p class="text-body-2 mb-4" data-test="subtext">
+        You currently have no subscription to the
+        <router-link :to="billingUrl">premium plan</router-link> and the free version is limited to
+        3 devices. To unlock access to all devices, you can subscribe to the
+        <router-link :to="billingUrl">premium plan</router-link>. If you want to continue on
+        the free plan, you need to select three devices.
+      </p>
 
-      <v-card-text>
-        <p
-          class="ml-2 text-body-2"
-          data-test="subtext"
-        >
-          You currently have no subscription to the
-          <router-link :to="billingUrl">premium plan</router-link> and the free version is limited to
-          3 devices. To unlock access to all devices, you can subscribe to the
-          <router-link :to="billingUrl">premium plan</router-link>. If you want to continue on
-          the free plan, you need to select three devices.
-        </p>
-      </v-card-text>
-      <div v-if="isAllDevicesTab && hasDevices" class="pa-5">
-        <v-row>
-          <v-col md="12" sm="12">
-            <v-text-field
-              label="Search by hostname"
-              variant="underlined"
-              color="primary"
-              single-line
-              hide-details
-              v-model.trim="filter"
-              v-on:keyup="searchDevices"
-              append-inner-icon="mdi-magnify"
-              density="comfortable"
-              data-test="search-text"
-            />
-          </v-col>
-        </v-row>
-      </div>
-      <div class="mt-2">
-        <v-tabs
-          v-model="tab"
-          align-tabs="center"
+      <div v-if="isAllDevicesTab && hasDevices" class="mb-4">
+        <v-text-field
+          label="Search by hostname"
+          variant="outlined"
           color="primary"
-          data-test="v-tabs"
-        >
-          <v-tab
-            v-for="(item, id) in tabItems"
-            :key="id"
-            :value="id"
-            :disabled="item.disabled"
-            :data-test="item.title + '-tab'"
-          >
-            {{ item.title }} Devices
-          </v-tab>
-        </v-tabs>
+          single-line
+          hide-details
+          v-model.trim="filter"
+          v-on:keyup="searchDevices"
+          append-inner-icon="mdi-magnify"
+          density="comfortable"
+          data-test="search-text"
+        />
       </div>
 
-      <v-card-text class="mb-2 pb-0">
-        <v-window v-model="tab" @update:model-value="handleTabChange">
-          <v-window-item
-            v-for="(item, id) in tabItems"
-            :key="id"
-            :value="id"
-          >
-            <DeviceListChooser
-              :isSelectable="item.selectable"
-              data-test="device-list-chooser-component"
-            />
-          </v-window-item>
-        </v-window>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
+      <v-tabs
+        v-model="tab"
+        align-tabs="center"
+        color="primary"
+        class="mb-4"
+        data-test="v-tabs"
+      >
+        <v-tab
+          v-for="(item, id) in tabItems"
+          :key="id"
+          :value="id"
+          :disabled="item.disabled"
+          :data-test="item.title + '-tab'"
+        >
+          {{ item.title }} Devices
+        </v-tab>
+      </v-tabs>
 
-        <v-btn
-          data-test="close-btn"
-          @click="close()"
-        > Close </v-btn>
-        <v-tooltip :disabled="!disableButton" top>
-          <template v-slot:activator="{ props }">
-            <span>
-              <v-btn
-                v-bind="props"
-                :disabled="disableButton"
-                @click="accept()"
-                data-test="accept-btn"
-              >
-                Accept
-              </v-btn>
-            </span>
-          </template>
-
-          <span> You can select 3 devices or less. </span>
-        </v-tooltip>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+      <v-window v-model="tab" @update:model-value="handleTabChange">
+        <v-window-item
+          v-for="(item, id) in tabItems"
+          :key="id"
+          :value="id"
+        >
+          <DeviceListChooser
+            :isSelectable="item.selectable"
+            data-test="device-list-chooser-component"
+          />
+        </v-window-item>
+      </v-window>
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -114,7 +80,7 @@ import DeviceListChooser from "./DeviceListChooser.vue";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useDevicesStore from "@/store/modules/devices";
 import { IDevice } from "@/interfaces/IDevice";
 
