@@ -152,7 +152,9 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	// [models.DeviceStatusAccepted]. This way, we can keep track of the number of devices that were removed from the
 	// namespace and void the device switching.
 	if envs.IsCloud() && !ns.Billing.IsActive() && device.Status == models.DeviceStatusAccepted {
-		if err := s.store.DeviceUpdate(ctx, tenant, string(uid), &models.DeviceChanges{Status: models.DeviceStatusRemoved}); err != nil {
+		deviceCopy := *device
+		deviceCopy.Status = models.DeviceStatusRemoved
+		if err := s.store.DeviceUpdate(ctx, &deviceCopy); err != nil {
 			return err
 		}
 
@@ -160,7 +162,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 			return err
 		}
 	} else {
-		if err := s.store.DeviceDelete(ctx, uid); err != nil {
+		if err := s.store.DeviceDelete(ctx, device); err != nil {
 			return err
 		}
 	}
@@ -182,8 +184,8 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return nil
 	}
 
-	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, Name: strings.ToLower(name)}
-	if err := s.store.DeviceUpdate(ctx, device.TenantID, string(uid), changes); err != nil { // nolint:revive
+	device.Name = strings.ToLower(name)
+	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
 		return err
 	}
 
@@ -214,12 +216,15 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 }
 
 func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
-	now := clock.Now()
-	if err := s.store.DeviceUpdate(ctx, "", string(uid), &models.DeviceChanges{DisconnectedAt: &now}); err != nil {
-		if errors.Is(err, store.ErrNoDocuments) {
-			return NewErrDeviceNotFound(uid, err)
-		}
+	// TODO: list
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+	if err != nil {
+		return NewErrDeviceNotFound(uid, err)
+	}
 
+	now := clock.Now()
+	device.DisconnectedAt = &now
+	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
 		return err
 	}
 
@@ -334,7 +339,9 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 			}
 		}
 
-		if err := s.store.DeviceUpdate(ctx, namespace.TenantID, device.UID, &models.DeviceChanges{Status: newStatus}); err != nil {
+		device.Status = newStatus
+		device.StatusUpdatedAt = clock.Now()
+		if err := s.store.DeviceUpdate(ctx, device); err != nil {
 			return err
 		}
 
@@ -360,13 +367,11 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return NewErrDeviceDuplicated(req.Name, err)
 	}
 
-	// We pass DisconnectedAt because we don't want to update it to nil
-	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt}
-	if req.Name != "" && strings.ToLower(req.Name) != device.Name {
-		changes.Name = strings.ToLower(req.Name)
+	if req.Name != "" && !strings.EqualFold(req.Name, device.Name) {
+		device.Name = strings.ToLower(req.Name)
 	}
 
-	return s.store.DeviceUpdate(ctx, req.TenantID, req.UID, changes)
+	return s.store.DeviceUpdate(ctx, device)
 }
 
 // mergeDevice merges an old device into a new device. It transfers all sessions from the old device to the new one and
@@ -380,11 +385,12 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 		return err
 	}
 
-	if err := s.store.DeviceUpdate(ctx, tenantID, newDevice.UID, &models.DeviceChanges{Name: oldDevice.Name}); err != nil {
+	newDevice.Name = oldDevice.Name
+	if err := s.store.DeviceUpdate(ctx, newDevice); err != nil {
 		return err
 	}
 
-	if err := s.store.DeviceDelete(ctx, models.UID(oldDevice.UID)); err != nil {
+	if err := s.store.DeviceDelete(ctx, oldDevice); err != nil {
 		return err
 	}
 
@@ -397,7 +403,7 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 
 // handleCloudBilling processes billing-related operations for Cloud environment.
 // This function has side effects: it may delete removed devices and report to billing.
-func (s *service) handleCloudBilling(ctx context.Context, namespace *models.Namespace) error {
+func (s *service) handleCloudBilling(_ context.Context, namespace *models.Namespace) error {
 	if namespace.Billing.IsActive() {
 		if err := s.BillingReport(s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
