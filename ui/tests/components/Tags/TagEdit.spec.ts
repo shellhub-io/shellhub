@@ -19,10 +19,8 @@ describe("Tag Form Edit", async () => {
   setActivePinia(createPinia());
   const tagsStore = useTagsStore();
   const vuetify = createVuetify();
-
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   localStorage.setItem("tenant", "fake-tenant-data");
-
-  const mockTags = new MockAdapter(tagsApi.getAxios());
 
   beforeEach(async () => {
     wrapper = mount(TagEdit, {
@@ -57,7 +55,7 @@ describe("Tag Form Edit", async () => {
   });
 
   it("Successfully edit tag", async () => {
-    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(200);
+    mockTagsApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(200);
 
     const tagsSpy = vi.spyOn(tagsStore, "editTag");
 
@@ -79,7 +77,7 @@ describe("Tag Form Edit", async () => {
   });
 
   it("Failed to add tags", async () => {
-    mockTags.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(409);
+    mockTagsApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(409);
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 
