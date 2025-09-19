@@ -133,12 +133,7 @@ const useTagsStore = defineStore("tags", () => {
     tenant: string;
     name: string;
   }) => {
-    try {
-      await apiTags.createTag(tenant, name);
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    await apiTags.createTag(tenant, name);
   };
 
   const editTag = async ({
@@ -150,12 +145,7 @@ const useTagsStore = defineStore("tags", () => {
     currentName: string;
     newName: UpdateTagRequest;
   }) => {
-    try {
-      await apiTags.updateTag(tenant, currentName, newName);
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    await apiTags.updateTag(tenant, currentName, newName);
   };
 
   const removeTag = async ({
@@ -165,12 +155,7 @@ const useTagsStore = defineStore("tags", () => {
     tenant: string;
     currentName: string;
   }) => {
-    try {
-      await apiTags.removeTag(tenant, currentName);
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    await apiTags.removeTag(tenant, currentName);
   };
 
   const pushTagToDevice = async ({
