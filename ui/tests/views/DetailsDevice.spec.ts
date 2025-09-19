@@ -42,7 +42,7 @@ describe("Details Device", () => {
     online: false,
     namespace: "user",
     status: "accepted",
-    remoteAddr: "127.0.0.1",
+    remote_addr: "127.0.0.1",
     position: { latitude: 0, longitude: 0 },
     tags: [
       {

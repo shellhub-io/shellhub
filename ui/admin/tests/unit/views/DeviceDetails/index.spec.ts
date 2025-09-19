@@ -29,7 +29,7 @@ const deviceDetail = {
   namespace: "user",
   status: "accepted",
   created_at: "2020-05-01T00:00:00.000Z",
-  remoteAddr: "127.0.0.1",
+  remote_addr: "127.0.0.1",
   position: {
     longitude: 0,
     latitude: 0,
