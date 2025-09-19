@@ -24,28 +24,29 @@
         <span data-test="tooltip-text"> You don't have this kind of authorization. </span>
       </v-tooltip>
     </v-list-item>
-    <BaseDialog v-model="showDialog" @close="close" data-test="device-action-dialog">
-      <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-5 bg-primary">
-          {{ capitalizeText(variant) }} {{ capitalizeText(action) }}
-        </v-card-title>
-        <v-divider />
-        <v-container>
-          <v-alert
-            v-if="isBillingActive"
-            type="warning"
-            text="Accepted devices in ShellHub become active in your account and are billed for the entire billing period." />
-          <v-card-text class="mt-4 mb-0 pb-1">
-            <p class="mb-2"> Do you want to {{ action }} this {{ variant }}? </p>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn variant="text" @click="close()" data-test="close-btn"> Close </v-btn>
-            <v-btn variant="text" @click="handleClick()" data-test="action-btn"> {{ action }} </v-btn>
-          </v-card-actions>
-        </v-container>
-      </v-card>
-    </BaseDialog>
+    <MessageDialog
+      v-model="showDialog"
+      @close="close"
+      @confirm="handleClick"
+      @cancel="close"
+      :title="`${capitalizeText(variant)} ${capitalizeText(action)}`"
+      :description="`Do you want to ${action} this ${variant}?`"
+      icon="mdi-help-circle"
+      :icon-color="action === 'accept' ? 'primary' : action === 'reject' ? 'warning' : 'error'"
+      :confirm-text="capitalizeText(action)"
+      :confirm-color="action === 'accept' ? 'primary' : action === 'reject' ? 'warning' : 'error'"
+      cancel-text="Close"
+      confirm-data-test="action-btn"
+      cancel-data-test="close-btn"
+      data-test="device-action-dialog"
+    >
+      <v-alert
+        v-if="isBillingActive"
+        type="warning"
+        class="mx-4 mb-4"
+        text="Accepted devices in ShellHub become active in your account and are billed for the entire billing period."
+      />
+    </MessageDialog>
   </div>
 </template>
 
@@ -56,7 +57,7 @@ import hasPermission from "@/utils/permission";
 import { capitalizeText } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
 import useNotificationsStore from "@/store/modules/notifications";
