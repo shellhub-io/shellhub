@@ -6,7 +6,7 @@ import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 import DetailsDevice from "@/views/DetailsDevice.vue";
-import { devicesApi } from "@/api/http";
+import { devicesApi, tagsApi } from "@/api/http";
 import { routes } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useDevicesStore from "@/store/modules/devices";
@@ -19,7 +19,7 @@ describe("Details Device", () => {
   setActivePinia(createPinia());
   const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
-
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   const device = {
@@ -54,6 +54,8 @@ describe("Details Device", () => {
     ],
   };
 
+  localStorage.setItem("tenant", "fake-tenant-data");
+
   beforeEach(async () => {
     const router = createRouter({
       history: createWebHistory(),
@@ -66,6 +68,9 @@ describe("Details Device", () => {
       .reply(200, device);
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted")
       .reply(200, [device]);
+    mockTagsApi
+      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .reply(200, []);
 
     devicesStore.device = device;
 

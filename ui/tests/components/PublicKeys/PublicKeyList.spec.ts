@@ -4,13 +4,29 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PublicKeysList from "@/components/PublicKeys/PublicKeysList.vue";
-import { sshApi } from "@/api/http";
+import { sshApi, tagsApi } from "@/api/http";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
 import usePublicKeysStore from "@/store/modules/public_keys";
 
 type PublicKeysListWrapper = VueWrapper<InstanceType<typeof PublicKeysList>>;
+
+const mockPublicKeys = {
+  data: [
+    {
+      data: "",
+      fingerprint: "fake-fingerprint",
+      created_at: "2020-05-01T00:00:00.000Z",
+      tenant_id: "fake-tenant",
+      name: "example",
+      filter: {
+        hostname: ".*",
+      },
+      username: ".*",
+    },
+  ],
+};
 
 describe("Public Key List", () => {
   let wrapper: PublicKeysListWrapper;
@@ -19,27 +35,15 @@ describe("Public Key List", () => {
   const publicKeysStore = usePublicKeysStore();
   const vuetify = createVuetify();
   const mockSshApi = new MockAdapter(sshApi.getAxios());
-
-  const mockPublicKeys = {
-    data: [
-      {
-        data: "",
-        fingerprint: "fake-fingerprint",
-        created_at: "2020-05-01T00:00:00.000Z",
-        tenant_id: "fake-tenant",
-        name: "example",
-        filter: {
-          hostname: ".*",
-        },
-        username: ".*",
-      },
-    ],
-  };
-
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
+  localStorage.setItem("tenant", "fake-tenant-data");
+  mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, mockPublicKeys);
+  mockTagsApi
+    .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+    .reply(200, []);
+  publicKeysStore.publicKeys = mockPublicKeys.data;
+  authStore.role = "owner";
   beforeEach(async () => {
-    mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?filter=&page=1&per_page=10").reply(200, mockPublicKeys);
-    publicKeysStore.publicKeys = mockPublicKeys.data;
-    authStore.role = "owner";
     wrapper = mount(PublicKeysList, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
