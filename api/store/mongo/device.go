@@ -210,41 +210,6 @@ func (s *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver
 	return device, nil
 }
 
-func (s *Store) DeviceDelete(ctx context.Context, uid models.UID) error {
-	mongoSession, err := s.db.Client().StartSession()
-	if err != nil {
-		return FromMongoError(err)
-	}
-	defer mongoSession.EndSession(ctx)
-
-	_, err = mongoSession.WithTransaction(ctx, func(_ mongo.SessionContext) (interface{}, error) {
-		dev, err := s.db.Collection("devices").DeleteOne(ctx, bson.M{"uid": uid})
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		if dev.DeletedCount < 1 {
-			return nil, store.ErrNoDocuments
-		}
-
-		if err := s.cache.Delete(ctx, strings.Join([]string{"device", string(uid)}, "/")); err != nil {
-			logrus.Error(err)
-		}
-
-		if _, err := s.db.Collection("sessions").DeleteMany(ctx, bson.M{"device_uid": uid}); err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		if _, err := s.db.Collection("tunnels").DeleteMany(ctx, bson.M{"device": uid}); err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		return nil, nil
-	})
-
-	return err
-}
-
 func (s *Store) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
 	if _, err := s.db.Collection("devices").InsertOne(ctx, device); err != nil {
 		return "", FromMongoError(err)
@@ -285,13 +250,30 @@ func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConfli
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (s *Store) DeviceUpdate(ctx context.Context, tenantID, uid string, changes *models.DeviceChanges) error {
-	filter := bson.M{"uid": uid}
-	if tenantID != "" {
-		filter["tenant_id"] = tenantID
+func (s *Store) DeviceUpdate(ctx context.Context, device *models.Device) error {
+	bsonBytes, err := bson.Marshal(device)
+	if err != nil {
+		return FromMongoError(err)
 	}
 
-	r, err := s.db.Collection("devices").UpdateMany(ctx, filter, bson.M{"$set": changes})
+	doc := make(bson.M)
+	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
+		return FromMongoError(err)
+	}
+
+	// Convert string TagIDs to MongoDB ObjectIDs for referential integrity
+	delete(doc, "tags")
+	if tagIDs, ok := doc["tag_ids"].(bson.A); ok && len(tagIDs) > 0 {
+		for i, id := range tagIDs {
+			if idStr, ok := id.(string); ok {
+				objID, _ := primitive.ObjectIDFromHex(idStr)
+				tagIDs[i] = objID
+			}
+		}
+	}
+
+	filter := bson.M{"uid": device.UID, "tenant_id": device.TenantID}
+	r, err := s.db.Collection("devices").UpdateOne(ctx, filter, bson.M{"$set": doc})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -300,18 +282,74 @@ func (s *Store) DeviceUpdate(ctx context.Context, tenantID, uid string, changes 
 		return store.ErrNoDocuments
 	}
 
-	if err := s.cache.Delete(ctx, "device"+"/"+uid); err != nil {
-		logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
+	if err := s.cache.Delete(ctx, "device"+"/"+device.UID); err != nil {
+		logrus.WithError(err).WithField("uid", device.UID).Error("cannot delete device from cache")
 	}
 
 	return nil
 }
 
-func (s *Store) DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (int64, error) {
-	res, err := s.db.Collection("devices").UpdateMany(ctx, bson.M{"uid": bson.M{"$in": uids}}, bson.M{"$set": changes})
+func (s *Store) DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (int64, error) {
+	filter := bson.M{"uid": bson.M{"$in": uids}}
+	update := bson.M{"$set": bson.M{"last_seen": lastSeen, "disconnected_at": nil}}
+	r, err := s.db.Collection("devices").UpdateMany(ctx, filter, update)
 	if err != nil {
 		return 0, FromMongoError(err)
 	}
 
-	return res.ModifiedCount, nil
+	for _, uid := range uids {
+		if err := s.cache.Delete(ctx, "device"+"/"+uid); err != nil {
+			logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
+		}
+	}
+
+	return r.ModifiedCount, nil
+}
+
+func (s *Store) DeviceDelete(ctx context.Context, device *models.Device) error {
+	deletedCount, err := s.DeviceDeleteMany(ctx, []string{device.UID})
+	switch {
+	case err != nil:
+		return err
+	case deletedCount < 1:
+		return store.ErrNoDocuments
+	default:
+		return nil
+	}
+}
+
+func (s *Store) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error) {
+	mongoSession, err := s.db.Client().StartSession()
+	if err != nil {
+		return 0, FromMongoError(err)
+	}
+
+	defer mongoSession.EndSession(ctx)
+
+	fn := func(sCtx mongo.SessionContext) (any, error) {
+		r, err := s.db.Collection("devices").DeleteMany(sCtx, bson.M{"uid": bson.M{"$in": uids}})
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if _, err := s.db.Collection("sessions").DeleteMany(sCtx, bson.M{"device_uid": bson.M{"$in": uids}}); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if _, err := s.db.Collection("tunnels").DeleteMany(sCtx, bson.M{"device": bson.M{"$in": uids}}); err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		for _, uid := range uids {
+			if err := s.cache.Delete(sCtx, strings.Join([]string{"device", uid}, "/")); err != nil {
+				logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
+			}
+		}
+
+		return r.DeletedCount, nil
+	}
+
+	deletedCount, err := mongoSession.WithTransaction(ctx, fn)
+
+	return deletedCount.(int64), err
 }

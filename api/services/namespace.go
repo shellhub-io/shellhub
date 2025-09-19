@@ -125,58 +125,34 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 	return namespace, nil
 }
 
-// DeleteNamespace deletes a namespace.
-//
-// It receives a context, used to "control" the request flow and the tenant ID from models.Namespace.
-//
-// When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
-// service if it exists.
-func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-	if err != nil {
-		return NewErrNamespaceNotFound(tenantID, err)
-	}
-
-	ableToReportDeleteNamespace := func(ns *models.Namespace) bool {
-		return !ns.Billing.IsNil() && ns.Billing.HasCutomer() && ns.Billing.HasSubscription()
-	}
-
-	if envs.IsCloud() && ableToReportDeleteNamespace(ns) {
-		if err := s.BillingReport(s.client, tenantID, ReportNamespaceDelete); err != nil {
-			return NewErrBillingReportNamespaceDelete(err)
-		}
-	}
-
-	return s.store.NamespaceDelete(ctx, tenantID)
-}
-
 func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
-	changes := &models.NamespaceChanges{
-		Name:                   strings.ToLower(req.Name),
-		SessionRecord:          req.Settings.SessionRecord,
-		ConnectionAnnouncement: req.Settings.ConnectionAnnouncement,
+	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.Tenant)
+	if err != nil {
+		return nil, NewErrNamespaceNotFound(req.Tenant, err)
 	}
 
-	if err := s.store.NamespaceUpdate(ctx, req.Tenant, changes); err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
-			return nil, NewErrNamespaceNotFound(req.Tenant, err)
-		default:
-			return nil, err
-		}
+	if req.Name != "" && !strings.EqualFold(req.Name, namespace.Name) {
+		namespace.Name = strings.ToLower(req.Name)
+	}
+
+	if req.Settings.SessionRecord != nil {
+		namespace.Settings.SessionRecord = *req.Settings.SessionRecord
+	}
+
+	if req.Settings.ConnectionAnnouncement != nil {
+		namespace.Settings.ConnectionAnnouncement = *req.Settings.ConnectionAnnouncement
+	}
+
+	if err := s.store.NamespaceUpdate(ctx, namespace); err != nil {
+		return nil, err
 	}
 
 	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.Tenant)
 }
 
-// EditSessionRecordStatus defines if the sessions will be recorded.
-//
-// It receives a context, used to "control" the request flow, a boolean to define if the sessions will be recorded and
-// the tenant ID from models.Namespace.
-//
-// This method is deprecated, use [NamespaceService#EditNamespace] instead.
 func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
-	if err := s.store.NamespaceUpdate(ctx, tenantID, &models.NamespaceChanges{SessionRecord: &sessionRecord}); err != nil {
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
 			return NewErrNamespaceNotFound(tenantID, err)
@@ -185,7 +161,31 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 		}
 	}
 
+	n.Settings.SessionRecord = sessionRecord
+	if err := s.store.NamespaceUpdate(ctx, n); err != nil { // nolint:revive
+		return err
+	}
+
 	return nil
+}
+
+func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+	if err != nil {
+		return NewErrNamespaceNotFound(tenantID, err)
+	}
+
+	ableToReportDeleteNamespace := func(ns *models.Namespace) bool {
+		return !ns.Billing.IsNil() && ns.Billing.HasCutomer() && ns.Billing.HasSubscription()
+	}
+
+	if envs.IsCloud() && ableToReportDeleteNamespace(n) {
+		if err := s.BillingReport(s.client, tenantID, ReportNamespaceDelete); err != nil {
+			return NewErrBillingReportNamespaceDelete(err)
+		}
+	}
+
+	return s.store.NamespaceDelete(ctx, n)
 }
 
 // GetSessionRecord gets the session record data.

@@ -114,6 +114,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		return resp, nil
 	}
 
+	// TODO: InNamespace
 	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, uid)
 	if err != nil {
 		if err != store.ErrNoDocuments {
@@ -159,10 +160,10 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 	} else {
-		changes := &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil}
-
+		device.LastSeen = clock.Now()
+		device.DisconnectedAt = nil
 		if req.Info != nil {
-			changes.Info = &models.DeviceInfo{
+			device.Info = &models.DeviceInfo{
 				ID:         req.Info.ID,
 				PrettyName: req.Info.PrettyName,
 				Version:    req.Info.Version,
@@ -171,7 +172,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			}
 		}
 
-		if err := s.store.DeviceUpdate(ctx, req.TenantID, uid, changes); err != nil {
+		if err := s.store.DeviceUpdate(ctx, device); err != nil {
 			log.WithError(err).Error("failed to updated device to online")
 
 			return nil, err
