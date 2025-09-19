@@ -2,23 +2,27 @@
   <BaseDialog v-model="showDialog" @close="close">
     <v-card>
       <v-card-title class="text-h5 pb-2" data-test="dialog-title">Configure Single Sign-on</v-card-title>
-      <v-container>
-        <v-card-text>
+      <v-card-text>
+        <v-form>
           <v-checkbox
             v-model="useMetadataUrl"
             label="Use IDP Metadata URL"
             data-test="checkbox-idp-metadata"
+            hide-details
           />
-          <div v-if="useMetadataUrl" data-test="idp-metadata-section">
-            <v-text-field
-              v-model="IdPMetadataURL"
-              :error-messages="IdPMetadataURLError"
-              label="IDP Metadata URL"
-              variant="underlined"
-              required
-              data-test="idp-metadata-url"
-            />
-          </div>
+          <v-text-field
+            v-model="IdPMetadataURL"
+            density="compact"
+            v-if="useMetadataUrl"
+            :error-messages="IdPMetadataURLError"
+            class="mb-4 pt-0"
+            label="IDP Metadata URL"
+            hint="Found in your identity provider's SAML app settings. Alternative to manual configuration"
+            persistent-hint
+            variant="underlined"
+            required
+            data-test="idp-metadata-url"
+          />
           <div v-else data-test="idp-manual-section">
             <v-alert
               type="warning"
@@ -32,6 +36,7 @@
               v-model="postUrl"
               :error-messages="postUrlError"
               label="IdP SignOn POST URL"
+              hint="SAML sign-on URL from your IdP console or metadata (HTTP-POST binding)"
               variant="underlined"
               :required="!redirectUrl"
               data-test="idp-signon-post-url"
@@ -40,6 +45,7 @@
               v-model="redirectUrl"
               :error-messages="redirectUrlError"
               label="IdP SignOn Redirect URL"
+              hint="SAML sign-on URL from your IdP console or metadata (HTTP-Redirect binding)"
               variant="underlined"
               :required="!postUrl"
               data-test="idp-signon-redirect-url"
@@ -47,6 +53,7 @@
             <v-text-field
               v-model="entityID"
               label="IdP Entity ID"
+              hint="Issuer/Entity ID from your IdP's SAML configuration"
               variant="underlined"
               required
               data-test="idp-entity-id"
@@ -55,114 +62,79 @@
               :model-value="x509Certificate"
               @update:model-value="handleCertificateChange"
               label="IdP X.509 Certificate"
+              hint="Public certificate used by IdP to sign SAML responses. Found in IdP console or metadata"
               variant="underlined"
               required
               data-test="idp-x509-certificate"
               :error-messages="x509CertificateErrorMessage"
             />
           </div>
-
-          <v-expansion-panels>
-            <v-expansion-panel>
-              <v-expansion-panel-title data-test="advanced-settings-title">Advanced Settings</v-expansion-panel-title>
-              <v-expansion-panel-text>
-                <v-data-table
-                  :items="mappings"
-                  item-value="key"
-                  disable-sort
-                  hide-default-footer
-                  data-test="saml-mappings-table"
-                >
-                  <template v-slot:top>
-                    <v-row cols="12">
-                      <v-col cols="9">
-                        <h3>SAML Mappings</h3>
-                      </v-col>
-                      <v-col cols="3">
-                        <v-btn
-                          color="primary"
-                          :disabled="mappings.length >= 2"
-                          @click="addMapping"
-                          data-test="add-mapping-btn"
-                        >
-                          Add Mapping
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </template>
-
-                  <template v-slot:headers>
-                    <tr>
-                      <th v-for="(header, i) in tableHeaders" :key="i" :class="`text-${header.align}`">
-                        <span>{{ header.text }}</span>
-                      </th>
-                    </tr>
-                  </template>
-
-                  <template v-slot:item="{ item, index }">
-                    <tr>
-                      <td>
-                        <v-select
-                          :items="getSelectableKeys(index)"
-                          hide-details
-                          v-model="item.key"
-                          variant="outlined"
-                          placeholder="Select Key"
-                          :menu-props="{ closeOnContentClick: false }"
-                          data-test="saml-mapping-key"
-                        />
-                      </td>
-                      <td>
-                        <v-text-field
-                          class="py-4"
-                          hide-details
-                          v-model="item.value"
-                          placeholder="Value"
-                          variant="outlined"
-                          data-test="saml-mapping-value"
-                        />
-                      </td>
-                      <td>
-                        <v-row>
-                          <v-col align="center" class="pt-0 px-0 pb-1">
-                            <v-btn color="red" elevation="0" @click="removeMapping(index)" data-test="remove-mapping-btn">
-                              <v-icon>mdi-delete</v-icon>
-                            </v-btn>
-                          </v-col>
-                        </v-row>
-                      </td>
-                    </tr>
-                  </template>
-                </v-data-table>
-                <v-tooltip location="bottom" contained target="cursor" offset="-20">
+          <v-expansion-panels elevation="0">
+            <v-expansion-panel title="Advanced Settings">
+              <v-expansion-panel-text class="pt-4">
+                <h3>SAML Mappings</h3>
+                <p class="mt-1 mb-4 text-justify">
+                  Maps SAML attributes to user fields.
+                  Enable to change the values, or leave disabled to use defaults.
+                </p>
+                <div class="d-flex justify-start align-center mb-4 ga-4">
+                  <v-checkbox-btn
+                    v-model="enableEmailMapping"
+                    @update:model-value="(val: boolean) => { if (!val) resetEmailMapping(); }"
+                    density="compact"
+                    data-test="enable-email-mapping-checkbox"
+                  />
+                  <v-text-field
+                    :disabled="!enableEmailMapping"
+                    v-model.trim="emailMappingValue"
+                    class="w-100"
+                    label="SAML Email Attribute"
+                    hint="The SAML attribute name that contains the user's email"
+                    variant="outlined"
+                    hide-details
+                    data-test="email-mapping-field"
+                  />
+                </div>
+                <div class="d-flex justify-start align-center mb-2 ga-4">
+                  <v-checkbox-btn
+                    v-model="enableNameMapping"
+                    @update:model-value="(val: boolean) => { if (!val) resetNameMapping(); }"
+                    density="compact"
+                    data-test="enable-name-mapping-checkbox"
+                  />
+                  <v-text-field
+                    :disabled="!enableNameMapping"
+                    v-model.trim="nameMappingValue"
+                    class="w-100"
+                    label="SAML Name Attribute"
+                    hint="The SAML attribute name that contains the user's display name"
+                    variant="outlined"
+                    hide-details
+                    data-test="name-mapping-field"
+                  />
+                </div>
+                <v-tooltip location="bottom" contained offset="-10">
                   <template v-slot:activator="{ props }">
-                    <v-row v-bind="props">
-                      <v-col>
-                        <v-checkbox
-                          class="mt-4"
-                          v-model="signRequest"
-                          label="Sign authorization requests"
-                          hide-details
-                          data-test="sign-request-checkbox"
-                        />
-                      </v-col>
-                    </v-row>
+                    <v-checkbox
+                      v-bind="props"
+                      class="mt-4"
+                      v-model="signRequest"
+                      label="Sign authorization requests"
+                      hide-details
+                      data-test="sign-request-checkbox"
+                    />
                   </template>
-                  <span>A security feature where the SP cryptographically signs authentication
-                    requests sent to the IdP. You must upload the generated certificate to your
-                    IdP when enabling this.
-                  </span>
+                  <span>Allows IdP to verify that SAML requests originated from ShellHub</span>
                 </v-tooltip>
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
-        </v-card-text>
-      </v-container>
+        </v-form>
+      </v-card-text>
       <v-card-actions>
         <v-btn @click="close()" data-test="close-btn">
           Close
         </v-btn>
-        <v-spacer />
         <v-btn :disabled="hasErrors" @click="updateSAMLConfiguration" color="primary" data-test="save-btn">
           Save Configuration
         </v-btn>
@@ -203,32 +175,13 @@ const { value: redirectUrl,
   errorMessage: redirectUrlError,
 } = useField<string>("redirectUrl", yup.string().url(), { initialValue: "" });
 
-const mappings = ref<{ key: string; value: string }[]>([]);
+const enableEmailMapping = ref(false);
+const emailMappingValue = ref("email");
+const enableNameMapping = ref(false);
+const nameMappingValue = ref("username");
 
-const tableHeaders = ref([
-  { text: "Attribute Key", value: "key", align: "center" },
-  { text: "SAML Attribute Value", value: "value", align: "center" },
-  { text: "Actions", align: "center" },
-]);
-
-const availableKeys = ["Email", "Name"];
-
-const usedKeys = computed(() => mappings.value.map((item) => item.key).filter(Boolean));
-
-const getSelectableKeys = (index: number) => {
-  const currentKey = mappings.value[index]?.key;
-  return availableKeys.filter((key) => !usedKeys.value.includes(key) || key === currentKey);
-};
-
-const addMapping = () => {
-  if (mappings.value.length < 2) {
-    mappings.value.push({ key: "", value: "" });
-  }
-};
-
-const removeMapping = (index: number) => {
-  mappings.value.splice(index, 1);
-};
+const resetNameMapping = () => { nameMappingValue.value = "username"; };
+const resetEmailMapping = () => { emailMappingValue.value = "email"; };
 
 const resetFields = () => {
   useMetadataUrl.value = false;
@@ -238,7 +191,10 @@ const resetFields = () => {
   redirectUrl.value = "";
   entityID.value = "";
   x509Certificate.value = "";
-  mappings.value = [];
+  enableEmailMapping.value = false;
+  enableNameMapping.value = false;
+  resetEmailMapping();
+  resetNameMapping();
 };
 
 const close = () => {
@@ -246,6 +202,8 @@ const close = () => {
   resetFields();
 };
 
+const beginCertificate = "-----BEGIN CERTIFICATE-----";
+const endCertificate = "-----END CERTIFICATE-----";
 const isCertificateValid = computed(() => isX509CertificateValid(x509Certificate.value));
 
 const handleCertificateChange = (value: string) => {
@@ -255,9 +213,6 @@ const handleCertificateChange = (value: string) => {
     x509CertificateErrorMessage.value = "The certificate field is required.";
     return;
   }
-
-  const beginCertificate = "-----BEGIN CERTIFICATE-----";
-  const endCertificate = "-----END CERTIFICATE-----";
 
   if (!x509Certificate.value.includes(beginCertificate) || !x509Certificate.value.includes(endCertificate)) {
     x509CertificateErrorMessage.value = `Certificate must include ${beginCertificate} and ${endCertificate} blocks.`;
@@ -297,14 +252,6 @@ const hasErrors = computed((): boolean => {
     return true;
   }
 
-  // Mapping validation
-  if (
-    mappings.value.length > 0
-    && mappings.value.some((mapping) => !mapping.key || !mapping.value.trim())
-  ) {
-    return true;
-  }
-
   return false;
 });
 
@@ -326,26 +273,15 @@ const updateSAMLConfiguration = async (): Promise<void> => {
       certificate: normalizeCertificate(x509Certificate.value),
     };
 
-  const validMappings = mappings.value.filter(
-    (m) => m.key && m.value.trim(),
-  );
-
-  if (validMappings.length > 0) {
-    const mappingObject: Partial<Record<"email" | "name", string>> = {};
-
-    validMappings.forEach(({ key, value }) => {
-      const lowerKey = key.toLowerCase() as "email" | "name";
-      mappingObject[lowerKey] = value;
-    });
-
-    if (Object.keys(mappingObject).length > 0) {
-      idpConfig.mappings = mappingObject as { email: string; name: string };
-    }
-  }
-
   const data: IAdminUpdateSAML = {
     enable: true,
-    idp: idpConfig,
+    idp: {
+      ...idpConfig,
+      mappings: {
+        email: emailMappingValue.value || "email",
+        name: nameMappingValue.value || "username",
+      },
+    },
     sp: { sign_requests: signRequest.value },
   };
 
@@ -358,5 +294,5 @@ const updateSAMLConfiguration = async (): Promise<void> => {
   }
 };
 
-defineExpose({ IdPMetadataURL, useMetadataUrl, mappings, showDialog, handleCertificateChange, x509CertificateErrorMessage });
+defineExpose({ IdPMetadataURL, useMetadataUrl, showDialog, handleCertificateChange, x509CertificateErrorMessage });
 </script>
