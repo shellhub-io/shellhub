@@ -108,8 +108,9 @@ const fetchNamespaces = async () => {
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to fetch namespaces.");
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
 };
 
 const sumDevicesCount = (namespace: IAdminNamespace) => {

@@ -3,12 +3,22 @@ import { ref } from "vue";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import * as namespacesApi from "../api/namespaces";
 
-const useNamespacesStore = defineStore("namespace", () => {
+const useNamespacesStore = defineStore("namespaces", () => {
   const namespaces = ref<IAdminNamespace[]>([]);
   const namespaceCount = ref(0);
 
+  const currentFilter = ref<string>("");
+
+  const setFilter = (filter: string) => {
+    currentFilter.value = filter || "";
+  };
+
   const fetchNamespaceList = async (data?: { page?: number; perPage?: number; filter?: string }) => {
-    const res = await namespacesApi.fetchNamespaces(data?.page || 1, data?.perPage || 10, data?.filter);
+    const page = data?.page || 1;
+    const perPage = data?.perPage || 10;
+    const filter = data?.filter ?? currentFilter.value ?? "";
+
+    const res = await namespacesApi.fetchNamespaces(page, perPage, filter);
     namespaces.value = res.data as IAdminNamespace[];
     namespaceCount.value = parseInt(res.headers["x-total-count"], 10);
   };
@@ -30,6 +40,8 @@ const useNamespacesStore = defineStore("namespace", () => {
   return {
     namespaces,
     namespaceCount,
+    currentFilter,
+    setFilter,
     fetchNamespaceList,
     fetchNamespaceById,
     exportNamespacesToCsv,

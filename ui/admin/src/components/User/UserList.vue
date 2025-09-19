@@ -135,13 +135,13 @@ const fetchUsers = async () => {
     await usersStore.fetchUsersList({
       perPage: itemsPerPage.value,
       page: page.value,
-      filter: "",
     });
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to fetch users.");
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
 };
 
 const loginWithToken = async (userId: string) => {

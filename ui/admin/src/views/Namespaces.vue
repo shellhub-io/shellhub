@@ -40,7 +40,10 @@ const searchNamespaces = async () => {
   }];
 
   const encodedFilter = filter.value ? btoa(JSON.stringify(filterToEncodeBase64)) : "";
-  await namespacesStore.fetchNamespaceList({ filter: encodedFilter });
+
+  namespacesStore.setFilter(encodedFilter);
+
+  await namespacesStore.fetchNamespaceList({ filter: encodedFilter, page: 1 });
 };
 
 defineExpose({ filter });

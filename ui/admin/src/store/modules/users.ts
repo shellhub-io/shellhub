@@ -7,8 +7,15 @@ const useUsersStore = defineStore("users", () => {
   const users = ref<IAdminUser[]>([]);
   const usersCount = ref<number>(0);
 
+  const currentFilter = ref<string>("");
+
+  const setFilter = (filter: string) => {
+    currentFilter.value = filter || "";
+  };
+
   const fetchUsersList = async (data?: { page?: number; perPage?: number; filter?: string }) => {
-    const res = await usersApi.fetchUsers(data?.page || 1, data?.perPage || 10, data?.filter);
+    const filter = data?.filter ?? currentFilter.value ?? "";
+    const res = await usersApi.fetchUsers(data?.page || 1, data?.perPage || 10, filter);
 
     users.value = res.data as IAdminUser[];
     usersCount.value = parseInt(res.headers["x-total-count"], 10);
@@ -45,6 +52,8 @@ const useUsersStore = defineStore("users", () => {
   return {
     users,
     usersCount,
+    currentFilter,
+    setFilter,
     fetchUsersList,
     exportUsersToCsv,
     addUser,
