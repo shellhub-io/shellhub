@@ -85,15 +85,17 @@ describe("Device Chooser", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component data table", async () => {
-    const wrapper = new DOMWrapper(document.body);
-    expect(wrapper.find('[data-test="device-chooser-dialog"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="subtext"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-list-chooser-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="accept-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-chooser-card"]').exists()).toBe(true);
+  it("Renders the component with FormDialog", async () => {
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: "FormDialog" }).exists()).toBe(true);
+
+    const formDialog = wrapper.findComponent({ name: "FormDialog" });
+    expect(formDialog.props("title")).toBe("Update account or select three devices");
+    expect(formDialog.props("icon")).toBe("mdi-devices");
+    expect(formDialog.props("confirmText")).toBe("Accept");
+    expect(formDialog.props("cancelText")).toBe("Close");
+    expect(formDialog.props("threshold")).toBe("md");
   });
 
   it("Render V-Tabs", async () => {
@@ -111,7 +113,9 @@ describe("Device Chooser", () => {
 
     await wrapper.findComponent('[data-test="Suggested-tab"]').trigger("click");
     await nextTick();
-    await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");
+
+    const formDialog = wrapper.findComponent({ name: "FormDialog" });
+    await formDialog.vm.$emit("confirm");
 
     await flushPromises();
 
@@ -164,7 +168,9 @@ describe("Device Chooser", () => {
 
     await wrapper.findComponent('[data-test="All-tab"]').trigger("click");
     await nextTick();
-    await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");
+
+    const formDialog = wrapper.findComponent({ name: "FormDialog" });
+    await formDialog.vm.$emit("confirm");
 
     await flushPromises();
 
