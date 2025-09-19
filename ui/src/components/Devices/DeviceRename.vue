@@ -9,43 +9,31 @@
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog" data-test="device-rename-dialog" @close="close">
-    <v-card class="bg-v-theme-surface" data-test="device-rename-card">
-      <v-card-title class="text-h5 pa-5 bg-primary" data-test="text-title">
-        Rename Device
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-0 pb-1">
-        <v-text-field
-          v-model="newName"
-          label="Hostname"
-          :error-messages="newNameError"
-          :messages="messages"
-          required
-          variant="underlined"
-          data-test="rename-field"
-        />
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn data-test="close-btn" variant="text" @click="close()">
-          Close
-        </v-btn>
-
-        <v-btn
-          data-test="rename-btn"
-          color="primary darken-1"
-          variant="text"
-          @click="rename()"
-        >
-          Rename
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @confirm="rename"
+    @cancel="close"
+    title="Rename Device"
+    icon="mdi-pencil"
+    confirm-text="Rename"
+    cancel-text="Close"
+    confirm-data-test="rename-btn"
+    cancel-data-test="close-btn"
+    data-test="device-rename-dialog"
+  >
+    <div class="px-6 pt-6 pb-4">
+      <v-text-field
+        v-model="newName"
+        label="Hostname"
+        :error-messages="newNameError"
+        :messages="messages"
+        required
+        variant="outlined"
+        data-test="rename-field"
+      />
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -55,7 +43,7 @@ import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useDevicesStore from "@/store/modules/devices";
 
 const props = defineProps<{
