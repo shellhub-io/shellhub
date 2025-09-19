@@ -4,7 +4,7 @@ import MockAdapter from "axios-mock-adapter";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { tagsApi } from "@/api/http";
 import useTagsStore from "@/store/modules/tags";
-import type { Tags } from "@/interfaces/ITags";
+import type { ITag } from "@/interfaces/ITags";
 
 const TENANT = "fake-tenant";
 const BASE = "http://localhost:3000";
@@ -12,7 +12,7 @@ const BASE = "http://localhost:3000";
 // eslint-disable-next-line vue/max-len
 const makeUrl = (tenant: string, filter: string, page: number, perPage: number) => `${BASE}/api/namespaces/${tenant}/tags?filter=${encodeURIComponent(filter)}&page=${page}&per_page=${perPage}`;
 
-const mockTags: Tags[] = [{ name: "tag1" }, { name: "tag2" }, { name: "tag3" }];
+const mockTags = [{ name: "tag1" }, { name: "tag2" }, { name: "tag3" }] as ITag[];
 
 describe("Tags Store", () => {
   let mock: MockAdapter;
@@ -104,8 +104,8 @@ describe("Tags Store", () => {
   });
 
   it("setSelected toggles and clearSelected resets per variant", () => {
-    const t1: Tags = { name: "tag1" };
-    const t2: Tags = { name: "tag2" };
+    const t1 = { name: "tag1" } as ITag;
+    const t2 = { name: "tag2" } as ITag;
 
     store.setSelected({ variant: "device", tag: t1 });
     store.setSelected({ variant: "device", tag: t2 });

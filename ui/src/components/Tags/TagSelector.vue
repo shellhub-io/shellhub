@@ -68,7 +68,7 @@ import useSnackbar from "@/helpers/snackbar";
 import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
 import useTagsStore from "@/store/modules/tags";
-import { Tags } from "@/interfaces/ITags";
+import { ITag } from "@/interfaces/ITags";
 
 const props = defineProps<{ variant: "device" | "container" }>();
 
@@ -83,9 +83,9 @@ const menuOpen = ref(false);
 const currentPage = ref(1);
 const perPage = ref(10);
 
-const fetchedTags = ref<Tags[]>([]);
+const fetchedTags = ref<ITag[]>([]);
 const tags = computed(() => fetchedTags.value);
-const selectedTags = computed<Tags[]>(() => tagsStore.getSelected(props.variant));
+const selectedTags = computed<ITag[]>(() => tagsStore.getSelected(props.variant));
 const isLoading = ref(false);
 
 const scrollArea = ref<HTMLElement | null>(null);
@@ -94,9 +94,9 @@ let observer: IntersectionObserver | null = null;
 
 const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
 
-const getTagName = (tag: Tags): string => (typeof tag === "string" ? tag : tag.name);
+const getTagName = (tag: ITag): string => (typeof tag === "string" ? tag : tag.name);
 const getSelectedTagNames = (): string[] => selectedTags.value.map((t) => getTagName(t));
-const tagIsSelected = (tag: Tags): boolean => selectedTags.value.some((sel) => getTagName(sel) === getTagName(tag));
+const tagIsSelected = (tag: ITag): boolean => selectedTags.value.some((sel) => getTagName(sel) === getTagName(tag));
 
 const resetPagination = (): void => {
   currentPage.value = 1;
@@ -162,7 +162,7 @@ const getItems = async (tagNames: string[]): Promise<void> => {
   }
 };
 
-const selectTag = async (item: Tags): Promise<void> => {
+const selectTag = async (item: ITag): Promise<void> => {
   tagsStore.setSelected({ variant: props.variant, tag: item });
 
   if (selectedTags.value.length > 0) {

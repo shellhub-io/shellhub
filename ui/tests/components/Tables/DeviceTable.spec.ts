@@ -55,24 +55,9 @@ describe("Device Table", () => {
       online: true,
       namespace: "user",
       status: "accepted",
-      tags: ["test"],
+      tags: [{ name: "test" }],
     },
   ];
-
-  // const mockStore = createStore({
-  //   state: {
-  //     totalCount: 3,
-  //     devices: [
-  //       { name: "Device1", operating_system: "OS1", sshid: "ssh1", tags: "tag1" },
-  //       { name: "Device2", operating_system: "OS2", sshid: "ssh2", tags: "tag2" },
-  //       { name: "Device3", operating_system: "OS3", sshid: "ssh3", tags: "tag3" },
-  //     ],
-  //   },
-  //   getters: {
-  //     totalCount: (state) => state.totalCount,
-  //     devices: (state) => state.devices,
-  //   },
-  // });
 
   const mockStoreMethods = {
     fetchDevices: vi.fn(),

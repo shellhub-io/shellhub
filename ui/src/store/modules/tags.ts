@@ -1,18 +1,18 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import * as apiTags from "../api/tags";
-import { Tags } from "@/interfaces/ITags";
+import { ITag } from "@/interfaces/ITags";
 import { UpdateTagRequest } from "@/api/client";
 
 const useTagsStore = defineStore("tags", () => {
-  const tags = ref<Array<Tags>>([]);
+  const tags = ref<Array<ITag>>([]);
   const numberTags = ref(0);
   const page = ref(1);
   const perPage = ref(10);
   const filter = ref<string | undefined>("");
   const selected = ref<{
-    device: Array<Tags>;
-    container: Array<Tags>;
+    device: Array<ITag>;
+    container: Array<ITag>;
   }>({
     device: [],
     container: [],
@@ -49,10 +49,10 @@ const useTagsStore = defineStore("tags", () => {
     variant,
     tag,
   }: {
-  variant: "device" | "container";
-  tag: Tags;
-}) => {
-    const toName = (tag: Tags) => (typeof tag === "string" ? tag : tag.name);
+    variant: "device" | "container";
+    tag: ITag;
+  }) => {
+    const toName = (tag: ITag) => (typeof tag === "string" ? tag : tag.name);
     const list = selected.value[variant];
     const name = toName(tag);
     const exists = list.some((t) => toName(t) === name);

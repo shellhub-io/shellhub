@@ -1624,10 +1624,10 @@ export interface FirewallRulesResponseFilterOneOf {
 export interface FirewallRulesResponseFilterOneOf1 {
     /**
      * Firewall\'s rule tags
-     * @type {Array<string>}
+     * @type {Array<Tag>}
      * @memberof FirewallRulesResponseFilterOneOf1
      */
-    'tags': Array<string>;
+    'tags': Array<Tag>;
 }
 /**
  * 

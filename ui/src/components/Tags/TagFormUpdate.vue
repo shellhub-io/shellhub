@@ -109,7 +109,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import BaseDialog from "../BaseDialog.vue";
 import useTagsStore from "@/store/modules/tags";
-import type { Tags as StoreTags } from "@/interfaces/ITags";
+import type { ITag as StoreTags } from "@/interfaces/ITags";
 
 type LocalTag = { name: string };
 
