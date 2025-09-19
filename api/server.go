@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
@@ -52,6 +53,15 @@ type env struct {
 	// GeoipMaxmindLicense is the MaxMind license key for downloading GeoIP databases directly.
 	// This is used as a fallback when GeoipMirror is not configured.
 	GeoipMaxmindLicense string `env:"MAXMIND_LICENSE,default="`
+
+	// NamespaceRateLimit enables or disables rate limiting for namespace-related operations.
+	NamespaceRateLimit bool `env:"NAMESPACE_RATE_LIMIT,default=false"`
+
+	// NamespaceRateLimitRate defines the rate at which tokens are replenished into the bucket for the rate limiter.
+	NamespaceRateLimitRate int `env:"NAMESPACE_RATE_LIMIT_RATE,default=1000"`
+
+	// NamespaceRateLimitBurst defines the maximum size of the bucket for the rate limiter.
+	NamespaceRateLimitBurst int `env:"NAMESPACE_RATE_LIMIT_BURST,default=1000"`
 }
 
 type Server struct {
@@ -189,6 +199,20 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 		log.Info("Sentry error reporting initialized successfully")
 
 		opts = append(opts, routes.WithReporter(reporter))
+	}
+
+	if s.env.NamespaceRateLimit {
+		log.WithFields(log.Fields{
+			"rate":  s.env.NamespaceRateLimitRate,
+			"burst": s.env.NamespaceRateLimitBurst,
+		}).Info("Configuring namespace rate limiting")
+
+		opts = append(opts, routes.WithNamespaceRateLimit(
+			s.env.NamespaceRateLimitRate,
+			s.env.NamespaceRateLimitBurst,
+			// TODO: Receive this value from the environment variable.
+			30*time.Minute,
+		))
 	}
 
 	return opts, nil

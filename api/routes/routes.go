@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
@@ -16,16 +17,24 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/websocket"
 )
 
-type DefaultHTTPHandlerConfig struct {
+type HandlerConfig struct {
 	// Reporter represents an instance of [*sentry.Client] that should be proper configured to send error messages
 	// from the error handler. If it's nil, the error handler will ignore the Sentry client.
 	Reporter *sentry.Client
+
+	NamespaceRateLimitCacheDuration time.Duration
+	// NamespaceRateLimit defines if the rate limiter is enabled for namespaces.
+	NamespaceRateLimit bool
+	// NamespaceRateLimitRate is the rate limit of requests per second for a namespace.
+	NamespaceRateLimitRate int
+	// NamespaceRateLimitBurst is the burst size for the rate limiter.
+	NamespaceRateLimitBurst int
 }
 
 // DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v4] package, with the default
 // configuration required by ShellHub's services, loading the [github.com/shellhub-io/shellhub/api/pkg/gateway] into
 // the context, and the service layer. The configuration received controls the error reporter and more.
-func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Handler {
+func DefaultHTTPHandler[S any](service S, cfg *HandlerConfig) http.Handler {
 	server := echo.New()
 
 	// Sets the default binder.
@@ -54,22 +63,41 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 	return server
 }
 
-type Option func(e *echo.Echo, handler *Handler) error
+type Option func(e *echo.Echo, handler *Handler, cfg *HandlerConfig) error
 
 func WithReporter(reporter *sentry.Client) Option {
-	return func(e *echo.Echo, _ *Handler) error {
+	return func(e *echo.Echo, _ *Handler, _ *HandlerConfig) error {
 		e.HTTPErrorHandler = handlers.NewErrors(reporter)
 
 		return nil
 	}
 }
 
+func WithNamespaceRateLimit(rate int, burst int, cacheDuration time.Duration) Option {
+	return func(e *echo.Echo, _ *Handler, cfg *HandlerConfig) error {
+		cfg.NamespaceRateLimit = true
+		cfg.NamespaceRateLimitRate = rate
+		cfg.NamespaceRateLimitBurst = burst
+		cfg.NamespaceRateLimitCacheDuration = cacheDuration
+
+		return nil
+	}
+}
+
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
-	router := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
+	config := &HandlerConfig{
+		Reporter:                        nil,
+		NamespaceRateLimit:              false,
+		NamespaceRateLimitRate:          1000,
+		NamespaceRateLimitBurst:         1000,
+		NamespaceRateLimitCacheDuration: 30 * time.Minute,
+	}
+
+	router := DefaultHTTPHandler(service, config).(*echo.Echo)
 
 	handler := NewHandler(service, websocket.NewGorillaWebSocketUpgrader())
 	for _, opt := range opts {
-		if err := opt(router, handler); err != nil {
+		if err := opt(router, handler, config); err != nil {
 			return nil
 		}
 	}
@@ -96,6 +124,15 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
+
+	if config.NamespaceRateLimit {
+		publicAPI.Use(routesmiddleware.NewNamespaceRateLimitMiddleware(
+			service,
+			routesmiddleware.NamespaceRateLimitWithCacheDuration(config.NamespaceRateLimitCacheDuration),
+			routesmiddleware.NamespaceRateLimitWithRate(config.NamespaceRateLimitRate),
+			routesmiddleware.NamespaceRateLimitWithBurst(config.NamespaceRateLimitBurst),
+		))
+	}
 
 	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
 	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
