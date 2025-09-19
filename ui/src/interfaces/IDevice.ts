@@ -30,7 +30,7 @@ export interface IDevice {
   namespace: string;
   status: string;
   created_at: string;
-  remoteAddr: string;
+  remote_addr: string;
   position: Position;
   tags: Array<Tags>;
 }
