@@ -9,6 +9,7 @@ import { rulesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
+import { ITag } from "@/interfaces/ITags";
 
 type FirewallRuleEditWrapper = VueWrapper<InstanceType<typeof FirewallRuleEdit>>;
 
@@ -91,7 +92,12 @@ describe("Firewall Rule Edit", () => {
   });
 
   it("Conditional rendering components", async () => {
-    wrapper = mountWrapper({ ...firewallRule, source_ip: "127.0.0.1", username: "ossystems", filter: { tags: ["tag1", "tag2"] } });
+    wrapper = mountWrapper({
+      ...firewallRule,
+      source_ip: "127.0.0.1",
+      username: "ossystems",
+      filter: { tags: [{ name: "tag1" }, { name: "tag2" }] as ITag[] },
+    });
 
     const dialog = new DOMWrapper(document.body);
     await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");

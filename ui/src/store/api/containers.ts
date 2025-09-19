@@ -1,7 +1,5 @@
-import { IContainerPostTag, IContainerRename, IUpdateContainerTags } from "@/interfaces/IContainer";
-import { containersApi, tagsApi } from "@/api/http";
-
-export const postTag = async (data: IContainerPostTag) => tagsApi.createContainerTag(data.uid, data.name);
+import { IContainerRename } from "@/interfaces/IContainer";
+import { containersApi } from "@/api/http";
 
 export const fetchContainers = async (
   page: number,
@@ -26,7 +24,5 @@ export const renameContainer = async (data: IContainerRename) => containersApi.u
 export const acceptContainer = async (uid: string) => containersApi.updateContainerStatus(uid, "accept");
 
 export const rejectContainer = async (uid: string) => containersApi.updateContainerStatus(uid, "reject");
-
-export const updateContainerTag = async (data: IUpdateContainerTags) => containersApi.updateTagsContainer(data.uid, data.tags);
 
 export const removeContainer = async (uid: string) => containersApi.deleteContainer(uid);

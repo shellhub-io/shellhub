@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import useDevicesStore from "@admin/store/modules/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
 describe("Devices", () => {
   setActivePinia(createPinia());
@@ -47,7 +48,7 @@ describe("Devices", () => {
       public_key: "xxxxxxxxxxxxxxxx",
       remote_addr: "127.0.0.1",
       status: "accepted",
-      tags: ["xxxx", "yyyyy"],
+      tags: [{ name: "xxxx" }, { name: "yyyyy" }],
       tenant_id: "00000000",
       uid: "a582b47a42d",
     },
@@ -61,7 +62,7 @@ describe("Devices", () => {
   });
 
   it("sets devices and number of devices", () => {
-    devicesStore.devices = devices;
+    devicesStore.devices = devices as IDevice[];
     devicesStore.deviceCount = deviceCount;
 
     expect(devicesStore.devices).toEqual(devices);

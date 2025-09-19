@@ -1,4 +1,4 @@
-export interface Tags {
+export interface ITag {
   tenant_id: string;
   name: string;
   created_at: string;

@@ -1,5 +1,5 @@
 import { UpdateDeviceRequest } from "@/api/client";
-import { Tags } from "./ITags";
+import { ITag } from "./ITags";
 
 type Identity = {
   mac: string;
@@ -32,7 +32,7 @@ export interface IDevice {
   created_at: string;
   remote_addr: string;
   position: Position;
-  tags: Array<Tags>;
+  tags: Array<ITag>;
 }
 
 export interface IDeviceRename {

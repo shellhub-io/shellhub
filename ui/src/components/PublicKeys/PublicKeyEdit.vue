@@ -152,6 +152,7 @@ import BaseDialog from "../BaseDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";
+import { ITag } from "@/interfaces/ITags";
 
 const props = defineProps<{
   publicKey: IPublicKey;
@@ -180,7 +181,7 @@ const usernameList = ref([
   { filterName: "username", filterText: "Restrict access using a regexp for username" },
 ]);
 
-const tagChoices = ref<string[]>([]);
+const tagChoices = ref<ITag[]>([]);
 const keyLocal = ref<Partial<IPublicKey>>({ name: "", username: "", data: "" });
 
 const {

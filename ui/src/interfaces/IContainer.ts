@@ -1,8 +1,6 @@
 import {
   IDevice,
-  IUpdateDeviceTags,
   IDeviceRename,
-  IDevicePostTag,
   FetchDevicesParams,
   IDeviceMethods,
 } from "./IDevice";
@@ -10,9 +8,7 @@ import {
 // Container is essentially the same as Device
 export type IContainer = IDevice;
 
-export type IUpdateContainerTags = IUpdateDeviceTags;
 export type IContainerRename = IDeviceRename;
-export type IContainerPostTag = IDevicePostTag;
 
 export type FetchContainerParams = FetchDevicesParams;
 

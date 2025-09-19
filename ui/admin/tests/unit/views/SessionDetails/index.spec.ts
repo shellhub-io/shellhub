@@ -33,7 +33,7 @@ const sessionDetail = {
     created_at: "2022-04-13T11:43:25.218Z",
     remote_addr: "172.22.0.1",
     position: { latitude: 0, longitude: 0 },
-    tags: ["dev"],
+    tags: [{ name: "dev" }],
   },
   tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   username: "antony",
