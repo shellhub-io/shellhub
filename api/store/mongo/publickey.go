@@ -116,19 +116,21 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 	return nil
 }
 
-func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantID string, key *models.PublicKeyUpdate) (*models.PublicKey, error) {
-	bsonBytes, err := bson.Marshal(key)
+func (s *Store) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) error {
+	bsonBytes, err := bson.Marshal(publicKey)
 	if err != nil {
-		return nil, FromMongoError(err)
+		return FromMongoError(err)
 	}
 
 	doc := make(bson.M)
 	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
-		return nil, FromMongoError(err)
+		return FromMongoError(err)
 	}
 
+	delete(doc, "_id")
 	// WORKAROUND: Convert string TagIDs to MongoDB ObjectIDs for referential integrity
 	// with the tags collection where _id is ObjectID type
+	delete(doc, "tags")
 	if filterDoc, ok := doc["filter"].(bson.M); ok {
 		if tagIDs, ok := filterDoc["tag_ids"].(bson.A); ok && len(tagIDs) > 0 {
 			for i, id := range tagIDs {
@@ -140,53 +142,26 @@ func (s *Store) PublicKeyUpdate(ctx context.Context, fingerprint string, tenantI
 		}
 	}
 
-	filter := bson.M{"fingerprint": fingerprint, "tenant_id": tenantID}
+	filter := bson.M{"fingerprint": publicKey.Fingerprint, "tenant_id": publicKey.TenantID}
 	r, err := s.db.Collection("public_keys").UpdateOne(ctx, filter, bson.M{"$set": doc})
-	if err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	if r.MatchedCount == 0 {
-		return nil, store.ErrNoDocuments
-	}
-
-	pipeline := []bson.M{
-		{
-			"$match": filter,
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "tags",
-				"localField":   "filter.tag_ids",
-				"foreignField": "_id",
-				"as":           "filter.tags",
-			},
-		},
-	}
-
-	cursor, err := s.db.Collection("public_keys").Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	defer cursor.Close(ctx) //nolint:errcheck
-	cursor.Next(ctx)        //nolint:errcheck
-
-	publicKey := new(models.PublicKey)
-	if err := cursor.Decode(&publicKey); err != nil {
-		return nil, FromMongoError(err)
-	}
-
-	return publicKey, nil
-}
-
-func (s *Store) PublicKeyDelete(ctx context.Context, fingerprint string, tenantID string) error {
-	pubKey, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": fingerprint, "tenant_id": tenantID})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	if pubKey.DeletedCount < 1 {
+	if r.MatchedCount == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
+func (s *Store) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) error {
+	r, err := s.db.Collection("public_keys").DeleteOne(ctx, bson.M{"fingerprint": publicKey.Fingerprint, "tenant_id": publicKey.TenantID})
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	if r.DeletedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
