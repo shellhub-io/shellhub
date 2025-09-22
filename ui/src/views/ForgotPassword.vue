@@ -1,60 +1,50 @@
 <template>
-  <v-container>
-    <v-col>
-      <v-slide-y-reverse-transition>
-        <v-card-text v-if="postSuccessful" class="text-center" data-test="success-text">
-          <strong>An email with password reset instructions has been sent to your registered email address. Please check your inbox.
-          </strong>
-        </v-card-text>
-      </v-slide-y-reverse-transition>
-    </v-col>
+  <v-container class="text-center">
+    <v-slide-y-reverse-transition v-if="wasEmailSent">
+      <v-card-text data-test="success-text">
+        <strong>An email with password reset instructions has been sent to your registered email address. Please check your inbox.
+        </strong>
+      </v-card-text>
+    </v-slide-y-reverse-transition>
 
-    <v-container>
-      <div v-if="!postSuccessful">
-        <v-card-title class="text-center" data-test="title-text">
-          Forgot your password
-        </v-card-title>
-        <v-card-text class="text-center" data-test="body-text">
-          Please insert the email associated with the account you'd like to request a password reset for
-        </v-card-text>
-        <v-form v-model="validForm" @submit.prevent="sendEmail">
-
-          <v-text-field
+    <div v-else>
+      <v-card-title data-test="title-text">Forgot your password</v-card-title>
+      <v-card-text data-test="body-text">
+        Please insert the email associated with the account you'd like to request a password reset for
+      </v-card-text>
+      <v-form v-model="isFormValid" @submit.prevent="sendEmail">
+        <v-text-field
+          color="primary"
+          prepend-inner-icon="mdi-account"
+          v-model="account"
+          :error-messages="accountError"
+          required
+          label="Username or email address"
+          variant="underlined"
+          class="text-left"
+          data-test="account-text"
+        />
+        <v-card-actions class="pa-0">
+          <v-btn
+            :disabled="!isFormValid || !account"
+            data-test="forgot-password-btn"
             color="primary"
-            prepend-inner-icon="mdi-account"
-            v-model="account"
-            :error-messages="accountError"
-            required
-            label="Username or email address"
-            variant="underlined"
-            data-test="account-text"
-          />
-          <v-card-actions class="justify-center pa-0">
-            <v-btn
-              :disabled="!validForm"
-              data-test="forgotPassword-btn"
-              color="primary"
-              variant="elevated"
-              block
-              @click="sendEmail"
-            >
-              RESET PASSWORD
-            </v-btn>
-          </v-card-actions>
-
-        </v-form>
-      </div>
-      <v-card-subtitle
-        class="d-flex align-center justify-center pa-4 mx-auto"
-        data-test="isCloud-card"
-      >
-        Back to
-        <router-link class="ml-1 text-decoration-none" :to="{ name: 'Login' }">
-          <strong>Login</strong>
-        </router-link>
-      </v-card-subtitle>
-    </v-container>
-
+            variant="elevated"
+            type="submit"
+            block
+          >
+            RESET PASSWORD
+          </v-btn>
+        </v-card-actions>
+      </v-form>
+    </div>
+    <v-card-text
+      class="pa-4"
+      data-test="back-to-login"
+    >
+      Back to
+      <router-link class="text-decoration-none" :to="{ name: 'Login' }"><strong>Login</strong></router-link>
+    </v-card-text>
   </v-container>
 </template>
 
@@ -68,8 +58,8 @@ import useSnackbar from "@/helpers/snackbar";
 
 const snackbar = useSnackbar();
 const usersStore = useUsersStore();
-const postSuccessful = ref(false);
-const validForm = ref(false);
+const wasEmailSent = ref(false);
+const isFormValid = ref(false);
 
 const { value: account, errorMessage: accountError } = useField<string | undefined>(
   "account",
@@ -96,7 +86,7 @@ const sendEmail = async () => {
 
   try {
     await usersStore.recoverPassword(account.value as string);
-    postSuccessful.value = true;
+    wasEmailSent.value = true;
   } catch (error) {
     snackbar.showError("Failed to send password reset email. Please ensure the email/username is correct and try again.");
     handleError(error);
