@@ -64,7 +64,9 @@ import { useField } from "vee-validate";
 import * as yup from "yup";
 import handleError from "../utils/handleError";
 import useUsersStore from "@/store/modules/users";
+import useSnackbar from "@/helpers/snackbar";
 
+const snackbar = useSnackbar();
 const usersStore = useUsersStore();
 const postSuccessful = ref(false);
 const validForm = ref(false);
@@ -90,14 +92,13 @@ const { value: account, errorMessage: accountError } = useField<string | undefin
 );
 
 const sendEmail = async () => {
-  if (accountError.value) {
-    return;
-  }
+  if (accountError.value) return;
 
   try {
     await usersStore.recoverPassword(account.value as string);
     postSuccessful.value = true;
   } catch (error) {
+    snackbar.showError("Failed to send password reset email. Please ensure the email/username is correct and try again.");
     handleError(error);
   }
 };
