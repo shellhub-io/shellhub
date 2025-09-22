@@ -11,7 +11,7 @@ describe("Layout Store", () => {
   });
 
   it("should have initial state values", () => {
-    expect(layoutStore.layout).toEqual("AppLayout");
+    expect(layoutStore.layout).toEqual(undefined);
     expect(layoutStore.theme).toEqual("dark");
   });
 

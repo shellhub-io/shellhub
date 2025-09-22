@@ -5,7 +5,7 @@ export type Layout = "AppLayout" | "LoginLayout";
 type Theme = "dark" | "light";
 
 const useLayoutStore = defineStore("layout", () => {
-  const layout = ref<Layout>("AppLayout");
+  const layout = ref<Layout>();
   const theme = ref<Theme>(localStorage.getItem("theme") as Theme || "dark");
 
   const setTheme = (newTheme: Theme) => {
