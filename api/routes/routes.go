@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
 	"github.com/shellhub-io/shellhub/pkg/websocket"
+	"github.com/sirupsen/logrus"
 )
 
 type DefaultHTTPHandlerConfig struct {
@@ -40,9 +41,11 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 	// Configures the default IP extractor for a header.
 	server.IPExtractor = echo.ExtractIPFromRealIPHeader()
 
+	// NOTE: Instantiates a new logger instance to be used by the logger's middleware.
+	server.Logger = pkgmiddleware.NewEchoLogger(logrus.NewEntry(logrus.StandardLogger()))
+
 	server.Use(echoMiddleware.RequestID())
 	server.Use(echoMiddleware.Secure())
-	server.Use(pkgmiddleware.Log)
 	server.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// NOTE: We load the gateway context to each route handler to access their context as gateway's context.
@@ -50,6 +53,7 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 			return next(gateway.NewContext(service, c))
 		}
 	})
+	server.Use(pkgmiddleware.Log)
 
 	return server
 }
