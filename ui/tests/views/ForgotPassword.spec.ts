@@ -7,10 +7,12 @@ import ForgotPassword from "@/views/ForgotPassword.vue";
 import { usersApi } from "@/api/http";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useUsersStore from "@/store/modules/users";
 
 type ForgotPasswordWrapper = VueWrapper<InstanceType<typeof ForgotPassword>>;
+
+const mockSnackbar = { showError: vi.fn() };
 
 describe("Forgot Password", () => {
   let wrapper: ForgotPasswordWrapper;
@@ -24,7 +26,8 @@ describe("Forgot Password", () => {
 
     wrapper = mount(ForgotPassword, {
       global: {
-        plugins: [vuetify, router, SnackbarPlugin],
+        plugins: [vuetify, router],
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
     });
   });
