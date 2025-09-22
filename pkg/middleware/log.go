@@ -188,6 +188,13 @@ func (c *Logger) SetHeader(h string) {
 	panic("unimplemented")
 }
 
+const (
+	// HeaderUserID is the HTTP header where the user ID is stored.
+	HeaderUserID = "X-ID"
+	// HeaderTenantID is the HTTP header where the tenant ID is stored.
+	HeaderTenantID = "X-Tenant-ID"
+)
+
 func Log(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		logger := c.Logger()
@@ -220,6 +227,16 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 			"latency_human": elapsed.String(),
 			"bytes_in":      bytesIn,
 			"bytes_out":     strconv.FormatInt(c.Response().Size, 10),
+		}
+
+		uid := c.Request().Header.Get(HeaderUserID)
+		if uid != "" {
+			fields["user"] = uid
+		}
+
+		tenant := c.Request().Header.Get(HeaderTenantID)
+		if tenant != "" {
+			fields["tenant"] = tenant
 		}
 
 		if err != nil {
