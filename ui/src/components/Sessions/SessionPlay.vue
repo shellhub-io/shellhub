@@ -1,32 +1,14 @@
 <template>
-  <div>
-    <v-tooltip location="bottom" :disabled="disableTooltip">
-      <template v-slot:activator="{ props }">
-        <div v-bind="props">
-          <slot :loading :disabled :openDialog />
-        </div>
-      </template>
-      <span>{{ tooltipMessage }}</span>
-    </v-tooltip>
+  <v-tooltip location="bottom" :disabled="disableTooltip" v-bind="$attrs">
+    <template v-slot:activator="{ props }">
+      <div v-bind="props">
+        <slot :loading :disabled :openDialog />
+      </div>
+    </template>
+    <span>{{ tooltipMessage }}</span>
+  </v-tooltip>
 
-    <BaseDialog
-      :transition="false"
-      :forceFullscreen="true"
-      v-model="showDialog"
-    >
-      <v-card class="bg-v-theme-surface position-relative">
-        <v-btn
-          class="position-absolute top-0 right-0 ma-2 close-btn"
-          variant="text"
-          data-test="close-btn"
-          icon="mdi-close"
-          @click="closeDialog"
-        />
-
-        <Player :logs @close="closeDialog" />
-      </v-card>
-    </BaseDialog>
-  </div>
+  <PlayerDialog v-model="showDialog" :logs />
 </template>
 
 <script setup lang="ts">
@@ -37,11 +19,10 @@ import {
 import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
-import Player from "./Player.vue";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
 import useSessionsStore from "@/store/modules/sessions";
 import useUsersStore from "@/store/modules/users";
+import PlayerDialog from "./PlayerDialog.vue";
 
 const props = defineProps<{
   uid: string;
@@ -92,14 +73,4 @@ const openDialog = async () => {
   }
   await displayDialog();
 };
-
-const closeDialog = () => {
-  showDialog.value = false;
-};
 </script>
-
-<style lang="scss" scoped>
-.close-btn {
-  z-index: 999;
-}
-</style>

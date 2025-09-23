@@ -1,6 +1,6 @@
 <template>
   <div
-    class="wrapper ma-0 pa-0 w-100 fill-height position-relative bg-v-theme-terminal"
+    class="wrapper ma-0 pa-0 w-100 fill-height bg-v-theme-terminal"
     v-if="logs"
     ref="containerDiv"
     @keydown.space.prevent="isPlaying = !isPlaying"
@@ -215,7 +215,7 @@ defineExpose({ player, currentSpeed, currentTime, isPlaying, showShortcutsDialog
 </script>
 
 <style lang="scss" scoped>
-:deep(.ap-wrapper) {
+.wrapper, :deep(.ap-wrapper) {
   background-color: #121314;
   justify-content: start;
   max-height: calc(100vh - 4rem) !important;
