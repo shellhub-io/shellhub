@@ -57,7 +57,7 @@ defineOptions({
 
 const props = defineProps<{
   keyName: string;
-  keyRole: string;
+  keyRole: BasicRole;
   hasAuthorization: boolean;
   disabled: boolean;
 }>();
@@ -106,5 +106,5 @@ const editKey = async (formData: { name: string; role: BasicRole }) => {
   }
 };
 
-defineExpose({ errorMessage });
+defineExpose({ showDialog, editKey, open, errorMessage });
 </script>

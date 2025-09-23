@@ -22,7 +22,7 @@ describe("Api Key List", () => {
     {
       name: "aaaa2",
       tenant_id: "00000-0000-0000-0000-00000000000",
-      role: "administrator",
+      role: "administrator" as const,
       created_by: "66562f80daba745a106393b5",
       created_at: "2024-06-07T12:10:56.531Z",
       updated_at: "2024-06-07T12:31:03.505Z",
@@ -31,7 +31,7 @@ describe("Api Key List", () => {
     {
       name: "aaaa2",
       tenant_id: "00000-0000-0000-0000-00000000000",
-      role: "administrator",
+      role: "administrator" as const,
       created_by: "66562f80daba745a106393b5",
       created_at: "2024-06-07T12:10:56.531Z",
       updated_at: "2024-06-07T12:31:03.505Z",

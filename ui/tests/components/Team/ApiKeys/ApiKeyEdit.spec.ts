@@ -1,9 +1,11 @@
+import MockAdapter from "axios-mock-adapter";
 import { createPinia, setActivePinia } from "pinia";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import ApiKeyEdit from "@/components/Team/ApiKeys/ApiKeyEdit.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { apiKeysApi } from "@/api/http";
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
@@ -16,16 +18,11 @@ vi.mock("@/helpers/snackbar", () => ({
   default: () => mockSnackbar,
 }));
 
-vi.mock("@/store/modules/api_keys", () => ({
-  default: () => ({
-    editApiKey: vi.fn(),
-  }),
-}));
-
 describe("Api Key Edit", () => {
   let wrapper: VueWrapper<InstanceType<typeof ApiKeyEdit>>;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
+  const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -94,8 +91,8 @@ describe("Api Key Edit", () => {
   });
 
   it("Handles form submission", async () => {
-    const mockSubmitData = { name: "new-key-name", role: "administrator" };
-
+    mockApiKeysApi.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(200);
+    const mockSubmitData = { name: "new-key-name", role: "administrator" as const };
     await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
     await wrapper.vm.editKey(mockSubmitData);
 
@@ -104,22 +101,10 @@ describe("Api Key Edit", () => {
     expect(wrapper.vm.showDialog).toBe(false); // Dialog should close on success
   });
 
-  it("Handles 409 error correctly", async () => {
-    const error409 = { response: { status: 409 } };
-
-    // Mock the editKey method to throw 409 error
-    wrapper.vm.editKey = vi.fn().mockImplementation(async () => {
-      wrapper.vm.errorMessage = "An API key with the same name already exists.";
-      throw error409;
-    });
-
-    await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
-
-    try {
-      await wrapper.vm.editKey({ name: "existing-key", role: "observer" });
-    } catch (error) {
-      // Expected error
-    }
+  it("Fails to Edit Api Key (409)", async () => {
+    mockApiKeysApi.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(409);
+    await wrapper.vm.editKey({ name: "new-key-name", role: "administrator" });
+    await flushPromises();
 
     expect(wrapper.vm.errorMessage).toBe("An API key with the same name already exists.");
   });
