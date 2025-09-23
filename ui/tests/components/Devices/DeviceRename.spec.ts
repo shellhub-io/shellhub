@@ -1,3 +1,4 @@
+import MockAdapter from "axios-mock-adapter";
 import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
@@ -5,12 +6,14 @@ import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 import DeviceRename from "@/components/Devices/DeviceRename.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useDevicesStore from "@/store/modules/devices";
+import { devicesApi } from "@/api/http";
 
 describe("DeviceRename", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceRename>>;
   setActivePinia(createPinia());
   const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
   beforeEach(async () => {
     wrapper = mount(DeviceRename, {
@@ -57,7 +60,7 @@ describe("DeviceRename", () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
 
-    const textField = wrapper.findComponent('[data-test="rename-field"]');
+    const textField = wrapper.findComponent({ name: "VTextField" });
     expect(textField.exists()).toBe(true);
     expect(textField.props("modelValue")).toBe("39-5e-2a");
   });
@@ -85,8 +88,9 @@ describe("DeviceRename", () => {
   });
 
   it("Handles rename errors gracefully", async () => {
-    const storeSpy = vi.spyOn(devicesStore, "renameDevice").mockRejectedValue(new Error("Network error"));
+    mockDevicesApi.onPut("http://localhost:3000/api/devices/a582b47a42d").reply(400);
 
+    const storeSpy = vi.spyOn(devicesStore, "renameDevice");
     wrapper.vm.newName = "new-name";
     await wrapper.vm.rename();
 
