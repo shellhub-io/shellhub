@@ -1,3 +1,5 @@
+import { BasicRole } from "@/interfaces/INamespace";
+
 enum ApiKeyExpireList {
   NUMBER_30 = 30,
   NUMBER_60 = 60,
@@ -9,7 +11,7 @@ export interface IApiKey {
   id: string,
   tenant_id: string,
   name: string,
-  role: string,
+  role: BasicRole,
   expires_in: ApiKeyExpireList,
 }
 
