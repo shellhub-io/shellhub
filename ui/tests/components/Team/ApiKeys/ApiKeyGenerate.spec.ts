@@ -90,7 +90,7 @@ describe("Api Key Generate", () => {
   });
 
   it("Handles form submission", async () => {
-    const mockSubmitData = { name: "test-key", role: "administrator", expires_in: 30 };
+    const mockSubmitData = { name: "test-key", role: "administrator" as const, expires_in: 30 };
 
     await wrapper.findComponent('[data-test="api-key-generate-main-btn"]').trigger("click");
     await wrapper.vm.generateKey(mockSubmitData);
