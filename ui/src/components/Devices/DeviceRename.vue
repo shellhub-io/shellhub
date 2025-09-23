@@ -100,5 +100,5 @@ const rename = async () => {
   }
 };
 
-defineExpose({ showDialog });
+defineExpose({ showDialog, newName, rename });
 </script>
