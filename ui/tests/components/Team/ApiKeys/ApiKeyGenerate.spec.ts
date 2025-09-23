@@ -22,7 +22,7 @@ vi.mock("@/utils/permission", () => ({
 
 vi.mock("@/store/modules/api_keys", () => ({
   default: () => ({
-    generateApiKey: vi.fn(),
+    generateApiKey: vi.fn().mockResolvedValue("new-generated-api-key"),
   }),
 }));
 

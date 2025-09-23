@@ -48,7 +48,6 @@
     <ApiKeySuccess
       v-model="showSuccessDialog"
       :api-key="generatedApiKey"
-      :key-name="generatedKeyName"
     />
   </div>
 </template>
@@ -73,7 +72,6 @@ const showDialog = ref(false);
 const showSuccessDialog = ref(false);
 const errorMessage = ref("");
 const generatedApiKey = ref("");
-const generatedKeyName = ref("");
 const isFormValid = ref(false);
 const formRef = ref();
 const canGenerateApiKey = hasPermission("apiKey:create");
@@ -109,7 +107,6 @@ const handleSubmit = () => {
 const generateKey = async (formData: { name: string; expires_in?: number; role: BasicRole }) => {
   try {
     generatedApiKey.value = await apiKeyStore.generateApiKey(formData as IApiKeyCreate);
-    generatedKeyName.value = formData.name;
     emit("update");
 
     showDialog.value = false;

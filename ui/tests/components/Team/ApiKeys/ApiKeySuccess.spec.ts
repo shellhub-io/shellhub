@@ -67,7 +67,7 @@ describe("Api Key Success", () => {
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
-    const keyField = dialog.find('[data-test="generated-key-field"] input');
+    const keyField = dialog.find('[data-test="generated-key-field"] input') as DOMWrapper<HTMLInputElement>;
     expect(keyField.element.value).toBe("test-api-key-12345");
   });
 
@@ -120,7 +120,7 @@ describe("Api Key Success", () => {
   });
 
   it("Has close button that triggers close method", async () => {
-    const closeSpy = vi.spyOn(wrapper.vm, "close");
+    expect(wrapper.vm.showDialog).toBe(true);
 
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
@@ -128,17 +128,7 @@ describe("Api Key Success", () => {
     const closeButton = dialog.find('[data-test="close-btn"]');
     expect(closeButton.exists()).toBe(true);
 
-    // Test that the close method exists and can be called
     wrapper.vm.close();
-    expect(closeSpy).toHaveBeenCalled();
-  });
-
-  it("Closes dialog when close method is called directly", async () => {
-    expect(wrapper.vm.showDialog).toBe(true);
-
-    wrapper.vm.close();
-    await flushPromises();
-
     expect(wrapper.vm.showDialog).toBe(false);
   });
 });

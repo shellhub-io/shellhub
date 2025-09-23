@@ -16,8 +16,7 @@
   >
     <div class="px-4">
       <v-text-field
-        :model-value="apiKey || ''"
-        variant="outlined"
+        :value="apiKey"
         readonly
         density="compact"
         class="monospace-field"
@@ -39,19 +38,10 @@
 </template>
 
 <script setup lang="ts">
-import { } from "vue";
 import MessageDialog from "@/components/MessageDialog.vue";
 import useSnackbar from "@/helpers/snackbar";
 
-interface Props {
-  apiKey?: string;
-  keyName?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  apiKey: "",
-  keyName: "",
-});
+const props = defineProps<{ apiKey: string }>();
 const snackbar = useSnackbar();
 const showDialog = defineModel<boolean>({ required: true });
 
@@ -68,6 +58,8 @@ const copyKey = async () => {
 const close = () => {
   showDialog.value = false;
 };
+
+defineExpose({ showDialog, close });
 </script>
 
 <style scoped>
