@@ -63,6 +63,8 @@ import FormDialog from "@/components/FormDialog.vue";
 import ApiKeyForm from "./ApiKeyForm.vue";
 import ApiKeySuccess from "./ApiKeySuccess.vue";
 import useApiKeysStore from "@/store/modules/api_keys";
+import { BasicRole } from "@/interfaces/INamespace";
+import { IApiKeyCreate } from "@/interfaces/IApiKey";
 
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
@@ -104,13 +106,12 @@ const handleSubmit = () => {
   formRef.value?.submitForm();
 };
 
-const generateKey = async (formData: { name: string; expires_in: number; role: string }) => {
+const generateKey = async (formData: { name: string; expires_in?: number; role: BasicRole }) => {
   try {
-    generatedApiKey.value = await apiKeyStore.generateApiKey(formData);
+    generatedApiKey.value = await apiKeyStore.generateApiKey(formData as IApiKeyCreate);
     generatedKeyName.value = formData.name;
     emit("update");
 
-    // Fechar o modal de criação e abrir o modal de sucesso
     showDialog.value = false;
     showSuccessDialog.value = true;
   } catch (error: unknown) {
@@ -125,5 +126,5 @@ const close = () => {
   errorMessage.value = "";
   formRef.value?.reset();
 };
-defineExpose({ errorMessage });
+defineExpose({ generateKey, showDialog, errorMessage, close });
 </script>
