@@ -14,48 +14,29 @@
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog">
-    <v-card class="bg-v-theme-surface" data-test="firewallRuleDelete-card">
-      <v-card-title class="text-h5 pa-5 bg-primary" data-test="text-title">
-        Are you sure?
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-0 pb-1" data-test="text-text">
-        <p class="text-body-2 mb-2">
-          You are about to remove this firewall rule.
-        </p>
-
-        <p class="text-body-2 mb-2">
-          After confirming this action cannot be redone.
-        </p>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
-          Close
-        </v-btn>
-
-        <v-btn
-          color="red darken-1"
-          data-test="remove-btn"
-          variant="text"
-          @click="remove()"
-        >
-          Remove
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <MessageDialog
+    v-model="showDialog"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
+    title="Are you sure?"
+    description="You are about to delete this firewall rule"
+    icon="mdi-alert"
+    icon-color="error"
+    confirm-text="Delete"
+    confirm-color="error"
+    cancel-text="Close"
+    confirm-data-test="confirm-btn"
+    cancel-data-test="close-btn"
+    data-test="delete-firewall-rule-dialog"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const props = defineProps<{

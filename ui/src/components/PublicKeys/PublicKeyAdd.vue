@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="canCreatePublicKey">
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <div v-bind="props">
           <v-btn
             @click="showDialog = true"
@@ -18,107 +18,108 @@
           </v-btn>
         </div>
       </template>
-      <span> You don't have this kind of authorization. </span>
+      <span>You don't have this kind of authorization.</span>
     </v-tooltip>
 
-    <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
-      <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-3 bg-primary" data-test="pk-add-title">
-          New Public Key
-        </v-card-title>
-        <form @submit.prevent="create" class="mt-3">
-          <v-card-text>
-            <v-text-field
-              v-model="name"
-              :error-messages="nameError"
-              label="Name"
-              placeholder="Name used to identify the public key"
-              data-test="name-field"
-            />
+    <FormDialog
+      v-model="showDialog"
+      @close="close"
+      @cancel="close"
+      @confirm="create"
+      title="New Public Key"
+      icon="mdi-key-outline"
+      confirm-text="Save"
+      cancel-text="Cancel"
+      :confirm-disabled="confirmDisabled"
+      confirm-data-test="pk-add-save-btn"
+      cancel-data-test="pk-add-cancel-btn"
+      data-test="public-key-add-dialog"
+    >
+      <div class="px-6 pt-4">
+        <v-text-field
+          v-model="name"
+          :error-messages="nameError"
+          label="Name"
+          placeholder="Name used to identify the public key"
+          data-test="name-field"
+        />
 
-            <v-row class="mt-1 px-3">
-              <v-select
-                v-model="choiceUsername"
-                label="Device username access restriction"
-                :items="usernameList"
-                item-title="filterText"
-                item-value="filterName"
-                data-test="username-restriction-field"
-              />
-            </v-row>
+        <v-row class="mt-1 px-3">
+          <v-select
+            v-model="choiceUsername"
+            label="Device username access restriction"
+            :items="usernameList"
+            item-title="filterText"
+            item-value="filterName"
+            data-test="username-restriction-field"
+          />
+        </v-row>
 
-            <v-text-field
-              v-if="choiceUsername === 'username'"
-              v-model="username"
-              label="Rule username"
-              :error-messages="usernameError"
-              data-test="rule-field"
-            />
+        <v-text-field
+          v-if="choiceUsername === 'username'"
+          v-model="username"
+          label="Rule username"
+          :error-messages="usernameError"
+          data-test="rule-field"
+        />
 
-            <v-row class="mt-1 px-3">
-              <v-select
-                v-model="choiceFilter"
-                label="Device access restriction"
-                :items="filterList"
-                item-title="filterText"
-                item-value="filterName"
-                data-test="filter-restriction-field"
-              />
-            </v-row>
+        <v-row class="mt-1 px-3">
+          <v-select
+            v-model="choiceFilter"
+            label="Device access restriction"
+            :items="filterList"
+            item-title="filterText"
+            item-value="filterName"
+            data-test="filter-restriction-field"
+          />
+        </v-row>
 
-            <v-row class="px-3">
-              <v-autocomplete
-                v-if="choiceFilter === 'tags'"
-                v-model="tagChoices"
-                v-model:menu="acMenuOpen"
-                :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
-                :items="tags"
-                variant="outlined"
-                item-title="name"
-                item-value="name"
-                attach
-                chips
-                label="Tags"
-                :rules="[validateLength]"
-                :error-messages="errMsg"
-                multiple
-                data-test="tags-selector"
-                @update:search="onSearch"
-              >=
-                <template #append-item>
-                  <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
-                </template>
-              </v-autocomplete>
+        <v-row class="px-3">
+          <v-autocomplete
+            v-if="choiceFilter === 'tags'"
+            v-model="tagChoices"
+            v-model:menu="acMenuOpen"
+            :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
+            :items="tags"
+            variant="outlined"
+            item-title="name"
+            item-value="name"
+            attach
+            chips
+            label="Tags"
+            :rules="[validateLength]"
+            :error-messages="errMsg"
+            multiple
+            data-test="tags-selector"
+            @update:search="onSearch"
+          >
+            <template #append-item>
+              <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+            </template>
+          </v-autocomplete>
 
-              <v-text-field
-                v-if="choiceFilter === 'hostname'"
-                v-model="hostname"
-                label="Hostname"
-                :error-messages="hostnameError"
-                data-test="hostname-field"
-              />
-            </v-row>
+          <v-text-field
+            v-if="choiceFilter === 'hostname'"
+            v-model="hostname"
+            label="Hostname"
+            :error-messages="hostnameError"
+            data-test="hostname-field"
+          />
+        </v-row>
 
-            <v-textarea
-              v-model="publicKeyData"
-              class="mt-5"
-              label="Public key data"
-              :error-messages="publicKeyDataError"
-              required
-              messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-              data-test="data-field"
-              rows="2"
-            />
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer />
-            <v-btn @click="close" data-test="pk-add-cancel-btn">Cancel</v-btn>
-            <v-btn color="primary" type="submit" data-test="pk-add-save-btn">Save</v-btn>
-          </v-card-actions>
-        </form>
-      </v-card>
-    </BaseDialog>
+        <v-textarea
+          v-model="publicKeyData"
+          class="mt-2"
+          label="Public key data"
+          :error-messages="publicKeyDataError"
+          required
+          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          data-test="data-field"
+          rows="3"
+          auto-grow
+        />
+      </div>
+    </FormDialog>
   </div>
 </template>
 
@@ -131,12 +132,14 @@ import hasPermission from "@/utils/permission";
 import { isKeyValid } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import { IPublicKeyCreate } from "@/interfaces/IPublicKey";
 import useTagsStore from "@/store/modules/tags";
 
 const { size } = defineProps<{ size?: string }>();
+
+type LocalTag = { name: string };
 
 const emit = defineEmits(["update"]);
 const publicKeysStore = usePublicKeysStore();
@@ -151,16 +154,14 @@ const tagChoices = ref<string[]>([]);
 const errMsg = ref("");
 const keyLocal = ref({});
 
-const usernameList = ref([
-  { filterName: "all", filterText: "Allow any user" },
-  { filterName: "username", filterText: "Restrict access using a regexp for username" },
-]);
+const acMenuOpen = ref(false);
+const menuContentClass = computed(() => "pk-tags-ac-content");
 
-const filterList = ref([
-  { filterName: "all", filterText: "Allow the key to connect to all available devices" },
-  { filterName: "hostname", filterText: "Restrict access using a regexp for hostname" },
-  { filterName: "tags", filterText: "Restrict access by tags" },
-]);
+const fetchedTags = ref<LocalTag[]>([]);
+const tags = computed(() => fetchedTags.value);
+
+const sentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
 
 const {
   value: name,
@@ -189,27 +190,12 @@ const {
   resetField: resetPublicKeyData,
 } = useField<string>("publicKeyData", yup.string().required(), { initialValue: "" });
 
-type LocalTag = { name: string };
-
-const acMenuOpen = ref(false);
-const menuContentClass = computed(() => "pk-tags-ac-content");
-
-const fetchedTags = ref<LocalTag[]>([]);
-const tags = computed(() => fetchedTags.value);
-
-const sentinel = ref<HTMLElement | null>(null);
-let observer: IntersectionObserver | null = null;
-
-const page = ref(1);
-const perPage = ref(10);
-const filter = ref("");
-const isLoading = ref(false);
-
-const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
-
-const canCreatePublicKey = hasPermission("publicKey:create");
-
-watch(tagChoices, (list) => {
+watch([tagChoices, choiceFilter], ([list, currentFilter]) => {
+  if (currentFilter !== "tags") {
+    validateLength.value = true;
+    errMsg.value = "";
+    return;
+  }
   if (list.length > 3) {
     validateLength.value = false;
     nextTick(() => tagChoices.value.pop());
@@ -223,9 +209,13 @@ watch(tagChoices, (list) => {
   }
 });
 
-watch(publicKeyData, async () => {
-  if (publicKeyData.value !== "") setPublicKeyDataError("Field is required");
-  if (isKeyValid("public", publicKeyData.value)) setPublicKeyDataError("This is not valid key");
+watch(publicKeyData, () => {
+  if (!publicKeyData.value) {
+    setPublicKeyDataError("Field is required");
+    return;
+  }
+  if (!isKeyValid("public", publicKeyData.value)) setPublicKeyDataError("This is not valid key");
+  else setPublicKeyDataError("");
 });
 
 const chooseUsername = () => {
@@ -251,17 +241,21 @@ const chooseFilter = () => {
   }
 };
 
+const resetFields = () => { resetName(); resetUsername(); resetHostname(); resetPublicKeyData(); };
+
 const setLocalVariable = () => {
   keyLocal.value = {};
   hostname.value = "";
   tagChoices.value = [];
   choiceFilter.value = "all";
   choiceUsername.value = "all";
+  resetFields();
 };
 
 watch(showDialog, (value) => { if (!value) setLocalVariable(); });
 
 const close = () => { showDialog.value = false; setLocalVariable(); };
+
 const update = () => { emit("update"); close(); };
 
 const hasErrors = () => {
@@ -270,8 +264,6 @@ const hasErrors = () => {
   if (choiceFilter.value === "tags" && tagChoices.value.length === 0) return true;
   return false;
 };
-
-const resetFields = () => { resetName(); resetUsername(); resetHostname(); resetPublicKeyData(); };
 
 const create = async () => {
   if (hasErrors()) return;
@@ -300,6 +292,14 @@ const create = async () => {
     }
   }
 };
+
+const page = ref(1);
+const perPage = ref(10);
+const filter = ref("");
+const isLoading = ref(false);
+
+const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
+const canCreatePublicKey = hasPermission("publicKey:create");
 
 const encodeFilter = (search: string) => {
   if (!search) return "";
@@ -402,6 +402,24 @@ onMounted(async () => {
 });
 
 onUnmounted(cleanupObserver);
+
+const confirmDisabled = computed(() => {
+  if (!name.value || !publicKeyData.value) return true;
+
+  if (choiceUsername.value === "username" && !username.value) return true;
+  if (choiceFilter.value === "hostname" && !hostname.value) return true;
+  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) return true;
+
+  const tagRuleBlocking = choiceFilter.value === "tags" && !validateLength.value;
+
+  return Boolean(
+    nameError.value
+    || publicKeyDataError.value
+    || (choiceUsername.value === "username" && usernameError.value)
+    || (choiceFilter.value === "hostname" && hostnameError.value)
+    || tagRuleBlocking,
+  );
+});
 
 defineExpose({ publicKeyDataError, nameError });
 </script>

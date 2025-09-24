@@ -36,21 +36,34 @@ describe("Private Key Delete", () => {
   it("Renders components", async () => {
     expect(wrapper.find('[data-test="privatekey-delete-btn"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="privatekey-delete-btn-title"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="privatekey-delete-btn"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
+
+    await wrapper.find('[data-test="privatekey-delete-btn"]').trigger("click");
     await flushPromises();
-    expect(dialog.find('[data-test="privatekey-dialog-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="privatekey-dialog-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="privatekey-close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="privatekey-remove-btn"]').exists()).toBe(true);
+
+    const body = new DOMWrapper(document.body);
+    expect(body.find('[data-test="private-key-delete-dialog"]').exists()).toBe(true);
+
+    const dialog = wrapper.findComponent({ name: "MessageDialog" });
+    expect(dialog.exists()).toBe(true);
+    expect(dialog.props("title")).toBe("Are you sure?");
+    expect(dialog.props("description")).toBe("You are about to delete this private key");
+    expect(dialog.props("icon")).toBe("mdi-alert");
+    expect(dialog.props("iconColor")).toBe("error");
+    expect(dialog.props("confirmText")).toBe("Delete");
+    expect(dialog.props("confirmColor")).toBe("error");
+    expect(dialog.props("cancelText")).toBe("Close");
   });
 
   it("Checks if the remove function updates the store on success", async () => {
-    const storeSpy = vi.spyOn(privateKeysStore, "deletePrivateKey");
-    await wrapper.setProps({ id: 1 });
-    await wrapper.findComponent('[data-test="privatekey-delete-btn"]').trigger("click");
+    const storeSpy = vi.spyOn(privateKeysStore, "deletePrivateKey").mockResolvedValue();
+
+    await wrapper.find('[data-test="privatekey-delete-btn"]').trigger("click");
     await flushPromises();
-    await wrapper.findComponent('[data-test="privatekey-remove-btn"]').trigger("click");
+
+    const dialog = wrapper.findComponent({ name: "MessageDialog" });
+    await dialog.vm.$emit("confirm");
+    await flushPromises();
+
     expect(storeSpy).toHaveBeenCalledWith(1);
   });
 });

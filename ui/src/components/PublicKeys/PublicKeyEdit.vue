@@ -10,145 +10,120 @@
         <div data-test="public-key-edit-icon" class="mr-2">
           <v-icon> mdi-pencil </v-icon>
         </div>
-
-        <v-list-item-title>
-          Edit
-        </v-list-item-title>
+        <v-list-item-title>Edit</v-list-item-title>
       </div>
     </v-list-item>
 
-    <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
-      <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-3 bg-primary" data-test="public-key-edit-title">
-          Edit Public Key
-        </v-card-title>
-        <form @submit.prevent="edit" class="mt-3">
-          <v-card-text>
-            <v-text-field
-              v-model="name"
-              label="Key name"
-              placeholder="Name used to identify the public key"
-              :error-messages="nameError"
-              required
-              variant="underlined"
-              data-test="name-field"
-            />
+    <FormDialog
+      v-model="showDialog"
+      @close="close"
+      @cancel="close"
+      @confirm="edit"
+      title="Edit Public Key"
+      icon="mdi-key-outline"
+      confirm-text="Save"
+      cancel-text="Cancel"
+      :confirm-disabled="confirmDisabled"
+      confirm-data-test="pk-edit-save-btn"
+      cancel-data-test="pk-edit-cancel-btn"
+      data-test="public-key-edit-dialog"
+    >
+      <div class="px-6 pt-4">
+        <v-text-field
+          v-model="name"
+          label="Key name"
+          placeholder="Name used to identify the public key"
+          :error-messages="nameError"
+          required
+          data-test="name-field"
+        />
 
-            <v-row class="mt-1 px-3">
-              <v-select
-                v-model="choiceUsername"
-                label="Device username access restriction"
-                :items="usernameList"
-                variant="underlined"
-                item-title="filterText"
-                item-value="filterName"
-                data-test="username-restriction-field"
-              />
-            </v-row>
+        <v-row class="mt-1 px-3">
+          <v-select
+            v-model="choiceUsername"
+            label="Device username access restriction"
+            :items="usernameList"
+            item-title="filterText"
+            item-value="filterName"
+            data-test="username-restriction-field"
+          />
+        </v-row>
 
-            <v-text-field
-              v-if="choiceUsername === 'username'"
-              v-model="username"
-              label="Rule username"
-              variant="underlined"
-              :error-messages="usernameError"
-              data-test="rule-field"
-            />
+        <v-text-field
+          v-if="choiceUsername === 'username'"
+          v-model="username"
+          label="Rule username"
+          :error-messages="usernameError"
+          data-test="rule-field"
+        />
 
-            <v-row class="mt-1 px-3">
-              <v-select
-                v-model="choiceFilter"
-                label="Device access restriction"
-                :items="filterList"
-                variant="underlined"
-                item-title="filterText"
-                item-value="filterName"
-                data-test="filter-restriction-field"
-              />
-            </v-row>
+        <v-row class="mt-1 px-3">
+          <v-select
+            v-model="choiceFilter"
+            label="Device access restriction"
+            :items="filterList"
+            item-title="filterText"
+            item-value="filterName"
+            data-test="filter-restriction-field"
+          />
+        </v-row>
 
-            <v-row class="px-3">
-              <v-autocomplete
-                v-if="choiceFilter === 'tags'"
-                v-model="tagChoices"
-                v-model:menu="acMenuOpen"
-                :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
-                :items="tags"
-                item-title="name"
-                item-value="name"
-                attach
-                chips
-                label="Tags"
-                :rules="[validateLength]"
-                :error-messages="errMsg"
-                multiple
-                data-test="tags-selector"
-                @update:search="onSearch"
-              >
-                <template #append-item>
-                  <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
-                </template>
-              </v-autocomplete>
+        <v-row class="px-3">
+          <v-autocomplete
+            v-if="choiceFilter === 'tags'"
+            v-model="tagChoices"
+            v-model:menu="acMenuOpen"
+            :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
+            :items="tags"
+            item-title="name"
+            item-value="name"
+            attach
+            chips
+            label="Tags"
+            :rules="[validateLength]"
+            :error-messages="errMsg"
+            variant="outlined"
+            multiple
+            data-test="tags-selector"
+            @update:search="onSearch"
+          >
+            <template #append-item>
+              <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+            </template>
+          </v-autocomplete>
 
-              <v-text-field
-                v-if="choiceFilter === 'hostname'"
-                v-model="hostname"
-                label="Hostname"
-                :error-messages="hostnameError"
-                data-test="hostname-field"
-              />
-            </v-row>
+          <v-text-field
+            v-if="choiceFilter === 'hostname'"
+            v-model="hostname"
+            label="Hostname"
+            :error-messages="hostnameError"
+            data-test="hostname-field"
+          />
+        </v-row>
 
-            <v-textarea
-              v-model="publicKeyData"
-              class="mt-5"
-              label="Public key data"
-              :error-messages="publicKeyDataError"
-              required
-              messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-              data-test="data-field"
-              rows="2"
-            />
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              @click="close"
-              data-test="pk-edit-cancel-btn"
-            >
-              Cancel
-            </v-btn>
-            <v-btn
-              color="primary"
-              type="submit"
-              data-test="pk-edit-save-btn"
-            >
-              Save
-            </v-btn>
-          </v-card-actions>
-        </form>
-      </v-card>
-    </BaseDialog>
+        <v-textarea
+          v-model="publicKeyData"
+          class="mt-5"
+          label="Public key data"
+          :error-messages="publicKeyDataError"
+          required
+          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          data-test="data-field"
+          rows="2"
+        />
+      </div>
+    </FormDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import {
-  ref,
-  watch,
-  onMounted,
-  computed,
-  nextTick,
-  onUpdated,
-  onUnmounted,
-} from "vue";
+import { ref, watch, onMounted, computed, nextTick, onUpdated, onUnmounted } from "vue";
 import * as yup from "yup";
 import { IPublicKey } from "@/interfaces/IPublicKey";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";
@@ -164,11 +139,12 @@ const showDialog = ref(false);
 const publicKeysStore = usePublicKeysStore();
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-const choiceFilter = ref("hostname");
+
+const choiceFilter = ref<"all" | "hostname" | "tags">("hostname");
+const choiceUsername = ref<"all" | "username">("username");
+
 const validateLength = ref(true);
 const errMsg = ref("");
-const prop = computed(() => props);
-const choiceUsername = ref("username");
 
 const filterList = ref([
   { filterName: "all", filterText: "Allow the key to connect to all available devices" },
@@ -188,7 +164,7 @@ const {
   value: name,
   errorMessage: nameError,
 } = useField<string>("name", yup.string().required(), {
-  initialValue: prop.value.publicKey.name,
+  initialValue: props.publicKey.name,
 });
 watch(name, () => { keyLocal.value.name = name.value; });
 
@@ -197,7 +173,7 @@ const {
   errorMessage: usernameError,
   setErrors: setUsernameError,
 } = useField<string>("username", yup.string().required(), {
-  initialValue: prop.value.publicKey.username,
+  initialValue: props.publicKey.username,
 });
 watch(username, () => { keyLocal.value.username = username.value; });
 
@@ -206,14 +182,14 @@ const {
   errorMessage: hostnameError,
   setErrors: setHostnameError,
 } = useField<string>("hostname", yup.string().required(), {
-  initialValue: (prop.value.publicKey.filter as HostnameFilter)?.hostname || "",
+  initialValue: (props.publicKey.filter as HostnameFilter)?.hostname || "",
 });
 
 const {
   value: publicKeyData,
   errorMessage: publicKeyDataError,
 } = useField<string>("publicKeyData", yup.string().required(), {
-  initialValue: prop.value.publicKey.data,
+  initialValue: props.publicKey.data,
 });
 
 const hasAuthorization = computed(() => props.hasAuthorization ?? true);
@@ -335,72 +311,68 @@ watch(choiceFilter, async (val) => {
   }
 });
 
-watch(tagChoices, (list) => {
+watch([tagChoices, choiceFilter], ([list, filterMode]) => {
+  if (filterMode !== "tags") {
+    validateLength.value = true;
+    errMsg.value = "";
+    return;
+  }
   if (list.length > 3) {
     validateLength.value = false;
     nextTick(() => tagChoices.value.pop());
     errMsg.value = "The maximum capacity has reached";
-  } else if (list.length <= 2) {
+  } else {
     validateLength.value = true;
     errMsg.value = "";
   }
 });
 
 const handleUpdate = () => {
-  if (showDialog.value) {
-    if (hasTags.value) {
-      const { tags } = props.publicKey.filter as TagsFilter;
-      tagChoices.value = tags;
-      choiceFilter.value = "tags";
-    } else {
-      const { hostname: hostnameLocal } = props.publicKey.filter as HostnameFilter;
-      if (!!hostnameLocal && hostnameLocal !== ".*") {
-        choiceFilter.value = "hostname";
-        hostname.value = hostnameLocal;
-      } else if (!!hostnameLocal && hostnameLocal === ".*") {
-        choiceFilter.value = "all";
-      }
-    }
+  if (!showDialog.value) return;
 
-    const { username: usernameLocal } = props.publicKey;
-    choiceUsername.value = usernameLocal === ".*" ? "all" : "username";
-    username.value = usernameLocal;
+  if (hasTags.value) {
+    const { tags } = props.publicKey.filter as TagsFilter;
+    tagChoices.value = tags;
+    choiceFilter.value = "tags";
+  } else {
+    const { hostname: hostnameLocal } = props.publicKey.filter as HostnameFilter;
+    if (hostnameLocal && hostnameLocal !== ".*") {
+      choiceFilter.value = "hostname";
+      hostname.value = hostnameLocal;
+    } else if (hostnameLocal === ".*") {
+      choiceFilter.value = "all";
+    }
   }
+
+  const { username: usernameLocal } = props.publicKey;
+  choiceUsername.value = usernameLocal === ".*" ? "all" : "username";
+  username.value = usernameLocal;
 };
 
 const chooseFilter = () => {
   switch (choiceFilter.value) {
-    case "all": {
+    case "all":
       keyLocal.value = { ...keyLocal.value, filter: { hostname: ".*" } };
       break;
-    }
-    case "hostname": {
+    case "hostname":
       keyLocal.value = { ...keyLocal.value, filter: { hostname: hostname.value } };
       break;
-    }
-    case "tags": {
+    case "tags":
       keyLocal.value = { ...keyLocal.value, filter: { tags: tagChoices.value } };
       break;
-    }
-    default: {
-      break;
-    }
+    default: break;
   }
 };
 
 const chooseUsername = () => {
   switch (choiceUsername.value) {
-    case "all": {
+    case "all":
       keyLocal.value = { ...keyLocal.value, username: ".*" };
       break;
-    }
-    case "username": {
+    case "username":
       keyLocal.value = { ...keyLocal.value, username: username.value };
       break;
-    }
-    default: {
-      break;
-    }
+    default: break;
   }
 };
 
@@ -450,13 +422,20 @@ const resetPublicKey = () => {
   hostname.value = "";
   username.value = "";
   tagChoices.value = [];
+  validateLength.value = true;
+  errMsg.value = "";
+  acMenuOpen.value = false;
+  cleanupObserver();
+  page.value = 1;
+  perPage.value = 10;
+  filter.value = "";
+  fetchedTags.value = [];
 };
 
 const close = () => {
   resetPublicKey();
   setLocalVariable();
   showDialog.value = false;
-  cleanupObserver();
 };
 
 const update = () => {
@@ -465,21 +444,39 @@ const update = () => {
 };
 
 const edit = async () => {
-  if (!hasError()) {
-    chooseFilter();
-    chooseUsername();
-    const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data as string) };
+  if (hasError()) return;
 
-    try {
-      await publicKeysStore.updatePublicKey(keySend as IPublicKey);
-      snackbar.showSuccess("Public key updated successfully.");
-      update();
-    } catch (error: unknown) {
-      snackbar.showError("Failed to update public key.");
-      handleError(error);
-    }
+  chooseFilter();
+  chooseUsername();
+  const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data as string) };
+
+  try {
+    await publicKeysStore.updatePublicKey(keySend as IPublicKey);
+    snackbar.showSuccess("Public key updated successfully.");
+    update();
+  } catch (error: unknown) {
+    snackbar.showError("Failed to update public key.");
+    handleError(error);
   }
 };
+
+const confirmDisabled = computed(() => {
+  if (!name.value || !publicKeyData.value) return true;
+
+  if (choiceUsername.value === "username" && !username.value) return true;
+  if (choiceFilter.value === "hostname" && !hostname.value) return true;
+  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) return true;
+
+  const tagRuleBlocking = choiceFilter.value === "tags" && !validateLength.value;
+
+  return Boolean(
+    nameError.value
+    || publicKeyDataError.value
+    || (choiceUsername.value === "username" && usernameError.value)
+    || (choiceFilter.value === "hostname" && hostnameError.value)
+    || tagRuleBlocking,
+  );
+});
 
 defineExpose({ nameError, usernameError, hostnameError });
 </script>

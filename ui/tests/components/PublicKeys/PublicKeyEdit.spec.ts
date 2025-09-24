@@ -62,7 +62,6 @@ describe("Public Key Edit", () => {
     await wrapper.findComponent('[data-test="public-key-edit-title-btn"]').trigger("click");
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
-    expect(dialog.find('[data-test="public-key-edit-title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="name-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="username-restriction-field"]').exists()).toBe(true);
     await wrapper.findComponent('[data-test="username-restriction-field"]').setValue("username");

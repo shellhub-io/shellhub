@@ -5,83 +5,71 @@
         <div data-test="privatekey-icon" class="mr-2">
           <v-icon>mdi-pencil</v-icon>
         </div>
-
-        <v-list-item-title data-test="privatekey-title">
-          Edit
-        </v-list-item-title>
+        <v-list-item-title data-test="privatekey-title">Edit</v-list-item-title>
       </div>
     </v-list-item>
 
-    <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
-      <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-3 bg-primary">
-          Edit Private Key
-        </v-card-title>
-        <form @submit.prevent="edit" class="mt-3">
-          <v-card-text>
-            <v-text-field
-              v-model="name"
-              :error-messages="nameError"
-              label="Key name"
-              placeholder="Name used to identify the private key"
-              variant="underlined"
-              data-test="name-field"
-            />
+    <FormDialog
+      v-model="showDialog"
+      @close="close"
+      @cancel="close"
+      @confirm="edit"
+      title="Edit Private Key"
+      icon="mdi-key"
+      confirm-text="Save"
+      cancel-text="Cancel"
+      :confirm-disabled="confirmDisabled"
+      confirm-data-test="pk-edit-save-btn"
+      cancel-data-test="pk-edit-cancel-btn"
+      data-test="private-key-edit-dialog"
+    >
+      <div class="px-6 pt-4">
+        <v-text-field
+          v-model="name"
+          :error-messages="nameError"
+          label="Key name"
+          placeholder="Name used to identify the private key"
+          variant="underlined"
+          data-test="name-field"
+        />
 
-            <v-textarea
-              v-model="keyLocal"
-              label="Private key data"
-              required
-              messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-              :error-messages="keyLocalError"
-              @update:model-value="validatePrivateKeyData"
-              variant="underlined"
-              data-test="private-key-field"
-              rows="5"
-            />
+        <v-textarea
+          v-model="keyLocal"
+          label="Private key data"
+          required
+          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          :error-messages="keyLocalError"
+          @update:model-value="validatePrivateKeyData"
+          variant="underlined"
+          data-test="private-key-field"
+          rows="5"
+        />
 
-            <v-text-field
-              v-if="hasPassphrase"
-              v-model="passphrase"
-              :error-messages="passphraseError"
-              label="Passphrase"
-              class="mt-4"
-              hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
-              persistent-hint
-              placeholder="Enter passphrase for encrypted key"
-              variant="underlined"
-              data-test="passphrase-field"
-            />
-          </v-card-text>
-
-          <v-card-actions>
-            <v-spacer />
-            <v-btn @click="close" data-test="pk-edit-cancel-btn">
-              Cancel
-            </v-btn>
-            <v-btn
-              color="primary"
-              type="submit"
-              data-test="pk-edit-save-btn"
-              :disabled="!!keyLocalError || !!nameError || (hasPassphrase && !!passphraseError)"
-            >
-              Save
-            </v-btn>
-          </v-card-actions>
-        </form>
-      </v-card>
-    </BaseDialog>
+        <v-text-field
+          v-if="hasPassphrase"
+          v-model="passphrase"
+          :error-messages="passphraseError"
+          label="Passphrase"
+          class="mt-4"
+          hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
+          persistent-hint
+          placeholder="Enter passphrase for encrypted key"
+          variant="underlined"
+          data-test="passphrase-field"
+        />
+      </div>
+    </FormDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import * as yup from "yup";
 import handleError from "@/utils/handleError";
 import { convertToFingerprint, isKeyValid, parsePrivateKey } from "@/utils/sshKeys";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
@@ -92,6 +80,7 @@ const showDialog = ref(false);
 const privateKeysStore = usePrivateKeysStore();
 const snackbar = useSnackbar();
 const hasPassphrase = ref(privateKey.hasPassphrase || false);
+
 const {
   value: keyLocal,
   errorMessage: keyLocalError,
@@ -145,7 +134,7 @@ const open = () => {
 
 const close = () => {
   resetPassphrase();
-  hasPassphrase.value = privateKey.hasPassphrase;
+  hasPassphrase.value = privateKey.hasPassphrase || false;
   showDialog.value = false;
 };
 
@@ -154,17 +143,19 @@ const hasValidationError = () => {
     setNameError("Name is required");
     return true;
   }
-
   if (keyLocal.value === "") {
     setKeyLocalError("Private key data is required");
     return true;
   }
-
   if (hasPassphrase.value && passphrase.value === "") {
     setPassphraseError("Passphrase is required");
     return true;
   }
-
+  // If present, ensure it's a valid private key
+  if (!isKeyValid("private", keyLocal.value, passphrase.value || undefined)) {
+    setKeyLocalError("Invalid private key data");
+    return true;
+  }
   return false;
 };
 
@@ -178,13 +169,12 @@ const handleEditError = (error: Error) => {
     setPassphraseError("Passphrase is incorrect or missing.");
     return;
   }
-
   if (!isKeyValid("private", keyLocal.value, passphrase.value || undefined)) {
     setKeyLocalError("Invalid private key data");
     return;
   }
-
   snackbar.showError("Failed to update private key.");
+  handleError(error);
 };
 
 const edit = () => {
@@ -205,5 +195,12 @@ const edit = () => {
     handleEditError(error as Error);
   }
 };
+
+const confirmDisabled = computed(() => Boolean(
+  keyLocalError.value
+    || nameError.value
+    || (hasPassphrase.value && passphraseError.value),
+));
+
 defineExpose({ keyLocal, name, hasPassphrase, update, edit, handleError, initializeFormData });
 </script>

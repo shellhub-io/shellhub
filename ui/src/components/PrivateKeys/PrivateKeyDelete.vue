@@ -11,40 +11,28 @@
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-5 bg-primary" data-test="privatekey-dialog-title">
-        Are you sure?
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-0 pb-1" data-test="privatekey-dialog-text">
-        <p class="text-body-2 mb-2">
-          You are about to remove this private key.
-        </p>
-
-        <p class="text-body-2 mb-2">
-          After confirming this action cannot be redone.
-        </p>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" @click="showDialog = false" data-test="privatekey-close-btn"> Close </v-btn>
-
-        <v-btn color="red darken-1" variant="text" @click="remove()" data-test="privatekey-remove-btn">
-          Remove
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <MessageDialog
+    v-model="showDialog"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
+    title="Are you sure?"
+    description="You are about to delete this private key"
+    icon="mdi-alert"
+    icon-color="error"
+    confirm-text="Delete"
+    confirm-color="error"
+    cancel-text="Close"
+    confirm-data-test="confirm-btn"
+    cancel-data-test="close-btn"
+    data-test="private-key-delete-dialog"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const props = defineProps<{ id: number }>();
