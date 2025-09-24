@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -23,6 +24,10 @@ type Client interface {
 type Config struct {
 	// RetryCount defines how many times the client should retry a request in case of failure.
 	RetryCount int
+	// RetryWaitTime defines the wait time between retries.
+	RetryWaitTime time.Duration
+	// RetryMaxWaitTime defines the maximum wait time between retries.
+	RetryMaxWaitTime time.Duration
 }
 
 type client struct {
@@ -50,7 +55,10 @@ func NewClient(opts ...clientOption) (Client, error) {
 	c := &client{
 		http: httpClient,
 		Config: &Config{
-			RetryCount: 3,
+			// NOTE: Default values can be overridden using the WithConfig option.
+			RetryCount:       3,
+			RetryWaitTime:    5 * time.Second,
+			RetryMaxWaitTime: 20 * time.Second,
 		},
 	}
 
@@ -66,6 +74,8 @@ func NewClient(opts ...clientOption) (Client, error) {
 
 	httpClient.SetBaseURL("http://api:8080")
 	httpClient.SetRetryCount(c.Config.RetryCount)
+	httpClient.SetRetryWaitTime(c.Config.RetryWaitTime)
+	httpClient.SetRetryMaxWaitTime(c.Config.RetryMaxWaitTime)
 	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
 			return true
