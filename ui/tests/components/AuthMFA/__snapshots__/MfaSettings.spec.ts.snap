@@ -1,13 +1,827 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`MfaSettings > Renders the component 1`] = `""`;
-
-exports[`MfaSettings > Renders the components (second-window) 1`] = `
-"<!--teleport start-->
-<!--teleport end-->"
+exports[`MfaSettings > Renders the component (Recovery email window) 1`] = `
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="" data-test="dialog">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-bottom-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-email-plus-outline mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Recovery Email Setup
+                    </div>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">Add a recovery email to secure your MFA process</div>
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div data-v-491349b1="" class="v-window v-theme--light pa-6">
+              <div class="v-window__container">
+                <transition-stub data-v-491349b1="" name="" appear="false" persisted="false" css="true">
+                  <div class="v-window-item v-window-item--active">
+                    <p data-v-491349b1="" class="text-justify mb-4 px-1"> In case you lose access to all your MFA credentials, we'll need a recovery email to verify your identity and reset your account access. To ensure you can recover your account if you lose access to your MFA credentials, please associate a recovery email. </p>
+                    <div data-v-491349b1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mx-auto" style="width: 400px;" data-test="recovery-email-text">
+                      <!---->
+                      <div class="v-input__control">
+                        <div class="v-field v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
+                              <!---->Recovery Email
+                            </label><label class="v-label v-field-label" for="input-v-3">
+                              <!---->Recovery Email
+                            </label>
+                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
+                            <!---->
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <!---->
+                            <!---->
+                          </div>
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="" appear="false" persisted="false" css="true">
+                  <div class="v-window-item" style="display: none;">
+                    <!---->
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="" appear="false" persisted="false" css="true">
+                  <div class="v-window-item text-center" style="display: none;">
+                    <!---->
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="" appear="false" persisted="false" css="true">
+                  <div class="v-window-item" style="display: none;">
+                    <!---->
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+              <!---->
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div data-v-491349b1="" class="v-spacer"></div>
+                <div data-v-491349b1="" class="v-card-actions"><button data-v-491349b1="" type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator="">Close</span>
+                    <!---->
+                    <!---->
+                  </button><button data-v-491349b1="" type="button" class="v-btn v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" disabled="" data-test="disable-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Save Recovery Email </span>
+                    <!---->
+                    <!---->
+                  </button></div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
 `;
 
-exports[`MfaSettings > Renders the components (third-window) 1`] = `
-"<!--teleport start-->
-<!--teleport end-->"
+exports[`MfaSettings > Renders the components (Recovery codes window) 1`] = `
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="" data-test="dialog">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-bottom-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-shield-key-outline mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Save Your Recovery Codes
+                    </div>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">Download and securely store your backup codes</div>
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div data-v-491349b1="" class="v-window v-theme--light pa-6">
+              <div class="v-window__container">
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item" style="display: none;">
+                    <p data-v-491349b1="" class="text-justify mb-4 px-1"> In case you lose access to all your MFA credentials, we'll need a recovery email to verify your identity and reset your account access. To ensure you can recover your account if you lose access to your MFA credentials, please associate a recovery email. </p>
+                    <div data-v-491349b1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mx-auto" style="width: 400px;" data-test="recovery-email-text">
+                      <!---->
+                      <div class="v-input__control">
+                        <div class="v-field v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
+                              <!---->Recovery Email
+                            </label><label class="v-label v-field-label" for="input-v-3">
+                              <!---->Recovery Email
+                            </label>
+                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
+                            <!---->
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <!---->
+                            <!---->
+                          </div>
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item v-window-item--active" style="">
+                    <div data-v-491349b1="" class="v-alert v-theme--light bg-warning v-alert--density-default v-alert--variant-flat" role="alert" data-test="alert-first-page">
+                      <!----><span class="v-alert__underlay"></span>
+                      <!---->
+                      <!---->
+                      <div class="v-alert__content">
+                        <!---->Please tick the box below when you're confident you've saved your recovery codes.
+                        Without them, you won't be able to get back into your account if you lose your MFA device.
+                        Keep in mind that the codes will change if you come back to this page.
+                        <!---->
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                    <div data-v-491349b1="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated my-4 pa-3 border overflow-x-auto">
+                      <!---->
+                      <div class="v-card__loader">
+                        <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                          <!---->
+                          <div class="v-progress-linear__background"></div>
+                          <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                          <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                            <div class="v-progress-linear__indeterminate">
+                              <div class="v-progress-linear__indeterminate long"></div>
+                              <div class="v-progress-linear__indeterminate short"></div>
+                            </div>
+                          </transition-stub>
+                          <!---->
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                      <div data-v-491349b1="" class="recovery-codes-grid"><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">HW2wlxV40B</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">2xsmMUHHHb</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">DTQgVsaVac</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">KXPBoXvuWD</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">QQYTPfotBi</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">XWiKBEPyb4</span></div>
+                      <!---->
+                      <!----><span class="v-card__underlay"></span>
+                    </div>
+                    <div data-v-491349b1="" class="v-row justify-center my-4"><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text mr-3" tabindex="0" data-test="download-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-download-box-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Download </span>
+                        <!---->
+                        <!---->
+                      </button>
+                      <div data-v-491349b1=""><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" data-test="copy-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Copy </span>
+                          <!---->
+                          <!---->
+                        </button>
+                        <!---->
+                        <!---->
+                      </div>
+                    </div>
+                    <div data-v-491349b1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-checkbox" data-test="checkbox-recovery">
+                      <!---->
+                      <div class="v-input__control">
+                        <div class="v-selection-control v-selection-control--density-default v-checkbox-btn">
+                          <div class="v-selection-control__wrapper">
+                            <!---->
+                            <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-12" aria-disabled="false" aria-label="I have saved my recovery codes and I want to continue the MFA Setup" type="checkbox" value="true"></div>
+                          </div><label class="v-label v-label--clickable" for="checkbox-v-12">
+                            <!---->I have saved my recovery codes and I want to continue the MFA Setup
+                          </label>
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item text-center" style="display: none;">
+                    <!---->
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item" style="display: none;">
+                    <!---->
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+              <!---->
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div data-v-491349b1="" class="v-spacer"></div>
+                <div data-v-491349b1="" class="v-card-actions"><button data-v-491349b1="" type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator="">Close</span>
+                    <!---->
+                    <!---->
+                  </button><button data-v-491349b1="" type="button" class="v-btn v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" disabled="" data-test="next-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Next Step </span>
+                    <!---->
+                    <!---->
+                  </button></div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
+`;
+
+exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="" data-test="dialog">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-bottom-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-qrcode-scan mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Configure MFA Device
+                    </div>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">Scan QR code and verify your authenticator app</div>
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div data-v-491349b1="" class="v-window v-theme--light pa-6">
+              <div class="v-window__container">
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item" style="display: none;">
+                    <p data-v-491349b1="" class="text-justify mb-4 px-1"> In case you lose access to all your MFA credentials, we'll need a recovery email to verify your identity and reset your account access. To ensure you can recover your account if you lose access to your MFA credentials, please associate a recovery email. </p>
+                    <div data-v-491349b1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mx-auto" style="width: 400px;" data-test="recovery-email-text">
+                      <!---->
+                      <div class="v-input__control">
+                        <div class="v-field v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
+                              <!---->Recovery Email
+                            </label><label class="v-label v-field-label" for="input-v-3">
+                              <!---->Recovery Email
+                            </label>
+                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
+                            <!---->
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <!---->
+                            <!---->
+                          </div>
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item" style="display: none;">
+                    <div data-v-491349b1="" class="v-alert v-theme--light bg-warning v-alert--density-default v-alert--variant-flat" role="alert" data-test="alert-first-page">
+                      <!----><span class="v-alert__underlay"></span>
+                      <!---->
+                      <!---->
+                      <div class="v-alert__content">
+                        <!---->Please tick the box below when you're confident you've saved your recovery codes.
+                        Without them, you won't be able to get back into your account if you lose your MFA device.
+                        Keep in mind that the codes will change if you come back to this page.
+                        <!---->
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                    <div data-v-491349b1="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated my-4 pa-3 border overflow-x-auto">
+                      <!---->
+                      <div class="v-card__loader">
+                        <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                          <!---->
+                          <div class="v-progress-linear__background"></div>
+                          <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                          <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                            <div class="v-progress-linear__indeterminate">
+                              <div class="v-progress-linear__indeterminate long"></div>
+                              <div class="v-progress-linear__indeterminate short"></div>
+                            </div>
+                          </transition-stub>
+                          <!---->
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                      <div data-v-491349b1="" class="recovery-codes-grid"><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">HW2wlxV40B</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">2xsmMUHHHb</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">DTQgVsaVac</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">KXPBoXvuWD</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">QQYTPfotBi</span><span data-v-491349b1="" class="py-2 text-center font-weight-medium" data-test="recovery-codes">XWiKBEPyb4</span></div>
+                      <!---->
+                      <!----><span class="v-card__underlay"></span>
+                    </div>
+                    <div data-v-491349b1="" class="v-row justify-center my-4"><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text mr-3" tabindex="0" data-test="download-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-download-box-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Download </span>
+                        <!---->
+                        <!---->
+                      </button>
+                      <div data-v-491349b1=""><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" data-test="copy-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Copy </span>
+                          <!---->
+                          <!---->
+                        </button>
+                        <!---->
+                        <!---->
+                      </div>
+                    </div>
+                    <div data-v-491349b1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-checkbox" data-test="checkbox-recovery">
+                      <!---->
+                      <div class="v-input__control">
+                        <div class="v-selection-control v-selection-control--density-default v-checkbox-btn">
+                          <div class="v-selection-control__wrapper">
+                            <!---->
+                            <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-12" aria-disabled="false" aria-label="I have saved my recovery codes and I want to continue the MFA Setup" type="checkbox" value="true"></div>
+                          </div><label class="v-label v-label--clickable" for="checkbox-v-12">
+                            <!---->I have saved my recovery codes and I want to continue the MFA Setup
+                          </label>
+                        </div>
+                      </div>
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item v-window-item--active text-center" style=""><svg data-v-491349b1="" width="250" height="250" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 25">
+                      <defs>
+                        <!---->
+                      </defs>
+                      <rect width="100%" height="100%" fill="#fff"></rect>
+                      <path fill="#000" d="M2 2h7v1H2zM12 2h1v1H12zM14 2h1v1H14zM16,2 h7v1H16zM2 3h1v1H2zM8 3h1v1H8zM10 3h1v1H10zM12 3h1v1H12zM16 3h1v1H16zM22,3 h1v1H22zM2 4h1v1H2zM4 4h3v1H4zM8 4h1v1H8zM12 4h1v1H12zM14 4h1v1H14zM16 4h1v1H16zM18 4h3v1H18zM22,4 h1v1H22zM2 5h1v1H2zM4 5h3v1H4zM8 5h1v1H8zM10 5h1v1H10zM12 5h1v1H12zM14 5h1v1H14zM16 5h1v1H16zM18 5h3v1H18zM22,5 h1v1H22zM2 6h1v1H2zM4 6h3v1H4zM8 6h1v1H8zM10 6h1v1H10zM13 6h1v1H13zM16 6h1v1H16zM18 6h3v1H18zM22,6 h1v1H22zM2 7h1v1H2zM8 7h1v1H8zM11 7h1v1H11zM13 7h2v1H13zM16 7h1v1H16zM22,7 h1v1H22zM2 8h7v1H2zM10 8h1v1H10zM12 8h1v1H12zM14 8h1v1H14zM16,8 h7v1H16zM10 9h5v1H10zM3 10h1v1H3zM5 10h4v1H5zM10 10h2v1H10zM13 10h1v1H13zM15 10h2v1H15zM18 10h2v1H18zM21 10h1v1H21zM2 11h1v1H2zM4 11h2v1H4zM11 11h1v1H11zM13 11h2v1H13zM16 11h1v1H16zM2 12h1v1H2zM4 12h2v1H4zM8 12h1v1H8zM10 12h1v1H10zM13 12h4v1H13zM20,12 h3v1H20zM2 13h2v1H2zM5 13h2v1H5zM11 13h3v1H11zM20 13h1v1H20zM2 14h1v1H2zM4 14h1v1H4zM8 14h1v1H8zM10 14h2v1H10zM14 14h3v1H14zM18 14h2v1H18zM10 15h1v1H10zM12 15h2v1H12zM18 15h2v1H18zM21 15h1v1H21zM2 16h7v1H2zM11 16h1v1H11zM15 16h2v1H15zM18 16h1v1H18zM2 17h1v1H2zM8 17h1v1H8zM10 17h1v1H10zM12 17h4v1H12zM17 17h4v1H17zM22,17 h1v1H22zM2 18h1v1H2zM4 18h3v1H4zM8 18h1v1H8zM10 18h1v1H10zM13 18h2v1H13zM16 18h1v1H16zM18 18h2v1H18zM2 19h1v1H2zM4 19h3v1H4zM8 19h1v1H8zM10 19h2v1H10zM13 19h2v1H13zM19 19h1v1H19zM2 20h1v1H2zM4 20h3v1H4zM8 20h1v1H8zM11 20h1v1H11zM16 20h1v1H16zM18 20h1v1H18zM21,20 h2v1H21zM2 21h1v1H2zM8 21h1v1H8zM10 21h1v1H10zM12 21h1v1H12zM15 21h3v1H15zM20,21 h3v1H20zM2 22h7v1H2zM11 22h3v1H11z"></path>
+                      <!---->
+                    </svg>
+                    <div data-v-491349b1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field my-4 text-left">
+                      <!---->
+                      <div class="v-input__control">
+                        <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-17" aria-hidden="false">
+                              <!---->Secret
+                            </label><label class="v-label v-field-label" for="input-v-17">
+                              <!---->Secret
+                            </label>
+                            <!----><input readonly="" size="1" type="text" id="input-v-17" aria-describedby="input-v-17-messages" class="v-field__input" value="secret-mfa">
+                            <!---->
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <!---->
+                            <!---->
+                          </div>
+                        </div>
+                      </div>
+                      <!---->
+                      <div id="input-v-17-messages" class="v-input__details" role="alert" aria-live="polite">
+                        <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
+                          <div class="v-messages__message">Alternatively, you can use this secret to enable in your MFA App if you cannot read the QR code.</div>
+                        </transition-group-stub>
+                        <!---->
+                      </div>
+                    </div>
+                    <div data-v-491349b1="" class="text-left">
+                      <p data-v-491349b1="" class="mb-2"><strong data-v-491349b1="">Step 1:</strong> Scan the QR code above or manually enter the Secret Key provided into your preferred TOTP (Time-Based One-Time Password) provider.</p>
+                      <p data-v-491349b1="" class="my-2"><strong data-v-491349b1="">Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in.</p>
+                    </div>
+                    <!--v-if-->
+                    <div data-v-491349b1="" class="v-otp-input" data-test="verification-code" required="">
+                      <div class="v-otp-input__content">
+                        <!---->
+                        <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator="">
+                            <!---->
+                            <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="6" type="text">
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <div class="v-field__outline__start"></div>
+                            <!---->
+                            <div class="v-field__outline__end"></div>
+                            <!---->
+                          </div>
+                        </div>
+                        <!---->
+                        <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator="">
+                            <!---->
+                            <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="1" type="text">
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <div class="v-field__outline__start"></div>
+                            <!---->
+                            <div class="v-field__outline__end"></div>
+                            <!---->
+                          </div>
+                        </div>
+                        <!---->
+                        <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator="">
+                            <!---->
+                            <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="1" type="text">
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <div class="v-field__outline__start"></div>
+                            <!---->
+                            <div class="v-field__outline__end"></div>
+                            <!---->
+                          </div>
+                        </div>
+                        <!---->
+                        <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator="">
+                            <!---->
+                            <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="1" type="text">
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <div class="v-field__outline__start"></div>
+                            <!---->
+                            <div class="v-field__outline__end"></div>
+                            <!---->
+                          </div>
+                        </div>
+                        <!---->
+                        <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator="">
+                            <!---->
+                            <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="1" type="text">
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <div class="v-field__outline__start"></div>
+                            <!---->
+                            <div class="v-field__outline__end"></div>
+                            <!---->
+                          </div>
+                        </div>
+                        <!---->
+                        <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                          <div class="v-field__overlay"></div>
+                          <div class="v-field__loader">
+                            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                              <!---->
+                              <div class="v-progress-linear__background"></div>
+                              <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                <div class="v-progress-linear__indeterminate">
+                                  <div class="v-progress-linear__indeterminate long"></div>
+                                  <div class="v-progress-linear__indeterminate short"></div>
+                                </div>
+                              </transition-stub>
+                              <!---->
+                            </div>
+                          </div>
+                          <!---->
+                          <div class="v-field__field" data-no-activator="">
+                            <!---->
+                            <!----><input aria-label="Verification Code" autocomplete="one-time-code" class="v-otp-input__field" inputmode="numeric" min="0" maxlength="1" type="text">
+                          </div>
+                          <!---->
+                          <!---->
+                          <div class="v-field__outline">
+                            <div class="v-field__outline__start"></div>
+                            <!---->
+                            <div class="v-field__outline__end"></div>
+                            <!---->
+                          </div>
+                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        <!---->
+                        <!---->
+                        <!---->
+                      </div>
+                    </div>
+                  </div>
+                </transition-stub>
+                <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
+                  <div class="v-window-item" style="display: none;">
+                    <!---->
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+              <!---->
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div data-v-491349b1="" class="v-spacer"></div>
+                <div data-v-491349b1="" class="v-card-actions"><button data-v-491349b1="" type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="back-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator="">Back</span>
+                    <!---->
+                    <!---->
+                  </button><button data-v-491349b1="" type="button" class="v-btn v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" disabled="" data-test="verify-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Verify </span>
+                    <!---->
+                    <!---->
+                  </button></div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
 `;

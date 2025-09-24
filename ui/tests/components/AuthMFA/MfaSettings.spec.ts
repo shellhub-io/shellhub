@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MfaSettings from "@/components/AuthMFA/MfaSettings.vue";
@@ -50,33 +50,33 @@ describe("MfaSettings", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Dialog opens", async () => {
+  it("Renders the component (Recovery email window)", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    expect(document.querySelector('[data-test="dialog"]')).not.toBeNull();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
-  it("Renders the components (second-window)", async () => {
+  it("Renders the components (Recovery codes window)", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    wrapper.vm.goToNextStep();
-    expect(wrapper.html()).toMatchSnapshot();
+    await wrapper.vm.goToNextStep();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
-  it("Renders the components (third-window)", async () => {
+  it("Renders the components (Secret/QR Code window)", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    wrapper.vm.goToNextStep();
-    wrapper.vm.goToNextStep();
-    expect(wrapper.html()).toMatchSnapshot();
+    await wrapper.vm.goToNextStep();
+    await wrapper.vm.goToNextStep();
+    await flushPromises();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Successful MFA setup", async () => {
-    wrapper.vm.goToNextStep(); // 2
+    await wrapper.vm.goToNextStep(); // 2
     const responseData = {
       token: "token",
     };
@@ -86,7 +86,7 @@ describe("MfaSettings", () => {
 
     wrapper.vm.showDialog = true;
     await flushPromises();
-    wrapper.vm.goToNextStep(); // 3
+    await wrapper.vm.goToNextStep(); // 3
     await flushPromises();
     await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
     await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");
