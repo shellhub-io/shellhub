@@ -2,7 +2,6 @@ package internalclient
 
 import (
 	"errors"
-	"math"
 	"net"
 	"net/http"
 
@@ -20,10 +19,18 @@ type Client interface {
 	firewallAPI
 }
 
+// Config holds configuration options for the client.
+type Config struct {
+	// RetryCount defines how many times the client should retry a request in case of failure.
+	RetryCount int
+}
+
 type client struct {
 	http   *resty.Client
 	logger *logrus.Logger
 	worker worker.Client
+
+	Config *Config
 }
 
 const (
@@ -39,17 +46,14 @@ var (
 
 func NewClient(opts ...clientOption) (Client, error) {
 	httpClient := resty.New()
-	httpClient.SetBaseURL("http://api:8080")
-	httpClient.SetRetryCount(math.MaxInt32)
-	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
-		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
-			return true
-		}
 
-		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
-	})
+	c := &client{
+		http: httpClient,
+		Config: &Config{
+			RetryCount: 3,
+		},
+	}
 
-	c := &client{http: httpClient}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
 			return nil, err
@@ -59,6 +63,16 @@ func NewClient(opts ...clientOption) (Client, error) {
 	if c.logger != nil {
 		httpClient.SetLogger(&LeveledLogger{c.logger})
 	}
+
+	httpClient.SetBaseURL("http://api:8080")
+	httpClient.SetRetryCount(c.Config.RetryCount)
+	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
+		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
+			return true
+		}
+
+		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
+	})
 
 	return c, nil
 }
