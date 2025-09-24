@@ -59,7 +59,6 @@ describe("Firewall Rule Add", () => {
 
     await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
 
-    expect(dialog.find('[data-test="firewall-rule-title"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-status"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-priority"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-policy"]').exists()).toBe(true);

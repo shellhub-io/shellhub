@@ -19,153 +19,133 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
-      <v-card class="bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-3 bg-primary" data-test="firewall-rule-title">
-          New Firewall Rule
-        </v-card-title>
-        <form @submit.prevent="addFirewallRule" class="mt-3">
-          <v-card-text>
-            <v-row>
-              <v-col>
-                <v-select
-                  v-model="active"
-                  :items="activeSelectOptions"
-                  label="Rule status"
-                  variant="underlined"
-                  data-test="firewall-rule-status"
-                />
-              </v-col>
-
-              <v-col>
-                <v-text-field
-                  v-model="priority"
-                  label="Rule priority"
-                  :error-messages="priorityError"
-                  type="number"
-                  variant="underlined"
-                  data-test="firewall-rule-priority"
-                />
-              </v-col>
-
-              <v-col>
-                <v-select
-                  v-model="action"
-                  :items="actionSelectOptions"
-                  label="Rule policy"
-                  variant="underlined"
-                  data-test="firewall-rule-policy"
-                />
-              </v-col>
-            </v-row>
-
-            <v-row class="mt-1 mb-1 px-3">
-              <v-select
-                v-model="selectedIPOption"
-                @update:model-value="handleSourceIpUpdate"
-                label="Source IP access restriction"
-                :items="sourceIPSelectOptions"
-                variant="underlined"
-                data-test="firewall-rule-source-ip-select"
-              />
-            </v-row>
-
-            <v-text-field
-              v-if="selectedIPOption === 'restrict'"
-              v-model="sourceIp"
-              label="Rule source IP"
+    <FormDialog
+      v-model="showDialog"
+      @close="close"
+      @cancel="close"
+      @confirm="addFirewallRule"
+      title="New Firewall Rule"
+      icon="mdi-shield-check"
+      confirm-text="Add"
+      cancel-text="Cancel"
+      :confirm-disabled="hasErrors"
+      confirm-data-test="firewall-rule-add-btn"
+      cancel-data-test="firewall-rule-cancel"
+      data-test="firewall-rule-dialog"
+    >
+      <div class="px-6 pt-4">
+        <v-row>
+          <v-col>
+            <v-select
+              v-model="active"
+              :items="activeSelectOptions"
+              label="Rule status"
               variant="underlined"
-              :error-messages="sourceIpError"
-              data-test="firewall-rule-source-ip"
+              data-test="firewall-rule-status"
             />
+          </v-col>
 
-            <v-row class="mt-1 mb-1 px-3">
-              <v-select
-                v-model="selectedUsernameOption"
-                @update:model-value="handleUsernameUpdate"
-                label="Device username access restriction"
-                :items="usernameSelectOptions"
-                variant="underlined"
-                data-test="username-field"
-              />
-            </v-row>
-
+          <v-col>
             <v-text-field
-              v-if="selectedUsernameOption === 'username'"
-              v-model="username"
-              label="Username access restriction"
-              placeholder="Username used during the connection"
-              variant="underlined"
-              :error-messages="usernameError"
-              data-test="firewall-rule-username-restriction"
+              v-model="priority"
+              label="Rule priority"
+              :error-messages="priorityError"
+              type="number"
+              data-test="firewall-rule-priority"
             />
+          </v-col>
 
-            <v-row class="mt-2 mb-1 px-3">
-              <v-select
-                v-model="selectedFilterOption"
-                @update:model-value="handleFilterUpdate"
-                label="Device access restriction"
-                :items="filterSelectOptions"
-                variant="underlined"
-                data-test="filter-select"
-              />
-            </v-row>
-
-            <v-text-field
-              v-if="selectedFilterOption === FormFilterOptions.Hostname"
-              v-model="hostname"
-              label="Device hostname access restriction"
-              placeholder="Device hostname used during the connection"
-              :error-messages="hostnameError"
-              variant="underlined"
-              data-test="firewall-rule-hostname-restriction"
+          <v-col>
+            <v-select
+              v-model="action"
+              :items="actionSelectOptions"
+              label="Rule policy"
+              data-test="firewall-rule-policy"
             />
+          </v-col>
+        </v-row>
 
-            <v-row v-else-if="selectedFilterOption === FormFilterOptions.Tags" class="px-3 mt-2">
-              <v-autocomplete
-                v-model="selectedTags"
-                v-model:menu="acMenuOpen"
-                :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
-                :items="tags"
-                item-title="name"
-                item-value="name"
-                attach
-                chips
-                label="Tags"
-                :error-messages="selectedTagsError"
-                variant="underlined"
-                multiple
-                data-test="tags-selector"
-                @update:model-value="setSelectedTagsError"
-                @update:search="onSearch"
-              >
-                <template #append-item>
-                  <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
-                </template>
-              </v-autocomplete>
-            </v-row>
-          </v-card-text>
+        <v-row class="mt-1 mb-1 px-3">
+          <v-select
+            v-model="selectedIPOption"
+            @update:model-value="handleSourceIpUpdate"
+            label="Source IP access restriction"
+            :items="sourceIPSelectOptions"
+            data-test="firewall-rule-source-ip-select"
+          />
+        </v-row>
 
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              @click="close"
-              data-test="firewall-rule-cancel"
-            >
-              Cancel
-            </v-btn>
-            <v-btn
-              :disabled="hasErrors"
-              color="primary"
-              type="submit"
-              data-test="firewall-rule-add-btn"
-            >
-              Add
-            </v-btn>
-          </v-card-actions>
-        </form>
-      </v-card>
-    </BaseDialog>
+        <v-text-field
+          v-if="selectedIPOption === 'restrict'"
+          v-model="sourceIp"
+          label="Rule source IP"
+          :error-messages="sourceIpError"
+          data-test="firewall-rule-source-ip"
+        />
+
+        <v-row class="mt-1 mb-1 px-3">
+          <v-select
+            v-model="selectedUsernameOption"
+            @update:model-value="handleUsernameUpdate"
+            label="Device username access restriction"
+            :items="usernameSelectOptions"
+            data-test="username-field"
+          />
+        </v-row>
+
+        <v-text-field
+          v-if="selectedUsernameOption === 'username'"
+          v-model="username"
+          label="Username access restriction"
+          placeholder="Username used during the connection"
+          :error-messages="usernameError"
+          data-test="firewall-rule-username-restriction"
+        />
+
+        <v-row class="mt-2 mb-1 px-3">
+          <v-select
+            v-model="selectedFilterOption"
+            @update:model-value="handleFilterUpdate"
+            label="Device access restriction"
+            :items="filterSelectOptions"
+            data-test="filter-select"
+          />
+        </v-row>
+
+        <v-text-field
+          v-if="selectedFilterOption === FormFilterOptions.Hostname"
+          v-model="hostname"
+          label="Device hostname access restriction"
+          placeholder="Device hostname used during the connection"
+          :error-messages="hostnameError"
+          data-test="firewall-rule-hostname-restriction"
+        />
+
+        <v-row v-else-if="selectedFilterOption === FormFilterOptions.Tags" class="px-3 mt-2">
+          <v-autocomplete
+            v-model="selectedTags"
+            v-model:menu="acMenuOpen"
+            :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
+            :items="tags"
+            item-title="name"
+            item-value="name"
+            attach
+            chips
+            label="Tags"
+            :error-messages="selectedTagsError"
+            variant="outlined"
+            multiple
+            data-test="tags-selector"
+            @update:model-value="setSelectedTagsError"
+            @update:search="onSearch"
+          >
+            <template #append-item>
+              <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+            </template>
+          </v-autocomplete>
+        </v-row>
+      </div>
+    </FormDialog>
   </div>
 </template>
 
@@ -179,7 +159,7 @@ import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 import useTagsStore from "@/store/modules/tags";
 import useUsersStore from "@/store/modules/users";
@@ -192,6 +172,7 @@ const tagsStore = useTagsStore();
 const usersStore = useUsersStore();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
+
 const active = ref(true);
 const action = ref<IFirewallRule["action"]>("allow");
 const selectedIPOption = ref("all");
@@ -495,6 +476,4 @@ const addFirewallRule = async () => {
 onUnmounted(() => {
   cleanupObserver();
 });
-
-defineExpose({ selectedIPOption, selectedFilterOption, selectedUsernameOption });
 </script>

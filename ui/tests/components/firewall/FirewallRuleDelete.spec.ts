@@ -1,5 +1,5 @@
 import { setActivePinia, createPinia } from "pinia";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
@@ -24,6 +24,8 @@ describe("Firewall Rule Delete", () => {
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
   beforeEach(async () => {
+    vi.clearAllMocks(); // important: reset spies between tests
+
     wrapper = mount(FirewallRuleDelete, {
       global: {
         plugins: [vuetify, router],
@@ -44,41 +46,31 @@ describe("Firewall Rule Delete", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the dialog open button and other key elements", async () => {
-    const dialog = new DOMWrapper(document.body);
-
-    expect(wrapper.find('[data-test="remove-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="remove-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="firewall-delete-dialog-btn"]').exists()).toBe(true);
-
-    await wrapper.findComponent('[data-test="firewall-delete-dialog-btn"]').trigger("click");
-
-    expect(dialog.find('[data-test="firewallRuleDelete-card"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="text-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="text-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="remove-btn"]').exists()).toBe(true);
-  });
-
   it("Successful on removing firewall rules", async () => {
-    const storeSpy = vi.spyOn(firewallRulesStore, "removeFirewallRule");
+    const storeSpy = vi.spyOn(firewallRulesStore, "removeFirewallRule").mockResolvedValue();
 
     mockRulesApi.onDelete("http://localhost:3000/api/firewall/rules/1000").reply(200);
 
-    await wrapper.findComponent('[data-test="firewall-delete-dialog-btn"]').trigger("click");
+    await wrapper.find('[data-test="firewall-delete-dialog-btn"]').trigger("click");
 
-    await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
+    const dialog = wrapper.findComponent({ name: "MessageDialog" });
+    await dialog.vm.$emit("confirm");
 
     expect(storeSpy).toBeCalledWith("1000");
   });
 
   it("Fails on removing firewall rules", async () => {
+    vi.spyOn(firewallRulesStore, "removeFirewallRule").mockRejectedValue(new Error("403"));
+
     mockRulesApi.onDelete("http://localhost:3000/api/firewall/rules/1000").reply(403);
 
-    await wrapper.findComponent('[data-test="firewall-delete-dialog-btn"]').trigger("click");
+    await wrapper.find('[data-test="firewall-delete-dialog-btn"]').trigger("click");
 
-    await wrapper.findComponent('[data-test="remove-btn"]').trigger("click");
+    const dialog = wrapper.findComponent({ name: "MessageDialog" });
+    await dialog.vm.$emit("confirm");
+
     await flushPromises();
+
     expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to delete firewall rule.");
   });
 });

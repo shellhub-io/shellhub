@@ -74,13 +74,18 @@ describe("Firewall Rule Edit", () => {
   });
 
   it("Renders the dialog open button and other key elements", async () => {
-    const dialog = new DOMWrapper(document.body);
-
     expect(wrapper.find('[data-test="firewall-edit-rule-btn"]').exists()).toBe(true);
 
     await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
 
-    expect(dialog.find('[data-test="firewall-edit-rule-title"]').exists()).toBe(true);
+    const formDialog = wrapper.findComponent({ name: "FormDialog" });
+    expect(formDialog.exists()).toBe(true);
+    expect(formDialog.props("title")).toBe("Edit Firewall Rule");
+    expect(formDialog.props("icon")).toBe("mdi-shield-check");
+    expect(formDialog.props("confirmText")).toBe("Edit");
+    expect(formDialog.props("cancelText")).toBe("Cancel");
+
+    const dialog = new DOMWrapper(document.body);
     expect(dialog.find('[data-test="firewall-rule-status"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-priority"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-policy"]').exists()).toBe(true);

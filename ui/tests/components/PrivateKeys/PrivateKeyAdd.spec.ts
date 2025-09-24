@@ -31,9 +31,15 @@ describe("Setting Private Keys", () => {
   it("Renders components", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    const dialog = new DOMWrapper(document.body);
 
-    expect(dialog.find('[data-test="card-title"]').exists()).toBe(true);
+    const formDialog = wrapper.findComponent({ name: "FormDialog" });
+    expect(formDialog.exists()).toBe(true);
+    expect(formDialog.props("title")).toBe("New Private Key");
+    expect(formDialog.props("icon")).toBe("mdi-key");
+    expect(formDialog.props("confirmText")).toBe("Save");
+    expect(formDialog.props("cancelText")).toBe("Cancel");
+
+    const dialog = new DOMWrapper(document.body);
     expect(dialog.find('[data-test="name-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="private-key-field"]').exists()).toBe(true);
     expect(dialog.find('[data-test="private-key-cancel-btn"]').exists()).toBe(true);

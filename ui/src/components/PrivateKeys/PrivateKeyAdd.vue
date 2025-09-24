@@ -1,75 +1,61 @@
 <template>
-  <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-3 bg-primary" data-test="card-title">
-        New Private Key
-      </v-card-title>
-      <form @submit.prevent="create" class="mt-1">
-        <v-card-text>
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @cancel="close"
+    @confirm="create"
+    title="New Private Key"
+    icon="mdi-key"
+    confirm-text="Save"
+    cancel-text="Cancel"
+    :confirm-disabled="!!privateKeyDataError || !!nameError || (hasPassphrase && !!passphraseError)"
+    confirm-data-test="private-key-save-btn"
+    cancel-data-test="private-key-cancel-btn"
+    data-test="private-key-dialog"
+  >
+    <div class="px-6 pt-4">
+      <v-alert
+        class="text-subtitle-2 mb-2"
+        title="ShellHub never stores your private keys."
+        text="They stay secure in your browser's local storage and are not shared with ShellHub's servers."
+        color="primary"
+        density="compact"
+        variant="tonal"
+        data-test="privacy-policy-alert"
+      />
 
-          <v-alert
-            class="text-subtitle-2 mb-2"
-            title="ShellHub never stores your private keys."
-            text="They stay secure in your browser's local storage and are not shared with ShellHub's servers."
-            color="primary"
-            density="compact"
-            variant="tonal"
-            data-test="privacy-policy-alert"
-          />
-          <v-text-field
-            v-model="name"
-            :error-messages="nameError"
-            label="Key name"
-            placeholder="Name used to identify the private key"
-            variant="underlined"
-            data-test="name-field"
-          />
+      <v-text-field
+        v-model="name"
+        :error-messages="nameError"
+        label="Key name"
+        placeholder="Name used to identify the private key"
+        data-test="name-field"
+      />
 
-          <v-textarea
-            v-model="privateKeyData"
-            label="Private key data"
-            required
-            messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-            :error-messages="privateKeyDataError"
-            @update:model-value="validatePrivateKeyData"
-            variant="underlined"
-            data-test="private-key-field"
-            rows="5"
-          />
+      <v-textarea
+        v-model="privateKeyData"
+        label="Private key data"
+        required
+        messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+        :error-messages="privateKeyDataError"
+        @update:model-value="validatePrivateKeyData"
+        data-test="private-key-field"
+        rows="5"
+      />
 
-          <v-text-field
-            v-if="hasPassphrase"
-            v-model="passphrase"
-            :error-messages="passphraseError"
-            label="Passphrase"
-            class="mt-4"
-            hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
-            persistent-hint
-            placeholder="Enter passphrase for encrypted key"
-            variant="underlined"
-            data-test="passphrase-field"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            @click="close"
-            data-test="private-key-cancel-btn"
-          >
-            Cancel
-          </v-btn>
-          <v-btn
-            color="primary"
-            type="submit"
-            data-test="private-key-save-btn"
-            :disabled="!!privateKeyDataError || !!nameError || (hasPassphrase && !!passphraseError)"
-          >
-            Save
-          </v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </BaseDialog>
+      <v-text-field
+        v-if="hasPassphrase"
+        v-model="passphrase"
+        :error-messages="passphraseError"
+        label="Passphrase"
+        class="mt-4"
+        hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
+        persistent-hint
+        placeholder="Enter passphrase for encrypted key"
+        data-test="passphrase-field"
+      />
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -79,7 +65,7 @@ import * as yup from "yup";
 import { convertToFingerprint, isKeyValid, parsePrivateKey } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const emit = defineEmits(["update"]);
