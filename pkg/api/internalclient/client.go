@@ -28,6 +28,9 @@ type Config struct {
 	RetryWaitTime time.Duration
 	// RetryMaxWaitTime defines the maximum wait time between retries.
 	RetryMaxWaitTime time.Duration
+
+	// BaseURL defines the base URL for the API.
+	BaseURL string
 }
 
 type client struct {
@@ -59,6 +62,7 @@ func NewClient(opts ...clientOption) (Client, error) {
 			RetryCount:       3,
 			RetryWaitTime:    5 * time.Second,
 			RetryMaxWaitTime: 20 * time.Second,
+			BaseURL:          "http://api:8080",
 		},
 	}
 
@@ -72,7 +76,7 @@ func NewClient(opts ...clientOption) (Client, error) {
 		httpClient.SetLogger(&LeveledLogger{c.logger})
 	}
 
-	httpClient.SetBaseURL("http://api:8080")
+	httpClient.SetBaseURL(c.Config.BaseURL)
 	httpClient.SetRetryCount(c.Config.RetryCount)
 	httpClient.SetRetryWaitTime(c.Config.RetryWaitTime)
 	httpClient.SetRetryMaxWaitTime(c.Config.RetryMaxWaitTime)
