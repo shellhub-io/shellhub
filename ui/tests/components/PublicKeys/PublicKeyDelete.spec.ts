@@ -1,6 +1,6 @@
 import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
-import { flushPromises, mount } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import PublicKeyDelete from "@/components/PublicKeys/PublicKeyDelete.vue";
@@ -14,13 +14,15 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
+type PublicKeyDeleteWrapper = VueWrapper<InstanceType<typeof PublicKeyDelete>>;
+
 describe("Public Key Delete", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
   const mockSshApi = new MockAdapter(sshApi.getAxios());
   const publicKeysStore = usePublicKeysStore();
 
-  let wrapper: ReturnType<typeof mount<InstanceType<typeof PublicKeyDelete>>>;
+  let wrapper: PublicKeyDeleteWrapper;
 
   beforeEach(() => {
     vi.clearAllMocks();
