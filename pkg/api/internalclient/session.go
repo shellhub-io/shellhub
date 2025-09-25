@@ -42,18 +42,35 @@ type sessionAPI interface {
 	SaveSession(ctx context.Context, uid string, seat int) error
 }
 
+var (
+	// ErrSessionRequestFailed indicates that the session request failed.
+	ErrSessionRequestFailed = errors.New("session request failed")
+	// ErrSessionCreationFailed indicates that the operation to create a session failed.
+	ErrSessionCreationFailed = errors.New("session creation failed")
+)
+
 func (c *client) SessionCreate(ctx context.Context, session requests.SessionCreate) error {
-	_, err := c.http.
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetBody(session).
 		Post(c.Config.APIBaseURL + "/internal/sessions")
+	if err != nil {
+		return errors.Join(ErrSessionRequestFailed, err)
+	}
 
-	return err
+	if resp.StatusCode() != http.StatusOK {
+		return ErrSessionCreationFailed
+	}
+
+	return nil
 }
 
+// ErrSessionAsAuthenticatedFailed indicates that the operation to mark a session as authenticated failed.
+var ErrSessionAsAuthenticatedFailed = errors.New("mark session as authenticated failed")
+
 func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
-	_, err := c.http.
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
@@ -62,37 +79,58 @@ func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
 		}).
 		Patch(c.Config.APIBaseURL + "/internal/sessions/{uid}")
 	if err != nil {
-		return err
+		return errors.Join(ErrSessionRequestFailed, err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return ErrSessionAsAuthenticatedFailed
 	}
 
 	return nil
 }
 
+// ErrFinishSessionFailed indicates that the operation to finish a session failed.
+var ErrFinishSessionFailed = errors.New("finish session failed")
+
 func (c *client) FinishSession(ctx context.Context, uid string) error {
-	_, err := c.http.
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
 		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/finish")
 	if err != nil {
-		return err
+		return errors.Join(ErrSessionRequestFailed, err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return ErrFinishSessionFailed
 	}
 
 	return nil
 }
 
+// ErrKeepAliveSessionFailed indicates that the operation to keep alive a session failed.
+var ErrKeepAliveSessionFailed = errors.New("keep alive session failed")
+
 func (c *client) KeepAliveSession(ctx context.Context, uid string) error {
-	_, err := c.http.
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
 		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/keepalive")
 	if err != nil {
-		return err
+		return errors.Join(ErrSessionRequestFailed, err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return ErrKeepAliveSessionFailed
 	}
 
 	return nil
 }
+
+// ErrUpdateSessionFailed indicates that the operation to update a session failed.
+var ErrUpdateSessionFailed = errors.New("update session failed")
 
 func (c *client) UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error {
 	res, err := c.http.
@@ -104,11 +142,11 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 		SetBody(model).
 		Patch(c.Config.APIBaseURL + "/internal/sessions/{tenant}")
 	if err != nil {
-		return errors.Join(errors.New("failed to update the session due error"), err)
+		return errors.Join(ErrSessionRequestFailed, err)
 	}
 
 	if res.StatusCode() != 200 {
-		return errors.New("failed to update the session")
+		return ErrUpdateSessionFailed
 	}
 
 	return nil
@@ -129,11 +167,14 @@ func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket
 		nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrSessionRequestFailed, err)
 	}
 
 	return connection, nil
 }
+
+// ErrSaveSessionFailed indicates that the operation to save a session failed.
+var ErrSaveSessionFailed = errors.New("save session failed")
 
 func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 	res, err := c.http.
@@ -145,13 +186,10 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 		}).
 		Post(c.Config.EnterpriseBaseURL + "/internal/sessions/{uid}/records/{seat}")
 	if err != nil {
-		return errors.Join(errors.New("failed to save the Asciinema file on Object Storage"), err)
+		return errors.Join(ErrSessionRequestFailed, err)
 	}
 
-	switch {
-	case res.StatusCode() == 404:
-		return ErrNotFound
-	case res.StatusCode() == http.StatusNotAcceptable:
+	if res.StatusCode() == http.StatusNotAcceptable {
 		// NOTE: [http.StatusNotAcceptable] indicates that session's seat shouldn't be save, but also shouldn't
 		// represent an error.
 		logrus.WithFields(logrus.Fields{
@@ -160,8 +198,10 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 		}).Debug("save session not acceptable")
 
 		return nil
-	case res.StatusCode() != 200:
-		return errors.New("failed to save the Asciinema due status code")
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return ErrSaveSessionFailed
 	}
 
 	return nil
