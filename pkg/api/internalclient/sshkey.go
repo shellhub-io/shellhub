@@ -2,8 +2,6 @@ package internalclient
 
 import (
 	"context"
-	"fmt"
-
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -27,8 +25,12 @@ func (c *client) GetPublicKey(ctx context.Context, fingerprint, tenant string) (
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
+		SetPathParams(map[string]string{
+			"fingerprint": fingerprint,
+			"tenant":      tenant,
+		}).
 		SetResult(&pubKey).
-		Get(fmt.Sprintf("/internal/sshkeys/public-keys/%s/%s", fingerprint, tenant))
+		Get(c.Config.APIBaseURL + "/internal/sshkeys/public-keys/{fingerprint}/{tenant}")
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +48,13 @@ func (c *client) EvaluateKey(ctx context.Context, fingerprint string, dev *model
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
+		SetPathParams(map[string]string{
+			"fingerprint": fingerprint,
+			"username":    username,
+		}).
 		SetBody(dev).
 		SetResult(&evaluate).
-		Post(fmt.Sprintf("/internal/sshkeys/public-keys/evaluate/%s/%s", fingerprint, username))
+		Post(c.Config.APIBaseURL + "/internal/sshkeys/public-keys/evaluate/{fingerprint}/{username}")
 	if err != nil {
 		return false, err
 	}
@@ -67,7 +73,7 @@ func (c *client) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, erro
 		R().
 		SetContext(ctx).
 		SetResult(&privKey).
-		Post("/internal/sshkeys/private-keys")
+		Post(c.Config.APIBaseURL + "/internal/sshkeys/private-keys")
 	if err != nil {
 		return nil, err
 	}
