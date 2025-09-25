@@ -32,7 +32,7 @@ func (b *BannerError) Error() string {
 }
 
 // getAuth gets the authentication methods from credentials.
-func getAuth(conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
+func getAuth(ctx context.Context, conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
 	if creds.isPassword() {
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
@@ -43,19 +43,19 @@ func getAuth(conn *Conn, creds *Credentials) ([]ssh.AuthMethod, error) {
 	}
 
 	// Trys to get a device from the API.
-	device, err := cli.GetDevice(creds.Device)
+	device, err := cli.GetDevice(ctx, creds.Device)
 	if err != nil {
 		return nil, ErrFindDevice
 	}
 
 	// Trys to get a public key from the API.
-	key, err := cli.GetPublicKey(creds.Fingerprint, device.TenantID)
+	key, err := cli.GetPublicKey(ctx, creds.Fingerprint, device.TenantID)
 	if err != nil {
 		return nil, ErrFindPublicKey
 	}
 
 	// Trys to evaluate the public key from the API.
-	ok, err := cli.EvaluateKey(creds.Fingerprint, device, creds.Username)
+	ok, err := cli.EvaluateKey(ctx, creds.Fingerprint, device, creds.Username)
 	if err != nil {
 		return nil, ErrEvaluatePublicKey
 	}
@@ -129,7 +129,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
-	auth, err := getAuth(conn, creds)
+	auth, err := getAuth(ctx, conn, creds)
 	if err != nil {
 		logger.WithError(err).Debug("failed to get the credentials")
 

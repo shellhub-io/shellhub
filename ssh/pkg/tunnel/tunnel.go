@@ -89,7 +89,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 		// This can cause issues with establishing sessions and tracking online devices. To solve this,
 		// we retrieve the tenant ID by querying the API. Maybe this can be removed in a future release.
 		if tenant == "" {
-			device, err := tunnel.API.GetDevice(uid)
+			device, err := tunnel.API.GetDevice(context.TODO(), uid)
 			if err != nil {
 				log.WithError(err).
 					WithField("uid", uid).
@@ -114,7 +114,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 		tenant := parts[0]
 		uid := parts[1]
 
-		if err := tunnel.API.DevicesOffline(uid); err != nil {
+		if err := tunnel.API.DevicesOffline(context.TODO(), uid); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{
 					"uid":       uid,
@@ -134,7 +134,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 		tenant := parts[0]
 		uid := parts[1]
 
-		if err := tunnel.API.DevicesHeartbeat(uid); err != nil {
+		if err := tunnel.API.DevicesHeartbeat(context.TODO(), uid); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{
 					"uid":       uid,
@@ -204,7 +204,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 				"address":    address,
 			}).Debug("path")
 
-			endpoint, err := tunnel.API.LookupWebEndpoints(address)
+			endpoint, err := tunnel.API.LookupWebEndpoints(c.Request().Context(), address)
 			if err != nil {
 				log.WithError(err).Error("failed to get the web endpoint")
 

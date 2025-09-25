@@ -254,9 +254,9 @@ func (_m *Service) AuthUncacheToken(ctx context.Context, tenant string, id strin
 	return r0
 }
 
-// BillingEvaluate provides a mock function with given fields: _a0, _a1
-func (_m *Service) BillingEvaluate(_a0 internalclient.Client, _a1 string) (bool, error) {
-	ret := _m.Called(_a0, _a1)
+// BillingEvaluate provides a mock function with given fields: ctx, client, tenant
+func (_m *Service) BillingEvaluate(ctx context.Context, client internalclient.Client, tenant string) (bool, error) {
+	ret := _m.Called(ctx, client, tenant)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BillingEvaluate")
@@ -264,17 +264,17 @@ func (_m *Service) BillingEvaluate(_a0 internalclient.Client, _a1 string) (bool,
 
 	var r0 bool
 	var r1 error
-	if rf, ok := ret.Get(0).(func(internalclient.Client, string) (bool, error)); ok {
-		return rf(_a0, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, internalclient.Client, string) (bool, error)); ok {
+		return rf(ctx, client, tenant)
 	}
-	if rf, ok := ret.Get(0).(func(internalclient.Client, string) bool); ok {
-		r0 = rf(_a0, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, internalclient.Client, string) bool); ok {
+		r0 = rf(ctx, client, tenant)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(internalclient.Client, string) error); ok {
-		r1 = rf(_a0, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, internalclient.Client, string) error); ok {
+		r1 = rf(ctx, client, tenant)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -282,17 +282,17 @@ func (_m *Service) BillingEvaluate(_a0 internalclient.Client, _a1 string) (bool,
 	return r0, r1
 }
 
-// BillingReport provides a mock function with given fields: _a0, _a1, _a2
-func (_m *Service) BillingReport(_a0 internalclient.Client, _a1 string, _a2 string) error {
-	ret := _m.Called(_a0, _a1, _a2)
+// BillingReport provides a mock function with given fields: ctx, client, tenant, action
+func (_m *Service) BillingReport(ctx context.Context, client internalclient.Client, tenant string, action string) error {
+	ret := _m.Called(ctx, client, tenant, action)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BillingReport")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(internalclient.Client, string, string) error); ok {
-		r0 = rf(_a0, _a1, _a2)
+	if rf, ok := ret.Get(0).(func(context.Context, internalclient.Client, string, string) error); ok {
+		r0 = rf(ctx, client, tenant, action)
 	} else {
 		r0 = ret.Error(0)
 	}
