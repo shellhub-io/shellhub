@@ -240,20 +240,18 @@ func (_m *Client) EventSessionStream(ctx context.Context, uid string) (*websocke
 }
 
 // FinishSession provides a mock function with given fields: ctx, uid
-func (_m *Client) FinishSession(ctx context.Context, uid string) []error {
+func (_m *Client) FinishSession(ctx context.Context, uid string) error {
 	ret := _m.Called(ctx, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FinishSession")
 	}
 
-	var r0 []error
-	if rf, ok := ret.Get(0).(func(context.Context, string) []error); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
 		r0 = rf(ctx, uid)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]error)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -356,20 +354,18 @@ func (_m *Client) InviteMember(ctx context.Context, tenantID string, userID stri
 }
 
 // KeepAliveSession provides a mock function with given fields: ctx, uid
-func (_m *Client) KeepAliveSession(ctx context.Context, uid string) []error {
+func (_m *Client) KeepAliveSession(ctx context.Context, uid string) error {
 	ret := _m.Called(ctx, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for KeepAliveSession")
 	}
 
-	var r0 []error
-	if rf, ok := ret.Get(0).(func(context.Context, string) []error); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
 		r0 = rf(ctx, uid)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]error)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -466,7 +462,7 @@ func (_m *Client) LookupWebEndpoints(ctx context.Context, address string) (*inte
 }
 
 // NamespaceLookup provides a mock function with given fields: ctx, tenant
-func (_m *Client) NamespaceLookup(ctx context.Context, tenant string) (*models.Namespace, []error) {
+func (_m *Client) NamespaceLookup(ctx context.Context, tenant string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, tenant)
 
 	if len(ret) == 0 {
@@ -474,8 +470,8 @@ func (_m *Client) NamespaceLookup(ctx context.Context, tenant string) (*models.N
 	}
 
 	var r0 *models.Namespace
-	var r1 []error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Namespace, []error)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Namespace, error)); ok {
 		return rf(ctx, tenant)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Namespace); ok {
@@ -486,12 +482,10 @@ func (_m *Client) NamespaceLookup(ctx context.Context, tenant string) (*models.N
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) []error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, tenant)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]error)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -516,20 +510,18 @@ func (_m *Client) SaveSession(ctx context.Context, uid string, seat int) error {
 }
 
 // SessionAsAuthenticated provides a mock function with given fields: ctx, uid
-func (_m *Client) SessionAsAuthenticated(ctx context.Context, uid string) []error {
+func (_m *Client) SessionAsAuthenticated(ctx context.Context, uid string) error {
 	ret := _m.Called(ctx, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionAsAuthenticated")
 	}
 
-	var r0 []error
-	if rf, ok := ret.Get(0).(func(context.Context, string) []error); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
 		r0 = rf(ctx, uid)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]error)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -576,8 +568,7 @@ func (_m *Client) UpdateSession(ctx context.Context, uid string, model *models.S
 func NewClient(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *Client {
+}) *Client {
 	mock := &Client{}
 	mock.Mock.Test(t)
 
