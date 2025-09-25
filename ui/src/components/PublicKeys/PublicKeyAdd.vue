@@ -140,7 +140,12 @@ import useTagsStore from "@/store/modules/tags";
 const { size } = defineProps<{ size?: string }>();
 
 type LocalTag = { name: string };
-
+type NameFilterName = "all" | "username";
+type DeviceFilterName = "all" | "hostname" | "tags";
+interface SelectOption<TName extends string> {
+  filterName: TName;
+  filterText: string;
+}
 const emit = defineEmits(["update"]);
 const publicKeysStore = usePublicKeysStore();
 const tagsStore = useTagsStore();
@@ -148,11 +153,23 @@ const showDialog = ref(false);
 const snackbar = useSnackbar();
 
 const validateLength = ref(true);
-const choiceFilter = ref<"all" | "hostname" | "tags">("all");
-const choiceUsername = ref<"all" | "username">("all");
+const choiceUsername = ref<NameFilterName>("all");
+const choiceFilter = ref<DeviceFilterName>("all");
+
+const filterList = ref<SelectOption<DeviceFilterName>[]>([
+  { filterName: "all", filterText: "Allow the key to connect to all available devices" },
+  { filterName: "hostname", filterText: "Restrict access using a regexp for hostname" },
+  { filterName: "tags", filterText: "Restrict access by tags" },
+]);
+
+const usernameList = ref<SelectOption<NameFilterName>[]>([
+  { filterName: "all", filterText: "Allow any user" },
+  { filterName: "username", filterText: "Restrict access using a regexp for username" },
+]);
+
 const tagChoices = ref<string[]>([]);
 const errMsg = ref("");
-const keyLocal = ref({});
+const keyLocal = ref<Record<string, unknown>>({});
 
 const acMenuOpen = ref(false);
 const menuContentClass = computed(() => "pk-tags-ac-content");
@@ -273,7 +290,7 @@ const create = async () => {
     chooseUsername();
     const keySend = {
       ...keyLocal.value,
-      data: btoa(publicKeyData.value),
+      data: Buffer.from(publicKeyData.value as string, "utf-8").toString("base64"),
       name: name.value,
     };
     await publicKeysStore.createPublicKey(keySend as IPublicKeyCreate);
@@ -309,12 +326,12 @@ const encodeFilter = (search: string) => {
   return btoa(JSON.stringify(filterToEncodeBase64));
 };
 
-const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
-  .map((tag) => {
-    const name = typeof tag === "string" ? tag : tag?.name;
+const normalizeStoreItems = (arr: unknown[]): LocalTag[] => (arr ?? [])
+  .map((tag: unknown) => {
+    const name = typeof tag === "string" ? tag : (tag as LocalTag | undefined)?.name;
     return name ? ({ name } as LocalTag) : null;
   })
-  .filter((t: LocalTag | null): t is LocalTag => !!t);
+  .filter((tag: LocalTag | null): tag is LocalTag => !!tag);
 
 const resetPagination = () => {
   page.value = 1;
@@ -334,7 +351,7 @@ const loadTags = async () => {
       perPage: perPage.value,
     });
 
-    fetchedTags.value = normalizeStoreItems(tagsStore.list);
+    fetchedTags.value = normalizeStoreItems(tagsStore.list as unknown[]);
   } catch (error) {
     snackbar.showError("Failed to load tags.");
     handleError(error);
@@ -421,5 +438,5 @@ const confirmDisabled = computed(() => {
   );
 });
 
-defineExpose({ publicKeyDataError, nameError });
+defineExpose({ publicKeyDataError, nameError, usernameError, hostnameError, errMsg });
 </script>

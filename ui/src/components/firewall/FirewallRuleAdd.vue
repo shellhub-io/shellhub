@@ -40,7 +40,6 @@
               v-model="active"
               :items="activeSelectOptions"
               label="Rule status"
-              variant="underlined"
               data-test="firewall-rule-status"
             />
           </v-col>
@@ -476,4 +475,6 @@ const addFirewallRule = async () => {
 onUnmounted(() => {
   cleanupObserver();
 });
+
+defineExpose({ selectedIPOption, selectedUsernameOption, selectedFilterOption });
 </script>

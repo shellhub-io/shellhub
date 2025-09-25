@@ -82,6 +82,8 @@
             label="Tags"
             :rules="[validateLength]"
             :error-messages="errMsg"
+            :messages="noTagsSelected ? 'No tags selected' : ''"
+            placeholder="Select up to 3 tags"
             variant="outlined"
             multiple
             data-test="tags-selector"
@@ -118,7 +120,7 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref, watch, onMounted, computed, nextTick, onUpdated, onUnmounted } from "vue";
+import { ref, watch, onMounted, computed, nextTick, onUnmounted } from "vue";
 import * as yup from "yup";
 import { IPublicKey } from "@/interfaces/IPublicKey";
 import handleError from "@/utils/handleError";
@@ -127,7 +129,10 @@ import FormDialog from "../FormDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";
-import { ITag } from "@/interfaces/ITags";
+
+type TagsFilterNames = { tags: string[] };
+type LocalFilter = HostnameFilter | TagsFilterNames;
+type LocalPublicKey = Omit<IPublicKey, "filter"> & { filter: LocalFilter };
 
 const props = defineProps<{
   publicKey: IPublicKey;
@@ -157,8 +162,8 @@ const usernameList = ref([
   { filterName: "username", filterText: "Restrict access using a regexp for username" },
 ]);
 
-const tagChoices = ref<ITag[]>([]);
-const keyLocal = ref<Partial<IPublicKey>>({ name: "", username: "", data: "" });
+const tagChoices = ref<string[]>([]);
+const keyLocal = ref<Partial<LocalPublicKey>>({ name: "", username: "", data: "" });
 
 const {
   value: name,
@@ -171,7 +176,6 @@ watch(name, () => { keyLocal.value.name = name.value; });
 const {
   value: username,
   errorMessage: usernameError,
-  setErrors: setUsernameError,
 } = useField<string>("username", yup.string().required(), {
   initialValue: props.publicKey.username,
 });
@@ -180,7 +184,6 @@ watch(username, () => { keyLocal.value.username = username.value; });
 const {
   value: hostname,
   errorMessage: hostnameError,
-  setErrors: setHostnameError,
 } = useField<string>("hostname", yup.string().required(), {
   initialValue: (props.publicKey.filter as HostnameFilter)?.hostname || "",
 });
@@ -203,7 +206,9 @@ const hasTags = computed(() => {
 type LocalTag = { name: string };
 
 const acMenuOpen = ref(false);
-const menuContentClass = computed(() => `pk-edit-tags-ac-${(props.publicKey?.name || "key").replace(/\W/g, "-")}`);
+const menuContentClass = computed(
+  () => `pk-edit-tags-ac-${(props.publicKey?.name || "key").replace(/\W/g, "-")}`,
+);
 
 const fetchedTags = ref<LocalTag[]>([]);
 const tags = computed(() => fetchedTags.value);
@@ -223,7 +228,7 @@ const encodeFilter = (search: string) => {
   const filterToEncodeBase64 = [
     { type: "property", params: { name: "name", operator: "contains", value: search } },
   ];
-  return btoa(JSON.stringify(filterToEncodeBase64));
+  return Buffer.from(JSON.stringify(filterToEncodeBase64), "utf-8").toString("base64");
 };
 
 const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
@@ -231,7 +236,7 @@ const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
     const name = typeof tag === "string" ? tag : tag?.name;
     return name ? ({ name } as LocalTag) : null;
   })
-  .filter((t: LocalTag | null): t is LocalTag => !!t);
+  .filter((tag: LocalTag | null): tag is LocalTag => !!tag);
 
 const resetPagination = () => {
   page.value = 1;
@@ -308,6 +313,8 @@ watch(choiceFilter, async (val) => {
   if (val === "tags") {
     resetPagination();
     await loadTags();
+  } else {
+    acMenuOpen.value = false;
   }
 });
 
@@ -327,12 +334,23 @@ watch([tagChoices, choiceFilter], ([list, filterMode]) => {
   }
 });
 
+const toTagNames = (tagsIn: unknown): string[] => {
+  if (!Array.isArray(tagsIn)) return [];
+  return (tagsIn as Array<string | { name?: string }>)
+    .map((t) => (typeof t === "string" ? t : t?.name))
+    .filter((n): n is string => !!n);
+};
+
+const noTagsSelected = computed(
+  () => choiceFilter.value === "tags" && toTagNames(tagChoices.value).length === 0,
+);
+
 const handleUpdate = () => {
   if (!showDialog.value) return;
 
   if (hasTags.value) {
     const { tags } = props.publicKey.filter as TagsFilter;
-    tagChoices.value = tags;
+    tagChoices.value = toTagNames(tags);
     choiceFilter.value = "tags";
   } else {
     const { hostname: hostnameLocal } = props.publicKey.filter as HostnameFilter;
@@ -349,69 +367,22 @@ const handleUpdate = () => {
   username.value = usernameLocal;
 };
 
-const chooseFilter = () => {
-  switch (choiceFilter.value) {
-    case "all":
-      keyLocal.value = { ...keyLocal.value, filter: { hostname: ".*" } };
-      break;
-    case "hostname":
-      keyLocal.value = { ...keyLocal.value, filter: { hostname: hostname.value } };
-      break;
-    case "tags":
-      keyLocal.value = { ...keyLocal.value, filter: { tags: tagChoices.value } };
-      break;
-    default: break;
-  }
-};
-
-const chooseUsername = () => {
-  switch (choiceUsername.value) {
-    case "all":
-      keyLocal.value = { ...keyLocal.value, username: ".*" };
-      break;
-    case "username":
-      keyLocal.value = { ...keyLocal.value, username: username.value };
-      break;
-    default: break;
-  }
-};
-
 const setLocalVariable = () => {
-  keyLocal.value = { ...props.publicKey };
-  keyLocal.value.data = atob(props.publicKey.data);
-};
-
-const hasError = () => {
-  if (choiceUsername.value === "username" && username.value === "") {
-    setUsernameError("This Field is required !");
-    return true;
-  }
-  if (choiceFilter.value === "hostname" && hostname.value === "") {
-    setHostnameError("This Field is required !");
-    return true;
-  }
-  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) {
-    return true;
-  }
-  return false;
+  keyLocal.value = { ...(props.publicKey as LocalPublicKey) };
+  keyLocal.value.data = Buffer.from(props.publicKey.data, "base64").toString("utf-8");
 };
 
 const open = () => {
   showDialog.value = true;
   name.value = props.publicKey.name;
   publicKeyData.value = props.publicKey.data;
+  handleUpdate();
 };
 
 onMounted(() => {
   setLocalVariable();
   resetPagination();
   loadTags();
-});
-
-onUpdated(() => {
-  handleUpdate();
-  setLocalVariable();
-  keyLocal.value.data = publicKeyData.value;
 });
 
 onUnmounted(() => {
@@ -443,15 +414,50 @@ const update = () => {
   close();
 };
 
-const edit = async () => {
-  if (hasError()) return;
+const isUsernameMissing = computed(() => choiceUsername.value === "username" && username.value.trim() === "");
 
-  chooseFilter();
-  chooseUsername();
-  const keySend = { ...keyLocal.value, data: btoa(keyLocal.value.data as string) };
+const isHostnameMissing = computed(() => choiceFilter.value === "hostname" && hostname.value.trim() === "");
+
+const areTagsMissing = computed(() => choiceFilter.value === "tags" && toTagNames(tagChoices.value).length === 0);
+
+const confirmDisabled = computed(() => {
+  if (!name.value || !publicKeyData.value) return true;
+
+  const tagRuleBlocking = choiceFilter.value === "tags" && !validateLength.value;
+
+  return Boolean(
+    nameError.value
+    || publicKeyDataError.value
+    || isUsernameMissing.value
+    || isHostnameMissing.value
+    || areTagsMissing.value
+    || tagRuleBlocking,
+  );
+});
+
+const edit = async () => {
+  if (confirmDisabled.value) return;
+
+  const usernameToSend = choiceUsername.value === "all" ? ".*" : username.value;
+
+  let filterToSend: LocalFilter;
+  if (choiceFilter.value === "all") {
+    filterToSend = { hostname: ".*" };
+  } else if (choiceFilter.value === "hostname") {
+    filterToSend = { hostname: hostname.value };
+  } else {
+    filterToSend = { tags: toTagNames(tagChoices.value) };
+  }
+
+  const keySend = {
+    ...(keyLocal.value as LocalPublicKey),
+    username: usernameToSend,
+    filter: filterToSend,
+    data: Buffer.from(keyLocal.value.data as string, "utf-8").toString("base64"),
+  };
 
   try {
-    await publicKeysStore.updatePublicKey(keySend as IPublicKey);
+    await publicKeysStore.updatePublicKey(keySend as unknown as IPublicKey);
     snackbar.showSuccess("Public key updated successfully.");
     update();
   } catch (error: unknown) {
@@ -460,23 +466,5 @@ const edit = async () => {
   }
 };
 
-const confirmDisabled = computed(() => {
-  if (!name.value || !publicKeyData.value) return true;
-
-  if (choiceUsername.value === "username" && !username.value) return true;
-  if (choiceFilter.value === "hostname" && !hostname.value) return true;
-  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) return true;
-
-  const tagRuleBlocking = choiceFilter.value === "tags" && !validateLength.value;
-
-  return Boolean(
-    nameError.value
-    || publicKeyDataError.value
-    || (choiceUsername.value === "username" && usernameError.value)
-    || (choiceFilter.value === "hostname" && hostnameError.value)
-    || tagRuleBlocking,
-  );
-});
-
-defineExpose({ nameError, usernameError, hostnameError });
+defineExpose({ nameError, usernameError, hostnameError, errMsg });
 </script>
