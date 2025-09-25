@@ -1,6 +1,125 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Recovery Helper > Renders the component 1`] = `
-"<!--teleport start-->
-<!--teleport end-->"
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-bottom-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-warning v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-shield-refresh-outline mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->MFA Recovery Verification
+                    </div>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">Verify access to your authentication device</div>
+                </div>
+                <div class="v-spacer"></div>
+                <!--v-if-->
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div class="pa-8">
+              <transition-stub name="slide-y-reverse-transition" appear="false" persisted="false" css="true">
+                <div class="v-alert v-theme--light text-warning v-alert--density-default v-alert--variant-tonal mb-4" role="alert" data-test="invalid-login-alert">
+                  <!----><span class="v-alert__underlay"></span>
+                  <!---->
+                  <div class="v-alert__prepend"><i class="mdi-alert-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" density="default"></i></div>
+                  <div class="v-alert__content">
+                    <div class="v-alert-title">Your recovery code will expire in </div>If you want to disable your MFA status, do it within the timers limit, if the timer runs out, you will have to disable your MFA in the profile settings.
+                    <!---->
+                  </div>
+                  <!---->
+                  <!---->
+                </div>
+              </transition-stub>
+              <transition-stub name="slide-y-reverse-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+              <p class="mb-4 text-justify"> Recovery codes prove useful when you must access your account and your authentication device is unavailable. Nevertheless, bear in mind that if you lose access to the device, it is advisable to disable Multi-Factor Authentication and re-enable it using a currently accessible device. </p>
+              <p class="mb-4 text-justify"> Please check the box only if you are confident that you still have access to the device used for Multi-Factor Authentication. </p>
+              <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-checkbox" data-test="checkbox-recovery">
+                <!---->
+                <div class="v-input__control">
+                  <div class="v-selection-control v-selection-control--density-default v-checkbox-btn">
+                    <div class="v-selection-control__wrapper">
+                      <!---->
+                      <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-0" aria-disabled="false" aria-label="I have access to my authentication device and don't need to disable MFA" type="checkbox" aria-describedby="checkbox-v-0-messages" value="true"></div>
+                    </div><label class="v-label v-label--clickable" for="checkbox-v-0">
+                      <!---->I have access to my authentication device and don't need to disable MFA
+                    </label>
+                  </div>
+                </div>
+                <!---->
+                <div id="checkbox-v-0-messages" class="v-input__details" role="alert" aria-live="polite">
+                  <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
+                    <!---->
+                  </transition-group-stub>
+                  <!---->
+                </div>
+              </div>
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-spacer"></div>
+                <div class="v-card-actions"><button type="button" class="v-btn v-btn--disabled v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" disabled="" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Close </span>
+                    <!---->
+                    <!---->
+                  </button><button type="button" class="v-btn v-btn--slim v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="disable-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Disable MFA </span>
+                    <!---->
+                    <!---->
+                  </button></div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
 `;

@@ -32,12 +32,12 @@
 
   <RecoveryHelper
     v-if="showRecoverHelper"
-    v-model:showDialog="showRecoverHelper"
+    v-model="showRecoverHelper"
     data-test="recovery-helper-component"
   />
 
   <MfaForceRecoveryMail
-    v-model:showDialog="showForceRecoveryMail"
+    v-model="showForceRecoveryMail"
     data-test="mfa-force-recovery-mail-component"
   />
 
