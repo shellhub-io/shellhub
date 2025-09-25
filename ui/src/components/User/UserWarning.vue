@@ -37,7 +37,7 @@
   />
 
   <MfaForceRecoveryMail
-    v-model="showForceRecoveryMail"
+    v-model:showDialog="showForceRecoveryMail"
     data-test="mfa-force-recovery-mail-component"
   />
 

@@ -1,67 +1,66 @@
 <template>
-  <BaseDialog
+  <WindowDialog
     v-model="showDialog"
     transition="dialog-bottom-transition"
     persistent
+    title="Multi-Factor Authentication Enabled"
+    description="Add a recovery email to secure your account access"
+    icon="mdi-email-plus-outline"
+    icon-color="primary"
+    :show-close-button="false"
   >
-    <v-card class="bg-v-theme-surface" data-test="card-dialog">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test="dialog-title"> Multi-Factor Authentication Enabled </v-card-title>
-      <v-container data-test="dialog-text">
-        <v-row class="mb-2">
-          <v-col>
-            <h4>
-              In case you lose access to all your MFA credentials,
-              we'll need a recovery email to verify your identity
-              and reset your account access.
-            </h4>
-            <p class="mt-2">
-              To ensure you can recover your account if you lose access to your MFA credentials, please associate a recovery email.
-            </p>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col align="center">
-            <v-text-field
-              width="400"
-              v-model="recoveryEmail"
-              label="Recovery Email"
-              :error-messages="recoveryEmailError"
-              required
-              variant="underlined"
-              data-test="recovery-email-text"
-            />
-          </v-col>
-        </v-row>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            :disabled="!recoveryEmail || !!recoveryEmailError"
-            variant="text"
-            color="primary"
-            data-test="save-btn"
-            @click="updateUserData"
-          >
-            Save Recovery Email
-          </v-btn>
-        </v-card-actions>
-      </v-container>
-    </v-card>
-  </BaseDialog>
+    <div class="pa-6 d-flex flex-column align-center">
+      <p class="text-justify mb-4 px-1">
+        In case you lose access to all your MFA credentials,
+        we'll need a recovery email to verify your identity
+        and reset your account access.
+        To ensure you can recover your account if you lose
+        access to your MFA credentials, please associate a
+        recovery email.
+      </p>
+      <v-text-field
+        width="400"
+        class="mx-auto"
+        v-model="recoveryEmail"
+        label="Recovery Email"
+        :error-messages="recoveryEmailError"
+        hide-details="auto"
+        required
+        data-test="recovery-email-text"
+      />
+
+    </div>
+
+    <template #footer>
+      <v-spacer />
+      <v-card-actions>
+        <v-btn
+          :disabled="!recoveryEmail || !!recoveryEmailError"
+          variant="text"
+          color="primary"
+          data-test="save-btn"
+          @click="updateUserData"
+        >
+          Save Recovery Email
+        </v-btn>
+      </v-card-actions>
+    </template>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
 import * as yup from "yup";
 import { useField } from "vee-validate";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useUsersStore from "@/store/modules/users";
 import { IUserPatch } from "@/interfaces/IUser";
 
-const showDialog = ref(false);
+const showDialog = defineModel<boolean>({ required: true });
 const authStore = useAuthStore();
 const usersStore = useUsersStore();
 const snackbar = useSnackbar();
