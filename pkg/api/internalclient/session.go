@@ -3,8 +3,9 @@ package internalclient
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -46,7 +47,7 @@ func (c *client) SessionCreate(ctx context.Context, session requests.SessionCrea
 		R().
 		SetContext(ctx).
 		SetBody(session).
-		Post("/internal/sessions")
+		Post(c.Config.APIBaseURL + "/internal/sessions")
 
 	return err
 }
@@ -56,10 +57,11 @@ func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) []error
 	_, err := c.http.
 		R().
 		SetContext(ctx).
+		SetPathParam("uid", uid).
 		SetBody(&models.Status{
 			Authenticated: true,
 		}).
-		Patch(fmt.Sprintf("/internal/sessions/%s", uid))
+		Patch(c.Config.APIBaseURL + "/internal/sessions/{uid}")
 	if err != nil {
 		errors = append(errors, err)
 	}
@@ -72,7 +74,8 @@ func (c *client) FinishSession(ctx context.Context, uid string) []error {
 	_, err := c.http.
 		R().
 		SetContext(ctx).
-		Post(fmt.Sprintf("/internal/sessions/%s/finish", uid))
+		SetPathParam("uid", uid).
+		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/finish")
 	if err != nil {
 		errors = append(errors, err)
 	}
@@ -85,7 +88,8 @@ func (c *client) KeepAliveSession(ctx context.Context, uid string) []error {
 	_, err := c.http.
 		R().
 		SetContext(ctx).
-		Post(fmt.Sprintf("/internal/sessions/%s/keepalive", uid))
+		SetPathParam("uid", uid).
+		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/keepalive")
 	if err != nil {
 		errors = append(errors, err)
 	}
@@ -101,7 +105,7 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 			"tenant": uid,
 		}).
 		SetBody(model).
-		Patch("/internal/sessions/{tenant}")
+		Patch(c.Config.APIBaseURL + "/internal/sessions/{tenant}")
 	if err != nil {
 		return errors.Join(errors.New("failed to update the session due error"), err)
 	}
@@ -114,14 +118,19 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 }
 
 func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error) {
-	connection, _, err := websocket.
-		DefaultDialer.
-		DialContext(
-			ctx,
-			fmt.Sprintf("ws://api:8080/internal/sessions/%s/events",
-				uid,
-			),
-			nil)
+	// Dial the enterprise events websocket. Convert configured enterprise HTTP scheme to ws(s).
+	scheme := "ws"
+	if strings.HasPrefix(c.Config.APIBaseURL, "https") {
+		scheme = "wss"
+	}
+
+	host := strings.TrimPrefix(strings.TrimPrefix(c.Config.APIBaseURL, "http://"), "https://")
+
+	connection, _, err := websocket.DefaultDialer.DialContext(
+		ctx,
+		scheme+"://"+host+"/internal/sessions/"+uid+"/events",
+		nil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -135,9 +144,9 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 		SetContext(ctx).
 		SetPathParams(map[string]string{
 			"uid":  uid,
-			"seat": fmt.Sprintf("%d", seat),
+			"seat": strconv.Itoa(seat),
 		}).
-		Post("http://cloud:8080/internal/sessions/{uid}/records/{seat}")
+		Post(c.Config.EnterpriseBaseURL + "/internal/sessions/{uid}/records/{seat}")
 	if err != nil {
 		return errors.Join(errors.New("failed to save the Asciinema file on Object Storage"), err)
 	}
@@ -150,7 +159,7 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 		// represent an error.
 		logrus.WithFields(logrus.Fields{
 			"uid":  uid,
-			"seat": fmt.Sprintf("%d", seat),
+			"seat": strconv.Itoa(seat),
 		}).Debug("save session not acceptable")
 
 		return nil

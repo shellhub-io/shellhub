@@ -24,7 +24,7 @@ func (c *client) BillingReport(ctx context.Context, tenant string, action string
 		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenant).
 		SetQueryParam("action", action).
-		Post("http://cloud:8080/internal/billing/report")
+		Post(c.Config.EnterpriseBaseURL + "/internal/billing/report")
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -40,7 +40,7 @@ func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.
 		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenantID).
 		SetResult(&eval).
-		Post("http://cloud:8080/internal/billing/evaluate")
+		Post(c.Config.EnterpriseBaseURL + "/internal/billing/evaluate")
 	if err != nil {
 		return eval, resp.StatusCode(), err
 	}

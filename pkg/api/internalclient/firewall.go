@@ -23,7 +23,7 @@ func (c *client) FirewallEvaluate(ctx context.Context, lookup map[string]string)
 		R().
 		SetContext(ctx).
 		SetQueryParams(lookup).
-		Get("http://cloud:8080/internal/firewall/rules/evaluate")
+		Get(c.Config.EnterpriseBaseURL + "/internal/firewall/rules/evaluate")
 	if err != nil {
 		return ErrFirewallConnection
 	}
