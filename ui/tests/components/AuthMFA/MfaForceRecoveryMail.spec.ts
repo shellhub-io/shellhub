@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MfaForceRecoveryMail from "@/components/AuthMFA/MfaForceRecoveryMail.vue";
 import { usersApi } from "@/api/http";
@@ -40,37 +40,21 @@ describe("Force Adding a Recovery Mail", () => {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
       },
+      props: { modelValue: true },
     });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mockUsersApi.reset();
   });
 
   it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the components", async () => {
-    const dialog = new DOMWrapper(document.body);
-    wrapper.vm.showDialog = true;
+  it("Renders the component", async () => {
     await flushPromises();
-
-    expect(dialog.find('[data-test="card-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="dialog-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="dialog-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="recovery-email-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="save-btn"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Adds a recovery mail", async () => {
-    wrapper.vm.showDialog = true;
     await flushPromises();
     const storeSpy = vi.spyOn(usersStore, "patchData");
     mockUsersApi.onPatch("http://localhost:3000/api/users").reply(200);
@@ -82,7 +66,6 @@ describe("Force Adding a Recovery Mail", () => {
   });
 
   it("Adds a recovery mail (Fail)", async () => {
-    wrapper.vm.showDialog = true;
     await flushPromises();
     const storeSpy = vi.spyOn(usersStore, "patchData");
     mockUsersApi.onPatch("http://localhost:3000/api/users").reply(400);
@@ -94,7 +77,6 @@ describe("Force Adding a Recovery Mail", () => {
   });
 
   it("Adds a recovery mail (Fail, Same Email)", async () => {
-    wrapper.vm.showDialog = true;
     await flushPromises();
     const storeSpy = vi.spyOn(usersStore, "patchData");
     mockUsersApi.onPatch("http://localhost:3000/api/users").reply(409);
