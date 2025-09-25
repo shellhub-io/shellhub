@@ -309,53 +309,10 @@ func (s *Store) NamespaceConflicts(ctx context.Context, target *models.Namespace
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (s *Store) NamespaceDelete(ctx context.Context, tenantID string) error {
-	session, err := s.db.Client().StartSession()
-	if err != nil {
-		return err
-	}
-	defer session.EndSession(ctx)
-
-	if _, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
-		r, err := s.db.Collection("namespaces").DeleteOne(sessCtx, bson.M{"tenant_id": tenantID})
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		if r.DeletedCount < 1 {
-			return nil, store.ErrNoDocuments
-		}
-
-		if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenantID}, "/")); err != nil {
-			log.Error(err)
-		}
-
-		collections := []string{"devices", "sessions", "firewall_rules", "public_keys", "recorded_sessions", "api_keys"}
-		for _, collection := range collections {
-			if _, err := s.db.Collection(collection).DeleteMany(sessCtx, bson.M{"tenant_id": tenantID}); err != nil {
-				return nil, FromMongoError(err)
-			}
-		}
-
-		_, err = s.db.
-			Collection("users").
-			UpdateMany(ctx, bson.M{"preferred_namespace": tenantID}, bson.M{"$set": bson.M{"preferred_namespace": ""}})
-		if err != nil {
-			return nil, FromMongoError(err)
-		}
-
-		return nil, nil
-	}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Store) NamespaceUpdate(ctx context.Context, tenant string, changes *models.NamespaceChanges) error {
+func (s *Store) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error {
 	res, err := s.db.
 		Collection("namespaces").
-		UpdateOne(ctx, bson.M{"tenant_id": tenant}, bson.M{"$set": changes})
+		UpdateOne(ctx, bson.M{"tenant_id": namespace.TenantID}, bson.M{"$set": namespace})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -364,8 +321,51 @@ func (s *Store) NamespaceUpdate(ctx context.Context, tenant string, changes *mod
 		return store.ErrNoDocuments
 	}
 
-	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", tenant}, "/")); err != nil {
+	if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace.TenantID}, "/")); err != nil {
 		log.Error(err)
+	}
+
+	return nil
+}
+
+func (s *Store) NamespaceDelete(ctx context.Context, namespace *models.Namespace) error {
+	session, err := s.db.Client().StartSession()
+	if err != nil {
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	if _, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+		r, err := s.db.Collection("namespaces").DeleteOne(sessCtx, bson.M{"tenant_id": namespace.TenantID})
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		if r.DeletedCount < 1 {
+			return nil, store.ErrNoDocuments
+		}
+
+		if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", namespace.TenantID}, "/")); err != nil {
+			log.Error(err)
+		}
+
+		collections := []string{"devices", "sessions", "firewall_rules", "public_keys", "recorded_sessions", "api_keys"}
+		for _, collection := range collections {
+			if _, err := s.db.Collection(collection).DeleteMany(sessCtx, bson.M{"tenant_id": namespace.TenantID}); err != nil {
+				return nil, FromMongoError(err)
+			}
+		}
+
+		_, err = s.db.
+			Collection("users").
+			UpdateMany(ctx, bson.M{"preferred_namespace": namespace.TenantID}, bson.M{"$set": bson.M{"preferred_namespace": ""}})
+		if err != nil {
+			return nil, FromMongoError(err)
+		}
+
+		return nil, nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
