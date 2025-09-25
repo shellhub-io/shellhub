@@ -2,7 +2,7 @@ package internalclient
 
 import (
 	"context"
-	"net/http"
+	"errors"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -18,6 +18,8 @@ type billingAPI interface {
 	BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, int, error)
 }
 
+var ErrBillingRequestFailed = errors.New("billing request failed")
+
 func (c *client) BillingReport(ctx context.Context, tenant string, action string) (int, error) {
 	res, err := c.http.
 		R().
@@ -26,7 +28,8 @@ func (c *client) BillingReport(ctx context.Context, tenant string, action string
 		SetQueryParam("action", action).
 		Post(c.Config.EnterpriseBaseURL + "/internal/billing/report")
 	if err != nil {
-		return http.StatusInternalServerError, err
+		// TODO: It shouldn't return the status code.
+		return res.StatusCode(), errors.Join(ErrBillingRequestFailed, err)
 	}
 
 	return res.StatusCode(), nil
@@ -42,7 +45,7 @@ func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.
 		SetResult(&eval).
 		Post(c.Config.EnterpriseBaseURL + "/internal/billing/evaluate")
 	if err != nil {
-		return eval, resp.StatusCode(), err
+		return nil, resp.StatusCode(), errors.Join(ErrBillingRequestFailed, err)
 	}
 
 	return eval, resp.StatusCode(), nil
