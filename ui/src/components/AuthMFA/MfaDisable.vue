@@ -1,170 +1,124 @@
 <template>
-  <BaseDialog
+  <WindowDialog
     v-model="showDialog"
-    scrollable
     @close="close"
+    :title="currentStepConfig.title"
+    :description="currentStepConfig.description"
+    :icon="currentStepConfig.icon"
+    icon-color="warning"
     data-test="dialog"
   >
-    <v-card class="bg-grey-darken-4 bg-v-theme-surface pa-3">
-      <v-container>
-        <v-window v-model="el">
-          <v-card-title class="d-flex justify-center align-center mt-4">
-            <v-img
-              :src="Logo"
-              max-width="220"
-              alt="ShellHub logo, a cloud with a shell in your base write ShellHub in the right side"
-            />
-          </v-card-title>
-          <v-window-item :value="1">
-            <v-row>
-              <v-col align="center">
-                <h3 data-test="title">Multi-factor Authentication</h3>
-              </v-col>
-            </v-row>
-            <v-row class="mb-2">
-              <v-col align="center">
-                <h4 data-test="sub-title">Verify your identity by signing in using the code from your OTP Provider</h4>
-              </v-col>
-            </v-row>
-            <v-slide-y-reverse-transition v-if="showAlert">
-              <v-alert
-                v-model="showAlert"
-                :text="alertMessage"
-                type="error"
-                closable
-                variant="tonal"
-                class="mb-4"
-                data-test="alert-message"
-              />
-            </v-slide-y-reverse-transition>
-            <v-otp-input
-              data-test="verification-code"
-              required
-              v-model="verificationCode"
-              @keyup.enter="verificationCode ? disableMfa() : false"
-              label="Verification Code"
-              variant="underlined" />
-            <v-row>
-              <v-col class="text-subtitle-2 mt-2">
-                If you lost your MFA TOTP Provider, and want to use your recovery code,
-                <v-btn
-                  class="pl-0"
-                  @click="goToNextStep()"
-                  variant="plain"
-                  color="primary"
-                  density="compact"
-                  data-test="use-recovery-code-btn"
-                >
-                  click here
-                </v-btn>
-              </v-col>
-            </v-row>
-            <v-card-actions class="justify-center pa-0">
-              <v-row class="ml-4 mr-4 mt-2">
-                <v-col>
-                  <v-btn
-                    :disabled="!verificationCode"
-                    data-test="verify-btn"
-                    color="primary"
-                    variant="tonal"
-                    block
-                    @click="disableMfa()"
-                  >
-                    Verify
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-card-actions>
-          </v-window-item>
-          <v-window-item :value="2">
-            <v-slide-y-reverse-transition v-if="showAlert">
-              <v-alert
-                v-model="showAlert"
-                :text="alertMessage"
-                type="error"
-                closable
-                variant="tonal"
-                class="mb-4"
-                data-test="alert-message"
-              />
-            </v-slide-y-reverse-transition>
-            <v-row>
-              <v-col align="center">
-                <h3 data-test="title">Multi-factor Authentication</h3>
-              </v-col>
-            </v-row>
-            <v-row class="mb-2">
-              <v-col align="center">
-                <h4 data-test="sub-title">If you lost your access to your TOTP provider,
-                  please paste one of your recovery codes below</h4>
-              </v-col>
-            </v-row>
-            <v-text-field
-              v-model="recoveryCode"
-              color="primary"
-              required
-              @keyup.enter="recoveryCode ? disableMfa() : false"
-              label="Recovery Code"
-              variant="outlined"
-              data-test="recovery-code"
-            />
-            <v-card-actions class="justify-center pa-0">
-              <v-btn
-                :disabled="!recoveryCode"
-                data-test="recover-btn"
-                color="primary"
-                variant="tonal"
-                block
-                @click="disableMfa()"
-              >
-                Recover Account
-              </v-btn>
-            </v-card-actions>
-            <v-row>
-              <v-col class="text-subtitle-2">
-                If you lost your recovery codes, we'll send you an e-mail to continue the MFA disable,
-                <v-btn
-                  class="pl-0"
-                  @click="requestMail()"
-                  variant="plain"
-                  color="primary"
-                  density="compact"
-                  data-test="send-email-btn"
-                >
-                  click here
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-window-item>
-          <v-window-item :value="3">
-            <v-row>
-              <v-col align="center">
-                <h3 data-test="title">Multi-factor Authentication</h3>
-              </v-col>
-            </v-row>
-            <v-row class="mb-2">
-              <v-col align="center">
-                <h4 data-test="sub-title">An email has been sent to {{ userMail }}.
-                  Please check your inbox and click the link we've provided to disable MFA.</h4>
-              </v-col>
-            </v-row>
-          </v-window-item>
-        </v-window>
-      </v-container>
+    <v-window v-model="el" class="pa-6">
+      <v-slide-y-reverse-transition>
+        <v-alert
+          v-model="showAlert"
+          :text="alertMessage"
+          type="error"
+          closable
+          variant="tonal"
+          class="mb-4 align-self-stretch"
+          data-test="alert-message"
+        />
+      </v-slide-y-reverse-transition>
+      <v-window-item :value="1">
+        <v-otp-input
+          data-test="verification-code"
+          required
+          v-model="verificationCode"
+          @keyup.enter="verificationCode ? disableMfa() : false"
+          label="Verification Code"
+          class="mb-4"
+        />
+
+        <p class="text-subtitle-2 text-center">
+          If you lost your MFA TOTP Provider and want to use your recovery code,
+          <span
+            tag="button"
+            @click="goToNextStep"
+            @keyup.enter="goToNextStep"
+            class="text-primary cursor-pointer text-decoration-underline"
+            data-test="use-recovery-code-btn"
+          >
+            click here
+          </span>
+        </p>
+      </v-window-item>
+
+      <v-window-item :value="2">
+        <v-text-field
+          v-model="recoveryCode"
+          color="primary"
+          class="mx-auto mt-2"
+          required
+          @keyup.enter="recoveryCode ? disableMfa() : false"
+          label="Recovery Code"
+          data-test="recovery-code"
+          width="400"
+        />
+
+        <p class="text-subtitle-2 text-center">
+          If you lost your recovery codes, we'll send you an e-mail to continue the MFA disable.
+          <span
+            tag="button"
+            @click="requestMail"
+            @keyup.enter="requestMail"
+            class="text-primary cursor-pointer text-decoration-underline"
+            data-test="recover-email-btn"
+          >
+            Click here</span>.
+        </p>
+      </v-window-item>
+
+      <v-window-item :value="3">
+        <div class="text-center">
+          <v-icon
+            icon="mdi-email-check-outline"
+            size="80"
+            color="success"
+            class="mb-4"
+          />
+        </div>
+
+        <p data-test="sub-title" class="mb-4 text-center text-body-1 font-weight-bold">
+          An email has been sent to {{ userMail }}.
+          Please check your inbox and click the link we've provided to disable MFA.
+        </p>
+      </v-window-item>
+    </v-window>
+
+    <template #footer>
+      <v-spacer />
       <v-card-actions>
-        <v-btn @click="close" data-test="close-btn">Close</v-btn>
+        <v-btn data-test="close-btn" @click="close">Close</v-btn>
+        <v-btn
+          v-if="el === 1"
+          :disabled="!verificationCode"
+          data-test="verify-btn"
+          color="primary"
+          @click="disableMfa"
+        >
+          Verify
+        </v-btn>
+        <v-btn
+          v-else-if="el === 2"
+          :disabled="!recoveryCode"
+          data-test="recover-btn"
+          color="primary"
+          @click="disableMfa"
+        >
+          Recover Account
+        </v-btn>
       </v-card-actions>
-    </v-card>
-  </BaseDialog>
+    </template>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
-import Logo from "@/assets/logo-inverted.png";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 
 const authStore = useAuthStore();
@@ -176,6 +130,26 @@ const showAlert = ref(false);
 const alertMessage = ref("");
 const showDialog = defineModel({ default: false });
 const userMail = computed(() => localStorage.getItem("email"));
+
+const stepConfig = {
+  1: {
+    title: "Disable Multi-Factor Authentication",
+    description: "Verify your identity using your authenticator app",
+    icon: "mdi-shield-remove-outline",
+  },
+  2: {
+    title: "Use Recovery Code",
+    description: "Enter one of your backup recovery codes",
+    icon: "mdi-shield-key-outline",
+  },
+  3: {
+    title: "Email Verification Sent",
+    description: "Check your email to complete MFA removal",
+    icon: "mdi-email-check-outline",
+  },
+};
+
+const currentStepConfig = computed(() => stepConfig[el.value as keyof typeof stepConfig]);
 
 const disableMfa = async () => {
   try {
@@ -225,11 +199,11 @@ const requestMail = async () => {
 };
 
 const close = () => {
+  showDialog.value = false;
   recoveryCode.value = "";
   verificationCode.value = "";
   alertMessage.value = "";
   showAlert.value = false;
-  showDialog.value = false;
   el.value = 1;
 };
 
