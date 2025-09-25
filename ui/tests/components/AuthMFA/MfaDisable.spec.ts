@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import MfaDisable from "@/components/AuthMFA/MfaDisable.vue";
 import { mfaApi } from "@/api/http";
@@ -13,74 +13,51 @@ type MfaDisableWrapper = VueWrapper<InstanceType<typeof MfaDisable>>;
 
 describe("MfaDisable", () => {
   let wrapper: MfaDisableWrapper;
+  let dialog: DOMWrapper<Element>;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
   const vuetify = createVuetify();
-
-  let mock: MockAdapter;
+  const mockMfaApi = new MockAdapter(mfaApi.getAxios());
 
   beforeEach(() => {
-    mock = new MockAdapter(mfaApi.getAxios());
-
     wrapper = mount(MfaDisable, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
 
       },
     });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    mock.reset();
+    dialog = new DOMWrapper(document.body);
   });
 
   it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Dialog opens", async () => {
+  it("Renders the component (Verification Code window)", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-    expect(document.querySelector('[data-test="dialog"]')).not.toBeNull();
+    expect(dialog.html()).toMatchSnapshot();
   });
 
-  it("Renders the components", async () => {
-    const dialog = new DOMWrapper(document.body);
-
+  it("Renders the component (Recovery Code window)", async () => {
     wrapper.vm.showDialog = true;
-    await flushPromises();
-
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="sub-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="verification-code"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="verify-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="use-recovery-code-btn"]').exists()).toBe(true);
     wrapper.vm.el = 2;
     await flushPromises();
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="sub-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="recovery-code"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="recover-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="send-email-btn"]').exists()).toBe(true);
-    wrapper.vm.el = 3;
-    await flushPromises();
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="sub-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
-  it("Disable MFA Authentication using TOPT Code", async () => {
-    const dialog = new DOMWrapper(document.body);
+  it("Renders the component (Email Sent window)", async () => {
+    wrapper.vm.showDialog = true;
+    wrapper.vm.el = 3;
+    await flushPromises();
+    expect(dialog.html()).toMatchSnapshot();
+  });
+
+  it("Disables MFA Authentication using TOTP Code", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
-    mock.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
+    mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
     await wrapper.findComponent('[data-test="verification-code"]').setValue("123456");
     await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");
 
@@ -88,13 +65,11 @@ describe("MfaDisable", () => {
     expect(dialog.find('[data-test="alert-message"]').exists()).toBe(false);
   });
 
-  it("Disable MFA Authentication using TOPT Code (Fail)", async () => {
-    const dialog = new DOMWrapper(document.body);
-
+  it("Disables MFA Authentication using TOTP Code (Fail)", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
-    mock.onPut("http://localhost:3000/api/user/mfa/disable").reply(403);
+    mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(403);
     await wrapper.findComponent('[data-test="verification-code"]').setValue("123456");
     await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");
     await flushPromises();
@@ -102,26 +77,24 @@ describe("MfaDisable", () => {
     expect(dialog.find('[data-test="alert-message"]').exists()).toBe(true);
   });
 
-  it("Disable MFA Authentication using Recovery Code", async () => {
+  it("Disables MFA Authentication using Recovery Code", async () => {
     wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
-    mock.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
+    mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
     await wrapper.findComponent('[data-test="recovery-code"]').setValue("RMS32SAK521A");
     await wrapper.findComponent('[data-test="recover-btn"]').trigger("click");
     await flushPromises();
     expect(mfaSpy).toHaveBeenCalledWith({ recovery_code: "RMS32SAK521A" });
   });
 
-  it("Disable MFA Authentication using Recovery Code (Fail)", async () => {
-    const dialog = new DOMWrapper(document.body);
-
+  it("Disables MFA Authentication using Recovery Code (Fail)", async () => {
     wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
-    mock.onPut("http://localhost:3000/api/user/mfa/disable").reply(403);
+    mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(403);
     await wrapper.findComponent('[data-test="recovery-code"]').setValue("RMS32SAK521A");
     await wrapper.findComponent('[data-test="recover-btn"]').trigger("click");
 
@@ -129,27 +102,26 @@ describe("MfaDisable", () => {
     expect(dialog.find('[data-test="alert-message"]').exists()).toBe(true);
   });
 
-  it("Send the disable codes on the users mail", async () => {
+  it("Sends the disable codes on the users mail", async () => {
     localStorage.setItem("email", "test@test.com");
     wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "requestMfaReset");
-    mock.onPost("http://localhost:3000/api/user/mfa/reset").reply(200);
-    await wrapper.findComponent('[data-test="send-email-btn"]').trigger("click");
+    mockMfaApi.onPost("http://localhost:3000/api/user/mfa/reset").reply(200);
+    await dialog.find('[data-test="recover-email-btn"]').trigger("click");
 
     expect(mfaSpy).toHaveBeenCalled();
   });
-  it("Send the disable codes on the users mail", async () => {
-    const dialog = new DOMWrapper(document.body);
 
+  it("Handles error when sending recovery email fails", async () => {
     localStorage.setItem("email", "test@test.com");
     wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "requestMfaReset");
-    mock.onPost("http://localhost:3000/api/user/mfa/reset").reply(403);
-    await wrapper.findComponent('[data-test="send-email-btn"]').trigger("click");
+    mockMfaApi.onPost("http://localhost:3000/api/user/mfa/reset").reply(403);
+    await dialog.find('[data-test="recover-email-btn"]').trigger("click");
 
     expect(mfaSpy).toHaveBeenCalled();
     expect(dialog.find('[data-test="alert-message"]').exists()).toBe(true);
