@@ -152,7 +152,9 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	// [models.DeviceStatusAccepted]. This way, we can keep track of the number of devices that were removed from the
 	// namespace and void the device switching.
 	if envs.IsCloud() && !ns.Billing.IsActive() && device.Status == models.DeviceStatusAccepted {
-		if err := s.store.DeviceUpdate(ctx, tenant, string(uid), &models.DeviceChanges{Status: models.DeviceStatusRemoved}); err != nil {
+		now := clock.Now()
+		changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: &now, Status: models.DeviceStatusRemoved}
+		if err := s.store.DeviceUpdate(ctx, tenant, string(uid), changes); err != nil {
 			return err
 		}
 
@@ -182,7 +184,7 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return nil
 	}
 
-	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, Name: strings.ToLower(name)}
+	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: device.RemovedAt, Name: strings.ToLower(name)}
 	if err := s.store.DeviceUpdate(ctx, device.TenantID, string(uid), changes); err != nil { // nolint:revive
 		return err
 	}
@@ -214,8 +216,14 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 }
 
 func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+	if err != nil || device == nil {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
 	now := clock.Now()
-	if err := s.store.DeviceUpdate(ctx, "", string(uid), &models.DeviceChanges{DisconnectedAt: &now}); err != nil {
+	changes := &models.DeviceChanges{RemovedAt: device.RemovedAt, DisconnectedAt: &now}
+	if err := s.store.DeviceUpdate(ctx, "", string(uid), changes); err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrDeviceNotFound(uid, err)
 		}
@@ -311,7 +319,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 				if envs.IsCloud() {
 					hasBillingActive := namespace.Billing != nil && namespace.Billing.IsActive()
 					hasRechedLimit := namespace.HasMaxDevices() && namespace.HasLimitDevicesReached()
-					isDeviceStatusRemoved := device.Status == models.DeviceStatusRemoved
+					isDeviceStatusRemoved := device.RemovedAt != nil
 
 					if !hasBillingActive && hasRechedLimit && !isDeviceStatusRemoved {
 						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).
@@ -334,7 +342,8 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 			}
 		}
 
-		if err := s.store.DeviceUpdate(ctx, namespace.TenantID, device.UID, &models.DeviceChanges{Status: newStatus}); err != nil {
+		changes := &models.DeviceChanges{RemovedAt: device.RemovedAt, DisconnectedAt: device.DisconnectedAt, Status: newStatus}
+		if err := s.store.DeviceUpdate(ctx, namespace.TenantID, device.UID, changes); err != nil {
 			return err
 		}
 
@@ -361,7 +370,7 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 	}
 
 	// We pass DisconnectedAt because we don't want to update it to nil
-	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt}
+	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: device.RemovedAt}
 	if req.Name != "" && strings.ToLower(req.Name) != device.Name {
 		changes.Name = strings.ToLower(req.Name)
 	}
@@ -380,7 +389,8 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 		return err
 	}
 
-	if err := s.store.DeviceUpdate(ctx, tenantID, newDevice.UID, &models.DeviceChanges{Name: oldDevice.Name}); err != nil {
+	changes := &models.DeviceChanges{DisconnectedAt: newDevice.DisconnectedAt, RemovedAt: newDevice.RemovedAt, Name: oldDevice.Name}
+	if err := s.store.DeviceUpdate(ctx, tenantID, newDevice.UID, changes); err != nil {
 		return err
 	}
 

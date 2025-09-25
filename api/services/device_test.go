@@ -11,6 +11,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	envsmocks "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
@@ -944,6 +946,11 @@ func TestResolveDevice(t *testing.T) {
 }
 
 func TestDeleteDevice(t *testing.T) {
+	now := time.Now()
+	clockMock := new(clockmock.Clock)
+	clockMock.On("Now").Return(now)
+	clock.DefaultBackend = clockMock
+
 	storeMock := new(storemock.Store)
 	queryOptionsMock := new(storemock.QueryOptions)
 	storeMock.On("Options").Return(queryOptionsMock)
@@ -1161,7 +1168,7 @@ func TestDeleteDevice(t *testing.T) {
 						ctx,
 						"tenant",
 						"uid",
-						&models.DeviceChanges{Status: models.DeviceStatusRemoved},
+						&models.DeviceChanges{DisconnectedAt: nil, RemovedAt: &now, Status: models.DeviceStatusRemoved},
 					).
 					Return(errors.New("error", "", 0)).
 					Once()
@@ -1220,7 +1227,7 @@ func TestDeleteDevice(t *testing.T) {
 						ctx,
 						"tenant",
 						"uid",
-						&models.DeviceChanges{Status: models.DeviceStatusRemoved},
+						&models.DeviceChanges{DisconnectedAt: nil, RemovedAt: &now, Status: models.DeviceStatusRemoved},
 					).
 					Return(nil).
 					Once()
@@ -1371,7 +1378,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, "tenant", "uid", &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, Name: "newname"}).
+					On("DeviceUpdate", ctx, "tenant", "uid", &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: device.RemovedAt, Name: "newname"}).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -1393,7 +1400,7 @@ func TestRenameDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, "tenant", "uid", &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, Name: "newname"}).
+					On("DeviceUpdate", ctx, "tenant", "uid", &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: device.RemovedAt, Name: "newname"}).
 					Return(nil).
 					Once()
 			},
@@ -1532,6 +1539,11 @@ func TestLookupDevice(t *testing.T) {
 }
 
 func TestOfflineDevice(t *testing.T) {
+	now := time.Now()
+	clockMock := new(clockmock.Clock)
+	clockMock.On("Now").Return(now)
+	clock.DefaultBackend = clockMock
+
 	storeMock := new(storemock.Store)
 
 	cases := []struct {
@@ -1541,33 +1553,41 @@ func TestOfflineDevice(t *testing.T) {
 		expected error
 	}{
 		{
-			name: "fails when operation does not succeeds",
+			name: "fails when device does not exist",
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now}).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
+		},
+		{
+			name: "fails when cannot update the device",
+			uid:  models.UID("uid"),
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					Return(&models.Device{UID: "uid"}, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now, RemovedAt: nil}).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
 			expected: errors.New("error", "", 0),
 		},
 		{
-			name: "fails when connected_device does not exist",
-			uid:  models.UID("uid"),
-			mocks: func(ctx context.Context) {
-				storeMock.
-					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now}).
-					Return(store.ErrNoDocuments).
-					Once()
-			},
-			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
-		},
-		{
 			name: "succeeds",
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now}).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").
+					Return(&models.Device{UID: "uid"}, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, "", "uid", &models.DeviceChanges{DisconnectedAt: &now, RemovedAt: nil}).
 					Return(nil).
 					Once()
 			},
@@ -2356,11 +2376,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "removed-device", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
-							UID:      "removed-device",
-							Name:     "test-device",
-							TenantID: "00000000-0000-0000-0000-000000000000",
-							Status:   models.DeviceStatusRemoved,
-							Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+							UID:       "removed-device",
+							RemovedAt: &now,
+							Name:      "test-device",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    models.DeviceStatusPending,
+							Identity:  &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 						},
 						nil,
 					).
@@ -2426,11 +2447,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "removed-device", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
-							UID:      "removed-device",
-							Name:     "test-device",
-							TenantID: "00000000-0000-0000-0000-000000000000",
-							Status:   models.DeviceStatusRemoved,
-							Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+							UID:       "removed-device",
+							RemovedAt: &now,
+							Name:      "test-device",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    models.DeviceStatusPending,
+							Identity:  &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 						},
 						nil,
 					).
@@ -2496,11 +2518,12 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "removed-device", mock.AnythingOfType("store.QueryOption")).
 					Return(
 						&models.Device{
-							UID:      "removed-device",
-							Name:     "test-device",
-							TenantID: "00000000-0000-0000-0000-000000000000",
-							Status:   models.DeviceStatusRemoved,
-							Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+							UID:       "removed-device",
+							RemovedAt: &now,
+							Name:      "test-device",
+							TenantID:  "00000000-0000-0000-0000-000000000000",
+							Status:    models.DeviceStatusPending,
+							Identity:  &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 						},
 						nil,
 					).
@@ -2544,7 +2567,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusRemoved, int64(-1)).
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-0000-0000-000000000000", models.DeviceStatusPending, int64(-1)).
 					Return(nil).
 					Once()
 				storeMock.

@@ -869,13 +869,6 @@ func TestDeviceBulkUpdate(t *testing.T) {
 			expected:    Expected{int64(0), nil},
 		},
 		{
-			description: "succeeds when devices matches but nothing is updated",
-			uids:        []string{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e"},
-			changes:     &models.DeviceChanges{},
-			fixtures:    []string{fixtureDevices},
-			expected:    Expected{int64(0), nil},
-		},
-		{
 			description: "succeeds when devices matches",
 			uids:        []string{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e"},
 			changes:     &models.DeviceChanges{LastSeen: time.Now()},

@@ -74,17 +74,13 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			Data: []query.Filter{
 				{
 					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusRemoved)},
-				},
-				{
-					Type:   query.FilterTypeProperty,
-					Params: &query.FilterProperty{Name: "status_updated_at", Operator: "lt", Value: time.Now().AddDate(0, 0, -30)},
+					Params: &query.FilterProperty{Name: "removed_at", Operator: "lt", Value: time.Now().AddDate(0, 0, -30)},
 				},
 			},
 		}
 
 		sorter := &query.Sorter{
-			By:    "status_updated_at",
+			By:    "removed_at",
 			Order: query.OrderAsc,
 		}
 
