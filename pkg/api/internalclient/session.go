@@ -21,15 +21,15 @@ type sessionAPI interface {
 
 	// SessionAsAuthenticated marks a session with the specified uid as authenticated.
 	// It returns a slice of errors encountered during the operation.
-	SessionAsAuthenticated(ctx context.Context, uid string) []error
+	SessionAsAuthenticated(ctx context.Context, uid string) error
 
 	// FinishSession finishes the session with the specified uid.
 	// It returns a slice of errors encountered during the operation.
-	FinishSession(ctx context.Context, uid string) []error
+	FinishSession(ctx context.Context, uid string) error
 
 	// KeepAliveSession sends a keep-alive signal for the session with the specified uid.
 	// It returns a slice of errors encountered during the operation.
-	KeepAliveSession(ctx context.Context, uid string) []error
+	KeepAliveSession(ctx context.Context, uid string) error
 
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
 	UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error
@@ -52,8 +52,7 @@ func (c *client) SessionCreate(ctx context.Context, session requests.SessionCrea
 	return err
 }
 
-func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) []error {
-	var errors []error
+func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
 	_, err := c.http.
 		R().
 		SetContext(ctx).
@@ -63,38 +62,36 @@ func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) []error
 		}).
 		Patch(c.Config.APIBaseURL + "/internal/sessions/{uid}")
 	if err != nil {
-		errors = append(errors, err)
+		return err
 	}
 
-	return errors
+	return nil
 }
 
-func (c *client) FinishSession(ctx context.Context, uid string) []error {
-	var errors []error
+func (c *client) FinishSession(ctx context.Context, uid string) error {
 	_, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
 		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/finish")
 	if err != nil {
-		errors = append(errors, err)
+		return err
 	}
 
-	return errors
+	return nil
 }
 
-func (c *client) KeepAliveSession(ctx context.Context, uid string) []error {
-	var errors []error
+func (c *client) KeepAliveSession(ctx context.Context, uid string) error {
 	_, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
 		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/keepalive")
 	if err != nil {
-		errors = append(errors, err)
+		return err
 	}
 
-	return errors
+	return nil
 }
 
 func (c *client) UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error {
