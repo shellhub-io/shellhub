@@ -402,7 +402,7 @@ func (_m *Client) ListDevices(ctx context.Context) ([]models.Device, error) {
 }
 
 // Lookup provides a mock function with given fields: ctx, lookup
-func (_m *Client) Lookup(ctx context.Context, lookup map[string]string) (string, []error) {
+func (_m *Client) Lookup(ctx context.Context, lookup map[string]string) (string, error) {
 	ret := _m.Called(ctx, lookup)
 
 	if len(ret) == 0 {
@@ -410,8 +410,8 @@ func (_m *Client) Lookup(ctx context.Context, lookup map[string]string) (string,
 	}
 
 	var r0 string
-	var r1 []error
-	if rf, ok := ret.Get(0).(func(context.Context, map[string]string) (string, []error)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]string) (string, error)); ok {
 		return rf(ctx, lookup)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, map[string]string) string); ok {
@@ -420,12 +420,10 @@ func (_m *Client) Lookup(ctx context.Context, lookup map[string]string) (string,
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, map[string]string) []error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, map[string]string) error); ok {
 		r1 = rf(ctx, lookup)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]error)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

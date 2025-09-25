@@ -2,6 +2,7 @@ package internalclient
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -19,6 +20,13 @@ type sshkeyAPI interface {
 	EvaluateKey(ctx context.Context, fingerprint string, dev *models.Device, username string) (bool, error)
 }
 
+var (
+	// ErrSSHKeyRequestFailed indicates that the SSH key request failed.
+	ErrSSHKeyRequestFailed = errors.New("sshkey request failed")
+	// ErrGetPublicKeyFailed indicates that the operation to get the public key failed.
+	ErrGetPublicKeyFailed = errors.New("get public key failed")
+)
+
 func (c *client) GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error) {
 	pubKey := new(models.PublicKey)
 
@@ -32,15 +40,17 @@ func (c *client) GetPublicKey(ctx context.Context, fingerprint, tenant string) (
 		SetResult(&pubKey).
 		Get(c.Config.APIBaseURL + "/internal/sshkeys/public-keys/{fingerprint}/{tenant}")
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrSSHKeyRequestFailed, err)
 	}
 
-	if resp.StatusCode() == http.StatusNotFound {
-		return nil, ErrNotFound
+	if resp.StatusCode() != http.StatusOK {
+		return nil, ErrGetPublicKeyFailed
 	}
 
 	return pubKey, nil
 }
+
+var ErrEvaluateKeyFailed = errors.New("evaluate key failed")
 
 func (c *client) EvaluateKey(ctx context.Context, fingerprint string, dev *models.Device, username string) (bool, error) {
 	var evaluate *bool
@@ -56,26 +66,32 @@ func (c *client) EvaluateKey(ctx context.Context, fingerprint string, dev *model
 		SetResult(&evaluate).
 		Post(c.Config.APIBaseURL + "/internal/sshkeys/public-keys/evaluate/{fingerprint}/{username}")
 	if err != nil {
-		return false, err
+		return false, errors.Join(ErrSSHKeyRequestFailed, err)
 	}
 
-	if resp.StatusCode() == http.StatusOK {
-		return *evaluate, nil
+	if resp.StatusCode() != http.StatusOK {
+		return false, ErrEvaluateKeyFailed
 	}
 
-	return false, nil
+	return true, nil
 }
+
+var ErrCreatePrivateKeyFailed = errors.New("create private key failed")
 
 func (c *client) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {
 	privKey := new(models.PrivateKey)
 
-	_, err := c.http.
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetResult(&privKey).
 		Post(c.Config.APIBaseURL + "/internal/sshkeys/private-keys")
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrSSHKeyRequestFailed, err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, ErrCreatePrivateKeyFailed
 	}
 
 	return privKey, nil

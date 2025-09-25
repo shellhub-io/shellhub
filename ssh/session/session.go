@@ -400,7 +400,7 @@ func (s *Session) checkFirewall() (bool, error) {
 		}).Info("an error or a firewall rule block this connection")
 
 		switch {
-		case errors.Is(err, internalclient.ErrFirewallConnection):
+		case errors.Is(err, internalclient.ErrFirewallEvaluationRequest):
 			return false, ErrFirewallConnection
 		case errors.Is(err, internalclient.ErrFirewallBlock):
 			return false, ErrFirewallBlock

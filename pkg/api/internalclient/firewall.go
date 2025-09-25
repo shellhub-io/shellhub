@@ -14,8 +14,10 @@ type firewallAPI interface {
 }
 
 var (
-	ErrFirewallConnection = errors.New("failed to make the request to evaluate the firewall")
-	ErrFirewallBlock      = errors.New("a firewall rule prohibit this connection")
+	// ErrFirewallEvaluationRequest is returned when the firewall evaluation request fails for any reason.
+	ErrFirewallEvaluationRequest = errors.New("failed to evaluate the firewall")
+	// ErrFirewallBlock is returned when a firewall rule prohibits the connection.
+	ErrFirewallBlock = errors.New("a firewall rule prohibit this connection")
 )
 
 func (c *client) FirewallEvaluate(ctx context.Context, lookup map[string]string) error {
@@ -25,7 +27,7 @@ func (c *client) FirewallEvaluate(ctx context.Context, lookup map[string]string)
 		SetQueryParams(lookup).
 		Get(c.Config.EnterpriseBaseURL + "/internal/firewall/rules/evaluate")
 	if err != nil {
-		return ErrFirewallConnection
+		return errors.Join(ErrFirewallEvaluationRequest, err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
