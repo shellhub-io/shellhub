@@ -34,6 +34,7 @@ func TestAuthDevice(t *testing.T) {
 	clockMock := new(clockmock.Clock)
 	uuidMock := new(uuidmock.Uuid)
 
+	now := time.Now()
 	clock.DefaultBackend = clockMock
 	clockMock.On("Now").Return(now)
 	uuid.DefaultBackend = uuidMock
@@ -374,6 +375,61 @@ func TestAuthDevice(t *testing.T) {
 						Arch:       "arch64",
 						Platform:   "native",
 					}, LastSeen: now, DisconnectedAt: nil}).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.DeviceAuthResponse{
+					UID:       toUID("00000000-0000-4000-0000-000000000000", "hostname", "", ""),
+					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")),
+					Name:      "hostname",
+					Namespace: "test",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "[device exists] succeeds to authenticate a removed device",
+			req: requests.DeviceAuth{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Hostname:  "hostname",
+				Identity:  &requests.DeviceIdentity{MAC: ""},
+				Info:      nil,
+				PublicKey: "",
+				Sessions:  []string{},
+				RealIP:    "127.0.0.1",
+			},
+			requiredMocks: func(ctx context.Context) {
+				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Once()
+				cacheMock.
+					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					Return(&models.Device{UID: uid, Name: "hostname", RemovedAt: &now}, nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
+					Return(nil).
+					Once()
+				storeMock.
+					On(
+						"DeviceUpdate",
+						ctx,
+						"00000000-0000-4000-0000-000000000000",
+						uid,
+						&models.DeviceChanges{Info: nil, LastSeen: now, DisconnectedAt: nil, RemovedAt: &now, Status: models.DeviceStatusPending},
+					).
 					Return(nil).
 					Once()
 				cacheMock.

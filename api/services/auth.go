@@ -159,7 +159,13 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 	} else {
-		changes := &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil}
+		changes := &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil, RemovedAt: device.RemovedAt}
+		if device.RemovedAt != nil {
+			changes.Status = models.DeviceStatusPending
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
+				return nil, err
+			}
+		}
 
 		if req.Info != nil {
 			changes.Info = &models.DeviceInfo{

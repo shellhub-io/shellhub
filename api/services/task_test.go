@@ -97,11 +97,11 @@ func TestService_DeviceCleanup(t *testing.T) {
 
 	matchFilter := func() func(*query.Filters) bool {
 		return func(filters *query.Filters) bool {
-			if len(filters.Data) != 2 {
+			if len(filters.Data) != 1 {
 				return false
 			}
 
-			matchStatus := func() bool {
+			matchTime := func() bool {
 				filter := filters.Data[0]
 				if filter.Type != query.FilterTypeProperty {
 					return false
@@ -112,21 +112,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					return false
 				}
 
-				return params.Name == "status" && params.Operator == "eq" && params.Value == string(models.DeviceStatusRemoved)
-			}
-
-			matchTime := func() bool {
-				filter := filters.Data[1]
-				if filter.Type != query.FilterTypeProperty {
-					return false
-				}
-
-				params, ok := filter.Params.(*query.FilterProperty)
-				if !ok {
-					return false
-				}
-
-				if params.Name != "status_updated_at" || params.Operator != "lt" {
+				if params.Name != "removed_at" || params.Operator != "lt" {
 					return false
 				}
 
@@ -144,7 +130,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 				return timeDiff <= time.Second // allow 1 seconds tolerance
 			}
 
-			return matchStatus() && matchTime()
+			return matchTime()
 		}
 	}
 
@@ -160,10 +146,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	sorter := query.Sorter{
-		By:    "status_updated_at",
-		Order: query.OrderAsc,
-	}
+	sorter := query.Sorter{By: "removed_at", Order: query.OrderAsc}
 
 	cases := []struct {
 		description   string
@@ -255,8 +238,8 @@ func TestService_DeviceCleanup(t *testing.T) {
 					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
-							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
-							{UID: "device-2", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
+							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
+							{UID: "device-2", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
 						},
 						2,
 						nil,
@@ -300,9 +283,9 @@ func TestService_DeviceCleanup(t *testing.T) {
 					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
-							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
-							{UID: "device-2", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
-							{UID: "device-3", TenantID: "tenant-2", StatusUpdatedAt: thirtyDaysAgo},
+							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
+							{UID: "device-2", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
+							{UID: "device-3", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
 						},
 						3,
 						nil,
@@ -358,9 +341,9 @@ func TestService_DeviceCleanup(t *testing.T) {
 					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
-							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
-							{UID: "device-2", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
-							{UID: "device-3", TenantID: "tenant-2", StatusUpdatedAt: thirtyDaysAgo},
+							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
+							{UID: "device-2", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
+							{UID: "device-3", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
 						},
 						3,
 						nil,
@@ -416,7 +399,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
-							{UID: "device-1", TenantID: "tenant-1", StatusUpdatedAt: thirtyDaysAgo},
+							{UID: "device-1", TenantID: "tenant-1", RemovedAt: &thirtyDaysAgo},
 						},
 						2001,
 						nil,
@@ -442,7 +425,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(
 						[]models.Device{
-							{UID: "device-2", TenantID: "tenant-2", StatusUpdatedAt: thirtyDaysAgo},
+							{UID: "device-2", TenantID: "tenant-2", RemovedAt: &thirtyDaysAgo},
 						},
 						2001,
 						nil,

@@ -17,7 +17,11 @@ const (
 
 type Device struct {
 	// UID is the unique identifier for a device.
-	UID       string          `json:"uid"`
+	UID string `json:"uid"`
+
+	CreatedAt time.Time  `json:"created_at" bson:"created_at,omitempty"`
+	RemovedAt *time.Time `json:"removed_at" bson:"removed_at"`
+
 	Name      string          `json:"name" bson:"name,omitempty" validate:"required,device_name"`
 	Identity  *DeviceIdentity `json:"identity"`
 	Info      *DeviceInfo     `json:"info"`
@@ -41,7 +45,6 @@ type Device struct {
 	Namespace       string          `json:"namespace" bson:",omitempty"`
 	Status          DeviceStatus    `json:"status" bson:"status,omitempty" validate:"oneof=accepted rejected pending unused"`
 	StatusUpdatedAt time.Time       `json:"status_updated_at" bson:"status_updated_at,omitempty"`
-	CreatedAt       time.Time       `json:"created_at" bson:"created_at,omitempty"`
 	RemoteAddr      string          `json:"remote_addr" bson:"remote_addr"`
 	Position        *DevicePosition `json:"position" bson:"position"`
 	Acceptable      bool            `json:"acceptable" bson:"acceptable,omitempty"`
@@ -101,6 +104,7 @@ type DeviceChanges struct {
 	Name           string       `bson:"name,omitempty"`
 	LastSeen       time.Time    `bson:"last_seen,omitempty"`
 	DisconnectedAt *time.Time   `bson:"disconnected_at"`
+	RemovedAt      *time.Time   `json:"removed_at" bson:"removed_at"`
 	Status         DeviceStatus `bson:"status,omitempty"`
 }
 
