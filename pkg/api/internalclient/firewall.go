@@ -3,10 +3,7 @@ package internalclient
 import (
 	"context"
 	"errors"
-	"net"
 	"net/http"
-
-	"github.com/go-resty/resty/v2"
 )
 
 // firewallAPI defines methods for interacting with firewall-related functionality.
@@ -22,17 +19,7 @@ var (
 )
 
 func (c *client) FirewallEvaluate(ctx context.Context, lookup map[string]string) error {
-	local := resty.New()
-	local.AddRetryCondition(func(r *resty.Response, err error) bool {
-		if _, ok := err.(net.Error); ok {
-			return true
-		}
-
-		return r.StatusCode() >= http.StatusInternalServerError && r.StatusCode() != http.StatusNotImplemented
-	})
-
-	resp, err := local.
-		SetRetryCount(10).
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetQueryParams(lookup).
