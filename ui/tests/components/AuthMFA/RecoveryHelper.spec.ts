@@ -28,6 +28,7 @@ describe("Recovery Helper", () => {
         plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
+      props: { modelValue: true },
     });
   });
 
@@ -40,20 +41,8 @@ describe("Recovery Helper", () => {
   });
 
   it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the template with data", () => {
-    const wrapper = new DOMWrapper(document.body);
-    expect(wrapper.find('[data-test="card-dialog"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="card-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="alert"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="alert-second"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="checkbox"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="checkbox-recovery"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="disable-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="close-btn"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Disable MFA Authentication", async () => {
