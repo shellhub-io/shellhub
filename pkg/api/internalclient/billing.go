@@ -1,6 +1,7 @@
 package internalclient
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -10,16 +11,17 @@ import (
 type billingAPI interface {
 	// BillingReport sends a billing report for the specified tenant and action.
 	// It returns the HTTP status code of the response and an error, if any.
-	BillingReport(tenant string, action string) (int, error)
+	BillingReport(ctx context.Context, tenant string, action string) (int, error)
 
 	// BillingEvaluate evaluates the billing status for the specified tenant.
 	// It returns the billing evaluation result, the HTTP status code of the response, and an error, if any.
-	BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error)
+	BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, int, error)
 }
 
-func (c *client) BillingReport(tenant string, action string) (int, error) {
+func (c *client) BillingReport(ctx context.Context, tenant string, action string) (int, error) {
 	res, err := c.http.
 		R().
+		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenant).
 		SetQueryParam("action", action).
 		Post("http://cloud:8080/internal/billing/report")
@@ -30,11 +32,12 @@ func (c *client) BillingReport(tenant string, action string) (int, error) {
 	return res.StatusCode(), nil
 }
 
-func (c *client) BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error) {
+func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, int, error) {
 	eval := new(models.BillingEvaluation)
 
 	resp, err := c.http.
 		R().
+		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenantID).
 		SetResult(&eval).
 		Post("http://cloud:8080/internal/billing/evaluate")

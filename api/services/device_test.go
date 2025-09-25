@@ -2415,7 +2415,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return("true").
 					Once()
 				clientMock.
-					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").
 					Return(&models.BillingEvaluation{CanAccept: false}, 0, errors.New("error", "store", 0)).
 					Once()
 			},
@@ -2486,7 +2486,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return("true").
 					Once()
 				clientMock.
-					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").
 					Return(&models.BillingEvaluation{CanAccept: false}, 0, nil).
 					Once()
 			},
@@ -2557,7 +2557,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return("true").
 					Once()
 				clientMock.
-					On("BillingEvaluate", "00000000-0000-0000-0000-000000000000").
+					On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").
 					Return(&models.BillingEvaluation{CanAccept: true}, 0, nil).
 					Once()
 				storeMock.
@@ -2641,7 +2641,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return("true").
 					Once()
 				clientMock.
-					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
+					On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
 					Return(0, errors.New("billing error", "", 0)).
 					Once()
 			},
@@ -2711,7 +2711,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return("true").
 					Once()
 				clientMock.
-					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
+					On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
 					Return(402, nil).
 					Once()
 			},
@@ -2781,7 +2781,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return("true").
 					Once()
 				clientMock.
-					On("BillingReport", "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
+					On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
 					Return(200, nil).
 					Once()
 				storeMock.

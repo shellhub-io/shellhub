@@ -16,45 +16,46 @@ import (
 type sessionAPI interface {
 	// SessionCreate creates a new session based on the provided session creation request.
 	// It returns an error if the session creation fails.
-	SessionCreate(session requests.SessionCreate) error
+	SessionCreate(ctx context.Context, session requests.SessionCreate) error
 
 	// SessionAsAuthenticated marks a session with the specified uid as authenticated.
 	// It returns a slice of errors encountered during the operation.
-	SessionAsAuthenticated(uid string) []error
+	SessionAsAuthenticated(ctx context.Context, uid string) []error
 
 	// FinishSession finishes the session with the specified uid.
 	// It returns a slice of errors encountered during the operation.
-	FinishSession(uid string) []error
+	FinishSession(ctx context.Context, uid string) []error
 
 	// KeepAliveSession sends a keep-alive signal for the session with the specified uid.
 	// It returns a slice of errors encountered during the operation.
-	KeepAliveSession(uid string) []error
+	KeepAliveSession(ctx context.Context, uid string) []error
 
 	// UpdateSession updates some fields of [models.Session] using [models.SessionUpdate].
-	UpdateSession(uid string, model *models.SessionUpdate) error
+	UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error
 
 	// EventSessionStream creates a WebSocket client connection to endpoint to save session's events.
 	EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error)
 
 	// SaveSession saves a session as a Asciinema file into the Object Storage and delete
 	// [models.SessionEventTypePtyOutput] events.
-	SaveSession(uid string, seat int) error
+	SaveSession(ctx context.Context, uid string, seat int) error
 }
 
-func (c *client) SessionCreate(session requests.SessionCreate) error {
+func (c *client) SessionCreate(ctx context.Context, session requests.SessionCreate) error {
 	_, err := c.http.
 		R().
+		SetContext(ctx).
 		SetBody(session).
 		Post("/internal/sessions")
 
 	return err
 }
 
-func (c *client) SessionAsAuthenticated(uid string) []error {
+func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) []error {
 	var errors []error
-
 	_, err := c.http.
 		R().
+		SetContext(ctx).
 		SetBody(&models.Status{
 			Authenticated: true,
 		}).
@@ -66,11 +67,11 @@ func (c *client) SessionAsAuthenticated(uid string) []error {
 	return errors
 }
 
-func (c *client) FinishSession(uid string) []error {
+func (c *client) FinishSession(ctx context.Context, uid string) []error {
 	var errors []error
-
 	_, err := c.http.
 		R().
+		SetContext(ctx).
 		Post(fmt.Sprintf("/internal/sessions/%s/finish", uid))
 	if err != nil {
 		errors = append(errors, err)
@@ -79,11 +80,11 @@ func (c *client) FinishSession(uid string) []error {
 	return errors
 }
 
-func (c *client) KeepAliveSession(uid string) []error {
+func (c *client) KeepAliveSession(ctx context.Context, uid string) []error {
 	var errors []error
-
 	_, err := c.http.
 		R().
+		SetContext(ctx).
 		Post(fmt.Sprintf("/internal/sessions/%s/keepalive", uid))
 	if err != nil {
 		errors = append(errors, err)
@@ -92,9 +93,10 @@ func (c *client) KeepAliveSession(uid string) []error {
 	return errors
 }
 
-func (c *client) UpdateSession(uid string, model *models.SessionUpdate) error {
+func (c *client) UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error {
 	res, err := c.http.
 		R().
+		SetContext(ctx).
 		SetPathParams(map[string]string{
 			"tenant": uid,
 		}).
@@ -127,9 +129,10 @@ func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket
 	return connection, nil
 }
 
-func (c *client) SaveSession(uid string, seat int) error {
+func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 	res, err := c.http.
 		R().
+		SetContext(ctx).
 		SetPathParams(map[string]string{
 			"uid":  uid,
 			"seat": fmt.Sprintf("%d", seat),
