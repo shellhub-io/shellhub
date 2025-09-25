@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/shellhub-io/shellhub/api/pkg/echo/handlers"
@@ -63,6 +64,15 @@ type Option func(e *echo.Echo, handler *Handler) error
 func WithReporter(reporter *sentry.Client) Option {
 	return func(e *echo.Echo, _ *Handler) error {
 		e.HTTPErrorHandler = handlers.NewErrors(reporter)
+
+		return nil
+	}
+}
+
+func WithMetrics() Option {
+	return func(e *echo.Echo, _ *Handler) error {
+		e.Use(echoprometheus.NewMiddleware("api"))
+		e.GET("/metrics", echoprometheus.NewHandler())
 
 		return nil
 	}
