@@ -191,5 +191,7 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 		opts = append(opts, routes.WithReporter(reporter))
 	}
 
+	opts = append(opts, routes.WithMetrics())
+
 	return opts, nil
 }
