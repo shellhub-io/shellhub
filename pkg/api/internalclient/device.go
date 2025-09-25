@@ -3,7 +3,6 @@ package internalclient
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -38,7 +37,8 @@ func (c *client) DevicesOffline(ctx context.Context, uid string) error {
 	_, err := c.http.
 		R().
 		SetContext(ctx).
-		Post(fmt.Sprintf("/internal/devices/%s/offline", uid))
+		SetPathParam("uid", uid).
+		Post(c.Config.APIBaseURL + "/internal/devices/{uid}/offline")
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (c *client) Lookup(ctx context.Context, lookup map[string]string) (string, 
 		SetContext(ctx).
 		SetQueryParams(lookup).
 		SetResult(&device).
-		Get("/internal/lookup")
+		Get(c.Config.APIBaseURL + "/internal/lookup")
 
 	if resp.StatusCode() != http.StatusOK {
 		return "", []error{errors.New("lookup failed")}
@@ -77,7 +77,7 @@ func (c *client) DeviceLookup(ctx context.Context, tenantID, name string) (*mode
 		SetQueryParam("tenant_id", tenantID).
 		SetQueryParam("name", name).
 		SetResult(&device).
-		Get("/internal/device/lookup")
+		Get(c.Config.APIBaseURL + "/internal/device/lookup")
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}
@@ -101,7 +101,7 @@ func (c *client) ListDevices(ctx context.Context) ([]models.Device, error) {
 		R().
 		SetContext(ctx).
 		SetResult(list).
-		Get("/api/devices")
+		Get(c.Config.APIBaseURL + "/api/devices")
 
 	return list, err
 }
@@ -112,7 +112,7 @@ func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, err
 		R().
 		SetContext(ctx).
 		SetResult(&device).
-		Get(fmt.Sprintf("/api/devices/%s", uid))
+		Get(c.Config.APIBaseURL + "/api/devices/{uid}")
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}
@@ -144,8 +144,9 @@ func (c *client) LookupWebEndpoints(ctx context.Context, address string) (*WebEn
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
+		SetPathParam("address", address).
 		SetResult(&tunnel).
-		Get(fmt.Sprintf("http://cloud:8080/internal/web-endpoints/%s", address))
+		Get(c.Config.EnterpriseBaseURL + "/internal/web-endpoints/{address}")
 	if err != nil {
 		return nil, ErrConnectionFailed
 	}

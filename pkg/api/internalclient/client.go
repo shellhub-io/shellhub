@@ -30,8 +30,11 @@ type Config struct {
 	// RetryMaxWaitTime defines the maximum wait time between retries.
 	RetryMaxWaitTime time.Duration
 
-	// BaseURL defines the base URL for the API.
-	BaseURL string
+	// APIBaseURL defines the base URL for the API service.
+	APIBaseURL string
+
+	// EnterpriseBaseURL defines the base URL for enterprise endpoints (cloud component).
+	EnterpriseBaseURL string
 }
 
 type client struct {
@@ -60,10 +63,11 @@ func NewClient(opts ...clientOption) (Client, error) {
 		http: httpClient,
 		Config: &Config{
 			// NOTE: Default values can be overridden using the WithConfig option.
-			RetryCount:       3,
-			RetryWaitTime:    5 * time.Second,
-			RetryMaxWaitTime: 20 * time.Second,
-			BaseURL:          "http://api:8080",
+			RetryCount:        3,
+			RetryWaitTime:     5 * time.Second,
+			RetryMaxWaitTime:  20 * time.Second,
+			APIBaseURL:        "http://api:8080",
+			EnterpriseBaseURL: "http://cloud:8080",
 		},
 	}
 
@@ -77,7 +81,8 @@ func NewClient(opts ...clientOption) (Client, error) {
 		httpClient.SetLogger(&LeveledLogger{c.logger})
 	}
 
-	httpClient.SetBaseURL(c.Config.BaseURL)
+	// NOTE: Avoid setting a global base URL on the Resty client. Calls to enterprise endpoints
+	// will use c.Config.EnterpriseBaseURL explicitly when needed.
 	httpClient.SetRetryCount(c.Config.RetryCount)
 	httpClient.SetRetryWaitTime(c.Config.RetryWaitTime)
 	httpClient.SetRetryMaxWaitTime(c.Config.RetryMaxWaitTime)

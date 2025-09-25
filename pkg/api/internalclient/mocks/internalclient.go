@@ -576,7 +576,8 @@ func (_m *Client) UpdateSession(ctx context.Context, uid string, model *models.S
 func NewClient(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *Client {
+},
+) *Client {
 	mock := &Client{}
 	mock.Mock.Test(t)
 
