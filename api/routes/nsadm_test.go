@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	svc "github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/services/mocks"
@@ -457,4 +458,95 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 	}
 
 	svcMock.AssertExpectations(t)
+}
+
+func TestNamespaceRateLimit(t *testing.T) {
+	// NOTE: The "delays" in each test case are designed to test the rate limiting behavior, but is it very
+	// timing-dependent and fragile. If the test starts failing randomly, take into consideration that the timing may be
+	// off due to CPU load or other factors.
+	cases := []struct {
+		description         string
+		rate                int
+		burst               int
+		delays              []time.Duration
+		expectedStatusCodes []int
+	}{
+		{
+			description: "Exceed rate limit then restore",
+			rate:        2,
+			burst:       2,
+			delays:      []time.Duration{0, 0, 0, 600 * time.Millisecond, 0},
+			expectedStatusCodes: []int{
+				http.StatusOK,
+				http.StatusOK,
+				http.StatusTooManyRequests,
+				http.StatusOK,
+				http.StatusTooManyRequests,
+			},
+		},
+		{
+			description: "All requests within limit",
+			rate:        10,
+			burst:       5,
+			delays:      []time.Duration{0, 200 * time.Millisecond, 200 * time.Millisecond, 200 * time.Millisecond, 200 * time.Millisecond},
+			expectedStatusCodes: []int{
+				http.StatusOK,
+				http.StatusOK,
+				http.StatusOK,
+				http.StatusOK,
+				http.StatusOK,
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.description, func(t *testing.T) {
+			svcMock := new(mocks.Service)
+
+			namespace := &models.Namespace{
+				Name:     "rate-limit-test",
+				TenantID: "tenant123",
+				Settings: &models.NamespaceSettings{
+					SessionRecord: true,
+				},
+			}
+
+			svcMock.On("GetNamespace", gomock.Anything, "tenant123").Return(namespace, nil).Maybe()
+
+			opts := []Option{
+				WithNamespaceRateLimit(c.rate, c.burst, time.Minute),
+			}
+			e := NewRouter(svcMock, opts...)
+
+			okResponses := 0
+			for _, status := range c.expectedStatusCodes {
+				if status == http.StatusOK {
+					okResponses++
+				}
+			}
+
+			namespaces := []models.Namespace{*namespace}
+			svcMock.On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).Return(namespaces, 1, nil).Times(okResponses)
+
+			for i, delay := range c.delays {
+				if delay > 0 {
+					time.Sleep(delay)
+				}
+
+				req := httptest.NewRequest(http.MethodGet, "/api/namespaces", nil)
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("X-Role", authorizer.RoleOwner.String())
+				req.Header.Set("X-Tenant-ID", "tenant123")
+				rec := httptest.NewRecorder()
+
+				e.ServeHTTP(rec, req)
+
+				assert.Equal(t, c.expectedStatusCodes[i], rec.Result().StatusCode,
+					"Request %d should have status %d (rate limit: %d req/s, burst: %d)",
+					i+1, c.expectedStatusCodes[i], c.rate, c.burst)
+			}
+
+			svcMock.AssertExpectations(t)
+		})
+	}
 }
