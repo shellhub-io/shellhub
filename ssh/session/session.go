@@ -302,9 +302,9 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		return nil, err
 	}
 
-	namespace, errs := api.NamespaceLookup(ctx, lookupDevice.TenantID)
-	if len(errs) > 1 {
-		return nil, errs[0]
+	namespace, err := api.NamespaceLookup(ctx, lookupDevice.TenantID)
+	if err != nil {
+		return nil, err
 	}
 
 	events, err := api.EventSessionStream(ctx, ctx.SessionID())
@@ -682,10 +682,12 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 }
 
 func (s *Session) KeepAlive() error {
-	if errs := s.api.KeepAliveSession(context.TODO(), s.UID); len(errs) > 0 {
-		log.Error(errs[0])
+	if err := s.api.KeepAliveSession(context.TODO(), s.UID); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			Error("Error when trying to keep alive the session")
 
-		return errs[0]
+		return err
 	}
 
 	return nil
@@ -739,12 +741,10 @@ func (s *Session) Finish() (err error) {
 			}
 		}
 
-		if errs := s.api.FinishSession(context.TODO(), s.UID); len(errs) > 0 {
-			log.WithError(errs[0]).
+		if err := s.api.FinishSession(context.TODO(), s.UID); err != nil {
+			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to finish the session")
-
-			err = errs[0]
 		}
 
 		if envs.IsEnterprise() {
