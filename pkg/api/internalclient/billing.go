@@ -2,7 +2,6 @@ package internalclient
 
 import (
 	"context"
-	"errors"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -10,32 +9,26 @@ import (
 // billingAPI defines methods for interacting with billing-related functionality.
 type billingAPI interface {
 	// BillingReport sends a billing report for the specified tenant and action.
-	// It returns the HTTP status code of the response and an error, if any.
-	BillingReport(ctx context.Context, tenant string, action string) (int, error)
+	// It returns an error, if any.
+	BillingReport(ctx context.Context, tenant string, action string) error
 
 	// BillingEvaluate evaluates the billing status for the specified tenant.
-	// It returns the billing evaluation result, the HTTP status code of the response, and an error, if any.
-	BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, int, error)
+	// It returns the billing evaluation result and an error, if any.
+	BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, error)
 }
 
-var ErrBillingRequestFailed = errors.New("billing request failed")
-
-func (c *client) BillingReport(ctx context.Context, tenant string, action string) (int, error) {
+func (c *client) BillingReport(ctx context.Context, tenant string, action string) error {
 	res, err := c.http.
 		R().
 		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenant).
 		SetQueryParam("action", action).
-		Post(c.Config.EnterpriseBaseURL + "/internal/billing/report")
-	if err != nil {
-		// TODO: It shouldn't return the status code.
-		return res.StatusCode(), errors.Join(ErrBillingRequestFailed, err)
-	}
+		Post(c.config.EnterpriseBaseURL + "/internal/billing/report")
 
-	return res.StatusCode(), nil
+	return NewError(res, err)
 }
 
-func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, int, error) {
+func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, error) {
 	eval := new(models.BillingEvaluation)
 
 	resp, err := c.http.
@@ -43,10 +36,10 @@ func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.
 		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenantID).
 		SetResult(&eval).
-		Post(c.Config.EnterpriseBaseURL + "/internal/billing/evaluate")
-	if err != nil {
-		return nil, resp.StatusCode(), errors.Join(ErrBillingRequestFailed, err)
+		Post(c.config.EnterpriseBaseURL + "/internal/billing/evaluate")
+	if HasError(resp, err) {
+		return nil, NewError(resp, err)
 	}
 
-	return eval, resp.StatusCode(), nil
+	return eval, nil
 }

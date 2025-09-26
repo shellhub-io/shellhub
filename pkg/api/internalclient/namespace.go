@@ -2,8 +2,6 @@ package internalclient
 
 import (
 	"context"
-	"errors"
-	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -20,27 +18,17 @@ type namespaceAPI interface {
 	InviteMember(ctx context.Context, tenantID, userID, forwardedHost string) error
 }
 
-var (
-	// ErrNamespaceLookupRequest indicates that the namespace lookup request failed.
-	ErrNamespaceLookupRequest = errors.New("namespace lookup request failed")
-	// ErrNamespaceLookupFailed indicates that the namespace lookup operation failed.
-	ErrNamespaceLookupFailed = errors.New("namespace lookup failed")
-)
-
 func (c *client) NamespaceLookup(ctx context.Context, tenant string) (*models.Namespace, error) {
 	namespace := new(models.Namespace)
-	res, err := c.http.
+
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("tenant", tenant).
 		SetResult(namespace).
-		Get(c.Config.APIBaseURL + "/api/namespaces/{tenant}")
-	if err != nil {
-		return nil, errors.Join(ErrNamespaceLookupRequest, err)
-	}
-
-	if res.StatusCode() != http.StatusOK {
-		return nil, ErrNamespaceLookupFailed
+		Get(c.config.APIBaseURL + "/api/namespaces/{tenant}")
+	if HasError(resp, err) {
+		return nil, NewError(resp, err)
 	}
 
 	return namespace, nil

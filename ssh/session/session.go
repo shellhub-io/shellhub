@@ -399,11 +399,16 @@ func (s *Session) checkFirewall() (bool, error) {
 			"sshid": s.SSHID,
 		}).Info("an error or a firewall rule block this connection")
 
-		switch {
-		case errors.Is(err, internalclient.ErrFirewallEvaluationRequest):
-			return false, ErrFirewallConnection
-		case errors.Is(err, internalclient.ErrFirewallBlock):
+		var e *internalclient.Error
+		if !errors.As(err, &e) {
+			return false, ErrFirewallUnknown
+		}
+
+		switch e.Code {
+		case http.StatusForbidden:
 			return false, ErrFirewallBlock
+		case http.StatusServiceUnavailable:
+			return false, ErrFirewallConnection
 		default:
 			return false, ErrFirewallUnknown
 		}
@@ -423,12 +428,17 @@ func (s *Session) checkBilling() (bool, error) {
 		return false, ErrFindDevice
 	}
 
-	if evaluatation, status, _ := s.api.BillingEvaluate(context.TODO(), device.TenantID); status != 402 && !evaluatation.CanConnect {
-		defer log.WithError(err).WithFields(log.Fields{
-			"uid":   s.UID,
-			"sshid": s.SSHID,
-		}).Info("an error or a billing rule blocked this connection")
+	evaluation, err := s.api.BillingEvaluate(context.TODO(), device.TenantID)
+	if err != nil {
+		var billingErr *internalclient.Error
+		if errors.As(err, &billingErr) && billingErr.Code == 402 {
+			return false, ErrBillingBlock
+		}
 
+		return false, err
+	}
+
+	if !evaluation.CanConnect {
 		return false, ErrBillingBlock
 	}
 
