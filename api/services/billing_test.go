@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mocks"
+	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func TestBillingEvaluate(t *testing.T) {
 			description: "succeeds when client method succeeds",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				clientMock.On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{CanAccept: true, CanConnect: true}, 0, nil).Once()
+				clientMock.On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{CanAccept: true, CanConnect: true}, nil).Once()
 			},
 			expected: Expected{canAccept: true, err: nil},
 		},
@@ -39,7 +40,7 @@ func TestBillingEvaluate(t *testing.T) {
 			description: "fails when client method fails",
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			requiredMocks: func() {
-				clientMock.On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{CanAccept: true, CanConnect: true}, 0, ErrEvaluate).Once()
+				clientMock.On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(&models.BillingEvaluation{CanAccept: true, CanConnect: true}, ErrEvaluate).Once()
 			},
 			expected: Expected{canAccept: false, err: ErrEvaluate},
 		},
@@ -73,7 +74,7 @@ func TestBillingReport(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			action:      "device_accept",
 			requiredMocks: func() {
-				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(200, nil).Once()
+				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -82,7 +83,7 @@ func TestBillingReport(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			action:      "device_accept",
 			requiredMocks: func() {
-				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(402, nil).Once()
+				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(&req.Error{Code: 402, Message: ""}).Once()
 			},
 			expected: ErrPaymentRequired,
 		},
@@ -91,7 +92,7 @@ func TestBillingReport(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			action:      "device_accept",
 			requiredMocks: func() {
-				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(500, nil).Once()
+				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(&req.Error{Code: 500, Message: ""}).Once()
 			},
 			expected: ErrReport,
 		},
@@ -100,9 +101,9 @@ func TestBillingReport(t *testing.T) {
 			tenant:      "00000000-0000-0000-0000-000000000000",
 			action:      "device_accept",
 			requiredMocks: func() {
-				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(0, errors.New("error")).Once()
+				clientMock.On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", "device_accept").Return(errors.New("error")).Once()
 			},
-			expected: errors.New("error"),
+			expected: ErrReport,
 		},
 	}
 
