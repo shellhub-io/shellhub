@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net"
 	"net/http"
-	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -21,28 +20,12 @@ type Client interface {
 	firewallAPI
 }
 
-// Config holds configuration options for the client.
-type Config struct {
-	// RetryCount defines how many times the client should retry a request in case of failure.
-	RetryCount int
-	// RetryWaitTime defines the wait time between retries.
-	RetryWaitTime time.Duration
-	// RetryMaxWaitTime defines the maximum wait time between retries.
-	RetryMaxWaitTime time.Duration
-
-	// APIBaseURL defines the base URL for the API service.
-	APIBaseURL string
-
-	// EnterpriseBaseURL defines the base URL for enterprise endpoints (cloud component).
-	EnterpriseBaseURL string
-}
-
 type client struct {
 	http   *resty.Client
 	logger *log.Logger
 	worker worker.Client
 
-	Config *Config
+	config *Config
 }
 
 const (
@@ -57,18 +40,16 @@ var (
 )
 
 func NewClient(opts ...clientOption) (Client, error) {
+	cfg, err := DefaultConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	httpClient := resty.New()
 
 	c := &client{
-		http: httpClient,
-		Config: &Config{
-			// NOTE: Default values can be overridden using the WithConfig option.
-			RetryCount:        3,
-			RetryWaitTime:     5 * time.Second,
-			RetryMaxWaitTime:  20 * time.Second,
-			APIBaseURL:        "http://api:8080",
-			EnterpriseBaseURL: "http://cloud:8080",
-		},
+		http:   httpClient,
+		config: cfg,
 	}
 
 	for _, opt := range opts {
@@ -82,10 +63,10 @@ func NewClient(opts ...clientOption) (Client, error) {
 	}
 
 	// NOTE: Avoid setting a global base URL on the Resty client. Calls to enterprise endpoints
-	// will use c.Config.EnterpriseBaseURL explicitly when needed.
-	httpClient.SetRetryCount(c.Config.RetryCount)
-	httpClient.SetRetryWaitTime(c.Config.RetryWaitTime)
-	httpClient.SetRetryMaxWaitTime(c.Config.RetryMaxWaitTime)
+	// will use c.config.EnterpriseBaseURL explicitly when needed.
+	httpClient.SetRetryCount(c.config.RetryCount)
+	httpClient.SetRetryWaitTime(c.config.RetryWaitTime)
+	httpClient.SetRetryMaxWaitTime(c.config.RetryMaxWaitTime)
 	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
 			return true

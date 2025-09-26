@@ -2,8 +2,6 @@ package internalclient
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -33,28 +31,19 @@ type deviceAPI interface {
 	LookupWebEndpoints(ctx context.Context, address string) (*WebEndpoint, error)
 }
 
-// ErrDeviceRequestFailed indicates that the device request failed.
-var ErrDeviceRequestFailed = errors.New("device request failed")
-
 func (c *client) DevicesOffline(ctx context.Context, uid string) error {
-	_, err := c.http.
+	res, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
-		Post(c.Config.APIBaseURL + "/internal/devices/{uid}/offline")
-	if err != nil {
-		return errors.Join(ErrDeviceRequestFailed, err)
-	}
+		Post(c.config.APIBaseURL + "/internal/devices/{uid}/offline")
 
-	return nil
+	return NewError(res, err)
 }
 
 func (c *client) DevicesHeartbeat(ctx context.Context, uid string) error {
 	return c.worker.SubmitToBatch(ctx, worker.TaskPattern("api:heartbeat"), []byte(uid))
 }
-
-// ErrLookupFailed indicates that the lookup operation failed.
-var ErrLookupFailed = errors.New("lookup failed")
 
 func (c *client) Lookup(ctx context.Context, lookup map[string]string) (string, error) {
 	var device struct {
@@ -66,20 +55,13 @@ func (c *client) Lookup(ctx context.Context, lookup map[string]string) (string, 
 		SetContext(ctx).
 		SetQueryParams(lookup).
 		SetResult(&device).
-		Get(c.Config.APIBaseURL + "/internal/lookup")
-	if err != nil {
-		return "", errors.Join(ErrDeviceRequestFailed, err)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return "", ErrLookupFailed
+		Get(c.config.APIBaseURL + "/internal/lookup")
+	if HasError(resp, err) {
+		return "", NewError(resp, err)
 	}
 
 	return device.UID, nil
 }
-
-// ErrDeviceLookupFailed indicates that the device lookup operation failed.
-var ErrDeviceLookupFailed = errors.New("device lookup failed")
 
 func (c *client) DeviceLookup(ctx context.Context, tenantID, name string) (*models.Device, error) {
 	device := new(models.Device)
@@ -90,20 +72,13 @@ func (c *client) DeviceLookup(ctx context.Context, tenantID, name string) (*mode
 		SetQueryParam("tenant_id", tenantID).
 		SetQueryParam("name", name).
 		SetResult(&device).
-		Get(c.Config.APIBaseURL + "/internal/device/lookup")
-	if err != nil {
-		return nil, errors.Join(ErrDeviceRequestFailed, err)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return nil, ErrDeviceLookupFailed
+		Get(c.config.APIBaseURL + "/internal/device/lookup")
+	if HasError(resp, err) {
+		return nil, NewError(resp, err)
 	}
 
 	return device, nil
 }
-
-// ErrListDevicesFailed indicates that the operation to list devices failed.
-var ErrListDevicesFailed = errors.New("list devices failed")
 
 func (c *client) ListDevices(ctx context.Context) ([]models.Device, error) {
 	list := []models.Device{}
@@ -111,21 +86,14 @@ func (c *client) ListDevices(ctx context.Context) ([]models.Device, error) {
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
-		SetResult(list).
-		Get(c.Config.APIBaseURL + "/api/devices")
-	if err != nil {
-		return nil, errors.Join(ErrDeviceRequestFailed, err)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return nil, ErrListDevicesFailed
+		SetResult(&list).
+		Get(c.config.APIBaseURL + "/api/devices")
+	if HasError(resp, err) {
+		return nil, NewError(resp, err)
 	}
 
 	return list, nil
 }
-
-// ErrGetDeviceFailed indicates that the operation to get a device failed.
-var ErrGetDeviceFailed = errors.New("get device failed")
 
 func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, error) {
 	device := new(models.Device)
@@ -133,13 +101,9 @@ func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, err
 		R().
 		SetContext(ctx).
 		SetResult(&device).
-		Get(c.Config.APIBaseURL + "/api/devices/{uid}")
-	if err != nil {
-		return nil, errors.Join(ErrDeviceRequestFailed, err)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return nil, ErrGetDeviceFailed
+		Get(c.config.APIBaseURL + "/api/devices/{uid}")
+	if HasError(resp, err) {
+		return nil, NewError(resp, err)
 	}
 
 	return device, nil
@@ -157,13 +121,6 @@ type WebEndpoint struct {
 	CreatedAt  time.Time      `json:"time" bson:"time"`
 }
 
-var (
-	// ErrWebEndpointRequestFailed indicates that the web endpoint request failed.
-	ErrWebEndpointRequestFailed = errors.New("web endpoint request failed")
-	// ErrWebEndpointForbidden indicates that access to the web endpoint is forbidden.
-	ErrWebEndpointForbidden = errors.New("web endpoint access forbidden")
-)
-
 func (c *client) LookupWebEndpoints(ctx context.Context, address string) (*WebEndpoint, error) {
 	var endpoint *WebEndpoint
 	resp, err := c.http.
@@ -171,13 +128,9 @@ func (c *client) LookupWebEndpoints(ctx context.Context, address string) (*WebEn
 		SetContext(ctx).
 		SetPathParam("address", address).
 		SetResult(&endpoint).
-		Get(c.Config.EnterpriseBaseURL + "/internal/web-endpoints/{address}")
-	if err != nil {
-		return nil, errors.Join(ErrWebEndpointRequestFailed, err)
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return nil, ErrWebEndpointForbidden
+		Get(c.config.EnterpriseBaseURL + "/internal/web-endpoints/{address}")
+	if HasError(resp, err) {
+		return nil, NewError(resp, err)
 	}
 
 	return endpoint, nil

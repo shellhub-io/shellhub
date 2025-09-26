@@ -16,11 +16,3 @@ func WithAsynqWorker(redisURI string) clientOption { //nolint:revive
 		return nil
 	}
 }
-
-func WithConfig(cfg *Config) clientOption { //nolint:revive
-	return func(c *client) error {
-		c.Config = cfg
-
-		return nil
-	}
-}

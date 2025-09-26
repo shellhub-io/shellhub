@@ -2,7 +2,7 @@ package internalclient
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -42,32 +42,15 @@ type sessionAPI interface {
 	SaveSession(ctx context.Context, uid string, seat int) error
 }
 
-var (
-	// ErrSessionRequestFailed indicates that the session request failed.
-	ErrSessionRequestFailed = errors.New("session request failed")
-	// ErrSessionCreationFailed indicates that the operation to create a session failed.
-	ErrSessionCreationFailed = errors.New("session creation failed")
-)
-
 func (c *client) SessionCreate(ctx context.Context, session requests.SessionCreate) error {
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetBody(session).
-		Post(c.Config.APIBaseURL + "/internal/sessions")
-	if err != nil {
-		return errors.Join(ErrSessionRequestFailed, err)
-	}
+		Post(c.config.APIBaseURL + "/internal/sessions")
 
-	if resp.StatusCode() != http.StatusOK {
-		return ErrSessionCreationFailed
-	}
-
-	return nil
+	return NewError(resp, err)
 }
-
-// ErrSessionAsAuthenticatedFailed indicates that the operation to mark a session as authenticated failed.
-var ErrSessionAsAuthenticatedFailed = errors.New("mark session as authenticated failed")
 
 func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
 	resp, err := c.http.
@@ -77,60 +60,30 @@ func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
 		SetBody(&models.Status{
 			Authenticated: true,
 		}).
-		Patch(c.Config.APIBaseURL + "/internal/sessions/{uid}")
-	if err != nil {
-		return errors.Join(ErrSessionRequestFailed, err)
-	}
+		Patch(c.config.APIBaseURL + "/internal/sessions/{uid}")
 
-	if resp.StatusCode() != http.StatusOK {
-		return ErrSessionAsAuthenticatedFailed
-	}
-
-	return nil
+	return NewError(resp, err)
 }
-
-// ErrFinishSessionFailed indicates that the operation to finish a session failed.
-var ErrFinishSessionFailed = errors.New("finish session failed")
 
 func (c *client) FinishSession(ctx context.Context, uid string) error {
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
-		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/finish")
-	if err != nil {
-		return errors.Join(ErrSessionRequestFailed, err)
-	}
+		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/finish")
 
-	if resp.StatusCode() != http.StatusOK {
-		return ErrFinishSessionFailed
-	}
-
-	return nil
+	return NewError(resp, err)
 }
-
-// ErrKeepAliveSessionFailed indicates that the operation to keep alive a session failed.
-var ErrKeepAliveSessionFailed = errors.New("keep alive session failed")
 
 func (c *client) KeepAliveSession(ctx context.Context, uid string) error {
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
-		Post(c.Config.APIBaseURL + "/internal/sessions/{uid}/keepalive")
-	if err != nil {
-		return errors.Join(ErrSessionRequestFailed, err)
-	}
+		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/keepalive")
 
-	if resp.StatusCode() != http.StatusOK {
-		return ErrKeepAliveSessionFailed
-	}
-
-	return nil
+	return NewError(resp, err)
 }
-
-// ErrUpdateSessionFailed indicates that the operation to update a session failed.
-var ErrUpdateSessionFailed = errors.New("update session failed")
 
 func (c *client) UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error {
 	res, err := c.http.
@@ -140,56 +93,46 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 			"tenant": uid,
 		}).
 		SetBody(model).
-		Patch(c.Config.APIBaseURL + "/internal/sessions/{tenant}")
-	if err != nil {
-		return errors.Join(ErrSessionRequestFailed, err)
-	}
+		Patch(c.config.APIBaseURL + "/internal/sessions/{tenant}")
 
-	if res.StatusCode() != 200 {
-		return ErrUpdateSessionFailed
-	}
-
-	return nil
+	return NewError(res, err)
 }
 
 func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error) {
 	// Dial the enterprise events websocket. Convert configured enterprise HTTP scheme to ws(s).
 	scheme := "ws"
-	if strings.HasPrefix(c.Config.APIBaseURL, "https") {
+	if strings.HasPrefix(c.config.APIBaseURL, "https") {
 		scheme = "wss"
 	}
 
-	host := strings.TrimPrefix(strings.TrimPrefix(c.Config.APIBaseURL, "http://"), "https://")
+	host := strings.TrimPrefix(strings.TrimPrefix(c.config.APIBaseURL, "http://"), "https://")
 
 	connection, _, err := websocket.DefaultDialer.DialContext(
 		ctx,
-		scheme+"://"+host+"/internal/sessions/"+uid+"/events",
+		fmt.Sprintf("%s://%s/internal/sessions/%s/events", scheme, host, uid),
 		nil,
 	)
 	if err != nil {
-		return nil, errors.Join(ErrSessionRequestFailed, err)
+		return nil, NewError(nil, err)
 	}
 
 	return connection, nil
 }
 
-// ErrSaveSessionFailed indicates that the operation to save a session failed.
-var ErrSaveSessionFailed = errors.New("save session failed")
-
 func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
-	res, err := c.http.
+	resp, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParams(map[string]string{
 			"uid":  uid,
 			"seat": strconv.Itoa(seat),
 		}).
-		Post(c.Config.EnterpriseBaseURL + "/internal/sessions/{uid}/records/{seat}")
-	if err != nil {
-		return errors.Join(ErrSessionRequestFailed, err)
+		Post(c.config.EnterpriseBaseURL + "/internal/sessions/{uid}/records/{seat}")
+	if HasError(resp, err) {
+		return NewError(resp, err)
 	}
 
-	if res.StatusCode() == http.StatusNotAcceptable {
+	if resp.StatusCode() == http.StatusNotAcceptable {
 		// NOTE: [http.StatusNotAcceptable] indicates that session's seat shouldn't be save, but also shouldn't
 		// represent an error.
 		logrus.WithFields(logrus.Fields{
@@ -200,9 +143,5 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 		return nil
 	}
 
-	if res.StatusCode() != http.StatusOK {
-		return ErrSaveSessionFailed
-	}
-
-	return nil
+	return NewError(resp, err)
 }
