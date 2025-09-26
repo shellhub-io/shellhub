@@ -52,6 +52,9 @@ type env struct {
 	// GeoipMaxmindLicense is the MaxMind license key for downloading GeoIP databases directly.
 	// This is used as a fallback when GeoipMirror is not configured.
 	GeoipMaxmindLicense string `env:"MAXMIND_LICENSE,default="`
+
+	// Metrics enables the /metrics endpoint.
+	Metrics bool `env:"METRICS,default=false"`
 }
 
 type Server struct {
@@ -191,7 +194,11 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 		opts = append(opts, routes.WithReporter(reporter))
 	}
 
-	opts = append(opts, routes.WithMetrics())
+	if s.env.Metrics {
+		log.Info("Enabling metrics endpoint")
+
+		opts = append(opts, routes.WithMetrics())
+	}
 
 	return opts, nil
 }
