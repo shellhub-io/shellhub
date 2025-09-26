@@ -1,53 +1,40 @@
 <template>
-  <BaseDialog v-model="showDialog">
-    <v-card data-test="namespace-leave-dialog" class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
-        Namespace Leave
-      </v-card-title>
-
-      <v-card-text class="mt-4 mb-3 pb-1" data-test="subtitle">
-        <div>
-          <p class="mb-2">
-            Are you sure you want to leave this namespace? If you leave, you will need an invitation to rejoin.
-          </p>
-        </div>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = !showDialog">
-          Close
-        </v-btn>
-
-        <v-btn
-          color="red darken-1"
-          variant="text"
-          data-test="leave-btn"
-          @click="leave()"
-        >
-          Leave
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <MessageDialog
+    v-model="showDialog"
+    @close="showDialog = false"
+    @confirm="leave"
+    @cancel="showDialog = false"
+    title="Namespace Leave"
+    description="Are you sure you want to leave this namespace? If you leave, you will need an invitation to rejoin."
+    icon="mdi-exit-to-app"
+    icon-color="warning"
+    confirm-text="Leave"
+    confirm-color="error"
+    :confirm-loading="isLoading"
+    cancel-text="Close"
+    confirm-data-test="leave-btn"
+    cancel-data-test="close-btn"
+    data-test="namespace-leave-dialog"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 import useNamespacesStore from "@/store/modules/namespaces";
 
 const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
+const isLoading = ref(false);
 const tenant = computed(() => localStorage.getItem("tenant") as string);
 
 const leave = async () => {
+  isLoading.value = true;
   try {
     await namespacesStore.leaveNamespace(tenant.value);
     showDialog.value = false;
@@ -56,6 +43,8 @@ const leave = async () => {
   } catch (error: unknown) {
     snackbar.showError("Failed to leave the namespace.");
     handleError(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 

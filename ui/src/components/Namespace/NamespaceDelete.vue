@@ -1,61 +1,49 @@
 <template>
-  <BaseDialog v-model="showDialog">
-    <v-card data-test="namespace-delete-card" class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary">
-        Namespace Deletion
-      </v-card-title>
+  <MessageDialog
+    v-model="showDialog"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
+    title="Namespace Deletion"
+    icon="mdi-delete-alert"
+    icon-color="error"
+    :confirm-text="isBillingActive || !canDeleteNamespace ? '' : 'Remove'"
+    confirm-color="error"
+    :confirm-disabled="isBillingActive || !canDeleteNamespace"
+    :confirm-loading="isLoading"
+    cancel-text="Close"
+    confirm-data-test="remove-btn"
+    cancel-data-test="close-btn"
+  >
+    <div
+      v-if="isBillingActive"
+      data-test="content-subscription-text"
+    >
+      <p class="mb-2">
+        To ensure the integrity of your namespace,
+        we have implemented a restriction that prevents its deletion while you have an active subscription or an unpaid invoice.
+      </p>
+      <p class="mb-2">
+        Kindly note that in order to proceed with the deletion of your namespace,
+        please ensure that there are no active subscriptions associated with it, and all outstanding invoices are settled.
+      </p>
+    </div>
 
-      <v-card-text class="mt-4 mb-3 pb-1">
-        <div
-          v-if="isBillingActive"
-          data-test="content-subscription-text"
-        >
-          <p class="mb-2">
-            To ensure the integrity of your namespace,
-            we have implemented a restriction that prevents its deletion while you have an active subscription or an unpaid invoice.
-          </p>
-          <p class="mb-2">
-            Kindly note that in order to proceed with the deletion of your namespace,
-            please ensure that there are no active subscriptions associated with it, and all outstanding invoices are settled.
-          </p>
-        </div>
-
-        <p data-test="content-text" v-else>
-          This action cannot be undone. This will permanently delete the
-          <b> {{ displayOnlyTenCharacters(name) }} </b> and its related data.
-        </p>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
-          Close
-        </v-btn>
-
-        <v-btn
-          color="red darken-1"
-          variant="text"
-          data-test="remove-btn"
-          @click="remove()"
-          :disabled="isBillingActive || !canDeleteNamespace"
-        >
-          Remove
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+    <p data-test="content-text" v-else>
+      This action cannot be undone. This will permanently delete <strong>{{ displayOnlyTenCharacters(name) }}</strong> and its related data.
+    </p>
+  </MessageDialog>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import axios, { AxiosError } from "axios";
 import hasPermission from "@/utils/permission";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useNamespacesStore from "@/store/modules/namespaces";
@@ -70,12 +58,14 @@ const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel({ default: false });
+const isLoading = ref(false);
 const { name } = namespacesStore.currentNamespace;
 const tenant = computed(() => props.tenant);
 const isBillingActive = computed(() => billingStore.isActive);
 const canDeleteNamespace = hasPermission("namespace:delete");
 
 const remove = async () => {
+  isLoading.value = true;
   try {
     await namespacesStore.deleteNamespace(tenant.value);
     snackbar.showSuccess("Namespace deleted successfully.");
@@ -95,6 +85,8 @@ const remove = async () => {
     }
     snackbar.showError("An error occurred while deleting the namespace.");
     handleError(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 

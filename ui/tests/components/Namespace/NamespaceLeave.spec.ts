@@ -71,20 +71,11 @@ describe("Namespace Leave", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders components", async () => {
-    const dialog = new DOMWrapper(document.body);
+  it("Renders the component", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
-
-    expect(dialog.find('[data-test="namespace-leave-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="subtitle"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="leave-btn"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Successfully leaves namespace", async () => {
