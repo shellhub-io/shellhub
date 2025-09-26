@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -287,7 +288,7 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 			hos.Host = parts[1]
 		}
 
-		device, err := api.GetDevice(target.Data)
+		device, err := api.GetDevice(ctx, target.Data)
 		if err != nil {
 			return nil, err
 		}
@@ -296,14 +297,14 @@ func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Ca
 		deviceName = device.Name
 	}
 
-	lookupDevice, err := api.DeviceLookup(namespaceName, deviceName)
+	lookupDevice, err := api.DeviceLookup(ctx, namespaceName, deviceName)
 	if err != nil {
 		return nil, err
 	}
 
-	namespace, errs := api.NamespaceLookup(lookupDevice.TenantID)
-	if len(errs) > 1 {
-		return nil, errs[0]
+	namespace, err := api.NamespaceLookup(ctx, lookupDevice.TenantID)
+	if err != nil {
+		return nil, err
 	}
 
 	events, err := api.EventSessionStream(ctx, ctx.SessionID())
@@ -387,7 +388,7 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 
 func (s *Session) checkFirewall() (bool, error) {
 	// TODO: Refactor firewall evaluation to remove the map requirement.
-	if err := s.api.FirewallEvaluate(map[string]string{
+	if err := s.api.FirewallEvaluate(context.Background(), map[string]string{
 		"domain":     s.Namespace.Name,
 		"name":       s.Device.Name,
 		"username":   s.Target.Username,
@@ -398,11 +399,16 @@ func (s *Session) checkFirewall() (bool, error) {
 			"sshid": s.SSHID,
 		}).Info("an error or a firewall rule block this connection")
 
-		switch {
-		case errors.Is(err, internalclient.ErrFirewallConnection):
-			return false, ErrFirewallConnection
-		case errors.Is(err, internalclient.ErrFirewallBlock):
+		var e *internalclient.Error
+		if !errors.As(err, &e) {
+			return false, ErrFirewallUnknown
+		}
+
+		switch e.Code {
+		case http.StatusForbidden:
 			return false, ErrFirewallBlock
+		case http.StatusServiceUnavailable:
+			return false, ErrFirewallConnection
 		default:
 			return false, ErrFirewallUnknown
 		}
@@ -412,7 +418,7 @@ func (s *Session) checkFirewall() (bool, error) {
 }
 
 func (s *Session) checkBilling() (bool, error) {
-	device, err := s.api.GetDevice(s.Device.UID)
+	device, err := s.api.GetDevice(context.Background(), s.Device.UID)
 	if err != nil {
 		defer log.WithError(err).WithFields(log.Fields{
 			"uid":   s.UID,
@@ -422,12 +428,17 @@ func (s *Session) checkBilling() (bool, error) {
 		return false, ErrFindDevice
 	}
 
-	if evaluatation, status, _ := s.api.BillingEvaluate(device.TenantID); status != 402 && !evaluatation.CanConnect {
-		defer log.WithError(err).WithFields(log.Fields{
-			"uid":   s.UID,
-			"sshid": s.SSHID,
-		}).Info("an error or a billing rule blocked this connection")
+	evaluation, err := s.api.BillingEvaluate(context.Background(), device.TenantID)
+	if err != nil {
+		var billingErr *internalclient.Error
+		if errors.As(err, &billingErr) && billingErr.Code == 402 {
+			return false, ErrBillingBlock
+		}
 
+		return false, err
+	}
+
+	if !evaluation.CanConnect {
 		return false, ErrBillingBlock
 	}
 
@@ -436,7 +447,7 @@ func (s *Session) checkBilling() (bool, error) {
 
 // registerAPISession registers a new session on the API.
 func (s *Session) register() error {
-	err := s.api.SessionCreate(requests.SessionCreate{
+	err := s.api.SessionCreate(context.Background(), requests.SessionCreate{
 		UID:       s.UID,
 		DeviceUID: s.Device.UID,
 		Username:  s.Target.Username,
@@ -461,7 +472,7 @@ func (s *Session) register() error {
 func (s *Session) authenticate() error {
 	value := true
 
-	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
+	return s.api.UpdateSession(context.Background(), s.UID, &models.SessionUpdate{
 		Authenticated: &value,
 	})
 }
@@ -477,7 +488,7 @@ func (s *Session) Recorded(seat int) error {
 		return errors.New("session won't be recorded because there is no pty")
 	}
 
-	return s.api.UpdateSession(s.UID, &models.SessionUpdate{
+	return s.api.UpdateSession(context.Background(), s.UID, &models.SessionUpdate{
 		Recorded: &value,
 	})
 }
@@ -681,10 +692,12 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 }
 
 func (s *Session) KeepAlive() error {
-	if errs := s.api.KeepAliveSession(s.UID); len(errs) > 0 {
-		log.Error(errs[0])
+	if err := s.api.KeepAliveSession(context.Background(), s.UID); err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+			Error("Error when trying to keep alive the session")
 
-		return errs[0]
+		return err
 	}
 
 	return nil
@@ -738,12 +751,10 @@ func (s *Session) Finish() (err error) {
 			}
 		}
 
-		if errs := s.api.FinishSession(s.UID); len(errs) > 0 {
-			log.WithError(errs[0]).
+		if err := s.api.FinishSession(context.Background(), s.UID); err != nil {
+			log.WithError(err).
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to finish the session")
-
-			err = errs[0]
 		}
 
 		if envs.IsEnterprise() {
@@ -756,7 +767,7 @@ func (s *Session) Finish() (err error) {
 				seat := value.(*Seat)
 
 				if seat.HasPty {
-					if err := s.api.SaveSession(s.UID, id); err != nil {
+					if err := s.api.SaveSession(context.Background(), s.UID, id); err != nil {
 						log.WithError(err).WithFields(log.Fields{
 							"uid":  s.UID,
 							"seat": seat,

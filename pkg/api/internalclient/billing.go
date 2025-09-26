@@ -1,7 +1,7 @@
 package internalclient
 
 import (
-	"net/http"
+	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -9,38 +9,37 @@ import (
 // billingAPI defines methods for interacting with billing-related functionality.
 type billingAPI interface {
 	// BillingReport sends a billing report for the specified tenant and action.
-	// It returns the HTTP status code of the response and an error, if any.
-	BillingReport(tenant string, action string) (int, error)
+	// It returns an error, if any.
+	BillingReport(ctx context.Context, tenant string, action string) error
 
 	// BillingEvaluate evaluates the billing status for the specified tenant.
-	// It returns the billing evaluation result, the HTTP status code of the response, and an error, if any.
-	BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error)
+	// It returns the billing evaluation result and an error, if any.
+	BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, error)
 }
 
-func (c *client) BillingReport(tenant string, action string) (int, error) {
+func (c *client) BillingReport(ctx context.Context, tenant string, action string) error {
 	res, err := c.http.
 		R().
+		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenant).
 		SetQueryParam("action", action).
-		Post("http://cloud:8080/internal/billing/report")
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
+		Post(c.config.EnterpriseBaseURL + "/internal/billing/report")
 
-	return res.StatusCode(), nil
+	return NewError(res, err)
 }
 
-func (c *client) BillingEvaluate(tenantID string) (*models.BillingEvaluation, int, error) {
+func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, error) {
 	eval := new(models.BillingEvaluation)
 
 	resp, err := c.http.
 		R().
+		SetContext(ctx).
 		SetHeader("X-Tenant-ID", tenantID).
 		SetResult(&eval).
-		Post("http://cloud:8080/internal/billing/evaluate")
-	if err != nil {
-		return eval, resp.StatusCode(), err
+		Post(c.config.EnterpriseBaseURL + "/internal/billing/evaluate")
+	if HasError(resp, err) {
+		return nil, NewError(resp, err)
 	}
 
-	return eval, resp.StatusCode(), nil
+	return eval, nil
 }
