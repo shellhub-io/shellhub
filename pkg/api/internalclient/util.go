@@ -1,6 +1,6 @@
 package internalclient
 
-// NOTE: Code adapted from github.com/labstack/echo/v4@v4.13.4/middleware/util.go.
+// note: code adapted from github.com/labstack/echo/v4@v4.13.4/middleware/util.go.
 
 import (
 	"bufio"

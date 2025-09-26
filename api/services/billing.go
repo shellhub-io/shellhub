@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 )
@@ -13,7 +14,7 @@ type BillingInterface interface {
 
 // BillingEvaluate evaluate in the billing service if the namespace can create accept more devices.
 func (s *service) BillingEvaluate(ctx context.Context, client req.Client, tenant string) (bool, error) {
-	evaluation, _, err := client.BillingEvaluate(ctx, tenant)
+	evaluation, err := client.BillingEvaluate(ctx, tenant)
 	if err != nil {
 		return false, ErrEvaluate
 	}
@@ -27,17 +28,19 @@ const (
 )
 
 func (s *service) BillingReport(ctx context.Context, client req.Client, tenant string, action string) error {
-	status, err := client.BillingReport(ctx, tenant, action)
-	if err != nil {
-		return err
+	if err := client.BillingReport(ctx, tenant, action); err != nil {
+		var e *req.Error
+		if ok := errors.As(err, &e); !ok {
+			return ErrReport
+		}
+
+		switch e.Code {
+		case 402:
+			return ErrPaymentRequired
+		default:
+			return ErrReport
+		}
 	}
 
-	switch status {
-	case 200:
-		return nil
-	case 402:
-		return ErrPaymentRequired
-	default:
-		return ErrReport
-	}
+	return nil
 }

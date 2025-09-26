@@ -21,7 +21,7 @@ type Client struct {
 }
 
 // BillingEvaluate provides a mock function with given fields: ctx, tenantID
-func (_m *Client) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, int, error) {
+func (_m *Client) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, error) {
 	ret := _m.Called(ctx, tenantID)
 
 	if len(ret) == 0 {
@@ -29,9 +29,8 @@ func (_m *Client) BillingEvaluate(ctx context.Context, tenantID string) (*models
 	}
 
 	var r0 *models.BillingEvaluation
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.BillingEvaluation, int, error)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.BillingEvaluation, error)); ok {
 		return rf(ctx, tenantID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *models.BillingEvaluation); ok {
@@ -42,47 +41,31 @@ func (_m *Client) BillingEvaluate(ctx context.Context, tenantID string) (*models
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, tenantID)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = rf(ctx, tenantID)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // BillingReport provides a mock function with given fields: ctx, tenant, action
-func (_m *Client) BillingReport(ctx context.Context, tenant string, action string) (int, error) {
+func (_m *Client) BillingReport(ctx context.Context, tenant string, action string) error {
 	ret := _m.Called(ctx, tenant, action)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BillingReport")
 	}
 
-	var r0 int
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int, error)); ok {
-		return rf(ctx, tenant, action)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) int); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, tenant, action)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenant, action)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // CreatePrivateKey provides a mock function with given fields: ctx

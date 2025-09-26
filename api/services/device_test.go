@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
@@ -2416,7 +2417,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				clientMock.
 					On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").
-					Return(&models.BillingEvaluation{CanAccept: false}, 0, errors.New("error", "store", 0)).
+					Return(&models.BillingEvaluation{CanAccept: false}, errors.New("error", "store", 0)).
 					Once()
 			},
 			expectedError: NewErrBillingEvaluate(errors.New("evaluate error", "service", 4)),
@@ -2487,7 +2488,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				clientMock.
 					On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").
-					Return(&models.BillingEvaluation{CanAccept: false}, 0, nil).
+					Return(&models.BillingEvaluation{CanAccept: false}, nil).
 					Once()
 			},
 			expectedError: ErrDeviceLimit,
@@ -2558,7 +2559,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				clientMock.
 					On("BillingEvaluate", mock.Anything, "00000000-0000-0000-0000-000000000000").
-					Return(&models.BillingEvaluation{CanAccept: true}, 0, nil).
+					Return(&models.BillingEvaluation{CanAccept: true}, nil).
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "removed-device", mock.MatchedBy(func(changes *models.DeviceChanges) bool {
@@ -2642,10 +2643,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				clientMock.
 					On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
-					Return(0, errors.New("billing error", "", 0)).
+					Return(errors.New("billing error", "", 0)).
 					Once()
 			},
-			expectedError: NewErrBillingReportNamespaceDelete(errors.New("billing error", "", 0)),
+			expectedError: NewErrBillingReportNamespaceDelete(ErrReport),
 		},
 		{
 			description: "failure (accepted) (different MAC) (billing active) - payment required [cloud]",
@@ -2712,7 +2713,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				clientMock.
 					On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
-					Return(402, nil).
+					Return(&req.Error{Code: 402, Message: ""}).
 					Once()
 			},
 			expectedError: NewErrBillingReportNamespaceDelete(ErrPaymentRequired),
@@ -2782,7 +2783,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				clientMock.
 					On("BillingReport", mock.Anything, "00000000-0000-0000-0000-000000000000", ReportDeviceAccept).
-					Return(200, nil).
+					Return(nil).
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, "00000000-0000-0000-0000-000000000000", "cloud-device", mock.MatchedBy(func(changes *models.DeviceChanges) bool {
