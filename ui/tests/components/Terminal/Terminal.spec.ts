@@ -19,7 +19,7 @@ class MockWebSocket {
 
 vi.stubGlobal("WebSocket", vi.fn(() => new MockWebSocket()));
 
-vi.mock("xterm", () => ({
+vi.mock("@xterm/xterm", () => ({
   Terminal: vi.fn().mockImplementation(() => ({
     open: vi.fn(),
     focus: vi.fn(),
@@ -29,6 +29,12 @@ vi.mock("xterm", () => ({
     loadAddon: vi.fn(),
     cols: 80,
     rows: 24,
+  })),
+}));
+
+vi.mock("@xterm/addon-fit", () => ({
+  FitAddon: vi.fn().mockImplementation(() => ({
+    fit: vi.fn(),
   })),
 }));
 
@@ -67,7 +73,7 @@ describe("Terminal.vue", () => {
   });
 
   it("initializes xterm with correct configuration", async () => {
-    const { Terminal: MockTerminal } = await import("xterm");
+    const { Terminal: MockTerminal } = await import("@xterm/xterm");
     expect(MockTerminal).toHaveBeenCalledWith({
       cursorBlink: true,
       fontFamily: "monospace",

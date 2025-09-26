@@ -9,7 +9,7 @@ import TerminalDialog from "@/components/Terminal/TerminalDialog.vue";
 import { routes } from "@/router";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
 
-vi.mock("xterm", () => ({
+vi.mock("@xterm/xterm", () => ({
   Terminal: vi.fn().mockImplementation(() => ({
     open: vi.fn(),
     focus: vi.fn(),
@@ -19,6 +19,12 @@ vi.mock("xterm", () => ({
     loadAddon: vi.fn(),
     cols: 80,
     rows: 24,
+  })),
+}));
+
+vi.mock("@xterm/addon-fit", () => ({
+  FitAddon: vi.fn().mockImplementation(() => ({
+    fit: vi.fn(),
   })),
 }));
 
