@@ -10,9 +10,9 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 // Terminal styles and required classes
-import "xterm/css/xterm.css";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
+import "@xterm/xterm/css/xterm.css";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
 
 // Type definitions
 import { IParams } from "@/interfaces/IParams";
