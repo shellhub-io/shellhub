@@ -1,56 +1,59 @@
 <template>
-  <BaseDialog v-model="showNoNamespaceDialog" :retain-focus="false">
-    <v-card
-      class="bg-v-theme-surface"
-    >
-      <v-card-title class="bg-primary">
-        There are no namespaces associated with your account
-      </v-card-title>
+  <WindowDialog
+    v-model="showNoNamespaceDialog"
+    title="You have no namespaces associated"
+    icon="mdi-folder-alert"
+    icon-color="warning"
+    :show-close-button="false"
+  >
+    <div class="pa-6">
+      <p>
+        In order to use ShellHub, you must have a namespace associated
+        with your account or join an existing one.
+      </p>
 
-      <v-card-text class="mt-4 mb-0 pb-1 mb-4">
-        <p class="text-body-2">
-          In order to use ShellHub, you must have a namespace associate
-          with your account or join an existing one.
+      <div v-if="isCommunity" id="cli-instructions">
+        <p class="mt-3">
+          The easiest way to configure a namespace is by using the <strong>CLI script</strong>.
+          Once you add a namespace via CLI script, this dialog will be
+          automatically closed.
         </p>
-        <div v-if="openVersion" id="cli-instructions" class="mt-3 text-body-2">
-          <p data-test="openContentFirst-text">
-            The easiest way to configure a namespace is by using the cli script.
-          </p>
-          <p class="mt-3" data-test="cliUpdateWarning-text">
-            When you add a namespace, on cli script, this dialog will be
-            automatically closed.
-          </p>
-          <p class="text-caption mb-0 mt-3" data-test="openContentSecond-text">
-            Check the
-            <a
-              :href="'https://docs.shellhub.io/self-hosted/administration'"
-              target="_blank"
-              rel="noopener noreferrer"
-            >documentation</a
-            >
-            for more information and alternative install methods.
-          </p>
-        </div>
-      </v-card-text>
+      </div>
+    </div>
+    <template #footer>
+      <div v-if="isCommunity" class="d-flex align-center w-100 px-6">
+        <span class="text-caption text-center">
+          For more information, check out the
+          <a
+            :href="'https://docs.shellhub.io/self-hosted/administration'"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-decoration-none text-primary"
+            data-test="openContentSecond-text"
+          >
+            ShellHub Administration Guide
+            <v-icon size="12" class="ml-1">mdi-open-in-new</v-icon>
+          </a>
+        </span>
+      </div>
 
-      <v-card-actions v-if="!openVersion">
-        <v-spacer />
-        <div>
-          <v-btn
-            color="primary"
-            @click="showNamespaceAdd = true"
-            data-test="save-btn">
-            Add Namespace
-          </v-btn>
-          <NamespaceAdd
-            v-model="showNamespaceAdd"
-            enableSwitchIn
-            data-test="namespace-add-component"
-          />
-        </div>
+      <v-card-actions v-else class="d-flex justify-end w-100">
+        <v-btn
+          color="primary"
+          @click="showNamespaceAdd = true"
+          data-test="save-btn"
+        >
+          Add Namespace
+        </v-btn>
       </v-card-actions>
-    </v-card>
-  </BaseDialog>
+    </template>
+
+    <NamespaceAdd
+      v-model="showNamespaceAdd"
+      enableSwitchIn
+      data-test="namespace-add-component"
+    />
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
@@ -58,15 +61,11 @@ import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { envVariables } from "@/envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 
 const route = useRoute();
-
 const showDialog = defineModel<boolean>({ default: false });
-
 const showNamespaceAdd = ref(false);
-
 const showNoNamespaceDialog = computed(() => route.name === "AcceptInvite" ? false : showDialog.value);
-
-const openVersion = computed(() => !envVariables.isCloud && !envVariables.isEnterprise);
+const { isCommunity } = envVariables;
 </script>
