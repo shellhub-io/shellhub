@@ -1,59 +1,43 @@
 <template>
-  <BaseDialog v-model="showDialog" @close="close">
-    <v-card data-test="password-change-card" class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
-        Change Connection Announcement
-      </v-card-title>
-
-      <v-card-text class="mt-4 mb-3 pb-1">
-        <div class="mt-4 pl-4 pr-4">
-          <v-textarea
-            v-model="connectionAnnouncement"
-            label="Connection Announcement"
-            :error-messages="connectionAnnouncementError"
-            data-test="connection-announcement-text"
-            variant="underlined"
-            hint="A connection announcement is a custom message written
-      during a session when a connection is established on a device
-      within the namespace."
-            persistent-hint
-            required
-            auto-grow
-            max-rows="25"
-          />
-        </div>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" data-test="close-btn" @click="close">
-          Cancel
-        </v-btn>
-
-        <v-btn
-          color="primary"
-          variant="text"
-          data-test="change-connection-btn"
-          :disabled="!!connectionAnnouncementError"
-          @click="updateAnnouncement()"
-        >
-          Save Announcement
-        </v-btn>
-
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @confirm="updateAnnouncement"
+    @cancel="close"
+    title="Change Connection Announcement"
+    icon="mdi-bullhorn"
+    confirm-text="Save Announcement"
+    :confirm-disabled="!!connectionAnnouncementError"
+    :confirm-loading="isLoading"
+    cancel-text="Cancel"
+    confirm-data-test="change-connection-btn"
+    cancel-data-test="close-btn"
+  >
+    <v-card-text class="pa-6">
+      <v-textarea
+        v-model="connectionAnnouncement"
+        label="Connection Announcement"
+        :error-messages="connectionAnnouncementError"
+        data-test="connection-announcement-text"
+        hint="A connection announcement is a custom message written during a session
+        when a connection is established on a device within the namespace."
+        persistent-hint
+        required
+        auto-grow
+        max-rows="25"
+      />
+    </v-card-text>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useField } from "vee-validate";
 import axios from "axios";
 import * as yup from "yup";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
 
@@ -64,6 +48,7 @@ const namespace = computed(() => namespacesStore.currentNamespace);
 const { tenantId } = authStore;
 const showDialog = defineModel({ default: false });
 const emit = defineEmits(["update"]);
+const isLoading = ref(false);
 
 const {
   value: connectionAnnouncement,
@@ -94,7 +79,7 @@ onMounted(async () => {
   }
 });
 
-const handleUpdateNameError = (error: unknown): void => {
+const handleUpdateAnnouncementError = (error: unknown): void => {
   if (axios.isAxiosError(error)) {
     switch (error.response?.status) {
       case 400:
@@ -111,6 +96,7 @@ const handleUpdateNameError = (error: unknown): void => {
 };
 
 const updateAnnouncement = async () => {
+  isLoading.value = true;
   try {
     await namespacesStore.editNamespace({
       tenant_id: tenantId,
@@ -126,7 +112,9 @@ const updateAnnouncement = async () => {
 
     showDialog.value = false;
   } catch (error) {
-    handleUpdateNameError(error);
+    handleUpdateAnnouncementError(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
