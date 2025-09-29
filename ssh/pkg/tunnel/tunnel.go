@@ -70,7 +70,7 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 		return nil, err
 	}
 
-	api, err := internalclient.NewClient(internalclient.WithAsynqWorker(config.RedisURI))
+	api, err := internalclient.NewClient(nil, internalclient.WithAsynqWorker(config.RedisURI))
 	if err != nil {
 		return nil, err
 	}

@@ -37,7 +37,7 @@ func getAuth(ctx context.Context, conn *Conn, creds *Credentials) ([]ssh.AuthMet
 		return []ssh.AuthMethod{ssh.Password(creds.Password)}, nil
 	}
 
-	cli, err := internalclient.NewClient()
+	cli, err := internalclient.NewClient(nil)
 	if err != nil {
 		return nil, err
 	}
