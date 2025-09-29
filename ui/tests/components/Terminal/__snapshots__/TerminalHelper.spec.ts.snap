@@ -1,6 +1,195 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`TerminalHelper > renders the component 1`] = `
-"<!--teleport start-->
-<!--teleport end-->"
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-bottom-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-console mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Generate a SSH command line
+                    </div>
+                  </div>
+                  <!--v-if-->
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div data-v-cf545e49="" class="v-card-text pa-6">
+              <div data-v-cf545e49="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field mb-6" data-test="username-input">
+                <!---->
+                <div class="v-input__control">
+                  <div class="v-field v-field--active v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">
+                    <div class="v-field__overlay"></div>
+                    <div class="v-field__loader">
+                      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                        <!---->
+                        <div class="v-progress-linear__background"></div>
+                        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                          <div class="v-progress-linear__indeterminate">
+                            <div class="v-progress-linear__indeterminate long"></div>
+                            <div class="v-progress-linear__indeterminate short"></div>
+                          </div>
+                        </transition-stub>
+                        <!---->
+                      </div>
+                    </div>
+                    <!---->
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
+                        <!---->Username
+                      </label><label class="v-label v-field-label" for="input-v-2">
+                        <!---->Username
+                      </label>
+                      <!----><input size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" class="v-field__input" value="">
+                      <!---->
+                    </div>
+                    <!---->
+                    <!---->
+                    <div class="v-field__outline">
+                      <!---->
+                      <!---->
+                    </div>
+                  </div>
+                </div>
+                <!---->
+                <div id="input-v-2-messages" class="v-input__details" role="alert" aria-live="polite">
+                  <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
+                    <div class="v-messages__message">Enter an existing user on the device</div>
+                  </transition-group-stub>
+                  <!---->
+                </div>
+              </div>
+              <div data-v-cf545e49="" copied-item="Command">
+                <div data-v-cf545e49="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--readonly v-text-field code" data-test="command-field">
+                  <!---->
+                  <div class="v-input__control">
+                    <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                      <div class="v-field__overlay"></div>
+                      <div class="v-field__loader">
+                        <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                          <!---->
+                          <div class="v-progress-linear__background"></div>
+                          <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                          <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                            <div class="v-progress-linear__indeterminate">
+                              <div class="v-progress-linear__indeterminate long"></div>
+                              <div class="v-progress-linear__indeterminate short"></div>
+                            </div>
+                          </transition-stub>
+                          <!---->
+                        </div>
+                      </div>
+                      <!---->
+                      <div class="v-field__field" data-no-activator="">
+                        <!----><label class="v-label v-field-label" for="input-v-5">
+                          <!---->Command Line
+                        </label>
+                        <!----><input readonly="" size="1" type="text" id="input-v-5" aria-describedby="input-v-5-messages" class="v-field__input" value="">
+                        <!---->
+                      </div>
+                      <!---->
+                      <div class="v-field__append-inner">
+                        <!----><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Command Line appended action"></i>
+                      </div>
+                      <div class="v-field__outline">
+                        <div class="v-field__outline__start"></div>
+                        <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" for="input-v-5" aria-hidden="false">
+                            <!---->Command Line
+                          </label></div>
+                        <div class="v-field__outline__end"></div>
+                        <!---->
+                      </div>
+                    </div>
+                  </div>
+                  <!---->
+                  <div id="input-v-5-messages" class="v-input__details" role="alert" aria-live="polite">
+                    <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
+                      <div class="v-messages__message">Run this command on your Terminal</div>
+                    </transition-group-stub>
+                    <!---->
+                  </div>
+                </div>
+              </div>
+              <div data-v-cf545e49="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-checkbox" data-test="dispense-checkbox">
+                <!---->
+                <div class="v-input__control">
+                  <div class="v-selection-control v-selection-control--density-compact v-checkbox-btn">
+                    <div class="v-selection-control__wrapper">
+                      <!---->
+                      <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-7" aria-disabled="false" aria-label="Always copy SSHID directly and skip this helper" type="checkbox" value="true"></div>
+                    </div><label class="v-label v-label--clickable" for="checkbox-v-7">
+                      <!---->Always copy SSHID directly and skip this helper
+                    </label>
+                  </div>
+                </div>
+                <!---->
+                <!---->
+              </div>
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div data-v-cf545e49="" class="v-card-actions d-flex justify-end w-100"><button data-v-cf545e49="" type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Close </span>
+                    <!---->
+                    <!---->
+                  </button></div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
 `;

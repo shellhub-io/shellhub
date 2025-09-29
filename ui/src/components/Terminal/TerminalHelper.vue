@@ -1,76 +1,69 @@
 <template>
-  <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition" data-test="dialog">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h6 pa-4 bg-primary" data-test="dialog-title">
-        Generate a SSH command line
-      </v-card-title>
+  <WindowDialog
+    v-model="showDialog"
+    @close="close"
+    transition="dialog-bottom-transition"
+    title="Generate a SSH command line"
+    icon="mdi-console"
+  >
+    <v-card-text class="pa-6">
+      <v-text-field
+        class="mb-6"
+        v-model="username"
+        label="Username"
+        hint="Enter an existing user on the device"
+        persistent-placeholder
+        persistent-hint
+        density="compact"
+        data-test="username-input"
+      />
 
-      <v-card-text class="pt-4 pb-0">
-        <v-row class="mt-1">
-          <v-col>
-            <v-text-field
-              v-model="username"
-              variant="outlined"
-              label="Username"
-              hint="Enter an existing user on the device"
-              persistent-placeholder
-              persistent-hint
-              density="compact"
-              data-test="username-input"
-            />
-          </v-col>
-        </v-row>
+      <CopyWarning :copied-item="'Command'">
+        <template #default="{ copyText }">
+          <v-text-field
+            :model-value="commandLine"
+            @click:append-inner="copyText(commandLine)"
+            append-inner-icon="mdi-content-copy"
+            hint="Run this command on your Terminal"
+            class="code"
+            label="Command Line"
+            readonly
+            density="compact"
+            persistent-placeholder
+            persistent-hint
+            variant="outlined"
+            data-test="command-field"
+          />
+        </template>
+      </CopyWarning>
 
-        <v-row>
-          <v-col>
-            <CopyWarning :copied-item="'Command'">
-              <template #default="{ copyText }">
-                <v-text-field
-                  :model-value="commandLine"
-                  @click:append-inner="copyText(commandLine)"
-                  append-inner-icon="mdi-content-copy"
-                  hint="Run this command on your Terminal"
-                  class="code"
-                  variant="outlined"
-                  label="Command Line"
-                  readonly
-                  density="compact"
-                  persistent-placeholder
-                  persistent-hint
-                  data-test="command-field"
-                />
-              </template>
-            </CopyWarning>
-          </v-col>
-        </v-row>
+      <v-checkbox
+        v-if="showCheckbox"
+        v-model="dispenseHelper"
+        label="Always copy SSHID directly and skip this helper"
+        density="compact"
+        hide-details
+        data-test="dispense-checkbox"
+      />
+    </v-card-text>
 
-        <v-row v-if="showCheckbox">
-          <v-col class="d-flex justify-center align-center">
-            <v-checkbox
-              v-model="dispenseHelper"
-              label="Always copy SSHID directly and skip this helper"
-              density="compact"
-              hide-details
-              data-test="dispense-checkbox"
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
+    <template #footer>
+      <v-card-actions class="d-flex justify-end w-100">
+        <v-btn
+          data-test="close-btn"
+          @click="close"
+        >
           Close
         </v-btn>
       </v-card-actions>
-    </v-card>
-  </BaseDialog>
+    </template>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 
 interface Props {
   sshid: string;
@@ -91,9 +84,7 @@ const LS_KEY = "dispenseTerminalHelper";
 const getDispensedUsers = (): string[] => {
   try {
     return JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 };
 
 const setDispensedUsers = (users: string[]) => {
@@ -126,8 +117,8 @@ watch(showDialog, (isOpen) => {
 });
 
 const close = () => {
-  username.value = "";
   showDialog.value = false;
+  username.value = "";
 };
 
 defineExpose({ showDialog });
