@@ -38,7 +38,7 @@ const (
 	// HandleConnectionV2Path is the connection endpoint where agents using yamux/multistream connects to
 	// establish a WebSocket connection. Subsequent logical streams are opened without additional HTTP
 	// handshakes and are protocol-negotiated via multistream-select.
-	HandleConnectionV2Path = "/connection"
+	HandleConnectionV2Path = "/agent/connection"
 )
 
 const (
