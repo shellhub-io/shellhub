@@ -179,7 +179,7 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							return
 						}
 
-						if err := sess.KeepAlive(); err != nil {
+						if err := sess.KeepAlive(ctx); err != nil {
 							logger.WithError(err).Error("failed to send the API request to inform that the session is open")
 
 							return
