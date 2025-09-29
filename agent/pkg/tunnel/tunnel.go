@@ -16,7 +16,7 @@ import (
 )
 
 type HandlerConstraint interface {
-	~func(echo.Context) error | HandlerFunc
+	echo.HandlerFunc | HandlerFunc
 }
 
 type Tunnel[H HandlerConstraint] interface {
