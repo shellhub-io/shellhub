@@ -2,9 +2,9 @@ package server
 
 import (
 	_ "embed"
-	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -65,8 +65,12 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Ser
 
 			logger.Info("new connection established")
 
+			// NOTE: Replace all `\n` with `\r\n` to be compliant with the RFC 4252, section 5.4
+			// (https://datatracker.ietf.org/doc/html/rfc4252#section-5.4) that states: "The 'message'
+			// may consist of multiple lines, with line breaks indicated by CRLF pairs." and to ensure
+			// proper formatting across different SSH clients.
 			message := func(msg string) string {
-				return fmt.Sprintf("%s\r\n", msg)
+				return strings.ReplaceAll(msg, "\n", "\r\n")
 			}
 
 			if _, err := target.NewTarget(ctx.User()); err != nil {
