@@ -1,4 +1,4 @@
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { describe, it, beforeEach, expect, vi, afterEach } from "vitest";
 import TerminalHelper from "@/components/Terminal/TerminalHelper.vue";
@@ -19,10 +19,7 @@ describe("TerminalHelper", () => {
 
   beforeEach(() => {
     wrapper = mount(TerminalHelper, {
-      attachTo: document.body,
-      global: {
-        plugins: [vuetify],
-      },
+      global: { plugins: [vuetify] },
       props: {
         sshid: "namespace.70-85-c2-08-60-2a@staging.shellhub.io",
         modelValue: true,
@@ -41,13 +38,11 @@ describe("TerminalHelper", () => {
   });
 
   it("renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("updates command line when username is entered", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-
     const input = wrapper.findComponent("[data-test='username-input']");
     expect(input.exists()).toBe(true);
     await input.setValue("ubuntu");
@@ -60,9 +55,6 @@ describe("TerminalHelper", () => {
   });
 
   it("closes the dialog when Close button is clicked", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-
     const closeBtn = wrapper.findComponent("[data-test='close-btn']");
     await closeBtn.trigger("click");
     expect(wrapper.emitted("update:modelValue")).toBeTruthy();
@@ -71,9 +63,6 @@ describe("TerminalHelper", () => {
 
   it("sets user ID in localStorage when checkbox is checked", async () => {
     localStorage.clear();
-
-    wrapper.vm.showDialog = true;
-    await flushPromises();
 
     const checkbox = wrapper.findComponent("[data-test='dispense-checkbox']");
     await checkbox.setValue(true);
@@ -84,9 +73,6 @@ describe("TerminalHelper", () => {
 
   it("removes user ID from localStorage when checkbox is unchecked", async () => {
     localStorage.setItem("dispenseTerminalHelper", JSON.stringify(["test-user-id"]));
-
-    wrapper.vm.showDialog = true;
-    await flushPromises();
 
     // This code is to ensure the checkbox it is checked first
     // (true then false will trigger the watcher because the checkbox opens as false always)
