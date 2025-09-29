@@ -1,37 +1,28 @@
 <template>
-  <BaseDialog v-model="showDialog" min-width="300" max-width="600">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary"> Create Tag </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-0 pb-1">
-        <v-text-field
-          v-model="inputTags"
-          label="Tag name"
-          :error-messages="tagsError"
-          required
-          variant="underlined"
-          data-test="tag-field"
-        />
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="close()">
-          Close
-        </v-btn>
-
-        <v-btn
-          color="primary"
-          variant="text"
-          data-test="create-btn"
-          @click="create()"
-        >
-          Create
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @cancel="close"
+    @confirm="create"
+    title="Create Tag"
+    icon="mdi-tag"
+    confirm-text="Create"
+    cancel-text="Close"
+    :confirm-disabled="confirmDisabled"
+    confirm-data-test="create-btn"
+    cancel-data-test="close-btn"
+    data-test="tag-create-dialog"
+  >
+    <div class="px-6 pt-4">
+      <v-text-field
+        v-model="inputTags"
+        label="Tag name"
+        :error-messages="tagsError"
+        required
+        data-test="tag-field"
+      />
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -39,7 +30,7 @@ import { ref, computed, watch } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useTagsStore from "@/store/modules/tags";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 
 const emit = defineEmits(["update"]);
 const tagsStore = useTagsStore();
@@ -61,6 +52,8 @@ watch(inputTags, () => {
   }
 });
 
+const confirmDisabled = computed(() => !inputTags.value || !!tagsError.value);
+
 const close = () => {
   inputTags.value = "";
   showDialog.value = false;
@@ -72,19 +65,19 @@ const update = () => {
 };
 
 const create = async () => {
-  if (!tagsError.value) {
-    try {
-      await tagsStore.createTag({
-        tenant: tenant.value || "",
-        name: inputTags.value,
-      });
+  if (tagsError.value) return;
 
-      update();
-      snackbar.showSuccess("Successfully created tag");
-    } catch (error: unknown) {
-      snackbar.showError("Failed to create tag.");
-      handleError(error);
-    }
+  try {
+    await tagsStore.createTag({
+      tenant: tenant.value || "",
+      name: inputTags.value,
+    });
+
+    snackbar.showSuccess("Successfully created tag");
+    update();
+  } catch (error: unknown) {
+    snackbar.showError("Failed to create tag.");
+    handleError(error);
   }
 };
 
