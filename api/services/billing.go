@@ -1,17 +1,20 @@
 package services
 
 import (
+	"context"
+	"errors"
+
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 )
 
 type BillingInterface interface {
-	BillingEvaluate(req.Client, string) (bool, error)
-	BillingReport(req.Client, string, string) error
+	BillingEvaluate(ctx context.Context, client req.Client, tenant string) (bool, error)
+	BillingReport(ctx context.Context, client req.Client, tenant string, action string) error
 }
 
 // BillingEvaluate evaluate in the billing service if the namespace can create accept more devices.
-func (s *service) BillingEvaluate(client req.Client, tenant string) (bool, error) {
-	evaluation, _, err := client.BillingEvaluate(tenant)
+func (s *service) BillingEvaluate(ctx context.Context, client req.Client, tenant string) (bool, error) {
+	evaluation, err := client.BillingEvaluate(ctx, tenant)
 	if err != nil {
 		return false, ErrEvaluate
 	}
@@ -24,18 +27,20 @@ const (
 	ReportNamespaceDelete = "namespace_delete"
 )
 
-func (s *service) BillingReport(client req.Client, tenant string, action string) error {
-	status, err := client.BillingReport(tenant, action)
-	if err != nil {
-		return err
+func (s *service) BillingReport(ctx context.Context, client req.Client, tenant string, action string) error {
+	if err := client.BillingReport(ctx, tenant, action); err != nil {
+		var e *req.Error
+		if ok := errors.As(err, &e); !ok {
+			return ErrReport
+		}
+
+		switch e.Code {
+		case 402:
+			return ErrPaymentRequired
+		default:
+			return ErrReport
+		}
 	}
 
-	switch status {
-	case 200:
-		return nil
-	case 402:
-		return ErrPaymentRequired
-	default:
-		return ErrReport
-	}
+	return nil
 }

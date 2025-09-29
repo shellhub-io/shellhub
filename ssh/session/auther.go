@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 
@@ -49,7 +50,7 @@ func (*publicKeyAuth) Method() authMethod {
 
 func (*publicKeyAuth) Auth() authFunc {
 	return func(session *Session, config *gossh.ClientConfig) error {
-		privateKey, err := session.api.CreatePrivateKey()
+		privateKey, err := session.api.CreatePrivateKey(context.TODO())
 		if err != nil {
 			return err
 		}
@@ -102,11 +103,11 @@ func (p *publicKeyAuth) Evaluate(session *Session) error {
 	}
 
 	if gossh.FingerprintLegacyMD5(magic) != fingerprint {
-		if _, err = session.api.GetPublicKey(fingerprint, session.Device.TenantID); err != nil {
+		if _, err = session.api.GetPublicKey(context.TODO(), fingerprint, session.Device.TenantID); err != nil {
 			return err
 		}
 
-		if ok, err := session.api.EvaluateKey(fingerprint, session.Device, session.Data.Target.Username); !ok || err != nil {
+		if ok, err := session.api.EvaluateKey(context.TODO(), fingerprint, session.Device, session.Data.Target.Username); !ok || err != nil {
 			return ErrEvaluatePublicKey
 		}
 	}
