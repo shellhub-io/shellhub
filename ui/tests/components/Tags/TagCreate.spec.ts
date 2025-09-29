@@ -74,15 +74,15 @@ describe("Tag Form Create", async () => {
 
   it("Fails to create tag", async () => {
     wrapper.vm.showDialog = true;
-
     await flushPromises();
 
-    mockTagsApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/tags").reply(409);
+    mockTagsApi
+      .onPost("http://localhost:3000/api/namespaces/fake-tenant-data/tags")
+      .reply(409);
 
-    await wrapper.findComponent('[data-test="tag-field"]').setValue("");
+    await wrapper.findComponent('[data-test="tag-field"]').setValue("duplicate-tag");
 
     await wrapper.findComponent('[data-test="create-btn"]').trigger("click");
-
     await flushPromises();
 
     expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to create tag.");

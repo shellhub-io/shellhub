@@ -16,69 +16,55 @@
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary"> Update Tag </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-0 pb-1">
-        <v-text-field
-          v-model="inputTags"
-          label="Tag name"
-          :error-messages="tagsError"
-          required
-          variant="underlined"
-          data-test="tag-field"
-        />
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="close()">
-          Close
-        </v-btn>
-
-        <v-btn
-          color="primary"
-          variant="text"
-          data-test="edit-btn"
-          @click="edit()"
-          :disabled="!!tagsError"
-        >
-          Edit
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @cancel="close"
+    @confirm="edit"
+    title="Update Tag"
+    icon="mdi-tag"
+    confirm-text="Edit"
+    cancel-text="Close"
+    :confirm-disabled="confirmDisabled"
+    confirm-data-test="edit-btn"
+    cancel-data-test="close-btn"
+    data-test="tag-edit-dialog"
+  >
+    <div class="px-6 pt-4">
+      <v-text-field
+        v-model="inputTags"
+        label="Tag name"
+        :error-messages="tagsError"
+        required
+        data-test="tag-field"
+      />
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
 import useTagsStore from "@/store/modules/tags";
+import FormDialog from "../FormDialog.vue";
 
 const props = defineProps({
-  tagName: {
-    type: String,
-    required: true,
-  },
-  hasAuthorization: {
-    type: Boolean,
-    default: false,
-  },
+  tagName: { type: String, required: true },
+  hasAuthorization: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update"]);
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-const showDialog = ref(false);
 
+const showDialog = ref(false);
 const inputTags = ref<string>("");
 const tagsError = ref("");
-const tagsHasLessThan3Characters = computed(() => inputTags.value.length < 3);
+
 const tenant = computed(() => localStorage.getItem("tenant"));
+
+const tagsHasLessThan3Characters = computed(() => inputTags.value.length < 3);
 
 watch(inputTags, () => {
   if (inputTags.value.length > 255) {
@@ -89,6 +75,8 @@ watch(inputTags, () => {
     tagsError.value = "";
   }
 });
+
+const confirmDisabled = computed(() => !inputTags.value || !!tagsError.value);
 
 const open = () => {
   showDialog.value = true;
@@ -106,22 +94,20 @@ const update = () => {
 };
 
 const edit = async () => {
-  if (!tagsError.value) {
-    try {
-      await tagsStore.editTag({
-        tenant: tenant.value || "",
-        currentName: props.tagName,
-        newName: {
-          name: inputTags.value,
-        },
-      });
+  if (tagsError.value) return;
 
-      update();
-      snackbar.showSuccess("Tag updated successfully.");
-    } catch (error: unknown) {
-      snackbar.showError("Failed to update tag.");
-      handleError(error);
-    }
+  try {
+    await tagsStore.editTag({
+      tenant: tenant.value || "",
+      currentName: props.tagName,
+      newName: { name: inputTags.value },
+    });
+
+    snackbar.showSuccess("Tag updated successfully.");
+    update();
+  } catch (error: unknown) {
+    snackbar.showError("Failed to update tag.");
+    handleError(error);
   }
 };
 

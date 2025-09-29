@@ -99,8 +99,18 @@ describe("Tag Form Update", async () => {
     await flushPromises();
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
     await wrapper.findComponent('[data-test="deviceTag-autocomplete"]').trigger("click");
+
     expect(wrapper.find('[data-test="has-tags-verification"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
+
+    const formDialog = wrapper.findComponent({ name: "FormDialog" });
+    expect(formDialog.exists()).toBe(true);
+    expect(formDialog.props("title")).toBe("Edit tags");
+    expect(formDialog.props("icon")).toBe("mdi-tag");
+    expect(formDialog.props("confirmText")).toBe("");
+    expect(formDialog.props("cancelText")).toBe("Close");
+    expect(formDialog.props("confirmDisabled")).toBe(true);
+
+    // Content inside the dialog
     expect(dialog.find('[data-test="deviceTag-autocomplete"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
   });

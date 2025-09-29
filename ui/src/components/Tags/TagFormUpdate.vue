@@ -16,90 +16,83 @@
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog">
-    <v-card class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
-        {{ hasTags ? "Edit tags" : "Add Tags" }}
-      </v-card-title>
-      <v-divider />
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @cancel="close"
+    @confirm="close"
+    :title="hasTags ? 'Edit tags' : 'Add Tags'"
+    icon="mdi-tag"
+    confirm-text=""
+    :confirm-disabled="true"
+    cancel-text="Close"
+    cancel-data-test="close-btn"
+    data-test="tags-form-dialog"
+  >
+    <div class="px-6 pt-4">
+      <v-autocomplete
+        v-model="selectedTags"
+        v-model:menu="acMenuOpen"
+        :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
+        :items="tags"
+        item-title="name"
+        item-value="name"
+        label="Tag"
+        multiple
+        variant="outlined"
+        data-test="deviceTag-autocomplete"
+        @update:search="onSearch"
+        @update:modelValue="onTagSelectionChanged"
+      >
+        <template #item="{ item, props }">
+          <v-list-item
+            v-bind="{ ...props, title: undefined }"
+            :key="item.value"
+            :active="selectedTags.includes(item.value)"
+            data-test="tag-item"
+          >
+            <template #prepend>
+              <v-checkbox :model-value="selectedTags.includes(item.value)" color="primary" hide-details />
+            </template>
+            <template #title>
+              <v-chip>{{ item.value }}</v-chip>
+            </template>
+          </v-list-item>
 
-      <v-card-text class="mt-5 w-100">
-        <v-autocomplete
-          v-model="selectedTags"
-          v-model:menu="acMenuOpen"
-          :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
-          :items="tags"
-          item-title="name"
-          item-value="name"
-          label="Tag"
-          multiple
-          variant="outlined"
-          data-test="deviceTag-autocomplete"
-          @update:search="onSearch"
-          @update:modelValue="onTagSelectionChanged"
-        >
-          <template #item="{ item, props }">
-            <v-list-item
-              v-bind="{ ...props, title: undefined }"
-              :key="item.value"
-              :active="selectedTags.includes(item.value)"
-              data-test="tag-item"
+          <v-divider />
+        </template>
+
+        <template #prepend-item>
+          <div class="d-flex justify-center">
+            <v-btn
+              v-if="validNewTag"
+              @click="createTag"
+              color="primary"
+              variant="text"
+              data-test="create-new-tag-btn"
             >
-              <template #prepend>
-                <v-checkbox :model-value="selectedTags.includes(item.value)" color="primary" hide-details />
-              </template>
-              <template #title>
-                <v-chip>{{ item.value }}</v-chip>
-              </template>
-            </v-list-item>
+              Create New Tag
+            </v-btn>
+          </div>
+        </template>
 
-            <v-divider />
-          </template>
+        <template #selection="{ item }">
+          <v-chip
+            :key="item.value"
+            closable
+            @click:close="removeTag(item.value)"
+            data-test="selected-tags"
+          >
+            {{ item.value }}
+          </v-chip>
+        </template>
 
-          <template v-slot:prepend-item>
-            <div class="d-flex justify-center">
-              <v-btn
-                v-if="validNewTag"
-                @click="createTag"
-                color="primary"
-                variant="text"
-                data-test="create-new-tag-btn"
-              >
-                Create New Tag
-              </v-btn>
-            </div>
-          </template>
-
-          <template v-slot:selection="{ item }">
-            <v-chip
-              :key="item.value"
-              closable
-              @click:close="removeTag(item.value)"
-              data-test="selected-tags"
-            >
-              {{ item.value }}
-            </v-chip>
-          </template>
-
-          <template v-slot:append-item>
-            <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
-          </template>
-        </v-autocomplete>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          data-test="close-btn"
-          @click="close()"
-          class="mr-2"
-        >
-          Close
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+        <template #append-item>
+          <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+        </template>
+      </v-autocomplete>
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -107,7 +100,7 @@ import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useTagsStore from "@/store/modules/tags";
 import type { ITag as StoreTags } from "@/interfaces/ITags";
 
@@ -247,7 +240,6 @@ const onSearch = async (search: string) => {
   await loadTags();
 };
 
-// ✅ ESLint-friendly central sync (no await-in-loop, no for/of)
 const onTagSelectionChanged = async (newTags: string[]) => {
   const oldTags = previousTags.value;
 
