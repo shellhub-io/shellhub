@@ -4,6 +4,7 @@
     :items="roles"
     label="Role"
     required
+    hide-details
     data-test="role-select"
   >
     <template v-slot:item="{ props, item }">
