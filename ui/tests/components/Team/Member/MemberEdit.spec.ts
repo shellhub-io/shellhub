@@ -52,23 +52,10 @@ describe("Member Edit", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders components", async () => {
-    const dialog = new DOMWrapper(document.body);
-
-    expect(wrapper.findComponent('[data-test="member-edit-title"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="member-edit-btn"]').exists()).toBe(true);
-
+  it("Renders the component", async () => {
     await wrapper.findComponent('[data-test="member-edit-btn"]').trigger("click");
-
-    expect(dialog.find('[data-test="member-edit-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="member-edit-dialog-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="role-select"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="edit-btn"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Edit Member Error Validation", async () => {
