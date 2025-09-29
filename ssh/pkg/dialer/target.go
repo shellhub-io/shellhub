@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -108,7 +109,10 @@ func (t HTTPProxyTarget) prepare(conn net.Conn, version ConnectionVersion) (net.
 			return nil, err
 		}
 		result := map[string]string{}
-		if err := json.NewDecoder(conn).Decode(&result); err != nil {
+
+		// NOTE: limit the size of the response to avoid DoS via large payloads.
+		const Limit = 512
+		if err := json.NewDecoder(io.LimitReader(conn, Limit)).Decode(&result); err != nil {
 			return nil, err
 		}
 		if result["status"] != "ok" {
