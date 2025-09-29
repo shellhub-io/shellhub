@@ -6,47 +6,31 @@
       data-test="member-edit-btn"
     >
       <div class="d-flex align-center">
-        <div class="mr-2">
-          <v-icon> mdi-pencil </v-icon>
-        </div>
-
+        <div class="mr-2"><v-icon icon="mdi-pencil" /></div>
         <v-list-item-title data-test="member-edit-title">
           Edit
         </v-list-item-title>
       </div>
     </v-list-item>
 
-    <BaseDialog v-model="showDialog">
-      <v-card class="bg-v-theme-surface" data-test="member-edit-dialog">
-        <v-card-title class="text-h5 pa-4 bg-primary" data-test="member-edit-dialog-title">
-          Update member role
-        </v-card-title>
-        <v-divider />
-
-        <v-card-text class="mt-4 mb-0 pb-1">
-          <RoleSelect
-            v-model="newRole"
-            data-test="role-select"
-          />
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" data-test="close-btn" @click="close()">
-            Close
-          </v-btn>
-
-          <v-btn
-            color="primary"
-            variant="text"
-            data-test="edit-btn"
-            @click="editMember()"
-          >
-            Edit
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </BaseDialog>
+    <FormDialog
+      v-model="showDialog"
+      @close="close"
+      @confirm="editMember"
+      @cancel="close"
+      title="Update member role"
+      icon="mdi-account-edit"
+      confirm-text="Edit"
+      :confirm-loading="isLoading"
+      cancel-text="Close"
+      confirm-data-test="edit-btn"
+      cancel-data-test="close-btn"
+      data-test="member-edit-dialog"
+    >
+      <v-card-text class="pa-6">
+        <RoleSelect v-model="newRole" />
+      </v-card-text>
+    </FormDialog>
   </div>
 </template>
 
@@ -56,7 +40,7 @@ import axios from "axios";
 import { BasicRole, INamespaceMember } from "@/interfaces/INamespace";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "@/components/BaseDialog.vue";
+import FormDialog from "@/components/FormDialog.vue";
 import RoleSelect from "@/components/Team/RoleSelect.vue";
 import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
@@ -71,11 +55,10 @@ const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
+const isLoading = ref(false);
 const newRole = ref(member.role as BasicRole);
 
-const close = () => {
-  showDialog.value = false;
-};
+const close = () => { showDialog.value = false; };
 
 const update = () => {
   emit("update");
@@ -104,6 +87,7 @@ const handleEditMemberError = (error: unknown) => {
 };
 
 const editMember = async () => {
+  isLoading.value = true;
   try {
     await namespacesStore.updateNamespaceMember({
       user_id: member.id,
@@ -115,6 +99,8 @@ const editMember = async () => {
     update();
   } catch (error: unknown) {
     handleEditMemberError(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
