@@ -1,15 +1,244 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Member Invite > Renders the component 1`] = `
-"<div data-v-246e02fb="">
-  <div data-v-246e02fb="" aria-describedby="v-tooltip-v-0"><button data-v-246e02fb="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="invite-dialog-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-      <!----><span class="v-btn__content" data-no-activator=""> Invite Member </span>
-      <!---->
-      <!---->
-    </button></div>
-  <!--teleport start-->
-  <!--teleport end-->
-  <!---->
-  <!---->
-</div>"
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip text-center" style="z-index: 2000;" id="v-tooltip-v-0" role="tooltip">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <!---->
+      </transition-stub>
+      <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLDivElement]">
+        <div class="v-overlay__content" style="min-width: 0px; display: none;"><span> You don't have this kind of authorization. </span></div>
+      </transition-stub>
+    </div>
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip text-center" style="z-index: 2000;" id="v-tooltip-v-0" role="tooltip">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <!---->
+      </transition-stub>
+      <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLDivElement]">
+        <div class="v-overlay__content" style="min-width: 0px; display: none;"><span> You don't have this kind of authorization. </span></div>
+      </transition-stub>
+    </div>
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-account-plus mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Invite Member
+                    </div>
+                  </div>
+                  <!--v-if-->
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div class="v-card-text pa-6 text-justify">
+              <div class="v-window v-theme--light">
+                <div class="v-window__container">
+                  <transition-stub name="" appear="false" persisted="false" css="true">
+                    <div class="v-window-item v-window-item--active">
+                      <p class="mb-4"> If this email isn't associated with an existing account, we'll send an email to sign-up. </p>
+                      <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mb-6" data-test="email-text">
+                        <!---->
+                        <div class="v-input__control">
+                          <div class="v-field v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">
+                            <div class="v-field__overlay"></div>
+                            <div class="v-field__loader">
+                              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                                <!---->
+                                <div class="v-progress-linear__background"></div>
+                                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                  <div class="v-progress-linear__indeterminate">
+                                    <div class="v-progress-linear__indeterminate long"></div>
+                                    <div class="v-progress-linear__indeterminate short"></div>
+                                  </div>
+                                </transition-stub>
+                                <!---->
+                              </div>
+                            </div>
+                            <!---->
+                            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-5" aria-hidden="true">
+                                <!---->Email
+                              </label><label class="v-label v-field-label" for="input-v-5">
+                                <!---->Email
+                              </label>
+                              <!----><input size="1" type="text" id="input-v-5" required="" class="v-field__input" value="">
+                              <!---->
+                            </div>
+                            <!---->
+                            <!---->
+                            <div class="v-field__outline">
+                              <!---->
+                              <!---->
+                            </div>
+                          </div>
+                        </div>
+                        <!---->
+                        <!---->
+                      </div>
+                      <div data-v-444f7389="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected mb-4" data-test="role-select">
+                        <!---->
+                        <div class="v-input__control">
+                          <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-v-7">
+                            <div class="v-field__overlay"></div>
+                            <div class="v-field__loader">
+                              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                                <!---->
+                                <div class="v-progress-linear__background"></div>
+                                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                  <div class="v-progress-linear__indeterminate">
+                                    <div class="v-progress-linear__indeterminate long"></div>
+                                    <div class="v-progress-linear__indeterminate short"></div>
+                                  </div>
+                                </transition-stub>
+                                <!---->
+                              </div>
+                            </div>
+                            <!---->
+                            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-9" aria-hidden="false">
+                                <!---->Role
+                              </label><label class="v-label v-field-label" for="input-v-9">
+                                <!---->Role
+                              </label>
+                              <!---->
+                              <div class="v-field__input" data-no-activator="">
+                                <!---->
+                                <!---->
+                                <div class="v-select__selection"><span class="v-select__selection-text">Administrator<!----></span></div><input size="1" role="combobox" type="text" id="input-v-9" inputmode="none" aria-expanded="false" aria-controls="menu-v-7" aria-label="Open" title="Open" required="" value="administrator">
+                              </div>
+                              <!---->
+                            </div>
+                            <!---->
+                            <div class="v-field__append-inner">
+                              <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
+                              <!---->
+                            </div>
+                            <div class="v-field__outline">
+                              <!---->
+                              <!---->
+                            </div>
+                          </div>
+                        </div>
+                        <!---->
+                        <!---->
+                      </div>
+                      <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-checkbox" data-test="link-request-checkbox">
+                        <!---->
+                        <div class="v-input__control">
+                          <div class="v-selection-control v-selection-control--density-compact v-checkbox-btn">
+                            <div class="v-selection-control__wrapper">
+                              <!---->
+                              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-12" aria-disabled="false" aria-label="Get the invite link instead of sending an e-mail" type="checkbox" value="true"></div>
+                            </div><label class="v-label v-label--clickable" for="checkbox-v-12">
+                              <!---->Get the invite link instead of sending an e-mail
+                            </label>
+                          </div>
+                        </div>
+                        <!---->
+                        <!---->
+                      </div>
+                    </div>
+                  </transition-stub>
+                  <transition-stub name="" appear="false" persisted="false" css="true">
+                    <div class="v-window-item" style="display: none;">
+                      <!---->
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+                <!---->
+              </div>
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <!-- Buttons with alert system -->
+                <div class="v-window v-theme--light w-100">
+                  <div class="v-window__container">
+                    <!-- Default buttons window -->
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item v-window-item--active w-100">
+                        <div class="d-flex align-center w-100">
+                          <!-- Helper text on the left -->
+                          <!--v-if-->
+                          <div class="v-spacer"></div><!-- Buttons on the right -->
+                          <div class="d-flex"><button type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-tonal mr-2" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                              <!----><span class="v-btn__content" data-no-activator="">Close</span>
+                              <!---->
+                              <!---->
+                            </button><button type="button" class="v-btn v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-outlined" disabled="" data-test="invite-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                              <!----><span class="v-btn__content" data-no-activator="">Invite</span>
+                              <!---->
+                              <!---->
+                            </button></div>
+                        </div>
+                      </div>
+                    </transition-stub><!-- Alert window -->
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item w-100" style="display: none;">
+                        <!---->
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
+                  <!---->
+                </div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
 `;

@@ -46,22 +46,10 @@ describe("Member Invite", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders components", async () => {
-    const dialog = new DOMWrapper(document.body);
-
-    expect(wrapper.findComponent('[data-test="invite-dialog-btn"]').exists()).toBe(true);
-
+  it("Renders the component", async () => {
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
-
-    expect(dialog.find('[data-test="namespace-new-member-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="email-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="role-select"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="invite-btn"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Invite Member Email - Error Validation", async () => {

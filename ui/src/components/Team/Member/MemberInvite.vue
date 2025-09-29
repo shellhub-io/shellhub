@@ -20,91 +20,54 @@
       <span> You don't have this kind of authorization. </span>
     </v-tooltip>
 
-    <BaseDialog
+    <FormDialog
       v-model="showDialog"
       @close="close"
+      @confirm="getInvitationCheckbox ? generateLinkInvite() : sendEmailInvite()"
+      @cancel="close"
+      title="Invite Member"
+      icon="mdi-account-plus"
+      :confirm-text="formWindow === 'form-1' ? 'Invite' : ''"
+      :confirm-disabled="!email || !selectedRole || !!emailError || formWindow === 'form-2'"
+      :confirm-loading="isLoading"
+      cancel-text="Close"
+      :confirm-data-test="'invite-btn'"
+      :cancel-data-test="'close-btn'"
     >
-      <v-card
-        data-test="namespace-new-member-dialog"
-        class="bg-v-theme-surface"
-      >
-        <div class="mt-4 mb-4">
-          <div class="d-flex justify-center align-center">
-            <v-avatar
-              class="-right-32 z-0"
-              size="46"
-            >
-              <svg v-html="getAvatar(0)" />
-            </v-avatar>
-
-            <v-avatar
-              class="-right-16 z-1"
-              size="56"
-            >
-              <svg v-html="getAvatar(1)" />
-            </v-avatar>
-
-            <v-avatar
-              class="z-2"
-              size="72"
-              color="primary"
-            >
-              <v-icon color="white">mdi-account</v-icon>
-            </v-avatar>
-
-            <v-avatar
-              class="-left-16 z-1"
-              size="56"
-            >
-              <svg v-html="getAvatar(2)" />
-            </v-avatar>
-            <v-avatar
-              class="-left-32 z-0"
-              size="46"
-            >
-              <svg v-html="getAvatar(3)" />
-            </v-avatar>
-          </div>
-        </div>
-        <v-card-title class="text-center">
-          Invite Member
-        </v-card-title>
+      <v-card-text class="pa-6 text-justify">
         <v-window v-model="formWindow">
           <v-window-item value="form-1">
-            <v-card-text>
-              <p
-                class="mb-4"
-                v-if="envVariables.isCloud"
-              >
-                If this email isn't associated with an existing account, we'll send an email to sign-up.
-              </p>
-
-              <v-text-field
-                v-model="email"
-                class="mb-4"
-                label="Email"
-                :error-messages="emailError"
-                required
-                data-test="email-text"
-              />
-            </v-card-text>
-
-            <v-card-text class="mt-n10">
-              <RoleSelect
-                v-model="selectedRole"
-                data-test="role-select"
-              />
-              <v-checkbox
-                v-if="envVariables.isCloud"
-                v-model="getInvitationCheckbox"
-                label="Get the invite link instead of sending an e-mail"
-                hide-details
-                data-test="link-request-checkbox"
-              />
-            </v-card-text>
+            <p
+              class="mb-4"
+              v-if="envVariables.isCloud"
+            >
+              If this email isn't associated with an existing account, we'll send an email to sign-up.
+            </p>
+            <v-text-field
+              v-model="email"
+              class="mb-6"
+              label="Email"
+              :error-messages="emailError"
+              required
+              hide-details="auto"
+              data-test="email-text"
+            />
+            <RoleSelect
+              v-model="selectedRole"
+              data-test="role-select"
+              class="mb-4"
+            />
+            <v-checkbox
+              v-if="envVariables.isCloud"
+              v-model="getInvitationCheckbox"
+              label="Get the invite link instead of sending an e-mail"
+              hide-details
+              density="compact"
+              data-test="link-request-checkbox"
+            />
           </v-window-item>
           <v-window-item value="form-2">
-            <v-card-text>
+            <div>
               <p class="mb-4">
                 Share this link with the person you want to invite. They can use it to join your namespace.
               </p>
@@ -128,30 +91,11 @@
               <p class="text-caption text-grey-darken-1">
                 The invitation link remains valid for 7 days, if the link does not work, ensure the invite has not expired.
               </p>
-            </v-card-text>
+            </div>
           </v-window-item>
-
         </v-window>
-
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            data-test="close-btn"
-            @click="close()"
-          > Close </v-btn>
-
-          <v-btn
-            color="primary"
-            data-test="invite-btn"
-            @click="getInvitationCheckbox ? generateLinkInvite() : sendEmailInvite()"
-            :disabled="!email || !selectedRole || !!emailError || formWindow === 'form-2'"
-          >
-            Invite
-          </v-btn>
-
-        </v-card-actions>
-      </v-card>
-    </BaseDialog>
+      </v-card-text>
+    </FormDialog>
   </div>
 </template>
 
@@ -160,13 +104,12 @@ import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
-import multiavatar from "@multiavatar/multiavatar";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
-import BaseDialog from "@/components/BaseDialog.vue";
+import FormDialog from "@/components/FormDialog.vue";
 import RoleSelect from "../RoleSelect.vue";
 import { BasicRole } from "@/interfaces/INamespace";
 import useAuthStore from "@/store/modules/auth";
@@ -177,6 +120,7 @@ const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
+const isLoading = ref(false);
 const getInvitationCheckbox = ref(false);
 const invitationLink = ref("");
 const formWindow = ref("form-1");
@@ -192,8 +136,6 @@ const {
 });
 
 const canAddMember = hasPermission("namespace:addMember");
-
-const getAvatar = (index: number) => multiavatar(`${Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - index + 1)) + index}`);
 
 const resetFields = () => {
   resetIdentifier();
@@ -237,16 +179,20 @@ const getInvitePayload = () => ({
 });
 
 const generateLinkInvite = async () => {
+  isLoading.value = true;
   try {
     invitationLink.value = await namespacesStore.generateInvitationLink(getInvitePayload());
     snackbar.showSuccess("Invitation link generated successfully.");
     formWindow.value = "form-2";
   } catch (error) {
     handleInviteError(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
 const sendEmailInvite = async () => {
+  isLoading.value = true;
   try {
     await namespacesStore.sendEmailInvitation(getInvitePayload());
     snackbar.showSuccess("Invitation email sent successfully.");
@@ -254,26 +200,10 @@ const sendEmailInvite = async () => {
     resetFields();
   } catch (error) {
     handleInviteError(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
 defineExpose({ emailError, formWindow, invitationLink });
 </script>
-
-<style lang="scss" scoped>
-@for $i from 0 through 32 {
-  .-left-#{$i} {
-    left: -#{$i}px;
-  }
-
-  .-right-#{$i} {
-    right: -#{$i}px;
-  }
-}
-
-@for $i from 0 through 2 {
-  .z-#{$i} {
-    z-index: #{$i};
-  }
-}
-</style>
