@@ -691,8 +691,8 @@ func Event[D any](sess *Session, t string, data []byte, seat int) {
 	})
 }
 
-func (s *Session) KeepAlive() error {
-	if err := s.api.KeepAliveSession(context.TODO(), s.UID); err != nil {
+func (s *Session) KeepAlive(ctx context.Context) error {
+	if err := s.api.KeepAliveSession(ctx, s.UID); err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 			Error("Error when trying to keep alive the session")
