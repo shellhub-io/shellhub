@@ -377,13 +377,18 @@ func (a *Agent) Close() error {
 	return (*l).Close()
 }
 
+const (
+	ConnectionV1 = 1
+	ConnectionV2 = 2
+)
+
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
 	switch a.config.ConnectionVersion {
-	case 1:
+	case ConnectionV1:
 		return a.listenV1(ctx)
-	case 2:
+	case ConnectionV2:
 		return a.listenV2(ctx)
 	default:
 		return fmt.Errorf("unsupported connection version: %d", a.config.ConnectionVersion)
