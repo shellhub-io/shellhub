@@ -280,7 +280,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
           </div>
           <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
           <div data-v-b3fa301d="" class="d-flex align-center justify-space-between pr-4">
-            <div data-v-b3fa301d="" class="v-card v-card--disabled v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background w-75" tabindex="-1" data-test="mfa-card">
+            <div data-v-b3fa301d="" tabindex="-1" class="v-card v-card--disabled v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background w-75" data-test="mfa-card">
               <!---->
               <div class="v-card__loader">
                 <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">

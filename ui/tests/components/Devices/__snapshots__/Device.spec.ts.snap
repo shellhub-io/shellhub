@@ -1,15 +1,15 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Device > Renders correctly 1`] = `
-"<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+"<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a href="/devices" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
     <!---->
     <!---->
-  </a><a class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/devices/pending"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  </a><a href="/devices/pending" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">Pending</span>
     <!---->
     <!---->
-  </a><a class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/devices/rejected"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  </a><a href="/devices/rejected" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">Rejected</span>
     <!---->
     <!---->
@@ -20,15 +20,15 @@ exports[`Device > Renders correctly 1`] = `
 `;
 
 exports[`Device > Renders the component 1`] = `
-"<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+"<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a href="/devices" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
     <!---->
     <!---->
-  </a><a class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/devices/pending"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  </a><a href="/devices/pending" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">Pending</span>
     <!---->
     <!---->
-  </a><a class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;" href="/devices/rejected"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  </a><a href="/devices/rejected" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">Rejected</span>
     <!---->
     <!---->

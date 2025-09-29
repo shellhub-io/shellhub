@@ -91,7 +91,7 @@ exports[`Device > Renders the component 1`] = `
                 <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-linuxmint" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
                 <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
                 <td data-v-aca44803="">
-                  <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-15"><!----><span class="v-chip__underlay"></span>
+                  <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-16"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
                     <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -109,7 +109,7 @@ exports[`Device > Renders the component 1`] = `
                   <!---->
                   <!----></span>
                 </td>
-                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-18"></a>
+                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-19"></a>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
@@ -120,7 +120,7 @@ exports[`Device > Renders the component 1`] = `
                 <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-linuxmint" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
                 <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
                 <td data-v-aca44803="">
-                  <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-19"><!----><span class="v-chip__underlay"></span>
+                  <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-20"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
                     <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -138,7 +138,7 @@ exports[`Device > Renders the component 1`] = `
                   <!---->
                   <!----></span>
                 </td>
-                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-22"></a>
+                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-23"></a>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
@@ -155,7 +155,7 @@ exports[`Device > Renders the component 1`] = `
           <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-12">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-9">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -179,7 +179,7 @@ exports[`Device > Renders the component 1`] = `
                   <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-10" outlined="" value="10">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-11" aria-expanded="false" aria-controls="menu-v-9" outlined="" value="10">
                   </div>
                   <!---->
                 </div>

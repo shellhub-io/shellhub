@@ -33,7 +33,7 @@ exports[`Home > Renders the component 1`] = `
           </div>
           <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
-        <div class="v-card-actions"><button data-v-51a05120="" type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated" tabindex="0" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><button data-v-51a05120="" tabindex="0" type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""> Add Device </span>
             <!---->
             <!---->
@@ -77,7 +77,7 @@ exports[`Home > Renders the component 1`] = `
           </div>
           <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle" tabindex="0" href="/devices"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a href="/devices" tabindex="0" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Devices</span>
             <!---->
             <!---->
@@ -118,7 +118,7 @@ exports[`Home > Renders the component 1`] = `
           </div>
           <div class="v-card-item__append"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-x-large pb-4" aria-hidden="true"></i></div>
         </div>
-        <div class="v-card-actions"><a class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle" tabindex="0" href="/sessions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="v-card-actions"><a href="/sessions" tabindex="0" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-small v-btn--variant-elevated text-subtitle"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator="">View all Sessions</span>
             <!---->
             <!---->
