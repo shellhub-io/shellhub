@@ -46,7 +46,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
               <td>127.0.0.1</td>
               <td>shellhub</td>
               <td>
-                <div><span class="v-chip v-theme--light v-chip--density-compact v-chip--size-default v-chip--variant-tonal mr-1" draggable="false" outlined="" aria-describedby="v-tooltip-v-6"><!----><span class="v-chip__underlay"></span>
+                <div><span class="v-chip v-theme--light v-chip--density-compact v-chip--size-default v-chip--variant-tonal mr-1" draggable="false" outlined="" aria-describedby="v-tooltip-v-7"><!----><span class="v-chip__underlay"></span>
                   <!---->
                   <!---->
                   <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -56,7 +56,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-8"></a>
+              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-9"></a>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -73,7 +73,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
         <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
           <!---->
           <div class="v-input__control">
-            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3">
+            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-0">
               <div class="v-field__overlay"></div>
               <div class="v-field__loader">
                 <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -97,7 +97,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
                 <div class="v-field__input" data-no-activator="">
                   <!---->
                   <!---->
-                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-1" outlined="" value="10">
+                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-2" aria-expanded="false" aria-controls="menu-v-0" outlined="" value="10">
                 </div>
                 <!---->
               </div>

@@ -51,7 +51,7 @@ exports[`Users > Renders the component 1`] = `
       <!---->
     </button>
     <!---->
-    <!----><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-2" tabindex="0" outlined="" aria-label="Dialog Add user" data-test="user-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <!----><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-2" outlined="" aria-label="Dialog Add user" data-test="user-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""> Add User </span>
       <!---->
       <!---->
@@ -110,7 +110,7 @@ exports[`Users > Renders the component 1`] = `
           <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-8">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-5">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -134,7 +134,7 @@ exports[`Users > Renders the component 1`] = `
                   <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-6" outlined="" value="10">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-7" aria-expanded="false" aria-controls="menu-v-5" outlined="" value="10">
                   </div>
                   <!---->
                 </div>

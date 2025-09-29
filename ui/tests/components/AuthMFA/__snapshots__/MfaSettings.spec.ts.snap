@@ -291,11 +291,11 @@ exports[`MfaSettings > Renders the components (Recovery codes window) 1`] = `
                       <!---->
                       <!----><span class="v-card__underlay"></span>
                     </div>
-                    <div data-v-491349b1="" class="v-row justify-center my-4"><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text mr-3" tabindex="0" data-test="download-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-download-box-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Download </span>
+                    <div data-v-491349b1="" class="v-row justify-center my-4"><button data-v-491349b1="" tabindex="0" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text mr-3" data-test="download-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-download-box-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Download </span>
                         <!---->
                         <!---->
                       </button>
-                      <div data-v-491349b1=""><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" data-test="copy-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Copy </span>
+                      <div data-v-491349b1=""><button data-v-491349b1="" tabindex="0" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="copy-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Copy </span>
                           <!---->
                           <!---->
                         </button>
@@ -504,11 +504,11 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                       <!---->
                       <!----><span class="v-card__underlay"></span>
                     </div>
-                    <div data-v-491349b1="" class="v-row justify-center my-4"><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text mr-3" tabindex="0" data-test="download-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-download-box-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Download </span>
+                    <div data-v-491349b1="" class="v-row justify-center my-4"><button data-v-491349b1="" tabindex="0" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text mr-3" data-test="download-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-download-box-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Download </span>
                         <!---->
                         <!---->
                       </button>
-                      <div data-v-491349b1=""><button data-v-491349b1="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" data-test="copy-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Copy </span>
+                      <div data-v-491349b1=""><button data-v-491349b1="" tabindex="0" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="copy-recovery-codes-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Copy </span>
                           <!---->
                           <!---->
                         </button>

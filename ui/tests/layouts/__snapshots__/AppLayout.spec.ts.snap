@@ -40,7 +40,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </div>
-        <div data-v-e7291ef4="" class="v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface" tabindex="0" role="list" data-test="list"><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" href="/" data-test="list-item">
+        <div data-v-e7291ef4="" class="v-list v-theme--dark bg-transparent v-list--density-compact v-list--one-line bg-v-theme-surface" tabindex="0" role="list" data-test="list"><a data-v-e7291ef4="" href="/" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-home mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
@@ -55,7 +55,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" href="/devices" data-test="list-item">
+          </a><a data-v-e7291ef4="" href="/devices" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-developer-board mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
@@ -70,7 +70,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" href="/containers" data-test="list-item">
+          </a><a data-v-e7291ef4="" href="/containers" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-docker mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
@@ -85,7 +85,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" href="/webendpoints" data-test="list-item">
+          </a><a data-v-e7291ef4="" href="/webendpoints" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-web mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
@@ -104,7 +104,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!----></span>
               <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" href="/sessions" data-test="list-item">
+          </a><a data-v-e7291ef4="" href="/sessions" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-history mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
@@ -119,7 +119,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" href="/firewall/rules" data-test="list-item">
+          </a><a data-v-e7291ef4="" href="/firewall/rules" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-security mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
@@ -134,7 +134,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" href="/sshkeys/public-keys" data-test="list-item">
+          </a><a data-v-e7291ef4="" href="/sshkeys/public-keys" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="listitem" data-test="list-item">
             <!----><span class="v-list-item__underlay"></span>
             <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
               <div class="v-list-item__spacer"></div>
@@ -167,7 +167,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <transition-stub name="" appear="false" persisted="false" css="false">
-              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" href="/team/members" data-test="list-item">
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" href="/team/members" aria-disabled="true" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item">
                   <!----><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
@@ -176,7 +176,7 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Members-listItem">Members</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" href="/team/api-keys" data-test="list-item">
+                </a><a data-v-e7291ef4="" href="/team/api-keys" aria-disabled="true" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item">
                   <!----><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
@@ -189,7 +189,7 @@ exports[`App Layout Component > Renders the component 1`] = `
             </transition-stub>
           </div>
           <div data-v-e7291ef4="" class="v-list-group v-list-group--prepend" modelvalue="false" data-test="list-group">
-            <div data-v-e7291ef4="" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" tabindex="-2" role="listitem" id="v-list-group--id-Symbol(nested item)"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+            <div data-v-e7291ef4="" tabindex="-2" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" role="listitem" id="v-list-group--id-Symbol(nested item)"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
               <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-cog mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
                 <div class="v-list-item__spacer"></div>
               </div>
@@ -204,7 +204,7 @@ exports[`App Layout Component > Renders the component 1`] = `
               </div>
             </div>
             <transition-stub name="" appear="false" persisted="false" css="false">
-              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" role="listitem" href="/settings/profile" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" href="/settings/profile" tabindex="-2" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
                     <!---->
@@ -212,7 +212,7 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Profile-listItem">Profile</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" role="listitem" href="/settings/namespace" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+                </a><a data-v-e7291ef4="" href="/settings/namespace" tabindex="-2" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
                     <!---->
@@ -220,7 +220,7 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Namespace-listItem">Namespace</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" role="listitem" href="/settings/private-keys" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+                </a><a data-v-e7291ef4="" href="/settings/private-keys" tabindex="-2" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
                     <!---->
@@ -228,7 +228,7 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Private Keys-listItem">Private Keys</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" role="listitem" href="/settings/tags" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+                </a><a data-v-e7291ef4="" href="/settings/tags" tabindex="-2" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
                     <!---->
@@ -236,7 +236,7 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Tags-listItem">Tags</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4="" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" tabindex="-2" role="listitem" href="/settings/billing" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
+                </a><a data-v-e7291ef4="" href="/settings/billing" tabindex="-2" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
                     <!---->
@@ -248,7 +248,7 @@ exports[`App Layout Component > Renders the component 1`] = `
             </transition-stub>
           </div>
           <div data-v-e7291ef4="" class="v-col d-flex align-end justify-center">
-            <div data-v-136d2a2f="" data-v-e7291ef4=""><button data-v-136d2a2f="" type="button" class="v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat" tabindex="0" aria-label="Dialog Quick Connection" data-test="quick-connection-open-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Quick Connect </span>
+            <div data-v-136d2a2f="" data-v-e7291ef4=""><button data-v-136d2a2f="" tabindex="0" type="button" class="v-btn v-btn--block v-theme--dark bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat" aria-label="Dialog Quick Connection" data-test="quick-connection-open-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-console mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Quick Connect </span>
                 <!---->
                 <!---->
               </button>

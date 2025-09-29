@@ -83,7 +83,7 @@ exports[`New Announcement > Renders the component 1`] = `
     <!---->
   </div>
   <div class="v-card-actions pa-4">
-    <div class="v-spacer"></div><button type="button" class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" tabindex="0" data-test="announcement-btn-post"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div class="v-spacer"></div><button tabindex="0" type="button" class="v-btn v-btn--slim v-theme--light text-dark v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="announcement-btn-post"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""> Post </span>
       <!---->
       <!---->
