@@ -485,7 +485,7 @@ func (a *Agent) listenV2(ctx context.Context) error {
 				return
 			}
 
-			ShellHubConnectV2Path := "/connection"
+			ShellHubConnectV2Path := "/agent/connection"
 
 			logger.Debug("Using tunnel version 2")
 
