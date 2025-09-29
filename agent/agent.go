@@ -164,6 +164,8 @@ type Agent struct {
 	mode       Mode
 	// listener is the current connection to the server.
 	listener atomic.Pointer[net.Listener]
+	// logger is the agent's logger instance.
+	logger *log.Entry
 }
 
 // NewAgent creates a new agent instance, requiring the ShellHub server's address to connect to, the namespace's tenant
@@ -253,6 +255,16 @@ func (a *Agent) Initialize() error {
 	}
 
 	a.closed.Store(false)
+
+	a.logger = log.WithFields(log.Fields{
+		"version":            AgentVersion,
+		"tenant_id":          a.authData.Namespace,
+		"server_address":     a.config.ServerAddress,
+		"ssh_endpoint":       a.serverInfo.Endpoints.SSH,
+		"api_endpoint":       a.serverInfo.Endpoints.API,
+		"connection_version": a.config.ConnectionVersion,
+		"sshid":              fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
+	})
 
 	return nil
 }
@@ -404,21 +416,11 @@ func (a *Agent) listenV1(ctx context.Context) error {
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
-	logger := log.WithFields(log.Fields{
-		"version":            AgentVersion,
-		"tenant_id":          a.authData.Namespace,
-		"server_address":     a.config.ServerAddress,
-		"ssh_endpoint":       a.serverInfo.Endpoints.SSH,
-		"api_endpoint":       a.serverInfo.Endpoints.API,
-		"connection_version": a.config.ConnectionVersion,
-		"sshid":              fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
-	})
-
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		for {
 			if a.isClosed() {
-				logger.Info("Stopped listening for connections")
+				a.logger.Info("Stopped listening for connections")
 
 				cancel()
 
@@ -427,7 +429,7 @@ func (a *Agent) listenV1(ctx context.Context) error {
 
 			ShellHubConnectV1Path := "/ssh/connection"
 
-			logger.Debug("Using tunnel version 1")
+			a.logger.Debug("Using tunnel version 1")
 
 			listener, err := a.cli.NewReverseListenerV1(
 				ctx,
@@ -435,7 +437,7 @@ func (a *Agent) listenV1(ctx context.Context) error {
 				ShellHubConnectV1Path,
 			)
 			if err != nil {
-				logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+				a.logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
 
 				time.Sleep(time.Second * 10)
 
@@ -443,12 +445,12 @@ func (a *Agent) listenV1(ctx context.Context) error {
 			}
 			a.listener.Store(&listener)
 
-			logger.Info("Server connection established")
+			a.logger.Info("Server connection established")
 
 			a.listening <- true
 
 			if err := tun.Listen(ctx, listener); err != nil {
-				logger.WithError(err).Error("Tunnel listener exited with error")
+				a.logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
 			a.listening <- false
@@ -469,21 +471,11 @@ func (a *Agent) listenV2(ctx context.Context) error {
 
 	go a.ping(ctx, AgentPingDefaultInterval) //nolint:errcheck
 
-	logger := log.WithFields(log.Fields{
-		"version":            AgentVersion,
-		"tenant_id":          a.authData.Namespace,
-		"server_address":     a.config.ServerAddress,
-		"ssh_endpoint":       a.serverInfo.Endpoints.SSH,
-		"api_endpoint":       a.serverInfo.Endpoints.API,
-		"connection_version": a.config.ConnectionVersion,
-		"sshid":              fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
-	})
-
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		for {
 			if a.isClosed() {
-				logger.Info("Stopped listening for connections")
+				a.logger.Info("Stopped listening for connections")
 
 				cancel()
 
@@ -492,7 +484,7 @@ func (a *Agent) listenV2(ctx context.Context) error {
 
 			ShellHubConnectV2Path := "/agent/connection"
 
-			logger.Debug("Using tunnel version 2")
+			a.logger.Debug("Using tunnel version 2")
 
 			listener, err := a.cli.NewReverseListenerV2(
 				ctx,
@@ -501,7 +493,7 @@ func (a *Agent) listenV2(ctx context.Context) error {
 				client.NewReverseV2ConfigFromMap(a.authData.Config),
 			)
 			if err != nil {
-				logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
+				a.logger.Error("Failed to connect to server through reverse tunnel. Retry in 10 seconds")
 
 				time.Sleep(time.Second * 10)
 
@@ -509,12 +501,12 @@ func (a *Agent) listenV2(ctx context.Context) error {
 			}
 			a.listener.Store(&listener)
 
-			logger.Info("Server connection established")
+			a.logger.Info("Server connection established")
 
 			a.listening <- true
 
 			if err := tun.Listen(ctx, listener); err != nil {
-				logger.WithError(err).Error("Tunnel listener exited with error")
+				a.logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
 			a.listening <- false
