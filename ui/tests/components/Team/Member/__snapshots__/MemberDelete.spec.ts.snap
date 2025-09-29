@@ -1,16 +1,70 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Member Delete > Renders the component 1`] = `
-"<div class="v-list-item v-list-item--link v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text" tabindex="0"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
-  <!---->
-  <div class="v-list-item__content" data-no-activator="">
-    <!---->
-    <!---->
-    <div class="d-flex align-center">
-      <div class="mr-2"><i class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-      <div class="v-list-item-title" data-test="member-delete-dialog-btn"> Remove </div>
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="" data-test="member-delete-card">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <!--v-if-->
+            <!-- Content -->
+            <div class="v-card-text text-center py-8"><i class="mdi-account-minus mdi v-icon notranslate v-theme--light text-error mb-4" style="font-size: 48px; height: 48px; width: 48px;" aria-hidden="true"></i>
+              <div class="text-h5 mb-4">Are you sure?</div>
+              <div class="text-body-2 text-medium-emphasis mb-6">You are about to remove this user from the namespace. If needed, you can re-invite this user to the namespace at any time.</div>
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <!-- Block Layout: Full width buttons -->
+                <div class="v-row ma-0 ga-3">
+                  <div class="v-col pa-0"><button type="button" class="v-btn v-btn--block v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-tonal" data-test="member-delete-close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                      <!----><span class="v-btn__content" data-no-activator="">Close</span>
+                      <!---->
+                      <!---->
+                    </button></div>
+                  <div class="v-col pa-0"><button type="button" class="v-btn v-btn--block v-theme--light bg-error v-btn--density-default v-btn--size-default v-btn--variant-flat" data-test="member-delete-remove-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                      <!----><span class="v-btn__content" data-no-activator="">Remove</span>
+                      <!---->
+                      <!---->
+                    </button></div>
+                </div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
     </div>
   </div>
-  <!---->
-</div>"
+</body>"
 `;

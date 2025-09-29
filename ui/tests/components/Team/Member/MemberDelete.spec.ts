@@ -49,22 +49,10 @@ describe("Member Delete", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders components", async () => {
-    const dialog = new DOMWrapper(document.body);
-
-    expect(wrapper.findComponent('[data-test="member-delete-dialog-btn"]').exists()).toBe(true);
-
+  it("Renders the component", async () => {
     await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
-
-    expect(dialog.find('[data-test="member-delete-card"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="member-delete-dialog-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="member-delete-dialog-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="member-delete-close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="member-delete-remove-btn"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Delete Member Error Validation", async () => {
