@@ -1,51 +1,37 @@
 <template>
   <v-list-item @click="showDialog = true" :disabled="!hasAuthorization">
     <div class="d-flex align-center">
-      <div class="mr-2">
-        <v-icon> mdi-delete </v-icon>
-      </div>
-
+      <div class="mr-2"><v-icon icon="mdi-delete" /></div>
       <v-list-item-title data-test="member-delete-dialog-btn">
         Remove
       </v-list-item-title>
     </div>
   </v-list-item>
 
-  <BaseDialog v-model="showDialog">
-    <v-card class="bg-v-theme-surface" data-test="member-delete-card">
-      <v-card-title class="text-h5 pa-5 bg-primary" data-test="member-delete-dialog-title">
-        Are you sure?
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-0 pb-1" data-test="member-delete-dialog-text">
-        <p class="text-body-2 mb-2">
-          You are about to remove this user from the namespace.
-        </p>
-
-        <p class="text-body-2 mb-2">
-          If needed, you can re-invite this user to the namespace at any time.
-        </p>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" @click="showDialog = false" data-test="member-delete-close-btn"> Close </v-btn>
-
-        <v-btn color="red darken-1" variant="text" @click="remove()" data-test="member-delete-remove-btn">
-          Remove
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <MessageDialog
+    v-model="showDialog"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
+    title="Are you sure?"
+    description="You are about to remove this user from the namespace. If needed, you can re-invite this user to the namespace at any time."
+    icon="mdi-account-minus"
+    icon-color="error"
+    confirm-text="Remove"
+    confirm-color="error"
+    :confirm-loading="isLoading"
+    cancel-text="Close"
+    confirm-data-test="member-delete-remove-btn"
+    cancel-data-test="member-delete-close-btn"
+    data-test="member-delete-card"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "@/components/BaseDialog.vue";
+import MessageDialog from "@/components/MessageDialog.vue";
 import { INamespaceMember } from "@/interfaces/INamespace";
 import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
@@ -57,6 +43,7 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
+const isLoading = ref(false);
 const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
@@ -67,6 +54,7 @@ const update = () => {
 };
 
 const remove = async () => {
+  isLoading.value = true;
   try {
     await namespacesStore.removeMemberFromNamespace({
       user_id: props.member.id,
@@ -78,6 +66,8 @@ const remove = async () => {
   } catch (error: unknown) {
     snackbar.showError("Failed to remove user from namespace.");
     handleError(error);
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
