@@ -239,7 +239,7 @@ func (s *Seats) SetPty(seat int, status bool) {
 func NewSession(ctx gliderssh.Context, tunnel *httptunnel.Tunnel, cache cache.Cache) (*Session, error) {
 	snap := getSnapshot(ctx)
 
-	api, err := internalclient.NewClient()
+	api, err := internalclient.NewClient(nil)
 	if err != nil {
 		return nil, err
 	}

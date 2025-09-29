@@ -84,7 +84,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Debug("MongoDB store connected successfully")
 
-	apiClient, err := internalclient.NewClient(internalclient.WithAsynqWorker(s.env.RedisURI))
+	apiClient, err := internalclient.NewClient(nil, internalclient.WithAsynqWorker(s.env.RedisURI))
 	if err != nil {
 		return err
 	}

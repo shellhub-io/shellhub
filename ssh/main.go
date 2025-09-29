@@ -54,7 +54,7 @@ func main() {
 	})
 	if err != nil {
 		log.WithError(err).
-			Fatal("failed to create the internalclient")
+			Fatal("failed to create the tunnel")
 	}
 
 	router := tun.GetRouter()

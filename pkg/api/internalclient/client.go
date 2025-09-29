@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -39,10 +40,14 @@ var (
 	ErrUnknown          = errors.New("unknown error")
 )
 
-func NewClient(opts ...clientOption) (Client, error) {
-	cfg, err := DefaultConfig()
-	if err != nil {
-		return nil, err
+func NewClient(cfg *Config, opts ...clientOption) (Client, error) {
+	if cfg == nil {
+		var err error
+
+		cfg, err = NewConfigFromEnv()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	httpClient := resty.New()
@@ -65,8 +70,8 @@ func NewClient(opts ...clientOption) (Client, error) {
 	// NOTE: Avoid setting a global base URL on the Resty client. Calls to enterprise endpoints
 	// will use c.config.EnterpriseBaseURL explicitly when needed.
 	httpClient.SetRetryCount(c.config.RetryCount)
-	httpClient.SetRetryWaitTime(c.config.RetryWaitTime)
-	httpClient.SetRetryMaxWaitTime(c.config.RetryMaxWaitTime)
+	httpClient.SetRetryWaitTime(time.Duration(c.config.RetryWaitTime) * time.Second)
+	httpClient.SetRetryMaxWaitTime(time.Duration(c.config.RetryMaxWaitTime) * time.Second)
 	httpClient.AddRetryCondition(func(r *resty.Response, err error) bool {
 		if _, ok := err.(net.Error); ok { // if the error is a network error, retry.
 			return true
@@ -104,7 +109,6 @@ func NewClient(opts ...clientOption) (Client, error) {
 	return c, nil
 }
 
-// mustWorker panics if [client.worker] is nil.
 func (c *client) mustWorker() {
 	if c.worker == nil {
 		panic("Client does not have any worker")
