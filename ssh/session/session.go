@@ -386,9 +386,9 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 	return a, nil
 }
 
-func (s *Session) checkFirewall() (bool, error) {
+func (s *Session) checkFirewall(ctx context.Context) (bool, error) {
 	// TODO: Refactor firewall evaluation to remove the map requirement.
-	if err := s.api.FirewallEvaluate(context.TODO(), map[string]string{
+	if err := s.api.FirewallEvaluate(ctx, map[string]string{
 		"domain":     s.Namespace.Name,
 		"name":       s.Device.Name,
 		"username":   s.Target.Username,
@@ -417,8 +417,8 @@ func (s *Session) checkFirewall() (bool, error) {
 	return true, nil
 }
 
-func (s *Session) checkBilling() (bool, error) {
-	device, err := s.api.GetDevice(context.TODO(), s.Device.UID)
+func (s *Session) checkBilling(ctx context.Context) (bool, error) {
+	device, err := s.api.GetDevice(ctx, s.Device.UID)
 	if err != nil {
 		defer log.WithError(err).WithFields(log.Fields{
 			"uid":   s.UID,
@@ -446,8 +446,8 @@ func (s *Session) checkBilling() (bool, error) {
 }
 
 // registerAPISession registers a new session on the API.
-func (s *Session) register() error {
-	err := s.api.SessionCreate(context.TODO(), requests.SessionCreate{
+func (s *Session) register(ctx context.Context) error {
+	err := s.api.SessionCreate(ctx, requests.SessionCreate{
 		UID:       s.UID,
 		DeviceUID: s.Device.UID,
 		Username:  s.Target.Username,
@@ -469,10 +469,10 @@ func (s *Session) register() error {
 // Authenticate marks the session as authenticated on the API.
 //
 // It returns an error if authentication fails.
-func (s *Session) authenticate() error {
+func (s *Session) authenticate(ctx context.Context) error {
 	value := true
 
-	return s.api.UpdateSession(context.TODO(), s.UID, &models.SessionUpdate{
+	return s.api.UpdateSession(ctx, s.UID, &models.SessionUpdate{
 		Authenticated: &value,
 	})
 }
@@ -580,12 +580,12 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	snap := getSnapshot(ctx)
 
 	if envs.IsEnterprise() {
-		if ok, err := s.checkFirewall(); err != nil || !ok {
+		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
 			return err
 		}
 
 		if envs.IsCloud() {
-			if ok, err := s.checkBilling(); err != nil || !ok {
+			if ok, err := s.checkBilling(ctx); err != nil || !ok {
 				return err
 			}
 		}
@@ -624,7 +624,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		if err := sess.register(); err != nil {
+		if err := sess.register(ctx); err != nil {
 			return err
 		}
 
@@ -636,7 +636,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		if err := sess.authenticate(); err != nil {
+		if err := sess.authenticate(ctx); err != nil {
 			return err
 		}
 	default:
