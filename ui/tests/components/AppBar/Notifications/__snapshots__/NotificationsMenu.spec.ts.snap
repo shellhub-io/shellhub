@@ -1,9 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`Notifications Menu > Renders the component 1`] = `
-"<div class="v-badge ml-3 mr-2" size="x-small" data-test="notifications-badge">
-  <div class="v-badge__wrapper"><i class="mdi-bell mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-0" aria-owns="v-menu-v-0" aria-label="Open notifications menu"></i>
-    <transition-stub name="scale-rotate-transition" appear="false" persisted="false" css="true"><span class="v-badge__badge v-theme--light bg-success" style="bottom: calc(100% - 7px); left: calc(100% - 12px);" aria-atomic="true" aria-label="Badge" aria-live="polite" role="status">2</span></transition-stub>
-  </div>
-</div>"
-`;

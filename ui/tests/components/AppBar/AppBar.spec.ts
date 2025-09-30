@@ -4,7 +4,7 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { VLayout } from "vuetify/components";
 import { createPinia, setActivePinia } from "pinia";
-import { containersApi, devicesApi, namespacesApi, systemApi } from "@/api/http";
+import { devicesApi, namespacesApi, systemApi } from "@/api/http";
 import AppBar from "@/components/AppBar/AppBar.vue";
 import { router } from "@/router";
 import { envVariables } from "@/envVariables";
@@ -29,7 +29,6 @@ vi.mock("@productdevbook/chatwoot/vue", () => ({
 const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 const mockSystemApi = new MockAdapter(systemApi.getAxios());
 const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
-const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
 const billingData = {
   id: "sub_test",
@@ -90,8 +89,9 @@ describe("AppBar Component", () => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockSystemApi.onGet("http://localhost:3000/info").reply(200, systemInfo);
-    mockDevicesApi.onGet("http://localhost/api/devices?page=1&per_page=10&status=pending").reply(200);
-    mockContainersApi.onGet("http://localhost/api/containers?page=1&per_page=10&status=pending").reply(200);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending").reply(200, []);
+    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, []);
+    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, {});
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=30").reply(200, []);
     authStore.$patch(authStoreData);
     billingStore.billing = billingData;

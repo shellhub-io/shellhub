@@ -9,7 +9,7 @@ import * as directives from "vuetify/directives";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { devicesApi, containersApi, namespacesApi } from "@/api/http";
+import { devicesApi, namespacesApi } from "@/api/http";
 import { envVariables } from "@/envVariables";
 import useSpinnerStore from "@/store/modules/spinner";
 
@@ -46,7 +46,6 @@ describe("App Layout Component", async () => {
   const spinnerStore = useSpinnerStore();
   const vuetify = createVuetify({ components, directives });
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
-  const mockContainersApi = new MockAdapter(containersApi.getAxios());
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
@@ -68,11 +67,14 @@ describe("App Layout Component", async () => {
   spinnerStore.status = true;
 
   mockDevicesApi
-    .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending")
-    .reply(200);
-  mockContainersApi
-    .onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending")
-    .reply(200);
+    .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending")
+    .reply(200, []);
+  mockDevicesApi
+    .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted")
+    .reply(200, []);
+  mockDevicesApi
+    .onGet("http://localhost:3000/api/stats")
+    .reply(200, []);
   mockNamespacesApi
     .onGet("http://localhost:3000/api/namespaces?page=1&per_page=30")
     .reply(200, []);
