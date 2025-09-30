@@ -50,10 +50,14 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
-				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(nil, 0, goerrors.New("error")).Once()
 			},
 			expected: Expected{
@@ -79,10 +83,14 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
+					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
 					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
 					Return(nil).
 					Once()
-				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+				storeMock.On("SessionList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return(sessions, len(sessions), nil).Once()
 			},
 			expected: Expected{
