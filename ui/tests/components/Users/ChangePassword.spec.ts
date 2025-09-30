@@ -64,8 +64,7 @@ describe("Change Password", () => {
     wrapper.vm.showDialog = true;
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
-    expect(dialog.find('[data-test="password-change-card"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="password-change-dialog"]').exists()).toBe(true);
     expect(dialog.find('[data-test="password-input"]').exists()).toBe(true);
     expect(dialog.find('[data-test="new-password-input"]').exists()).toBe(true);
     expect(dialog.find('[data-test="confirm-new-password-input"]').exists()).toBe(true);

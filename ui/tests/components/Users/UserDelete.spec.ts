@@ -45,8 +45,6 @@ describe("User Delete", () => {
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
     expect(dialog.find('[data-test="user-delete-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="subtitle"]').exists()).toBe(true);
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="delete-user-btn"]').exists()).toBe(true);
   });

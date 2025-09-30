@@ -1,74 +1,58 @@
 <template>
-  <BaseDialog v-model="showDialog" @close="close">
-    <v-card data-test="password-change-card" class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test="title">
-        Change Password
-      </v-card-title>
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @cancel="close"
+    @confirm="updatePassword"
+    title="Change Password"
+    icon="mdi-lock"
+    confirm-text="Save Password"
+    cancel-text="Cancel"
+    :confirm-disabled="hasUpdatePasswordError"
+    confirm-data-test="change-password-btn"
+    cancel-data-test="close-btn"
+    data-test="password-change-dialog"
+  >
+    <div class="px-6 pt-4">
+      <v-text-field
+        v-model="currentPassword"
+        label="Current password"
+        :append-icon="showCurrentPassword ? 'mdi-eye' : 'mdi-eye-off'"
+        :type="showCurrentPassword ? 'text' : 'password'"
+        class="mb-4"
+        :error-messages="currentPasswordError"
+        required
+        data-test="password-input"
+        @click:append="showCurrentPassword = !showCurrentPassword"
+      />
 
-      <v-card-text class="mt-4 mb-3 pb-1">
-        <div class="mt-4 pl-4 pr-4">
-          <v-text-field
-            v-model="currentPassword"
-            label="Current password"
-            :append-icon="showCurrentPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showCurrentPassword ? 'text' : 'password'"
-            class="mb-4"
-            variant="underlined"
-            :error-messages="currentPasswordError"
-            required
-            data-test="password-input"
-            @click:append="showCurrentPassword = !showCurrentPassword"
-          />
+      <v-text-field
+        v-model="newPassword"
+        @update:model-value="handleNewPasswordChange"
+        label="New password"
+        :append-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
+        :type="showNewPassword ? 'text' : 'password'"
+        class="mb-4"
+        :error-messages="newPasswordError"
+        required
+        data-test="new-password-input"
+        @click:append="showNewPassword = !showNewPassword"
+      />
 
-          <v-text-field
-            v-model="newPassword"
-            @update:model-value="handleNewPasswordChange"
-            label="New password"
-            :append-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showNewPassword ? 'text' : 'password'"
-            class="mb-4"
-            :error-messages="newPasswordError"
-            required
-            variant="underlined"
-            data-test="new-password-input"
-            @click:append="showNewPassword = !showNewPassword"
-          />
-
-          <v-text-field
-            v-model="newPasswordConfirm"
-            @update:model-value="handleNewPasswordChange"
-            label="Confirm new password"
-            :append-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :type="showConfirmPassword ? 'text' : 'password'"
-            class="mb-4"
-            variant="underlined"
-            :error-messages="newPasswordConfirmError"
-            required
-            data-test="confirm-new-password-input"
-            @click:append="showConfirmPassword = !showConfirmPassword"
-          />
-        </div>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" data-test="close-btn" @click="close">
-          Cancel
-        </v-btn>
-
-        <v-btn
-          color="primary"
-          variant="text"
-          data-test="change-password-btn"
-          :disabled="hasUpdatePasswordError"
-          @click="updatePassword()"
-        >
-          Save Password
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+      <v-text-field
+        v-model="newPasswordConfirm"
+        @update:model-value="handleNewPasswordChange"
+        label="Confirm new password"
+        :append-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
+        :type="showConfirmPassword ? 'text' : 'password'"
+        class="mb-4"
+        :error-messages="newPasswordConfirmError"
+        required
+        data-test="confirm-new-password-input"
+        @click:append="showConfirmPassword = !showConfirmPassword"
+      />
+    </div>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -78,7 +62,7 @@ import { computed, ref } from "vue";
 import axios from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useUsersStore from "@/store/modules/users";
 
@@ -108,9 +92,7 @@ const {
     .required("This field is required")
     .min(5, "Your password should be 5-32 characters long")
     .max(32, "Your password should be 5-32 characters long"),
-  {
-    initialValue: "",
-  },
+  { initialValue: "" },
 );
 
 const {
@@ -123,14 +105,8 @@ const {
   yup
     .string()
     .required("This field is required")
-    .test(
-      "passwords-match",
-      "Passwords do not match",
-      (value) => newPassword.value === value,
-    ),
-  {
-    initialValue: "",
-  },
+    .test("passwords-match", "Passwords do not match", (value) => newPassword.value === value),
+  { initialValue: "" },
 );
 
 const showCurrentPassword = ref(false);
@@ -156,14 +132,12 @@ const close = () => {
   resetNewPasswordConfirm();
 };
 
-const hasUpdatePasswordError = computed(() => (
-  !!currentPasswordError.value
+const hasUpdatePasswordError = computed(() => !!currentPasswordError.value
   || !!newPasswordError.value
   || !!newPasswordConfirmError.value
   || !currentPassword.value
   || !newPassword.value
-  || !newPasswordConfirm.value
-));
+  || !newPasswordConfirm.value);
 
 const updatePassword = async () => {
   if (hasUpdatePasswordError.value) return;
