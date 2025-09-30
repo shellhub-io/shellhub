@@ -1,84 +1,35 @@
 <template>
-  <BaseDialog
+  <FormDialog
     v-model="showDialog"
-    :retain-focus="false"
     persistent
+    :title="`Step ${el} of 4`"
+    :confirm-text="el === 1 ? 'Next'
+      : el === 2 ? 'Next'
+        : el === 3 ? 'Accept'
+          : el === 4 ? 'Finish'
+            : ''"
+    :cancel-text="el === 1 || el === 2 || el === 3 ? 'Close' : ''"
+    :confirm-disabled="el === 2 && !enable"
+    confirm-color="primary"
+    icon="mdi-door-open"
+    @cancel="close"
+    @confirm="handleConfirm"
   >
-    <v-card class="pa-6 bg-grey-darken-4 bg-v-theme-surface">
-      <v-card-title class="text-center mb-4">
-        <span data-test="step-counter">Step {{ el }} of 4</span>
-        <v-divider class="mt-2" />
-      </v-card-title>
-      <v-window v-model="el">
-        <v-window-item :value="1">
-          <v-card class="bg-v-theme-surface" height="200px" :elevation="0" data-test="welcome-first-screen">
-            <WelcomeFirstScreen />
-          </v-card>
-          <v-card-actions class="mt-4">
-            <v-btn @click="close" data-test="close-btn">Close</v-btn>
-            <v-spacer />
-            <v-btn
-              data-test="first-click-btn"
-              color="primary"
-              @click="activePollingDevices()"
-            >Next</v-btn>
-          </v-card-actions>
-        </v-window-item>
-
-        <v-window-item :value="2">
-          <v-card class="bg-v-theme-surface" height="250px" :elevation="0" data-test="welcome-second-screen">
-            <WelcomeSecondScreen :command="command()" />
-          </v-card>
-          <v-card-actions>
-            <v-btn data-test="close2-btn" @click="close">Close</v-btn>
-            <v-spacer />
-            <v-btn @click="goToPreviousStep" data-test="back-btn">Back</v-btn>
-            <v-btn v-if="!enable" data-test="waiting-message" disabled>Waiting for Device</v-btn>
-            <v-btn
-              v-else
-              color="primary"
-              data-test="next-btn"
-              @click="goToNextStep"
-            >
-              Next
-            </v-btn>
-          </v-card-actions>
-        </v-window-item>
-
-        <v-window-item :value="3">
-          <v-card class="bg-v-theme-surface" height="250px" :elevation="0" data-test="welcome-third-screen">
-            <WelcomeThirdScreen v-if="enable" v-model:first-pending-device="firstPendingDevice" />
-          </v-card>
-          <v-card-actions>
-            <v-btn variant="text" data-test="close3-btn" @click="close">
-              Close
-            </v-btn>
-            <v-spacer />
-            <v-btn variant="text" @click="goToPreviousStep" data-test="back2-btn">Back</v-btn>
-            <v-btn
-              color="primary"
-              data-test="accept-btn"
-              @click="acceptDevice()"
-            >
-              Accept
-            </v-btn>
-          </v-card-actions>
-        </v-window-item>
-
-        <v-window-item :value="4">
-          <v-card class="bg-v-theme-surface" height="250px" :elevation="0" data-test="welcome-fourth-screen">
-            <WelcomeFourthScreen />
-          </v-card>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn color="primary" data-test="finish-btn" @click="close">
-              Finish
-            </v-btn>
-          </v-card-actions>
-        </v-window-item>
-      </v-window>
-    </v-card>
-  </BaseDialog>
+    <v-window v-model="el">
+      <v-window-item :value="1" data-test="welcome-first-screen">
+        <WelcomeFirstScreen />
+      </v-window-item>
+      <v-window-item :value="2" data-test="welcome-second-screen">
+        <WelcomeSecondScreen :command="command()" />
+      </v-window-item>
+      <v-window-item :value="3" data-test="welcome-third-screen">
+        <WelcomeThirdScreen v-if="enable" v-model:first-pending-device="firstPendingDevice" />
+      </v-window-item>
+      <v-window-item :value="4" data-test="welcome-fourth-screen">
+        <WelcomeFourthScreen />
+      </v-window-item>
+    </v-window>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -87,9 +38,9 @@ import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
 import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
+import FormDialog from "./../FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import { IDevice } from "@/interfaces/IDevice";
 import useDevicesStore from "@/store/modules/devices";
@@ -157,6 +108,18 @@ const close = () => {
   showDialog.value = false;
   if (polling.value) {
     clearTimeout(polling.value);
+  }
+};
+
+const handleConfirm = async () => {
+  if (el.value === 1) {
+    activePollingDevices();
+  } else if (el.value === 2) {
+    el.value = 3;
+  } else if (el.value === 3) {
+    await acceptDevice();
+  } else if (el.value === 4) {
+    close();
   }
 };
 
