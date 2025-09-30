@@ -2,19 +2,20 @@
   <div>
     <slot :copyText="handleCopy" />
 
-    <BaseDialog v-model="showDialog">
-      <v-card class="bg-grey-darken-4 bg-v-theme-surface">
-        <v-card-title class="text-h5 pa-5 bg-primary">Copying is not allowed</v-card-title>
-        <v-card-text>
-          Clipboard access is only permitted on secure (HTTPS) or localhost origins.
-          Please ensure your instance is secure to enable clipboard features.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="primary" @click="showDialog = false">OK</v-btn>
-        </v-card-actions>
-      </v-card>
-    </BaseDialog>
+    <MessageDialog
+      v-model="showDialog"
+      @close="showDialog = false"
+      @cancel="showDialog = false"
+      title="Copying is not allowed"
+      description="Clipboard access is only permitted on secure (HTTPS) or localhost origins.
+       Please ensure your instance is secure to enable clipboard features."
+      icon="mdi-alert"
+      icon-color="warning"
+      confirm-text="OK"
+      confirm-color="primary"
+      confirm-data-test="copy-warning-ok-btn"
+      data-test="copy-warning-dialog"
+    />
   </div>
 </template>
 
@@ -22,7 +23,7 @@
 import { ref, onMounted } from "vue";
 import { useClipboard, useMagicKeys } from "@vueuse/core";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 
 const props = defineProps<{
   macro?: string;
@@ -35,24 +36,22 @@ const showDialog = ref(false);
 const { copy } = useClipboard();
 
 const handleCopy = async (text: string) => {
-  // If bypass is true, do nothing.
-  if (props.bypass) {
-    return;
-  }
+  if (props.bypass) return;
 
   const isSecure = globalThis?.isSecureContext;
   if (!isSecure) {
     showDialog.value = true;
     return;
   }
+
   try {
     await copy(text);
     if (props.copiedItem) {
       snackbar.showInfo(`${props.copiedItem} copied to clipboard!`);
-      return;
+    } else {
+      snackbar.showInfo("Successfully copied to clipboard!");
     }
-    snackbar.showInfo("Successfully copied to clipboard!");
-  } catch (error) {
+  } catch {
     showDialog.value = true;
   }
 };
@@ -60,10 +59,10 @@ const handleCopy = async (text: string) => {
 onMounted(() => {
   if (!props.macro) return;
   let executed = false;
+
   useMagicKeys({
     passive: false,
     onEventFired(e) {
-      // Also check for the bypass prop here for the keyboard shortcut
       if (props.bypass) return;
 
       if (!executed && e.ctrlKey && e.key === "c" && e.type === "keydown") {
@@ -78,7 +77,5 @@ onMounted(() => {
   });
 });
 
-defineExpose({
-  copyFn: handleCopy,
-});
+defineExpose({ copyFn: handleCopy });
 </script>

@@ -1,43 +1,25 @@
 <template>
-  <BaseDialog v-model="showDialog">
-    <v-card data-test="user-delete-dialog" class="bg-v-theme-surface">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test=title>
-        Confirm Account Deletion
-      </v-card-title>
-
-      <v-card-text class="mt-4 mb-3 pb-1" data-test="subtitle">
-        <div>
-          <p class="mb-2">
-            Are you sure you want to delete your account? This action cannot be undone.
-          </p>
-        </div>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
-          Cancel
-        </v-btn>
-
-        <v-btn
-          color="red darken-1"
-          variant="text"
-          data-test="delete-user-btn"
-          @click="deleteAccount()"
-        >
-          Delete Account
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <MessageDialog
+    v-model="showDialog"
+    title="Confirm Account Deletion"
+    description="Are you sure you want to delete your account? This action cannot be undone."
+    icon="mdi-account-remove"
+    icon-color="error"
+    cancel-text="Cancel"
+    cancel-data-test="close-btn"
+    confirm-text="Delete Account"
+    confirm-color="error"
+    confirm-data-test="delete-user-btn"
+    @confirm="deleteAccount"
+    data-test="user-delete-dialog"
+  />
 </template>
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 
 const authStore = useAuthStore();
