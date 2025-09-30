@@ -40,13 +40,16 @@ describe("WebEndpointDelete.vue", () => {
   });
 
   it("opens and renders the dialog with correct elements", async () => {
-    const dialog = new DOMWrapper(document.body);
-
     await wrapper.find('[data-test="web-endpoint-delete-dialog-btn"]').trigger("click");
     await flushPromises();
 
-    expect(dialog.find('[data-test="title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="text"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+
+    expect(dialog.find('[data-test="web-endpoint-delete-dialog"]').exists()).toBe(true);
+
+    expect(dialog.text()).toContain("Are you sure?");
+    expect(dialog.text()).toContain("You are about to remove this Web Endpoint.");
+
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="delete-btn"]').exists()).toBe(true);
   });
