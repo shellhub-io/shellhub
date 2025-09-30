@@ -1,4 +1,4 @@
-FROM node:22.20.0-alpine3.22 as base
+FROM node:22.20.0-alpine3.22 AS base
 
 ARG NPM_CONFIG_REGISTRY
 
@@ -10,7 +10,7 @@ COPY ui/package*.json ./
 
 RUN npm install
 
-FROM base as development
+FROM base AS development
 
 ARG NPM_CONFIG_REGISTRY
 ENV NPM_CONFIG_REGISTRY ${NPM_CONFIG_REGISTRY}
@@ -23,7 +23,7 @@ COPY ui/scripts /scripts
 
 CMD ["/scripts/entrypoint-dev.sh"]
 
-FROM base as builder
+FROM base AS builder
 
 ARG NPM_CONFIG_REGISTRY
 
@@ -35,7 +35,7 @@ COPY --from=base /app/node_modules ./node_modules
 
 RUN npm run build
 
-FROM nginx:1.29.1-alpine as production
+FROM nginx:1.29.1-alpine AS production
 
 RUN apk add curl
 
