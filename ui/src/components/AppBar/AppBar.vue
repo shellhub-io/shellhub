@@ -3,7 +3,7 @@
   <v-app-bar
     flat
     floating
-    class="bg-background border-b-thin"
+    class="bg-v-theme-surface border-b-thin"
     data-test="app-bar"
   >
     <v-app-bar-nav-icon
@@ -40,7 +40,7 @@
       <span>Need assistance? Click here for support.</span>
     </v-tooltip>
 
-    <NotificationsMenu data-test="notification-component" />
+    <DevicesDropdown data-test="devices-dropdown" />
 
     <v-menu>
       <template v-slot:activator="{ props }">
@@ -102,7 +102,7 @@ import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
-import NotificationsMenu from "./Notifications/NotificationsMenu.vue";
+import DevicesDropdown from "./DevicesDropdown.vue";
 import PaywallChat from "../User/PaywallChat.vue";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
