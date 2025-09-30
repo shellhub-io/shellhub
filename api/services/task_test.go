@@ -201,7 +201,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -231,7 +231,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -276,7 +276,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -334,7 +334,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -392,7 +392,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 0, PerPage: 1000}).
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -418,7 +418,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 1000}).
+					On("Paginate", &query.Paginator{Page: 2, PerPage: 1000}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -444,7 +444,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 2, PerPage: 1000}).
+					On("Paginate", &query.Paginator{Page: 3, PerPage: 1000}).
 					Return(nil).
 					Once()
 				storeMock.

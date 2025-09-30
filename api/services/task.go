@@ -109,7 +109,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			opts := []store.QueryOption{
 				s.store.Options().Match(filter),
 				s.store.Options().Sort(sorter),
-				s.store.Options().Paginate(&query.Paginator{Page: page, PerPage: pageSize}),
+				s.store.Options().Paginate(&query.Paginator{Page: page + 1, PerPage: pageSize}),
 			}
 
 			devices, _, err := s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, opts...)
