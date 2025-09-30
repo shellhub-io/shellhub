@@ -106,7 +106,7 @@ func AuthUserFromShadow(username, password string, shadow io.Reader) bool {
 	return VerifyPasswordHash(entry.Password, password)
 }
 
-// Lookup try to find a [PasswordEntry] for a username from a passwd file.
+// LookupUserFromPasswd try to find a [PasswordEntry] for a username from a passwd file.
 func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 	if os.Geteuid() != 0 {
 		return singleUser(), nil
@@ -133,18 +133,30 @@ func LookupUserFromPasswd(username string, passwd io.Reader) (*User, error) {
 
 // VerifyPasswordHash checks if the password match with the hash.
 func VerifyPasswordHash(hash, password string) bool {
-	if hash == "" && password == "" {
-		return true
-	}
-
-	if password == "" && (hash == "!" || hash == "x" || hash == "*" || hash == "!*") {
-		logrus.Error("Password is locked")
+	// NOTE: If the password field is empty, the user can log in without a password. However, some applications that
+	// read the /etc/shadow file might block access if the password field is empty.
+	// https://man7.org/linux/man-pages/man5/shadow.5.html
+	if hash == "" {
+		// NOTE: By default, we dont allow login with empty password.
+		logrus.Error("Password entry is empty")
 
 		return false
 	}
 
-	if hash != "" && password == "" {
-		logrus.Error("Password entry is empty")
+	// NOTE: If the password field contains a string that is not a valid result of crypt(3), for instance ! or *, the
+	// user cannot use a UNIX password to log in. However, the user may log in the system by other means.
+	// https://man7.org/linux/man-pages/man5/shadow.5.html
+	if hash == "!" || hash == "*" {
+		logrus.Error("User cannot login with password")
+
+		return false
+	}
+
+	// NOTE: If the password field begins with an exclamation mark !, the password is locked. The remaining characters
+	// on the line represent the password field before the password was locked.
+	// https://man7.org/linux/man-pages/man5/shadow.5.html
+	if strings.HasPrefix(hash, "!") {
+		logrus.Error("Password is locked")
 
 		return false
 	}

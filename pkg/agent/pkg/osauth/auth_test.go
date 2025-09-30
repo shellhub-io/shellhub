@@ -37,6 +37,80 @@ func TestVerifyPasswordHashMD5Pass(t *testing.T) {
 	assert.True(t, result)
 }
 
+func TestVerifyPasswordHash(t *testing.T) {
+	tests := []struct {
+		name     string
+		hash     string
+		password string
+		want     bool
+	}{
+		{
+			name:     "sha512 correct",
+			hash:     "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN.", //nolint:gosec
+			password: "123",
+			want:     true,
+		},
+		{
+			name:     "sha512 incorrect",
+			hash:     "$6$CMWxpgkq.ZosUW8N$gN/MkheCdS9SsPrFS6oOd/k.TMvY2KHztJE5pDMRdN35zr00dyxQr3pYGM4rtPPduUIrEFCwuB7oVgzDbiMfN.", //nolint:gosec
+			password: "test",
+			want:     false,
+		},
+		{
+			name:     "md5 correct",
+			hash:     "$1$YW4a91HG$31CtH9bzW/oyJ1VOD.H/d/", //nolint:gosec
+			password: "test",
+			want:     true,
+		},
+		{
+			name:     "empty hash",
+			hash:     "",
+			password: "any",
+			want:     false,
+		},
+		{
+			name:     "special marker bang",
+			hash:     "!",
+			password: "pass",
+			want:     false,
+		},
+		{
+			name:     "special marker star",
+			hash:     "*",
+			password: "pass",
+			want:     false,
+		},
+		{
+			name:     "locked prefix",
+			hash:     "!$6$blah",
+			password: "pass",
+			want:     false,
+		},
+		{
+			name:     "unsupported algo",
+			hash:     "$z$invalid$hash",
+			password: "pass",
+			want:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := VerifyPasswordHash(tt.hash, tt.password)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestVerifyPasswordHash_YescryptInvocation(t *testing.T) {
+	// NOTE: This test only ensures the yescrypt branch executes without panicking.
+	// Avoid asserting true/false because yescrypt parameters may vary across
+	// environments and producing a deterministic yescrypt hash in tests is
+	// environment-dependent.
+	yesHash := "$y$e0801$w1Jl9GJH1j4h0w==$Wj2b7m2vWw2m3l1iQe8qvQ=="
+	_ = VerifyPasswordHash(yesHash, "password")
+}
+
 // nolint:gosec
 const passwd = `root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
