@@ -1,123 +1,112 @@
 <template>
-  <BaseDialog v-model="showDialog" @close="close">
-    <v-card data-test="tunnel-create-dialog" class="bg-v-theme-surface">
-      <v-card-title class="bg-primary" data-test="create-dialog-title">
-        Create Device Web Endpoint
-      </v-card-title>
-      <v-container>
-        <v-alert
-          v-if="alertText"
-          type="error"
-          :text="alertText"
-          data-test="tunnel-create-alert"
-        />
-        <v-card-text>
-          <p class="mb-2" data-test="tunnel-create-text">
-            Configure the host and port to create a tunnel to your device.
-          </p>
-          <v-row>
-            <v-col sm="8" class="pb-0">
-              <v-text-field
-                v-model="host"
-                class="mt-1"
-                label="Host"
-                :error-messages="hostError"
-                variant="underlined"
-                data-test="host-text"
-              />
-            </v-col>
-            <p class="mt-7 pa-0"> : </p>
-            <v-col class="pb-0">
-              <v-text-field
-                v-model.number="port"
-                label="Port"
-                :error-messages="portError"
-                variant="outlined"
-                data-test="port-text"
-              />
-            </v-col>
-          </v-row>
+  <FormDialog
+    v-model="showDialog"
+    @close="close"
+    @cancel="close"
+    @confirm="addWebEndpoint"
+    title="Create Device Web Endpoint"
+    icon="mdi-lan"
+    confirm-text="Create Web Endpoint"
+    cancel-text="Close"
+    :confirm-disabled="hasErrors"
+    :alert-message="alertText"
+    confirm-data-test="create-tunnel-btn"
+    cancel-data-test="close-btn"
+    data-test="tunnel-create-dialog"
+  >
+    <v-container>
+      <v-card-text class="pa-0">
+        <p class="mb-2" data-test="tunnel-create-text">
+          Configure the host and port to create a tunnel to your device.
+        </p>
 
-          <v-row class="mt-1" v-if="props.useDevicesList">
-            <v-col>
-              <v-autocomplete
-                v-model="selectedDevice"
-                :items="deviceOptions"
-                :loading="loadingDevices"
-                item-title="info.pretty_name"
-                item-value="uid"
-                label="Select Device"
-                variant="outlined"
-                return-object
-                hide-details
-                @update:search="fetchDevices"
-                data-test="web-endpoint-autocomplete"
-              >
-                <template #item="{ item, props }">
-                  <v-list-item
-                    v-bind="props"
-                  >
-                    <div>
-                      <DeviceIcon
-                        :icon="item.raw.info.id"
-                        class="mr-2"
-                      />
-                      <span class="text-body-1">{{ item.raw.name }}</span>
-                    </div>
+        <v-row>
+          <v-col sm="8" class="pb-0">
+            <v-text-field
+              v-model="host"
+              class="mt-1"
+              label="Host"
+              :error-messages="hostError"
+              data-test="host-text"
+            />
+          </v-col>
 
-                  </v-list-item>
-                </template>
+          <p class="mt-7 pa-0"> : </p>
 
-                <template #selection="{ item }">
-                  <div class="d-flex align-center">
-                    <DeviceIcon
-                      :icon="item.raw.info.id"
-                      class="mr-2"
-                    />
+          <v-col class="pb-0">
+            <v-text-field
+              v-model.number="port"
+              label="Port"
+              :error-messages="portError"
+              variant="outlined"
+              data-test="port-text"
+            />
+          </v-col>
+        </v-row>
+
+        <v-row class="mt-1" v-if="props.useDevicesList">
+          <v-col>
+            <v-autocomplete
+              v-model="selectedDevice"
+              :items="deviceOptions"
+              :loading="loadingDevices"
+              item-title="info.pretty_name"
+              item-value="uid"
+              label="Select Device"
+              variant="outlined"
+              return-object
+              hide-details
+              @update:search="fetchDevices"
+              data-test="web-endpoint-autocomplete"
+            >
+              <template #item="{ item, props }">
+                <v-list-item v-bind="props">
+                  <div>
+                    <DeviceIcon :icon="item.raw.info.id" class="mr-2" />
                     <span class="text-body-1">{{ item.raw.name }}</span>
                   </div>
-                </template>
-              </v-autocomplete>
+                </v-list-item>
+              </template>
 
-            </v-col>
-          </v-row>
+              <template #selection="{ item }">
+                <div class="d-flex align-center">
+                  <DeviceIcon :icon="item.raw.info.id" class="mr-2" />
+                  <span class="text-body-1">{{ item.raw.name }}</span>
+                </div>
+              </template>
+            </v-autocomplete>
+          </v-col>
+        </v-row>
 
-          <v-row>
-            <v-col>
-              <v-select
-                v-model="selectedTimeout"
-                :items="predefinedTimeouts"
-                item-title="text"
-                item-value="value"
-                label="Timeout (in seconds)"
-                variant="outlined"
-                data-test="timeout-combobox"
-              />
-            </v-col>
-          </v-row>
-          <v-row v-if="selectedTimeout === 'custom'">
-            <v-col>
-              <v-text-field
-                v-model.number="customTimeout"
-                :error-messages="customTimeoutError"
-                label="Custom Timeout (in seconds)"
-                type="number"
-                variant="outlined"
-                data-test="custom-timeout"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-container>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn data-test="close-btn" @click="close"> Close </v-btn>
-        <v-btn :disabled="hasErrors" color="primary" data-test="create-tunnel-btn" @click="addWebEndpoint()">
-          Create Web Endpoint
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+        <v-row>
+          <v-col>
+            <v-select
+              v-model="selectedTimeout"
+              :items="predefinedTimeouts"
+              item-title="text"
+              item-value="value"
+              label="Timeout (in seconds)"
+              variant="outlined"
+              data-test="timeout-combobox"
+            />
+          </v-col>
+        </v-row>
+
+        <v-row v-if="selectedTimeout === 'custom'">
+          <v-col>
+            <v-text-field
+              v-model.number="customTimeout"
+              :error-messages="customTimeoutError"
+              label="Custom Timeout (in seconds)"
+              type="number"
+              variant="outlined"
+              data-test="custom-timeout"
+            />
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-container>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -128,7 +117,7 @@ import axios, { AxiosError } from "axios";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useDevicesStore from "@/store/modules/devices";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 import { IDevice } from "@/interfaces/IDevice";
@@ -143,7 +132,7 @@ const devicesStore = useDevicesStore();
 const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
-const alertText = ref();
+const alertText = ref("");
 
 const selectedDevice = ref<IDevice | null>(null);
 const deviceOptions = ref<IDevice[]>([]);
@@ -163,29 +152,19 @@ const predefinedTimeouts = ref([
 
 const { value: host, errorMessage: hostError, resetField: resetHost } = useField<string>(
   "host",
-  yup
-    .string()
-    .required(),
+  yup.string().required(),
   { initialValue: "127.0.0.1" },
 );
 
 const { value: port, errorMessage: portError, resetField: resetPort } = useField<number>(
   "port",
-  yup
-    .number()
-    .integer()
-    .max(65535)
-    .required(),
+  yup.number().integer().max(65535).required(),
   { initialValue: undefined },
 );
 
 const { value: customTimeout, errorMessage: customTimeoutError, resetField: resetCustomTimeout } = useField<number>(
   "customTimeout",
-  yup
-    .number()
-    .integer()
-    .min(1)
-    .max(9223372036)
+  yup.number().integer().min(1).max(9223372036)
     .required(),
   { initialValue: 60 },
 );
@@ -201,16 +180,28 @@ const hasErrors = computed(() => {
     || !host.value
     || !timeout.value;
 
-  if (props.useDevicesList) {
-    return formInvalid || !selectedDevice.value;
-  }
-
+  if (props.useDevicesList) return formInvalid || !selectedDevice.value;
   return formInvalid;
 });
 
-const resetFields = () => { resetPort(); resetHost(); selectedTimeout.value = -1; resetCustomTimeout(); };
-const close = () => { resetFields(); showDialog.value = false; };
-const update = () => { emit("update"); close(); };
+const resetFields = () => {
+  resetPort();
+  resetHost();
+  selectedTimeout.value = -1;
+  resetCustomTimeout();
+  alertText.value = "";
+  selectedDevice.value = null;
+};
+
+const close = () => {
+  resetFields();
+  showDialog.value = false;
+};
+
+const update = () => {
+  emit("update");
+  close();
+};
 
 const fetchDevices = async (searchQuery?: string) => {
   loadingDevices.value = true;
@@ -220,23 +211,22 @@ const fetchDevices = async (searchQuery?: string) => {
       { type: "property", params: { name: "name", operator: "contains", value: searchQuery } },
     ]))
     : undefined;
+
   try {
     await devicesStore.fetchDeviceList({ filter });
     deviceOptions.value = devicesStore.devices;
   } catch (error) {
     snackbar.showError("Failed to load devices.");
     handleError(error);
+  } finally {
+    loadingDevices.value = false;
   }
-
-  loadingDevices.value = false;
 };
 
 const addWebEndpoint = async () => {
   if (hasErrors.value) return;
 
-  const deviceUid = props.useDevicesList
-    ? selectedDevice.value?.uid
-    : props.uid;
+  const deviceUid = props.useDevicesList ? selectedDevice.value?.uid : props.uid;
 
   try {
     await webEndpointsStore.createWebEndpoint({
@@ -252,13 +242,15 @@ const addWebEndpoint = async () => {
     if (axios.isAxiosError(error)) {
       if ((error as AxiosError).response?.status === 403) {
         alertText.value = "This device has reached the maximum allowed number of Web Endpoints";
-      } else {
-        snackbar.showError("Failed to create Web Endpoint.");
-        handleError(error);
+        return;
       }
     }
+    snackbar.showError("Failed to create Web Endpoint.");
+    handleError(error);
   }
 };
 
-onMounted(async () => { if (props.useDevicesList) await fetchDevices(); });
+onMounted(async () => {
+  if (props.useDevicesList) await fetchDevices();
+});
 </script>

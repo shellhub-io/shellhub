@@ -18,30 +18,32 @@ describe("WebEndpointCreate.vue", () => {
   const webEndpointsStore = useWebEndpointsStore();
   const vuetify = createVuetify();
 
-  beforeEach(() => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, []);
+  beforeEach(async () => {
+    mockDevicesApi
+      .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted")
+      .reply(200, []);
+
     wrapper = mount(WebEndpointCreate, {
       attachTo: document.body,
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-      props: {
-        uid: "fake-uid",
-        useDevicesList: false,
-        modelValue: true,
-      },
+      global: { plugins: [createVuetify(), SnackbarPlugin] },
+      props: { uid: "fake-uid", useDevicesList: false, modelValue: true },
     });
+
+    await flushPromises();
   });
 
   it("is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("renders the dialog and basic fields", () => {
+  it("renders the dialog and basic fields", async () => {
     const dialog = new DOMWrapper(document.body);
+    await flushPromises();
 
-    expect(dialog.find('[data-test="tunnel-create-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="create-dialog-title"]').text()).toContain("Create Device Web Endpoint");
+    // Title now comes from FormDialog — assert by text
+    expect(dialog.text()).toContain("Create Device Web Endpoint");
+
+    // Keep the field checks
     expect(dialog.find('[data-test="host-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="port-text"]').exists()).toBe(true);
     expect(dialog.find('[data-test="timeout-combobox"]').exists()).toBe(true);
@@ -97,9 +99,10 @@ describe("WebEndpointCreate.vue", () => {
     await wrapper.findComponent('[data-test="create-tunnel-btn"]').trigger("click");
     await flushPromises();
 
-    const alert = wrapper.findComponent('[data-test="tunnel-create-alert"]');
+    const dialog = new DOMWrapper(document.body);
+    const alert = dialog.find('[data-test="form-dialog-alert"]'); // <-- updated selector
     expect(alert.exists()).toBe(true);
-    expect(alert.text()).toBe("This device has reached the maximum allowed number of Web Endpoints");
+    expect(alert.text()).toContain("This device has reached the maximum allowed number of Web Endpoints");
   });
 
   it("successfully creates a Web Endpoint using device selector", async () => {
