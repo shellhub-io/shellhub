@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
 import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it, beforeEach, vi } from "vitest";
 import PaywallChat from "@/components/User/PaywallChat.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
@@ -32,20 +32,35 @@ describe("PaywallChat", () => {
     await flushPromises();
 
     const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="card-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="icon-chat"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="upgrade-heading"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="upgrade-description"]').exists()).toBe(true);
+
+    expect(dialog.text()).toContain("Upgrade to have access to chat support!");
+    expect(dialog.text()).toContain(
+      "Get real-time assistance from our team with priority responses.",
+    );
+
     expect(dialog.find('[data-test="upgrade-description2"]').exists()).toBe(true);
     expect(dialog.find('[data-test="link-anchor"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="card-actions"]').exists()).toBe(true);
+
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
     expect(dialog.find('[data-test="upgrade-btn"]').exists()).toBe(true);
+
+    expect(dialog.html()).toContain("mdi-chat-question");
   });
 
-  it("ensures the upgrade button has correct href", () => {
+  it("clicking Upgrade triggers redirect to pricing", async () => {
     wrapper.vm.showDialog = true;
+    await flushPromises();
+
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
     const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="upgrade-btn"]').attributes("href")).toBe("https://www.shellhub.io/pricing");
+
+    await dialog.find('[data-test="upgrade-btn"]').trigger("click");
+    expect(openSpy).toHaveBeenCalledWith(
+      "https://www.shellhub.io/pricing",
+      "_blank",
+      "noopener,noreferrer",
+    );
+
+    openSpy.mockRestore();
   });
 });

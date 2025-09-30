@@ -63,14 +63,8 @@ describe("PaywallDialog", async () => {
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
-    expect(dialog.find('[data-test="card-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="icon-crown"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="upgrade-heading"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="upgrade-description"]').exists()).toBe(true);
-
-    expect(dialog.find('[data-test="card-actions"]').exists()).toBe(true);
-
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="paywall-features-dialog"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="items-row"]').exists()).toBe(true);
   });
 
   it("Renders the component table with a successful request to get card infos", async () => {
