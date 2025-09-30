@@ -60,7 +60,7 @@ import useSnackbar from "@/helpers/snackbar";
 import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
-import useNotificationsStore from "@/store/modules/notifications";
+import useStatsStore from "@/store/modules/stats";
 
 interface DeviceActionButtonProps {
   name?: string;
@@ -79,7 +79,7 @@ const props = withDefaults(defineProps<DeviceActionButtonProps>(), {
 const emit = defineEmits(["update"]);
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
-const { fetchNotifications } = useNotificationsStore();
+const statsStore = useStatsStore();
 const snackbar = useSnackbar();
 const isBillingActive = computed(() => billingStore.isActive);
 const icon = {
@@ -98,7 +98,7 @@ const close = () => {
 
 const refreshDevices = async () => {
   try {
-    await fetchNotifications();
+    await statsStore.fetchStats();
     emit("update");
     close();
   } catch (error: unknown) {

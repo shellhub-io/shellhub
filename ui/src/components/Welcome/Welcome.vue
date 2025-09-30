@@ -68,7 +68,6 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { IDevice } from "@/interfaces/IDevice";
 import useDevicesStore from "@/store/modules/devices";
-import useNotificationsStore from "@/store/modules/notifications";
 import useStatsStore from "@/store/modules/stats";
 
 type PollingTimer = ReturnType<typeof setInterval>;
@@ -80,7 +79,6 @@ interface StepConfig {
 
 const showDialog = defineModel<boolean>({ required: true });
 const devicesStore = useDevicesStore();
-const { fetchNotifications } = useNotificationsStore();
 const statsStore = useStatsStore();
 const snackbar = useSnackbar();
 const currentStep = ref<number>(1);
@@ -118,7 +116,6 @@ const acceptDevice = async () => {
 
   try {
     await devicesStore.acceptDevice(firstPendingDevice.value.uid);
-    await fetchNotifications();
     await statsStore.fetchStats();
     currentStep.value = 4;
   } catch (error: unknown) {

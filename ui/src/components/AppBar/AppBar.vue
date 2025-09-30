@@ -46,7 +46,7 @@
       <span>Need assistance? Click here for support.</span>
     </v-tooltip>
 
-    <NotificationsMenu data-test="notification-component" />
+    <DevicesDropdown />
 
     <v-menu>
       <template v-slot:activator="{ props }">
@@ -108,7 +108,7 @@ import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
-import NotificationsMenu from "./Notifications/NotificationsMenu.vue";
+import DevicesDropdown from "./DevicesDropdown.vue";
 import PaywallChat from "../User/PaywallChat.vue";
 import Namespace from "@/components/Namespace/Namespace.vue";
 import { envVariables } from "@/envVariables";
