@@ -12,20 +12,19 @@ exports[`App Layout Component > Renders the component 1`] = `
           <div class="v-toolbar__content" style="height: 64px;">
             <!---->
             <!---->
-            <div data-v-e7291ef4="" class="v-spacer"></div><a data-v-e7291ef4="" to="/" class="text-decoration-none">
-              <div data-v-e7291ef4="" class="v-responsive v-img v-img--booting" style="min-width: 140px;" aria-label="Shell logo, a cloud with the writing 'ShellHub' on the right side" role="img" data-test="logo">
-                <div class="v-responsive__sizer"></div>
-                <transition-stub name="fade-transition" appear="true" persisted="false" css="true"><img class="v-img__img v-img__img--contain" src="/src/assets/logo-inverted.png" alt="Shell logo, a cloud with the writing 'ShellHub' on the right side" style="display: none;"></transition-stub>
-                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+            <div data-v-e7291ef4="" class="w-100 d-flex align-center justify-center"><a data-v-e7291ef4="" to="/" class="text-decoration-none">
+                <div data-v-e7291ef4="" class="v-responsive v-img v-img--booting" style="width: 160px;" data-test="logo">
+                  <div class="v-responsive__sizer"></div>
+                  <transition-stub name="fade-transition" appear="true" persisted="false" css="true"><img class="v-img__img v-img__img--contain" src="/src/assets/logo-inverted.png" style="display: none;"></transition-stub>
+                  <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                    <!---->
+                  </transition-stub>
                   <!---->
-                </transition-stub>
-                <!---->
-                <!---->
-                <!---->
-                <!---->
-              </div>
-            </a>
-            <div data-v-e7291ef4="" class="v-spacer"></div>
+                  <!---->
+                  <!---->
+                  <!---->
+                </div>
+              </a></div>
             <!---->
           </div>
           <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
@@ -275,7 +274,7 @@ exports[`App Layout Component > Renders the component 1`] = `
     <!---->
     <!---->
     <!---->
-    <header class="v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-background border-b-thin" style="top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
+    <header class="v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-v-theme-surface border-b-thin" style="top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
       <!---->
       <div class="v-toolbar__content" style="height: 64px;">
         <!---->

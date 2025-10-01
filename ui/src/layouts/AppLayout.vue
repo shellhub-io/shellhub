@@ -10,19 +10,18 @@
 
   >
     <v-toolbar class="bg-v-theme-surface" data-test="drawer-toolbar">
-      <v-spacer />
-      <router-link
-        to="/"
-        class="text-decoration-none"
-      >
-        <v-img
-          :src="Logo"
-          min-width="140"
-          alt="Shell logo, a cloud with the writing 'ShellHub' on the right side"
-          data-test="logo"
-        />
-      </router-link>
-      <v-spacer />
+      <div class="w-100 d-flex align-center justify-center">
+        <router-link
+          to="/"
+          class="text-decoration-none"
+        >
+          <v-img
+            :src="Logo"
+            width="160"
+            data-test="logo"
+          />
+        </router-link>
+      </div>
     </v-toolbar>
 
     <div class="pa-2" v-if="hasNamespaces">
