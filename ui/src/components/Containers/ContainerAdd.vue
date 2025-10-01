@@ -10,72 +10,62 @@
     Add Docker Host
   </v-btn>
 
-  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition" data-test="container-add-dialog">
-    <v-card class="bg-v-theme-surface text-justify">
-      <v-card-title class="text-h5 pa-4 bg-primary" data-test="dialog-title">
-        Registering a Docker host
-      </v-card-title>
+  <WindowDialog
+    v-model="showDialog"
+    transition="dialog-bottom-transition"
+    data-test="container-add-dialog"
+    title="Registering a Docker host"
+    description="Install the ShellHub Connector to add Docker containers"
+    icon="mdi-docker"
+    icon-color="primary"
+    show-footer
+    @close="showDialog = false"
+  >
+    <v-card-text class="mt-4 mb-0 pb-1 text-justify" data-test="dialog-text">
+      <p class="text-body-2 mb-2">
+        In order to add Docker containers to ShellHub, you need to install the
+        ShellHub Connector on the Docker host.
+      </p>
 
-      <v-card-text class="mt-4 mb-0 pb-1" data-test="dialog-text">
-        <p class="text-body-2 mb-2">
-          In order to add Docker containers to ShellHub, you need to install the
-          ShellHub Connector on the Docker host.
-        </p>
+      <p class="text-body-2 mb-2">
+        The easiest way to install the ShellHub Connector is with our automatic
+        one-line installation script, which connects to the Docker API and exposes
+        the running containers within ShellHub.
+      </p>
 
-        <p class="text-body-2 mb-2">
-          The easiest way to install the ShellHub Connector is with our automatic
-          one-line installation script, which connects to the Docker API and exposes
-          the running containers within ShellHub.
-        </p>
+      <p class="text-body-2 font-weight-bold mt-4">
+        Run the following command on your Docker host:
+      </p>
+      <CopyWarning :copied-item="'Command'">
+        <template #default="{ copyText }">
+          <v-text-field
+            :model-value="command()"
+            @click:append="copyText(command())"
+            class="code mt-1"
+            variant="outlined"
+            append-icon="mdi-content-copy"
+            readonly
+            active
+            data-test="command-field"
+            density="compact"
+          />
+        </template>
+      </CopyWarning>
+    </v-card-text>
 
-        <p class="text-body-2 font-weight-bold mt-4">
-          Run the following command on your Docker host:
-        </p>
-        <CopyWarning :copied-item="'Command'">
-          <template #default="{ copyText }">
-            <v-text-field
-              :model-value="command()"
-              @click:append="copyText(command())"
-              class="code mt-1"
-              variant="outlined"
-              append-icon="mdi-content-copy"
-              readonly
-              active
-              data-test="command-field"
-              density="compact"
-            />
-          </template>
-        </CopyWarning>
-
-        <v-divider />
-
-        <p class="text-caption mt-2 mb-0">
-          Check the
-          <a
-            :href="'https://docs.shellhub.io/overview/supported-platforms/docker'"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-test="documentation-link"
-          >documentation</a
-          >
-          for more information about integration with Docker host.
-        </p>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
-          Close
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+    <template #footer>
+      <v-spacer />
+      <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
+        Close
+      </v-btn>
+    </template>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 
 const authStore = useAuthStore();
