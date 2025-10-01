@@ -137,8 +137,15 @@ func VerifyPasswordHash(hash, password string) bool {
 	// read the /etc/shadow file might block access if the password field is empty.
 	// https://man7.org/linux/man-pages/man5/shadow.5.html
 	if hash == "" {
+		if PermitEmptyPasswords() {
+			// NOTE: We allow login with empty password if the environment variable SHELLHUB_PERMIT_EMPTY_PASSWORDS is set to true.
+			logrus.Warn("User logged in with empty password")
+
+			return true
+		}
+
 		// NOTE: By default, we dont allow login with empty password.
-		logrus.Error("Password entry is empty")
+		logrus.Error("User cannot login with empty password")
 
 		return false
 	}
