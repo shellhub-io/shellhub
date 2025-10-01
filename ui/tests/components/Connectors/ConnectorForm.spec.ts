@@ -18,6 +18,7 @@ describe("Connector Form", () => {
         plugins: [vuetify, SnackbarPlugin],
       },
       props: {
+        modelValue: true,
         isEditing: false,
         storeMethod: vi.fn(),
       },
@@ -29,18 +30,8 @@ describe("Connector Form", () => {
   });
 
   it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("renders the component", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
     const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="connector-form-card"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="address-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="port-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="save-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("validates the address field", async () => {

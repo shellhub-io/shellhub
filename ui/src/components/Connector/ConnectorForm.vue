@@ -1,106 +1,74 @@
 <template>
-  <BaseDialog
+  <FormDialog
     v-model="showDialog"
+    :title="isEditing ? 'Edit Docker Connector' : 'New Docker Connector'"
+    icon="mdi-docker"
+    icon-color="primary"
+    :confirm-text="isEditing ? 'Save' : 'Add'"
+    confirm-color="primary"
+    cancel-text="Close"
+    :confirm-disabled="hasError"
+    confirm-data-test="save-btn"
+    cancel-data-test="close-btn"
+    footer-helper-text="Secure your connection using TLS Certificates, find out more information in the"
+    footer-helper-link-text="Docker Documentation"
+    footer-helper-link="https://docs.docker.com/engine/security/protect-access/#use-tls-https-to-protect-the-docker-daemon-socket"
+    @confirm="saveConnector"
+    @cancel="handleClose"
+    @close="handleClose"
   >
-    <v-card data-test="connector-form-card" class="bg-v-theme-surface">
-      <div>
-        <v-card-title class="text-headline bg-primary">
-          {{ isEditing ? 'Edit Docker Connector' : 'New Docker Connector' }}
-        </v-card-title>
-
-        <v-card-text>
-
-          <v-container>
-            <v-row>
-              <v-col sm="8" class="pb-0">
-                <v-text-field
-                  class="mt-1"
-                  v-model="address"
-                  label="Address"
-                  :error-messages="addressError"
-                  required
-                  variant="underlined"
-                  data-test="address-text"
-                />
-              </v-col>
-              <p class="mt-7 pa-0"> : </p>
-              <v-col class="pb-0">
-                <v-text-field
-                  v-model.number="port"
-                  label="Port"
-                  :error-messages="portError"
-                  required
-                  :rules="validatePort"
-                  variant="outlined"
-                  data-test="port-text"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col class="pa-0">
-                <v-checkbox
-                  v-model="isSecure"
-                  label="Secure"
-                  hint="Secure your connection using TLS Certificates,
-                 find out more information about setting a Docker Environment
-                with TLS in the"
-                  persistent-hint
-                  :color="isSecure ? 'primary' : ''">
-                  <template v-slot:message="{ message }">
-                    <div
-                    >
-                      {{ message }}
-                      <span
-                      ><a
-                        href="https://docs.docker.com/engine/security/protect-access/#use-tls-https-to-protect-the-docker-daemon-socket"
-                        target="_blank"
-                        rel="noopener"
-                      >Docker Documentation</a>
-                      </span>
-                    </div>
-                  </template>
-                </v-checkbox>
-              </v-col>
-            </v-row>
-            <v-row v-if="isSecure">
-              <v-col>
-                <v-file-input
-                  label="TLS Ca Certificate"
-                  variant="underlined"
-                  v-model="caCertificate"
-                  @change="handleCertificateChange('ca')"
-                  :error-messages="caCertificateError"
-                />
-                <v-file-input
-                  label="TLS Certificate"
-                  variant="underlined"
-                  v-model="certificate"
-                  @change="handleCertificateChange('cert')"
-                  :error-messages="certificateError"
-                />
-                <v-file-input
-                  label="TLS Key"
-                  variant="underlined"
-                  v-model="key"
-                  @change="handleCertificateChange('key')"
-                  :error-messages="keyError"
-                  hint="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-                  persistent-hint
-                />
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
+    <v-card-text>
+      <div class="d-flex align-center ga-2">
+        <v-text-field
+          width="60%"
+          v-model="address"
+          label="Address"
+          :error-messages="addressError"
+          required
+          data-test="address-text"
+        />
+        <span class="mt-n4">:</span>
+        <v-text-field
+          v-model.number="port"
+          label="Port"
+          :error-messages="portError"
+          required
+          :rules="validatePort"
+          data-test="port-text"
+        />
       </div>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn data-test="close-btn" @click="handleClose"> Close </v-btn>
-        <v-btn :disabled="hasError" color="primary" data-test="save-btn" @click="saveConnector">
-          {{ isEditing ? 'Save' : 'Add' }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+      <v-checkbox
+        v-model="isSecure"
+        label="Secure"
+        density="compact"
+        hint="Secure your connection using TLS Certificates"
+        persistent-hint
+        :color="isSecure ? 'primary' : ''"
+      />
+      <div v-if="isSecure" class="mt-2 py-2">
+        <v-file-input
+          label="TLS Ca Certificate"
+          v-model="caCertificate"
+          @change="handleCertificateChange('ca')"
+          :error-messages="caCertificateError"
+        />
+        <v-file-input
+          label="TLS Certificate"
+          v-model="certificate"
+          @change="handleCertificateChange('cert')"
+          :error-messages="certificateError"
+        />
+        <v-file-input
+          label="TLS Key"
+          v-model="key"
+          @change="handleCertificateChange('key')"
+          :error-messages="keyError"
+          hint="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          persistent-hint
+        />
+      </div>
+    </v-card-text>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -113,7 +81,7 @@ import { parseCertificate, parsePrivateKey } from "@/utils/sshKeys";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "../BaseDialog.vue";
+import FormDialog from "../FormDialog.vue";
 import useUsersStore from "@/store/modules/users";
 
 const props = defineProps<{
@@ -126,7 +94,7 @@ const props = defineProps<{
 }>();
 
 const usersStore = useUsersStore();
-const showDialog = defineModel<boolean>({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 
