@@ -3,7 +3,7 @@
   <v-app-bar
     flat
     floating
-    class="bg-background border-b-thin"
+    class="bg-v-theme-surface border-b-thin"
     data-test="app-bar"
   >
     <v-app-bar-nav-icon
