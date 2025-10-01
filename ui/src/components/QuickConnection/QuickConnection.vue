@@ -19,91 +19,89 @@
       </p>
     </div>
 
-    <BaseDialog v-model="showDialog" threshold="md" transition="dialog-bottom-transition">
-      <v-card class="bg-v-theme-surface content" max-height="700">
-        <div class="pa-5">
-          <v-row>
-            <v-col>
-              <v-text-field
-                label="Search your online devices!"
-                variant="outlined"
-                bg-color="bg-v-theme-surface"
-                color="primary"
-                single-line
-                hide-details
-                v-model.trim="filter"
-                prepend-inner-icon="mdi-magnify"
-                density="comfortable"
-                data-test="search-text"
-                autofocus
-                class="shrink mx-1 mt-2"
-              />
-
-            </v-col>
-          </v-row>
-        </div>
-
-        <v-card-text class="mt-4 mb-0 pb-1 flex">
-          <v-row>
-            <v-col
-              v-for="header in headers"
-              :key="header.label"
+    <WindowDialog
+      v-model="showDialog"
+      threshold="md"
+      transition="dialog-bottom-transition"
+      title="Quick Connect"
+      description="Search and connect to your online devices"
+      icon="mdi-console"
+      icon-color="primary"
+      show-footer
+      @close="showDialog = false"
+    >
+      <v-card-text class="pa-6">
+        <v-text-field
+          label="Search your online devices!"
+          variant="outlined"
+          bg-color="bg-v-theme-surface"
+          color="primary"
+          single-line
+          hide-details
+          v-model.trim="filter"
+          prepend-inner-icon="mdi-magnify"
+          density="comfortable"
+          data-test="search-text"
+          autofocus
+          class="shrink mx-1 mt-2"
+        />
+        <v-row class="mt-4 mb-0 px-5">
+          <v-col
+            class="px-0"
+            v-for="header in headers"
+            :key="header.label"
+          >
+            <p
+              class="text-body-2 font-weight-bold text-center"
+              :data-test="`${normalizeLabel(header.label)}-header`"
             >
-              <p
-                class="text-body-2 mb-2 font-(weight-bold) text-center"
-                :data-test="`${normalizeLabel(header.label)}-header`"
-              >
-                {{ header.label }}
-              </p>
-            </v-col>
-          </v-row>
+              {{ header.label }}
+            </p>
+          </v-col>
+        </v-row>
 
-          <QuickConnectionList ref="listRef" :filter />
-        </v-card-text>
+        <QuickConnectionList ref="listRef" :filter />
+      </v-card-text>
 
-        <v-card-actions>
-          <v-row class="ml-2">
-            <v-col>
-              <p class="text-body-2 mb-0 font-weight-bold text-grey-darken-1">
-                <v-icon color="#7284D0" data-test="connect-icon">mdi-arrow-u-left-bottom</v-icon> To connect
-              </p>
-            </v-col>
-            <v-col>
-              <p class="text-body-2 mb-0 font-weight-bold text-grey-darken-1">
-                <v-icon color="#7284D0" data-test="navigate-up-icon">mdi-arrow-up</v-icon>
-                <v-icon color="#7284D0" data-test="navigate-down-icon">mdi-arrow-down</v-icon> To navigate
-              </p>
-            </v-col>
-            <v-col>
-              <p class="text-body-2 font-weight-bold text-grey-darken-1" data-test="copy-sshid-instructions">
-                Press "Ctrl + C" to copy SSHID
-              </p>
-            </v-col>
-          </v-row>
+      <template #footer>
+        <v-row class="ml-2 justify-space-between font-weight-bold text-grey text-body-2" v-if="!smAndDown">
+          <p>
+            <v-icon color="primary" data-test="connect-icon" icon="mdi-arrow-u-left-bottom" /> To connect
+          </p>
+          <p>
+            <v-icon color="primary" data-test="navigate-up-icon" icon="mdi-arrow-up" />
+            <v-icon color="primary" data-test="navigate-down-icon" icon="mdi-arrow-down" /> To navigate
+          </p>
+          <p data-test="copy-sshid-instructions">
+            <v-kbd class="code text-primary" elevation="0">Ctrl + C</v-kbd>
+            To copy SSHID
+          </p>
+        </v-row>
 
-          <v-btn variant="text" data-test="close-btn" @click="showDialog = false">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </BaseDialog>
+        <v-spacer />
+        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">Close</v-btn>
+      </template>
+    </WindowDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { useDisplay } from "vuetify";
 import { useMagicKeys } from "@vueuse/core";
 import QuickConnectionList from "./QuickConnectionList.vue";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 
 const showDialog = ref(false);
 const filter = ref("");
 const listRef = ref<InstanceType<typeof QuickConnectionList> | null>(null);
-
-const headers = [
+const { smAndDown } = useDisplay();
+const headers = computed(() => [
   { label: "Hostname" },
-  { label: "Operating System" },
+  { label: smAndDown.value ? "OS" : "Operating System" },
   { label: "SSHID" },
   { label: "Tags" },
-];
+]);
 
 const normalizeLabel = (label: string) => label.toLowerCase().replace(/\s+/g, "-");
 
@@ -124,7 +122,9 @@ useMagicKeys({
 <style scoped lang="scss">
 .code {
   font-family: monospace;
-  font-size: 85%;
-  font-weight: normal;
+  background-color: transparent;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 0;
 }
 </style>
