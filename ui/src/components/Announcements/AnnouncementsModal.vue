@@ -1,51 +1,45 @@
 <template>
-  <BaseDialog
+  <WindowDialog
     v-model="showDialog"
     @close="close"
     scrollable
     persistent
+    :title="announcement.title"
+    icon="mdi-bullhorn"
+    icon-color="primary"
+    show-footer
   >
-    <v-card class="bg-grey-darken-4 bg-v-theme-surface">
-      <v-card-title class="bg-primary" data-test="announcement-title">
-        {{ announcement.title }}
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text style="max-height: 70vh">
-        <div class="content-announcement" v-html="markdownContent" data-test="announcement-title" />
-
-        <div class="text-right">
-          <span
-            class="text-caption text-medium-emphasis"
-            data-test="announcement-date"
-          >
-            Posted in {{ date }}
-          </span>
-        </div>
-      </v-card-text>
-      <v-divider />
-
-      <v-card-actions class="pr-5">
-        <v-spacer />
-        <v-btn
-          @click="close"
-          color="primary"
-          variant="elevated"
-          tabindex="0"
-          data-test="announcement-close"
+    <v-card-text style="max-height: 70vh">
+      <div class="content-announcement" v-html="markdownContent" data-test="announcement-title" />
+      <div class="text-right">
+        <span
+          class="text-caption text-medium-emphasis"
+          data-test="announcement-date"
         >
-          Dismiss
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+          Posted in {{ date }}
+        </span>
+      </div>
+    </v-card-text>
+
+    <template #footer>
+      <v-spacer />
+      <v-btn
+        @click="close"
+        tabindex="0"
+        variant="text"
+        data-test="announcement-close"
+      >
+        Dismiss
+      </v-btn>
+    </template>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
 import MarkdownIt from "markdown-it";
 import moment from "moment";
-import BaseDialog from "../BaseDialog.vue";
+import WindowDialog from "../WindowDialog.vue";
 import { IAnnouncement } from "@/interfaces/IAnnouncement";
 
 const props = defineProps<{ announcement: IAnnouncement }>();
