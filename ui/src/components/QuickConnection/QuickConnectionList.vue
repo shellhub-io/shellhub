@@ -1,90 +1,77 @@
 <template>
   <template v-if="onlineDevices.length === 0">
     <v-card class="bg-v-theme-surface mx-auto py-3 border mt-5" data-test="no-online-devices">
-      <v-card-title class="text-center d-flex justify-center pa-1">
-        <div>
-          <v-icon size="x-large" data-test="no-online-devices-icon">
-            mdi-laptop-off
-          </v-icon>
-        </div>
+      <v-card-title class="text-center d-flex justify-center pa-1 mt-5">
+        <v-icon size="x-large" data-test="no-online-devices-icon" icon="mdi-laptop-off" />
       </v-card-title>
-      <v-row>
-        <v-col class="text-center d-flex justify-center pa-5">
-          <p data-test="no-online-devices-message">There are currently no devices online.</p>
-        </v-col>
-      </v-row>
+      <p class="text-center pa-5" data-test="no-online-devices-message">There are currently no devices online.</p>
     </v-card>
   </template>
-  <v-list ref="rootEl" nav bg-color="transparent" class="content-card" data-test="devices-list">
-    <v-col v-for="(item, i) in onlineDevices" :key="i" class="ma-0 mb-3 pa-0">
-      <v-card :key="i" data-test="device-card">
-        <v-list-item
-          @click="openDialog(item.uid, item.name)"
-          @keydown="openTerminalMacro(item)"
-          :key="i"
-          class="ma-0 pa-0 card"
-          data-test="device-list-item"
-        >
-          <v-row align="center" no-gutters>
-            <v-col class="text-center" md="3" data-test="device-name">
-              {{ item.name }}
-            </v-col>
-            <v-col class="text-center pr-6 text-truncate" md="3" data-test="device-info">
-              <DeviceIcon :icon="item.info.id" />
-              <span>{{ item.info.pretty_name }}</span>
-            </v-col>
-            <v-col class="text-truncate" md="3" data-test="device-ssh-id">
-              <v-chip class="bg-grey-darken-4">
-                <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props }">
-                    <CopyWarning
-                      ref="copyRef"
-                      :copied-item="'Device SSHID'"
-                      :bypass="shouldOpenTerminalHelper()"
-                      :macro="getSshid(item)"
+  <v-list v-else ref="rootEl" nav class="content-card pa-0" data-test="devices-list">
+    <v-list-item
+      v-for="(item, i) in onlineDevices"
+      :key="i"
+      @click="openDialog(item.uid, item.name)"
+      @keydown="openTerminalMacro(item)"
+      class="ma-0 pa-2 item border"
+      data-test="device-list-item"
+    >
+      <v-row align="center" no-gutters>
+        <v-col class="text-center" md="3" data-test="device-name">
+          {{ item.name }}
+        </v-col>
+        <v-col class="text-center text-truncate" md="3" data-test="device-info">
+          <DeviceIcon :icon="item.info.id" />
+          <span>{{ item.info.pretty_name }}</span>
+        </v-col>
+        <v-col class="text-truncate text-center" md="3" data-test="device-ssh-id">
+          <v-chip class="bg-grey-darken-4">
+            <v-tooltip location="bottom">
+              <template v-slot:activator="{ props }">
+                <CopyWarning
+                  ref="copyRef"
+                  :copied-item="'Device SSHID'"
+                  :bypass="shouldOpenTerminalHelper()"
+                  :macro="getSshid(item)"
+                >
+                  <template #default="{ copyText }">
+                    <span
+                      v-bind="props"
+                      tabindex="0"
+                      class="hover-text"
+                      @click.stop="handleSshidClick(item, copyText)"
+                      @keypress.enter.stop="handleSshidClick(item, copyText)"
+                      data-test="copy-id-button"
                     >
-                      <template #default="{ copyText }">
-                        <span
-                          v-bind="props"
-                          tabindex="0"
-                          class="hover-text"
-                          @click.stop="handleSshidClick(item, copyText)"
-                          @keypress.enter.stop="handleSshidClick(item, copyText)"
-                          data-test="copy-id-button"
-                        >
-                          {{ getSshid(item) }}
-                        </span>
-                      </template>
-                    </CopyWarning>
-                  </template>
-                  <span>Copy ID</span>
-                </v-tooltip>
-              </v-chip>
-            </v-col>
-            <v-col md="3" data-test="device-tags">
-              <div class="text-center">
-                <div v-if="item.tags[0]">
-                  <v-tooltip v-for="(tag, index) in item.tags" :key="index" location="bottom" :disabled="!showTag(tag.name)">
-                    <template #activator="{ props }">
-                      <v-chip size="small" v-bind="props" class="mr-1" data-test="tag-chip">
-                        {{ displayOnlyTenCharacters(tag.name) }}
-                      </v-chip>
-                    </template>
-
-                    <span data-test="tag-name">
-                      {{ tag.name }}
+                      {{ getSshid(item) }}
                     </span>
-                  </v-tooltip>
-                </div>
-                <div v-else>
-                  <v-chip size="small" color="grey-darken-2" data-test="no-tags-chip"> No tags </v-chip>
-                </div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-list-item>
-      </v-card>
-    </v-col>
+                  </template>
+                </CopyWarning>
+              </template>
+              <span>Copy ID</span>
+            </v-tooltip>
+          </v-chip>
+        </v-col>
+        <v-col md="3" data-test="device-tags">
+          <div v-if="item.tags[0]" class="text-center">
+            <v-tooltip v-for="(tag, index) in item.tags" :key="index" location="bottom" :disabled="!showTag(tag.name)">
+              <template #activator="{ props }">
+                <v-chip size="small" v-bind="props" data-test="tag-chip">
+                  {{ displayOnlyTenCharacters(tag.name) }}
+                </v-chip>
+              </template>
+
+              <span data-test="tag-name">
+                {{ tag.name }}
+              </span>
+            </v-tooltip>
+          </div>
+          <div v-else>
+            <v-chip size="small" color="grey-darken-2" data-test="no-tags-chip">No tags</v-chip>
+          </div>
+        </v-col>
+      </v-row>
+    </v-list-item>
   </v-list>
   <TerminalHelper
     v-if="showTerminalHelper"
@@ -208,16 +195,19 @@ onMounted(async () => { await getDevices(); });
 defineExpose({ rootEl });
 </script>
 
-<style scoped>
-.card:hover,
-.card:focus {
-  border-left: 5px solid #7284d0;
-  border-right: 5px solid #7284d0;
+<style scoped lang="scss">
+.item {
   transition: ease-in-out 200ms;
-}
 
-.card:not(:focus, :hover) {
-  opacity: 0.70;
+  &:hover, &:focus {
+    border-left: 5px solid !important;
+    border-right: 5px solid !important;
+    border-color: #7284d0 !important;
+  }
+
+  &:not(:focus, :hover) {
+    opacity: 0.70;
+  }
 }
 
 .content-card {
