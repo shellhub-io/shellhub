@@ -51,6 +51,9 @@ func (s *Sessioner) Shell(session gliderssh.Session) error {
 	sspty, winCh, isPty := session.Pty()
 
 	scmd := generateShellCmd(*s.deviceName, session, sspty.Term)
+	if scmd == nil {
+		return errors.New("failed to generate shell command")
+	}
 
 	pts, err := startPty(scmd, session, winCh)
 	if err != nil {
@@ -111,6 +114,9 @@ func (s *Sessioner) Heredoc(session gliderssh.Session) error {
 	_, _, isPty := session.Pty()
 
 	cmd := generateShellCmd(*s.deviceName, session, "")
+	if cmd == nil {
+		return errors.New("failed to generate heredoc command")
+	}
 
 	stdout, _ := cmd.StdoutPipe()
 	stdin, _ := cmd.StdinPipe()
