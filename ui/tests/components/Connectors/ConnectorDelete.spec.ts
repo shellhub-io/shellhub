@@ -41,21 +41,11 @@ describe("Connector Delete", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders components", async () => {
-    expect(wrapper.find('[data-test="connector-remove-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="remove-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="remove-title"]').exists()).toBe(true);
-    await wrapper.findComponent('[data-test="connector-remove-btn"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
+  it("Renders the component", async () => {
+    wrapper.vm.showDialog = true;
     await flushPromises();
-    expect(dialog.find('[data-test="text-title"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="remove-btn"]').exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Successfully removes a connector", async () => {
