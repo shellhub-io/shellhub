@@ -1,4 +1,4 @@
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { describe, it, beforeEach, vi, expect } from "vitest";
 import Terminal from "@/components/Terminal/Terminal.vue";
@@ -48,13 +48,16 @@ describe("Terminal.vue", () => {
         plugins: [vuetify],
       },
       props: {
+        modelValue: true,
+        deviceName: "test-device",
         token: "test-token",
       },
     });
   });
 
   it("renders the terminal container", () => {
-    expect(wrapper.find("[data-test='terminal-container']").exists()).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("initializes WebSocket with correct URL parameters", () => {
@@ -90,7 +93,8 @@ describe("Terminal.vue", () => {
 
   it("opens xterm in the terminal container", () => {
     const mockXterm = wrapper.vm.xterm;
-    const terminalContainer = wrapper.find("[data-test='terminal-container']").element;
+    const dialog = new DOMWrapper(document.body);
+    const terminalContainer = dialog.find("[data-test='terminal-container']").element;
     expect(mockXterm.open).toHaveBeenCalledWith(terminalContainer);
   });
 
@@ -144,5 +148,15 @@ describe("Terminal.vue", () => {
     mockWs.onclose?.();
 
     expect(mockXterm.write).toHaveBeenCalledWith("\r\nConnection ended\r\n");
+  });
+
+  it("Closes the terminal dialog on double ESC press", async () => {
+    const escEvent = new KeyboardEvent("keyup", { key: "Escape", bubbles: true });
+
+    document.dispatchEvent(escEvent);
+    expect(wrapper.vm.showDialog).toBe(true);
+
+    document.dispatchEvent(escEvent);
+    expect(wrapper.vm.showDialog).toBe(false);
   });
 });

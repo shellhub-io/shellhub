@@ -19,6 +19,7 @@ describe("Terminal Connect Button", async () => {
       props: {
         online: true,
         deviceUid: "a582b47a42d",
+        deviceName: "test-device",
         sshid: "namespace.70-85-c2-08-60-2a@staging.shellhub.io",
       },
     });

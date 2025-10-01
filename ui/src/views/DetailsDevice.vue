@@ -7,7 +7,8 @@
       <div class="d-flex align-center ml-2">
         <TerminalConnectButton
           v-if="device.status === 'accepted'"
-          :deviceUid="device.uid"
+          :device-uid="device.uid"
+          :device-name="device.name"
           :online="device.online"
           :sshid="sshidAddress(device)"
           data-test="connect-btn"

@@ -47,6 +47,7 @@ describe("Terminal Dialog", async () => {
       props: {
         modelValue: true,
         deviceUid: "a582b47a42d",
+        deviceName: "test-device",
       },
     });
 
@@ -75,26 +76,6 @@ describe("Terminal Dialog", async () => {
 
     expect(dialog.find("[data-test='terminal-container']").exists()).toBe(true);
     expect(dialog.find("[data-test='terminal-login-form']").exists()).toBe(false);
-  });
-
-  it("Shows X button when terminal is open", async () => {
-    wrapper.vm.showLoginForm = false;
-
-    await flushPromises();
-
-    const closeBtn = dialog.find('[data-test="close-terminal-btn"]');
-    expect(closeBtn.exists()).toBe(true);
-  });
-
-  it("Closes the terminal dialog on double ESC press", async () => {
-    wrapper.vm.showLoginForm = false;
-    const escEvent = new KeyboardEvent("keyup", { key: "Escape", bubbles: true });
-
-    document.dispatchEvent(escEvent);
-    expect(wrapper.vm.showDialog).toBe(true);
-
-    document.dispatchEvent(escEvent);
-    expect(wrapper.vm.showDialog).toBe(false);
   });
 
   it("sets token and closes login form on successful connect", async () => {
