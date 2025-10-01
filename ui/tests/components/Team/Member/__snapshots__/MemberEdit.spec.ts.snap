@@ -56,55 +56,57 @@ exports[`Member Edit > Renders the component 1`] = `
                 <!---->
               </transition-stub>
             </header><!-- Content -->
-            <div class="v-card-text pa-6">
-              <div data-v-444f7389="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected" data-test="role-select">
-                <!---->
-                <div class="v-input__control">
-                  <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-v-1">
-                    <div class="v-field__overlay"></div>
-                    <div class="v-field__loader">
-                      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-                        <!---->
-                        <div class="v-progress-linear__background"></div>
-                        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                          <div class="v-progress-linear__indeterminate">
-                            <div class="v-progress-linear__indeterminate long"></div>
-                            <div class="v-progress-linear__indeterminate short"></div>
-                          </div>
-                        </transition-stub>
-                        <!---->
-                      </div>
-                    </div>
-                    <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
-                        <!---->Role
-                      </label><label class="v-label v-field-label" for="input-v-3">
-                        <!---->Role
-                      </label>
-                      <!---->
-                      <div class="v-field__input" data-no-activator="">
-                        <!---->
-                        <!---->
-                        <div class="v-select__selection"><span class="v-select__selection-text">owner<!----></span></div><input size="1" role="combobox" type="text" id="input-v-3" inputmode="none" aria-expanded="false" aria-controls="menu-v-1" aria-label="Open" title="Open" required="" value="owner">
+            <form class="v-form" novalidate="">
+              <div class="v-card-text pa-6">
+                <div data-v-444f7389="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected" data-test="role-select">
+                  <!---->
+                  <div class="v-input__control">
+                    <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-v-1">
+                      <div class="v-field__overlay"></div>
+                      <div class="v-field__loader">
+                        <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                          <!---->
+                          <div class="v-progress-linear__background"></div>
+                          <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                          <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                            <div class="v-progress-linear__indeterminate">
+                              <div class="v-progress-linear__indeterminate long"></div>
+                              <div class="v-progress-linear__indeterminate short"></div>
+                            </div>
+                          </transition-stub>
+                          <!---->
+                        </div>
                       </div>
                       <!---->
-                    </div>
-                    <!---->
-                    <div class="v-field__append-inner">
-                      <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
+                      <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
+                          <!---->Role
+                        </label><label class="v-label v-field-label" for="input-v-3">
+                          <!---->Role
+                        </label>
+                        <!---->
+                        <div class="v-field__input" data-no-activator="">
+                          <!---->
+                          <!---->
+                          <div class="v-select__selection"><span class="v-select__selection-text">owner<!----></span></div><input size="1" role="combobox" type="text" id="input-v-3" inputmode="none" aria-expanded="false" aria-controls="menu-v-1" aria-label="Open" title="Open" required="" value="owner">
+                        </div>
+                        <!---->
+                      </div>
                       <!---->
-                    </div>
-                    <div class="v-field__outline">
-                      <!---->
-                      <!---->
+                      <div class="v-field__append-inner">
+                        <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
+                        <!---->
+                      </div>
+                      <div class="v-field__outline">
+                        <!---->
+                        <!---->
+                      </div>
                     </div>
                   </div>
+                  <!---->
+                  <!---->
                 </div>
-                <!---->
-                <!---->
               </div>
-            </div><!-- Footer -->
+            </form><!-- Footer -->
             <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
