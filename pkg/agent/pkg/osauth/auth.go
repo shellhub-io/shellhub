@@ -36,6 +36,7 @@ func (b *backend) AuthUser(username, password string) bool {
 	if err != nil {
 		return false
 	}
+	defer file.Close()
 
 	return AuthUserFromShadow(username, password, file)
 }
@@ -45,6 +46,7 @@ func (b *backend) LookupUser(username string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
 	return LookupUserFromPasswd(username, file)
 }
