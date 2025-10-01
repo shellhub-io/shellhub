@@ -72,125 +72,127 @@ exports[`Member Invite > Renders the component 1`] = `
                 <!---->
               </transition-stub>
             </header><!-- Content -->
-            <div class="v-card-text pa-6 text-justify">
-              <div class="v-window v-theme--light">
-                <div class="v-window__container">
-                  <transition-stub name="" appear="false" persisted="false" css="true">
-                    <div class="v-window-item v-window-item--active" style="">
-                      <p class="mb-4"> If this email isn't associated with an existing account, we'll send an email to sign-up. </p>
-                      <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mb-6" data-test="email-text">
-                        <!---->
-                        <div class="v-input__control">
-                          <div class="v-field v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">
-                            <div class="v-field__overlay"></div>
-                            <div class="v-field__loader">
-                              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+            <form class="v-form" novalidate="">
+              <div class="v-card-text pa-6 text-justify">
+                <div class="v-window v-theme--light">
+                  <div class="v-window__container">
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item v-window-item--active" style="">
+                        <p class="mb-4"> If this email isn't associated with an existing account, we'll send an email to sign-up. </p>
+                        <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mb-6" data-test="email-text">
+                          <!---->
+                          <div class="v-input__control">
+                            <div class="v-field v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">
+                              <div class="v-field__overlay"></div>
+                              <div class="v-field__loader">
+                                <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                                  <!---->
+                                  <div class="v-progress-linear__background"></div>
+                                  <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                                  <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                    <div class="v-progress-linear__indeterminate">
+                                      <div class="v-progress-linear__indeterminate long"></div>
+                                      <div class="v-progress-linear__indeterminate short"></div>
+                                    </div>
+                                  </transition-stub>
+                                  <!---->
+                                </div>
+                              </div>
+                              <!---->
+                              <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="true">
+                                  <!---->Email
+                                </label><label class="v-label v-field-label" for="input-v-8">
+                                  <!---->Email
+                                </label>
+                                <!----><input size="1" type="text" id="input-v-8" required="" class="v-field__input" value="">
                                 <!---->
-                                <div class="v-progress-linear__background"></div>
-                                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                                  <div class="v-progress-linear__indeterminate">
-                                    <div class="v-progress-linear__indeterminate long"></div>
-                                    <div class="v-progress-linear__indeterminate short"></div>
-                                  </div>
-                                </transition-stub>
+                              </div>
+                              <!---->
+                              <!---->
+                              <div class="v-field__outline">
+                                <!---->
                                 <!---->
                               </div>
                             </div>
-                            <!---->
-                            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="true">
-                                <!---->Email
-                              </label><label class="v-label v-field-label" for="input-v-8">
-                                <!---->Email
+                          </div>
+                          <!---->
+                          <!---->
+                        </div>
+                        <div data-v-444f7389="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected mb-4" data-test="role-select">
+                          <!---->
+                          <div class="v-input__control">
+                            <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-v-10">
+                              <div class="v-field__overlay"></div>
+                              <div class="v-field__loader">
+                                <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                                  <!---->
+                                  <div class="v-progress-linear__background"></div>
+                                  <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                                  <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                                    <div class="v-progress-linear__indeterminate">
+                                      <div class="v-progress-linear__indeterminate long"></div>
+                                      <div class="v-progress-linear__indeterminate short"></div>
+                                    </div>
+                                  </transition-stub>
+                                  <!---->
+                                </div>
+                              </div>
+                              <!---->
+                              <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-12" aria-hidden="false">
+                                  <!---->Role
+                                </label><label class="v-label v-field-label" for="input-v-12">
+                                  <!---->Role
+                                </label>
+                                <!---->
+                                <div class="v-field__input" data-no-activator="">
+                                  <!---->
+                                  <!---->
+                                  <div class="v-select__selection"><span class="v-select__selection-text">Administrator<!----></span></div><input size="1" role="combobox" type="text" id="input-v-12" inputmode="none" aria-expanded="false" aria-controls="menu-v-10" aria-label="Open" title="Open" required="" value="administrator">
+                                </div>
+                                <!---->
+                              </div>
+                              <!---->
+                              <div class="v-field__append-inner">
+                                <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
+                                <!---->
+                              </div>
+                              <div class="v-field__outline">
+                                <!---->
+                                <!---->
+                              </div>
+                            </div>
+                          </div>
+                          <!---->
+                          <!---->
+                        </div>
+                        <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-checkbox" data-test="link-request-checkbox">
+                          <!---->
+                          <div class="v-input__control">
+                            <div class="v-selection-control v-selection-control--density-compact v-checkbox-btn">
+                              <div class="v-selection-control__wrapper">
+                                <!---->
+                                <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-15" aria-disabled="false" aria-label="Get the invite link instead of sending an e-mail" type="checkbox" value="true"></div>
+                              </div><label class="v-label v-label--clickable" for="checkbox-v-15">
+                                <!---->Get the invite link instead of sending an e-mail
                               </label>
-                              <!----><input size="1" type="text" id="input-v-8" required="" class="v-field__input" value="">
-                              <!---->
-                            </div>
-                            <!---->
-                            <!---->
-                            <div class="v-field__outline">
-                              <!---->
-                              <!---->
                             </div>
                           </div>
+                          <!---->
+                          <!---->
                         </div>
-                        <!---->
+                      </div>
+                    </transition-stub>
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item" style="display: none;">
                         <!---->
                       </div>
-                      <div data-v-444f7389="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected mb-4" data-test="role-select">
-                        <!---->
-                        <div class="v-input__control">
-                          <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-v-10">
-                            <div class="v-field__overlay"></div>
-                            <div class="v-field__loader">
-                              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-                                <!---->
-                                <div class="v-progress-linear__background"></div>
-                                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                                  <div class="v-progress-linear__indeterminate">
-                                    <div class="v-progress-linear__indeterminate long"></div>
-                                    <div class="v-progress-linear__indeterminate short"></div>
-                                  </div>
-                                </transition-stub>
-                                <!---->
-                              </div>
-                            </div>
-                            <!---->
-                            <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-12" aria-hidden="false">
-                                <!---->Role
-                              </label><label class="v-label v-field-label" for="input-v-12">
-                                <!---->Role
-                              </label>
-                              <!---->
-                              <div class="v-field__input" data-no-activator="">
-                                <!---->
-                                <!---->
-                                <div class="v-select__selection"><span class="v-select__selection-text">Administrator<!----></span></div><input size="1" role="combobox" type="text" id="input-v-12" inputmode="none" aria-expanded="false" aria-controls="menu-v-10" aria-label="Open" title="Open" required="" value="administrator">
-                              </div>
-                              <!---->
-                            </div>
-                            <!---->
-                            <div class="v-field__append-inner">
-                              <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
-                              <!---->
-                            </div>
-                            <div class="v-field__outline">
-                              <!---->
-                              <!---->
-                            </div>
-                          </div>
-                        </div>
-                        <!---->
-                        <!---->
-                      </div>
-                      <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-checkbox" data-test="link-request-checkbox">
-                        <!---->
-                        <div class="v-input__control">
-                          <div class="v-selection-control v-selection-control--density-compact v-checkbox-btn">
-                            <div class="v-selection-control__wrapper">
-                              <!---->
-                              <div class="v-selection-control__input"><i class="mdi-checkbox-blank-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i><input id="checkbox-v-15" aria-disabled="false" aria-label="Get the invite link instead of sending an e-mail" type="checkbox" value="true"></div>
-                            </div><label class="v-label v-label--clickable" for="checkbox-v-15">
-                              <!---->Get the invite link instead of sending an e-mail
-                            </label>
-                          </div>
-                        </div>
-                        <!---->
-                        <!---->
-                      </div>
-                    </div>
-                  </transition-stub>
-                  <transition-stub name="" appear="false" persisted="false" css="true">
-                    <div class="v-window-item" style="display: none;">
-                      <!---->
-                    </div>
-                  </transition-stub>
+                    </transition-stub>
+                    <!---->
+                  </div>
                   <!---->
                 </div>
-                <!---->
               </div>
-            </div><!-- Footer -->
+            </form><!-- Footer -->
             <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">

@@ -12,7 +12,9 @@
     :show-footer="showFooter"
   >
     <!-- Content -->
-    <slot />
+    <v-form>
+      <slot />
+    </v-form>
 
     <!-- Footer with form-specific functionality -->
     <template #footer>
