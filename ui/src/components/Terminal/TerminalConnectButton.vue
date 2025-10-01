@@ -43,7 +43,8 @@
   </v-row>
   <TerminalDialog
     v-model="showWebTerminal"
-    :deviceUid
+    :device-uid
+    :device-name
   />
   <TerminalHelper
     v-model="showTerminalHelper"
@@ -63,6 +64,7 @@ defineOptions({
 defineProps<{
   online: boolean;
   deviceUid: string;
+  deviceName: string;
   sshid: string;
 }>();
 

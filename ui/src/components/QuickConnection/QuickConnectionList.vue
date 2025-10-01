@@ -19,7 +19,7 @@
     <v-col v-for="(item, i) in onlineDevices" :key="i" class="ma-0 mb-3 pa-0">
       <v-card :key="i" data-test="device-card">
         <v-list-item
-          @click="openDialog(item.uid)"
+          @click="openDialog(item.uid, item.name)"
           @keydown="openTerminalMacro(item)"
           :key="i"
           class="ma-0 pa-0 card"
@@ -95,7 +95,8 @@
   />
   <TerminalDialog
     v-model="showDialog"
-    :deviceUid="selectedDeviceUid"
+    :device-uid="selectedDeviceUid"
+    :device-name="selectedDeviceName"
     data-test="terminalDialog-component"
   />
 </template>
@@ -124,6 +125,7 @@ const snackbar = useSnackbar();
 const loading = ref(false);
 const rootEl = ref<VList>();
 const selectedDeviceUid = ref("");
+const selectedDeviceName = ref("");
 const showDialog = ref(false);
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
@@ -142,8 +144,9 @@ const filter = computed(() => btoa(JSON.stringify([
   { type: "operator", params: { name: "and" } },
 ])));
 
-const openDialog = (deviceUid: string) => {
+const openDialog = (deviceUid: string, deviceName: string) => {
   selectedDeviceUid.value = deviceUid;
+  selectedDeviceName.value = deviceName;
   showDialog.value = true;
 };
 

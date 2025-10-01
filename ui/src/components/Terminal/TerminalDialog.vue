@@ -1,33 +1,27 @@
 <template>
-  <BaseDialog
-    v-model="showDialog"
-    :forceFullscreen="!showLoginForm"
+  <TerminalLoginForm
+    v-if="showLoginForm"
+    v-model="showLoginDialog"
+    v-model:loading="isConnecting"
+    @submit="handleSubmit"
     @close="close"
-  >
-    <v-card-title class="text-h5 pa-4 bg-primary d-flex align-center justify-space-between">
-      Terminal
-      <v-icon v-if="!showLoginForm" @click="close" data-test="close-terminal-btn" size="24" icon="mdi-close" />
-    </v-card-title>
+  />
 
-    <TerminalLoginForm
-      v-if="showLoginForm"
-      @submit="handleSubmit"
-      @close="close"
-    />
-    <Terminal
-      v-else
-      :key="terminalKey"
-      :token="token"
-      :privateKey="privateKey ?? null"
-      :passphrase="passphrase"
-    />
-  </BaseDialog>
+  <Terminal
+    v-else
+    v-model="showTerminalDialog"
+    :key="terminalKey"
+    :token="token"
+    :private-key="privateKey ?? null"
+    :passphrase="passphrase"
+    :device-name
+    @close="close"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import axios from "axios";
-import { useEventListener } from "@vueuse/core";
 import { useRoute, onBeforeRouteLeave } from "vue-router";
 import {
   IConnectToTerminal,
@@ -38,20 +32,30 @@ import {
 // Components used in this dialog
 import TerminalLoginForm from "./TerminalLoginForm.vue";
 import Terminal from "./Terminal.vue";
-import BaseDialog from "../BaseDialog.vue";
 
 // Utility to create key fingerprint for private key auth
 import { convertToFingerprint } from "@/utils/sshKeys";
 
-// Props: Device UID to connect the terminal session to
-const { deviceUid } = defineProps<{
+const { deviceUid, deviceName } = defineProps<{
   deviceUid: string;
+  deviceName: string;
 }>();
 
 const route = useRoute(); // current route
 const showLoginForm = ref(true); // controls whether login or terminal is shown
 const terminalKey = ref(0);
 const showDialog = defineModel<boolean>({ required: true }); // controls visibility of dialog
+const isConnecting = ref(false);
+
+const showLoginDialog = computed({
+  get: () => showDialog.value && showLoginForm.value,
+  set: (value) => { showDialog.value = value; },
+});
+
+const showTerminalDialog = computed({
+  get: () => showDialog.value && !showLoginForm.value,
+  set: (value) => { showDialog.value = value; },
+});
 
 // Token and private key values for terminal connection
 const token = ref("");
@@ -60,13 +64,18 @@ const passphrase = ref(); // Passphrase for private key if needed
 
 // Connect to terminal via password or key
 const connect = async (params: IConnectToTerminal) => {
-  const response = await axios.post("/ws/ssh", {
-    device: deviceUid,
-    ...params,
-  });
+  isConnecting.value = true;
+  try {
+    const response = await axios.post("/ws/ssh", {
+      device: deviceUid,
+      ...params,
+    });
 
-  token.value = response.data.token;
-  showLoginForm.value = false;
+    token.value = response.data.token;
+    showLoginForm.value = false;
+  } finally {
+    isConnecting.value = false;
+  }
 };
 
 // Handles private key-based connection
@@ -97,21 +106,6 @@ const close = () => {
   privateKey.value = "";
   terminalKey.value++; // trigger remount
 };
-
-// Track timing of ESC presses to close terminal on double ESC
-let lastEscPress = 0;
-const handleEscKey = (event: KeyboardEvent) => {
-  if (event.key === "Escape" && !showLoginForm.value) {
-    const currentTime = new Date().getTime();
-    if (currentTime - lastEscPress < 400) {
-      close();
-    }
-    lastEscPress = currentTime;
-  }
-};
-
-// Bind ESC key listener
-useEventListener("keyup", handleEscKey);
 
 // Close terminal and log out when navigating away
 onBeforeRouteLeave(() => {

@@ -1,9 +1,20 @@
 <template>
-  <!-- Container that fills the available height and hosts the terminal -->
-  <div class="ma-0 pa-0 w-100 fill-height position-relative">
-    <!-- The xterm.js terminal will be mounted here -->
-    <div ref="terminal" class="terminal" data-test="terminal-container" />
-  </div>
+  <WindowDialog
+    v-model="showDialog"
+    :force-fullscreen="true"
+    @close="close"
+    title="Terminal"
+    :description="`Connected to ${deviceName}`"
+    icon="mdi-console"
+    :show-close-button="true"
+    :show-footer="false"
+    :scrollable="false"
+    class="bg-terminal h-100"
+  >
+    <div class="ma-0 pa-0 w-100 fill-height position-relative">
+      <div ref="terminal" class="terminal" data-test="terminal-container" />
+    </div>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
@@ -31,15 +42,21 @@ import {
 } from "@/utils/sshKeys";
 
 import handleError from "@/utils/handleError";
+import WindowDialog from "../WindowDialog.vue";
 
 // Props passed to the component
 const { token, privateKey, passphrase } = defineProps<{
   token: string;
   privateKey?: string | null;
   passphrase?: string;
+  deviceName: string;
 }>();
 
-// References and reactive state
+const emit = defineEmits<{
+  close: [];
+}>();
+
+const showDialog = defineModel<boolean>({ required: true });
 const terminal = ref<HTMLElement>({} as HTMLElement); // Terminal DOM container
 const xterm = ref<Terminal>({} as Terminal); // xterm.js terminal instance
 const fitAddon = ref<FitAddon>(new FitAddon()); // Auto-fit terminal to container
@@ -164,7 +181,14 @@ const handleWebSocketMessage = async (rawData: Blob | string): Promise<void> => 
 // Sets up WebSocket event handlers: message and close.
 const setupWebSocketEvents = () => {
   ws.value.onmessage = async (event) => { await handleWebSocketMessage(event.data); };
-  ws.value.onclose = () => { xterm.value.write("\r\nConnection ended\r\n"); };
+  ws.value.onclose = () => {
+    xterm.value.write("\r\nConnection ended\r\n");
+  };
+};
+
+const close = () => {
+  showDialog.value = false;
+  emit("close");
 };
 
 // Initializes the WebSocket session with terminal dimensions.
@@ -174,6 +198,19 @@ const initializeWebSocket = () => {
   ws.value = new WebSocket(getWebSocketUrl(dimensions));
   setupWebSocketEvents();
 };
+
+let lastEscPress = 0;
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === "Escape") {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastEscPress < 400) {
+      close();
+    }
+    lastEscPress = currentTime;
+  }
+};
+
+useEventListener("keyup", handleEscKey);
 
 // Lifecycle: Setup terminal and WebSocket calls
 onMounted(() => {
@@ -190,7 +227,7 @@ onUnmounted(() => {
 });
 
 // Optional expose for testing or parent communication
-defineExpose({ xterm, ws });
+defineExpose({ xterm, ws, showDialog });
 </script>
 
 <style scoped lang="scss">

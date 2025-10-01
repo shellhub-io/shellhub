@@ -28,10 +28,35 @@ exports[`Terminal Dialog > Renders the component 1`] = `
             <!---->
             <!---->
             <!-- Content -->
-            <div class="v-card-title text-h5 pa-4 bg-primary d-flex align-center justify-space-between"> Terminal
-              <!--v-if-->
-            </div>
-            <form class="v-form mt-2 pa-5 d-flex flex-column ga-4" novalidate="" data-test="terminal-login-form">
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-login mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Terminal Login
+                    </div>
+                  </div>
+                  <!--v-if-->
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div class="v-card-text d-flex flex-column ga-4 pa-6" data-test="terminal-login-form">
               <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field" data-test="username-field">
                 <!---->
                 <div class="v-input__control">
@@ -52,12 +77,12 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="false">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
                         <!---->Username
-                      </label><label class="v-label v-field-label" for="input-v-1">
+                      </label><label class="v-label v-field-label" for="input-v-2">
                         <!---->Username
                       </label>
-                      <!----><input autofocus="" size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" validate-on-blur="true" class="v-field__input" value="">
+                      <!----><input autofocus="" size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" validate-on-blur="true" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -69,17 +94,17 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                   </div>
                 </div>
                 <!---->
-                <div id="input-v-1-messages" class="v-input__details" role="alert" aria-live="polite">
+                <div id="input-v-2-messages" class="v-input__details" role="alert" aria-live="polite">
                   <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
                     <div class="v-messages__message">Enter an existing user on the device</div>
                   </transition-group-stub>
                   <!---->
                 </div>
               </div>
-              <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected mt-2" data-test="auth-method-select">
+              <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-select v-select--single v-select--selected mb-2" data-test="auth-method-select">
                 <!---->
                 <div class="v-input__control">
-                  <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-v-3">
+                  <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="menu-v-4">
                     <div class="v-field__overlay"></div>
                     <div class="v-field__loader">
                       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -96,16 +121,16 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-5" aria-hidden="false">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-6" aria-hidden="false">
                         <!---->Authentication method
-                      </label><label class="v-label v-field-label" for="input-v-5">
+                      </label><label class="v-label v-field-label" for="input-v-6">
                         <!---->Authentication method
                       </label>
                       <!---->
                       <div class="v-field__input" data-no-activator="">
                         <!---->
                         <!---->
-                        <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" id="input-v-5" aria-describedby="input-v-5-messages" inputmode="none" aria-expanded="false" aria-controls="menu-v-3" aria-label="Open" title="Open" value="Password">
+                        <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" id="input-v-6" inputmode="none" aria-expanded="false" aria-controls="menu-v-4" aria-label="Open" title="Open" value="Password">
                       </div>
                       <!---->
                     </div>
@@ -121,12 +146,7 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                   </div>
                 </div>
                 <!---->
-                <div id="input-v-5-messages" class="v-input__details" role="alert" aria-live="polite">
-                  <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
-                    <!---->
-                  </transition-group-stub>
-                  <!---->
-                </div>
+                <!---->
               </div>
               <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field" data-test="password-field">
                 <!---->
@@ -148,12 +168,12 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-9" aria-hidden="false">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-10" aria-hidden="false">
                         <!---->Password
-                      </label><label class="v-label v-field-label" for="input-v-9">
+                      </label><label class="v-label v-field-label" for="input-v-10">
                         <!---->Password
                       </label>
-                      <!----><input size="1" type="password" id="input-v-9" aria-describedby="input-v-9-messages" required="" class="v-field__input" value="">
+                      <!----><input size="1" type="password" id="input-v-10" aria-describedby="input-v-10-messages" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -167,7 +187,7 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                   </div>
                 </div>
                 <!---->
-                <div id="input-v-9-messages" class="v-input__details" role="alert" aria-live="polite">
+                <div id="input-v-10-messages" class="v-input__details" role="alert" aria-live="polite">
                   <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
                     <div class="v-messages__message">Enter a valid password for the user on the device</div>
                   </transition-group-stub>
@@ -175,16 +195,49 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                 </div>
               </div>
               <!--v-if-->
-              <div class="v-card-actions mt-4 d-flex justify-end"><button type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="cancel-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                  <!----><span class="v-btn__content" data-no-activator=""> Cancel </span>
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <!-- Buttons with alert system -->
+                <div class="v-window v-theme--light w-100">
+                  <div class="v-window__container">
+                    <!-- Default buttons window -->
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item v-window-item--active w-100">
+                        <div class="d-flex align-center w-100">
+                          <!-- Helper text on the left -->
+                          <!--v-if-->
+                          <div class="v-spacer"></div><!-- Buttons on the right -->
+                          <div class="d-flex"><button type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-tonal mr-2" data-test="cancel-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                              <!----><span class="v-btn__content" data-no-activator="">Cancel</span>
+                              <!---->
+                              <!---->
+                            </button><button type="button" class="v-btn v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-outlined" disabled="" data-test="submit-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                              <!----><span class="v-btn__content" data-no-activator="">Connect</span>
+                              <!---->
+                              <!---->
+                            </button></div>
+                        </div>
+                      </div>
+                    </transition-stub><!-- Alert window -->
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item w-100" style="display: none;">
+                        <!---->
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
                   <!---->
-                  <!---->
-                </button><button type="submit" class="v-btn v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="submit-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                  <!----><span class="v-btn__content" data-no-activator=""> Connect </span>
-                  <!---->
-                  <!---->
-                </button></div>
-            </form>
+                </div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
             <!---->
             <!----><span class="v-card__underlay"></span>
           </div>
