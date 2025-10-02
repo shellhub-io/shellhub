@@ -57,8 +57,6 @@ podman_install() {
     -v /:/host \
     -v /dev:/dev \
     -v /var/run/podman/podman.sock:/var/run/docker.sock \
-    -v /etc/passwd:/etc/passwd \
-    -v /etc/group:/etc/group \
     -v /proc:/proc \
     -v /var/run:/var/run \
     -v /var/log:/var/log \
@@ -124,8 +122,6 @@ docker_install() {
     -v /:/host \
     -v /dev:/dev \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -v /etc/passwd:/etc/passwd \
-    -v /etc/group:/etc/group \
     -v /etc/resolv.conf:/etc/resolv.conf \
     -v /var/run:/var/run \
     -v /var/log:/var/log \
