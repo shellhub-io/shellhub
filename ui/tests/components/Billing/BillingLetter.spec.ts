@@ -1,21 +1,14 @@
-import { mount, VueWrapper } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it } from "vitest";
 import BillingLetter from "@/components/Billing/BillingLetter.vue";
 
 describe("Billing Letter", () => {
-  let wrapper: VueWrapper<InstanceType<typeof BillingLetter>>;
-  const vuetify = createVuetify();
-
-  beforeEach(async () => {
-    wrapper = mount(BillingLetter, {
-      global: {
-        plugins: [vuetify],
-      },
-    });
+  const wrapper = mount(BillingLetter, {
+    global: { plugins: [createVuetify()] },
   });
+
   it("renders the correct text", async () => {
-    expect(wrapper.findComponent('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="text"]').exists()).toBe(true);
+    expect(wrapper.html()).toMatchSnapshot();
   });
 });
