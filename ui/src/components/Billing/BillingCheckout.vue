@@ -17,16 +17,16 @@
             <v-col cols="1">
               <BillingIcon :icon-name="paymentMethod.brand" />
             </v-col>
-            <v-col cols="4">
+            <v-col cols="3">
               <b>{{ paymentMethod.number }}</b>
             </v-col>
-            <v-col cols="2">
+            <v-col cols="3">
               {{ paymentMethod.exp_month + "/" + paymentMethod.exp_year }}
             </v-col>
-            <v-col cols="2" class="d-flex flex-column align-end">
+            <v-col cols="2">
               {{ paymentMethod.cvc }}
             </v-col>
-            <v-col cols="3" class="d-flex flex-column align-end">
+            <v-col cols="3">
               <v-chip>
                 <b>default</b>
                 <v-tooltip
@@ -44,11 +44,11 @@
       <v-col>
         <h3 data-test="additional-information">Additional Information:</h3>
         <v-spacer class="mb-2" />
-        <ul data-test="additional-information-list">
+        <ul data-test="additional-information-list" class="text-justify">
           <li><p>Your selected payment method will be charged automatically on a monthly basis</p></li>
-          <li><p>You can manage your payment methods, invoices and subscription details in the <b>Billing Portal.</b></p></li>
+          <li><p>You can manage your payment methods, invoices and subscription details in the <strong>Billing Portal.</strong></p></li>
           <li><p>Invoices will be generated and available for download at the beginning of each billing cycle.</p></li>
-          <li><p>You have the option to cancel your subscription at any time through the <b>Billing Portal.</b></p></li>
+          <li><p>You have the option to cancel your subscription at any time through the <strong>Billing Portal.</strong></p></li>
         </ul>
       </v-col>
     </v-row>
