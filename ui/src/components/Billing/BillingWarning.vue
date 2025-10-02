@@ -1,50 +1,41 @@
 <template>
-  <BaseDialog
+  <MessageDialog
     v-if="canSubscribeToBilling"
     v-model="showWarningDialog"
     transition="dialog-bottom-transition"
     data-test="billing-warning-dialog"
-  >
-    <v-card class="bg-v-theme-surface" data-test="card-dialog">
-      <v-card-title class="pa-3 bg-primary" data-test="card-title">
-        Maximum Device Limit Reached
-      </v-card-title>
-
-      <v-card-text class="mt-4 mb-3 pb-1" data-test="card-text">
-        <p class="mb-2">
-          It seems that your current free account has reached the maximum number of devices allowed in this namespace.
-        </p>
-        <p class="mb-2">
-          With a subscription, you can easily add and manage more devices within your account,
-          granting you the flexibility and freedom to scale as needed.
-        </p>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn variant="text" data-test="close-btn" @click="close()"> Close </v-btn>
-
-        <v-btn
-          to="/settings/billing"
-          variant="text"
-          color="primary"
-          data-test="go-to-billing-btn"
-          @click="close()"
-        >
-          Go to Billing
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+    title="Maximum Device Limit Reached"
+    description="It seems that your current free account has reached the maximum number of devices allowed in this namespace.
+    With a subscription, you can easily add and manage more devices within your account, granting you the flexibility and
+    freedom to scale as needed."
+    icon="mdi-alert-circle"
+    icon-color="warning"
+    confirm-text="Go to Billing"
+    confirm-color="primary"
+    cancel-text="Close"
+    confirm-data-test="go-to-billing-btn"
+    cancel-data-test="close-btn"
+    @confirm="goToBilling"
+    @cancel="close"
+    @close="close"
+  />
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
-import BaseDialog from "../BaseDialog.vue";
+import MessageDialog from "../MessageDialog.vue";
 
+const router = useRouter();
 const showWarningDialog = defineModel({ default: false });
 const canSubscribeToBilling = hasPermission("billing:subscribe");
 
-const close = () => { showWarningDialog.value = false; };
+const close = () => {
+  showWarningDialog.value = false;
+};
+
+const goToBilling = () => {
+  router.push("/settings/billing");
+  close();
+};
 </script>
