@@ -12,11 +12,12 @@
       aria-label="Toggle Menu"
       data-test="menu-toggle"
     />
-    <v-icon icon="mdi-server-network" class="ml-4 hidden-md-and-down" />
-
-    <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down" data-test="breadcrumbs">
+    <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down ml-2" data-test="breadcrumbs">
+      <template v-slot:prepend>
+        <v-icon v-if="breadcrumbItems[0]?.icon" :icon="breadcrumbItems[0].icon" size="small" class="mr-2" />
+      </template>
       <template v-slot:divider>
-        <v-icon icon="mdi-chevron-right" />
+        <v-icon icon="mdi-chevron-right" size="small" />
       </template>
     </v-breadcrumbs>
 
@@ -125,6 +126,7 @@ type MenuItem = {
 type BreadcrumbItem = {
   title: string;
   href: string;
+  icon?: string;
 };
 
 defineOptions({
@@ -268,17 +270,47 @@ const menu = [
   },
 ];
 
+const getParentRoute = (path: string) => {
+  const routes = router.getRoutes();
+  const parentPath = path.substring(0, path.lastIndexOf("/"));
+  return routes.find((r) => r.path === parentPath);
+};
+
 const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
   const breadcrumbs: BreadcrumbItem[] = [];
+  const seenPaths = new Set<string>();
+
   route.matched.forEach((match) => {
-    if (match.name) {
-      const title = (match.name as string).replace(/([a-z])([A-Z])/g, "$1 $2");
+    if (match.name && !seenPaths.has(match.path)) {
+      seenPaths.add(match.path);
+
+      const routeName = match.name as string;
+      const title = (match.meta?.title as string) || routeName.replace(/([a-z])([A-Z])/g, "$1 $2");
+      const icon = match.meta?.icon as string;
+
+      // If this is a child route, add parent first if not already added
+      const parentPath = match.path.substring(0, match.path.lastIndexOf("/"));
+      if (parentPath && !seenPaths.has(parentPath)) {
+        const parent = getParentRoute(match.path);
+
+        if (parent?.meta?.title) {
+          seenPaths.add(parentPath);
+          breadcrumbs.push({
+            title: parent.meta.title as string,
+            href: parentPath,
+            icon: parent.meta.icon as string,
+          });
+        }
+      }
+
       breadcrumbs.push({
         title,
         href: match.path,
+        icon,
       });
     }
   });
+
   return breadcrumbs;
 };
 

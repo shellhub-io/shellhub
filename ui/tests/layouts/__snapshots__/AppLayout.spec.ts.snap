@@ -3,7 +3,7 @@
 exports[`App Layout Component > Renders the component 1`] = `
 "<div class="v-application v-theme--light v-layout v-layout--full-height v-locale--is-ltr">
   <div class="v-application__wrap">
-    <nav class="v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface" style="left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; transition: none; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;" data-v-e7291ef4="" app="" data-test="navigation-drawer">
+    <nav class="v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface" style="left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;" data-v-e7291ef4="" app="" data-test="navigation-drawer">
       <!---->
       <!---->
       <div class="v-navigation-drawer__content">
@@ -165,23 +165,23 @@ exports[`App Layout Component > Renders the component 1`] = `
                 <div class="v-list-item__spacer"></div>
               </div>
             </div>
-            <transition-stub name="" appear="false" persisted="false" css="false">
-              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" href="/team/members" aria-disabled="true" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item">
-                  <!----><span class="v-list-item__underlay"></span>
-                  <!---->
-                  <div class="v-list-item__content" data-no-activator="">
-                    <!---->
-                    <!---->
-                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Members-listItem">Members</div>
-                  </div>
-                  <!---->
-                </a><a data-v-e7291ef4="" href="/team/api-keys" aria-disabled="true" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item">
+            <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" href="/team/api-keys" aria-disabled="true" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item">
                   <!----><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
                     <!---->
                     <!---->
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="API Keys-listItem">API Keys</div>
+                  </div>
+                  <!---->
+                </a><a data-v-e7291ef4="" href="/team/members" aria-disabled="true" class="v-list-item v-list-item--disabled v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item">
+                  <!----><span class="v-list-item__underlay"></span>
+                  <!---->
+                  <div class="v-list-item__content" data-no-activator="">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Members-listItem">Members</div>
                   </div>
                   <!---->
                 </a></div>
@@ -202,7 +202,7 @@ exports[`App Layout Component > Renders the component 1`] = `
                 <div class="v-list-item__spacer"></div>
               </div>
             </div>
-            <transition-stub name="" appear="false" persisted="false" css="false">
+            <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
               <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" href="/settings/profile" tabindex="-2" class="v-list-item v-list-item--link v-list-item--prepend v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="listitem" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">
@@ -274,7 +274,7 @@ exports[`App Layout Component > Renders the component 1`] = `
     <!---->
     <!---->
     <!---->
-    <header class="v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-v-theme-surface border-b-thin" style="top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
+    <header class="v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-v-theme-surface border-b-thin" style="top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
       <!---->
       <div class="v-toolbar__content" style="height: 64px;">
         <!---->
@@ -282,8 +282,12 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-menu mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
-        </button><i class="mdi-server-network mdi v-icon notranslate v-theme--light v-icon--size-default ml-4 hidden-md-and-down" aria-hidden="true"></i>
-        <ul class="v-breadcrumbs v-breadcrumbs--density-default hidden-md-and-down" data-test="breadcrumbs">
+        </button>
+        <ul class="v-breadcrumbs v-breadcrumbs--density-default hidden-md-and-down ml-2" data-test="breadcrumbs">
+          <li class="v-breadcrumbs__prepend">
+            <!--v-if-->
+          </li>
+          <li class="v-breadcrumbs-item v-breadcrumbs-item--disabled"><a class="v-breadcrumbs-item--link" href="/login" aria-disabled="true" tabindex="-1">Login</a></li>
           <!---->
           <!---->
         </ul>
@@ -310,19 +314,19 @@ exports[`App Layout Component > Renders the component 1`] = `
     <!---->
   </transition-stub>
   </header>
-  <main data-v-e7291ef4="" class="v-main" style="--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px; transition: none;" data-test="main">
+  <main data-v-e7291ef4="" class="v-main" style="--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px;" data-test="main">
     <div data-v-e7291ef4="" class="v-container v-container--fluid v-locale--is-ltr pa-8" data-test="container">
       <router-view-stub data-v-e7291ef4=""></router-view-stub>
     </div>
   </main>
   <!---->
   <!--teleport start-->
-  <div class="v-overlay v-overlay--absolute v-overlay--active v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2000;" data-v-e7291ef4="" data-test="overlay">
+  <div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2000;" data-v-e7291ef4="" data-test="overlay">
     <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
       <!---->
     </transition-stub>
     <transition-stub name="fade-transition" appear="true" persisted="true" css="true">
-      <div class="v-overlay__content">
+      <div class="v-overlay__content" style="display: none;">
         <div data-v-e7291ef4="" class="v-progress-circular v-progress-circular--indeterminate v-theme--light" style="width: 64px; height: 64px;" role="progressbar" aria-valuemin="0" aria-valuemax="100" alt="Request loading" data-test="progress-circular"><svg style="transform: rotate(calc(-90deg + 0deg));" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42.666666666666664 42.666666666666664">
             <circle class="v-progress-circular__underlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="0"></circle>
             <circle class="v-progress-circular__overlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="125.66370614359172px"></circle>
