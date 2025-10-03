@@ -82,25 +82,29 @@
                 icon="mdi-package-down"
               >
                 Ready to install? Copy the command below and run it on your target device:
-                <v-text-field
-                  :model-value="getCommand(method.value)"
-                  class="code mt-3"
-                  variant="outlined"
-                  readonly
-                  density="compact"
-                  hide-details
-                >
-                  <template #append>
-                    <v-btn
-                      icon="mdi-content-copy"
-                      color="primary"
-                      variant="flat"
-                      rounded
-                      size="small"
-                      @click="copyCommand(method.value)"
-                    />
+                <CopyWarning :copied-item="'Installation command'">
+                  <template #default="{ copyText }">
+                    <v-text-field
+                      :model-value="getCommand(method.value)"
+                      class="code mt-3"
+                      variant="outlined"
+                      readonly
+                      density="compact"
+                      hide-details
+                    >
+                      <template #append>
+                        <v-btn
+                          icon="mdi-content-copy"
+                          color="primary"
+                          variant="flat"
+                          rounded
+                          size="small"
+                          @click="copyText(getCommand(method.value))"
+                        />
+                      </template>
+                    </v-text-field>
                   </template>
-                </v-text-field>
+                </CopyWarning>
 
                 <!-- Advanced Options inside the alert -->
                 <v-expansion-panels
@@ -207,8 +211,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import WindowDialog from "../WindowDialog.vue";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 import useAuthStore from "@/store/modules/auth";
-import useSnackbar from "@/helpers/snackbar";
 
 enum InstallMethod {
   AUTO = "auto",
@@ -238,7 +242,6 @@ interface InstallMethodConfig {
 
 const { size } = defineProps<{ size?: string }>();
 const authStore = useAuthStore();
-const snackbar = useSnackbar();
 const showDialog = ref(false);
 const selectedPanel = ref(["auto"]); // Auto panel expanded by default
 const methodAdvancedPanels = ref<Record<string, string[]>>({});
@@ -400,17 +403,6 @@ const getCommand = (method: string) => {
     ...envVars,
     "sh",
   ].join(" ");
-};
-
-const copyCommand = async (methodValue: string) => {
-  try {
-    const command = getCommand(methodValue);
-    await navigator.clipboard.writeText(command);
-    snackbar.showSuccess("Installation command copied to clipboard!");
-  } catch (err) {
-    console.error("Failed to copy: ", err);
-    snackbar.showError("Failed to copy command to clipboard.");
-  }
 };
 </script>
 
