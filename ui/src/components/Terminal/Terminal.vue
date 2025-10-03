@@ -11,14 +11,30 @@
     :scrollable="false"
     class="bg-terminal h-100"
   >
+    <template #titlebar-actions>
+      <v-btn
+        :icon="showThemeDrawer ? 'mdi-palette' : 'mdi-palette-outline'"
+        variant="text"
+        @click="showThemeDrawer = !showThemeDrawer"
+        data-test="theme-toggle-btn"
+      />
+    </template>
+
     <div class="ma-0 pa-0 w-100 fill-height position-relative">
       <div ref="terminal" class="terminal" data-test="terminal-container" />
+
+      <TerminalThemeDrawer
+        v-model="selectedThemeName"
+        v-model:showDrawer="showThemeDrawer"
+        @update:selected-theme="applyTheme"
+        data-test="theme-picker"
+      />
     </div>
   </WindowDialog>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useEventListener } from "@vueuse/core";
 // Terminal styles and required classes
 import "@xterm/xterm/css/xterm.css";
@@ -30,6 +46,7 @@ import { IParams } from "@/interfaces/IParams";
 import {
   ErrorMessage,
   InputMessage,
+  ITerminalTheme,
   MessageKind,
   ResizeMessage,
   SignatureMessage,
@@ -43,6 +60,8 @@ import {
 
 import handleError from "@/utils/handleError";
 import WindowDialog from "../WindowDialog.vue";
+import TerminalThemeDrawer from "./TerminalThemeDrawer.vue";
+import useTerminalThemeStore from "@/store/modules/terminal_theme";
 
 // Props passed to the component
 const { token, privateKey, passphrase } = defineProps<{
@@ -56,19 +75,28 @@ const emit = defineEmits<{
   close: [];
 }>();
 
+const terminalThemeStore = useTerminalThemeStore();
 const showDialog = defineModel<boolean>({ required: true });
 const terminal = ref<HTMLElement>({} as HTMLElement); // Terminal DOM container
 const xterm = ref<Terminal>({} as Terminal); // xterm.js terminal instance
 const fitAddon = ref<FitAddon>(new FitAddon()); // Auto-fit terminal to container
 const ws = ref<WebSocket>({} as WebSocket); // Active WebSocket connection
+const selectedThemeName = computed({
+  get: () => terminalThemeStore.currentThemeName,
+  set: (value: string) => terminalThemeStore.setTheme(value),
+});
+const showThemeDrawer = ref(false);
 
-// Initializes the xterm.js terminal and applies styling and behavior.
+const applyTheme = (theme: ITerminalTheme) => {
+  xterm.value.options.theme = theme.colors;
+};
+
 const initializeTerminal = () => {
   xterm.value = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
-    theme: { background: "#0f1526" },
   });
+  applyTheme(terminalThemeStore.currentTheme);
   xterm.value.loadAddon(fitAddon.value);
 };
 
@@ -213,7 +241,8 @@ const handleEscKey = (event: KeyboardEvent) => {
 useEventListener("keyup", handleEscKey);
 
 // Lifecycle: Setup terminal and WebSocket calls
-onMounted(() => {
+onMounted(async () => {
+  await terminalThemeStore.loadThemes();
   initializeTerminal();
   setupTerminalEvents();
   xterm.value.open(terminal.value);
