@@ -51,3 +51,40 @@ export interface ErrorMessage {
   kind: MessageKind.Error;
   data: string; // Error Message Content
 }
+
+export interface ITerminalTheme {
+  name: string;
+  description: string;
+  colors: {
+    background: string;
+    foreground: string;
+    cursor?: string;
+    selection?: string;
+    black?: string;
+    red?: string;
+    green?: string;
+    yellow?: string;
+    blue?: string;
+    magenta?: string;
+    cyan?: string;
+    white?: string;
+    brightBlack?: string;
+    brightRed?: string;
+    brightGreen?: string;
+    brightYellow?: string;
+    brightBlue?: string;
+    brightMagenta?: string;
+    brightCyan?: string;
+    brightWhite?: string;
+  };
+}
+
+export interface IThemeMetadata {
+  name: string;
+  file: string;
+  dark: boolean;
+  preview: {
+    background: string;
+    foreground: string;
+  };
+}
