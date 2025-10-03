@@ -2,6 +2,8 @@ import { createPinia, setActivePinia } from "pinia";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { expect, describe, it, beforeEach, vi } from "vitest";
+import type { Mock } from "vitest";
+import { useClipboard } from "@vueuse/core";
 import ApiKeySuccess from "@/components/Team/ApiKeys/ApiKeySuccess.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
@@ -16,11 +18,26 @@ vi.mock("@/helpers/snackbar", () => ({
   default: () => mockSnackbar,
 }));
 
-// Mock navigator.clipboard
-Object.assign(navigator, {
-  clipboard: {
-    writeText: vi.fn(),
-  },
+vi.mock("@vueuse/core", async () => {
+  const actual = await vi.importActual<typeof import("@vueuse/core")>("@vueuse/core");
+  return {
+    ...actual,
+    useClipboard: vi.fn(() => ({
+      copy: vi.fn().mockResolvedValue(undefined),
+    })),
+    useMagicKeys: vi.fn(),
+  };
+});
+
+const mockCopy = vi.fn();
+(useClipboard as unknown as Mock).mockReturnValue({
+  copy: mockCopy,
+});
+
+Object.defineProperty(globalThis, "isSecureContext", {
+  writable: true,
+  configurable: true,
+  value: true,
 });
 
 describe("Api Key Success", () => {
@@ -35,7 +52,6 @@ describe("Api Key Success", () => {
   };
 
   beforeEach(async () => {
-    vi.clearAllMocks();
     wrapper = mount(ApiKeySuccess, {
       global: {
         plugins: [vuetify, SnackbarPlugin],
@@ -72,8 +88,6 @@ describe("Api Key Success", () => {
   });
 
   it("Copies API key to clipboard when copy button is clicked", async () => {
-    const writeTextSpy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
-
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
@@ -81,13 +95,11 @@ describe("Api Key Success", () => {
     await copyButton.trigger("click");
     await flushPromises();
 
-    expect(writeTextSpy).toHaveBeenCalledWith("test-api-key-12345");
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("API Key copied to clipboard!");
+    expect(mockCopy).toHaveBeenCalledWith("test-api-key-12345");
+    expect(mockSnackbar.showInfo).toHaveBeenCalledWith("API Key copied to clipboard!");
   });
 
   it("Copies API key to clipboard when icon button is clicked", async () => {
-    const writeTextSpy = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
-
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
@@ -95,15 +107,12 @@ describe("Api Key Success", () => {
     await iconButton.trigger("click");
     await flushPromises();
 
-    expect(writeTextSpy).toHaveBeenCalledWith("test-api-key-12345");
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("API Key copied to clipboard!");
+    expect(mockCopy).toHaveBeenCalledWith("test-api-key-12345");
+    expect(mockSnackbar.showInfo).toHaveBeenCalledWith("API Key copied to clipboard!");
   });
 
   it("Shows error message when clipboard copy fails", async () => {
-    const writeTextSpy = vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("Clipboard error"));
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
-      // Mock implementation to silence console.error in tests
-    });
+    mockCopy.mockRejectedValueOnce(new Error("Clipboard error"));
 
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
@@ -112,11 +121,10 @@ describe("Api Key Success", () => {
     await copyButton.trigger("click");
     await flushPromises();
 
-    expect(writeTextSpy).toHaveBeenCalledWith("test-api-key-12345");
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to copy API key to clipboard.");
-    expect(consoleSpy).toHaveBeenCalledWith("Failed to copy: ", expect.any(Error));
+    expect(mockCopy).toHaveBeenCalledWith("test-api-key-12345");
 
-    consoleSpy.mockRestore();
+    const warningDialog = dialog.find('[data-test="copy-warning-dialog"]');
+    expect(warningDialog.exists()).toBe(true);
   });
 
   it("Has close button that triggers close method", async () => {

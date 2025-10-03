@@ -15,43 +15,44 @@
     data-test="api-key-success-dialog"
   >
     <div class="px-4">
-      <v-text-field
-        :value="apiKey"
-        readonly
-        density="compact"
-        class="monospace-field"
-        data-test="generated-key-field"
-      >
-        <template #append-inner>
-          <v-btn
-            icon="mdi-content-copy"
-            color="primary"
-            variant="text"
-            size="small"
-            @click="copyKey"
-            data-test="copy-key-icon-btn"
-          />
+      <CopyWarning ref="copyWarningRef" :copied-item="'API Key'">
+        <template #default="{ copyText }">
+          <v-text-field
+            :value="apiKey"
+            readonly
+            density="compact"
+            class="monospace-field"
+            data-test="generated-key-field"
+          >
+            <template #append-inner>
+              <v-btn
+                icon="mdi-content-copy"
+                color="primary"
+                variant="text"
+                size="small"
+                @click="copyText(apiKey)"
+                data-test="copy-key-icon-btn"
+              />
+            </template>
+          </v-text-field>
         </template>
-      </v-text-field>
+      </CopyWarning>
     </div>
   </MessageDialog>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import MessageDialog from "@/components/MessageDialog.vue";
-import useSnackbar from "@/helpers/snackbar";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const props = defineProps<{ apiKey: string }>();
-const snackbar = useSnackbar();
 const showDialog = defineModel<boolean>({ required: true });
+const copyWarningRef = ref<InstanceType<typeof CopyWarning>>();
 
 const copyKey = async () => {
-  try {
-    await navigator.clipboard.writeText(props.apiKey || "");
-    snackbar.showSuccess("API Key copied to clipboard!");
-  } catch (err) {
-    console.error("Failed to copy: ", err);
-    snackbar.showError("Failed to copy API key to clipboard.");
+  if (copyWarningRef.value?.copyFn) {
+    await copyWarningRef.value.copyFn(props.apiKey);
   }
 };
 
