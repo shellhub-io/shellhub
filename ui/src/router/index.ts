@@ -233,6 +233,12 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/",
     name: "Home",
     component: Home,
+    meta: {
+      icon: "mdi-home",
+      title: "Home",
+      showInSidebar: true,
+      sidebarOrder: 1,
+    },
   },
   {
     path: "/devices",
@@ -243,21 +249,39 @@ export const routes: Array<RouteRecordRaw> = [
       next();
     },
     redirect: { name: "DeviceList" },
+    meta: {
+      icon: "mdi-developer-board",
+      title: "Devices",
+      showInSidebar: true,
+      sidebarOrder: 2,
+    },
     children: [
       {
         path: "",
         name: "DeviceList",
         component: DeviceList,
+        meta: {
+          title: "Accepted",
+          showInSidebar: false,
+        },
       },
       {
         path: "pending",
         name: "DevicePendingList",
         component: DevicePendingList,
+        meta: {
+          title: "Pending",
+          showInSidebar: false,
+        },
       },
       {
         path: "rejected",
         name: "DeviceRejectedList",
         component: DeviceRejectedList,
+        meta: {
+          title: "Rejected",
+          showInSidebar: false,
+        },
       },
     ],
   },
@@ -270,21 +294,39 @@ export const routes: Array<RouteRecordRaw> = [
       next();
     },
     redirect: { name: "ContainerList" },
+    meta: {
+      icon: "mdi-docker",
+      title: "Containers",
+      showInSidebar: true,
+      sidebarOrder: 3,
+    },
     children: [
       {
         path: "",
         name: "ContainerList",
         component: ContainerList,
+        meta: {
+          title: "Accepted",
+          showInSidebar: false,
+        },
       },
       {
         path: "pending",
         name: "ContainerPendingList",
         component: ContainerPendingList,
+        meta: {
+          title: "Pending",
+          showInSidebar: false,
+        },
       },
       {
         path: "rejected",
         name: "ContainerRejectedList",
         component: ContainerRejectedList,
+        meta: {
+          title: "Rejected",
+          showInSidebar: false,
+        },
       },
     ],
   },
@@ -295,6 +337,14 @@ export const routes: Array<RouteRecordRaw> = [
     beforeEnter: async (to, from, next) => {
       await useWebEndpointsStore().fetchWebEndpointsList();
       next();
+    },
+    meta: {
+      icon: "mdi-web",
+      title: "Web Endpoints",
+      showInSidebar: true,
+      isBeta: true,
+      isHidden: () => !envVariables.hasWebEndpoints,
+      sidebarOrder: 4,
     },
   },
   {
@@ -307,16 +357,29 @@ export const routes: Array<RouteRecordRaw> = [
       }
       next();
     },
+    meta: {
+      icon: "mdi-server",
+      title: "Connectors",
+      showInSidebar: false,
+      isPremium: true,
+      sidebarOrder: 5,
+    },
   },
   {
     path: "/connectors/:id",
     name: "ConnectorDetails",
     component: ConnectorDetails,
+    meta: {
+      title: "Details",
+    },
   },
   {
     path: "/devices/:identifier",
     name: "DeviceDetails",
     component: DeviceDetails,
+    meta: {
+      title: "Details",
+    },
   },
   {
     path: "/devices/:id/terminal",
@@ -327,11 +390,20 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/sessions",
     name: "Sessions",
     component: Sessions,
+    meta: {
+      icon: "mdi-history",
+      title: "Sessions",
+      showInSidebar: true,
+      sidebarOrder: 6,
+    },
   },
   {
     path: "/sessions/:id",
     name: "SessionDetails",
     component: SessionDetails,
+    meta: {
+      title: "Details",
+    },
   },
   {
     path: "/firewall/rules",
@@ -343,37 +415,106 @@ export const routes: Array<RouteRecordRaw> = [
       }
       next();
     },
+    meta: {
+      icon: "mdi-security",
+      title: "Firewall Rules",
+      showInSidebar: true,
+      isPremium: true,
+      isHidden: () => envVariables.isCommunity && !envVariables.premiumPaywall,
+      sidebarOrder: 7,
+    },
   },
   {
     path: "/sshkeys/public-keys",
     name: "PublicKeys",
     component: PublicKeys,
+    meta: {
+      icon: "mdi-key",
+      title: "Public Keys",
+      showInSidebar: true,
+      sidebarOrder: 8,
+    },
+  },
+  {
+    path: "/team",
+    name: "Team",
+    redirect: { name: "ApiKeys" },
+    meta: {
+      icon: "mdi-account-group",
+      title: "Team",
+      showInSidebar: true,
+      sidebarOrder: 9,
+    },
+    children: [
+      {
+        path: "api-keys",
+        name: "ApiKeys",
+        component: TeamApiKeys,
+        meta: {
+          title: "API Keys",
+          showInSidebar: true,
+        },
+      },
+      {
+        path: "members",
+        name: "Members",
+        component: TeamMembers,
+        meta: {
+          title: "Members",
+          showInSidebar: true,
+        },
+      },
+    ],
   },
   {
     path: "/settings",
     name: "Settings",
     component: Settings,
     redirect: { name: "SettingProfile" },
+    meta: {
+      icon: "mdi-cog",
+      title: "Settings",
+      showInSidebar: true,
+      sidebarOrder: 10,
+    },
     children: [
       {
         path: "profile",
         name: "SettingProfile",
         component: SettingProfile,
+        meta: {
+          title: "Profile",
+          showInSidebar: true,
+        },
       },
       {
         path: "namespace",
         name: "SettingNamespace",
         component: SettingNamespace,
+        meta: {
+          title: "Namespace",
+          showInSidebar: true,
+          isHidden: () => localStorage.getItem("tenant") === "",
+        },
       },
       {
         path: "private-keys",
         name: "SettingPrivateKeys",
         component: SettingPrivateKeys,
+        meta: {
+          title: "Private Keys",
+          showInSidebar: true,
+        },
       },
       {
         path: "tags",
         name: "SettingTags",
         component: SettingTags,
+        meta: {
+          title: "Tags",
+          showInSidebar: true,
+          isHidden: () => localStorage.getItem("tenant") === "",
+        },
       },
       {
         path: "billing",
@@ -386,23 +527,11 @@ export const routes: Array<RouteRecordRaw> = [
           }
         },
         component: SettingBilling,
-      },
-    ],
-  },
-  {
-    path: "/team",
-    name: "Team",
-    redirect: { name: "ApiKeys" },
-    children: [
-      {
-        path: "api-keys",
-        name: "ApiKeys",
-        component: TeamApiKeys,
-      },
-      {
-        path: "members",
-        name: "Members",
-        component: TeamMembers,
+        meta: {
+          title: "Billing",
+          showInSidebar: true,
+          isHidden: () => !(envVariables.isCloud && localStorage.getItem("tenant") !== ""),
+        },
       },
     ],
   },

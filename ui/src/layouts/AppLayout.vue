@@ -45,7 +45,7 @@
     <v-list density="compact" class="bg-v-theme-surface" data-test="list">
       <template v-for="item in visibleItems" :key="item.title">
         <v-list-group
-          v-if="item.children"
+          v-if="item.children && getFilteredChildren(item.children).length > 0"
           prepend-icon="mdi-chevron-down"
           v-model="subMenuState[item.title]"
           data-test="list-group"
@@ -199,107 +199,41 @@ const hasSpinner = computed({
 });
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
-const showFirewall = computed(() => envVariables.isCommunity && !envVariables.premiumPaywall);
-const hideWebEndpoints = computed(() => !envVariables.hasWebEndpoints);
-const namespacedInstance = computed(() => localStorage.getItem("tenant") !== "");
 
-const items = reactive([
-  {
-    icon: "mdi-home",
-    title: "Home",
-    path: "/",
-  },
-  {
-    icon: "mdi-developer-board",
-    title: "Devices",
-    path: "/devices",
-  },
-  {
-    icon: "mdi-docker",
-    title: "Containers",
-    path: "/containers",
-  },
-  {
-    icon: "mdi-web",
-    title: "Web Endpoints",
-    path: "/webendpoints",
-    hidden: hideWebEndpoints.value,
-    isBeta: true,
-  },
-  {
-    icon: "mdi-server",
-    title: "Connectors",
-    path: "/connectors",
-    isPremium: true,
-    hidden: true,
-  },
-  {
-    icon: "mdi-history",
-    title: "Sessions",
-    path: "/sessions",
-  },
-  {
-    icon: "mdi-security",
-    title: "Firewall Rules",
-    path: "/firewall/rules",
-    isPremium: true,
-    hidden: showFirewall.value,
-  },
-  {
-    icon: "mdi-key",
-    title: "Public Keys",
-    path: "/sshkeys/public-keys",
-  },
-  {
-    icon: "mdi-account-group",
-    title: "Team",
-    path: "/team",
-    children: [
-      {
-        title: "Members",
-        path: "/team/members",
-      },
-      {
-        title: "API Keys",
-        path: "/team/api-keys",
-      },
-    ],
-  },
-  {
-    icon: "mdi-cog",
-    title: "Settings",
-    path: "/settings",
-    children: [
-      {
-        title: "Profile",
-        path: "/settings/profile",
-      },
-      {
-        title: "Namespace",
-        path: "/settings/namespace",
-        hidden: !namespacedInstance.value,
-      },
-      {
-        title: "Private Keys",
-        path: "/settings/private-keys",
-      },
-      {
-        title: "Tags",
-        path: "/settings/tags",
-        hidden: !namespacedInstance.value,
-      },
-      {
-        title: "Billing",
-        path: "/settings/billing",
-        hidden: !(envVariables.isCloud && namespacedInstance.value),
-      },
-    ],
-  },
-]);
+const isItemHidden = (meta?: Record<string, unknown>) => {
+  if (meta?.isHidden && typeof meta.isHidden === "function") return meta.isHidden();
+  return false;
+};
+
+const items = computed(() => {
+  const routes = router.getRoutes();
+
+  // Get all parent routes that should show in sidebar
+  const parentRoutes = routes.filter((route) => route.meta?.showInSidebar && route.meta?.sidebarOrder);
+
+  return parentRoutes
+    .map((route) => ({
+      icon: route.meta?.icon as string,
+      title: route.meta?.title as string,
+      path: route.path,
+      isPremium: route.meta?.isPremium as boolean,
+      isBeta: route.meta?.isBeta as boolean,
+      hidden: isItemHidden(route.meta),
+      sidebarOrder: route.meta?.sidebarOrder as number,
+      children: route.children
+        ?.filter((child) => child.meta?.showInSidebar)
+        .map((child) => ({
+          title: child.meta?.title as string,
+          path: child.path.startsWith("/") ? child.path : `${route.path}/${child.path}`,
+          hidden: isItemHidden(child.meta),
+        })),
+    }))
+    .sort((a, b) => a.sidebarOrder - b.sidebarOrder);
+});
 
 const subMenuState = reactive({});
 
-items.forEach((item) => {
+items.value.forEach((item) => {
   if (item.children) {
     subMenuState[item.title] = false;
   }
@@ -309,7 +243,7 @@ function getFilteredChildren(children) {
   return children.filter((child) => !child.hidden);
 }
 
-const visibleItems = computed(() => items.filter((item) => !item.hidden));
+const visibleItems = computed(() => items.value.filter((item) => !item.hidden));
 
 onMounted(() => { getPrivateKeyList(); });
 
