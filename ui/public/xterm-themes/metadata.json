@@ -1,0 +1,209 @@
+[
+  {
+    "name": "ShellHub Dark",
+    "file": "shellhub_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#18191B",
+      "foreground": "#667ACC"
+    }
+  },
+  {
+    "name": "ShellHub Light",
+    "file": "shellhub_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#F5F5F5",
+      "foreground": "#667ACC"
+    }
+  },
+  {
+    "name": "Terminal Dark",
+    "file": "terminal_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#141729",
+      "foreground": "#21b568"
+    }
+  },
+  {
+    "name": "Terminal Light",
+    "file": "terminal_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#d5dde0",
+      "foreground": "#32364a"
+    }
+  },
+  {
+    "name": "Atom One Dark",
+    "file": "atom_one_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#1e2127",
+      "foreground": "#abb2bf"
+    }
+  },
+  {
+    "name": "Atom One Light",
+    "file": "atom_one_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#f9f9f9",
+      "foreground": "#383a42"
+    }
+  },
+  {
+    "name": "Gruvbox Dark",
+    "file": "gruvbox_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#282828",
+      "foreground": "#ebdbb2"
+    }
+  },
+  {
+    "name": "Gruvbox Light",
+    "file": "gruvbox_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#fbf1c7",
+      "foreground": "#282828"
+    }
+  },
+  {
+    "name": "Material Dark",
+    "file": "material_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#232322",
+      "foreground": "#e5e5e5"
+    }
+  },
+  {
+    "name": "Material Light",
+    "file": "material_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#eaeaea",
+      "foreground": "#2f2f2f"
+    }
+  },
+  {
+    "name": "Basic",
+    "file": "basic.json",
+    "dark": false,
+    "preview": {
+      "background": "#ffffff",
+      "foreground": "#000000"
+    }
+  },
+  {
+    "name": "Homebrew",
+    "file": "homebrew.json",
+    "dark": true,
+    "preview": {
+      "background": "#000000",
+      "foreground": "#00ff00"
+    }
+  },
+  {
+    "name": "Grass",
+    "file": "grass.json",
+    "dark": true,
+    "preview": {
+      "background": "#13773d",
+      "foreground": "#fff0a5"
+    }
+  },
+  {
+    "name": "Man Page",
+    "file": "man_page.json",
+    "dark": false,
+    "preview": {
+      "background": "#fef49c",
+      "foreground": "#000000"
+    }
+  },
+  {
+    "name": "Ocean",
+    "file": "ocean.json",
+    "dark": true,
+    "preview": {
+      "background": "#224fbc",
+      "foreground": "#ffffff"
+    }
+  },
+  {
+    "name": "Pro",
+    "file": "pro.json",
+    "dark": true,
+    "preview": {
+      "background": "#000000",
+      "foreground": "#f2f2f2"
+    }
+  },
+  {
+    "name": "Red Sands",
+    "file": "red_sands.json",
+    "dark": true,
+    "preview": {
+      "background": "#7a251e",
+      "foreground": "#d7c9a7"
+    }
+  },
+  {
+    "name": "Solarized Dark",
+    "file": "solarized_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#002b36",
+      "foreground": "#839496"
+    }
+  },
+  {
+    "name": "Solarized Light",
+    "file": "solarized_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#fdf6e3",
+      "foreground": "#657b83"
+    }
+  },
+  {
+    "name": "Dracula",
+    "file": "dracula.json",
+    "dark": true,
+    "preview": {
+      "background": "#282a36",
+      "foreground": "#f8f8f2"
+    }
+  },
+  {
+    "name": "Monokai",
+    "file": "monokai.json",
+    "dark": true,
+    "preview": {
+      "background": "#0c0c0c",
+      "foreground": "#d9d9d9"
+    }
+  },
+  {
+    "name": "Nord Light",
+    "file": "nord_light.json",
+    "dark": false,
+    "preview": {
+      "background": "#e5e9f0",
+      "foreground": "#414858"
+    }
+  },
+  {
+    "name": "Nord Dark",
+    "file": "nord_dark.json",
+    "dark": true,
+    "preview": {
+      "background": "#2e3440",
+      "foreground": "#d8dee9"
+    }
+  }
+]
