@@ -27,6 +27,7 @@
         </div>
         <slot name="titlebar-content" />
         <v-spacer />
+        <slot name="titlebar-actions" />
         <v-btn
           v-if="showCloseButton"
           icon="mdi-close"
@@ -34,7 +35,6 @@
           @click="$emit('close')"
           data-test="close-btn-toolbar"
         />
-        <slot name="titlebar-actions" />
       </v-toolbar>
 
       <!-- Content -->
