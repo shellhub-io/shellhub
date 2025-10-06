@@ -54,7 +54,7 @@ type TagsStore interface {
 	// TagUpdate updates a tag.
 	//
 	// It returns an error, if any, or store.ErrNoDocuments if the tag does not exist.
-	TagUpdate(ctx context.Context, id string, changes *models.TagChanges) (err error)
+	TagUpdate(ctx context.Context, tag *models.Tag) error
 
 	// TagPushToTarget pushs an existent tag to the provided target.
 	//
@@ -68,8 +68,8 @@ type TagsStore interface {
 	// Returns ErrNoDocuments if no matching documents found or other errors from the operation.
 	TagPullFromTarget(ctx context.Context, id string, target TagTarget, targetIDs ...string) (err error)
 
-	// TagUpdate delete a tag identified by the given name within a namespace with the given tenant ID.
+	// TagUpdate deletes a tag.
 	//
 	// It returns an error, if any, or store.ErrNoDocuments if the tag does not exist.
-	TagDelete(ctx context.Context, id string) (err error)
+	TagDelete(ctx context.Context, tag *models.Tag) error
 }

@@ -347,17 +347,17 @@ func TestStore_TagResolve(t *testing.T) {
 func TestStore_TagUpdate(t *testing.T) {
 	cases := []struct {
 		description   string
-		id            string
-		changes       *models.TagChanges
+		tag           *models.Tag
 		fixtures      []string
 		expected      error
 		assertChanges func(context.Context) error
 	}{
 		{
-			description: "fails when tag is not found",
-			id:          "000000000000000000000000",
-			changes: &models.TagChanges{
-				Name: "edited-tag",
+			description: "fails when tag is not found due to id",
+			tag: &models.Tag{
+				ID:       "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "edited-tag",
 			},
 			fixtures:      []string{fixtureTags},
 			expected:      store.ErrNoDocuments,
@@ -365,9 +365,10 @@ func TestStore_TagUpdate(t *testing.T) {
 		},
 		{
 			description: "succeeds when tag is found",
-			id:          "6791d3ae04ba86e6d7a0514d",
-			changes: &models.TagChanges{
-				Name: "edited-tag",
+			tag: &models.Tag{
+				ID:       "6791d3ae04ba86e6d7a0514d",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "edited-tag",
 			},
 			fixtures: []string{fixtureTags},
 			expected: nil,
@@ -397,7 +398,7 @@ func TestStore_TagUpdate(t *testing.T) {
 				require.NoError(tt, srv.Reset())
 			})
 
-			err := s.TagUpdate(ctx, tc.id, tc.changes)
+			err := s.TagUpdate(ctx, tc.tag)
 			require.Equal(tt, tc.expected, err)
 
 			if err == nil && tc.assertChanges != nil {
@@ -541,21 +542,27 @@ func TestTagPullFromTarget(t *testing.T) {
 func TestStore_TagDelete(t *testing.T) {
 	cases := []struct {
 		description string
-		id          string
+		tag         *models.Tag
 		fixtures    []string
 		expected    error
 	}{
 		{
-			description: "fails when tag is not found",
-			id:          "000000000000000000000000",
-			fixtures:    []string{fixtureTags},
-			expected:    store.ErrNoDocuments,
+			description: "fails when tag is not found due to id",
+			tag: &models.Tag{
+				ID:       "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixtureTags},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when tag is found",
-			id:          "6791d3ae04ba86e6d7a0514d",
-			fixtures:    []string{fixtureTags},
-			expected:    nil,
+			tag: &models.Tag{
+				ID:       "6791d3ae04ba86e6d7a0514d",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixtureTags},
+			expected: nil,
 		},
 	}
 
@@ -568,14 +575,14 @@ func TestStore_TagDelete(t *testing.T) {
 				require.NoError(tt, srv.Reset())
 			})
 
-			err := s.TagDelete(ctx, tc.id)
+			err := s.TagDelete(ctx, tc.tag)
 			require.Equal(tt, tc.expected, err)
 
 			if err != nil {
 				return
 			}
 
-			objID, _ := primitive.ObjectIDFromHex(tc.id)
+			objID, _ := primitive.ObjectIDFromHex(tc.tag.ID)
 			count, err := db.Collection("tags").CountDocuments(ctx, bson.M{"_id": objID})
 			require.NoError(tt, err)
 			require.Equal(tt, int64(0), count)
