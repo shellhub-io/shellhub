@@ -159,16 +159,18 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 	} else {
-		changes := &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil, RemovedAt: device.RemovedAt}
+		device.LastSeen = clock.Now()
+		device.DisconnectedAt = nil
+
 		if device.RemovedAt != nil {
-			changes.Status = models.DeviceStatusPending
+			device.Status = models.DeviceStatusPending
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
 				return nil, err
 			}
 		}
 
 		if req.Info != nil {
-			changes.Info = &models.DeviceInfo{
+			device.Info = &models.DeviceInfo{
 				ID:         req.Info.ID,
 				PrettyName: req.Info.PrettyName,
 				Version:    req.Info.Version,
@@ -177,7 +179,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			}
 		}
 
-		if err := s.store.DeviceUpdate(ctx, req.TenantID, uid, changes); err != nil {
+		if err := s.store.DeviceUpdate(ctx, device); err != nil {
 			log.WithError(err).Error("failed to updated device to online")
 
 			return nil, err
