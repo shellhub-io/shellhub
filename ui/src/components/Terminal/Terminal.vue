@@ -27,6 +27,7 @@
         v-model="selectedThemeName"
         v-model:showDrawer="showThemeDrawer"
         @update:selected-theme="applyTheme"
+        @update:font-settings="applyFontSettings"
         data-test="theme-picker"
       />
     </div>
@@ -91,10 +92,17 @@ const applyTheme = (theme: ITerminalTheme) => {
   xterm.value.options.theme = theme.colors;
 };
 
+const applyFontSettings = (settings: { fontFamily: string; fontSize: number }) => {
+  xterm.value.options.fontSize = settings.fontSize;
+  xterm.value.options.fontFamily = settings.fontFamily;
+  fitAddon.value.fit();
+};
+
 const initializeTerminal = () => {
   xterm.value = new Terminal({
     cursorBlink: true,
-    fontFamily: "monospace",
+    fontFamily: terminalThemeStore.currentFontFamily,
+    fontSize: terminalThemeStore.currentFontSize,
   });
   applyTheme(terminalThemeStore.currentTheme);
   xterm.value.loadAddon(fitAddon.value);
@@ -242,6 +250,7 @@ useEventListener("keyup", handleEscKey);
 
 // Lifecycle: Setup terminal and WebSocket calls
 onMounted(async () => {
+  await terminalThemeStore.loadInitialFont();
   await terminalThemeStore.loadThemes();
   initializeTerminal();
   setupTerminalEvents();

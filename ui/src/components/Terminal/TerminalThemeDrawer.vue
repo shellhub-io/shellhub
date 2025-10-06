@@ -10,6 +10,10 @@
     elevation="8"
   >
     <v-list class="pa-0">
+      <v-list-subheader>Font Settings</v-list-subheader>
+      <TerminalFontPicker @update:font-settings="$emit('update:fontSettings', $event)" />
+      <v-divider />
+      <v-list-subheader>Color Theme</v-list-subheader>
       <TerminalThemePicker
         v-model="selectedTheme"
         @update:selected-theme="$emit('update:selectedTheme', $event)"
@@ -20,10 +24,12 @@
 
 <script setup lang="ts">
 import { ITerminalTheme } from "@/interfaces/ITerminal";
+import TerminalFontPicker from "./TerminalFontPicker.vue";
 import TerminalThemePicker from "./TerminalThemePicker.vue";
 
 defineEmits<{
   "update:selectedTheme": [theme: ITerminalTheme];
+  "update:fontSettings": [settings: { fontFamily: string; fontSize: number }];
 }>();
 
 const selectedTheme = defineModel<string>({ required: true });

@@ -45,7 +45,11 @@ exports[`Terminal.vue > renders the terminal container 1`] = `
                   </div>
                   <div class="text-caption text-medium-emphasis">Connected to test-device</div>
                 </div>
-                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <div class="v-spacer"></div><button data-v-8b2eae94="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="theme-toggle-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-palette-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                   <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                   <!---->
                   <!---->
@@ -58,6 +62,7 @@ exports[`Terminal.vue > renders the terminal container 1`] = `
             </header><!-- Content -->
             <div data-v-8b2eae94="" class="ma-0 pa-0 w-100 fill-height position-relative">
               <div data-v-8b2eae94="" class="terminal" data-test="terminal-container"></div>
+              <div data-v-8b2eae94="" data-test="theme-picker"></div>
             </div><!-- Footer -->
             <!--v-if-->
             <!---->

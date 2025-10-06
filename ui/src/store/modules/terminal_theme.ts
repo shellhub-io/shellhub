@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import FontFaceObserver from "fontfaceobserver";
 import { computed, ref } from "vue";
 import axios from "axios";
 import { ITerminalTheme, IThemeMetadata } from "@/interfaces/ITerminal";
@@ -13,7 +14,51 @@ const fallbackTheme: ITerminalTheme = {
   },
 };
 
+const terminalFontFamilies = [
+  "Monospace",
+  "Source Code Pro",
+  "Inconsolata",
+  "Ubuntu Mono",
+  "Fira Code",
+  "Anonymous Pro",
+  "JetBrains Mono",
+  "Noto Mono",
+] as const;
+
+export type TerminalFontFamily = typeof terminalFontFamilies[number];
+
 const useTerminalThemeStore = defineStore("terminal-theme", () => {
+  const availableFonts = ref(terminalFontFamilies);
+  const currentFontFamily = ref<TerminalFontFamily>(localStorage.getItem("terminalFontFamily") as TerminalFontFamily || "Monospace");
+  const currentFontSize = ref<number>(parseInt(localStorage.getItem("terminalFontSize") || "15", 10));
+
+  const setFontSettings = async (fontFamily: TerminalFontFamily, fontSize: number) => {
+    const font = new FontFaceObserver(fontFamily);
+    try {
+      if (fontFamily !== "Monospace") await font.load();
+      currentFontFamily.value = fontFamily;
+      currentFontSize.value = fontSize;
+      localStorage.setItem("terminalFontFamily", fontFamily);
+      localStorage.setItem("terminalFontSize", fontSize.toString());
+    } catch (error) {
+      // Font failed to load, keep current settings
+      handleError(new Error(`Failed to load font ${fontFamily}:`, { cause: error }));
+    }
+  };
+
+  const loadInitialFont = async () => {
+    // No need to load the browser's default monospace font
+    if (currentFontFamily.value === "Monospace") return;
+
+    const font = new FontFaceObserver(currentFontFamily.value);
+    try {
+      await font.load();
+    } catch {
+      currentFontFamily.value = "Monospace";
+      localStorage.setItem("terminalFontFamily", "Monospace");
+    }
+  };
+
   const terminalThemes = ref<ITerminalTheme[]>();
   const currentThemeName = ref<string>(localStorage.getItem("terminalTheme") || "ShellHub Dark");
   const currentTheme = computed(() => terminalThemes.value?.find((theme) => theme.name === currentThemeName.value) || fallbackTheme);
@@ -53,7 +98,19 @@ const useTerminalThemeStore = defineStore("terminal-theme", () => {
     localStorage.setItem("terminalTheme", themeName);
   };
 
-  return { terminalThemes, currentThemeName, currentTheme, loadThemes, setTheme };
+  return {
+    availableFonts,
+    currentFontFamily,
+    currentFontSize,
+    setFontSettings,
+    loadInitialFont,
+
+    terminalThemes,
+    currentThemeName,
+    currentTheme,
+    loadThemes,
+    setTheme,
+  };
 });
 
 export default useTerminalThemeStore;
