@@ -17,6 +17,13 @@
   },
   "dependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@fontsource/anonymous-pro": "^5.2.8",
+    "@fontsource/fira-code": "^5.2.7",
+    "@fontsource/inconsolata": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/noto-mono": "^5.2.5",
+    "@fontsource/source-code-pro": "^5.2.7",
+    "@fontsource/ubuntu-mono": "^5.2.8",
     "@fortawesome/fontawesome-free": "^7.0.0",
     "@fortawesome/fontawesome-svg-core": "^7.0.0",
     "@fortawesome/free-brands-svg-icons": "^7.0.0",
@@ -34,6 +41,9 @@
     "@vue/eslint-config-typescript": "^11.0.2",
     "@vue/runtime-dom": "^3.2.40",
     "@vueuse/core": "^13.0.0",
+    "@xterm/addon-attach": "^0.11.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
     "assert": "^2.0.0",
     "axios": "^1.4.0",
     "dotenv": "^16.0.3",
@@ -57,10 +67,7 @@
     "vue-router": "4",
     "vuetify": "^3.4.9",
     "webcrypto": "^0.1.1",
-    "webfontloader": "^1.6.28",
-    "@xterm/xterm": "^5.5.0",
-    "@xterm/addon-attach": "^0.11.0",
-    "@xterm/addon-fit": "^0.10.0"
+    "webfontloader": "^1.6.28"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
