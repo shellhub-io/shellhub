@@ -199,7 +199,7 @@ exports[`Billing Dialog > Renders the component (Checkout window) 1`] = `
                                   <div data-v-ec12e293="" class="v-col v-col-4"><b data-v-ec12e293="">xxxxxxxxxxxx4242</b></div>
                                   <div data-v-ec12e293="" class="v-col v-col-2">3/2029</div>
                                   <div data-v-ec12e293="" class="v-col v-col-2"></div>
-                                  <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-17"><!----><span class="v-chip__underlay"></span>
+                                  <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-18"><!----><span class="v-chip__underlay"></span>
                                     <!---->
                                     <!---->
                                     <div class="v-chip__content" data-no-activator=""><b data-v-ec12e293="">default</b>
@@ -278,7 +278,7 @@ exports[`Billing Dialog > Renders the component (Checkout window) 1`] = `
                                   <div class="v-col v-col-3"><b>xxxxxxxxxxxx4242</b></div>
                                   <div class="v-col v-col-3">3/2029</div>
                                   <div class="v-col v-col-2"></div>
-                                  <div class="v-col v-col-3"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-19"><!----><span class="v-chip__underlay"></span>
+                                  <div class="v-col v-col-3"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-21"><!----><span class="v-chip__underlay"></span>
                                     <!---->
                                     <!---->
                                     <div class="v-chip__content" data-no-activator=""><b>default</b>
@@ -361,7 +361,7 @@ exports[`Billing Dialog > Renders the component (Checkout window) 1`] = `
         </div>
       </transition-stub>
     </div>
-    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-17" role="tooltip" data-v-ec12e293="">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-18" role="tooltip" data-v-ec12e293="">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <!---->
       </transition-stub>
@@ -369,7 +369,7 @@ exports[`Billing Dialog > Renders the component (Checkout window) 1`] = `
         <div class="v-overlay__content" style="min-width: 0px; display: none;">This payment method will be used on your subscription</div>
       </transition-stub>
     </div>
-    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-19" role="tooltip">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-21" role="tooltip">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <!---->
       </transition-stub>
@@ -580,7 +580,7 @@ exports[`Billing Dialog > Renders the component (Payment Details window) 1`] = `
                                   <div data-v-ec12e293="" class="v-col v-col-4"><b data-v-ec12e293="">xxxxxxxxxxxx4242</b></div>
                                   <div data-v-ec12e293="" class="v-col v-col-2">3/2029</div>
                                   <div data-v-ec12e293="" class="v-col v-col-2"></div>
-                                  <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-17"><!----><span class="v-chip__underlay"></span>
+                                  <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-18"><!----><span class="v-chip__underlay"></span>
                                     <!---->
                                     <!---->
                                     <div class="v-chip__content" data-no-activator=""><b data-v-ec12e293="">default</b>
@@ -660,7 +660,7 @@ exports[`Billing Dialog > Renders the component (Payment Details window) 1`] = `
         </div>
       </transition-stub>
     </div>
-    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-17" role="tooltip" data-v-ec12e293="">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-18" role="tooltip" data-v-ec12e293="">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <!---->
       </transition-stub>
@@ -871,7 +871,7 @@ exports[`Billing Dialog > Renders the component (Success window) 1`] = `
                                   <div data-v-ec12e293="" class="v-col v-col-4"><b data-v-ec12e293="">xxxxxxxxxxxx4242</b></div>
                                   <div data-v-ec12e293="" class="v-col v-col-2">3/2029</div>
                                   <div data-v-ec12e293="" class="v-col v-col-2"></div>
-                                  <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-17"><!----><span class="v-chip__underlay"></span>
+                                  <div data-v-ec12e293="" class="v-col v-col-3"><span data-v-ec12e293="" class="v-chip v-theme--light v-chip--density-comfortable v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-18"><!----><span class="v-chip__underlay"></span>
                                     <!---->
                                     <!---->
                                     <div class="v-chip__content" data-no-activator=""><b data-v-ec12e293="">default</b>
@@ -950,7 +950,7 @@ exports[`Billing Dialog > Renders the component (Success window) 1`] = `
                                   <div class="v-col v-col-3"><b>xxxxxxxxxxxx4242</b></div>
                                   <div class="v-col v-col-3">3/2029</div>
                                   <div class="v-col v-col-2"></div>
-                                  <div class="v-col v-col-3"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-19"><!----><span class="v-chip__underlay"></span>
+                                  <div class="v-col v-col-3"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-21"><!----><span class="v-chip__underlay"></span>
                                     <!---->
                                     <!---->
                                     <div class="v-chip__content" data-no-activator=""><b>default</b>
@@ -1048,7 +1048,7 @@ exports[`Billing Dialog > Renders the component (Success window) 1`] = `
         </div>
       </transition-stub>
     </div>
-    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-17" role="tooltip" data-v-ec12e293="">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-18" role="tooltip" data-v-ec12e293="">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <!---->
       </transition-stub>
@@ -1056,7 +1056,7 @@ exports[`Billing Dialog > Renders the component (Success window) 1`] = `
         <div class="v-overlay__content" style="min-width: 0px; display: none;">This payment method will be used on your subscription</div>
       </transition-stub>
     </div>
-    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-19" role="tooltip">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-21" role="tooltip">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <!---->
       </transition-stub>
@@ -1128,7 +1128,7 @@ exports[`Billing Dialog > Renders the component (Welcome window) 1`] = `
               <div class="v-window v-theme--light">
                 <div class="v-window__container">
                   <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
-                    <div class="v-window-item v-window-item--active">
+                    <div class="v-window-item v-window-item--active" style="">
                       <div class="v-card-title mb-1 pt-0" align="center" data-test="title">ShellHub Cloud Premium Subscription</div>
                       <div data-test="text" class="text-justify">
                         <p> Our hosted service helps you manage your devices, with costs based on your device count. It's perfect for easy, secure, and remote control, whatever your fleet size. </p>

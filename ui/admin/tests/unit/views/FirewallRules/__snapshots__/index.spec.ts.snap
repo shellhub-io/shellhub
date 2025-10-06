@@ -56,7 +56,7 @@ exports[`Firewall Rules > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-9"></a>
+              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-10"></a>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>

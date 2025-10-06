@@ -179,7 +179,7 @@ exports[`Connector Form > Renders the component 1`] = `
                   <div class="v-window__container">
                     <!-- Default buttons window -->
                     <transition-stub name="" appear="false" persisted="false" css="true">
-                      <div class="v-window-item v-window-item--active w-100">
+                      <div class="v-window-item v-window-item--active w-100" style="">
                         <div class="d-flex align-center w-100">
                           <!-- Helper text on the left -->
                           <div class="text-caption text-medium-emphasis"><span>Secure your connection using TLS Certificates, find out more information in the</span><a href="https://docs.docker.com/engine/security/protect-access/#use-tls-https-to-protect-the-docker-daemon-socket" target="_blank" class="text-decoration-none text-primary ml-1" rel="noopener noreferrer">Docker Documentation <i class="mdi-open-in-new mdi v-icon notranslate v-theme--light ml-1" style="font-size: 12px; height: 12px; width: 12px;" aria-hidden="true"></i></a></div>
@@ -393,7 +393,7 @@ exports[`Connector Form > Renders the component 1`] = `
                   <div class="v-window__container">
                     <!-- Default buttons window -->
                     <transition-stub name="" appear="false" persisted="false" css="true">
-                      <div class="v-window-item v-window-item--active w-100">
+                      <div class="v-window-item v-window-item--active w-100" style="">
                         <div class="d-flex align-center w-100">
                           <!-- Helper text on the left -->
                           <div class="text-caption text-medium-emphasis"><span>Secure your connection using TLS Certificates, find out more information in the</span><a href="https://docs.docker.com/engine/security/protect-access/#use-tls-https-to-protect-the-docker-daemon-socket" target="_blank" class="text-decoration-none text-primary ml-1" rel="noopener noreferrer">Docker Documentation <i class="mdi-open-in-new mdi v-icon notranslate v-theme--light ml-1" style="font-size: 12px; height: 12px; width: 12px;" aria-hidden="true"></i></a></div>
