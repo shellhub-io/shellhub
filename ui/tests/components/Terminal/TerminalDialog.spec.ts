@@ -8,6 +8,7 @@ import { createPinia, setActivePinia } from "pinia";
 import TerminalDialog from "@/components/Terminal/TerminalDialog.vue";
 import { routes } from "@/router";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
+import useTerminalThemeStore from "@/store/modules/terminal_theme";
 
 vi.mock("@xterm/xterm", () => ({
   Terminal: vi.fn().mockImplementation(() => ({
@@ -19,6 +20,7 @@ vi.mock("@xterm/xterm", () => ({
     loadAddon: vi.fn(),
     cols: 80,
     rows: 24,
+    options: {},
   })),
 }));
 
@@ -32,6 +34,8 @@ describe("Terminal Dialog", async () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalDialog>>;
   let dialog: DOMWrapper<HTMLElement>;
   setActivePinia(createPinia());
+  const terminalThemeStore = useTerminalThemeStore();
+  terminalThemeStore.loadThemes = vi.fn().mockResolvedValue(true);
 
   const router = createRouter({
     history: createWebHistory(),
@@ -43,6 +47,13 @@ describe("Terminal Dialog", async () => {
     wrapper = mount(TerminalDialog, {
       global: {
         plugins: [vuetify, router],
+        stubs: {
+          TerminalThemeDrawer: {
+            template: "<div />",
+            props: ["modelValue", "showDrawer"],
+            emits: ["update:selectedTheme", "update:fontSettings"],
+          },
+        },
       },
       props: {
         modelValue: true,

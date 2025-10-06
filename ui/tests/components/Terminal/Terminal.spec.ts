@@ -1,7 +1,9 @@
+import { setActivePinia, createPinia } from "pinia";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { describe, it, beforeEach, vi, expect } from "vitest";
 import Terminal from "@/components/Terminal/Terminal.vue";
+import useTerminalThemeStore from "@/store/modules/terminal_theme";
 
 class MockWebSocket {
   public readyState: number = WebSocket.CONNECTING;
@@ -29,6 +31,7 @@ vi.mock("@xterm/xterm", () => ({
     loadAddon: vi.fn(),
     cols: 80,
     rows: 24,
+    options: {},
   })),
 }));
 
@@ -41,11 +44,27 @@ vi.mock("@xterm/addon-fit", () => ({
 describe("Terminal.vue", () => {
   let wrapper: VueWrapper<InstanceType<typeof Terminal>>;
   const vuetify = createVuetify();
+  setActivePinia(createPinia());
+  const terminalThemeStore = useTerminalThemeStore();
+  terminalThemeStore.loadThemes = vi.fn().mockResolvedValue(true);
+  terminalThemeStore.loadInitialFont = vi.fn().mockResolvedValue(true);
+  terminalThemeStore.$patch({
+    currentFontFamily: "Monospace",
+    currentFontSize: 15,
+    currentThemeName: "ShellHub Dark",
+  });
 
   beforeEach(() => {
     wrapper = mount(Terminal, {
       global: {
         plugins: [vuetify],
+        stubs: {
+          TerminalThemeDrawer: {
+            template: "<div />",
+            props: ["modelValue", "showDrawer"],
+            emits: ["update:selectedTheme", "update:fontSettings"],
+          },
+        },
       },
       props: {
         modelValue: true,
@@ -79,10 +98,8 @@ describe("Terminal.vue", () => {
     const { Terminal: MockTerminal } = await import("@xterm/xterm");
     expect(MockTerminal).toHaveBeenCalledWith({
       cursorBlink: true,
-      fontFamily: "monospace",
-      theme: {
-        background: "#0f1526",
-      },
+      fontFamily: "Monospace",
+      fontSize: 15,
     });
   });
 

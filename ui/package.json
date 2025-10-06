@@ -50,6 +50,7 @@
     "express": "^4.18.1",
     "file-saver": "^2.0.5",
     "font-logos": "^1.0.0",
+    "fontfaceobserver": "^2.3.0",
     "gitter-sidecar": "^1.5.0",
     "markdown-it": "^14.0.0",
     "moment": "^2.29.4",
