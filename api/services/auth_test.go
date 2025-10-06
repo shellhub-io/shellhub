@@ -173,6 +173,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -184,16 +185,22 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+				expectedDevice.Info = &models.DeviceInfo{
+					ID:         "test",
+					PrettyName: "Test",
+					Version:    "v0.20.0",
+					Arch:       "arch64",
+					Platform:   "native",
+				}
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{Info: &models.DeviceInfo{
-						ID:         "test",
-						PrettyName: "Test",
-						Version:    "v0.20.0",
-						Arch:       "arch64",
-						Platform:   "native",
-					}, LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -214,6 +221,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -225,10 +233,15 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -250,6 +263,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -261,10 +275,15 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -295,6 +314,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -306,10 +326,15 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -354,6 +379,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -365,16 +391,22 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+				expectedDevice.Info = &models.DeviceInfo{
+					ID:         "test",
+					PrettyName: "Test",
+					Version:    "v0.20.0",
+					Arch:       "arch64",
+					Platform:   "native",
+				}
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{Info: &models.DeviceInfo{
-						ID:         "test",
-						PrettyName: "Test",
-						Version:    "v0.20.0",
-						Arch:       "arch64",
-						Platform:   "native",
-					}, LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -405,6 +437,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname", RemovedAt: &now, Status: models.DeviceStatusRemoved}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -416,20 +449,21 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname", RemovedAt: &now}, nil).
+					Return(device, nil).
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+				expectedDevice.RemovedAt = &now
+				expectedDevice.Status = models.DeviceStatusPending
+
 				storeMock.
-					On(
-						"DeviceUpdate",
-						ctx,
-						"00000000-0000-4000-0000-000000000000",
-						uid,
-						&models.DeviceChanges{Info: nil, LastSeen: now, DisconnectedAt: nil, RemovedAt: &now, Status: models.DeviceStatusPending},
-					).
+					On("DeviceUpdate", ctx, device).
 					Return(nil).
 					Once()
 				cacheMock.

@@ -43,7 +43,7 @@ func (s *service) DevicesHeartbeat() worker.TaskHandler {
 		slices.Sort(uids)
 		uids = slices.Compact(uids)
 
-		mCount, err := s.store.DeviceBulkUpdate(ctx, uids, &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil})
+		mCount, err := s.store.DeviceHeartbeat(ctx, uids, clock.Now())
 		if err != nil {
 			log.WithField("task", TaskDevicesHeartbeat.String()).
 				WithError(err).
@@ -119,19 +119,26 @@ func (s *service) deviceCleanup() store.TransactionCb {
 				return err
 			}
 
+			if len(devices) == 0 {
+				continue
+			}
+
 			log.WithFields(log.Fields{"page": page + 1, "total_pages": totalPages, "devices": len(devices)}).
 				Info("Processing page of removed devices")
 
-			for _, device := range devices {
-				if err := s.store.DeviceDelete(ctx, models.UID(device.UID)); err != nil {
-					log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).Error("Failed to delete removed device")
-
-					return err
-				}
-
-				log.WithFields(log.Fields{"device_uid": device.UID}).Debug("Successfully deleted removed device")
+			uids := make([]string, len(devices))
+			for i, device := range devices {
+				uids[i] = device.UID
 				totalDeleted++
 				deletedPerTenant[device.TenantID]++
+			}
+
+			if _, err := s.store.DeviceDeleteMany(ctx, uids); err != nil {
+				log.WithField("page", page+1).
+					WithError(err).
+					Info("Failed to delete devices")
+
+				return err
 			}
 
 			log.WithFields(log.Fields{"page": page + 1, "total_pages": totalPages, "devices": len(devices), "total_deleted": totalDeleted}).

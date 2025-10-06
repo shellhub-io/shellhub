@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -46,11 +47,13 @@ type DeviceStore interface {
 	// It returns an array of conflicting attribute fields and an error, if any.
 	DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) (conflicts []string, has bool, err error)
 
-	// DeviceUpdate updates a device with the specified UID that belongs to the specified namespace. It returns [ErrNoDocuments] if none device is found.
-	DeviceUpdate(ctx context.Context, tenant, uid string, changes *models.DeviceChanges) error
-	// DeviceBulkdUpdate updates a list of devices. Different than [DeviceStore.DeviceUpdate], it does not differentiate namespaces.
-	// It returns the number of  modified devices and an error if any.
-	DeviceBulkUpdate(ctx context.Context, uids []string, changes *models.DeviceChanges) (modifiedCount int64, err error)
+	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found.
+	DeviceUpdate(ctx context.Context, device *models.Device) error
+	// DeviceHeartbeat updates the last_seen timestamp and sets disconnected_at to nil for multiple devices.
+	// It returns the number of modified devices and an error if any.
+	DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (modifiedCount int64, err error)
 
-	DeviceDelete(ctx context.Context, uid models.UID) error
+	DeviceDelete(ctx context.Context, device *models.Device) error
+	// DeviceDeleteMany deletes multiple devices by their UIDs.
+	DeviceDeleteMany(ctx context.Context, uids []string) (deletedCount int64, err error)
 }
