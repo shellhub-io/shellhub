@@ -51,7 +51,7 @@ exports[`Connector List > Renders the component 1`] = `
               <div data-v-6fdd6bd6=""><span data-v-6fdd6bd6="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="ip-chip"><!----><span class="v-chip__underlay"></span>
                 <!---->
                 <!---->
-                <div class="v-chip__content" data-no-activator=""><span data-v-6fdd6bd6="" aria-describedby="v-tooltip-v-4" class="hover-text">127.0.0.1:2375</span>
+                <div class="v-chip__content" data-no-activator=""><span data-v-6fdd6bd6="" aria-describedby="v-tooltip-v-5" class="hover-text">127.0.0.1:2375</span>
                   <!--teleport start-->
                   <!--teleport end-->
                 </div>
@@ -62,7 +62,7 @@ exports[`Connector List > Renders the component 1`] = `
               </div>
             </td>
             <td data-v-6fdd6bd6="" class="text-center"><i data-v-6fdd6bd6="" class="mdi-lock-open-alert mdi v-icon notranslate v-theme--light text-grey-darken-2 mr-1" style="font-size: 26px; height: 26px; width: 26px;" aria-hidden="true" data-test="secure-icon"></i></td>
-            <td data-v-6fdd6bd6="" class="text-center" data-test="menu-key-component"><button data-v-6fdd6bd6="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-5" data-test="connector-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <td data-v-6fdd6bd6="" class="text-center" data-test="menu-key-component"><button data-v-6fdd6bd6="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-6" data-test="connector-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                 <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                 <!---->
                 <!---->
@@ -94,7 +94,7 @@ exports[`Connector List > Renders the component 1`] = `
       <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
         <!---->
         <div class="v-input__control">
-          <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-9">
+          <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-10">
             <div class="v-field__overlay"></div>
             <div class="v-field__loader">
               <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -118,7 +118,7 @@ exports[`Connector List > Renders the component 1`] = `
               <div class="v-field__input" data-no-activator="">
                 <!---->
                 <!---->
-                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-11" aria-expanded="false" aria-controls="menu-v-9" outlined="" value="10">
+                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-12" aria-expanded="false" aria-controls="menu-v-10" outlined="" value="10">
               </div>
               <!---->
             </div>

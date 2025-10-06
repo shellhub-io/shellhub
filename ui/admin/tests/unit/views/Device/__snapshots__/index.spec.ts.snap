@@ -109,7 +109,7 @@ exports[`Device > Renders the component 1`] = `
                   <!---->
                   <!----></span>
                 </td>
-                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-19"></a>
+                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-21"></a>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>
@@ -120,7 +120,7 @@ exports[`Device > Renders the component 1`] = `
                 <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-linuxmint" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
                 <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
                 <td data-v-aca44803="">
-                  <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-20"><!----><span class="v-chip__underlay"></span>
+                  <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-22"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
                     <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -138,7 +138,7 @@ exports[`Device > Renders the component 1`] = `
                   <!---->
                   <!----></span>
                 </td>
-                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-23"></a>
+                <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-27"></a>
                   <!--teleport start-->
                   <!--teleport end-->
                 </td>

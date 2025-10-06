@@ -26,7 +26,7 @@ exports[`Sessions List > Renders the component 1`] = `
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
-              <td data-v-d900b695=""><span data-v-d900b695="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-2"><!----><span class="v-chip__underlay"></span>
+              <td data-v-d900b695=""><span data-v-d900b695="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-3"><!----><span class="v-chip__underlay"></span>
                 <!---->
                 <!---->
                 <div class="v-chip__content" data-no-activator="">8c354a00f5...
@@ -39,7 +39,7 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="" tabindex="0" class="hover">39-5e-2a</span></td>
               <td data-v-d900b695="">user</td>
-              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-3"></i>
+              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-4"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -52,17 +52,17 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="">Monday, May 18th 2020, 12:30:28 pm</span></td>
               <td data-v-d900b695="">Monday, May 18th 2020, 12:30:30 pm</td>
-              <td data-v-d900b695=""><a data-v-d900b695="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-5"></a>
+              <td data-v-d900b695=""><a data-v-d900b695="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-7"></a>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
             </tr>
             <tr data-v-d900b695="">
-              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" aria-describedby="v-tooltip-v-6"></i>
+              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" aria-describedby="v-tooltip-v-8"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
-              <td data-v-d900b695=""><span data-v-d900b695="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-8"><!----><span class="v-chip__underlay"></span>
+              <td data-v-d900b695=""><span data-v-d900b695="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-11"><!----><span class="v-chip__underlay"></span>
                 <!---->
                 <!---->
                 <div class="v-chip__content" data-no-activator="">8c354a00f5...
@@ -75,7 +75,7 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="" tabindex="0" class="hover">b4-2e-99</span></td>
               <td data-v-d900b695="">user</td>
-              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-9"></i>
+              <td data-v-d900b695=""><i data-v-d900b695="" class="mdi-shield-alert mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" aria-describedby="v-tooltip-v-12"></i>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -88,7 +88,7 @@ exports[`Sessions List > Renders the component 1`] = `
               </td>
               <td data-v-d900b695=""><span data-v-d900b695="">Monday, May 18th 2020, 12:30:28 pm</span></td>
               <td data-v-d900b695="">Monday, May 18th 2020, 12:30:30 pm</td>
-              <td data-v-d900b695=""><a data-v-d900b695="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-11"></a>
+              <td data-v-d900b695=""><a data-v-d900b695="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-15"></a>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
@@ -105,7 +105,7 @@ exports[`Sessions List > Renders the component 1`] = `
         <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
           <!---->
           <div class="v-input__control">
-            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-12">
+            <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-16">
               <div class="v-field__overlay"></div>
               <div class="v-field__loader">
                 <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -129,7 +129,7 @@ exports[`Sessions List > Renders the component 1`] = `
                 <div class="v-field__input" data-no-activator="">
                   <!---->
                   <!---->
-                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-14" aria-expanded="false" aria-controls="menu-v-12" outlined="" value="10">
+                  <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-18" aria-expanded="false" aria-controls="menu-v-16" outlined="" value="10">
                 </div>
                 <!---->
               </div>

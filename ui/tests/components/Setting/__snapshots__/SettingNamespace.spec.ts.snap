@@ -185,7 +185,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                       <!---->
                       <!---->
                     </div>
-                    <div class="v-selection-control__input"><input checked="" id="switch-v-7" aria-disabled="false" type="checkbox" value="true">
+                    <div class="v-selection-control__input"><input checked="" id="switch-v-8" aria-disabled="false" type="checkbox" value="true">
                       <div class="v-switch__thumb">
                         <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->

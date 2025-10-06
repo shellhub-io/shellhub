@@ -206,7 +206,7 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                   <div class="v-window__container">
                     <!-- Default buttons window -->
                     <transition-stub name="" appear="false" persisted="false" css="true">
-                      <div class="v-window-item v-window-item--active w-100">
+                      <div class="v-window-item v-window-item--active w-100" style="">
                         <div class="d-flex align-center w-100">
                           <!-- Helper text on the left -->
                           <!--v-if-->
@@ -447,7 +447,7 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                   <div class="v-window__container">
                     <!-- Default buttons window -->
                     <transition-stub name="" appear="false" persisted="false" css="true">
-                      <div class="v-window-item v-window-item--active w-100">
+                      <div class="v-window-item v-window-item--active w-100" style="">
                         <div class="d-flex align-center w-100">
                           <!-- Helper text on the left -->
                           <!--v-if-->
