@@ -116,7 +116,7 @@ func TestSetup(t *testing.T) {
 			expected: NewErrUserDuplicated([]string{"userteste"}, errors.New("error", "", 0)),
 		},
 		{
-			description: "Fail when cannot create namespace",
+			description: "Fail when cannot create namespace, and user deletion fails",
 			req: requests.Setup{
 				Email:    "teste@google.com",
 				Name:     "userteste",
@@ -124,15 +124,6 @@ func TestSetup(t *testing.T) {
 				Password: "secret",
 			},
 			requiredMocks: func() {
-				storeMock.On("SystemGet", ctx).Return(&models.System{
-					Setup: false,
-				}, nil).Once()
-
-				hashMock.
-					On("Do", "secret").
-					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
-					Once()
-
 				user := &models.User{
 					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
@@ -151,44 +142,26 @@ func TestSetup(t *testing.T) {
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
-
-				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
-
-				namespace := &models.Namespace{
-					Name:       "userteste",
-					TenantID:   tenant,
-					Owner:      "000000000000000000000000",
-					MaxDevices: -1,
-					Type:       models.TypePersonal,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
-							AddedAt: now,
-						},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          false,
-						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-					},
+				userWithID := &models.User{
+					ID:        "000000000000000000000000",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
 					CreatedAt: now,
+					UserData: models.UserData{
+						Name:     "userteste",
+						Email:    "teste@google.com",
+						Username: "userteste",
+					},
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
+					},
+					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
 				}
 
-				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
-				storeMock.On("UserDelete", ctx, "000000000000000000000000").Return(nil).Once()
-			},
-			expected: NewErrNamespaceDuplicated(errors.New("error", "", 0)),
-		},
-		{
-			description: "Fail when cannot create namespace, and user deletion fails",
-			req: requests.Setup{
-				Email:    "teste@google.com",
-				Name:     "userteste",
-				Username: "userteste",
-				Password: "secret",
-			},
-			requiredMocks: func() {
 				storeMock.On("SystemGet", ctx).Return(&models.System{
 					Setup: false,
 				}, nil).Once()
@@ -203,6 +176,43 @@ func TestSetup(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
+				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
+
+				namespace := &models.Namespace{
+					Name:       "userteste",
+					TenantID:   tenant,
+					Owner:      "000000000000000000000000",
+					MaxDevices: -1,
+					Type:       models.TypePersonal,
+					Members: []models.Member{
+						{
+							ID:      "000000000000000000000000",
+							Role:    authorizer.RoleOwner,
+							Status:  models.MemberStatusAccepted,
+							AddedAt: now,
+						},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          false,
+						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+					},
+					CreatedAt: now,
+				}
+
+				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
+				storeMock.On("UserDelete", ctx, userWithID).Return(errors.New("error", "", 0)).Once()
+			},
+			expected: NewErrUserDelete(errors.New("error", "", 0)),
+		},
+		{
+			description: "Fail when cannot create namespace, and user deletion fails",
+			req: requests.Setup{
+				Email:    "teste@google.com",
+				Name:     "userteste",
+				Username: "userteste",
+				Password: "secret",
+			},
+			requiredMocks: func() {
 				user := &models.User{
 					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
@@ -221,6 +231,39 @@ func TestSetup(t *testing.T) {
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+				userWithID := &models.User{
+					ID:        "000000000000000000000000",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					CreatedAt: now,
+					UserData: models.UserData{
+						Name:     "userteste",
+						Email:    "teste@google.com",
+						Username: "userteste",
+					},
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
+					},
+					MaxNamespaces: -1,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
+
+				storeMock.On("SystemGet", ctx).Return(&models.System{
+					Setup: false,
+				}, nil).Once()
+
+				clockMock.On("Now").Return(now).Twice()
+
+				uuidMock := &uuidmock.Uuid{}
+				uuidMock.On("Generate").Return("random_uuid").Once()
+
+				hashMock.
+					On("Do", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
 
 				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
 
@@ -246,7 +289,7 @@ func TestSetup(t *testing.T) {
 				}
 
 				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
-				storeMock.On("UserDelete", ctx, "000000000000000000000000").Return(errors.New("error", "", 0)).Once()
+				storeMock.On("UserDelete", ctx, userWithID).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrUserDelete(errors.New("error", "", 0)),
 		},

@@ -310,15 +310,16 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
-	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
+	user.LastLogin = clock.Now()
+	user.Preferences.PreferredNamespace = tenantID
 	if !strings.HasPrefix(user.Password.Hash, "$") {
 		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
-			changes.Password = neo.Hash
+			user.Password = neo
 		}
 	}
 
 	// TODO: evaluate make this update in a go routine.
-	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
+	if err := s.store.UserUpdate(ctx, user); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -391,7 +392,11 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			_ = s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &tenantID})
+			user.Preferences.PreferredNamespace = tenantID
+			// TODO: evaluate make this update in a go routine.
+			if err := s.store.UserUpdate(ctx, user); err != nil {
+				return nil, NewErrUserUpdate(user, err)
+			}
 		}
 	}
 
