@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
-	storemocks "github.com/shellhub-io/shellhub/api/store/mocks"
+	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -18,7 +18,7 @@ import (
 )
 
 func TestService_DevicesHeartbeat(t *testing.T) {
-	storeMock := new(storemocks.Store)
+	storeMock := new(storemock.Store)
 	clockMock := new(clockmock.Clock)
 
 	clock.DefaultBackend = clockMock
@@ -37,10 +37,10 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On(
-						"DeviceBulkUpdate",
+						"DeviceHeartbeat",
 						ctx,
 						[]string{"0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000001"},
-						&models.DeviceChanges{LastSeen: now, DisconnectedAt: nil},
+						now,
 					).
 					Return(int64(0), errors.New("error")).
 					Once()
@@ -53,10 +53,10 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On(
-						"DeviceBulkUpdate",
+						"DeviceHeartbeat",
 						ctx,
 						[]string{"0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000001"},
-						&models.DeviceChanges{LastSeen: now, DisconnectedAt: nil},
+						now,
 					).
 					Return(int64(2), nil).
 					Once()
@@ -69,10 +69,10 @@ func TestService_DevicesHeartbeat(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On(
-						"DeviceBulkUpdate",
+						"DeviceHeartbeat",
 						ctx,
 						[]string{"0000000000000000000000000000000000000000000000000000000000000000", "0000000000000000000000000000000000000000000000000000000000000001"},
-						&models.DeviceChanges{LastSeen: now, DisconnectedAt: nil},
+						now,
 					).
 					Return(int64(2), nil).
 					Once()
@@ -134,7 +134,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 		}
 	}
 
-	storeMock := new(storemocks.Store)
+	storeMock := new(storemock.Store)
 	clockMock := new(clockmock.Clock)
 
 	clock.DefaultBackend = clockMock
@@ -142,7 +142,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 	now := time.Now()
 	clockMock.On("Now").Return(now)
 
-	queryOptionsMock := new(storemocks.QueryOptions)
+	queryOptionsMock := new(storemock.QueryOptions)
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
@@ -246,12 +246,8 @@ func TestService_DeviceCleanup(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-1")).
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-2")).
-					Return(errors.New("delete error")).
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2"}).
+					Return(int64(0), errors.New("delete error")).
 					Once()
 			},
 			expected: errors.New("delete error"),
@@ -292,16 +288,8 @@ func TestService_DeviceCleanup(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-1")).
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-2")).
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-3")).
-					Return(nil).
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
+					Return(int64(3), nil).
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, "tenant-1", models.DeviceStatusRemoved, int64(-2)).
@@ -350,16 +338,8 @@ func TestService_DeviceCleanup(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-1")).
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-2")).
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-3")).
-					Return(nil).
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
+					Return(int64(3), nil).
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, "tenant-1", models.DeviceStatusRemoved, int64(-2)).
@@ -406,8 +386,8 @@ func TestService_DeviceCleanup(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-1")).
-					Return(nil).
+					On("DeviceDeleteMany", ctx, []string{"device-1"}).
+					Return(int64(1), nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
@@ -432,8 +412,8 @@ func TestService_DeviceCleanup(t *testing.T) {
 					).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, models.UID("device-2")).
-					Return(nil).
+					On("DeviceDeleteMany", ctx, []string{"device-2"}).
+					Return(int64(1), nil).
 					Once()
 				queryOptionsMock.
 					On("Match", mock.MatchedBy(matchFilter())).
