@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -136,7 +137,11 @@ func (s *service) UpdateTag(ctx context.Context, req *requests.UpdateTag) ([]str
 		return conflicts, NewErrTagDuplicated(req.NewName, err)
 	}
 
-	if err := s.store.TagUpdate(ctx, tag.ID, &models.TagChanges{Name: req.NewName}); err != nil {
+	if req.NewName != "" && !strings.EqualFold(req.NewName, tag.Name) {
+		tag.Name = req.NewName
+	}
+
+	if err := s.store.TagUpdate(ctx, tag); err != nil {
 		return nil, err
 	}
 
@@ -164,6 +169,6 @@ func (s *service) deleteTagCallback(req *requests.DeleteTag) store.TransactionCb
 			}
 		}
 
-		return s.store.TagDelete(ctx, tag.ID)
+		return s.store.TagDelete(ctx, tag)
 	}
 }
