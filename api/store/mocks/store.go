@@ -1665,17 +1665,17 @@ func (_m *Store) UserCreateInvited(ctx context.Context, email string) (string, e
 	return r0, r1
 }
 
-// UserDelete provides a mock function with given fields: ctx, id
-func (_m *Store) UserDelete(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// UserDelete provides a mock function with given fields: ctx, user
+func (_m *Store) UserDelete(ctx context.Context, user *models.User) error {
+	ret := _m.Called(ctx, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserDelete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
+		r0 = rf(ctx, user)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1794,17 +1794,17 @@ func (_m *Store) UserResolve(ctx context.Context, resolver store.UserResolver, v
 	return r0, r1
 }
 
-// UserUpdate provides a mock function with given fields: ctx, id, changes
-func (_m *Store) UserUpdate(ctx context.Context, id string, changes *models.UserChanges) error {
-	ret := _m.Called(ctx, id, changes)
+// UserUpdate provides a mock function with given fields: ctx, user
+func (_m *Store) UserUpdate(ctx context.Context, user *models.User) error {
+	ret := _m.Called(ctx, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserUpdate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *models.UserChanges) error); ok {
-		r0 = rf(ctx, id, changes)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
+		r0 = rf(ctx, user)
 	} else {
 		r0 = ret.Error(0)
 	}

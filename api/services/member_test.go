@@ -1706,6 +1706,49 @@ func TestService_LeaveNamespace(t *testing.T) {
 				AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Status:    models.UserStatusConfirmed,
+					Origin:    models.UserOriginLocal,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
+				updatedUser := &models.User{
+					ID:        "000000000000000000000000",
+					Status:    models.UserStatusConfirmed,
+					Origin:    models.UserOriginLocal,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
@@ -1724,9 +1767,12 @@ func TestService_LeaveNamespace(t *testing.T) {
 					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
 					Return(nil).
 					Once()
-				emptyString := ""
 				storeMock.
-					On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{PreferredNamespace: &emptyString}).
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(user, nil).
+					Once()
+				storeMock.
+					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -1739,30 +1785,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 				// we are duplicating the test here to prevent failures. The important tests are all in the lines above.
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(
-						&models.User{
-							ID:        "000000000000000000000000",
-							Status:    models.UserStatusConfirmed,
-							Origin:    models.UserOriginLocal,
-							LastLogin: now,
-							MFA: models.UserMFA{
-								Enabled: false,
-							},
-							UserData: models.UserData{
-								Username: "john_doe",
-								Email:    "john.doe@test.com",
-								Name:     "john doe",
-							},
-							Password: models.UserPassword{
-								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-							},
-							Preferences: models.UserPreferences{
-								PreferredNamespace: "",
-								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
-							},
-						},
-						nil,
-					).
+					Return(user, nil).
 					Once()
 				storeMock.
 					On("NamespaceGetPreferred", ctx, "000000000000000000000000").
