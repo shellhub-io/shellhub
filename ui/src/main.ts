@@ -11,6 +11,13 @@ import App from "./App.vue";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import "@/nodespecific";
 import { loadFonts } from "./plugins/webfontloader";
+import "@fontsource/fira-code";
+import "@fontsource/source-code-pro";
+import "@fontsource/jetbrains-mono";
+import "@fontsource/ubuntu-mono";
+import "@fontsource/noto-mono";
+import "@fontsource/inconsolata";
+import "@fontsource/anonymous-pro";
 import { SnackbarPlugin } from "./plugins/snackbar";
 
 const pinia = createPinia();
