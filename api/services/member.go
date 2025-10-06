@@ -252,8 +252,13 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, nil
 	}
 
-	emptyString := "" // just to be used as a pointer
-	if err := s.store.UserUpdate(ctx, req.UserID, &models.UserChanges{PreferredNamespace: &emptyString}); err != nil {
+	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
+	if user == nil {
+		return nil, NewErrUserNotFound(req.UserID, err)
+	}
+
+	user.Preferences.PreferredNamespace = ""
+	if err := s.store.UserUpdate(ctx, user); err != nil {
 		log.WithError(err).
 			WithField("tenant_id", req.TenantID).
 			WithField("user_id", req.UserID).

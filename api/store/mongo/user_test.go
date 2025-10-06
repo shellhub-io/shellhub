@@ -515,63 +515,79 @@ func TestUserConflicts(t *testing.T) {
 
 func TestUserUpdate(t *testing.T) {
 	type Expected struct {
-		changes *models.UserChanges
-		err     error
+		user *models.User
+		err  error
 	}
 
 	cases := []struct {
 		description string
-		id          string
-		changes     *models.UserChanges
+		user        *models.User
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when user is not found",
-			id:          "000000000000000000000000",
-			changes:     &models.UserChanges{},
-			fixtures:    []string{fixtureUsers},
+			user: &models.User{
+				ID: "000000000000000000000000",
+			},
+			fixtures: []string{fixtureUsers},
 			expected: Expected{
-				changes: nil,
-				err:     store.ErrNoDocuments,
+				user: nil,
+				err:  store.ErrNoDocuments,
 			},
 		},
 		{
 			description: "succeeds when updating string values",
-			id:          "507f1f77bcf86cd799439011",
-			changes: &models.UserChanges{
-				Name:   "New Value",
-				Email:  "new.value@test.com",
-				Status: models.UserStatusNotConfirmed,
+			user: &models.User{
+				ID:        "507f1f77bcf86cd799439011",
+				LastLogin: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+				UserData: models.UserData{
+					Name:     "New Value",
+					Email:    "new.value@test.com",
+					Username: "john_doe",
+				},
+				Status:   models.UserStatusNotConfirmed,
+				Password: models.UserPassword{Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4"},
 			},
 			fixtures: []string{fixtureUsers},
 			expected: Expected{
-				changes: &models.UserChanges{
+				user: &models.User{
 					LastLogin: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "New Value",
-					Email:     "new.value@test.com",
-					Username:  "john_doe",
-					Status:    models.UserStatusNotConfirmed,
-					Password:  "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					UserData: models.UserData{
+						Name:     "New Value",
+						Email:    "new.value@test.com",
+						Username: "john_doe",
+					},
+					Status:   models.UserStatusNotConfirmed,
+					Password: models.UserPassword{Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4"},
 				},
 				err: nil,
 			},
 		},
 		{
 			description: "succeeds when updating time values",
-			id:          "507f1f77bcf86cd799439011",
-			changes: &models.UserChanges{
+			user: &models.User{
+				ID:        "507f1f77bcf86cd799439011",
 				LastLogin: time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC),
+				UserData: models.UserData{
+					Name:     "john doe",
+					Email:    "john.doe@test.com",
+					Username: "john_doe",
+				},
+				Status:   models.UserStatusConfirmed,
+				Password: models.UserPassword{Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4"},
 			},
 			fixtures: []string{fixtureUsers},
 			expected: Expected{
-				changes: &models.UserChanges{
+				user: &models.User{
 					LastLogin: time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC),
-					Name:      "john doe",
-					Email:     "john.doe@test.com",
-					Username:  "john_doe",
-					Status:    models.UserStatusConfirmed,
-					Password:  "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
+					UserData: models.UserData{
+						Name:     "john doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					Status:   models.UserStatusConfirmed,
+					Password: models.UserPassword{Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4"},
 				},
 				err: nil,
 			},
@@ -585,25 +601,24 @@ func TestUserUpdate(t *testing.T) {
 			require.NoError(t, srv.Apply(tc.fixtures...))
 			t.Cleanup(func() { require.NoError(t, srv.Reset()) })
 
-			if err := s.UserUpdate(ctx, tc.id, tc.changes); err != nil {
+			if err := s.UserUpdate(ctx, tc.user); err != nil {
 				require.Equal(t, tc.expected.err, err)
 
 				return
 			}
 
-			id, err := primitive.ObjectIDFromHex(tc.id)
+			id, err := primitive.ObjectIDFromHex(tc.user.ID)
 			require.NoError(t, err)
 
 			user := new(models.User)
 			require.NoError(t, db.Collection("users").FindOne(ctx, bson.M{"_id": id}).Decode(user))
 
-			// Ensures that only the expected attributes have been updated.
-			require.Equal(t, tc.expected.changes.LastLogin, user.LastLogin)
-			require.Equal(t, tc.expected.changes.Name, user.Name)
-			require.Equal(t, tc.expected.changes.Email, user.Email)
-			require.Equal(t, tc.expected.changes.Status, user.Status)
-			require.Equal(t, tc.expected.changes.Username, user.Username)
-			require.Equal(t, tc.expected.changes.Password, user.Password.Hash)
+			require.Equal(t, tc.expected.user.LastLogin, user.LastLogin)
+			require.Equal(t, tc.expected.user.Name, user.Name)
+			require.Equal(t, tc.expected.user.Email, user.Email)
+			require.Equal(t, tc.expected.user.Status, user.Status)
+			require.Equal(t, tc.expected.user.Username, user.Username)
+			require.Equal(t, tc.expected.user.Password.Hash, user.Password.Hash)
 		})
 	}
 }
@@ -611,21 +626,25 @@ func TestUserUpdate(t *testing.T) {
 func TestUserDelete(t *testing.T) {
 	cases := []struct {
 		description string
-		id          string
+		user        *models.User
 		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when user is not found",
-			id:          "000000000000000000000000",
-			fixtures:    []string{fixtureUsers},
-			expected:    store.ErrNoDocuments,
+			user: &models.User{
+				ID: "000000000000000000000000",
+			},
+			fixtures: []string{fixtureUsers},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when user is found",
-			id:          "507f1f77bcf86cd799439011",
-			fixtures:    []string{fixtureUsers},
-			expected:    nil,
+			user: &models.User{
+				ID: "507f1f77bcf86cd799439011",
+			},
+			fixtures: []string{fixtureUsers},
+			expected: nil,
 		},
 	}
 
@@ -638,7 +657,7 @@ func TestUserDelete(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.UserDelete(ctx, tc.id)
+			err := s.UserDelete(ctx, tc.user)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
