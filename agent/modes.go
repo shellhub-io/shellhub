@@ -1,14 +1,14 @@
-package agent
+package main
 
 import (
 	"context"
 	"os/exec"
 
 	dockerclient "github.com/docker/docker/client"
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
-	"github.com/shellhub-io/shellhub/pkg/agent/server"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/connector"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
+	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
+	"github.com/shellhub-io/shellhub/agent/server"
+	"github.com/shellhub-io/shellhub/agent/server/modes/connector"
+	"github.com/shellhub-io/shellhub/agent/server/modes/host"
 )
 
 type Info struct {

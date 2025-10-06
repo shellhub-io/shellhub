@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
@@ -85,5 +85,5 @@ func nsenterCommandWrapper(uid, gid uint32, home string, command ...string) ([]s
 
 // SFTPServerCommand creates the command used by agent to start the SFTP server used in a SFTP connection.
 func SFTPServerCommand() *exec.Cmd {
-	return exec.Command("/proc/self/exe", []string{"sftp", string(SFTPServerModeDocker)}...)
+	return exec.Command("/proc/self/exe", []string{"sftp", string(SFTPServerModeDocker)}...) //nolint:gosec
 }

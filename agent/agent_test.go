@@ -1,4 +1,4 @@
-package agent
+package main
 
 import (
 	"testing"

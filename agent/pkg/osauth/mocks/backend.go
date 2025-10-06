@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	osauth "github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	osauth "github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	mock "github.com/stretchr/testify/mock"
 )
 

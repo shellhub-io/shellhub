@@ -7,8 +7,8 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host"
+	"github.com/shellhub-io/shellhub/agent/server/modes"
+	"github.com/shellhub-io/shellhub/agent/server/modes/host"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"

@@ -9,23 +9,14 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/shellhub-io/shellhub/pkg/agent"
-	"github.com/shellhub-io/shellhub/pkg/agent/connector"
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/selfupdater"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/agent/pkg/connector"
+	"github.com/shellhub-io/shellhub/agent/pkg/selfupdater"
+	"github.com/shellhub-io/shellhub/agent/server/modes/host/command"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
-
-// AgentVersion store the version to be embed inside the binary. This is
-// injected using `-ldflags` build option (e.g: `go build -ldflags "-X
-// main.AgentVersion=1.2.3"`).
-//
-// If set to `latest`, the auto-updating mechanism is disabled. This is intended
-// to be used during development only.
-var AgentVersion string
 
 func main() {
 	// Default command.
@@ -34,7 +25,7 @@ func main() {
 		Run: func(cmd *cobra.Command, _ []string) {
 			loglevel.SetLogLevel()
 
-			cfg, fields, err := agent.LoadConfigFromEnv()
+			cfg, fields, err := LoadConfigFromEnv()
 			if err != nil {
 				log.WithError(err).WithFields(fields).Fatal("Failed to load de configuration from the environmental variables")
 			}
@@ -85,7 +76,7 @@ func main() {
 				"mode":    mode,
 			}).Info("Starting ShellHub")
 
-			ag, err := agent.NewAgentWithConfig(cfg, new(agent.HostMode))
+			ag, err := NewAgentWithConfig(cfg, new(HostMode))
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
@@ -206,7 +197,7 @@ func main() {
 				}
 			}
 
-			cfg, fields, err := connector.LoadConfigFromEnv()
+			cfg, fields, err := LoadConfigConnectorFromEnv()
 			if err != nil {
 				log.WithError(err).
 					WithFields(fields).
@@ -227,7 +218,7 @@ func main() {
 			logger.Info("Starting ShellHub Agent Connector")
 
 			connector.ConnectorVersion = AgentVersion
-			connector, err := connector.NewDockerConnector(cfg)
+			connector, err := NewDockerConnector(cfg)
 			if err != nil {
 				logger.Fatal("Failed to create ShellHub Agent Connector")
 			}
@@ -281,12 +272,12 @@ func main() {
 		Run: func(cmd *cobra.Command, _ []string) {
 			loglevel.SetLogLevel()
 
-			cfg, err := envs.ParseWithPrefix[agent.Config]("SHELLHUB_")
+			cfg, err := envs.ParseWithPrefix[Config]("SHELLHUB_")
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			info, err := agent.GetInfo(cfg)
+			info, err := GetInfo(cfg)
 			if err != nil {
 				log.WithError(err).WithFields(log.Fields{
 					"version":       AgentVersion,
@@ -321,7 +312,7 @@ func main() {
 		Long: `Starts the SFTP server. This command is used internally by the agent and should not be used directly.
 It is initialized by the agent when a new SFTP session is created.`,
 		Run: func(_ *cobra.Command, args []string) {
-			agent.NewSFTPServer(command.SFTPServerMode(args[0]))
+			NewSFTPServer(command.SFTPServerMode(args[0]))
 		},
 	})
 
@@ -330,9 +321,6 @@ It is initialized by the agent when a new SFTP session is created.`,
 	rootCmd.SetVersionTemplate(fmt.Sprintf("{{ .Name }} version: {{ .Version }}\ngo: %s\n",
 		runtime.Version(),
 	))
-
-	agent.AgentVersion = AgentVersion
-	agent.AgentPlatform = AgentPlatform
 
 	rootCmd.Execute() // nolint: errcheck
 }

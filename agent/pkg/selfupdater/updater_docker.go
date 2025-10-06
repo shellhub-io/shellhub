@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
 	dockerimage "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
@@ -21,7 +20,7 @@ import (
 )
 
 type dockerContainer struct {
-	info *types.ContainerJSON
+	info *containertypes.InspectResponse
 }
 
 func (c *dockerContainer) splitImageVersion() (image, version string) {
@@ -36,7 +35,7 @@ func (c *dockerContainer) splitImageVersion() (image, version string) {
 }
 
 type dockerUpdater struct {
-	api client.CommonAPIClient
+	api client.APIClient
 }
 
 func (d *dockerUpdater) CurrentVersion() (*semver.Version, error) {
@@ -190,6 +189,7 @@ func (d *dockerUpdater) removeContainer(container *dockerContainer) error {
 	ctx := context.Background()
 
 	opts := containertypes.RemoveOptions{Force: true, RemoveVolumes: true}
+
 	return d.api.ContainerRemove(ctx, container.info.ID, opts)
 }
 

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 	log "github.com/sirupsen/logrus"
 )
 
