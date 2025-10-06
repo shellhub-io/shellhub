@@ -1394,17 +1394,17 @@ func (_m *Store) TagCreate(ctx context.Context, tag *models.Tag) (string, error)
 	return r0, r1
 }
 
-// TagDelete provides a mock function with given fields: ctx, id
-func (_m *Store) TagDelete(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// TagDelete provides a mock function with given fields: ctx, tag
+func (_m *Store) TagDelete(ctx context.Context, tag *models.Tag) error {
+	ret := _m.Called(ctx, tag)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TagDelete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Tag) error); ok {
+		r0 = rf(ctx, tag)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1536,17 +1536,17 @@ func (_m *Store) TagResolve(ctx context.Context, resolver store.TagResolver, val
 	return r0, r1
 }
 
-// TagUpdate provides a mock function with given fields: ctx, id, changes
-func (_m *Store) TagUpdate(ctx context.Context, id string, changes *models.TagChanges) error {
-	ret := _m.Called(ctx, id, changes)
+// TagUpdate provides a mock function with given fields: ctx, tag
+func (_m *Store) TagUpdate(ctx context.Context, tag *models.Tag) error {
+	ret := _m.Called(ctx, tag)
 
 	if len(ret) == 0 {
 		panic("no return value specified for TagUpdate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *models.TagChanges) error); ok {
-		r0 = rf(ctx, id, changes)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Tag) error); ok {
+		r0 = rf(ctx, tag)
 	} else {
 		r0 = ret.Error(0)
 	}
