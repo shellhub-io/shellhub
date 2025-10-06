@@ -793,43 +793,36 @@ func TestDeviceConflicts(t *testing.T) {
 func TestDeviceUpdate(t *testing.T) {
 	cases := []struct {
 		description string
-		tenantID    string
-		uid         string
-		changes     *models.DeviceChanges
+		device      *models.Device
 		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when the device is not found due to uid",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			uid:         "nonexistent",
-			changes:     &models.DeviceChanges{},
-			fixtures:    []string{fixtureDevices},
-			expected:    store.ErrNoDocuments,
+			device: &models.Device{
+				UID:      "nonexistent",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixtureDevices},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "fails when the device is not found due to tenantID",
-			tenantID:    "nonexistent",
-			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-			changes:     &models.DeviceChanges{},
-			fixtures:    []string{fixtureDevices},
-			expected:    store.ErrNoDocuments,
+			device: &models.Device{
+				UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+				TenantID: "nonexistent",
+			},
+			fixtures: []string{fixtureDevices},
+			expected: store.ErrNoDocuments,
 		},
 		{
-			description: "succeeds when the device is found with tenant",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-			changes:     &models.DeviceChanges{},
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
-		},
-		{
-			description: "succeeds when the device is found without tenant",
-			tenantID:    "",
-			uid:         "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
-			changes:     &models.DeviceChanges{},
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
+			description: "succeeds when the device",
+			device: &models.Device{
+				UID:      "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixtureDevices},
+			expected: nil,
 		},
 	}
 
@@ -842,13 +835,13 @@ func TestDeviceUpdate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.DeviceUpdate(ctx, tc.tenantID, tc.uid, tc.changes)
+			err := s.DeviceUpdate(ctx, tc.device)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestDeviceBulkUpdate(t *testing.T) {
+func TestDeviceHeartbeat(t *testing.T) {
 	type Expected struct {
 		modifiedCount int64
 		err           error
@@ -857,23 +850,32 @@ func TestDeviceBulkUpdate(t *testing.T) {
 	cases := []struct {
 		description string
 		uids        []string
-		changes     *models.DeviceChanges
+		lastSeen    time.Time
 		fixtures    []string
 		expected    Expected
 	}{
 		{
-			description: "succeeds when a device does not matches",
-			uids:        []string{"0000000000000000000000000000000000000000000000000000000000000000"},
-			changes:     &models.DeviceChanges{},
+			description: "succeeds when no devices match",
+			uids:        []string{"nonexistent1", "nonexistent2"},
+			lastSeen:    time.Now(),
 			fixtures:    []string{fixtureDevices},
-			expected:    Expected{int64(0), nil},
+			expected: Expected{
+				modifiedCount: 0,
+				err:           nil,
+			},
 		},
 		{
-			description: "succeeds when devices matches",
-			uids:        []string{"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c", "4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e"},
-			changes:     &models.DeviceChanges{LastSeen: time.Now()},
-			fixtures:    []string{fixtureDevices},
-			expected:    Expected{int64(2), nil},
+			description: "succeeds when devices match",
+			uids: []string{
+				"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+				"4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+			},
+			lastSeen: time.Now(),
+			fixtures: []string{fixtureDevices},
+			expected: Expected{
+				modifiedCount: 2,
+				err:           nil,
+			},
 		},
 	}
 
@@ -886,18 +888,18 @@ func TestDeviceBulkUpdate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			modifiedCount, err := s.DeviceBulkUpdate(ctx, tc.uids, tc.changes)
+			modifiedCount, err := s.DeviceHeartbeat(ctx, tc.uids, tc.lastSeen)
 			require.Equal(t, Expected{modifiedCount: modifiedCount, err: err}, tc.expected)
 
-			cursor, err := db.Collection("devices").Find(ctx, bson.M{"uid": bson.M{"$in": tc.uids}})
-			require.NoError(t, err)
+			if tc.expected.modifiedCount > 0 {
+				cursor, err := db.Collection("devices").Find(ctx, bson.M{"uid": bson.M{"$in": tc.uids}})
+				require.NoError(t, err)
 
-			for cursor.Next(ctx) {
-				device := new(models.Device)
-				require.NoError(t, cursor.Decode(device))
-
-				if tc.changes.LastSeen != (time.Time{}) {
-					require.WithinDuration(t, tc.changes.LastSeen, device.LastSeen, 2*time.Second)
+				for cursor.Next(ctx) {
+					device := new(models.Device)
+					require.NoError(t, cursor.Decode(device))
+					require.WithinDuration(t, tc.lastSeen, device.LastSeen, 2*time.Second)
+					require.Nil(t, device.DisconnectedAt)
 				}
 			}
 		})
@@ -907,21 +909,25 @@ func TestDeviceBulkUpdate(t *testing.T) {
 func TestDeviceDelete(t *testing.T) {
 	cases := []struct {
 		description string
-		uid         models.UID
+		device      *models.Device
 		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when device is not found",
-			uid:         models.UID("nonexistent"),
-			fixtures:    []string{fixtureDevices},
-			expected:    store.ErrNoDocuments,
+			device: &models.Device{
+				UID: "nonexistent",
+			},
+			fixtures: []string{fixtureDevices},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when device is found",
-			uid:         models.UID("2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c"),
-			fixtures:    []string{fixtureDevices},
-			expected:    nil,
+			device: &models.Device{
+				UID: "2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+			},
+			fixtures: []string{fixtureDevices},
+			expected: nil,
 		},
 	}
 
@@ -934,8 +940,65 @@ func TestDeviceDelete(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.DeviceDelete(ctx, tc.uid)
+			err := s.DeviceDelete(ctx, tc.device)
 			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestDeviceDeleteMany(t *testing.T) {
+	type Expected struct {
+		deletedCount int64
+		err          error
+	}
+
+	cases := []struct {
+		description string
+		uids        []string
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "succeeds when no devices match",
+			uids:        []string{},
+			fixtures:    []string{fixtureDevices},
+			expected: Expected{
+				deletedCount: 0,
+				err:          nil,
+			},
+		},
+		{
+			description: "succeeds when devices match",
+			uids: []string{
+				"2300230e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809c",
+				"4300430e3ca2f637636b4d025d2235269014865db5204b6d115386cbee89809e",
+			},
+			fixtures: []string{fixtureDevices},
+			expected: Expected{
+				deletedCount: 2,
+				err:          nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			deletedCount, err := s.DeviceDeleteMany(ctx, tc.uids)
+			require.Equal(t, tc.expected, Expected{deletedCount, err})
+			if tc.expected.deletedCount > 0 {
+				for _, uid := range tc.uids {
+					count, err := db.Collection("devices").CountDocuments(ctx, bson.M{"uid": uid})
+					require.NoError(t, err)
+					require.Equal(t, int64(0), count)
+				}
+			}
 		})
 	}
 }

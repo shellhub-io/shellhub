@@ -99,15 +99,6 @@ func NewDeviceTag(tag string) DeviceTag {
 	}
 }
 
-type DeviceChanges struct {
-	Info           *DeviceInfo  `bson:"info,omitempty"`
-	Name           string       `bson:"name,omitempty"`
-	LastSeen       time.Time    `bson:"last_seen,omitempty"`
-	DisconnectedAt *time.Time   `bson:"disconnected_at"`
-	RemovedAt      *time.Time   `json:"removed_at" bson:"removed_at"`
-	Status         DeviceStatus `bson:"status,omitempty"`
-}
-
 // DeviceConflicts holds user attributes that must be unique for each itam and can be utilized in queries
 // to identify conflicts.
 type DeviceConflicts struct {
