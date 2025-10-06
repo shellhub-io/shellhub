@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 
 	gliderssh "github.com/gliderlabs/ssh"
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
+	"github.com/shellhub-io/shellhub/agent/server/modes"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"

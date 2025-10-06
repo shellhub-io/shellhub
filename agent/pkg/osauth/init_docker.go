@@ -4,6 +4,6 @@
 package osauth
 
 func init() {
-	DefaultPasswdFilename = "/host/etc/passwd"
+	DefaultPasswdFilename = "/host/etc/passwd" //nolint: gosec
 	DefaultShadowFilename = "/host/etc/shadow"
 }

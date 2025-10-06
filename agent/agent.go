@@ -36,7 +36,7 @@
 //	}
 //
 // [ShellHub Agent]: https://github.com/shellhub-io/shellhub/tree/master/agent
-package agent
+package main
 
 import (
 	"context"
@@ -59,31 +59,16 @@ import (
 	dockerclient "github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/keygen"
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/sysinfo"
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/tunnel"
-	"github.com/shellhub-io/shellhub/pkg/agent/server"
+	"github.com/shellhub-io/shellhub/agent/pkg/keygen"
+	"github.com/shellhub-io/shellhub/agent/pkg/sysinfo"
+	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
+	"github.com/shellhub-io/shellhub/agent/server"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 )
-
-// AgentVersion store the version to be embed inside the binary. This is
-// injected using `-ldflags` build option.
-//
-//	go build -ldflags "-X main.AgentVersion=1.2.3"
-//
-// If set to `latest`, the auto-updating mechanism is disabled. This is intended
-// to be used during development only.
-var AgentVersion string
-
-// AgentPlatform stores what platform the agent is running on. This is injected in build time in the [ShellHub Agent]
-// implementation.
-//
-// [ShellHub Agent]: https://github.com/shellhub-io/shellhub/tree/master/agent
-var AgentPlatform string
 
 // Config provides the configuration for the agent service.
 type Config struct {

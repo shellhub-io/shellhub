@@ -11,7 +11,7 @@ import (
 	dockercontainer "github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/process"
-	"github.com/shellhub-io/shellhub/pkg/agent/pkg/osauth"
+	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
 )
 
 type Mode struct {

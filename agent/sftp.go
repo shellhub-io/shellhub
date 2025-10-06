@@ -1,4 +1,4 @@
-package agent
+package main
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/pkg/sftp"
-	"github.com/shellhub-io/shellhub/pkg/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/agent/server/modes/host/command"
 )
 
 type pipe struct {
