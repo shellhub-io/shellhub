@@ -49,7 +49,7 @@ func (c *client) SessionCreate(ctx context.Context, session requests.SessionCrea
 		SetBody(session).
 		Post(c.config.APIBaseURL + "/internal/sessions")
 
-	return NewError(resp, err)
+	return HasError(resp, err)
 }
 
 func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
@@ -62,7 +62,7 @@ func (c *client) SessionAsAuthenticated(ctx context.Context, uid string) error {
 		}).
 		Patch(c.config.APIBaseURL + "/internal/sessions/{uid}")
 
-	return NewError(resp, err)
+	return HasError(resp, err)
 }
 
 func (c *client) FinishSession(ctx context.Context, uid string) error {
@@ -72,7 +72,7 @@ func (c *client) FinishSession(ctx context.Context, uid string) error {
 		SetPathParam("uid", uid).
 		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/finish")
 
-	return NewError(resp, err)
+	return HasError(resp, err)
 }
 
 func (c *client) KeepAliveSession(ctx context.Context, uid string) error {
@@ -82,7 +82,7 @@ func (c *client) KeepAliveSession(ctx context.Context, uid string) error {
 		SetPathParam("uid", uid).
 		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/keepalive")
 
-	return NewError(resp, err)
+	return HasError(resp, err)
 }
 
 func (c *client) UpdateSession(ctx context.Context, uid string, model *models.SessionUpdate) error {
@@ -95,7 +95,7 @@ func (c *client) UpdateSession(ctx context.Context, uid string, model *models.Se
 		SetBody(model).
 		Patch(c.config.APIBaseURL + "/internal/sessions/{tenant}")
 
-	return NewError(res, err)
+	return HasError(res, err)
 }
 
 func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket.Conn, error) {
@@ -113,7 +113,7 @@ func (c *client) EventSessionStream(ctx context.Context, uid string) (*websocket
 		nil,
 	)
 	if err != nil {
-		return nil, NewError(nil, err)
+		return nil, HasError(nil, err)
 	}
 
 	return connection, nil
@@ -128,8 +128,8 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 			"seat": strconv.Itoa(seat),
 		}).
 		Post(c.config.EnterpriseBaseURL + "/internal/sessions/{uid}/records/{seat}")
-	if HasError(resp, err) {
-		return NewError(resp, err)
+	if err := HasError(resp, err); err != nil {
+		return err
 	}
 
 	if resp.StatusCode() == http.StatusNotAcceptable {
@@ -143,5 +143,5 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 		return nil
 	}
 
-	return NewError(resp, err)
+	return HasError(resp, err)
 }

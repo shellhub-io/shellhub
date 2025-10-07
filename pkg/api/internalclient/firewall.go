@@ -18,5 +18,5 @@ func (c *client) FirewallEvaluate(ctx context.Context, lookup map[string]string)
 		SetQueryParams(lookup).
 		Get(c.config.EnterpriseBaseURL + "/internal/firewall/rules/evaluate")
 
-	return NewError(resp, err)
+	return HasError(resp, err)
 }

@@ -38,7 +38,7 @@ func (c *client) DevicesOffline(ctx context.Context, uid string) error {
 		SetPathParam("uid", uid).
 		Post(c.config.APIBaseURL + "/internal/devices/{uid}/offline")
 
-	return NewError(res, err)
+	return HasError(res, err)
 }
 
 func (c *client) DevicesHeartbeat(ctx context.Context, uid string) error {
@@ -56,8 +56,8 @@ func (c *client) Lookup(ctx context.Context, lookup map[string]string) (string, 
 		SetQueryParams(lookup).
 		SetResult(&device).
 		Get(c.config.APIBaseURL + "/internal/lookup")
-	if HasError(resp, err) {
-		return "", NewError(resp, err)
+	if err := HasError(resp, err); err != nil {
+		return "", err
 	}
 
 	return device.UID, nil
@@ -73,8 +73,8 @@ func (c *client) DeviceLookup(ctx context.Context, tenantID, name string) (*mode
 		SetQueryParam("name", name).
 		SetResult(&device).
 		Get(c.config.APIBaseURL + "/internal/device/lookup")
-	if HasError(resp, err) {
-		return nil, NewError(resp, err)
+	if err := HasError(resp, err); err != nil {
+		return nil, err
 	}
 
 	return device, nil
@@ -88,8 +88,8 @@ func (c *client) ListDevices(ctx context.Context) ([]models.Device, error) {
 		SetContext(ctx).
 		SetResult(&list).
 		Get(c.config.APIBaseURL + "/api/devices")
-	if HasError(resp, err) {
-		return nil, NewError(resp, err)
+	if err := HasError(resp, err); err != nil {
+		return nil, err
 	}
 
 	return list, nil
@@ -102,8 +102,8 @@ func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, err
 		SetContext(ctx).
 		SetResult(&device).
 		Get(c.config.APIBaseURL + "/api/devices/{uid}")
-	if HasError(resp, err) {
-		return nil, NewError(resp, err)
+	if err := HasError(resp, err); err != nil {
+		return nil, err
 	}
 
 	return device, nil
@@ -129,8 +129,8 @@ func (c *client) LookupWebEndpoints(ctx context.Context, address string) (*WebEn
 		SetPathParam("address", address).
 		SetResult(&endpoint).
 		Get(c.config.EnterpriseBaseURL + "/internal/web-endpoints/{address}")
-	if HasError(resp, err) {
-		return nil, NewError(resp, err)
+	if err := HasError(resp, err); err != nil {
+		return nil, err
 	}
 
 	return endpoint, nil
