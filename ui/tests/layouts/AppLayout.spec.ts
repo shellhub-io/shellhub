@@ -16,6 +16,34 @@ import useSpinnerStore from "@/store/modules/spinner";
 let mockDevices: MockAdapter;
 let mockContainers: MockAdapter;
 
+const cards = [
+  {
+    title: "ShellHub Cloud",
+    features: [
+      "Protection Against DDoS Attacks",
+      "Session record and playback",
+      "Managing Firewall Rules",
+      "Secure remote communication",
+    ],
+    button: {
+      link: "https://www.shellhub.io/pricing",
+      label: "Pricing",
+    },
+  },
+  {
+    title: "ShellHub Enterprise",
+    features: [
+      "Dedicated server for each customer",
+      "Supports up to thousands of devices",
+      "Reduced maintenance cost",
+    ],
+    button: {
+      link: "https://www.shellhub.io/pricing",
+      label: "Get a quote",
+    },
+  },
+];
+
 describe("App Layout Component", () => {
   let wrapper;
   setActivePinia(createPinia());
@@ -25,6 +53,9 @@ describe("App Layout Component", () => {
     directives,
   });
 
+  vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
+    json: async () => (cards),
+  })));
   const AppWrapperComponent = defineComponent({
     components: { AppLayout },
     template: `
