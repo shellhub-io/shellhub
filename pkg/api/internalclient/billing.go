@@ -25,7 +25,7 @@ func (c *client) BillingReport(ctx context.Context, tenant string, action string
 		SetQueryParam("action", action).
 		Post(c.config.EnterpriseBaseURL + "/internal/billing/report")
 
-	return NewError(res, err)
+	return HasError(res, err)
 }
 
 func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.BillingEvaluation, error) {
@@ -37,8 +37,8 @@ func (c *client) BillingEvaluate(ctx context.Context, tenantID string) (*models.
 		SetHeader("X-Tenant-ID", tenantID).
 		SetResult(&eval).
 		Post(c.config.EnterpriseBaseURL + "/internal/billing/evaluate")
-	if HasError(resp, err) {
-		return nil, NewError(resp, err)
+	if err := HasError(resp, err); err != nil {
+		return nil, err
 	}
 
 	return eval, nil
