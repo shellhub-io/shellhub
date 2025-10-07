@@ -8,7 +8,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
-	"github.com/shellhub-io/shellhub/agent/pkg/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/agent/server/modes/host/command"
 )
 
 func generateShellCmd(deviceName string, session gliderssh.Session, term string) *exec.Cmd {
