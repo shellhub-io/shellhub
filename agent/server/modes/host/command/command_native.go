@@ -29,11 +29,20 @@ func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...
 	}
 
 	cmd := exec.Command(command[0], command[1:]...) //nolint:gosec
+	// TODO: There are other environment variables we could set like SSH_CONNECTION, SSH_TTY, SSH_ORIGINAL_COMMAND, etc.
+	// We need to check which ones are relevant and set them accordingly.
+	// https://en.wikibooks.org/wiki/OpenSSH/Client_Applications
 	cmd.Env = []string{
 		"TERM=" + term,
 		"HOME=" + u.HomeDir,
 		"SHELL=" + shell,
 		"SHELLHUB_HOST=" + host,
+		// NOTE: We need to set the SSH_CLIENT because some applications (like bash) check for it to enable some
+		// features or load some files (like .bashrc). Currently, we don't have this information, so we set a fake one.
+		// TODO: Set the real SSH_CLIENT value.
+		// Format: "<ip> <source-port> <destination-port>"
+		// https://en.wikibooks.org/wiki/OpenSSH/Client_Applications
+		"SSH_CLIENT=127.0.0.1 0 0",
 	}
 	cmd.Env = append(cmd.Env, envs...)
 
