@@ -4,7 +4,7 @@ import handleError from "@/utils/handleError";
 
 export const parsePrivateKey = (privateKey: string, passphrase?: string) => sshpk.parsePrivateKey(privateKey, "auto", { passphrase });
 
-export const parsePublicKey = (publicKey: string) => sshpk.parseKey(publicKey);
+export const parsePublicKey = (publicKey: string) => sshpk.parseKey(publicKey, "ssh");
 
 export const isKeyValid = (type: "private" | "public", key: string, passphrase?: string) => {
   try {

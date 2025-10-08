@@ -1,6 +1,11 @@
 <template>
   <div>
-    <v-tooltip v-bind="$attrs" class="text-center" location="bottom" :disabled="canCreatePublicKey">
+    <v-tooltip
+      v-bind="$attrs"
+      class="text-center"
+      location="bottom"
+      :disabled="canCreatePublicKey"
+    >
       <template #activator="{ props }">
         <div v-bind="props">
           <v-btn
@@ -30,21 +35,23 @@
       icon="mdi-key-outline"
       confirm-text="Save"
       cancel-text="Cancel"
-      :confirm-disabled="confirmDisabled"
+      :confirm-disabled
       confirm-data-test="pk-add-save-btn"
       cancel-data-test="pk-add-cancel-btn"
       data-test="public-key-add-dialog"
     >
       <div class="px-6 pt-4">
-        <v-text-field
-          v-model="name"
-          :error-messages="nameError"
-          label="Name"
-          placeholder="Name used to identify the public key"
-          data-test="name-field"
-        />
-
         <v-row class="mt-1 px-3">
+          <v-text-field
+            v-model="name"
+            :error-messages="nameError"
+            label="Name"
+            placeholder="Name used to identify the public key"
+            data-test="name-field"
+          />
+        </v-row>
+
+        <v-row class="mt-2 px-3">
           <v-select
             v-model="choiceUsername"
             label="Device username access restriction"
@@ -55,15 +62,17 @@
           />
         </v-row>
 
-        <v-text-field
-          v-if="choiceUsername === 'username'"
-          v-model="username"
-          label="Rule username"
-          :error-messages="usernameError"
-          data-test="rule-field"
-        />
-
         <v-row class="mt-1 px-3">
+          <v-text-field
+            v-if="choiceUsername === 'username'"
+            v-model="username"
+            label="Rule username"
+            :error-messages="usernameError"
+            data-test="rule-field"
+          />
+        </v-row>
+
+        <v-row class="mt-4 px-3">
           <v-select
             v-model="choiceFilter"
             label="Device access restriction"
@@ -74,7 +83,7 @@
           />
         </v-row>
 
-        <v-row class="px-3">
+        <v-row class="mt-1 px-3">
           <v-autocomplete
             v-if="choiceFilter === 'tags'"
             v-model="tagChoices"
@@ -87,6 +96,7 @@
             attach
             chips
             label="Tags"
+            density="comfortable"
             :rules="[validateLength]"
             :error-messages="errMsg"
             multiple
@@ -107,17 +117,19 @@
           />
         </v-row>
 
-        <v-textarea
+        <FileTextComponent
           v-model="publicKeyData"
-          class="mt-2"
-          label="Public key data"
-          :error-messages="publicKeyDataError"
-          required
-          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-          data-test="data-field"
-          rows="3"
-          auto-grow
+          class="mt-4 mb-2"
+          enable-paste
+          :pasted-file
+          textarea-label="Public key data"
+          description-text="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          :validator="(t) => isKeyValid('public', t)"
+          invalid-message="This is not a valid public key."
+          @error="setPublicKeyDataError($event)"
+          @file-name="suggestNameFromFile"
         />
+
       </div>
     </FormDialog>
   </div>
@@ -136,6 +148,7 @@ import FormDialog from "../FormDialog.vue";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import { IPublicKeyCreate } from "@/interfaces/IPublicKey";
 import useTagsStore from "@/store/modules/tags";
+import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
 
 const { size } = defineProps<{ size?: string }>();
 
@@ -146,6 +159,7 @@ interface SelectOption<TName extends string> {
   filterName: TName;
   filterText: string;
 }
+
 const emit = defineEmits(["update"]);
 const publicKeysStore = usePublicKeysStore();
 const tagsStore = useTagsStore();
@@ -178,6 +192,7 @@ const fetchedTags = ref<LocalTag[]>([]);
 const tags = computed(() => fetchedTags.value);
 
 const sentinel = ref<HTMLElement | null>(null);
+const pastedFile = ref<File | null>(null);
 let observer: IntersectionObserver | null = null;
 
 const {
@@ -206,6 +221,14 @@ const {
   setErrors: setPublicKeyDataError,
   resetField: resetPublicKeyData,
 } = useField<string>("publicKeyData", yup.string().required(), { initialValue: "" });
+
+const inputMode = ref<"file" | "text">("file");
+
+const suggestNameFromFile = (filename: string) => {
+  if (name.value) return;
+  const base = filename.replace(/\.[^.]+$/, "");
+  name.value = base || "Imported Public Key";
+};
 
 watch([tagChoices, choiceFilter], ([list, currentFilter]) => {
   if (currentFilter !== "tags") {
@@ -258,7 +281,13 @@ const chooseFilter = () => {
   }
 };
 
-const resetFields = () => { resetName(); resetUsername(); resetHostname(); resetPublicKeyData(); };
+const resetFields = () => {
+  resetName();
+  resetUsername();
+  resetHostname();
+  resetPublicKeyData();
+  pastedFile.value = null;
+};
 
 const setLocalVariable = () => {
   keyLocal.value = {};
@@ -266,10 +295,17 @@ const setLocalVariable = () => {
   tagChoices.value = [];
   choiceFilter.value = "all";
   choiceUsername.value = "all";
+  inputMode.value = "file";
   resetFields();
 };
 
-watch(showDialog, (value) => { if (!value) setLocalVariable(); });
+watch(showDialog, (open) => {
+  if (open) {
+    inputMode.value = "file";
+  } else {
+    setLocalVariable();
+  }
+});
 
 const close = () => { showDialog.value = false; setLocalVariable(); };
 
@@ -302,7 +338,10 @@ const create = async () => {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 409) {
         setPublicKeyDataError("Public Key data already exists");
+        return;
       }
+      snackbar.showError("Failed to create the public key.");
+      handleError(error);
     } else {
       snackbar.showError("Failed to create the public key.");
       handleError(error);
