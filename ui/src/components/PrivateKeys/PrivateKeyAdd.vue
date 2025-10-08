@@ -32,15 +32,17 @@
         data-test="name-field"
       />
 
-      <v-textarea
+      <FileTextComponent
         v-model="privateKeyData"
-        label="Private key data"
-        required
-        messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-        :error-messages="privateKeyDataError"
-        @update:model-value="validatePrivateKeyData"
+        class="mb-2"
+        :validator="(t) => isKeyValid('private', t, passphrase || undefined)"
+        invalid-message="Invalid private key data"
+        :enable-paste="true"
+        :textarea-label="'Private key data'"
+        :description-text="privateKeyDescription"
         data-test="private-key-field"
-        rows="5"
+        @error="setPrivateKeyDataError"
+        @update:model-value="validatePrivateKeyData"
       />
 
       <v-text-field
@@ -66,6 +68,7 @@ import { convertToFingerprint, isKeyValid, parsePrivateKey } from "@/utils/sshKe
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import FormDialog from "../FormDialog.vue";
+import FileTextComponent from "../FileTextComponent.vue";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const emit = defineEmits(["update"]);
@@ -73,6 +76,8 @@ const privateKeysStore = usePrivateKeysStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const hasPassphrase = ref(false);
+
+const privateKeyDescription = "Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.";
 
 const {
   value: name,

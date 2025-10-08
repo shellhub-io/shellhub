@@ -103,15 +103,18 @@
           />
         </v-row>
 
-        <v-textarea
+        <FileTextComponent
           v-model="publicKeyData"
-          class="mt-5"
-          label="Public key data"
-          :error-messages="publicKeyDataError"
-          required
-          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          class="mb-2"
+          :validator="(t) => isKeyValid('public', t)"
+          invalid-message="This is not a valid public key."
+          :enable-paste="true"
+          :textarea-label="'Public key data'"
+          :textarea-messages="publicKeyDescription"
+          :description-text="publicKeyDescription"
+          :start-in-text="true"
           data-test="data-field"
-          rows="2"
+          @error="setPublicKeyDataError"
         />
       </div>
     </FormDialog>
@@ -129,6 +132,8 @@ import FormDialog from "../FormDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";
+import FileTextComponent from "../FileTextComponent.vue";
+import { isKeyValid } from "@/utils/sshKeys";
 
 type TagsFilterNames = { tags: string[] };
 type LocalFilter = HostnameFilter | TagsFilterNames;
@@ -165,6 +170,8 @@ const usernameList = ref([
 const tagChoices = ref<string[]>([]);
 const keyLocal = ref<Partial<LocalPublicKey>>({ name: "", username: "", data: "" });
 
+const publicKeyDescription = "Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.";
+
 const {
   value: name,
   errorMessage: nameError,
@@ -191,6 +198,7 @@ const {
 const {
   value: publicKeyData,
   errorMessage: publicKeyDataError,
+  setErrors: setPublicKeyDataError,
 } = useField<string>("publicKeyData", yup.string().required(), {
   initialValue: props.publicKey.data,
 });

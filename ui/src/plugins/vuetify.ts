@@ -2,6 +2,7 @@
 import "@mdi/font/css/materialdesignicons.css";
 import "@fortawesome/fontawesome-free/css/all.css";
 import "vuetify/styles";
+import { VFileUpload, VFileUploadItem } from "vuetify/labs/VFileUpload";
 import "../styles/_variables.scss";
 import { aliases as faAliases, fa } from "vuetify/iconsets/fa";
 
@@ -41,6 +42,10 @@ const dark = {
 };
 
 export default createVuetify({
+  components: {
+    VFileUpload,
+    VFileUploadItem,
+  },
   theme: {
     defaultTheme: "dark",
     themes: {
