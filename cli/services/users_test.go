@@ -328,9 +328,7 @@ func TestUserDelete(t *testing.T) {
 					AssociatedNamespaces: namespaceMember,
 				}, nil)
 
-				for _, v := range namespaceOwned {
-					mock.On("NamespaceDelete", ctx, v.TenantID).Return(nil).Once()
-				}
+				mock.On("NamespaceDeleteMany", ctx, []string{"10000000-0000-0000-0000-000000000000", "20000000-0000-0000-0000-000000000000"}).Return(int64(2), nil).Once()
 				for _, v := range namespaceMember {
 					mock.On("NamespaceRemoveMember", ctx, v.TenantID, "507f191e810c19729de860ea").Return(nil, nil).Once()
 				}

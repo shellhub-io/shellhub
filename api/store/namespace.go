@@ -39,11 +39,16 @@ type NamespaceStore interface {
 
 	NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) (conflicts []string, has bool, err error)
 
-	// NamespaceUpdate updates a namespace with the specified tenant.
-	// It returns an error, if any, or store.ErrNoDocuments if the namespace does not exist.
-	NamespaceUpdate(ctx context.Context, tenant string, changes *models.NamespaceChanges) error
+	// NamespaceUpdate updates a namespace. It returns an error, if any, or store.ErrNoDocuments if the
+	// 	namespace does not exist.
+	NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error
 
-	NamespaceDelete(ctx context.Context, tenantID string) error
+	// NamespaceIncrementDeviceCount atomically increments or decrements the device count for a specific status within a namespace.
+	// Returns [ErrNoDocuments] if the namespace is not found.
+	NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error
+
+	NamespaceDelete(ctx context.Context, namespace *models.Namespace) error
+	NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error)
 
 	// NamespaceAddMember adds a new member to the namespace with the specified tenantID.
 	// It returns an error if any.
@@ -55,8 +60,4 @@ type NamespaceStore interface {
 	// If the namespace's tenant ID is the member's preffered tenant ID, it will set the value to an empty string.
 	// It returns an error if any.
 	NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error
-
-	// NamespaceIncrementDeviceCount atomically increments or decrements the device count for a specific status within a namespace.
-	// Returns [ErrNoDocuments] if the namespace is not found.
-	NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error
 }
