@@ -89,10 +89,13 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		return ErrNamespaceNotFound
 	}
 
-	for _, ns := range userInfo.OwnedNamespaces {
-		if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
-			return err
-		}
+	ownedNamespaces := make([]string, len(userInfo.OwnedNamespaces))
+	for i, namespace := range userInfo.OwnedNamespaces {
+		ownedNamespaces[i] = namespace.TenantID
+	}
+
+	if _, err := s.store.NamespaceDeleteMany(ctx, ownedNamespaces); err != nil {
+		return err
 	}
 
 	for _, ns := range userInfo.AssociatedNamespaces {
