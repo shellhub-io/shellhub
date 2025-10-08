@@ -126,7 +126,7 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 		return ErrNamespaceNotFound
 	}
 
-	if err := s.store.NamespaceDelete(ctx, ns.TenantID); err != nil {
+	if err := s.store.NamespaceDelete(ctx, ns); err != nil {
 		return ErrFailedDeleteNamespace
 	}
 

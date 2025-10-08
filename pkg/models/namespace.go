@@ -58,14 +58,6 @@ type NamespaceSettings struct {
 	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`
 }
 
-type NamespaceChanges struct {
-	Name                   string   `bson:"name,omitempty"`
-	SessionRecord          *bool    `bson:"settings.session_record,omitempty"`
-	ConnectionAnnouncement *string  `bson:"settings.connection_announcement,omitempty"`
-	MaxDevices             *int     `bson:"max_devices,omitempty"`
-	Billing                *Billing `bson:"billing,omitempty"`
-}
-
 // default Announcement Message for the shellhub namespace
 const DefaultAnnouncementMessage = `
 ******************************************************************

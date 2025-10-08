@@ -716,7 +716,7 @@ func TestNamespaceDelete(t *testing.T) {
 					CreatedAt:  clock.Now(),
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDelete", ctx, "00000000-0000-0000-0000-000000000000").Return(errors.New("error")).Once()
+				mock.On("NamespaceDelete", ctx, namespace).Return(errors.New("error")).Once()
 			},
 			expected: ErrFailedDeleteNamespace,
 		},
@@ -736,7 +736,7 @@ func TestNamespaceDelete(t *testing.T) {
 					CreatedAt:  clock.Now(),
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDelete", ctx, "00000000-0000-0000-0000-000000000000").Return(nil).Once()
+				mock.On("NamespaceDelete", ctx, namespace).Return(nil).Once()
 			},
 			expected: nil,
 		},

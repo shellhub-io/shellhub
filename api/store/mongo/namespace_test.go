@@ -475,28 +475,27 @@ func TestNamespaceConflicts(t *testing.T) {
 	}
 }
 
-func TestNamespaceUpdate(t *testing.T) {
+func TestStore_NamespaceUpdate(t *testing.T) {
 	cases := []struct {
 		description string
-		tenant      string
-		changes     *models.NamespaceChanges
+		namespace   *models.Namespace
 		fixtures    []string
 		expected    error
 	}{
 		{
-			description: "fails when tenant is not found",
-			tenant:      "nonexistent",
-			changes: &models.NamespaceChanges{
-				Name: "edited-namespace",
+			description: "fails when namespace is not found",
+			namespace: &models.Namespace{
+				TenantID: "nonexistent",
+				Name:     "edited-namespace",
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: store.ErrNoDocuments,
 		},
 		{
-			description: "succeeds when tenant is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			changes: &models.NamespaceChanges{
-				Name: "edited-namespace",
+			description: "succeeds when namespace is found",
+			namespace: &models.Namespace{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "edited-namespace",
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: nil,
@@ -512,30 +511,34 @@ func TestNamespaceUpdate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.NamespaceUpdate(ctx, tc.tenant, tc.changes)
+			err := s.NamespaceUpdate(ctx, tc.namespace)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
 }
 
-func TestNamespaceDelete(t *testing.T) {
+func TestStore_NamespaceDelete(t *testing.T) {
 	cases := []struct {
 		description string
-		tenant      string
+		namespace   *models.Namespace
 		fixtures    []string
 		expected    error
 	}{
 		{
 			description: "fails when namespace is not found",
-			tenant:      "nonexistent",
-			fixtures:    []string{fixtureNamespaces},
-			expected:    store.ErrNoDocuments,
+			namespace: &models.Namespace{
+				TenantID: "nonexistent",
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: store.ErrNoDocuments,
 		},
 		{
 			description: "succeeds when namespace is found",
-			tenant:      "00000000-0000-4000-0000-000000000000",
-			fixtures:    []string{fixtureNamespaces},
-			expected:    nil,
+			namespace: &models.Namespace{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			fixtures: []string{fixtureNamespaces},
+			expected: nil,
 		},
 	}
 
@@ -548,8 +551,75 @@ func TestNamespaceDelete(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.NamespaceDelete(ctx, tc.tenant)
+			err := s.NamespaceDelete(ctx, tc.namespace)
 			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestStore_NamespaceDeleteMany(t *testing.T) {
+	cases := []struct {
+		description   string
+		tenantIDs     []string
+		fixtures      []string
+		expectedCount int64
+		expectedError error
+	}{
+		{
+			description:   "fails when no namespaces are found",
+			tenantIDs:     []string{"nonexistent1", "nonexistent2"},
+			fixtures:      []string{fixtureNamespaces},
+			expectedCount: 0,
+			expectedError: nil,
+		},
+		{
+			description:   "succeeds deleting single namespace",
+			tenantIDs:     []string{"00000000-0000-4000-0000-000000000000"},
+			fixtures:      []string{fixtureNamespaces},
+			expectedCount: 1,
+			expectedError: nil,
+		},
+		{
+			description:   "succeeds deleting multiple namespaces",
+			tenantIDs:     []string{"00000000-0000-4000-0000-000000000000", "00000000-0000-4001-0000-000000000000", "00000000-0000-4002-0000-000000000000"},
+			fixtures:      []string{fixtureNamespaces},
+			expectedCount: 3,
+			expectedError: nil,
+		},
+		{
+			description:   "succeeds with mix of valid and invalid tenant IDs",
+			tenantIDs:     []string{"00000000-0000-4000-0000-000000000000", "nonexistent"},
+			fixtures:      []string{fixtureNamespaces},
+			expectedCount: 1,
+			expectedError: nil,
+		},
+		{
+			description:   "handles empty tenant IDs list",
+			tenantIDs:     []string{},
+			fixtures:      []string{fixtureNamespaces},
+			expectedCount: 0,
+			expectedError: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			deletedCount, err := s.NamespaceDeleteMany(ctx, tc.tenantIDs)
+
+			if tc.expectedError != nil {
+				assert.Equal(t, tc.expectedError, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tc.expectedCount, deletedCount)
 		})
 	}
 }
