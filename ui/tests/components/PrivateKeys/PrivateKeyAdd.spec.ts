@@ -16,6 +16,10 @@ describe("Setting Private Keys", () => {
     wrapper = mount(PrivateKeyAdd, {
       global: {
         plugins: [vuetify, SnackbarPlugin],
+        stubs: {
+          "v-file-upload": true,
+          "v-file-upload-item": true,
+        },
       },
     });
   });

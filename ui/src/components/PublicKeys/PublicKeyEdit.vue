@@ -23,22 +23,24 @@
       icon="mdi-key-outline"
       confirm-text="Save"
       cancel-text="Cancel"
-      :confirm-disabled="confirmDisabled"
+      :confirm-disabled
       confirm-data-test="pk-edit-save-btn"
       cancel-data-test="pk-edit-cancel-btn"
       data-test="public-key-edit-dialog"
     >
       <div class="px-6 pt-4">
-        <v-text-field
-          v-model="name"
-          label="Key name"
-          placeholder="Name used to identify the public key"
-          :error-messages="nameError"
-          required
-          data-test="name-field"
-        />
-
         <v-row class="mt-1 px-3">
+          <v-text-field
+            v-model="name"
+            label="Key name"
+            placeholder="Name used to identify the public key"
+            :error-messages="nameError"
+            required
+            data-test="name-field"
+          />
+        </v-row>
+
+        <v-row class="mt-2 px-3">
           <v-select
             v-model="choiceUsername"
             label="Device username access restriction"
@@ -49,15 +51,17 @@
           />
         </v-row>
 
-        <v-text-field
-          v-if="choiceUsername === 'username'"
-          v-model="username"
-          label="Rule username"
-          :error-messages="usernameError"
-          data-test="rule-field"
-        />
-
         <v-row class="mt-1 px-3">
+          <v-text-field
+            v-if="choiceUsername === 'username'"
+            v-model="username"
+            label="Rule username"
+            :error-messages="usernameError"
+            data-test="rule-field"
+          />
+        </v-row>
+
+        <v-row class="mt-4 px-3">
           <v-select
             v-model="choiceFilter"
             label="Device access restriction"
@@ -68,7 +72,7 @@
           />
         </v-row>
 
-        <v-row class="px-3">
+        <v-row class="mt-1 px-3">
           <v-autocomplete
             v-if="choiceFilter === 'tags'"
             v-model="tagChoices"
@@ -85,6 +89,8 @@
             :messages="noTagsSelected ? 'No tags selected' : ''"
             placeholder="Select up to 3 tags"
             variant="outlined"
+
+            density="comfortable"
             multiple
             data-test="tags-selector"
             @update:search="onSearch"
@@ -103,17 +109,20 @@
           />
         </v-row>
 
-        <v-textarea
+        <FileTextComponent
           v-model="publicKeyData"
-          class="mt-5"
-          label="Public key data"
-          :error-messages="publicKeyDataError"
-          required
-          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          class="mt-4 mb-2"
+          enable-paste
+          start-in-text
+          textarea-label="Public key data"
+          description-text="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          :validator="(t) => isKeyValid('public', t)"
+          invalid-message="This is not a valid public key."
           data-test="data-field"
-          rows="2"
+          @error="setPublicKeyDataError"
         />
       </div>
+
     </FormDialog>
   </div>
 </template>
@@ -129,6 +138,8 @@ import FormDialog from "../FormDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";
+import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
+import { isKeyValid } from "@/utils/sshKeys";
 
 type TagsFilterNames = { tags: string[] };
 type LocalFilter = HostnameFilter | TagsFilterNames;
@@ -191,6 +202,7 @@ const {
 const {
   value: publicKeyData,
   errorMessage: publicKeyDataError,
+  setErrors: setPublicKeyDataError,
 } = useField<string>("publicKeyData", yup.string().required(), {
   initialValue: props.publicKey.data,
 });

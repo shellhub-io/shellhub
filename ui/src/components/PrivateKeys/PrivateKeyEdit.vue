@@ -29,20 +29,24 @@
           :error-messages="nameError"
           label="Key name"
           placeholder="Name used to identify the private key"
-          variant="underlined"
           data-test="name-field"
         />
 
-        <v-textarea
-          v-model="keyLocal"
-          label="Private key data"
-          required
-          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-          :error-messages="keyLocalError"
-          @update:model-value="validatePrivateKeyData"
-          variant="underlined"
+        <FileTextComponent
+          v-model="privateKeyData"
+          class="mt-2"
+          enable-paste
+          start-in-text
+          text-only
+          allow-extensionless
+          textarea-label="Private key data"
+          description-text="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
+          :validator="encryptionAwareValidator"
+          :invalid-message="ftcInvalidMessage"
           data-test="private-key-field"
-          rows="5"
+          @error="onPrivateKeyError"
+          @update:model-value="onPrivateKeyInput"
+          @mode-changed="onFileTextModeChanged"
         />
 
         <v-text-field
@@ -54,7 +58,6 @@
           hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
           persistent-hint
           placeholder="Enter passphrase for encrypted key"
-          variant="underlined"
           data-test="passphrase-field"
         />
       </div>
@@ -63,38 +66,44 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch } from "vue";
 import { useField } from "vee-validate";
-import { ref, computed } from "vue";
 import * as yup from "yup";
+import { convertToFingerprint, parsePrivateKey } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
-import { convertToFingerprint, isKeyValid, parsePrivateKey } from "@/utils/sshKeys";
 import useSnackbar from "@/helpers/snackbar";
 import FormDialog from "../FormDialog.vue";
+import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const { privateKey } = defineProps<{ privateKey: IPrivateKey }>();
 
 const emit = defineEmits(["update"]);
-const showDialog = ref(false);
 const privateKeysStore = usePrivateKeysStore();
 const snackbar = useSnackbar();
-const hasPassphrase = ref(privateKey.hasPassphrase || false);
+const showDialog = ref(false);
 
-const {
-  value: keyLocal,
-  errorMessage: keyLocalError,
-  setErrors: setKeyLocalError,
-} = useField<string>("keyLocal", yup.string().required(), {
-  initialValue: privateKey.data,
-});
+const hasPassphrase = ref(false);
+const encryptedDetected = ref(false);
+const ftcInvalidMessage = ref("Invalid private key data");
 
 const {
   value: name,
   errorMessage: nameError,
   setErrors: setNameError,
+  resetField: resetName,
 } = useField<string>("name", yup.string().required("Name is required"), {
-  initialValue: privateKey.name ?? "",
+  initialValue: "",
+});
+
+const {
+  value: privateKeyData,
+  errorMessage: privateKeyDataError,
+  setErrors: setPrivateKeyDataError,
+  resetField: resetPrivateKeyData,
+} = useField<string>("privateKeyData", yup.string().required("Private key data is required"), {
+  initialValue: "",
 });
 
 const {
@@ -102,105 +111,208 @@ const {
   errorMessage: passphraseError,
   setErrors: setPassphraseError,
   resetField: resetPassphrase,
-} = useField<string>("passphrase", yup.string().required("Passphrase is required"), {
+} = useField<string>("passphrase", yup.string(), {
   initialValue: "",
 });
 
-const validatePrivateKeyData = () => {
+const encryptionAwareValidator = (text: string): boolean => {
+  const t = (text || "").trim();
+  encryptedDetected.value = false;
+
+  if (!t) {
+    ftcInvalidMessage.value = "Private key data is required";
+    return false;
+  }
+
   try {
-    parsePrivateKey(keyLocal.value, passphrase.value || undefined);
-    setKeyLocalError("");
-    hasPassphrase.value = false;
-  } catch (err: unknown) {
-    const typedErr = err as { name: string };
-    if (typedErr.name === "KeyEncryptedError") {
+    parsePrivateKey(t, undefined);
+    ftcInvalidMessage.value = "Invalid private key data";
+    return true;
+  } catch (err) {
+    const { name } = (err as { name?: string });
+    if (name === "KeyEncryptedError") {
+      encryptedDetected.value = true;
       hasPassphrase.value = true;
-      return;
+      return true;
     }
-    setKeyLocalError("Invalid private key data");
+    ftcInvalidMessage.value = "Invalid private key data";
+    return false;
   }
 };
 
-const initializeFormData = () => {
+const onPrivateKeyError = (errorMsg: string) => {
+  if (errorMsg && !encryptedDetected.value) {
+    setPrivateKeyDataError(errorMsg);
+  } else if (encryptedDetected.value) {
+    setPrivateKeyDataError("");
+  } else {
+    setPrivateKeyDataError("");
+  }
+};
+
+const onPrivateKeyInput = () => {
+  const text = (privateKeyData.value || "").trim();
+
+  if (!text) {
+    hasPassphrase.value = false;
+    encryptedDetected.value = false;
+    setPrivateKeyDataError("");
+    setPassphraseError("");
+    return;
+  }
+
+  if (passphraseError.value === "Incorrect passphrase") {
+    setPassphraseError("");
+  }
+
+  try {
+    parsePrivateKey(text, undefined);
+    hasPassphrase.value = false;
+    encryptedDetected.value = false;
+    setPrivateKeyDataError("");
+    setPassphraseError("");
+  } catch (err) {
+    const e = err as { name?: string };
+    if (e.name === "KeyEncryptedError") {
+      hasPassphrase.value = true;
+      encryptedDetected.value = true;
+      setPrivateKeyDataError("");
+      if (!passphrase.value) {
+        setPassphraseError("Passphrase for this private key is required");
+      }
+    } else {
+      hasPassphrase.value = false;
+      encryptedDetected.value = false;
+      setPrivateKeyDataError("Invalid private key data");
+      setPassphraseError("");
+    }
+  }
+};
+
+const onFileTextModeChanged = () => {
+  resetPrivateKeyData();
+  resetPassphrase();
+  hasPassphrase.value = false;
+  encryptedDetected.value = false;
+  setPrivateKeyDataError("");
+  setPassphraseError("");
+  privateKeyData.value = "";
+};
+
+watch(privateKeyData, (val) => {
+  const text = (val || "").trim();
+  if (!text) {
+    resetPassphrase();
+    hasPassphrase.value = false;
+    encryptedDetected.value = false;
+    setPassphraseError("");
+    setPrivateKeyDataError("");
+  }
+});
+
+const confirmDisabled = computed(() => {
+  const nameReady = Boolean(name.value && name.value.trim());
+  const keyReady = Boolean(privateKeyData.value && privateKeyData.value.trim());
+  const passReady = hasPassphrase.value ? Boolean(passphrase.value && passphrase.value.trim()) : true;
+  const anyError = Boolean(
+    nameError.value
+    || privateKeyDataError.value
+    || (hasPassphrase.value && passphraseError.value),
+  );
+
+  return !(nameReady && keyReady && passReady) || anyError;
+});
+
+const resetForm = () => {
+  resetName();
+  resetPrivateKeyData();
+  resetPassphrase();
+  hasPassphrase.value = false;
+  encryptedDetected.value = false;
+};
+
+const initializeForm = () => {
   name.value = privateKey.name ?? "";
-  keyLocal.value = privateKey.data ?? "";
-  setKeyLocalError("");
+  privateKeyData.value = privateKey.data ?? "";
+  hasPassphrase.value = privateKey.hasPassphrase || false;
+
+  setNameError("");
+  setPrivateKeyDataError("");
+  setPassphraseError("");
+  encryptedDetected.value = false;
 };
 
 const open = () => {
+  initializeForm();
   showDialog.value = true;
-  initializeFormData();
 };
 
 const close = () => {
-  resetPassphrase();
-  hasPassphrase.value = privateKey.hasPassphrase || false;
+  resetForm();
   showDialog.value = false;
 };
 
-const hasValidationError = () => {
-  if (name.value === "") {
+const edit = async () => {
+  let hasError = false;
+
+  if (!name.value || !name.value.trim()) {
     setNameError("Name is required");
-    return true;
+    hasError = true;
   }
-  if (keyLocal.value === "") {
-    setKeyLocalError("Private key data is required");
-    return true;
+
+  if (!privateKeyData.value || !privateKeyData.value.trim()) {
+    setPrivateKeyDataError("Private key data is required");
+    hasError = true;
   }
-  if (hasPassphrase.value && passphrase.value === "") {
+
+  if (hasPassphrase.value && (!passphrase.value || !passphrase.value.trim())) {
     setPassphraseError("Passphrase is required");
-    return true;
+    hasError = true;
   }
-  // If present, ensure it's a valid private key
-  if (!isKeyValid("private", keyLocal.value, passphrase.value || undefined)) {
-    setKeyLocalError("Invalid private key data");
-    return true;
-  }
-  return false;
-};
 
-const update = () => {
-  emit("update");
-  close();
-};
-
-const handleEditError = (error: Error) => {
-  if (error.name === "KeyParseError") {
-    setPassphraseError("Passphrase is incorrect or missing.");
-    return;
+  if (privateKeyData.value && hasPassphrase.value && passphrase.value) {
+    try {
+      parsePrivateKey(privateKeyData.value, passphrase.value);
+    } catch {
+      setPassphraseError("Incorrect passphrase");
+      hasError = true;
+    }
   }
-  if (!isKeyValid("private", keyLocal.value, passphrase.value || undefined)) {
-    setKeyLocalError("Invalid private key data");
-    return;
-  }
-  snackbar.showError("Failed to update private key.");
-  handleError(error);
-};
 
-const edit = () => {
-  if (hasValidationError()) return;
+  if (hasError) return;
 
   try {
-    const fingerprint = convertToFingerprint(keyLocal.value, passphrase.value);
+    const fingerprint = convertToFingerprint(
+      privateKeyData.value,
+      hasPassphrase.value ? passphrase.value : undefined,
+    );
+
     privateKeysStore.editPrivateKey({
       id: privateKey.id,
       name: name.value,
-      data: keyLocal.value,
+      data: privateKeyData.value,
       hasPassphrase: hasPassphrase.value,
       fingerprint,
     });
+
     snackbar.showSuccess("Private key updated successfully.");
-    update();
+    emit("update");
+    close();
   } catch (error) {
-    handleEditError(error as Error);
+    if ((error as Error).name === "KeyParseError") {
+      setPassphraseError("Passphrase is not correct.");
+    } else {
+      snackbar.showError("Failed to update private key.");
+      handleError(error as Error);
+    }
   }
 };
 
-const confirmDisabled = computed(() => Boolean(
-  keyLocalError.value
-    || nameError.value
-    || (hasPassphrase.value && passphraseError.value),
-));
-
-defineExpose({ keyLocal, name, hasPassphrase, update, edit, handleError, initializeFormData });
+defineExpose({
+  privateKeyData,
+  privateKeyDataError,
+  name,
+  nameError,
+  showDialog,
+});
 </script>

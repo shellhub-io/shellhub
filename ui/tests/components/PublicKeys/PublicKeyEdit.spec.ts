@@ -49,6 +49,10 @@ describe("Public Key Edit", () => {
     wrapper = mount(PublicKeyEdit, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
+        stubs: {
+          "v-file-upload": true,
+          "v-file-upload-item": true,
+        },
       },
       props: { publicKey: { ...mockPublicKey } },
     });
