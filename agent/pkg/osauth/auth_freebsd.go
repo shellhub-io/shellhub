@@ -42,6 +42,11 @@ func (b *backend) LookupUser(username string) (*User, error) {
 	return LookupUserFromPasswd(username, file)
 }
 
+func (b *backend) ListGroups(username string) ([]string, error) {
+	// Not implemented on FreeBSD
+	return nil, nil
+}
+
 func init() {
 	DefaultBackend = &backend{}
 }
