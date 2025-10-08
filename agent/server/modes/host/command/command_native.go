@@ -6,8 +6,6 @@ package command
 import (
 	"os"
 	"os/exec"
-	"os/user"
-	"strconv"
 	"syscall"
 
 	"github.com/shellhub-io/shellhub/agent/pkg/osauth"
@@ -15,17 +13,9 @@ import (
 )
 
 func NewCmd(u *osauth.User, shell, term, host string, envs []string, command ...string) *exec.Cmd {
-	user, _ := user.Lookup(u.Username)
-	userGroups, _ := user.GroupIds()
-
-	// Supplementary groups for the user
-	groups := make([]uint32, 0)
-	for _, sgid := range userGroups {
-		igid, _ := strconv.ParseUint(sgid, 10, 32)
-		groups = append(groups, uint32(igid)) //nolint:gosec // The value of igid fits inside a uint32.
-	}
-	if len(groups) == 0 {
-		groups = append(groups, u.GID)
+	groups, err := osauth.ListGroups(u.Username)
+	if err != nil {
+		groups = []uint32{}
 	}
 
 	cmd := exec.Command(command[0], command[1:]...) //nolint:gosec
