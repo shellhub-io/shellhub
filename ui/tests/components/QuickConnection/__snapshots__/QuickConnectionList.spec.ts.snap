@@ -24,8 +24,8 @@ exports[`Quick Connection List > Renders the component 1`] = `
           <!---->
           <!----></span>
         </div>
-        <div data-v-7c65953f="" class="v-col-md-3 v-col" data-test="device-tags">
-          <div data-v-7c65953f="" class="text-center"><span data-v-7c65953f="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-3" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
+        <div data-v-7c65953f="" class="v-col-md-3 v-col text-center" data-test="device-tags">
+          <div data-v-7c65953f=""><span data-v-7c65953f="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-3" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
             <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -61,7 +61,7 @@ exports[`Quick Connection List > Renders the component 1`] = `
           <!---->
           <!----></span>
         </div>
-        <div data-v-7c65953f="" class="v-col-md-3 v-col" data-test="device-tags">
+        <div data-v-7c65953f="" class="v-col-md-3 v-col text-center" data-test="device-tags">
           <div data-v-7c65953f=""><span data-v-7c65953f="" class="v-chip v-theme--light text-grey-darken-2 v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" data-test="no-tags-chip"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->

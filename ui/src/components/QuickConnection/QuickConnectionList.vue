@@ -52,8 +52,8 @@
             </v-tooltip>
           </v-chip>
         </v-col>
-        <v-col md="3" data-test="device-tags">
-          <div v-if="item.tags[0]" class="text-center">
+        <v-col md="3" data-test="device-tags" class="text-center">
+          <div v-if="item.tags[0]">
             <v-tooltip v-for="(tag, index) in item.tags" :key="index" location="bottom" :disabled="!showTag(tag.name)">
               <template #activator="{ props }">
                 <v-chip size="small" v-bind="props" data-test="tag-chip">
