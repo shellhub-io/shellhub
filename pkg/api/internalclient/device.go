@@ -100,6 +100,7 @@ func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, err
 	resp, err := c.http.
 		R().
 		SetContext(ctx).
+		SetPathParam("uid", uid).
 		SetResult(&device).
 		Get(c.config.APIBaseURL + "/api/devices/{uid}")
 	if err := HasError(resp, err); err != nil {
