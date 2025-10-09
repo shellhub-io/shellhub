@@ -139,13 +139,22 @@ func (s *Store) TagResolve(ctx context.Context, resolver store.TagResolver, valu
 	return tag, nil
 }
 
-func (s *Store) TagUpdate(ctx context.Context, id string, changes *models.TagChanges) error {
-	objID, err := primitive.ObjectIDFromHex(id)
+func (s *Store) TagUpdate(ctx context.Context, tag *models.Tag) error {
+	bsonBytes, err := bson.Marshal(tag)
 	if err != nil {
-		return err
+		return FromMongoError(err)
 	}
 
-	r, err := s.db.Collection("tags").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": changes})
+	doc := make(bson.M)
+	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
+		return FromMongoError(err)
+	}
+
+	objID, _ := primitive.ObjectIDFromHex(tag.ID)
+	doc["_id"] = objID
+
+	filter := bson.M{"_id": objID}
+	r, err := s.db.Collection("tags").UpdateOne(ctx, filter, bson.M{"$set": doc})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -212,7 +221,7 @@ func (s *Store) TagPullFromTarget(ctx context.Context, id string, target store.T
 	}
 }
 
-func (s *Store) TagDelete(ctx context.Context, id string) error {
+func (s *Store) TagDelete(ctx context.Context, tag *models.Tag) error {
 	session, err := s.db.Client().StartSession()
 	if err != nil {
 		return err
@@ -220,24 +229,26 @@ func (s *Store) TagDelete(ctx context.Context, id string) error {
 	defer session.EndSession(ctx)
 
 	sessionCallback := func(sessCtx mongo.SessionContext) (any, error) {
-		objID, err := primitive.ObjectIDFromHex(id)
+		objID, err := primitive.ObjectIDFromHex(tag.ID)
 		if err != nil {
 			return nil, FromMongoError(err)
 		}
 
-		tag := new(models.Tag)
-		if err := s.db.Collection("tags").FindOneAndDelete(sessCtx, bson.M{"_id": objID}).Decode(tag); err != nil {
+		r, err := s.db.Collection("tags").DeleteOne(sessCtx, bson.M{"_id": objID})
+		if err != nil {
 			return nil, FromMongoError(err)
 		}
 
-		tagID, _ := primitive.ObjectIDFromHex(tag.ID)
+		if r.DeletedCount < 1 {
+			return nil, store.ErrNoDocuments
+		}
 
-		if _, err := s.db.Collection("devices").UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"tag_ids": tagID}}); err != nil {
+		if _, err := s.db.Collection("devices").UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"tag_ids": objID}}); err != nil {
 			return nil, FromMongoError(err)
 		}
 
 		for _, c := range []string{"public_keys", "firewall_rules"} {
-			if _, err := s.db.Collection(c).UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"filters.tag_ids": tagID}}); err != nil {
+			if _, err := s.db.Collection(c).UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"filters.tag_ids": objID}}); err != nil {
 				return nil, FromMongoError(err)
 			}
 		}

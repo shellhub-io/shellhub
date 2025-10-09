@@ -38,24 +38,12 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 		return conflicts, NewErrUserDuplicated(conflicts, nil)
 	}
 
-	changes := &models.UserChanges{
-		Name:          req.Name,
-		Username:      strings.ToLower(req.Username),
-		Email:         strings.ToLower(req.Email),
-		RecoveryEmail: strings.ToLower(req.RecoveryEmail),
+	updatedUser, err := applyUserChanges(user, req)
+	if err != nil {
+		return []string{}, err
 	}
 
-	if req.Password != "" {
-		// TODO: test
-		if !user.Password.Compare(req.CurrentPassword) {
-			return []string{}, NewErrUserPasswordNotMatch(nil)
-		}
-
-		neo, _ := models.HashUserPassword(req.Password)
-		changes.Password = neo.Hash
-	}
-
-	if err := s.store.UserUpdate(ctx, req.UserID, changes); err != nil {
+	if err := s.store.UserUpdate(ctx, updatedUser); err != nil {
 		return []string{}, NewErrUserUpdate(user, err)
 	}
 
@@ -80,9 +68,57 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 		return NewErrUserPasswordInvalid(err)
 	}
 
-	if err := s.store.UserUpdate(ctx, id, &models.UserChanges{Password: neo.Hash}); err != nil {
+	user.Password = neo
+
+	if err := s.store.UserUpdate(ctx, user); err != nil {
 		return NewErrUserUpdate(user, err)
 	}
 
 	return nil
+}
+
+// applyUserChanges creates a new User instance by applying the requested changes to the current user.
+// It returns a copy of the current user with updated fields, leaving the original unchanged.
+//
+// Only non-empty fields from changes are applied, and string comparisons are case-insensitive.
+// String fields (Username, Email, RecoveryEmail) are normalized to lowercase.
+//
+// For password changes, the current password must be provided and match the existing password.
+// The new password is hashed before being stored.
+func applyUserChanges(currentUser *models.User, req *requests.UpdateUser) (*models.User, error) {
+	isDifferentAndNotEmpty := func(currentValue, newValue string) bool {
+		return newValue != "" && !strings.EqualFold(currentValue, newValue)
+	}
+
+	newUser := *currentUser
+
+	if isDifferentAndNotEmpty(currentUser.Name, req.Name) {
+		newUser.Name = req.Name
+	}
+
+	if isDifferentAndNotEmpty(currentUser.Username, req.Username) {
+		newUser.Username = strings.ToLower(req.Username)
+	}
+
+	if isDifferentAndNotEmpty(currentUser.Email, req.Email) {
+		newUser.Email = strings.ToLower(req.Email)
+	}
+
+	if isDifferentAndNotEmpty(currentUser.RecoveryEmail, req.RecoveryEmail) {
+		newUser.RecoveryEmail = strings.ToLower(req.RecoveryEmail)
+	}
+
+	if req.Password != "" {
+		if !currentUser.Password.Compare(req.CurrentPassword) {
+			return nil, NewErrUserPasswordNotMatch(nil)
+		}
+
+		hashedPassword, err := models.HashUserPassword(req.Password)
+		if err != nil {
+			return nil, err
+		}
+		newUser.Password = hashedPassword
+	}
+
+	return &newUser, nil
 }

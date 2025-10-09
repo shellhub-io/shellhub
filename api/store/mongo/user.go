@@ -165,13 +165,21 @@ func (s *Store) UserConflicts(ctx context.Context, target *models.UserConflicts)
 	return conflicts, len(conflicts) > 0, nil
 }
 
-func (s *Store) UserUpdate(ctx context.Context, id string, changes *models.UserChanges) error {
-	objID, err := primitive.ObjectIDFromHex(id)
+func (s *Store) UserUpdate(ctx context.Context, user *models.User) error {
+	bsonBytes, err := bson.Marshal(user)
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	r, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": changes})
+	doc := make(bson.M)
+	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
+		return FromMongoError(err)
+	}
+
+	objID, _ := primitive.ObjectIDFromHex(user.ID)
+	delete(doc, "_id")
+
+	r, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": doc})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -183,18 +191,14 @@ func (s *Store) UserUpdate(ctx context.Context, id string, changes *models.UserC
 	return nil
 }
 
-func (s *Store) UserDelete(ctx context.Context, id string) error {
-	objID, err := primitive.ObjectIDFromHex(id)
+func (s *Store) UserDelete(ctx context.Context, user *models.User) error {
+	objID, _ := primitive.ObjectIDFromHex(user.ID)
+	r, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
-	user, err := s.db.Collection("users").DeleteOne(ctx, bson.M{"_id": objID})
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	if user.DeletedCount < 1 {
+	if r.DeletedCount < 1 {
 		return store.ErrNoDocuments
 	}
 

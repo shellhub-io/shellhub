@@ -173,6 +173,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -184,16 +185,22 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+				expectedDevice.Info = &models.DeviceInfo{
+					ID:         "test",
+					PrettyName: "Test",
+					Version:    "v0.20.0",
+					Arch:       "arch64",
+					Platform:   "native",
+				}
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{Info: &models.DeviceInfo{
-						ID:         "test",
-						PrettyName: "Test",
-						Version:    "v0.20.0",
-						Arch:       "arch64",
-						Platform:   "native",
-					}, LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -214,6 +221,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -225,10 +233,15 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -250,6 +263,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -261,10 +275,15 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -295,6 +314,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -306,10 +326,15 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -354,6 +379,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -365,16 +391,22 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname"}, nil).
+					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+				expectedDevice.Info = &models.DeviceInfo{
+					ID:         "test",
+					PrettyName: "Test",
+					Version:    "v0.20.0",
+					Arch:       "arch64",
+					Platform:   "native",
+				}
+
 				storeMock.
-					On("DeviceUpdate", ctx, "00000000-0000-4000-0000-000000000000", uid, &models.DeviceChanges{Info: &models.DeviceInfo{
-						ID:         "test",
-						PrettyName: "Test",
-						Version:    "v0.20.0",
-						Arch:       "arch64",
-						Platform:   "native",
-					}, LastSeen: now, DisconnectedAt: nil}).
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -405,6 +437,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname", RemovedAt: &now, Status: models.DeviceStatusRemoved}
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -416,20 +449,21 @@ func TestAuthDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
-					Return(&models.Device{UID: uid, Name: "hostname", RemovedAt: &now}, nil).
+					Return(device, nil).
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.LastSeen = now
+				expectedDevice.DisconnectedAt = nil
+				expectedDevice.RemovedAt = &now
+				expectedDevice.Status = models.DeviceStatusPending
+
 				storeMock.
-					On(
-						"DeviceUpdate",
-						ctx,
-						"00000000-0000-4000-0000-000000000000",
-						uid,
-						&models.DeviceChanges{Info: nil, LastSeen: now, DisconnectedAt: nil, RemovedAt: &now, Status: models.DeviceStatusPending},
-					).
+					On("DeviceUpdate", ctx, device).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -1432,19 +1466,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
-				mock.
-					On("SystemGet", ctx).
-					Return(
-						&models.System{
-							Authentication: &models.SystemAuthentication{
-								Local: &models.SystemAuthenticationLocal{
-									Enabled: true,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -1465,7 +1486,40 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+				updatedUser := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
 
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				mock.
 					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
@@ -1496,9 +1550,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil).
 					Once()
 
-				preferredNamespace := ""
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
+					On("UserUpdate", ctx, updatedUser).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -1535,19 +1588,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
-				mock.
-					On("SystemGet", ctx).
-					Return(
-						&models.System{
-							Authentication: &models.SystemAuthentication{
-								Local: &models.SystemAuthenticationLocal{
-									Enabled: true,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -1569,7 +1609,41 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+				updatedUser := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
 
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				mock.
 					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
@@ -1600,9 +1674,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil).
 					Once()
 
-				preferredNamespace := ""
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
+					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
 			},
@@ -1630,19 +1703,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
-				mock.
-					On("SystemGet", ctx).
-					Return(
-						&models.System{
-							Authentication: &models.SystemAuthentication{
-								Local: &models.SystemAuthenticationLocal{
-									Enabled: true,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -1664,7 +1724,41 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+				updatedUser := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
 
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				mock.
 					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
@@ -1706,9 +1800,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil).
 					Once()
 
-				preferredNamespace := "00000000-0000-4000-0000-000000000000"
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
+					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
 			},
@@ -1737,19 +1830,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
-				mock.
-					On("SystemGet", ctx).
-					Return(
-						&models.System{
-							Authentication: &models.SystemAuthentication{
-								Local: &models.SystemAuthenticationLocal{
-									Enabled: true,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -1771,7 +1851,41 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+				updatedUser := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
 
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				mock.
 					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
@@ -1814,9 +1928,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil).
 					Once()
 
-				preferredNamespace := ""
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
+					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
 			},
@@ -1845,19 +1958,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
-				mock.
-					On("SystemGet", ctx).
-					Return(
-						&models.System{
-							Authentication: &models.SystemAuthentication{
-								Local: &models.SystemAuthenticationLocal{
-									Enabled: true,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -1879,7 +1979,41 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+				updatedUser := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
 
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				mock.
 					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
@@ -1921,9 +2055,8 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return(nil).
 					Once()
 
-				preferredNamespace := "00000000-0000-4000-0000-000000000000"
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace}).
+					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
 			},
@@ -1952,19 +2085,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 				Password:   "secret",
 			},
 			requiredMocks: func() {
-				mock.
-					On("SystemGet", ctx).
-					Return(
-						&models.System{
-							Authentication: &models.SystemAuthentication{
-								Local: &models.SystemAuthenticationLocal{
-									Enabled: true,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
 				user := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
@@ -1987,6 +2107,19 @@ func TestService_AuthLocalUser(t *testing.T) {
 					},
 				}
 
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
 				mock.
 					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
@@ -2023,12 +2156,16 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Once()
 				hashMock.
 					On("Do", "secret").
-					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
-				preferredNamespace := ""
+				expectedUser := *user
+				expectedUser.LastLogin = now
+				expectedUser.Password.Plain = "secret"
+				expectedUser.Password.Hash = "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi"
+
 				mock.
-					On("UserUpdate", ctx, user.ID, &models.UserChanges{LastLogin: now, PreferredNamespace: &preferredNamespace, Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
+					On("UserUpdate", ctx, &expectedUser).
 					Return(nil).
 					Once()
 			},
@@ -2241,30 +2378,48 @@ func TestCreateUserToken(t *testing.T) {
 			description: "[with-tenant] succeeds",
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID:        "000000000000000000000000",
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+					},
+				}
+				updatedUser := &models.User{
+					ID:        "000000000000000000000000",
+					Status:    models.UserStatusConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+						Name:     "john doe",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+					},
+				}
+
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(
-						&models.User{
-							ID:        "000000000000000000000000",
-							Status:    models.UserStatusConfirmed,
-							LastLogin: now,
-							MFA: models.UserMFA{
-								Enabled: false,
-							},
-							UserData: models.UserData{
-								Username: "john_doe",
-								Email:    "john.doe@test.com",
-								Name:     "john doe",
-							},
-							Password: models.UserPassword{
-								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-							},
-							Preferences: models.UserPreferences{
-								PreferredNamespace: "",
-							},
-						},
-						nil,
-					).
+					Return(user, nil).
 					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
@@ -2282,9 +2437,8 @@ func TestCreateUserToken(t *testing.T) {
 						nil,
 					).
 					Once()
-				preferredNamespace := "00000000-0000-4000-0000-000000000000"
 				storeMock.
-					On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{PreferredNamespace: &preferredNamespace}).
+					On("UserUpdate", ctx, updatedUser).
 					Return(nil).
 					Once()
 				clockMock := new(clockmock.Clock)

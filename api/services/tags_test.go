@@ -605,7 +605,7 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
-					Return(&models.Tag{}, nil).
+					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}, nil).
 					Once()
 				storeMock.
 					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "staging"}).
@@ -625,6 +625,9 @@ func TestService_UpdateTag(t *testing.T) {
 				TenantID: "tenant1",
 			},
 			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+				updatedTag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "staging"}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
@@ -635,14 +638,14 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
-					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
+					Return(tag, nil).
 					Once()
 				storeMock.
 					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "staging"}).
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("TagUpdate", ctx, "tag_00000000-0000-4000-0000-000000000000", &models.TagChanges{Name: "staging"}).
+					On("TagUpdate", ctx, updatedTag).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -659,6 +662,8 @@ func TestService_UpdateTag(t *testing.T) {
 				TenantID: "tenant1",
 			},
 			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
@@ -669,14 +674,18 @@ func TestService_UpdateTag(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
-					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
+					Return(tag, nil).
 					Once()
 				storeMock.
 					On("TagConflicts", ctx, "tenant1", &models.TagConflicts{Name: "staging"}).
 					Return([]string{}, false, nil).
 					Once()
+
+				expectedTag := *tag
+				expectedTag.Name = "staging"
+
 				storeMock.
-					On("TagUpdate", ctx, "tag_00000000-0000-4000-0000-000000000000", &models.TagChanges{Name: "staging"}).
+					On("TagUpdate", ctx, &expectedTag).
 					Return(nil).
 					Once()
 			},
@@ -757,6 +766,8 @@ func TestService_DeleteTag(t *testing.T) {
 				TenantID: "tenant1",
 			},
 			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
@@ -767,7 +778,7 @@ func TestService_DeleteTag(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
-					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
+					Return(tag, nil).
 					Once()
 
 				for _, target := range store.TagTargets() {
@@ -788,6 +799,8 @@ func TestService_DeleteTag(t *testing.T) {
 				TenantID: "tenant1",
 			},
 			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
@@ -798,7 +811,7 @@ func TestService_DeleteTag(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
-					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
+					Return(tag, nil).
 					Once()
 
 				for _, target := range store.TagTargets() {
@@ -809,7 +822,7 @@ func TestService_DeleteTag(t *testing.T) {
 				}
 
 				storeMock.
-					On("TagDelete", ctx, "tag_00000000-0000-4000-0000-000000000000").
+					On("TagDelete", ctx, tag).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -822,6 +835,8 @@ func TestService_DeleteTag(t *testing.T) {
 				TenantID: "tenant1",
 			},
 			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
 					Return(&models.Namespace{}, nil).
@@ -832,7 +847,7 @@ func TestService_DeleteTag(t *testing.T) {
 					Once()
 				storeMock.
 					On("TagResolve", ctx, store.TagNameResolver, "production", mock.AnythingOfType("store.QueryOption")).
-					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
+					Return(tag, nil).
 					Once()
 
 				for _, target := range store.TagTargets() {
@@ -843,7 +858,7 @@ func TestService_DeleteTag(t *testing.T) {
 				}
 
 				storeMock.
-					On("TagDelete", ctx, "tag_00000000-0000-4000-0000-000000000000").
+					On("TagDelete", ctx, tag).
 					Return(nil).
 					Once()
 			},
