@@ -34,11 +34,8 @@ describe("PaywallChat", () => {
     const dialog = new DOMWrapper(document.body);
 
     expect(dialog.text()).toContain("Upgrade to have access to chat support!");
-    expect(dialog.text()).toContain(
-      "Get real-time assistance from our team with priority responses.",
-    );
-
-    expect(dialog.find('[data-test="upgrade-description2"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="upgrade-description-1"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="upgrade-description-2"]').exists()).toBe(true);
     expect(dialog.find('[data-test="link-anchor"]').exists()).toBe(true);
 
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
