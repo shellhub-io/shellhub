@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -110,13 +109,10 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 		"device":     endpoint.DeviceUID,
 	})
 
-	// Prepare V1 CONNECT handshake request (only used if version=V1 inside target implementation)
-	handshakeReq, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", endpoint.Host, endpoint.Port), nil)
 	conn, err := h.Dialer.DialTo(c.Request().Context(), endpoint.Namespace, endpoint.DeviceUID, dialer.HTTPProxyTarget{
-		RequestID:        requestID,
-		Host:             endpoint.Host,
-		Port:             endpoint.Port,
-		HandshakeRequest: handshakeReq,
+		RequestID: requestID,
+		Host:      endpoint.Host,
+		Port:      endpoint.Port,
 	})
 	if err != nil {
 		logger.WithError(err).Error("failed to dial to device")
