@@ -1355,6 +1355,11 @@ func TestSSH(t *testing.T) {
 
 			devices := []models.Device{}
 
+			fmt.Println("111111111111111")
+			fmt.Println("111111111111111")
+			fmt.Println("111111111111111")
+			fmt.Println("111111111111111")
+
 			require.EventuallyWithT(t, func(tt *assert.CollectT) {
 				resp, err := compose.R(ctx).SetResult(&devices).
 					Get("/api/devices?status=pending")
@@ -1364,10 +1369,20 @@ func TestSSH(t *testing.T) {
 				assert.Len(tt, devices, 1)
 			}, 30*time.Second, 1*time.Second)
 
+			fmt.Println("2222222222222")
+			fmt.Println("2222222222222")
+			fmt.Println("2222222222222")
+			fmt.Println("2222222222222")
+
 			resp, err := compose.R(ctx).
 				Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
 			require.Equal(t, 200, resp.StatusCode())
 			require.NoError(t, err)
+
+			fmt.Println("3333333333333")
+			fmt.Println("3333333333333")
+			fmt.Println("3333333333333")
+			fmt.Println("3333333333333")
 
 			device := models.Device{}
 
@@ -1380,6 +1395,11 @@ func TestSSH(t *testing.T) {
 
 				assert.True(tt, device.Online)
 			}, 30*time.Second, 1*time.Second)
+
+			fmt.Println("4444444444444")
+			fmt.Println("4444444444444")
+			fmt.Println("4444444444444")
+			fmt.Println("4444444444444")
 
 			// --
 

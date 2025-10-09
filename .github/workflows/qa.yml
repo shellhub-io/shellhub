@@ -37,7 +37,7 @@ jobs:
             extra_args: ""
             lint_args: ""
           - project: tests
-            extra_args: ""
+            extra_args: "-v"
             lint_args: ""
 
     runs-on: ubuntu-latest
