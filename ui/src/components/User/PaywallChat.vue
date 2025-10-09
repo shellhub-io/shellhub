@@ -2,8 +2,6 @@
   <MessageDialog
     v-model="showDialog"
     title="Upgrade to have access to chat support!"
-    description="Get real-time assistance from our team with priority responses.
-     Skip the hassle of documentation — upgrade now and unlock direct chat support."
     icon="mdi-chat-question"
     icon-color="success"
     cancel-text="Close"
@@ -11,9 +9,14 @@
     confirm-text="Upgrade"
     confirm-data-test="upgrade-btn"
     @confirm="redirectToPricing"
+    @cancel="showDialog = false"
     data-test="paywall-chat-dialog"
   >
-    <p class="align-center text-grey text-center" data-test="upgrade-description2">
+    <p class="text-center mb-4" data-test="upgrade-description-1">
+      Get real-time assistance from our team with priority responses.
+      Skip the hassle of documentation — upgrade now and unlock direct chat support.
+    </p>
+    <p class="text-center text-grey" data-test="upgrade-description-2">
       However, you can still use
       <a
         href="https://docs.shellhub.io/"
