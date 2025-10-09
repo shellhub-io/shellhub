@@ -92,6 +92,58 @@ jobs:
           path: rootfs/*.tar.gz
 
 
+  build-binaries:
+    if: "contains(github.ref, 'refs/tags/v')"
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: arm
+            goarm: 7
+          - goos: linux
+            goarch: arm
+            goarm: 6
+          - goos: linux
+            goarch: 386
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v5
+
+      - name: setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Set release version
+        run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+
+      - name: build agent binary
+        env:
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+        run: |
+          cd agent
+          BINARY_NAME="shellhub-agent-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ -n "${{ matrix.goarm }}" ]; then
+            BINARY_NAME="${BINARY_NAME}v${{ matrix.goarm }}"
+          fi
+          go build -ldflags "-s -w -X main.AgentVersion=${{ env.RELEASE_VERSION }}" -o "$BINARY_NAME" .
+          gzip "$BINARY_NAME"
+
+      - name: upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-binary-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}
+          path: agent/shellhub-agent-*.gz
+
   vendored-tarball:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
@@ -112,13 +164,18 @@ jobs:
 
   draft:
     if: "contains(github.ref, 'refs/tags/v')"
-    needs: vendored-tarball
+    needs: [build-binaries, vendored-tarball]
     runs-on: ubuntu-latest
     steps:
       - name: download rootfs artifacts
         uses: actions/download-artifact@v5
         with:
           name: rootfs-artifacts
+      - name: download agent binaries
+        uses: actions/download-artifact@v5
+        with:
+          pattern: agent-binary-*
+          merge-multiple: true
       - name: download vendored tarball
         uses: actions/download-artifact@v5
         with:
@@ -130,4 +187,5 @@ jobs:
           generate_release_notes: true
           files: |
             rootfs-*.tar.gz
+            shellhub-agent-*.gz
             shellhub-agent.tar.gz
