@@ -77,20 +77,20 @@ func (t SSHCloseTarget) prepare(conn net.Conn, version ConnectionVersion) (net.C
 // final HTTP request (with rewritten Host + URL) directly to the
 // returned connection.
 type HTTPProxyTarget struct {
-	RequestID        string
-	Host             string
-	Port             int
-	HandshakeRequest *http.Request // original inbound request used for V1 CONNECT-style handshake
+	RequestID string
+	Host      string
+	Port      int
 }
 
 func (t HTTPProxyTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
 	case ConnectionVersion1:
 		// Write initial handshake request and expect 200 OK.
-		if err := t.HandshakeRequest.Write(conn); err != nil {
+		handshakeReq, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", t.Host, t.Port), nil)
+		if err := handshakeReq.Write(conn); err != nil {
 			return nil, err
 		}
-		resp, err := http.ReadResponse(bufio.NewReader(conn), t.HandshakeRequest)
+		resp, err := http.ReadResponse(bufio.NewReader(conn), handshakeReq)
 		if err != nil {
 			return nil, err
 		}
