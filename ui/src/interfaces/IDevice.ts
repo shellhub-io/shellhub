@@ -55,4 +55,5 @@ export interface IDeviceMethods {
   fetchDevices: (params: FetchDevicesParams) => Promise<void>;
   getList: () => IDevice[];
   getCount: () => number;
+  getFilter: () => string | undefined;
 }

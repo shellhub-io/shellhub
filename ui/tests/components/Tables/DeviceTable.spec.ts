@@ -63,6 +63,7 @@ describe("Device Table", () => {
     fetchDevices: vi.fn(),
     getList: () => devices as IDevice[],
     getCount: () => devices.length,
+    getFilter: () => undefined,
   };
 
   beforeEach(async () => {

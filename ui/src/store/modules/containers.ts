@@ -8,14 +8,17 @@ const useContainersStore = defineStore("containers", () => {
   const container = ref<IContainer>({} as IContainer);
   const containerCount = ref(0);
   const showContainers = ref(false);
+  const containerListFilter = ref<string>();
 
   const fetchContainerList = async (data?: FetchContainerParams) => {
+    const filter = data?.filter || containerListFilter.value;
+    containerListFilter.value = filter;
     try {
       const res = await containerApi.fetchContainers(
         data?.page || 1,
         data?.perPage || 10,
         data?.status || "accepted",
-        data?.filter,
+        filter,
         data?.sortField,
         data?.sortOrder,
       );
@@ -66,6 +69,7 @@ const useContainersStore = defineStore("containers", () => {
     container,
     containerCount,
     showContainers,
+    containerListFilter,
     fetchContainerList,
     setContainerListVisibility,
     removeContainer,

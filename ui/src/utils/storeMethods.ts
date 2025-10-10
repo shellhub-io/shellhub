@@ -19,11 +19,13 @@ export function getContainerStoreMethods(): IContainerMethods {
 
   const getList = () => containersStore.containers;
   const getCount = () => containersStore.containerCount;
+  const getFilter = () => containersStore.containerListFilter;
 
   return {
     fetchDevices,
     getList,
     getCount,
+    getFilter,
   };
 }
 
@@ -43,10 +45,12 @@ export function getDeviceStoreMethods(): IDeviceMethods {
 
   const getList = () => devicesStore.devices;
   const getCount = () => devicesStore.deviceCount;
+  const getFilter = () => devicesStore.deviceListFilter;
 
   return {
     fetchDevices,
     getList,
     getCount,
+    getFilter,
   };
 }

@@ -10,6 +10,7 @@ const useDevicesStore = defineStore("devices", () => {
   const showDevices = ref<boolean>(false);
   const deviceCount = ref<number>(0);
   const duplicatedDeviceName = ref<string>("");
+  const deviceListFilter = ref<string>();
 
   const onlineDevices = ref<Array<IDevice>>([]);
 
@@ -18,12 +19,14 @@ const useDevicesStore = defineStore("devices", () => {
   const selectedDevices = ref<Array<IDevice>>([]);
 
   const fetchDeviceList = async (data?: FetchDevicesParams) => {
+    const filter = data?.filter || deviceListFilter.value;
+    deviceListFilter.value = filter;
     try {
       const res = await devicesApi.fetchDevices(
         data?.page || 1,
         data?.perPage || 10,
         data?.status || "accepted",
-        data?.filter,
+        filter,
         data?.sortField,
         data?.sortOrder,
       );
@@ -119,6 +122,7 @@ const useDevicesStore = defineStore("devices", () => {
     suggestedDevices,
     selectedDevices,
     duplicatedDeviceName,
+    deviceListFilter,
 
     fetchDeviceList,
     setDeviceListVisibility,
