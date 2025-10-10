@@ -3,7 +3,8 @@
     fluid
     data-test="account-profile-container"
   >
-    <UserDelete v-model="showDeleteAccountDialog" data-test="delete-user-dialog" />
+    <UserDeleteWarning v-if="showUserDeleteWarning" v-model="showDeleteAccountDialog" data-test="delete-user-community-dialog" />
+    <UserDelete v-else v-model="showDeleteAccountDialog" data-test="delete-user-dialog" />
     <v-card
       variant="flat"
       class="bg-transparent"
@@ -234,6 +235,7 @@ import handleError from "@/utils/handleError";
 import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
 import UserDelete from "../User/UserDelete.vue";
+import UserDeleteWarning from "../User/UserDeleteWarning.vue";
 import UserIcon from "../User/UserIcon.vue";
 import { envVariables } from "@/envVariables";
 import ChangePassword from "../User/ChangePassword.vue";
@@ -255,7 +257,8 @@ const showChangePassword = ref(false);
 const showDeleteAccountDialog = ref(false);
 const authMethods = computed(() => authStore.authMethods);
 const isLocalAuth = computed(() => authMethods.value.includes("local"));
-const { isCloud, isCommunity } = envVariables;
+const { isEnterprise, isCommunity, isCloud } = envVariables;
+const showUserDeleteWarning = computed(() => isCommunity || isEnterprise);
 const { lgAndUp } = useDisplay();
 
 const {
