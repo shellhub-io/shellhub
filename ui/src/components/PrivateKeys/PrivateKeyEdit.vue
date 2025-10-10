@@ -33,16 +33,19 @@
           data-test="name-field"
         />
 
-        <v-textarea
+        <FileTextComponent
           v-model="keyLocal"
-          label="Private key data"
-          required
-          messages="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-          :error-messages="keyLocalError"
-          @update:model-value="validatePrivateKeyData"
+          class="mt-2"
+          :validator="(t) => isKeyValid('private', t, passphrase || undefined)"
+          invalid-message="Invalid private key data"
+          :enable-paste="true"
+          :textarea-label="'Private key data'"
+          :description-text="privateKeyDescription"
+          :start-in-text="true"
           variant="underlined"
           data-test="private-key-field"
-          rows="5"
+          @error="setKeyLocalError"
+          @update:model-value="validatePrivateKeyData"
         />
 
         <v-text-field
@@ -70,6 +73,7 @@ import handleError from "@/utils/handleError";
 import { convertToFingerprint, isKeyValid, parsePrivateKey } from "@/utils/sshKeys";
 import useSnackbar from "@/helpers/snackbar";
 import FormDialog from "../FormDialog.vue";
+import FileTextComponent from "../FileTextComponent.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
@@ -80,6 +84,8 @@ const showDialog = ref(false);
 const privateKeysStore = usePrivateKeysStore();
 const snackbar = useSnackbar();
 const hasPassphrase = ref(privateKey.hasPassphrase || false);
+
+const privateKeyDescription = "Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats.";
 
 const {
   value: keyLocal,
@@ -151,7 +157,6 @@ const hasValidationError = () => {
     setPassphraseError("Passphrase is required");
     return true;
   }
-  // If present, ensure it's a valid private key
   if (!isKeyValid("private", keyLocal.value, passphrase.value || undefined)) {
     setKeyLocalError("Invalid private key data");
     return true;
@@ -198,9 +203,17 @@ const edit = () => {
 
 const confirmDisabled = computed(() => Boolean(
   keyLocalError.value
-    || nameError.value
-    || (hasPassphrase.value && passphraseError.value),
+      || nameError.value
+      || (hasPassphrase.value && passphraseError.value),
 ));
 
-defineExpose({ keyLocal, name, hasPassphrase, update, edit, handleError, initializeFormData });
+defineExpose({
+  keyLocal,
+  name,
+  hasPassphrase,
+  update,
+  edit,
+  handleError,
+  initializeFormData,
+});
 </script>
