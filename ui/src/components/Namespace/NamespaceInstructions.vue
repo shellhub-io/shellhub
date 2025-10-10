@@ -4,7 +4,7 @@
     title="You have no namespaces associated"
     icon="mdi-folder-alert"
     icon-color="warning"
-    :show-close-button="false"
+    @close="showNoNamespaceDialog = false"
   >
     <div class="pa-6">
       <p>
@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { envVariables } from "@/envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
@@ -66,6 +66,6 @@ import WindowDialog from "../WindowDialog.vue";
 const route = useRoute();
 const showDialog = defineModel<boolean>({ default: false });
 const showNamespaceAdd = ref(false);
-const showNoNamespaceDialog = computed(() => route.name === "AcceptInvite" ? false : showDialog.value);
+const showNoNamespaceDialog = ref(route.name === "AcceptInvite" ? false : showDialog.value);
 const { isCommunity } = envVariables;
 </script>
