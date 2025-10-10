@@ -139,7 +139,7 @@
                         :device-uid="item.uid"
                         :tags-list="item.tags"
                         :has-authorization="canUpdateDeviceTag"
-                        @update="refreshDevices"
+                        @update="getDevices"
                       />
                     </div>
                   </template>
@@ -157,7 +157,7 @@
                         :variant
                         :uid="item.uid"
                         :hasAuthorization="canRemoveDevice"
-                        @update="refreshDevices"
+                        @update="getDevices"
                       />
                     </div>
                   </template>
@@ -225,7 +225,7 @@
                   :isInNotification="false"
                   action="accept"
                   :show="showDeviceAcceptButton"
-                  @update="refreshDevices()"
+                  @update="getDevices"
                   data-test="DeviceActionButtonAccept-component"
                 />
                 <DeviceActionButton
@@ -234,7 +234,7 @@
                   :action="status === 'pending' ? 'reject' : 'remove'"
                   :isInNotification="false"
                   :show="showDeviceRejectButton"
-                  @update="refreshDevices()"
+                  @update="getDevices"
                   data-test="deviceActionButtonReject-component"
                 />
               </v-list>
@@ -281,7 +281,7 @@ const props = defineProps<{
   variant: "device" | "container";
 }>();
 
-const { fetchDevices, getList, getCount } = props.storeMethods;
+const { fetchDevices, getList, getCount, getFilter } = props.storeMethods;
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
@@ -291,7 +291,7 @@ const showDeviceAcceptButton = ref(false);
 const showDeviceRejectButton = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
-const status = computed(() => props.status);
+const filter = computed(() => getFilter());
 const sortField = ref();
 const sortOrder = ref();
 const showTerminalHelper = ref(false);
@@ -409,17 +409,14 @@ const sortByItem = async (field: string) => {
   await getDevices();
 };
 
-watch([page, itemsPerPage], async () => {
+watch(filter, async () => {
+  page.value = 1;
   await getDevices();
 });
 
-const refreshDevices = async () => {
-  await getDevices();
-};
+watch([page, itemsPerPage], async () => { await getDevices(); });
 
-onMounted(async () => {
-  await getDevices();
-});
+onMounted(async () => { await getDevices(); });
 
 defineExpose({ page, showTerminalHelper, openTerminalHelper });
 </script>
