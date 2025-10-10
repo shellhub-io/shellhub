@@ -265,7 +265,7 @@ import TagFormUpdate from "../Tags/TagFormUpdate.vue";
 import TerminalConnectButton from "../Terminal/TerminalConnectButton.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import TerminalHelper from "../Terminal/TerminalHelper.vue";
-import { IDevice, IDeviceMethods } from "@/interfaces/IDevice";
+import { IDevice, IDeviceMethods, DeviceStatus } from "@/interfaces/IDevice";
 import hasPermission from "@/utils/permission";
 import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters } from "@/utils/string";
@@ -276,7 +276,7 @@ import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{
   storeMethods: IDeviceMethods | IContainerMethods;
-  status: "accepted" | "pending" | "rejected";
+  status: DeviceStatus;
   header: "primary" | "secondary";
   variant: "device" | "container";
 }>();

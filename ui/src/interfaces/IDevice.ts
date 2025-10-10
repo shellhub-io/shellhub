@@ -18,6 +18,8 @@ type Position = {
   longitude: number;
 }
 
+export type DeviceStatus = "accepted" | "pending" | "rejected";
+
 export interface IDevice {
   uid: string;
   name: string;
@@ -28,7 +30,7 @@ export interface IDevice {
   last_seen: string;
   online: boolean;
   namespace: string;
-  status: string;
+  status: DeviceStatus;
   created_at: string;
   remote_addr: string;
   position: Position;
@@ -44,7 +46,7 @@ export interface FetchDevicesParams {
   perPage?: number;
   page?: number;
   filter?: string;
-  status?: "accepted" | "pending" | "rejected";
+  status?: DeviceStatus;
   sortField?: string;
   sortOrder?: "asc" | "desc";
 }

@@ -40,7 +40,7 @@ const devices = [
     created_at: "2020-05-20T18:00:00.000Z",
     online: false,
     namespace: "user",
-    status: "accepted",
+    status: "accepted" as const,
     remote_addr: "127.0.0.1",
     position: { latitude: 0, longitude: 0 },
     tags: [
@@ -71,7 +71,7 @@ const devices = [
     created_at: "2020-05-20T18:00:00.000Z",
     online: true,
     namespace: "user",
-    status: "accepted",
+    status: "accepted" as const,
     remote_addr: "127.0.0.1",
     position: { latitude: 0, longitude: 0 },
     tags: [

@@ -62,6 +62,7 @@ import TagSelector from "../components/Tags/TagSelector.vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import useSnackbar from "@/helpers/snackbar";
 import useDevicesStore from "@/store/modules/devices";
+import { DeviceStatus } from "@/interfaces/IDevice";
 
 const devicesStore = useDevicesStore();
 const route = useRoute();
@@ -70,7 +71,7 @@ const filter = ref("");
 const showDevices = computed(() => devicesStore.showDevices);
 const isDeviceList = computed(() => route.name === "DeviceList");
 
-const statusMap: Record<string, "accepted" | "pending" | "rejected"> = {
+const statusMap: Record<string, DeviceStatus> = {
   "/devices": "accepted",
   "/devices/pending": "pending",
   "/devices/rejected": "rejected",

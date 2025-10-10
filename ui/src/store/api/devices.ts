@@ -1,4 +1,4 @@
-import { IDeviceRename } from "@/interfaces/IDevice";
+import { DeviceStatus, IDeviceRename } from "@/interfaces/IDevice";
 import { devicesApi, tagsApi } from "@/api/http";
 
 export const postTag = async (data) => tagsApi.createTag(data.uid, data.name);
@@ -6,17 +6,17 @@ export const postTag = async (data) => tagsApi.createTag(data.uid, data.name);
 export const fetchDevices = async (
   page: number,
   perPage: number,
-  status?: "accepted" | "rejected" | "pending",
+  status?: DeviceStatus,
   filter?: string,
-  sortStatusField?: string,
-  sortStatusString?: "asc" | "desc",
+  sortField?: string,
+  sortOrder?: "asc" | "desc",
 ) => devicesApi.getDevices(
   filter,
   page,
   perPage,
   status,
-  sortStatusField,
-  sortStatusString,
+  sortField,
+  sortOrder,
 );
 
 export const resolveDevice = async (hostname?: string, uid?: string) => devicesApi.resolveDevice(hostname, uid);
