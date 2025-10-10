@@ -2,7 +2,7 @@
   <MessageDialog
     v-model="showDialog"
     title="Confirm Account Deletion"
-    description="Are you sure you want to delete your account? This action cannot be undone."
+    :description="dialogDescription"
     icon="mdi-account-remove"
     icon-color="error"
     cancel-text="Cancel"
@@ -10,22 +10,46 @@
     confirm-text="Delete Account"
     confirm-color="error"
     confirm-data-test="delete-user-btn"
+    :confirm-disabled="hasNamespaces"
+    @cancel="showDialog = false"
     @confirm="deleteAccount"
     data-test="user-delete-dialog"
-  />
+  >
+    <v-alert
+      v-if="hasNamespaces"
+      type="warning"
+      variant="tonal"
+      class="mb-4"
+      data-test="namespace-warning"
+    >
+      <strong>Warning:</strong> You cannot delete your account while you have active namespaces.
+      Please delete all your owned namespaces before attempting to delete your account.
+    </v-alert>
+  </MessageDialog>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import MessageDialog from "../MessageDialog.vue";
 import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const authStore = useAuthStore();
+const { namespaceList } = useNamespacesStore();
+const hasNamespaces = namespaceList.length > 0;
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel<boolean>({ default: false });
+
+const dialogDescription = computed(() => (
+  hasNamespaces
+    ? "You cannot delete your account while you have active namespaces."
+    : "Are you sure you want to delete your account? This action cannot be undone."
+));
 
 const deleteAccount = async () => {
   try {
@@ -33,6 +57,10 @@ const deleteAccount = async () => {
     snackbar.showSuccess("Account deleted successfully.");
     router.push({ name: "Login" });
   } catch (error: unknown) {
+    if (error instanceof AxiosError && error.response?.status === 403) {
+      snackbar.showError("You cannot delete your account while you have active namespaces.");
+      return;
+    }
     snackbar.showError("Failed to delete account.");
     handleError(error);
   }
