@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import Device from "../components/Devices/Device.vue";
 import DeviceAdd from "../components/Devices/DeviceAdd.vue";
 import TagSelector from "../components/Tags/TagSelector.vue";
@@ -64,11 +64,17 @@ import useSnackbar from "@/helpers/snackbar";
 import useDevicesStore from "@/store/modules/devices";
 
 const devicesStore = useDevicesStore();
-const router = useRouter();
+const route = useRoute();
 const snackbar = useSnackbar();
 const filter = ref("");
 const showDevices = computed(() => devicesStore.showDevices);
-const isDeviceList = computed(() => router.currentRoute.value.name === "DeviceList");
+const isDeviceList = computed(() => route.name === "DeviceList");
+
+const statusMap: Record<string, "accepted" | "pending" | "rejected"> = {
+  "/devices": "accepted",
+  "/devices/pending": "pending",
+  "/devices/rejected": "rejected",
+};
 
 const searchDevices = async () => {
   const filterToEncodeBase64 = [{
@@ -78,8 +84,10 @@ const searchDevices = async () => {
 
   const encodedFilter = filter.value ? btoa(JSON.stringify(filterToEncodeBase64)) : undefined;
 
+  const status = statusMap[route.path] || "accepted";
+
   try {
-    await devicesStore.fetchDeviceList({ filter: encodedFilter });
+    await devicesStore.fetchDeviceList({ filter: encodedFilter, status });
   } catch {
     snackbar.showError("Failed to load devices.");
   }
