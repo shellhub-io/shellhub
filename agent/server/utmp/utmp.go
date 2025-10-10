@@ -43,7 +43,9 @@ func UtmpStartSession(line, user, remoteAddr string) Utmpx { //nolint:revive
 	var u Utmpx
 
 	u.Type = UserProcess
-	u.Pid = os.Getpid()
+	// NOTE: The maximum value of a pid in Linux and FreeBSD systems fits inside a 4-byte int32.
+	// [https://github.com/torvalds/linux/blob/c766d1472c70d25ad475cf56042af1652e792b23/include/uapi/asm-generic/posix_types.h#L28]
+	u.Pid = int32(os.Getpid()) //nolint:gosec
 	// There are two versions of the utmpSetTime function
 	// defined in utmp_timeval_time??.go, one for systems
 	// that write the time fields as 32-bit values and one
@@ -178,12 +180,11 @@ func updUtmp(u Utmpx, id string) {
 		}
 	}
 
-	err = binary.Write(file, binary.LittleEndian, &u) //nolint:staticcheck
-	if err != nil {
+	if err := binary.Write(file, binary.LittleEndian, &u); err != nil { //nolint:staticcheck
 		logrus.WithFields(logrus.Fields{
 			"file": UtmpxFile,
 			"err":  err,
-		}).Warn("Write failed")
+		}).Warn("Write failed utmp")
 	}
 }
 
@@ -244,12 +245,11 @@ func updWtmp(u Utmpx) {
 		}
 	}
 
-	err = binary.Write(file, binary.LittleEndian, &u) //nolint:staticcheck
-	if err != nil {
+	if err := binary.Write(file, binary.LittleEndian, &u); err != nil { //nolint:staticcheck
 		logrus.WithFields(logrus.Fields{
 			"file": WtmpxFile,
 			"err":  err,
-		}).Warn("Write failed")
+		}).Warn("Write failed on wtmp")
 
 		if err := file.Truncate(fileSize); err != nil {
 			logrus.WithFields(logrus.Fields{
