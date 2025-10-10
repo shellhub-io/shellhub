@@ -1,10 +1,10 @@
-import { IContainerRename } from "@/interfaces/IContainer";
+import { ContainerStatus, IContainerRename } from "@/interfaces/IContainer";
 import { containersApi } from "@/api/http";
 
 export const fetchContainers = async (
   page: number,
   perPage: number,
-  status?: "accepted" | "rejected" | "pending",
+  status?: ContainerStatus,
   filter?: string,
   sortField?: string,
   sortOrder?: "asc" | "desc",
