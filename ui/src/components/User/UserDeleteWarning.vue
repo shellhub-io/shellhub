@@ -28,6 +28,7 @@
             <template #default="{ copyText }">
               <v-text-field
                 :model-value="'$ ' + deleteCommand"
+                data-test="cli-command"
                 class="code"
                 readonly
                 density="compact"
@@ -83,14 +84,12 @@ import CopyWarning from "../User/CopyWarning.vue";
 import useAuthStore from "@/store/modules/auth";
 import { envVariables } from "@/envVariables";
 
-const showDialog = defineModel<boolean>({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const { username } = useAuthStore();
 const { isCommunity } = envVariables;
 const deleteCommand = `./bin/cli user delete ${username}`;
 const dialogDescription = isCommunity ? "CLI Required" : "Admin Console Required";
 const dialogIcon = isCommunity ? "mdi-console" : "mdi-shield-account";
-
-defineExpose({ showDialog });
 </script>
 
 <style scoped lang="scss">
