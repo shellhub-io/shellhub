@@ -1,100 +1,41 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Welcome Third Screen > Renders the component 1`] = `
-"<div class="pa-4">
-  <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-third-screen-name"> A device connection has been detected. </p>
-  <p class="ml-4 pt-4 text-subtitle-2" data-test="welcome-third-screen-text"> Please confirm that this device is yours to enroll into your account. After confirmation, you will go to the last step of introducing <strong>ShellHub</strong>. </p>
-  <div class="v-row v-row--no-gutters mt-4">
-    <div class="v-col">
-      <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface" align="center" data-test="welcome-third-screen-hostname">
-        <!---->
-        <div class="v-card__loader">
-          <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-            <!---->
-            <div class="v-progress-linear__background"></div>
-            <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-            <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-              <div class="v-progress-linear__indeterminate">
-                <div class="v-progress-linear__indeterminate long"></div>
-                <div class="v-progress-linear__indeterminate short"></div>
-              </div>
-            </transition-stub>
-            <!---->
-          </div>
-        </div>
-        <!---->
-        <!----><strong>Hostname</strong>
-        <!---->
-        <!----><span class="v-card__underlay"></span>
-      </div>
-      <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-      <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface" align="center" data-test="device-field">
-        <!---->
-        <div class="v-card__loader">
-          <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-            <!---->
-            <div class="v-progress-linear__background"></div>
-            <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-            <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-              <div class="v-progress-linear__indeterminate">
-                <div class="v-progress-linear__indeterminate long"></div>
-                <div class="v-progress-linear__indeterminate short"></div>
-              </div>
-            </transition-stub>
-            <!---->
-          </div>
-        </div>
-        <!---->
-        <!---->39-5e-2a
-        <!---->
-        <!----><span class="v-card__underlay"></span>
-      </div>
+"<div data-v-9fa0b2b1="" class="pa-6">
+  <div data-v-9fa0b2b1="" class="text-center mb-6">
+    <div data-v-9fa0b2b1="" class="v-avatar v-theme--light bg-success v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i data-v-9fa0b2b1="" class="mdi-check-circle mdi v-icon notranslate v-theme--light text-white" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+      <!----><span class="v-avatar__underlay"></span>
     </div>
-    <div class="v-col">
-      <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface" align="center" data-test="welcome-third-screen-os">
-        <!---->
-        <div class="v-card__loader">
-          <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-            <!---->
-            <div class="v-progress-linear__background"></div>
-            <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-            <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-              <div class="v-progress-linear__indeterminate">
-                <div class="v-progress-linear__indeterminate long"></div>
-                <div class="v-progress-linear__indeterminate short"></div>
-              </div>
-            </transition-stub>
-            <!---->
-          </div>
+    <h2 data-v-9fa0b2b1="" class="text-h4 mb-2">Device Detected!</h2>
+    <p data-v-9fa0b2b1="" class="text-subtitle-1 text-medium-emphasis">Confirm this device to add it to your account</p>
+  </div>
+  <div data-v-9fa0b2b1="" class="v-alert v-theme--light text-success v-alert--density-default v-alert--variant-tonal mb-4" role="alert" data-test="welcome-third-screen-name">
+    <!----><span class="v-alert__underlay"></span>
+    <!---->
+    <div class="v-alert__prepend"><i class="mdi-lan-connect mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" density="default"></i></div>
+    <div class="v-alert__content">
+      <div class="v-alert-title">Connection Successful</div>
+      <!---->
+      <p data-v-9fa0b2b1="" class="mb-0" data-test="welcome-third-screen-text"> A device has been detected and is ready for enrollment. Please verify the device information below and confirm it belongs to you. </p>
+    </div>
+    <!---->
+    <!---->
+  </div>
+  <div data-v-9fa0b2b1="" class="v-expansion-panels v-theme--light v-expansion-panels--variant-default">
+    <div data-v-9fa0b2b1="" class="v-expansion-panel border bg-background rounded">
+      <div class="v-expansion-panel__shadow"></div>
+      <!---->
+      <!----><button data-v-9fa0b2b1="" class="v-expansion-panel-title text-white bg-v-theme-surface border-b d-flex align-center" type="button" aria-expanded="false"><span class="v-expansion-panel-title__overlay"></span><i data-v-9fa0b2b1="" data-test="type-icon" class="fl-linuxmint mr-1 mr-3" style="font-size: 20px;" size="32"></i>
+        <div data-v-9fa0b2b1="">
+          <div data-v-9fa0b2b1="" class="text-h6" data-test="device-field">39-5e-2a</div>
+          <div data-v-9fa0b2b1="" class="text-body-2 text-white" data-test="device-pretty-name-field">Linux Mint 19.3</div>
+        </div><span class="v-expansion-panel-title__icon"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+      </button>
+      <transition-stub data-v-9fa0b2b1="" name="expand-transition" appear="false" persisted="false" css="true">
+        <div class="v-expansion-panel-text pt-2" style="display: none;">
+          <!---->
         </div>
-        <!---->
-        <!----><strong>Operation System</strong>
-        <!---->
-        <!----><span class="v-card__underlay"></span>
-      </div>
-      <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-      <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-2 bg-v-theme-surface" align="center" data-test="device-pretty-name-field">
-        <!---->
-        <div class="v-card__loader">
-          <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-            <!---->
-            <div class="v-progress-linear__background"></div>
-            <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-            <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-              <div class="v-progress-linear__indeterminate">
-                <div class="v-progress-linear__indeterminate long"></div>
-                <div class="v-progress-linear__indeterminate short"></div>
-              </div>
-            </transition-stub>
-            <!---->
-          </div>
-        </div>
-        <!---->
-        <!---->
-        <div><i data-test="type-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i> Linux Mint 19.3</div>
-        <!---->
-        <!----><span class="v-card__underlay"></span>
-      </div>
+      </transition-stub>
     </div>
   </div>
 </div>"
