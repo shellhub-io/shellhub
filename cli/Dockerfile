@@ -49,6 +49,6 @@ RUN go build
 ENTRYPOINT ["/entrypoint-dev.sh"]
 
 # production stage
-FROM alpine:3.22.1 AS production
+FROM alpine:3.22.2 AS production
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/cli/cli /cli
