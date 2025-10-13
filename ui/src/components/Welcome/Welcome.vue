@@ -1,19 +1,12 @@
 <template>
-  <FormDialog
+  <WindowDialog
     v-model="showDialog"
     persistent
-    :title="`Step ${el} of 4`"
-    :confirm-text="el === 1 ? 'Next'
-      : el === 2 ? 'Next'
-        : el === 3 ? 'Accept'
-          : el === 4 ? 'Finish'
-            : ''"
-    :cancel-text="el === 1 || el === 2 || el === 3 ? 'Close' : ''"
-    :confirm-disabled="el === 2 && !enable"
-    confirm-color="primary"
+    title="Welcome to ShellHub!"
+    :description="`Step ${el} of 4`"
     icon="mdi-door-open"
-    @cancel="close"
-    @confirm="handleConfirm"
+    icon-color="primary"
+    @close="close"
   >
     <v-window v-model="el">
       <v-window-item :value="1" data-test="welcome-first-screen">
@@ -29,7 +22,35 @@
         <WelcomeFourthScreen />
       </v-window-item>
     </v-window>
-  </FormDialog>
+
+    <template #footer>
+      <div class="d-flex align-center w-100">
+        <v-spacer />
+        <div class="d-flex">
+          <v-btn
+            v-if="el === 1 || el === 2 || el === 3"
+            @click="close"
+            data-test="cancel-btn"
+            class="mr-2"
+          >
+            Close
+          </v-btn>
+          <v-btn
+            color="primary"
+            @click="handleConfirm"
+            :disabled="el === 2 && !enable"
+            data-test="confirm-btn"
+          >
+            {{ el === 1 ? 'Next'
+              : el === 2 ? 'Next'
+                : el === 3 ? 'Accept'
+                  : el === 4 ? 'Finish'
+                    : '' }}
+          </v-btn>
+        </div>
+      </div>
+    </template>
+  </WindowDialog>
 </template>
 
 <script setup lang="ts">
@@ -38,7 +59,7 @@ import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
 import WelcomeFourthScreen from "./WelcomeFourthScreen.vue";
-import FormDialog from "./../FormDialog.vue";
+import WindowDialog from "./../WindowDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";
