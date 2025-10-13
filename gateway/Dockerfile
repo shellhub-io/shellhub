@@ -41,7 +41,7 @@ RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
 
 RUN apk add --update openssl build-base
 RUN go install github.com/air-verse/air@v1.52.3 && \
-    go install github.com/go-delve/delve/cmd/dlv@v1.23.0 && \
+    go install github.com/go-delve/delve/cmd/dlv@v1.25 && \
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6 && \
     go install github.com/vektra/mockery/v2/...@v2.20.0
 
