@@ -118,7 +118,7 @@ jobs:
       - name: setup go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       - name: Set release version
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV

@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/api
 
-go 1.23.0
+go 1.24.7
 
 require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08

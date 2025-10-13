@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub
 
-go 1.23.0
+go 1.24.7
 
 require (
 	github.com/adhocore/gronx v1.8.1
