@@ -1,54 +1,53 @@
 import { createPinia, setActivePinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it } from "vitest";
 import WelcomeFirstScreen from "@/components/Welcome/WelcomeFirstScreen.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
 
-type WelcomeFirstScreenWrapper = VueWrapper<InstanceType<typeof WelcomeFirstScreen>>;
+const expectedFeatures = [
+  { title: "Remote Access", icon: "mdi-monitor" },
+  { title: "Secure Connection", icon: "mdi-shield-check" },
+  { title: "Easy Setup", icon: "mdi-cogs" },
+];
+
+const authData = {
+  token: "",
+  username: "test",
+  name: "test",
+  tenantId: "fake-tenant-data",
+  email: "test@test.com",
+  id: "xxxxxxxx",
+  role: "owner",
+};
 
 describe("Welcome First Screen", () => {
-  let wrapper: WelcomeFirstScreenWrapper;
   setActivePinia(createPinia());
-  const vuetify = createVuetify();
   const authStore = useAuthStore();
+  authStore.$patch(authData);
 
-  const authData = {
-    token: "",
-    username: "test",
-    name: "test",
-    tenantId: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    role: "owner",
-  };
-
-  beforeEach(async () => {
-    authStore.$patch(authData);
-
-    wrapper = mount(WelcomeFirstScreen, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  const wrapper = mount(WelcomeFirstScreen, { global: { plugins: [createVuetify()] } });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the components", async () => {
-    expect(wrapper.find('[data-test="welcome-first-screen-name"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="welcome-first-screen-text"]').exists()).toBe(true);
+  it("Renders the right username", () => {
+    expect(wrapper.find("[data-test='welcome-name']").text()).toEqual("Welcome, test!");
   });
 
-  it("Renders the right namespace name", () => {
-    expect(wrapper.vm.name).toEqual("test");
+  it("Renders all feature cards", () => {
+    const featureCards = wrapper.findAll(".v-card");
+    expect(featureCards).toHaveLength(3);
+  });
+
+  it("Renders feature cards with correct content", () => {
+    expectedFeatures.forEach((feature, index) => {
+      const cardTitle = wrapper.findAll(".v-card-title")[index];
+      const cardIcon = wrapper.findAll(".v-icon")[index + 1]; // +1 to skip rocket icon
+
+      expect(cardTitle.text()).toBe(feature.title);
+      expect(cardIcon.classes()).toContain(feature.icon);
+    });
   });
 });
