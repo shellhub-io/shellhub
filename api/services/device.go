@@ -387,26 +387,44 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 // mergeDevice merges an old device into a new device. It transfers all sessions from the old device to the new one and
 // renames the new device to preserve the old device's identity. The old device is then deleted and the namespace's device count is decremented.
 func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
+	logFields := log.Fields{"tenant_id": tenantID, "old_device_uid": oldDevice.UID, "new_device_uid": newDevice.UID}
+
+	log.WithFields(logFields).Debug("transferring tunnels from old device to new device")
 	if err := s.store.TunnelUpdateDeviceUID(ctx, tenantID, oldDevice.UID, newDevice.UID); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to transfer tunnels")
+
 		return err
 	}
 
+	log.WithFields(logFields).Debug("transferring sessions from old device to new device")
 	if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(oldDevice.UID), models.UID(newDevice.UID)); err != nil && !errors.Is(err, store.ErrNoDocuments) {
+		log.WithError(err).WithFields(logFields).Error("failed to transfer sessions")
+
 		return err
 	}
 
+	log.WithFields(logFields).Debug("updating new device name to preserve old device identity")
 	newDevice.Name = oldDevice.Name
 	if err := s.store.DeviceUpdate(ctx, newDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to update new device name")
+
 		return err
 	}
 
+	log.WithFields(logFields).Debug("mergeDevice: deleting old device")
 	if err := s.store.DeviceDelete(ctx, oldDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to delete old device")
+
 		return err
 	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, oldDevice.Status, -1); err != nil { //nolint:revive
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, oldDevice.Status, -1); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to decrement namespace device count")
+
 		return err
 	}
+
+	log.WithFields(logFields).Info("device merge operation completed successfully")
 
 	return nil
 }
