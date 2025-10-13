@@ -47,6 +47,7 @@ describe("Namespace Edit", () => {
     devices_rejected_count: 0,
     devices_pending_count: 0,
     created_at: "",
+    type: "team" as const,
   };
 
   beforeEach(async () => {

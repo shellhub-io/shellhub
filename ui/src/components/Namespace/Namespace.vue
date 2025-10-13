@@ -1,114 +1,144 @@
 <template>
-  <NamespaceAdd v-model="isAddNamespaceDialogVisible" />
+  <NamespaceAdd v-model="showAddDialog" />
 
-  <v-select
-    :menu-props="{ closeOnContentClick: true }"
-    v-model="selectedNamespace"
-    label="Active Namespace"
-    variant="outlined"
-    item-title="name"
-    item-value="url"
-    :items="namespaceList"
-    :hide-details="true"
-    class="mt-2"
+  <v-menu
+    :close-on-content-click="false"
+    scrim
+    location="bottom"
+    :offset="4"
   >
-    <template #prepend-inner>
-      <v-chip label color="primary" class="text-uppercase">{{ firstNamespaceLetter }}</v-chip>
-    </template>
-    <template #prepend-item>
-      <v-list-subheader>
-        All Namespaces
-      </v-list-subheader>
-    </template>
-    <template #item="{ item }">
-      <v-list-item @click="changeNamespace((item.raw as NamespaceItem).tenant_id)" title="">
-        <v-chip label color="primary" class="text-uppercase mr-2">{{ (item.raw as NamespaceItem).name.charAt(0) }}</v-chip>
-        <span>{{ (item.raw as NamespaceItem).name }}</span>
-      </v-list-item>
+    <template #activator="{ props }">
+      <v-btn
+        v-bind="props"
+        variant="outlined"
+        class="text-none px-2 border-thin"
+        height="auto"
+      >
+        <div class="d-flex align-center ga-2">
+          <NamespaceChip :name="currentNamespace.name" />
+          <span class="text-body-1">{{ currentNamespace.name || 'No Namespace' }}</span>
+          <v-icon size="small">mdi-chevron-down</v-icon>
+        </div>
+      </v-btn>
     </template>
 
-    <template #append-item>
-      <v-divider />
-      <v-list-item class="mt-2 mb-0">
-        <v-btn
-          variant="flat"
-          prepend-icon="mdi-plus-box"
-          color="primary"
-          class="ma-0"
-          block
-          @click="isAddNamespaceDialogVisible = true"
-        >New Namespace
-        </v-btn>
-      </v-list-item>
-    </template>
-  </v-select>
+    <v-card :width="$vuetify.display.thresholds.sm / 2" border>
+      <v-list class="bg-v-theme-surface">
+        <div class="d-flex align-center justify-space-between pr-4">
+          <v-list-subheader>Active Namespace</v-list-subheader>
+          <v-btn
+            @click="showAddDialog = true"
+            variant="flat"
+            color="primary"
+            prepend-icon="mdi-plus-circle"
+            size="small"
+          >
+            Create
+          </v-btn>
+        </div>
+
+        <NamespaceListItem
+          v-if="currentNamespace.tenant_id"
+          :namespace="currentNamespace"
+          :active="true"
+          :user-id="userId"
+          @select="handleNamespaceSwitch"
+        />
+
+        <div v-if="currentNamespace.tenant_id" class="px-4 pb-2 pt-3">
+          <div class="text-caption text-grey mb-1">Tenant ID</div>
+          <div class="d-flex align-center ga-2 pa-2 border-thin rounded text-caption">
+            <span class="flex-1-1 text-truncate">{{ currentNamespace.tenant_id }}</span>
+            <CopyWarning :copied-item="'Tenant ID'">
+              <template #default="{ copyText }">
+                <v-icon
+                  @click="copyText(currentNamespace.tenant_id)"
+                  size="small"
+                  class="cursor-pointer"
+                >
+                  mdi-content-copy
+                </v-icon>
+              </template>
+            </CopyWarning>
+          </div>
+        </div>
+
+        <template v-if="otherNamespaces.length > 0">
+          <v-divider class="my-2" />
+          <v-list-subheader>Switch Namespace</v-list-subheader>
+
+          <template v-for="(ns, index) in otherNamespaces" :key="ns.tenant_id">
+            <NamespaceListItem
+              :namespace="ns"
+              :active="false"
+              :user-id="userId"
+              @select="handleNamespaceSwitch"
+            />
+            <v-divider v-if="index < otherNamespaces.length - 1" />
+          </template>
+        </template>
+
+        <template v-if="hasNamespaces && showAdminPanel">
+          <v-divider class="my-2" />
+
+          <div class="px-4 py-2">
+            <v-btn
+              @click="navigateToAdminPanel"
+              variant="tonal"
+              color="primary"
+              prepend-icon="mdi-shield-crown"
+              block
+            >
+              ShellHub Admin
+            </v-btn>
+          </div>
+        </template>
+      </v-list>
+    </v-card>
+  </v-menu>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import axios, { AxiosError } from "axios";
+import { useRouter } from "vue-router";
 import NamespaceAdd from "./NamespaceAdd.vue";
-import handleError from "@/utils/handleError";
-import useSnackbar from "@/helpers/snackbar";
-import useNamespacesStore from "@/store/modules/namespaces";
-
-interface NamespaceItem {
-  tenant_id: string;
-  name: string;
-}
+import NamespaceChip from "./NamespaceChip.vue";
+import NamespaceListItem from "./NamespaceListItem.vue";
+import useNamespaceManager from "./composables/useNamespaceManager";
+import useAuthStore from "@/store/modules/auth";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 defineOptions({
   inheritAttrs: false,
 });
 
-const snackbar = useSnackbar();
-const namespacesStore = useNamespacesStore();
-const namespaceList = computed(() => namespacesStore.namespaceList);
-const selectedNamespace = computed(() => namespacesStore.currentNamespace);
-const tenant = computed(() => localStorage.getItem("tenant") as string);
-const firstNamespaceLetter = computed(() => (selectedNamespace.value.name ?? "").charAt(0));
-const isAddNamespaceDialogVisible = ref(false);
+const router = useRouter();
+const authStore = useAuthStore();
+const {
+  currentNamespace,
+  namespaceList,
+  hasNamespaces,
+  switchNamespace,
+  loadCurrentNamespace,
+} = useNamespaceManager();
 
-// Change the current namespace
-const changeNamespace = async (tenantId: string) => {
-  try {
-    await namespacesStore.switchNamespace(tenantId);
-    window.location.reload();
-  } catch (error: unknown) {
-    snackbar.showError("An error occurred while switching namespaces.");
-    handleError(error);
-  }
+const showAddDialog = ref(false);
+const userId = computed(() => authStore.id);
+
+// TODO: Implement super admin detection
+const showAdminPanel = computed(() => true);
+
+const otherNamespaces = computed(() => namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id));
+
+const handleNamespaceSwitch = async (tenantId: string) => {
+  await switchNamespace(tenantId);
 };
 
-// Fetch the current namespace
-const fetchNamespace = async () => {
-  try {
-    await namespacesStore.fetchNamespace(tenant.value);
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      switch (true) {
-        case axiosError.response?.status === 404: {
-          // detects namespace inserted
-          const namespace = namespacesStore.namespaceList[0];
-          if (tenant.value === "" && namespace !== undefined) {
-            changeNamespace(namespace.tenant_id);
-          }
-          break;
-        }
-        case axiosError.response?.status === 500 && tenant.value === null: {
-          break;
-        }
-        default: {
-          snackbar.showError("An error occurred while loading the namespace.");
-          handleError(error);
-        }
-      }
-    }
-  }
+const navigateToAdminPanel = () => {
+  router.push("/admin");
 };
 
 onMounted(async () => {
-  await fetchNamespace();
+  await loadCurrentNamespace();
 });
 </script>

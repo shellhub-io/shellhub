@@ -25,6 +25,7 @@ const namespaceData: INamespace = {
   devices_rejected_count: 0,
   created_at: "2025-05-01T00:00:00.000Z",
   billing: null,
+  type: "team",
 };
 
 describe("Namespaces Store", () => {

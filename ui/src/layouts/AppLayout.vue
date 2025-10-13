@@ -9,7 +9,7 @@
     data-test="navigation-drawer"
 
   >
-    <v-toolbar class="bg-v-theme-surface" data-test="drawer-toolbar">
+    <v-toolbar class="bg-v-theme-surface border-b-thin" data-test="drawer-toolbar">
       <div class="w-100 d-flex align-center justify-center">
         <router-link
           to="/"
@@ -24,11 +24,7 @@
       </div>
     </v-toolbar>
 
-    <div class="pa-2" v-if="hasNamespaces">
-      <Namespace data-test="namespace-component" />
-    </div>
-
-    <div class="d-flex justify-center" v-else>
+    <div class="d-flex justify-center" v-if="!hasNamespaces">
       <v-btn
         color="primary"
         @click="showNamespaceAdd = true"
@@ -164,7 +160,6 @@ import { useDisplay } from "vuetify";
 import Logo from "../assets/logo-inverted.png";
 import { envVariables } from "../envVariables";
 import UserWarning from "../components/User/UserWarning.vue";
-import Namespace from "@/components/Namespace/Namespace.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";

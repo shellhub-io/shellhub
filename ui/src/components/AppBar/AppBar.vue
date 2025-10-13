@@ -12,14 +12,21 @@
       aria-label="Toggle Menu"
       data-test="menu-toggle"
     />
-    <v-breadcrumbs :items="breadcrumbItems" class="hidden-md-and-down ml-2" data-test="breadcrumbs">
-      <template v-slot:prepend>
-        <v-icon v-if="breadcrumbItems[0]?.icon" :icon="breadcrumbItems[0].icon" size="small" class="mr-2" />
-      </template>
-      <template v-slot:divider>
-        <v-icon icon="mdi-chevron-right" size="small" />
-      </template>
-    </v-breadcrumbs>
+
+    <div class="d-flex align-center hidden-md-and-down ml-2">
+      <Namespace data-test="namespace-selector" />
+
+      <v-icon icon="mdi-chevron-right" size="small" class="mx-2" />
+
+      <v-breadcrumbs :items="breadcrumbItems" class="pa-0" data-test="breadcrumbs">
+        <template v-slot:prepend>
+          <v-icon v-if="breadcrumbItems[0]?.icon" :icon="breadcrumbItems[0].icon" size="small" class="mr-2" />
+        </template>
+        <template v-slot:divider>
+          <v-icon icon="mdi-chevron-right" size="small" />
+        </template>
+      </v-breadcrumbs>
+    </div>
 
     <v-spacer />
 
@@ -105,6 +112,7 @@ import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
 import NotificationsMenu from "./Notifications/NotificationsMenu.vue";
 import PaywallChat from "../User/PaywallChat.vue";
+import Namespace from "@/components/Namespace/Namespace.vue";
 import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import useAuthStore from "@/store/modules/auth";

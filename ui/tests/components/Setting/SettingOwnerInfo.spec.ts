@@ -35,6 +35,7 @@ const namespaceData = {
   devices_accepted_count: 3,
   devices_rejected_count: 0,
   devices_pending_count: 0,
+  type: "team" as const,
 };
 
 describe("Setting Owner Info", () => {

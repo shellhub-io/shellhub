@@ -23,6 +23,8 @@ interface INamespaceBilling {
   status: string;
 }
 
+export type NamespaceType = "personal" | "team";
+
 export interface INamespace {
   name: string;
   owner: string;
@@ -35,6 +37,7 @@ export interface INamespace {
   devices_rejected_count: number;
   created_at: string;
   billing: INamespaceBilling | null;
+  type: NamespaceType;
 }
 
 export interface INamespaceAcceptInvite {
