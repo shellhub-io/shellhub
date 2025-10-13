@@ -2,11 +2,11 @@
 # Default build: production multiarch
 # Development: use --target development
 
-ARG GOLANG_VERSION=1.23
-ARG ALPINE_VERSION=3.19
+ARG GOLANG_VERSION=1.24
+ARG ALPINE_VERSION=3.22
 
 # Base stage for both development and production
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.23}-alpine${ALPINE_VERSION:-3.19} AS base
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.24}-alpine${ALPINE_VERSION:-3.22} AS base
 
 ARG GOPROXY
 ARG TARGETARCH
@@ -77,7 +77,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy required utilities
 COPY --from=builder /usr/bin/nsenter /usr/bin/
-COPY --from=builder /usr/bin/setpriv /usr/bin/
+COPY --from=builder /bin/setpriv /usr/bin/
 
 # Copy shared libraries
 COPY --from=builder /usr/lib/libcap-ng.so.* /usr/lib/

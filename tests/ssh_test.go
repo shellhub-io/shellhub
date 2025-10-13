@@ -900,6 +900,9 @@ func TestSSH(t *testing.T) {
 				err = sess.Shell()
 				require.NoError(t, err)
 
+				fmt.Fprintln(stdin, "bind 'set enable-bracketed-paste off'")
+				require.NoError(t, err)
+
 				_, err = fmt.Fprintf(stdin, "stty size; echo DONE\n")
 				require.NoError(t, err)
 

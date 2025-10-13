@@ -1,8 +1,6 @@
 module github.com/shellhub-io/shellhub/gateway
 
-go 1.23.0
-
-toolchain go1.23.7
+go 1.24.7
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0

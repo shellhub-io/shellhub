@@ -12,7 +12,6 @@ ssh_private_key
 
 go.work
 go.work.sum
-go.sum
 
 # Docker binaries
 agent/agent
