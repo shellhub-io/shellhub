@@ -7,7 +7,7 @@ exports[`App Layout Component > Renders the component 1`] = `
       <!---->
       <!---->
       <div class="v-navigation-drawer__content">
-        <header data-v-e7291ef4="" class="v-toolbar v-toolbar--density-default v-theme--dark v-locale--is-ltr bg-v-theme-surface" data-test="drawer-toolbar">
+        <header data-v-e7291ef4="" class="v-toolbar v-toolbar--density-default v-theme--dark v-locale--is-ltr bg-v-theme-surface border-b-thin" data-test="drawer-toolbar">
           <!---->
           <div class="v-toolbar__content" style="height: 64px;">
             <!---->
@@ -283,7 +283,15 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </button>
-        <ul class="v-breadcrumbs v-breadcrumbs--density-default hidden-md-and-down ml-2" data-test="breadcrumbs">
+        <div class="d-flex align-center hidden-md-and-down ml-2">
+          <!---->
+          <!----><button type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-outlined text-none px-2 border-thin" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <!----><span class="v-btn__content" data-no-activator=""><div class="d-flex align-center ga-2"><div data-v-fd4ebdfd="" class="namespace-icon"><svg data-v-fd4ebdfd="" width="32" height="32"></svg></div><span class="text-body-1">No Namespace</span><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-small" aria-hidden="true"></i>
+        </div></span>
+        <!---->
+        <!----></button>
+        <!----><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-small mx-2" aria-hidden="true"></i>
+        <ul class="v-breadcrumbs v-breadcrumbs--density-default pa-0" data-test="breadcrumbs">
           <li class="v-breadcrumbs__prepend">
             <!--v-if-->
           </li>
@@ -291,66 +299,67 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
         </ul>
-        <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-v-9" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-          <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-help-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-          <!---->
-          <!---->
-        </button>
-        <!--teleport start-->
-        <!--teleport end-->
-        <div class="v-badge ml-3 mr-2" size="x-small" data-test="notifications-badge">
-          <div class="v-badge__wrapper"><i class="mdi-bell mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-11" aria-label="Open notifications menu"></i>
-            <transition-stub name="scale-rotate-transition" appear="false" persisted="false" css="true"><span class="v-badge__badge v-theme--light bg-success" style="bottom: calc(100% - 7px); left: calc(100% - 12px); display: none;" aria-atomic="true" aria-label="Badge" aria-live="polite" role="status">0</span></transition-stub>
-          </div>
-        </div>
-        <!----><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-12" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-          <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><i data-v-09753bb1="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default text-surface" aria-hidden="true" data-test="gravatar-placeholder"></i><!----><span class="v-avatar__underlay"></span>
-      </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-      <!----></button>
-      <!---->
-      <!---->
-  </div>
-  <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
-    <!---->
-  </transition-stub>
-  </header>
-  <main data-v-e7291ef4="" class="v-main" style="--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px;" data-test="main">
-    <div data-v-e7291ef4="" class="v-container v-container--fluid v-locale--is-ltr pa-8" data-test="container">
-      <router-view-stub data-v-e7291ef4=""></router-view-stub>
-    </div>
-  </main>
-  <!---->
-  <!--teleport start-->
-  <div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2000;" data-v-e7291ef4="" data-test="overlay">
-    <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
-      <!---->
-    </transition-stub>
-    <transition-stub name="fade-transition" appear="true" persisted="true" css="true">
-      <div class="v-overlay__content" style="display: none;">
-        <div data-v-e7291ef4="" class="v-progress-circular v-progress-circular--indeterminate v-theme--light" style="width: 64px; height: 64px;" role="progressbar" aria-valuemin="0" aria-valuemax="100" alt="Request loading" data-test="progress-circular"><svg style="transform: rotate(calc(-90deg + 0deg));" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42.666666666666664 42.666666666666664">
-            <circle class="v-progress-circular__underlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="0"></circle>
-            <circle class="v-progress-circular__overlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="125.66370614359172px"></circle>
-          </svg>
-          <!---->
+      </div>
+      <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-v-11" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-help-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+        <!---->
+        <!---->
+      </button>
+      <!--teleport start-->
+      <!--teleport end-->
+      <div class="v-badge ml-3 mr-2" size="x-small" data-test="notifications-badge">
+        <div class="v-badge__wrapper"><i class="mdi-bell mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-13" aria-label="Open notifications menu"></i>
+          <transition-stub name="scale-rotate-transition" appear="false" persisted="false" css="true"><span class="v-badge__badge v-theme--light bg-success" style="bottom: calc(100% - 7px); left: calc(100% - 12px); display: none;" aria-atomic="true" aria-label="Badge" aria-live="polite" role="status">0</span></transition-stub>
         </div>
       </div>
-    </transition-stub>
+      <!----><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text pl-2 pr-2 mr-4" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-14" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><i data-v-09753bb1="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default text-surface" aria-hidden="true" data-test="gravatar-placeholder"></i><!----><span class="v-avatar__underlay"></span>
+  </div></span><span class="v-btn__append"><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+  <!----></button>
+  <!---->
+  <!---->
+</div>
+<transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+  <!---->
+</transition-stub>
+</header>
+<main data-v-e7291ef4="" class="v-main" style="--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px;" data-test="main">
+  <div data-v-e7291ef4="" class="v-container v-container--fluid v-locale--is-ltr pa-8" data-test="container">
+    <router-view-stub data-v-e7291ef4=""></router-view-stub>
   </div>
-  <!--teleport end-->
-  <!--v-if-->
-  <!---->
-  <!---->
-  <!---->
-  <!---->
-  <!--v-if-->
-  <!---->
-  <!---->
-  <!--v-if-->
-  <!--v-if-->
-  <!---->
-  <!---->
-  <!---->
-  <!---->
+</main>
+<!---->
+<!--teleport start-->
+<div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2000;" data-v-e7291ef4="" data-test="overlay">
+  <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+    <!---->
+  </transition-stub>
+  <transition-stub name="fade-transition" appear="true" persisted="true" css="true">
+    <div class="v-overlay__content" style="display: none;">
+      <div data-v-e7291ef4="" class="v-progress-circular v-progress-circular--indeterminate v-theme--light" style="width: 64px; height: 64px;" role="progressbar" aria-valuemin="0" aria-valuemax="100" alt="Request loading" data-test="progress-circular"><svg style="transform: rotate(calc(-90deg + 0deg));" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42.666666666666664 42.666666666666664">
+          <circle class="v-progress-circular__underlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="0"></circle>
+          <circle class="v-progress-circular__overlay" fill="transparent" cx="50%" cy="50%" r="20" stroke-width="2.6666666666666665" stroke-dasharray="125.66370614359172" stroke-dashoffset="125.66370614359172px"></circle>
+        </svg>
+        <!---->
+      </div>
+    </div>
+  </transition-stub>
+</div>
+<!--teleport end-->
+<!--v-if-->
+<!---->
+<!---->
+<!---->
+<!---->
+<!--v-if-->
+<!---->
+<!---->
+<!--v-if-->
+<!--v-if-->
+<!---->
+<!---->
+<!---->
+<!---->
 </div>
 </div>"
 `;
