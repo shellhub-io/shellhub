@@ -26,18 +26,7 @@
 
     <v-card :width="$vuetify.display.thresholds.sm / 2" border>
       <v-list class="bg-v-theme-surface">
-        <div class="d-flex align-center justify-space-between pr-4">
-          <v-list-subheader>Active Namespace</v-list-subheader>
-          <v-btn
-            @click="showAddDialog = true"
-            variant="flat"
-            color="primary"
-            prepend-icon="mdi-plus-circle"
-            size="small"
-          >
-            Create
-          </v-btn>
-        </div>
+        <v-list-subheader>Active Namespace</v-list-subheader>
 
         <NamespaceListItem
           v-if="currentNamespace.tenant_id"
@@ -65,36 +54,65 @@
           </div>
         </div>
 
-        <template v-if="otherNamespaces.length > 0">
+        <template v-if="otherNamespaces.length > 0 || (hasNamespaces && showAdminPanel)">
           <v-divider class="my-2" />
           <v-list-subheader>Switch Namespace</v-list-subheader>
 
-          <template v-for="(ns, index) in otherNamespaces" :key="ns.tenant_id">
+          <template v-for="ns in otherNamespaces" :key="ns.tenant_id">
             <NamespaceListItem
               :namespace="ns"
               :active="false"
               :user-id="userId"
               @select="handleNamespaceSwitch"
             />
-            <v-divider v-if="index < otherNamespaces.length - 1" />
+            <v-divider />
           </template>
+
+          <v-list-item
+            v-if="hasNamespaces && showAdminPanel"
+            @click="navigateToAdminPanel"
+            lines="two"
+          >
+            <template #prepend>
+              <v-avatar
+                size="48"
+                color="primary"
+                rounded="rounded"
+                variant="tonal"
+                class="border border-primary border-opacity-100"
+              >
+                <v-icon>mdi-shield-crown</v-icon>
+              </v-avatar>
+            </template>
+            <v-list-item-title>Admin Console</v-list-item-title>
+            <v-list-item-subtitle>
+              <div class="d-flex align-center text-caption text-capitalize">
+                <div class="d-flex align-center ga-1 flex-1-0">
+                  <v-icon size="x-small">mdi-shield-crown</v-icon>
+                  <span>super admin</span>
+                </div>
+                <div class="d-flex align-center ga-1 flex-1-0">
+                  <v-icon size="x-small">mdi-server</v-icon>
+                  <span>instance</span>
+                </div>
+              </div>
+            </v-list-item-subtitle>
+          </v-list-item>
         </template>
 
-        <template v-if="hasNamespaces && showAdminPanel">
-          <v-divider class="my-2" />
+        <v-divider />
 
-          <div class="px-4 py-2">
-            <v-btn
-              @click="navigateToAdminPanel"
-              variant="tonal"
-              color="primary"
-              prepend-icon="mdi-shield-crown"
-              block
-            >
-              ShellHub Admin
-            </v-btn>
-          </div>
-        </template>
+        <div class="px-4 pt-4 pb-2">
+          <v-btn
+            @click="showAddDialog = true"
+            variant="flat"
+            color="primary"
+            prepend-icon="mdi-plus-circle"
+            block
+          >
+            Create Namespace
+          </v-btn>
+        </div>
       </v-list>
     </v-card>
   </v-menu>
@@ -109,6 +127,7 @@ import NamespaceListItem from "./NamespaceListItem.vue";
 import useNamespaceManager from "./composables/useNamespaceManager";
 import useAuthStore from "@/store/modules/auth";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import { envVariables } from "@/envVariables";
 
 defineOptions({
   inheritAttrs: false,
@@ -127,8 +146,7 @@ const {
 const showAddDialog = ref(false);
 const userId = computed(() => authStore.id);
 
-// TODO: Implement super admin detection
-const showAdminPanel = computed(() => true);
+const showAdminPanel = computed(() => envVariables.isEnterprise);
 
 const otherNamespaces = computed(() => namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id));
 
