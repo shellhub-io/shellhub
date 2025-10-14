@@ -5,7 +5,7 @@ go 1.24.7
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
 	github.com/Masterminds/semver v1.5.0
-	github.com/creack/pty v1.1.18
+	github.com/creack/pty v1.1.24
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/go-playground/assert/v2 v2.2.0
