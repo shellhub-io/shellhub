@@ -31,6 +31,7 @@ jobs:
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.event.workflow_run.head_branch }}
           file_pattern: '**/go.mod **/go.sum'
           commit_message: ${{ steps.last-commit-message.outputs.msg }}
