@@ -227,14 +227,14 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 			// the "start" event will be called too. The same happens with the "die" event.
 			switch container.Action {
 			case "start":
-				name, err := d.getContainerNameFromID(ctx, container.ID)
+				name, err := d.getContainerNameFromID(ctx, container.Actor.ID)
 				if err != nil {
 					return err
 				}
 
-				d.Start(ctx, container.ID, name)
+				d.Start(ctx, container.Actor.ID, name)
 			case "die":
-				d.Stop(ctx, container.ID)
+				d.Stop(ctx, container.Actor.ID)
 			}
 		}
 	}
