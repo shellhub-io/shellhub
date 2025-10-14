@@ -55,7 +55,7 @@ func getWrappedCommand(nsArgs []string, uid, gid uint32, groups []uint32, home s
 	}
 
 	setPrivCmd := []string{
-		"/usr/bin/setpriv",
+		"/bin/setpriv",
 		fmt.Sprintf("--groups=%s", strings.Join(gids, ",")),
 		"--ruid",
 		strconv.Itoa(int(uid)),
