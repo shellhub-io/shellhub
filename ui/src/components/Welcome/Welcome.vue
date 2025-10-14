@@ -2,12 +2,12 @@
   <WindowDialog
     v-model="showDialog"
     title="Welcome to ShellHub!"
-    :description="`Step ${el} of 4`"
+    :description="`Step ${currentStep} of 4`"
     icon="mdi-door-open"
     icon-color="primary"
-    @close="close"
+    @close="closeDialog"
   >
-    <v-window v-model="el" class="overflow-y-auto" data-test="welcome-window">
+    <v-window v-model="currentStep" class="overflow-y-auto" data-test="welcome-window">
       <v-window-item :value="1" data-test="welcome-first-screen">
         <WelcomeFirstScreen />
       </v-window-item>
@@ -15,7 +15,7 @@
         <WelcomeSecondScreen />
       </v-window-item>
       <v-window-item :value="3" data-test="welcome-third-screen">
-        <WelcomeThirdScreen v-if="enable" v-model:first-pending-device="firstPendingDevice" />
+        <WelcomeThirdScreen v-if="hasDeviceDetected" v-model:first-pending-device="firstPendingDevice" />
       </v-window-item>
       <v-window-item :value="4" data-test="welcome-fourth-screen">
         <WelcomeFourthScreen />
@@ -24,7 +24,7 @@
 
     <template #footer>
       <div class="d-flex align-center w-100">
-        <p v-if="el === 2" class="text-caption text-truncate" data-test="second-screen-helper-link">
+        <p v-if="currentStep === 2" class="text-caption text-truncate" data-test="second-screen-helper-link">
           Check our
           <a
             href="https://docs.shellhub.io/user-guides/devices/adding"
@@ -39,32 +39,26 @@
         </p>
         <v-spacer />
         <v-btn
-          v-if="el === 1 || el === 2 || el === 3"
-          @click="close"
+          v-if="currentStep !== 4"
+          @click="closeDialog"
           data-test="cancel-btn"
           class="mr-2"
-        >
-          Close
-        </v-btn>
+          text="Close"
+        />
         <v-btn
           color="primary"
           @click="handleConfirm"
-          :disabled="el === 2 && !enable"
+          :disabled="currentStep === 2 && !hasDeviceDetected"
           data-test="confirm-btn"
-        >
-          {{ el === 1 ? 'Next'
-            : el === 2 ? 'Next'
-              : el === 3 ? 'Accept'
-                : el === 4 ? 'Finish'
-                  : '' }}
-        </v-btn>
+          :text="currentStepConfig.buttonText"
+        />
       </div>
     </template>
   </WindowDialog>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
@@ -77,26 +71,41 @@ import useDevicesStore from "@/store/modules/devices";
 import useNotificationsStore from "@/store/modules/notifications";
 import useStatsStore from "@/store/modules/stats";
 
-type Timer = ReturnType<typeof setInterval>;
+type PollingTimer = ReturnType<typeof setInterval>;
+
+interface StepConfig {
+  buttonText: string;
+  action: () => void | Promise<void>;
+}
 
 const showDialog = defineModel<boolean>({ required: true });
 const devicesStore = useDevicesStore();
 const { fetchNotifications } = useNotificationsStore();
 const statsStore = useStatsStore();
 const snackbar = useSnackbar();
-const el = ref<number>(1);
+const currentStep = ref<number>(1);
 const firstPendingDevice = ref<IDevice>();
-const polling = ref<Timer | undefined>(undefined);
-const enable = ref(false);
-const pollingDevices = () => {
-  polling.value = setInterval(async () => {
+const pollingTimer = ref<PollingTimer | undefined>(undefined);
+const hasDeviceDetected = ref(false);
+
+const stopDevicePolling = () => {
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value);
+    pollingTimer.value = undefined;
+  }
+};
+
+const startDevicePolling = () => {
+  currentStep.value = 2;
+  pollingTimer.value = setInterval(async () => {
     try {
       await statsStore.fetchStats();
 
-      enable.value = statsStore.stats.pending_devices !== 0;
-      if (enable.value) {
-        el.value = 3;
-        clearTimeout(polling.value);
+      const hasPendingDevices = statsStore.stats.pending_devices > 0;
+      if (hasPendingDevices) {
+        hasDeviceDetected.value = true;
+        currentStep.value = 3;
+        stopDevicePolling();
       }
     } catch (error: unknown) {
       snackbar.showError("Failed to fetch devices.");
@@ -104,53 +113,46 @@ const pollingDevices = () => {
   }, 3000);
 };
 
-const activePollingDevices = () => {
-  el.value = 2;
-  pollingDevices();
-};
-
 const acceptDevice = async () => {
+  if (!firstPendingDevice.value) return;
+
   try {
-    if (firstPendingDevice.value) {
-      await devicesStore.acceptDevice(firstPendingDevice.value.uid);
-
-      await fetchNotifications();
-      await statsStore.fetchStats();
-
-      el.value = 4;
-    }
+    await devicesStore.acceptDevice(firstPendingDevice.value.uid);
+    await fetchNotifications();
+    await statsStore.fetchStats();
+    currentStep.value = 4;
   } catch (error: unknown) {
     snackbar.showError("Failed to accept device.");
     handleError(error);
   }
 };
 
-const close = () => {
+const closeDialog = () => {
   showDialog.value = false;
-  if (polling.value) {
-    clearTimeout(polling.value);
-  }
+  stopDevicePolling();
 };
 
-const handleConfirm = async () => {
-  if (el.value === 1) {
-    activePollingDevices();
-  } else if (el.value === 2) {
-    el.value = 3;
-  } else if (el.value === 3) {
-    await acceptDevice();
-  } else if (el.value === 4) {
-    close();
-  }
+const stepConfigs: Record<number, StepConfig> = {
+  1: {
+    buttonText: "Next",
+    action: startDevicePolling,
+  },
+  2: {
+    buttonText: "Next",
+    action: () => { currentStep.value = 3; },
+  },
+  3: {
+    buttonText: "Accept",
+    action: acceptDevice,
+  },
+  4: {
+    buttonText: "Finish",
+    action: closeDialog,
+  },
 };
 
-const goToPreviousStep = () => {
-  el.value--;
-};
+const currentStepConfig = computed(() => stepConfigs[currentStep.value]);
+const handleConfirm = async () => { await currentStepConfig.value.action(); };
 
-const goToNextStep = () => {
-  el.value++;
-};
-
-defineExpose({ el, goToPreviousStep, goToNextStep, enable });
+defineExpose({ currentStep, hasDeviceDetected });
 </script>
