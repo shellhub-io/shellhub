@@ -4,20 +4,22 @@
   <v-menu
     :close-on-content-click="false"
     scrim
-    location="bottom"
+    location="bottom center"
     :offset="4"
   >
     <template #activator="{ props }">
       <v-btn
         v-bind="props"
-        variant="outlined"
-        class="text-none px-2 border-thin"
-        height="auto"
+        variant="text"
+        :class="['text-none p-2 border-e-thin', { 'border-s-thin': $vuetify.display.mdAndDown }]"
+        density="comfortable"
+        size="x-large"
+        stacked
       >
         <div class="d-flex align-center ga-2">
           <NamespaceChip :name="currentNamespace.name" />
           <span class="text-body-1">{{ currentNamespace.name || 'No Namespace' }}</span>
-          <v-icon size="small">mdi-chevron-down</v-icon>
+          <v-icon size="x-small">mdi-chevron-down</v-icon>
         </div>
       </v-btn>
     </template>

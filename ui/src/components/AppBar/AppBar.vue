@@ -13,12 +13,10 @@
       data-test="menu-toggle"
     />
 
-    <div class="d-flex align-center hidden-md-and-down ml-2">
+    <div class="d-flex align-center hidden-md-and-down">
       <Namespace data-test="namespace-selector" />
 
-      <v-icon icon="mdi-chevron-right" size="small" class="mx-2" />
-
-      <v-breadcrumbs :items="breadcrumbItems" class="pa-0" data-test="breadcrumbs">
+      <v-breadcrumbs :items="breadcrumbItems" class="pa-0 mx-4" data-test="breadcrumbs">
         <template v-slot:prepend>
           <v-icon v-if="breadcrumbItems[0]?.icon" :icon="breadcrumbItems[0].icon" size="small" class="mr-2" />
         </template>
