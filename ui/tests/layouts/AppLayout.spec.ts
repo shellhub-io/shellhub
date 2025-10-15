@@ -2,19 +2,16 @@ import { createPinia, setActivePinia } from "pinia";
 import { defineComponent, nextTick } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import { devicesApi, containersApi } from "@/api/http";
+import { devicesApi, containersApi, namespacesApi } from "@/api/http";
 import { envVariables } from "@/envVariables";
 import useSpinnerStore from "@/store/modules/spinner";
-
-let mockDevices: MockAdapter;
-let mockContainers: MockAdapter;
 
 const cards = [
   {
@@ -44,18 +41,18 @@ const cards = [
   },
 ];
 
-describe("App Layout Component", () => {
-  let wrapper;
+describe("App Layout Component", async () => {
   setActivePinia(createPinia());
   const spinnerStore = useSpinnerStore();
-  const vuetify = createVuetify({
-    components,
-    directives,
-  });
+  const vuetify = createVuetify({ components, directives });
+  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+  const mockContainersApi = new MockAdapter(containersApi.getAxios());
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
     json: async () => (cards),
   })));
+
   const AppWrapperComponent = defineComponent({
     components: { AppLayout },
     template: `
@@ -65,49 +62,39 @@ describe("App Layout Component", () => {
     `,
   });
 
-  beforeEach(async () => {
-    localStorage.setItem("theme", "dark");
+  localStorage.setItem("theme", "dark");
+  envVariables.hasWebEndpoints = true;
+  envVariables.isCloud = true;
+  spinnerStore.status = true;
 
-    envVariables.hasWebEndpoints = true;
-    envVariables.isCloud = true;
-    spinnerStore.status = true;
+  mockDevicesApi
+    .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending")
+    .reply(200);
+  mockContainersApi
+    .onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending")
+    .reply(200);
+  mockNamespacesApi
+    .onGet("http://localhost:3000/api/namespaces")
+    .reply(200);
 
-    mockDevices = new MockAdapter(devicesApi.getAxios());
-    mockContainers = new MockAdapter(containersApi.getAxios());
+  await router.push("/");
+  await router.isReady();
 
-    mockDevices
-      .onGet("http://localhost/api/devices?page=1&per_page=10&status=pending")
-      .reply(200);
-    mockContainers
-      .onGet("http://localhost/api/containers?page=1&per_page=10&status=pending")
-      .reply(200);
-
-    // Navigate to home to avoid login redirect
-    await router.push("/");
-    await router.isReady();
-
-    wrapper = mount(AppWrapperComponent, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-        stubs: {
-          "router-link": {
-            template: "<a><slot /></a>",
-          },
-          "router-view": true,
+  const wrapper = mount(AppWrapperComponent, {
+    global: {
+      plugins: [vuetify, router, SnackbarPlugin],
+      stubs: {
+        "router-link": {
+          template: "<a><slot /></a>",
         },
-
+        "router-view": true,
       },
-      attachTo: document.body,
-    });
 
-    await flushPromises();
+    },
+    attachTo: document.body,
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    if (wrapper) wrapper.unmount();
-  });
+  await flushPromises();
 
   it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
