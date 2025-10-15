@@ -13,4 +13,5 @@ const (
 	// Example of dynamic application-level port forwarding: `ssh -D 1080 user@sshid`.
 	DirectTCPIPChannel = "direct-tcpip"
 	SessionChannel     = "session"
+	VNCChannel         = "vnc"
 )

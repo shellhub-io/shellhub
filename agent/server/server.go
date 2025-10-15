@@ -74,6 +74,8 @@ const (
 	//
 	// Check www.ietf.org/rfc/rfc4254.txt at section 7.2 for more information.
 	ChannelDirectTcpip string = "direct-tcpip"
+	// ChannelVNC is the channel type used for VNC connections over SSH.
+	ChannelVNC string = "vnc"
 )
 
 type Feature uint
@@ -141,6 +143,7 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			ChannelSession:     gliderssh.DefaultSessionHandler,
 			ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
+			ChannelVNC:         VNC,
 		},
 	}
 
