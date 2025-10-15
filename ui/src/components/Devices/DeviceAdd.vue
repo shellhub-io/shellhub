@@ -7,9 +7,8 @@
     @keypress.enter="showDialog = true"
     data-test="device-add-btn"
     :size
-  >
-    Add Device
-  </v-btn>
+    text="Add Device"
+  />
 
   <WindowDialog
     v-model="showDialog"
@@ -82,29 +81,7 @@
                 icon="mdi-package-down"
               >
                 Ready to install? Copy the command below and run it on your target device:
-                <CopyWarning :copied-item="'Installation command'">
-                  <template #default="{ copyText }">
-                    <v-text-field
-                      :model-value="getCommand(method.value)"
-                      class="code mt-3"
-                      variant="outlined"
-                      readonly
-                      density="compact"
-                      hide-details
-                    >
-                      <template #append>
-                        <v-btn
-                          icon="mdi-content-copy"
-                          color="primary"
-                          variant="flat"
-                          rounded
-                          size="small"
-                          @click="copyText(getCommand(method.value))"
-                        />
-                      </template>
-                    </v-text-field>
-                  </template>
-                </CopyWarning>
+                <CopyCommandField :command="getCommand(method.value)" class="mt-3" />
 
                 <!-- Advanced Options inside the alert -->
                 <v-expansion-panels
@@ -178,9 +155,8 @@
                     variant="outlined"
                     prepend-icon="mdi-open-in-new"
                     size="small"
-                  >
-                    View Documentation
-                  </v-btn>
+                    text="View Documentation"
+                  />
                 </div>
               </v-alert>
             </div>
@@ -211,7 +187,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import WindowDialog from "../WindowDialog.vue";
-import CopyWarning from "@/components/User/CopyWarning.vue";
+import CopyCommandField from "@/components/CopyCommandField.vue";
 import useAuthStore from "@/store/modules/auth";
 
 enum InstallMethod {
@@ -385,32 +361,22 @@ const isManualInstall = (method: string) => MANUAL_INSTALL_METHODS.includes(meth
 const getDocumentationUrl = (method: string) => DOCUMENTATION_URLS[method as InstallMethod] || DOCUMENTATION_URLS[InstallMethod.AUTO];
 
 const getCommand = (method: string) => {
-  const port = window.location.port ? `:${window.location.port}` : "";
-  const baseUrl = `${window.location.protocol}//${window.location.hostname}${port}`;
+  const { origin } = window.location;
 
   const envVars = [
     method !== InstallMethod.AUTO ? `INSTALL_METHOD=${method}` : "",
     `TENANT_ID=${tenantId}`,
-    `SERVER_ADDRESS=${baseUrl}`,
+    `SERVER_ADDRESS=${origin}`,
     advancedOptions.value.preferredHostname ? `PREFERRED_HOSTNAME="${advancedOptions.value.preferredHostname}"` : "",
     advancedOptions.value.preferredIdentity ? `PREFERRED_IDENTITY="${advancedOptions.value.preferredIdentity}"` : "",
   ].filter(Boolean);
 
   return [
     "curl -sSf",
-    `${baseUrl}/install.sh`,
+    `${origin}/install.sh`,
     "|",
     ...envVars,
     "sh",
   ].join(" ");
 };
 </script>
-
-<style lang="scss" scoped>
-.code {
-  font-family: monospace;
-  font-size: 85%;
-  font-weight: normal;
-}
-
-</style>

@@ -7,8 +7,8 @@ exports[`Devices View > Renders the component 1`] = `
     <!--v-if-->
   </div>
   <div class="d-flex" data-test="device-header-component-group">
-    <!--v-if--><button data-v-51a05120="" tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-      <!----><span class="v-btn__content" data-no-activator=""> Add Device </span>
+    <!--v-if--><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator="">Add Device</span>
       <!---->
       <!---->
     </button>
@@ -112,8 +112,8 @@ exports[`Devices View > Renders the component 1`] = `
     <p>In order to register a device on ShellHub, you need to install ShellHub agent onto it.</p>
     <p>The easiest way to install ShellHub agent is with our automatic one-line installation script, which works with all Linux distributions that have Docker installed and properly set up. <a rel="noopener noreferrer" target="_blank" href="https://docs.shellhub.io/user-guides/devices/adding">See More</a>. </p>
   </div>
-  <div data-v-94cd2bfb="" class="v-card-actions justify-center pt-8 pb-0 position-relative card-actions"><button data-v-51a05120="" tabindex="0" type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-      <!----><span class="v-btn__content" data-no-activator=""> Add Device </span>
+  <div data-v-94cd2bfb="" class="v-card-actions justify-center pt-8 pb-0 position-relative card-actions"><button tabindex="0" type="button" class="v-btn v-btn--elevated v-btn--slim v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator="">Add Device</span>
       <!---->
       <!---->
     </button>
