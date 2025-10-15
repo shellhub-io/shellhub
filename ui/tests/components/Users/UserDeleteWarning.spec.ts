@@ -28,7 +28,7 @@ describe("UserDeleteWarning", () => {
     });
     const dialog = new DOMWrapper(document.body);
 
-    const cliCommand = dialog.find('[data-test="cli-command"] input');
+    const cliCommand = dialog.find('[data-test="copy-command-field"] input');
     await flushPromises();
 
     expect(dialog.text()).toContain("Community instances");

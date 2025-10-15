@@ -24,29 +24,7 @@
 
         <div>
           <p class="text-subtitle-2 mt-4 mb-2">Run this command to delete your account:</p>
-          <CopyWarning copied-item="Command">
-            <template #default="{ copyText }">
-              <v-text-field
-                :model-value="'$ ' + deleteCommand"
-                data-test="cli-command"
-                class="code"
-                readonly
-                density="compact"
-                hide-details
-              >
-                <template #append>
-                  <v-btn
-                    icon="mdi-content-copy"
-                    color="primary"
-                    variant="flat"
-                    rounded
-                    size="small"
-                    @click="copyText(deleteCommand)"
-                  />
-                </template>
-              </v-text-field>
-            </template>
-          </CopyWarning>
+          <CopyCommandField :command="deleteCommand" />
         </div>
       </div>
 
@@ -80,7 +58,7 @@
 
 <script setup lang="ts">
 import WindowDialog from "../WindowDialog.vue";
-import CopyWarning from "../User/CopyWarning.vue";
+import CopyCommandField from "@/components/CopyCommandField.vue";
 import useAuthStore from "@/store/modules/auth";
 import { envVariables } from "@/envVariables";
 
@@ -91,11 +69,3 @@ const deleteCommand = `./bin/cli user delete ${username}`;
 const dialogDescription = isCommunity ? "CLI Required" : "Admin Console Required";
 const dialogIcon = isCommunity ? "mdi-console" : "mdi-shield-account";
 </script>
-
-<style scoped lang="scss">
-.code {
-  font-family: monospace;
-  font-size: 85%;
-  font-weight: normal;
-}
-</style>
