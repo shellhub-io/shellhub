@@ -19,6 +19,8 @@ func TestMain_smoke(t *testing.T) {
 		FromDockerfile: testcontainers.FromDockerfile{
 			Context:    "..",
 			Dockerfile: "gateway/Dockerfile",
+			Repo:       "gateway",
+			Tag:        "smoke",
 		},
 		ExposedPorts: []string{"80/tcp"},
 		Env: map[string]string{

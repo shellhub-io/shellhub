@@ -68,10 +68,12 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 			Env:         envs,
 			NetworkMode: "host",
 			FromDockerfile: testcontainers.FromDockerfile{
+				Repo:          "agent",
+				Tag:           "test",
 				Context:       "..",
 				Dockerfile:    "agent/Dockerfile.test",
 				PrintBuildLog: false,
-				KeepImage:     true,
+				KeepImage:     false,
 				BuildArgs: map[string]*string{
 					"USERNAME": &ShellHubAgentUsername,
 					"PASSWORD": &ShellHubAgentPassword,
@@ -1317,8 +1319,8 @@ func TestSSH(t *testing.T) {
 		compose.Down()
 	})
 
-	compose.NewUser(ctx, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(ctx, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
+	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
 	auth := models.UserAuthResponse{}
 
@@ -1334,31 +1336,34 @@ func TestSSH(t *testing.T) {
 		assert.NoError(tt, err)
 	}, 30*time.Second, 1*time.Second)
 
-	// compose.R(ctx).SetAuthScheme("Bearer")
-	// compose.R(ctx).SetAuthToken(auth.Token)
-
 	compose.JWT(auth.Token)
 
 	for _, tc := range tests {
 		test := tc
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(tt *testing.T) {
 			agent, err := NewAgentContainer(
 				ctx,
 				compose.Env("SHELLHUB_HTTP_PORT"),
 				test.options...,
 			)
-			require.NoError(t, err)
+			require.NoError(tt, err)
+
+			agent.Stop(ctx, nil)
 
 			err = agent.Start(ctx)
-			require.NoError(t, err)
+			require.NoError(tt, err)
+
+			tt.Cleanup(func() {
+				agent.Stop(context.Background(), nil)
+			})
 
 			t.Cleanup(func() {
-				assert.NoError(t, agent.Terminate(ctx))
+				agent.Terminate(context.Background())
 			})
 
 			devices := []models.Device{}
 
-			require.EventuallyWithT(t, func(tt *assert.CollectT) {
+			require.EventuallyWithT(tt, func(tt *assert.CollectT) {
 				resp, err := compose.R(ctx).SetResult(&devices).
 					Get("/api/devices?status=pending")
 				assert.Equal(tt, 200, resp.StatusCode())
@@ -1369,12 +1374,12 @@ func TestSSH(t *testing.T) {
 
 			resp, err := compose.R(ctx).
 				Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
-			require.Equal(t, 200, resp.StatusCode())
-			require.NoError(t, err)
+			require.Equal(tt, 200, resp.StatusCode())
+			require.NoError(tt, err)
 
 			device := models.Device{}
 
-			require.EventuallyWithT(t, func(tt *assert.CollectT) {
+			require.EventuallyWithT(tt, func(tt *assert.CollectT) {
 				resp, err := compose.R(ctx).
 					SetResult(&device).
 					Get(fmt.Sprintf("/api/devices/%s", devices[0].UID))
@@ -1386,7 +1391,7 @@ func TestSSH(t *testing.T) {
 
 			// --
 
-			test.run(t, &Environment{
+			test.run(tt, &Environment{
 				services: compose,
 				agent:    agent,
 			}, &device)

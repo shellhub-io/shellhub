@@ -23,13 +23,6 @@ services:
       start_period: 10s
       retries: 20
     ports: []
-  cli:
-    image: cli:test
-    build:
-      context: .
-      dockerfile: cli/Dockerfile
-      target: production 
-    ports: []
   gateway:
     image: gateway:test
     build:

@@ -107,7 +107,12 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	// Since we can't utilize [compose.dockerCompose] in the parameters,
 	// we must implement the [DockerCompose.down] method here.
 	dc.down = func() {
-		err := tcDc.Down(ctx, compose.RemoveOrphans(true), compose.RemoveVolumes(true))
+		err := tcDc.Down(
+			ctx,
+			compose.RemoveOrphans(true),
+			compose.RemoveVolumes(true),
+			compose.RemoveImagesAll,
+		)
 		if !assert.NoError(dc.t, err) {
 			assert.FailNow(dc.t, err.Error())
 		}

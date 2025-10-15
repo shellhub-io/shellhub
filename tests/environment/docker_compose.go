@@ -61,25 +61,27 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 	return dc.services[service]
 }
 
-func (dc *DockerCompose) runCLICommand(ctx context.Context, cmds []string) error {
+func (dc *DockerCompose) buildCLICommand(ctx context.Context, cmds []string) (tc.Container, error) {
 	container, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
 		ContainerRequest: tc.ContainerRequest{
 			Cmd:      cmds,
 			Networks: []string{dc.envs["SHELLHUB_NETWORK"]},
 			FromDockerfile: tc.FromDockerfile{
+				Repo:          "cli",
+				Tag:           "test",
 				Context:       "..",
 				Dockerfile:    "cli/Dockerfile.test",
 				PrintBuildLog: false,
-				KeepImage:     true,
+				KeepImage:     false,
 			},
 		},
 		Logger: log.New(io.Discard, "", log.LstdFlags),
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return container.Start(ctx)
+	return container, nil
 }
 
 // NewUser creates a new user with the specified values. It is an abstraction around the "user create" method
@@ -87,14 +89,20 @@ func (dc *DockerCompose) runCLICommand(ctx context.Context, cmds []string) error
 //
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
-func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password string) {
-	err := dc.runCLICommand(
-		ctx,
+func (dc *DockerCompose) NewUser(t *testing.T, username, email, password string) {
+	container, err := dc.buildCLICommand(
+		t.Context(),
 		[]string{"./cli", "user", "create", username, password, email},
 	)
 	if !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
 	}
+
+	container.Start(t.Context())
+
+	t.Cleanup(func() {
+		container.Terminate(context.Background())
+	})
 }
 
 // NewNamespace creates a new namespace with the specified values. It is an abstraction around the "namespace
@@ -102,14 +110,20 @@ func (dc *DockerCompose) NewUser(ctx context.Context, username, email, password 
 //
 // It is not intended to be a test of the method, but it makes some assertions to guarantee that the following
 // instructions will not fail, calling assert.FailNow if any do.
-func (dc *DockerCompose) NewNamespace(ctx context.Context, owner, name, tenant string) {
-	err := dc.runCLICommand(
-		ctx,
+func (dc *DockerCompose) NewNamespace(t *testing.T, owner, name, tenant string) {
+	container, err := dc.buildCLICommand(
+		t.Context(),
 		[]string{"./cli", "namespace", "create", name, owner, tenant},
 	)
 	if !assert.NoError(dc.t, err) {
 		assert.FailNow(dc.t, err.Error())
 	}
+
+	container.Start(t.Context())
+
+	t.Cleanup(func() {
+		container.Terminate(context.Background())
+	})
 }
 
 // AuthUser logs in with the provided username and password. It is an abstraction around the "/api/login"
