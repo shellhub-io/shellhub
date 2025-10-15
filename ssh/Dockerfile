@@ -64,4 +64,4 @@ RUN apk add --update openssh-client
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/ssh/ssh /ssh
 
-ENTRYPOINT /ssh
+ENTRYPOINT ["/ssh"]
