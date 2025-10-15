@@ -47,7 +47,7 @@ describe("TerminalHelper", () => {
     expect(input.exists()).toBe(true);
     await input.setValue("ubuntu");
 
-    const commandInput = wrapper.findComponent("[data-test='command-field']");
+    const commandInput = wrapper.findComponent("[data-test='copy-command-field']");
     expect(commandInput.exists()).toBe(true);
     expect(commandInput.html()).toContain(
       "ssh ubuntu@namespace.70-85-c2-08-60-2a@staging.shellhub.io",
