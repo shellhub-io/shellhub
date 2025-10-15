@@ -35,4 +35,4 @@ ARG PASSWORD
 
 RUN echo "${USERNAME}:${PASSWORD}" | chpasswd
 
-ENTRYPOINT ./agent
+ENTRYPOINT ["/agent"]

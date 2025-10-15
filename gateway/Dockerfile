@@ -73,4 +73,4 @@ RUN mkdir /templates
 
 COPY ./gateway/nginx /templates
 
-ENTRYPOINT /gateway
+ENTRYPOINT ["/gateway"]

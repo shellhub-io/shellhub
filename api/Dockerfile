@@ -70,4 +70,4 @@ RUN mkdir -p /templates
 
 COPY ./install.sh /templates/install.sh
 
-ENTRYPOINT /api server
+ENTRYPOINT ["/api", "server"]
