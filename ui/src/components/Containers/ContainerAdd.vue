@@ -6,9 +6,8 @@
     variant="elevated"
     @keypress.enter="showDialog = true"
     data-test="container-add-btn"
-  >
-    Add Docker Host
-  </v-btn>
+    text="Add Docker Host"
+  />
 
   <WindowDialog
     v-model="showDialog"
@@ -33,58 +32,27 @@
         the running containers within ShellHub.
       </p>
 
-      <p class="text-body-2 font-weight-bold mt-4">
+      <p class="text-body-2 font-weight-bold mt-3">
         Run the following command on your Docker host:
       </p>
-      <CopyWarning :copied-item="'Command'">
-        <template #default="{ copyText }">
-          <v-text-field
-            :model-value="command()"
-            @click:append="copyText(command())"
-            class="code mt-1"
-            variant="outlined"
-            append-icon="mdi-content-copy"
-            readonly
-            active
-            data-test="command-field"
-            density="compact"
-          />
-        </template>
-      </CopyWarning>
+      <CopyCommandField :command="command" class="mt-1 mb-3" />
     </v-card-text>
 
     <template #footer>
       <v-spacer />
-      <v-btn variant="text" data-test="close-btn" @click="showDialog = false">
-        Close
-      </v-btn>
+      <v-btn variant="text" data-test="close-btn" @click="showDialog = false" text="Close" />
     </template>
   </WindowDialog>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import CopyWarning from "@/components/User/CopyWarning.vue";
+import CopyCommandField from "@/components/CopyCommandField.vue";
 import WindowDialog from "../WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 
-const authStore = useAuthStore();
+const { tenantId } = useAuthStore();
 const showDialog = ref(false);
-const { tenantId } = authStore;
-
-const command = () => {
-  const port = window.location.port ? `:${window.location.port}` : "";
-  const { hostname } = window.location;
-
-  // eslint-disable-next-line vue/max-len
-  return `curl -sSf ${window.location.protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${window.location.protocol}//${hostname}${port} sh -s connector`;
-};
+const { origin } = window.location;
+const command = `curl -sSf ${origin}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${origin} sh -s connector`;
 </script>
-
-<style lang="scss" scoped>
-.code {
-  font-family: monospace;
-  font-size: 85%;
-  font-weight: normal;
-}
-</style>

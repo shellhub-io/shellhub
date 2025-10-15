@@ -56,15 +56,15 @@ exports[`ContainerAdd > Renders the component 1`] = `
                 <!---->
               </transition-stub>
             </header><!-- Content -->
-            <div data-v-b6b1870d="" class="v-card-text mt-4 mb-0 pb-1 text-justify" data-test="dialog-text">
-              <p data-v-b6b1870d="" class="text-body-2 mb-2"> In order to add Docker containers to ShellHub, you need to install the ShellHub Connector on the Docker host. </p>
-              <p data-v-b6b1870d="" class="text-body-2 mb-2"> The easiest way to install the ShellHub Connector is with our automatic one-line installation script, which connects to the Docker API and exposes the running containers within ShellHub. </p>
-              <p data-v-b6b1870d="" class="text-body-2 font-weight-bold mt-4"> Run the following command on your Docker host: </p>
-              <div data-v-b6b1870d="">
-                <div data-v-b6b1870d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field code mt-1" data-test="command-field">
+            <div class="v-card-text mt-4 mb-0 pb-1 text-justify" data-test="dialog-text">
+              <p class="text-body-2 mb-2"> In order to add Docker containers to ShellHub, you need to install the ShellHub Connector on the Docker host. </p>
+              <p class="text-body-2 mb-2"> The easiest way to install the ShellHub Connector is with our automatic one-line installation script, which connects to the Docker API and exposes the running containers within ShellHub. </p>
+              <p class="text-body-2 font-weight-bold mt-3"> Run the following command on your Docker host: </p>
+              <div data-v-0cebd2fd="" class="mt-1 mb-3">
+                <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code text-white" data-test="copy-command-field">
                   <!---->
                   <div class="v-input__control">
-                    <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                    <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--no-label v-field--variant-filled v-theme--light v-locale--is-ltr">
                       <div class="v-field__overlay"></div>
                       <div class="v-field__loader">
                         <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -83,29 +83,25 @@ exports[`ContainerAdd > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator="">
                         <!---->
-                        <!---->
-                        <!----><input readonly="" size="1" type="text" id="input-v-3" aria-describedby="input-v-3-messages" class="v-field__input" value="curl -sSf http://localhost:3000/install.sh | TENANT_ID= SERVER_ADDRESS=http://localhost:3000 sh -s connector">
+                        <!----><span class="v-text-field__prefix"><span class="v-text-field__prefix__text">$</span></span><input readonly="" size="1" type="text" id="input-v-3" class="v-field__input" value="curl -sSf http://localhost:3000/install.sh | TENANT_ID= SERVER_ADDRESS=http://localhost:3000 sh -s connector">
                         <!---->
                       </div>
                       <!---->
                       <!---->
                       <div class="v-field__outline">
-                        <div class="v-field__outline__start"></div>
                         <!---->
-                        <div class="v-field__outline__end"></div>
                         <!---->
                       </div>
                     </div>
                   </div>
-                  <div class="v-input__append"><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label=" appended action"></i>
-                    <!---->
-                  </div>
-                  <div id="input-v-3-messages" class="v-input__details" role="alert" aria-live="polite">
-                    <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
+                  <div class="v-input__append">
+                    <!----><button data-v-0cebd2fd="" type="button" class="v-btn v-btn--icon v-theme--light bg-primary v-btn--density-default v-btn--rounded v-btn--size-small v-btn--variant-flat" data-test="copy-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                      <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                       <!---->
-                    </transition-group-stub>
-                    <!---->
+                      <!---->
+                    </button>
                   </div>
+                  <!---->
                 </div>
                 <!---->
                 <!---->
@@ -116,8 +112,8 @@ exports[`ContainerAdd > Renders the component 1`] = `
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
                 <!---->
-                <div data-v-b6b1870d="" class="v-spacer"></div><button data-v-b6b1870d="" type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                  <!----><span class="v-btn__content" data-no-activator=""> Close </span>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator="">Close</span>
                   <!---->
                   <!---->
                 </button>
