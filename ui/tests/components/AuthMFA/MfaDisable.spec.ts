@@ -1,3 +1,4 @@
+import { nextTick } from "vue";
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
@@ -19,43 +20,35 @@ describe("MfaDisable", () => {
   const vuetify = createVuetify();
   const mockMfaApi = new MockAdapter(mfaApi.getAxios());
 
-  beforeEach(() => {
+  beforeEach(async () => {
     wrapper = mount(MfaDisable, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
-
       },
     });
+    wrapper.vm.showDialog = true;
+    await nextTick();
     dialog = new DOMWrapper(document.body);
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+    await flushPromises();
   });
 
   it("Renders the component (Verification Code window)", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
     expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Renders the component (Recovery Code window)", async () => {
-    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Renders the component (Email Sent window)", async () => {
-    wrapper.vm.showDialog = true;
     wrapper.vm.el = 3;
     await flushPromises();
     expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Disables MFA Authentication using TOTP Code", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
     mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
     await wrapper.findComponent('[data-test="verification-code"]').setValue("123456");
@@ -66,8 +59,6 @@ describe("MfaDisable", () => {
   });
 
   it("Disables MFA Authentication using TOTP Code (Fail)", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
     mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(403);
     await wrapper.findComponent('[data-test="verification-code"]').setValue("123456");
@@ -78,7 +69,6 @@ describe("MfaDisable", () => {
   });
 
   it("Disables MFA Authentication using Recovery Code", async () => {
-    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
@@ -90,7 +80,6 @@ describe("MfaDisable", () => {
   });
 
   it("Disables MFA Authentication using Recovery Code (Fail)", async () => {
-    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
@@ -104,7 +93,6 @@ describe("MfaDisable", () => {
 
   it("Sends the disable codes on the users mail", async () => {
     localStorage.setItem("email", "test@test.com");
-    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "requestMfaReset");
@@ -116,7 +104,6 @@ describe("MfaDisable", () => {
 
   it("Handles error when sending recovery email fails", async () => {
     localStorage.setItem("email", "test@test.com");
-    wrapper.vm.showDialog = true;
     wrapper.vm.el = 2;
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "requestMfaReset");
