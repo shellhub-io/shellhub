@@ -1,15 +1,15 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Welcome Second Screen > Renders the component 1`] = `
-"<div data-v-3589b6d1="" class="pa-6">
-  <div data-v-3589b6d1="" class="text-center mb-6">
-    <div data-v-3589b6d1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i data-v-3589b6d1="" class="mdi-download mdi v-icon notranslate v-theme--light text-white" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+"<div class="pa-6">
+  <div class="text-center mb-6">
+    <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i class="mdi-download mdi v-icon notranslate v-theme--light text-white" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
       <!----><span class="v-avatar__underlay"></span>
     </div>
-    <h2 data-v-3589b6d1="" class="text-h4 mb-2">Install ShellHub Agent</h2>
-    <p data-v-3589b6d1="" class="text-subtitle-1 text-medium-emphasis">Connect your device to ShellHub in just one step</p>
+    <h2 class="text-h4 mb-2">Install ShellHub Agent</h2>
+    <p class="text-subtitle-1 text-medium-emphasis">Connect your device to ShellHub in just one step</p>
   </div>
-  <div data-v-3589b6d1="" class="v-card v-theme--light text-primary v-card--density-default v-card--variant-outlined pa-4 mb-4">
+  <div class="v-card v-theme--light text-primary v-card--density-default v-card--variant-outlined pa-4 mb-4">
     <!---->
     <div class="v-card__loader">
       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -27,51 +27,51 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div data-v-3589b6d1="" class="mb-1 text-white">
-      <h3 data-v-3589b6d1="">Requirements:</h3>
-      <div data-v-3589b6d1="" class="v-list v-theme--light v-list--density-default bg-transparent" tabindex="0" role="list">
-        <div data-v-3589b6d1="" class="v-list-item v-theme--light v-list-item--density-compact rounded-0 v-list-item--variant-text d-flex align-center pa-0" role="listitem">
+    <div class="mb-1 text-white">
+      <h3>Requirements:</h3>
+      <div class="v-list v-theme--light v-list--density-default bg-transparent" tabindex="0" role="list">
+        <div class="v-list-item v-theme--light v-list-item--density-compact rounded-0 v-list-item--variant-text d-flex align-center pa-0" role="listitem">
           <!----><span class="v-list-item__underlay"></span>
           <!---->
           <div class="v-list-item__content" data-no-activator="">
             <!---->
-            <!----><i data-v-3589b6d1="" class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-small text-success mr-2" aria-hidden="true"></i><span data-v-3589b6d1="" class="text-body-2">Linux system with curl</span>
+            <!----><i class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-small text-success mr-2" aria-hidden="true"></i><span class="text-body-2">Linux system with curl</span>
           </div>
           <!---->
         </div>
-        <div data-v-3589b6d1="" class="v-list-item v-theme--light v-list-item--density-compact rounded-0 v-list-item--variant-text d-flex align-center pa-0" role="listitem">
+        <div class="v-list-item v-theme--light v-list-item--density-compact rounded-0 v-list-item--variant-text d-flex align-center pa-0" role="listitem">
           <!----><span class="v-list-item__underlay"></span>
           <!---->
           <div class="v-list-item__content" data-no-activator="">
             <!---->
-            <!----><i data-v-3589b6d1="" class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-small text-success mr-2" aria-hidden="true"></i><span data-v-3589b6d1="" class="text-body-2">Internet connection</span>
+            <!----><i class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-small text-success mr-2" aria-hidden="true"></i><span class="text-body-2">Internet connection</span>
           </div>
           <!---->
         </div>
-        <div data-v-3589b6d1="" class="v-list-item v-theme--light v-list-item--density-compact rounded-0 v-list-item--variant-text d-flex align-center pa-0" role="listitem">
+        <div class="v-list-item v-theme--light v-list-item--density-compact rounded-0 v-list-item--variant-text d-flex align-center pa-0" role="listitem">
           <!----><span class="v-list-item__underlay"></span>
           <!---->
           <div class="v-list-item__content" data-no-activator="">
             <!---->
-            <!----><i data-v-3589b6d1="" class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-small text-success mr-2" aria-hidden="true"></i><span data-v-3589b6d1="" class="text-body-2">Tries: Docker → Podman → Snap → Standalone</span>
+            <!----><i class="mdi-check mdi v-icon notranslate v-theme--light v-icon--size-small text-success mr-2" aria-hidden="true"></i><span class="text-body-2">Tries: Docker → Podman → Snap → Standalone</span>
           </div>
           <!---->
         </div>
       </div>
     </div>
-    <div data-v-3589b6d1="" class="v-alert v-theme--light text-primary v-alert--density-default v-alert--variant-tonal" role="alert">
+    <div class="v-alert v-theme--light text-primary v-alert--density-default v-alert--variant-tonal" role="alert">
       <!----><span class="v-alert__underlay"></span>
       <!---->
       <div class="v-alert__prepend"><i class="mdi-package-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" density="default"></i></div>
       <div class="v-alert__content">
         <div class="v-alert-title">Installation</div>
         <!---->
-        <div data-v-3589b6d1="" data-test="welcome-second-run-title">Ready to install? Copy the command below and run it on your target device:</div>
-        <div data-v-3589b6d1="">
-          <div data-v-3589b6d1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field code mt-3" data-test="command-field">
+        <div data-test="welcome-second-run-title">Ready to install? Copy the command below and run it on your target device:</div>
+        <div data-v-0cebd2fd="" class="mt-3">
+          <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code text-white" data-test="copy-command-field">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
+              <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--no-label v-field--variant-filled v-theme--light v-locale--is-ltr">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -90,22 +90,19 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
                 <!---->
                 <div class="v-field__field" data-no-activator="">
                   <!---->
-                  <!---->
-                  <!----><input readonly="" size="1" type="text" id="input-v-1" class="v-field__input" value="curl -sSf http://localhost:3000/install.sh | TENANT_ID=fake-tenant-data SERVER_ADDRESS=http://localhost sh">
+                  <!----><span class="v-text-field__prefix"><span class="v-text-field__prefix__text">$</span></span><input readonly="" size="1" type="text" id="input-v-1" class="v-field__input" value="curl -sSf http://localhost:3000/install.sh | TENANT_ID=fake-tenant-data SERVER_ADDRESS=http://localhost:3000 sh">
                   <!---->
                 </div>
                 <!---->
                 <!---->
                 <div class="v-field__outline">
-                  <div class="v-field__outline__start"></div>
                   <!---->
-                  <div class="v-field__outline__end"></div>
                   <!---->
                 </div>
               </div>
             </div>
             <div class="v-input__append">
-              <!----><button data-v-3589b6d1="" type="button" class="v-btn v-btn--icon v-theme--light bg-primary v-btn--density-default v-btn--rounded v-btn--size-small v-btn--variant-flat"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><button data-v-0cebd2fd="" type="button" class="v-btn v-btn--icon v-theme--light bg-primary v-btn--density-default v-btn--rounded v-btn--size-small v-btn--variant-flat" data-test="copy-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                 <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                 <!---->
                 <!---->
@@ -123,7 +120,7 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
     <!---->
     <!----><span class="v-card__underlay"></span>
   </div>
-  <div data-v-3589b6d1="" class="v-card v-theme--light text-warning v-card--density-default v-card--variant-tonal pa-3">
+  <div class="v-card v-theme--light text-warning v-card--density-default v-card--variant-tonal pa-3">
     <!---->
     <div class="v-card__loader">
       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -141,10 +138,10 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div data-v-3589b6d1="" class="d-flex align-center h-100"><i data-v-3589b6d1="" class="mdi-clock-outline mdi v-icon notranslate v-theme--light text-warning mr-3" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
-      <div data-v-3589b6d1="">
-        <div data-v-3589b6d1="" class="v-card-title text-h6 mb-1 pa-0">Waiting for device...</div>
-        <div data-v-3589b6d1="" class="v-card-text mb-0 pa-0"> After running the command, your device will appear in the next step for approval. </div>
+    <div class="d-flex align-center h-100"><i class="mdi-clock-outline mdi v-icon notranslate v-theme--light text-warning mr-3" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+      <div>
+        <div class="v-card-title text-h6 mb-1 pa-0">Waiting for device...</div>
+        <div class="v-card-text mb-0 pa-0"> After running the command, your device will appear in the next step for approval. </div>
       </div>
     </div>
     <!---->

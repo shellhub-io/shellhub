@@ -35,30 +35,7 @@
         icon="mdi-package-down"
       >
         <div data-test="welcome-second-run-title">Ready to install? Copy the command below and run it on your target device:</div>
-        <CopyWarning copied-item="Installation command">
-          <template #default="{ copyText }">
-            <v-text-field
-              :model-value="getCommand()"
-              class="code mt-3"
-              variant="outlined"
-              readonly
-              density="compact"
-              hide-details
-              data-test="command-field"
-            >
-              <template #append>
-                <v-btn
-                  icon="mdi-content-copy"
-                  color="primary"
-                  variant="flat"
-                  rounded
-                  size="small"
-                  @click="copyText(getCommand())"
-                />
-              </template>
-            </v-text-field>
-          </template>
-        </CopyWarning>
+        <CopyCommandField :command="command" class="mt-3" />
       </v-alert>
     </v-card>
 
@@ -77,23 +54,11 @@
 </template>
 
 <script setup lang="ts">
-import CopyWarning from "@/components/User/CopyWarning.vue";
+import CopyCommandField from "@/components/CopyCommandField.vue";
 import useAuthStore from "@/store/modules/auth";
 
 const { tenantId } = useAuthStore();
 const requirements = ["Linux system with curl", "Internet connection", "Tries: Docker → Podman → Snap → Standalone"];
-
-const getCommand = () => {
-  const port = window.location.port ? `:${window.location.port}` : "";
-  const { hostname, protocol } = window.location;
-  return `curl -sSf ${protocol}//${hostname}${port}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${protocol}//${hostname} sh`;
-};
+const { origin } = window.location;
+const command = `curl -sSf ${origin}/install.sh | TENANT_ID=${tenantId} SERVER_ADDRESS=${origin} sh`;
 </script>
-
-<style scoped lang="scss">
-.code {
-  font-family: monospace;
-  font-size: 85%;
-  font-weight: normal;
-}
-</style>
