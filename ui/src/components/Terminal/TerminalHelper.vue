@@ -9,7 +9,7 @@
     <v-card-text class="pa-6">
       <v-text-field
         class="mb-6"
-        v-model="username"
+        v-model.trim="username"
         label="Username"
         hint="Enter an existing user on the device"
         persistent-placeholder
@@ -18,24 +18,13 @@
         data-test="username-input"
       />
 
-      <CopyWarning :copied-item="'Command'">
-        <template #default="{ copyText }">
-          <v-text-field
-            :model-value="commandLine"
-            @click:append-inner="copyText(commandLine)"
-            append-inner-icon="mdi-content-copy"
-            hint="Run this command on your Terminal"
-            class="code"
-            label="Command Line"
-            readonly
-            density="compact"
-            persistent-placeholder
-            persistent-hint
-            variant="outlined"
-            data-test="command-field"
-          />
-        </template>
-      </CopyWarning>
+      <CopyCommandField
+        :command
+        label="Command Line"
+        hint="Run this command on your terminal"
+        :persistent-hint="true"
+        :hide-details="false"
+      />
 
       <v-checkbox
         v-if="showCheckbox"
@@ -62,7 +51,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import CopyWarning from "@/components/User/CopyWarning.vue";
+import CopyCommandField from "@/components/CopyCommandField.vue";
 import WindowDialog from "../WindowDialog.vue";
 
 interface Props {
@@ -91,9 +80,9 @@ const setDispensedUsers = (users: string[]) => {
   localStorage.setItem(LS_KEY, JSON.stringify(users));
 };
 
-const commandLine = computed(() => {
-  const trimmedUsername = username.value.trim();
-  return trimmedUsername ? `ssh ${trimmedUsername}@${props.sshid}` : "";
+const command = computed(() => {
+  const commandUsername = username.value || "<username>";
+  return `ssh ${commandUsername}@${props.sshid}`;
 });
 
 watch(dispenseHelper, (isDispensed) => {
@@ -123,10 +112,3 @@ const close = () => {
 
 defineExpose({ showDialog });
 </script>
-
-<style scoped lang="scss">
-.code ::v-deep(.v-field__input) {
-  font-family: monospace;
-  font-size: 85%;
-}
-</style>
