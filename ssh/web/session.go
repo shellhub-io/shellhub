@@ -269,6 +269,7 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 }
 
 func redirToWs(rd io.Reader, ws *Conn) error {
+	// TODO: Evaluate refactoring this function to improve its readability.
 	var buf [32 * 1024]byte
 	var start, end, buflen int
 
@@ -288,6 +289,7 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 		}
 
 		buflen = start + nr
+
 		for end = buflen - 1; end >= 0; end-- {
 			if utf8.RuneStart(buf[end]) {
 				ch, width := utf8.DecodeRune(buf[end:buflen])
@@ -303,6 +305,24 @@ func redirToWs(rd io.Reader, ws *Conn) error {
 
 				break
 			}
+		}
+
+		if end < 0 {
+			// NOTE: This workround is to avoid a panic in case the end is negative, which would lead to a negative slice.
+			// This situation can happen when the buffer contains only UTF-8 continuation bytes, which are bytes that
+			// cannot start a valid UTF-8 rune. In such cases, the loop above will not find a valid rune start and
+			// will leave `end` as -1.
+			//
+			// https://datatracker.ietf.org/doc/html/rfc3629#section-3
+			log.WithFields(log.Fields{
+				"buf":    buf,
+				"buflen": buflen,
+				"start":  start,
+				"end":    end,
+				"nr":     nr,
+			}).Warn("end is negative, skipping write to avoid panic")
+
+			end = 0
 		}
 
 		if _, err = ws.WriteBinary([]byte(string(bytes.Runes(buf[0:end])))); err != nil {
