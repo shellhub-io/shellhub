@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-table :class="isAdmin ? 'bg-surface' : 'bg-background border rounded'" class="text-center">
+    <v-table class="bg-background border rounded text-center">
       <thead class="bg-v-theme-background">
         <tr>
           <th v-for="(header, i) in headers" :key="i" class="text-center">
@@ -29,7 +29,6 @@
         </tr>
       </tbody>
     </v-table>
-    <v-divider v-if="isAdmin" />
     <v-progress-linear v-if="loading" indeterminate alt="Data table loading" />
     <div class="d-flex w-100 justify-end align-center" v-if="itemsPerPageOptions?.length">
       <span class="text-subtitle-2 mr-4">Items per page:</span>
@@ -58,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed } from "vue";
 
 type Header = {
   text: string;
@@ -79,7 +78,5 @@ defineEmits(["update:sort"]);
 const page = defineModel<number>("page", { required: true, type: Number });
 const itemsPerPage = defineModel("itemsPerPage", { required: true, type: Number });
 const pageQuantity = computed(() => Math.ceil(props.totalCount / itemsPerPage.value) || 1);
-const isAdmin: boolean = inject("isAdmin", false);
-
 const goToFirstPage = () => { page.value = 1; };
 </script>

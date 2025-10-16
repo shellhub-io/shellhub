@@ -43,7 +43,6 @@ exports[`Device Chooser List > Renders the component 1`] = `
     </div>
     <!--v-if-->
     <!--v-if-->
-    <!--v-if-->
   </div>
   <!---->
   <!----><span class="v-card__underlay"></span>

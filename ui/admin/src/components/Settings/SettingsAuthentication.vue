@@ -4,7 +4,7 @@
   <div class="pb-2">
     <h1 data-test="auth-header">Authentication</h1>
   </div>
-  <v-card class="w-100 pa-4" data-test="auth-card">
+  <v-card class="w-100 pa-4 bg-background border" data-test="auth-card">
     <v-card-item class="pa-0">
       <v-card-title class="text-center" data-test="auth-status-header">Authentication Status</v-card-title>
       <v-row class="my-0">

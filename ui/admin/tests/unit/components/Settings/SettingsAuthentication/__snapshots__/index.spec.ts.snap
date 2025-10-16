@@ -4,7 +4,7 @@ exports[`Authentication > renders correctly 1`] = `
 "<div data-v-e055768f="" class="pb-2">
   <h1 data-v-e055768f="" data-test="auth-header">Authentication</h1>
 </div>
-<div data-v-e055768f="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated w-100 pa-4" data-test="auth-card">
+<div data-v-e055768f="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated w-100 pa-4 bg-background border" data-test="auth-card">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">

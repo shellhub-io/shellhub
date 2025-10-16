@@ -34,9 +34,8 @@
   <div class="pb-2">
     <h1>License Details</h1>
   </div>
-  <v-card>
+  <v-card class="w-100 pa-4 bg-background border" data-test="license-card">
     <v-container fluid data-test="license-container">
-
       <div v-if="installedLicense">
         <v-row>
           <v-col md="auto">
