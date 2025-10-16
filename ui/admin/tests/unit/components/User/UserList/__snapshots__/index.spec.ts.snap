@@ -57,7 +57,6 @@ exports[`UserList > Renders the component 1`] = `
       <!---->
     </div>
     <!--v-if-->
-    <!--v-if-->
     <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
       <div>
         <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">

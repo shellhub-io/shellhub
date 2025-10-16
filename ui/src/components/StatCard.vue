@@ -1,8 +1,7 @@
 <template>
   <v-hover v-slot="{ isHovering, props }">
     <v-card
-      class="pa-1 mb-2 bg-v-theme-surface"
-      :class="{ border: !isAdmin }"
+      class="pa-1 mb-2 bg-v-theme-surface border"
       v-bind="props"
       :elevation="isHovering ? 24 : 8"
       density="compact"
@@ -27,13 +26,13 @@
         <v-btn
           v-if="buttonLabel !== 'Add Device'"
           :to="path"
-          v-bind="buttonAttrs"
+          color="primary"
+          variant="elevated"
+          size="small"
           tabindex="0"
           class="text-subtitle"
-        >
-          {{ buttonLabel }}
-        </v-btn>
-
+          :text="buttonLabel"
+        />
         <DeviceAdd v-else size="small" />
       </v-card-actions>
     </v-card>
@@ -41,29 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
 import { StatCardItem } from "@/interfaces/IStats";
 import DeviceAdd from "./Devices/DeviceAdd.vue";
 
 defineProps<StatCardItem>();
-
-const isAdmin: boolean = inject("isAdmin", false);
-
-const buttonAttrs = isAdmin
-  ? {
-    color: "dark",
-    variant: "text" as const,
-  }
-  : {
-    color: "primary",
-    variant: "elevated" as const,
-    size: "small",
-  };
-
 </script>
-
-<style lang="scss">
-.border {
-  border: thin solid rgba(255, 255, 255, 0.12);
-}
-</style>
