@@ -131,7 +131,13 @@ func (c *Conn) WriteMessage(message *Message) (int, error) {
 }
 
 func (c *Conn) WriteBinary(data []byte) (int, error) {
-	socket := c.Socket.(*websocket.Conn)
+	socket, ok := c.Socket.(*websocket.Conn)
+	if !ok {
+		// NOTE: If the underlying connection is not a websocket connection, fallback to a normal write.
+		// This is useful for testing purposes, where we use a mock socket that does not implement
+		// the websocket interface.
+		return c.Socket.Write(data)
+	}
 
 	frame, err := socket.NewFrameWriter(websocket.BinaryFrame)
 	if err != nil {
