@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import vuetify from "@/plugins/vuetify";
 import App from "./App.vue";
-import { loadFonts } from "./plugins/webfontloader";
+import loadFonts from "@/plugins/webfontloader";
 import router from "./router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 

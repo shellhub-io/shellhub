@@ -10,7 +10,7 @@ import { router } from "./router";
 import App from "./App.vue";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 import "@/nodespecific";
-import { loadFonts } from "./plugins/webfontloader";
+import loadFonts from "./plugins/webfontloader";
 import "@fontsource/fira-code";
 import "@fontsource/source-code-pro";
 import "@fontsource/jetbrains-mono";
@@ -39,7 +39,6 @@ Sentry.init({
 Sentry.setTag("project", "shellhub-ui");
 
 loadFonts();
-
 app.use(vuetify);
 app.use(router);
 app.use(pinia);
