@@ -126,7 +126,8 @@
   <v-main data-test="main">
     <slot>
       <v-container
-        :class="{ 'pa-8': true, 'container-light-bg': theme === 'light' }"
+        class="pa-8 container"
+        :class="{ 'container-light-bg': theme === 'light' }"
         fluid
         data-test="container"
       >
@@ -248,21 +249,37 @@ defineExpose({
 });
 </script>
 
-<style lang="css" scoped>
-.full-width-height {
-  width: 100vw !important;
-  height: 100vh !important;
-}
+<style lang="scss" scoped>
+.container {
+  position: relative;
+  min-height: calc(100vh - var(--v-layout-top));
+  background-image: linear-gradient(180deg, rgb(var(--v-theme-primary), 0.15) 0%, transparent 40%);
 
-.v-container {
-  min-height: calc(100vh - 64px);
-  background-image: linear-gradient(155deg, rgb(var(--v-theme-primary),0.10) 0%, transparent 30%), url(/bg.svg);
-  background-position: 0% 0;
-  background-repeat: no-repeat;
-  background-size: auto;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(to right, rgba(var(--v-border-color), 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(var(--v-border-color), 0.025) 1px, transparent 1px);
+    background-size: 40px 40px, 40px 40px;
+    background-position: 0 0, 0 0;
+    background-repeat: repeat, repeat;
+    mask-image: linear-gradient(to bottom, black 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .container-light-bg {
-  background-image: linear-gradient(155deg, rgb(var(--v-theme-primary),0.10) 0%, transparent 0%), url(/bg-inverted.svg);
+  background-image: none;
 }
 </style>

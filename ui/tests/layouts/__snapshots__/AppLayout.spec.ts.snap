@@ -329,7 +329,7 @@ exports[`App Layout Component > Renders the component 1`] = `
 </transition-stub>
 </header>
 <main data-v-e7291ef4="" class="v-main" style="--v-layout-left: 0px; --v-layout-right: 0px; --v-layout-top: 64px; --v-layout-bottom: 0px;" data-test="main">
-  <div data-v-e7291ef4="" class="v-container v-container--fluid v-locale--is-ltr pa-8" data-test="container">
+  <div data-v-e7291ef4="" class="v-container v-container--fluid v-locale--is-ltr pa-8 container" data-test="container">
     <router-view-stub data-v-e7291ef4=""></router-view-stub>
   </div>
 </main>
