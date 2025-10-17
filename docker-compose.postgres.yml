@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:18.0
+    command: postgres -c io_method=io_uring
+    security_opt:
+      # Disable seccomp to allow io_uring syscalls (io_uring_setup, io_uring_enter, io_uring_register)
+      # which are blocked by Docker's default seccomp profile for security reasons.
+      - seccomp=unconfined
+    healthcheck:
+      start_period: 90s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U ${SHELLHUB_POSTGRES_USERNAME} -d ${SHELLHUB_POSTGRES_DATABASE}"]
+    environment:
+      - POSTGRES_USER=${SHELLHUB_POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${SHELLHUB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${SHELLHUB_POSTGRES_DATABASE}
+    networks:
+      - shellhub
+  api:
+    depends_on:
+      postgres:
+        condition: service_healthy
