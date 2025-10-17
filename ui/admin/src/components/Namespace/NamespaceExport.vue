@@ -1,5 +1,12 @@
 <template>
-  <v-btn @click="showDialog = true" class="mr-2" data-test="namespaces-export-btn">Export CSV</v-btn>
+  <v-btn
+    @click="showDialog = true"
+    class="mr-2 mt-2 mt-md-0"
+    color="primary"
+    variant="outlined"
+    data-test="namespaces-export-btn"
+    text="Export CSV"
+  />
 
   <BaseDialog v-model="showDialog" @close="closeDialog" transition="dialog-bottom-transition">
     <v-card>
@@ -7,7 +14,7 @@
       <v-divider />
       <v-form @submit.prevent="handleSubmit" data-test="form">
         <v-card-text>
-          <v-radio-group v-model="selectedFilter">
+          <v-radio-group v-model="selectedFilter" @update:model-value="handleSelectedFilterUpdate">
             <v-radio label="Namespaces with more than:" :value="AdminNamespaceFilterOptions.MoreThan" />
             <v-text-field
               class="mt-2 mx-2"
@@ -17,7 +24,7 @@
               label="Number of devices"
               color="primary"
               density="comfortable"
-              variant="outlined"
+              :hide-details="hideNumberOfDevicesInputDetails"
               :error-messages="numberOfDevicesError"
             />
             <v-radio label="Namespaces with no devices" :value="AdminNamespaceFilterOptions.NoDevices" />
@@ -35,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import { saveAs } from "file-saver";
@@ -53,14 +60,12 @@ const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
 const { value: numberOfDevices,
   errorMessage: numberOfDevicesError,
-  setErrors: setNumberOfDevicesErrors,
 } = useField<number>("numberOfDevices", yup.number().integer().required().min(0), { initialValue: 0 });
+const hideNumberOfDevicesInputDetails = ref(false);
 
-watch(selectedFilter, (newValue) => {
-  if (newValue !== AdminNamespaceFilterOptions.MoreThan) {
-    setNumberOfDevicesErrors("");
-  }
-});
+const handleSelectedFilterUpdate = () => {
+  hideNumberOfDevicesInputDetails.value = selectedFilter.value !== AdminNamespaceFilterOptions.MoreThan;
+};
 
 const encodeFilter = () => btoa(JSON.stringify(getFilter(selectedFilter.value, numberOfDevices.value)));
 

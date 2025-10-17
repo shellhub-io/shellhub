@@ -92,8 +92,8 @@ describe("Namespace Details", () => {
   it("Should render the correct members list", () => {
     wrapper.findAll("ul").forEach((ul) => {
       ul.findAll("li").forEach((li) => {
-        const fieldName = li.find("span");
-        const fieldValue = li.find("span.field-value");
+        const fieldName = li.find("[data-test$='-item']");
+        const fieldValue = li.find("[data-test$='-value']");
         expect(fieldName.exists()).toBeTruthy();
         expect(fieldValue.exists()).toBeTruthy();
       });
