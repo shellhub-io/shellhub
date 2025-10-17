@@ -1,101 +1,61 @@
 <template>
-  <div class="d-flex pa-0 align-center">
-    <h1>Session Details</h1>
-  </div>
-
-  <v-card class="mt-2 pa-4" v-if="!sessionIsEmpty">
-    <v-card-text>
+  <h1>Session Details</h1>
+  <v-card class="mt-2 pa-4 bg-background border">
+    <v-card-text v-if="!isSessionEmpty">
       <div>
-        <div class="text-overline mt-3">
-          <h3>uid:</h3>
-        </div>
-        <div :data-test="session.uid">
-          <p>{{ session.uid }}</p>
-        </div>
+        <h3 class="text-overline">uid:</h3>
+        <p :data-test="session.uid">{{ session.uid }}</p>
       </div>
 
       <div v-if="session.device">
-        <div class="text-overline mt-3">
-          <h3>Device uid:</h3>
-        </div>
-        <div :data-test="session.device.uid">
-          <p
-            @click="session.device?.uid && goToDevice(session.device.uid)"
-            @keyup="session.device?.uid && goToDevice(session.device.uid)"
-            tabindex="0"
-            class="link"
-          >
-            {{ session.device.uid }}
-          </p>
-        </div>
+        <h3 class="text-overline mt-3">Device uid:</h3>
+        <p
+          :data-test="session.device.uid"
+          @click="session.device?.uid && goToDevice(session.device.uid)"
+          @keyup="session.device?.uid && goToDevice(session.device.uid)"
+          tabindex="0"
+          class="text-decoration-underline cursor-pointer"
+        >
+          {{ session.device.uid }}
+        </p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Tenant uid:</h3>
-        </div>
-        <div :data-test="session.tenant_id">
-          <p>{{ session.tenant_id }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Tenant uid:</h3>
+        <p :data-test="session.tenant_id">{{ session.tenant_id }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Username</h3>
-        </div>
-        <div :data-test="session.username">
-          <p>{{ session.username }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Username</h3>
+        <p :data-test="session.username">{{ session.username }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Ip Address:</h3>
-        </div>
-        <div :data-test="session.ip_address">
-          <p>{{ session.ip_address }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Ip Address:</h3>
+        <p :data-test="session.ip_address">{{ session.ip_address }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Last Seen:</h3>
-        </div>
-        <div :data-test="session.last_seen">
-          <p>{{ session.last_seen }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Last Seen:</h3>
+        <p :data-test="session.last_seen">{{ session.last_seen }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Active:</h3>
-        </div>
-        <div :data-test="session.active">
-          <p>{{ session.active }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Active:</h3>
+        <p :data-test="session.active">{{ session.active }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Terminal:</h3>
-        </div>
-        <div :data-test="session.term">
-          <p>{{ session.term }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Terminal:</h3>
+        <p :data-test="session.term">{{ session.term }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Type:</h3>
-        </div>
-        <div :data-test="session.type">
-          <p>{{ session.type }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Type:</h3>
+        <p :data-test="session.type">{{ session.type }}</p>
       </div>
     </v-card-text>
-  </v-card>
-  <v-card class="mt-2 pa-4" v-else>
-    <p class="text-center">Something is wrong, try again !</p>
+    <p v-else class="text-center">Something is wrong, try again!</p>
   </v-card>
 </template>
 
@@ -112,7 +72,7 @@ const snackbar = useSnackbar();
 const sessionStore = useSessionsStore();
 const sessionId = computed(() => route.params.id);
 const session = ref({} as IAdminSession);
-const sessionIsEmpty = computed(() => session.value && session.value.device_uid?.length === 0);
+const isSessionEmpty = computed(() => session.value && session.value.device_uid?.length === 0);
 
 const goToDevice = (deviceId: string) => {
   router.push({ name: "deviceDetails", params: { id: deviceId } });
@@ -128,10 +88,3 @@ onMounted(async () => {
 
 defineExpose({ session });
 </script>
-
-<style scoped>
-.link {
-  text-decoration: underline;
-  cursor: pointer;
-}
-</style>

@@ -1,15 +1,8 @@
 <template>
-  <div>
-    <h1>Sessions</h1>
-  </div>
-  <v-card class="mt-2">
-    <SessionList />
-  </v-card>
+  <h1 class="mb-2">Sessions</h1>
+  <SessionList />
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
 import SessionList from "../components/Sessions/SessionList.vue";
-
-export default defineComponent({ components: { SessionList } });
 </script>
