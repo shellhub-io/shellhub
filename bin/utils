@@ -47,6 +47,18 @@ COMPOSE_FILE="docker-compose.yml"
 [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.enterprise.yml"
 [ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
 
+SHELLHUB_DATABASE=${SHELLHUB_DATABASE:-mongo}
+case "$SHELLHUB_DATABASE" in
+    mongo)
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SHELLHUB_DATABASE}.yml"
+        ;;
+    *)
+        echo "⚠️ WARNING: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Defaulting to mongodb."
+        SHELLHUB_DATABASE="mongo"
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.mongo.yml"
+        ;;
+esac
+
 [ -f "$EXTRA_COMPOSE_FILE" ] && COMPOSE_FILE="${COMPOSE_FILE}:${EXTRA_COMPOSE_FILE}"
 
 export COMPOSE_FILE

@@ -2,6 +2,7 @@ package environment
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -96,10 +97,15 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		down:     nil,
 	}
 
-	tcDc, err := compose.NewDockerComposeWith(
-		compose.WithStackFiles("../docker-compose.yml", "../docker-compose.test.yml"),
-		compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)),
-	)
+	dockerFiles := []string{"../docker-compose.yml", "../docker-compose.test.yml"}
+	switch dc.envs["SHELLHUB_DATABASE"] {
+	case "mongo":
+		dockerFiles = append(dockerFiles, "../docker-compose.mongo.test.yml")
+	default:
+		panic(fmt.Sprintf("invalid database %s", dc.envs["SHELLHUB_DATABASE"]))
+	}
+
+	tcDc, err := compose.NewDockerComposeWith(compose.WithStackFiles(dockerFiles...), compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)))
 	if !assert.NoError(dcc.t, err) {
 		assert.FailNow(dcc.t, err.Error())
 	}

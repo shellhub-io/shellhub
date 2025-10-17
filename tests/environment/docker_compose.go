@@ -68,6 +68,11 @@ func (dc *DockerCompose) buildCLICommand(ctx context.Context, cmds []string) (tc
 			WaitingFor: wait.ForExit(),
 			Cmd:        cmds,
 			Networks:   []string{dc.envs["SHELLHUB_NETWORK"]},
+			Env: map[string]string{
+				"DATABASE":  dc.envs["SHELLHUB_DATABASE"],
+				"MONGO_URI": "mongodb://mongo:27017/main",
+				"REDIS_URI": "redis://redis:6379",
+			},
 			FromDockerfile: tc.FromDockerfile{
 				Repo:          "cli",
 				Tag:           "test",
