@@ -5,52 +5,35 @@
   <v-card class="mt-2 pa-4">
     <v-card-text>
       <div>
-        <div class="text-overline mt-3">
-          <h3>name:</h3>
-        </div>
-        <div :data-test="namespace.name">
-          <p>{{ namespace.name }}</p>
-        </div>
+        <h3 class="text-overline">Name:</h3>
+        <p :data-test="namespace.name">{{ namespace.name }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Devices:</h3>
-        </div>
-        <div data-test="namespace-devices-count">
-          <p>{{ sumDevicesCount(namespace) }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Devices:</h3>
+        <p data-test="namespace-devices-count">{{ sumDevicesCount(namespace) }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Owner:</h3>
-        </div>
-        <div :data-test="namespace.owner">
-          <p
-            @click="goToUser(namespace.owner)"
-            @keyup="goToUser(namespace.owner)"
-            tabindex="0"
-            class="link"
-          >
-            {{ namespace.owner }}
-          </p>
-        </div>
+        <h3 class="text-overline mt-3">Owner:</h3>
+        <p
+          :data-test="namespace.owner"
+          @click="goToUser(namespace.owner)"
+          @keyup="goToUser(namespace.owner)"
+          tabindex="0"
+          class="text-decoration-underline cursor-pointer"
+        >
+          {{ namespace.owner }}
+        </p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Tenant Id:</h3>
-        </div>
-        <div :data-test="namespace.tenant_id">
-          <p>{{ namespace.tenant_id }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Tenant Id:</h3>
+        <p :data-test="namespace.tenant_id">{{ namespace.tenant_id }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Members:</h3>
-        </div>
+        <h3 class="text-overline mt-3">Members:</h3>
         <ul v-for="(member, index) in namespace.members" :key="index">
           <li
             class="ml-8"
@@ -58,31 +41,27 @@
             :key="index"
           >
             <div v-if="name === 'id'">
-              <span class="font-weight-bold mr-1" :data-test="name">{{ name }}:</span>
+              <span class="font-weight-bold mr-1" :data-test="`${name}-item`">{{ name }}:</span>
               <span
                 @click="goToUser(namespace.owner)"
                 @keyup="goToUser(namespace.owner)"
                 tabindex="0"
-                class="link field-value"
-                :data-test="value"
+                class="text-decoration-underline cursor-pointer"
+                :data-test="`${name}-value`"
               >{{ value }}</span
               >
             </div>
             <div v-else>
-              <span class="font-weight-bold mr-1" :data-test="name">{{ name }}:</span>
-              <span :data-test="value" class="field-value">{{ value }}</span>
+              <span class="font-weight-bold mr-1" :data-test="`${name}-item`">{{ name }}:</span>
+              <span :data-test="`${name}-value`">{{ value }}</span>
             </div>
           </li>
         </ul>
       </div>
 
       <div v-if="namespace.settings">
-        <div class="text-overline mt-3">
-          <h3>Session Record:</h3>
-        </div>
-        <div :data-test="namespace.settings.session_record">
-          <p>{{ namespace.settings.session_record }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Session Record:</h3>
+        <p :data-test="namespace.settings.session_record">{{ namespace.settings.session_record }}</p>
       </div>
     </v-card-text>
   </v-card>
@@ -127,10 +106,3 @@ const sumDevicesCount = (namespace: IAdminNamespace) => {
 
 defineExpose({ namespace });
 </script>
-
-<style scoped>
-.link {
-  text-decoration: underline;
-  cursor: pointer;
-}
-</style>

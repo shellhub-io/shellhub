@@ -1,26 +1,22 @@
 <template>
-  <div class="d-flex flex-column justify-space-between align-center flex-md-row">
+  <div class="d-flex flex-column justify-space-between align-center flex-md-row mb-2">
     <h1>Namespaces</h1>
-    <div class="w-50">
-      <v-text-field
-        label="Search by name"
-        variant="underlined"
-        color="primary"
-        single-line
-        hide-details
-        v-model.trim="filter"
-        v-on:keyup="searchNamespaces"
-        append-inner-icon="mdi-magnify"
-        density="comfortable"
-      />
-    </div>
-    <div class="mt-sm-4">
-      <NamespaceExport />
-    </div>
+    <v-spacer />
+    <v-text-field
+      label="Search by name"
+      color="primary"
+      class="w-50"
+      single-line
+      hide-details
+      v-model.trim="filter"
+      v-on:keyup="searchNamespaces"
+      append-inner-icon="mdi-magnify"
+      density="compact"
+    />
+    <v-spacer />
+    <NamespaceExport />
   </div>
-  <v-card class="mt-2">
-    <NamespaceList />
-  </v-card>
+  <NamespaceList />
 </template>
 
 <script setup lang="ts">

@@ -1,10 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Namespace Details > Renders the component 1`] = `
-"<div data-v-1bdec118="" class="d-flex pa-0 align-center">
-  <h1 data-v-1bdec118="">Namespace Details</h1>
+"<div class="d-flex pa-0 align-center">
+  <h1>Namespace Details</h1>
 </div>
-<div data-v-1bdec118="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -22,67 +22,45 @@ exports[`Namespace Details > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div data-v-1bdec118="" class="v-card-text">
-    <div data-v-1bdec118="">
-      <div data-v-1bdec118="" class="text-overline mt-3">
-        <h3 data-v-1bdec118="">name:</h3>
-      </div>
-      <div data-v-1bdec118="" data-test="dev">
-        <p data-v-1bdec118="">dev</p>
-      </div>
+  <div class="v-card-text">
+    <div>
+      <h3 class="text-overline">Name:</h3>
+      <p data-test="dev">dev</p>
     </div>
-    <div data-v-1bdec118="">
-      <div data-v-1bdec118="" class="text-overline mt-3">
-        <h3 data-v-1bdec118="">Devices:</h3>
-      </div>
-      <div data-v-1bdec118="" data-test="namespace-devices-count">
-        <p data-v-1bdec118="">1</p>
-      </div>
+    <div>
+      <h3 class="text-overline mt-3">Devices:</h3>
+      <p data-test="namespace-devices-count">1</p>
     </div>
-    <div data-v-1bdec118="">
-      <div data-v-1bdec118="" class="text-overline mt-3">
-        <h3 data-v-1bdec118="">Owner:</h3>
-      </div>
-      <div data-v-1bdec118="" data-test="6256b739302b50b6cc5eafcc">
-        <p data-v-1bdec118="" tabindex="0" class="link">6256b739302b50b6cc5eafcc</p>
-      </div>
+    <div>
+      <h3 class="text-overline mt-3">Owner:</h3>
+      <p tabindex="0" class="text-decoration-underline cursor-pointer" data-test="6256b739302b50b6cc5eafcc">6256b739302b50b6cc5eafcc</p>
     </div>
-    <div data-v-1bdec118="">
-      <div data-v-1bdec118="" class="text-overline mt-3">
-        <h3 data-v-1bdec118="">Tenant Id:</h3>
-      </div>
-      <div data-v-1bdec118="" data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-        <p data-v-1bdec118="">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
-      </div>
+    <div>
+      <h3 class="text-overline mt-3">Tenant Id:</h3>
+      <p data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
     </div>
-    <div data-v-1bdec118="">
-      <div data-v-1bdec118="" class="text-overline mt-3">
-        <h3 data-v-1bdec118="">Members:</h3>
-      </div>
-      <ul data-v-1bdec118="">
-        <li data-v-1bdec118="" class="ml-8">
-          <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="id">id:</span><span data-v-1bdec118="" tabindex="0" class="link field-value" data-test="6256b739302b50b6cc5eafcc">6256b739302b50b6cc5eafcc</span></div>
+    <div>
+      <h3 class="text-overline mt-3">Members:</h3>
+      <ul>
+        <li class="ml-8">
+          <div><span class="font-weight-bold mr-1" data-test="id-item">id:</span><span tabindex="0" class="text-decoration-underline cursor-pointer" data-test="id-value">6256b739302b50b6cc5eafcc</span></div>
         </li>
-        <li data-v-1bdec118="" class="ml-8">
-          <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="role">role:</span><span data-v-1bdec118="" data-test="owner" class="field-value">owner</span></div>
+        <li class="ml-8">
+          <div><span class="font-weight-bold mr-1" data-test="role-item">role:</span><span data-test="role-value">owner</span></div>
         </li>
       </ul>
-      <ul data-v-1bdec118="">
-        <li data-v-1bdec118="" class="ml-8">
-          <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="id">id:</span><span data-v-1bdec118="" tabindex="0" class="link field-value" data-test="7326b239302b50b6cc5eafdd">7326b239302b50b6cc5eafdd</span></div>
+      <ul>
+        <li class="ml-8">
+          <div><span class="font-weight-bold mr-1" data-test="id-item">id:</span><span tabindex="0" class="text-decoration-underline cursor-pointer" data-test="id-value">7326b239302b50b6cc5eafdd</span></div>
         </li>
-        <li data-v-1bdec118="" class="ml-8">
-          <div data-v-1bdec118=""><span data-v-1bdec118="" class="font-weight-bold mr-1" data-test="role">role:</span><span data-v-1bdec118="" data-test="administrator" class="field-value">administrator</span></div>
+        <li class="ml-8">
+          <div><span class="font-weight-bold mr-1" data-test="role-item">role:</span><span data-test="role-value">administrator</span></div>
         </li>
       </ul>
     </div>
-    <div data-v-1bdec118="">
-      <div data-v-1bdec118="" class="text-overline mt-3">
-        <h3 data-v-1bdec118="">Session Record:</h3>
-      </div>
-      <div data-v-1bdec118="" data-test="true">
-        <p data-v-1bdec118="">true</p>
-      </div>
+    <div>
+      <h3 class="text-overline mt-3">Session Record:</h3>
+      <p data-test="true">true</p>
     </div>
   </div>
   <!---->
