@@ -18,6 +18,7 @@ const useAuthStore = defineStore("auth", () => {
   const email = ref(localStorage.getItem("email") || "");
   const id = ref(localStorage.getItem("id") || "");
   const role = ref(localStorage.getItem("role") || "");
+  const superAdmin = ref(localStorage.getItem("super_admin") === "true");
   const recoveryEmail = ref("");
   const isMfaEnabled = ref(false);
   const recoveryCode = ref("");
@@ -28,6 +29,7 @@ const useAuthStore = defineStore("auth", () => {
   const mfaToken = ref<string | undefined>();
 
   const isLoggedIn = computed(() => !!token.value);
+  const isSuperAdmin = computed(() => superAdmin.value);
   const showForceRecoveryMail = computed(() => !recoveryEmail.value && isMfaEnabled.value);
   const showRecoveryModal = computed(() => isRecoveringMfa.value && isMfaEnabled.value);
 
@@ -39,6 +41,7 @@ const useAuthStore = defineStore("auth", () => {
     email.value = data.email || "";
     id.value = data.id || "";
     role.value = data.role || "";
+    superAdmin.value = data.super_admin || false;
     recoveryEmail.value = data.recovery_email || "";
     isMfaEnabled.value = data.mfa || false;
     authMethods.value = data.auth_methods || ["local"];
@@ -50,6 +53,7 @@ const useAuthStore = defineStore("auth", () => {
     localStorage.setItem("email", email.value);
     localStorage.setItem("id", id.value);
     localStorage.setItem("role", role.value);
+    localStorage.setItem("super_admin", String(superAdmin.value));
     localStorage.setItem("recovery_email", recoveryEmail.value);
     localStorage.setItem("mfa", String(isMfaEnabled.value));
     localStorage.setItem("namespacesWelcome", JSON.stringify({}));
@@ -152,12 +156,13 @@ const useAuthStore = defineStore("auth", () => {
     email.value = "";
     id.value = "";
     role.value = "";
+    superAdmin.value = false;
     isMfaEnabled.value = false;
     mfaToken.value = "";
 
     [
       "token", "user", "tenant", "namespacesWelcome", "noNamespace",
-      "email", "id", "name", "role", "mfa", "recovery_email",
+      "email", "id", "name", "role", "super_admin", "mfa", "recovery_email",
     ].forEach((key) => localStorage.removeItem(key));
   };
 
@@ -191,6 +196,7 @@ const useAuthStore = defineStore("auth", () => {
     email,
     id,
     role,
+    superAdmin,
     recoveryEmail,
     isMfaEnabled,
     authMethods,
@@ -202,6 +208,7 @@ const useAuthStore = defineStore("auth", () => {
 
     showRecoveryModal,
     isLoggedIn,
+    isSuperAdmin,
     showForceRecoveryMail,
 
     persistAuth,

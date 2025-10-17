@@ -11,7 +11,7 @@
         mdi-delete
       </v-icon>
     </template>
-    <span>Remove</span>
+    <span>Removex</span>
   </v-tooltip>
 
   <BaseDialog v-model="showDialog">

@@ -57,6 +57,16 @@
       </div>
     </v-card-text>
   </v-card>
+
+  <SuperAdminToggle
+    v-if="currentUser && currentUser.id"
+    :user-id="currentUser.id"
+    :initial-value="currentUser.super_admin || false"
+    class="mt-4"
+    @updated="refreshUserData"
+    data-test="super-admin-toggle"
+  />
+
   <v-card class="mt-2 pa-4" v-else>
     <p class="text-center">Something is wrong, try again !</p>
   </v-card>
@@ -69,6 +79,7 @@ import useUsersStore from "@admin/store/modules/users";
 import { IAdminUser } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import UserStatusChip from "@admin/components/User/UserStatusChip.vue";
+import SuperAdminToggle from "@admin/components/User/SuperAdminToggle.vue";
 import useSnackbar from "@/helpers/snackbar";
 import UserDelete from "../components/User/UserDelete.vue";
 
@@ -88,10 +99,14 @@ const loginWithToken = async () => {
   } catch { snackbar.showError("Failed to get the login token."); }
 };
 
-onBeforeMount(async () => {
+const refreshUserData = async () => {
   try {
     currentUser.value = await usersStore.fetchUserById(userId.value);
-  } catch { snackbar.showError("Failed to get user details."); }
+  } catch { snackbar.showError("Failed to refresh user details."); }
+};
+
+onBeforeMount(async () => {
+  await refreshUserData();
 });
 
 defineExpose({ currentUser });

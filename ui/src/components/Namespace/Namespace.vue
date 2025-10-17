@@ -54,7 +54,7 @@
           </div>
         </div>
 
-        <template v-if="otherNamespaces.length > 0 || (hasNamespaces && showAdminPanel)">
+        <template v-if="otherNamespaces.length > 0 || isSuperAdmin">
           <v-divider class="my-2" />
           <v-list-subheader>Switch Namespace</v-list-subheader>
 
@@ -69,7 +69,7 @@
           </template>
 
           <v-list-item
-            v-if="hasNamespaces && showAdminPanel"
+            v-if="isSuperAdmin"
             @click="navigateToAdminPanel"
             lines="two"
           >
@@ -127,7 +127,6 @@ import NamespaceListItem from "./NamespaceListItem.vue";
 import useNamespaceManager from "./composables/useNamespaceManager";
 import useAuthStore from "@/store/modules/auth";
 import CopyWarning from "@/components/User/CopyWarning.vue";
-import { envVariables } from "@/envVariables";
 
 defineOptions({
   inheritAttrs: false,
@@ -138,7 +137,6 @@ const authStore = useAuthStore();
 const {
   currentNamespace,
   namespaceList,
-  hasNamespaces,
   switchNamespace,
   loadCurrentNamespace,
 } = useNamespaceManager();
@@ -146,7 +144,7 @@ const {
 const showAddDialog = ref(false);
 const userId = computed(() => authStore.id);
 
-const showAdminPanel = computed(() => envVariables.isEnterprise);
+const isSuperAdmin = computed(() => authStore.isSuperAdmin);
 
 const otherNamespaces = computed(() => namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id));
 
@@ -155,7 +153,7 @@ const handleNamespaceSwitch = async (tenantId: string) => {
 };
 
 const navigateToAdminPanel = () => {
-  router.push("/admin");
+  window.location.href = "/admin/";
 };
 
 onMounted(async () => {

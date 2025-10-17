@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"net"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -44,7 +45,7 @@ type AuthService interface {
 	// is not a member of any namespace or if the user's membership status is pending.
 	//
 	// It returns a timestamp when the block ends if the user is locked out, a token to be used with the OTP code if the MFA
-	// is enabled and an error, if any
+	// as enabled and an error, if any
 	AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 	// CreateUserToken is similar to [AuthService.AuthUser] but bypasses credential verification and never blocks.
 	//
@@ -209,6 +210,36 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {
+	// Check environment variables FIRST for super admin authentication
+	adminUsername := os.Getenv("ADMIN_API_USERNAME")
+	adminPassword := os.Getenv("ADMIN_API_PASSWORD")
+
+	if adminUsername != "" && adminPassword != "" {
+		if string(req.Identifier) == adminUsername && req.Password == adminPassword {
+			// Generate JWT with super_admin=true
+			token, err := jwttoken.EncodeUserClaims(authorizer.UserClaims{
+				ID:         "",
+				Origin:     "",
+				TenantID:   "",
+				Username:   adminUsername,
+				MFA:        false,
+				SuperAdmin: true,
+				AuthMethod: "env_vars",
+			}, s.privKey)
+			if err != nil {
+				return nil, 0, "", NewErrTokenSigned(err)
+			}
+
+			return &models.UserAuthResponse{
+				Token:      token,
+				User:       adminUsername,
+				Name:       "Administrator",
+				SuperAdmin: true,
+			}, 0, "", nil
+		}
+	}
+
+	// Continue with normal user flow
 	if s, err := s.store.SystemGet(ctx); err != nil || !s.Authentication.Local.Enabled {
 		return nil, 0, "", NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())
 	}
@@ -295,11 +326,13 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	claims := authorizer.UserClaims{
-		ID:       user.ID,
-		Origin:   user.Origin.String(),
-		TenantID: tenantID,
-		Username: user.Username,
-		MFA:      user.MFA.Enabled,
+		ID:         user.ID,
+		Origin:     user.Origin.String(),
+		TenantID:   tenantID,
+		Username:   user.Username,
+		MFA:        user.MFA.Enabled,
+		SuperAdmin: user.SuperAdmin,
+		AuthMethod: "",
 	}
 
 	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)
@@ -339,6 +372,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		Role:          role,
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
+		SuperAdmin:    user.SuperAdmin,
 	}
 
 	return res, 0, "", nil
@@ -394,11 +428,13 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 	}
 
 	claims := authorizer.UserClaims{
-		ID:       user.ID,
-		Origin:   user.Origin.String(),
-		TenantID: tenantID,
-		Username: user.Username,
-		MFA:      user.MFA.Enabled,
+		ID:         user.ID,
+		Origin:     user.Origin.String(),
+		TenantID:   tenantID,
+		Username:   user.Username,
+		MFA:        user.MFA.Enabled,
+		SuperAdmin: user.SuperAdmin,
+		AuthMethod: "",
 	}
 
 	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)
@@ -423,6 +459,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		Role:          role,
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
+		SuperAdmin:    user.SuperAdmin,
 	}, nil
 }
 

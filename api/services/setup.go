@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
@@ -50,6 +51,17 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		return NewErrUserPasswordInvalid(err)
 	}
 
+	// Verificar se é o primeiro usuário (apenas em Community/Enterprise)
+	var superAdmin bool
+	if !envs.IsCloud() {
+		firstUser, err := s.isFirstUser(ctx)
+		if err != nil {
+			return err
+		}
+		superAdmin = firstUser
+	}
+	// Na Cloud, superAdmin permanece false (valor padrão)
+
 	user := &models.User{
 		Origin:   models.UserOriginLocal,
 		UserData: data,
@@ -61,6 +73,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
+		SuperAdmin: superAdmin,
 	}
 
 	insertedID, err := s.store.UserCreate(ctx, user)

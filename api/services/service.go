@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/rsa"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -77,4 +78,17 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 	}
 
 	return service
+}
+
+// isFirstUser verifica se o usuário sendo criado é o primeiro do sistema.
+// Retorna true se não houver nenhum usuário cadastrado.
+//
+// NOTA: Esta função deve ser utilizada APENAS em Community/Enterprise.
+// Na edição Cloud, a lógica de "primeiro usuário = super admin" NÃO se aplica.
+func (s *service) isFirstUser(ctx context.Context) (bool, error) {
+	_, count, err := s.store.UserList(ctx)
+	if err != nil {
+		return false, err
+	}
+	return count == 0, nil
 }

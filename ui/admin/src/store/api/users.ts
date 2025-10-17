@@ -32,3 +32,12 @@ export const updateUser = async (id: string, userData: IAdminUserFormData) => ad
 export const resetUserPassword = async (id: string) => adminApi.adminResetUserPassword(id);
 
 export const deleteUser = (id: string) => adminApi.deleteUser(id);
+
+export const toggleSuperAdmin = async (
+  userId: string,
+  isSuperAdmin: boolean,
+) => adminApi.getAxios().post(`/admin/api/users/${userId}/super-admin`, {
+  is_super_admin: isSuperAdmin,
+});
+
+export const listSuperAdmins = async () => adminApi.getAxios().get("/admin/api/super-admins");

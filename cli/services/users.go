@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
@@ -52,6 +53,17 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		return nil, ErrUserPasswordInvalid
 	}
 
+	// Verificar se é o primeiro usuário (apenas em Community/Enterprise)
+	var superAdmin bool
+	if !envs.IsCloud() {
+		firstUser, err := s.isFirstUser(ctx)
+		if err != nil {
+			return nil, ErrCreateNewUser
+		}
+		superAdmin = firstUser
+	}
+	// Na Cloud, superAdmin permanece false (valor padrão)
+
 	user := &models.User{
 		Origin:        models.UserOriginLocal,
 		UserData:      userData,
@@ -62,6 +74,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
+		SuperAdmin: superAdmin,
 	}
 
 	if _, err := s.store.UserCreate(ctx, user); err != nil {

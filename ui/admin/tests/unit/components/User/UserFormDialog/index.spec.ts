@@ -18,6 +18,7 @@ const user: IAdminUser = {
   max_namespaces: 10,
   created_at: "2023-10-01T12:00:00Z",
   last_login: "2023-10-01T12:00:00Z",
+  super_admin: false,
   preferences: {
     auth_methods: ["saml", "local"],
   },

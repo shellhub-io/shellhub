@@ -19,7 +19,18 @@
             {{ item.email }}
           </td>
           <td :username-test="item.username">
-            {{ item.username }}
+            <div class="d-flex align-center ga-2">
+              {{ item.username }}
+              <v-chip
+                v-if="item.super_admin"
+                size="x-small"
+                color="purple"
+                variant="flat"
+                data-test="super-admin-badge"
+              >
+                SUPER ADMIN
+              </v-chip>
+            </div>
           </td>
           <td :namespaces-test="item.namespaces">
             {{ item.namespaces }}

@@ -79,6 +79,10 @@ type User struct {
 	MFA         UserMFA         `json:"mfa" bson:"mfa"`
 	Preferences UserPreferences `json:"preferences" bson:"preferences"`
 	Password    UserPassword    `bson:",inline"`
+	// SuperAdmin indicates whether the user has super administrator privileges.
+	// Super admins can access the admin panel (/admin/) and manage all system resources.
+	// The first user created in Community/Enterprise editions automatically receives this privilege.
+	SuperAdmin bool `json:"super_admin" bson:"super_admin"`
 }
 
 type UserData struct {
@@ -164,6 +168,7 @@ type UserAuthResponse struct {
 	Role          string           `json:"role"`
 	MFA           bool             `json:"mfa"`
 	MaxNamespaces int              `json:"max_namespaces"`
+	SuperAdmin    bool             `json:"super_admin"`
 }
 
 // NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;
@@ -191,6 +196,7 @@ type UserChanges struct {
 	MaxNamespaces      *int             `bson:"max_namespaces,omitempty"`
 	EmailMarketing     *bool            `bson:"email_marketing,omitempty"`
 	AuthMethods        []UserAuthMethod `bson:"preferences.auth_methods,omitempty"`
+	SuperAdmin         *bool            `bson:"super_admin,omitempty"`
 }
 
 // UserConflicts holds user attributes that must be unique for each itam and can be utilized in queries

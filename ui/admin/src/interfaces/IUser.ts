@@ -13,6 +13,7 @@ export interface IAdminUser {
   email: string;
   username: string;
   password: string;
+  super_admin: boolean;
   preferences: {
     auth_methods: UserAuthMethods;
   }

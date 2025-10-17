@@ -11,6 +11,10 @@ type UserClaims struct {
 	Username string `json:"name"`
 	// MFA indicates whether multi-factor authentication is enabled for the user.
 	MFA bool `json:"mfa"`
+	// SuperAdmin indicates whether the user has super administrator privileges.
+	SuperAdmin bool `json:"super_admin"`
+	// AuthMethod indicates the authentication method used (e.g., "local", "env_vars").
+	AuthMethod string `json:"auth_method,omitempty"`
 }
 
 // DeviceClaims represents the attributes needed to authenticate a device.

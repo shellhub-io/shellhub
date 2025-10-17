@@ -2,6 +2,7 @@ package routes
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -89,6 +90,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		c.Response().Header().Set("X-Username", claims.Username)
 		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
 		c.Response().Header().Set("X-Role", claims.Role.String())
+		c.Response().Header().Set("X-Super-Admin", fmt.Sprintf("%t", claims.SuperAdmin))
 	default:
 		return c.NoContent(http.StatusUnauthorized)
 	}

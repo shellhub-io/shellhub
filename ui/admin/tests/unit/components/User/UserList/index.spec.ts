@@ -19,6 +19,7 @@ const mockUsers = [
     max_namespaces: 5,
     password: "dummy",
     username: "antony",
+    super_admin: false,
     preferences: {
       auth_methods: ["saml" as const],
     },

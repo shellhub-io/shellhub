@@ -133,6 +133,7 @@ var (
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
 	ErruthDeviceNoIdentity             = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
+	ErrSuperAdminLastOne               = errors.New("cannot remove the last super administrator", ErrLayer, ErrCodeInvalid)
 )
 
 func NewErrRoleInvalid() error {

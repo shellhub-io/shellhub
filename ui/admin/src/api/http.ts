@@ -6,7 +6,7 @@ import { BaseAPI } from "./client/base";
 
 const configuration = new Configuration();
 configuration.basePath = `${window.location.protocol}//${window.location.host}`;
-configuration.accessToken = localStorage.getItem("cloud_token") || "";
+configuration.accessToken = localStorage.getItem("token") || "";
 
 // eslint-disable-next-line import/no-mutable-exports
 let adminApi = new axiosTs.AdminApi(configuration);
@@ -16,7 +16,7 @@ let cloudApi = new axiosTs.CloudApi(configuration);
 export const createNewClient = () => {
   const newConfiguration = new Configuration();
   newConfiguration.basePath = `${window.location.protocol}//${window.location.host}`;
-  newConfiguration.accessToken = localStorage.getItem("cloud_token") || "";
+  newConfiguration.accessToken = localStorage.getItem("token") || "";
   adminApi = new axiosTs.AdminApi(newConfiguration);
   cloudApi = new axiosTs.CloudApi(newConfiguration);
   return { adminApi, cloudApi };

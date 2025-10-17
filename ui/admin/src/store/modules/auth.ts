@@ -4,8 +4,8 @@ import * as authApi from "../api/auth";
 
 const useAuthStore = defineStore("auth", () => {
   const status = ref<string>("");
-  const token = ref<string>(localStorage.getItem("cloud_token") || "");
-  const currentUser = ref<string>(localStorage.getItem("cloud_user") || "");
+  const token = ref<string>(localStorage.getItem("token") || "");
+  const currentUser = ref<string>(localStorage.getItem("user") || "");
   const isLoggedIn = computed(() => !!token.value);
 
   const login = async (userData: { username: string; password: string }) => {
@@ -17,8 +17,8 @@ const useAuthStore = defineStore("auth", () => {
       token.value = data.token ?? "";
       currentUser.value = data.user ?? "";
 
-      localStorage.setItem("cloud_token", data.token || "");
-      localStorage.setItem("cloud_user", data.user || "");
+      localStorage.setItem("token", data.token || "");
+      localStorage.setItem("user", data.user || "");
     } catch (error) {
       status.value = "error";
       throw error;
@@ -40,8 +40,8 @@ const useAuthStore = defineStore("auth", () => {
     token.value = "";
     currentUser.value = "";
 
-    localStorage.removeItem("cloud_token");
-    localStorage.removeItem("cloud_user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
 
   return {
