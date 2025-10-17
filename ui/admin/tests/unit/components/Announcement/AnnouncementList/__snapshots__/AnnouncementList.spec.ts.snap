@@ -27,12 +27,12 @@ exports[`Announcement List > Renders the component 1`] = `
             <td>December 15, 2022</td>
             <td data-test="announcement-actions"><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-2"></a>
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-3" data-test="edit-button"></button>
+              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-3" data-test="edit-button"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-9" data-test="delete-button"></button>
+              <!--teleport end--><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-9" data-test="delete-button"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
@@ -51,12 +51,12 @@ exports[`Announcement List > Renders the component 1`] = `
             <td>December 15, 2022</td>
             <td data-test="announcement-actions"><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-12"></a>
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-13" data-test="edit-button"></button>
+              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-13" data-test="edit-button"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-19" data-test="delete-button"></button>
+              <!--teleport end--><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-19" data-test="delete-button"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->

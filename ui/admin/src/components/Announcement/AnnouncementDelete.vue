@@ -3,13 +3,11 @@
     <template v-slot:activator="{ props }">
       <v-icon
         tag="button"
-        dark
         v-bind="props"
         data-test="delete-button"
         @click="showDialog = true"
-      >
-        mdi-delete
-      </v-icon>
+        icon="mdi-delete"
+      />
     </template>
     <span>Remove</span>
   </v-tooltip>
