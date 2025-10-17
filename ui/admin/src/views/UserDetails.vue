@@ -1,64 +1,44 @@
 <template>
   <div class="d-flex pa-0 align-center">
     <h1>User Details</h1>
+    <v-spacer />
+    <v-tooltip bottom anchor="bottom">
+      <template v-slot:activator="{ props }">
+        <v-icon tag="a" v-bind="props" @click="loginWithToken" icon="mdi-login" />
+      </template>
+      <span>Login</span>
+    </v-tooltip>
 
-    <v-col class="pr-4 text-right">
-      <v-tooltip bottom anchor="bottom">
-        <template v-slot:activator="{ props }">
-          <v-icon tag="a" dark v-bind="props" @click="loginWithToken"> mdi-login </v-icon>
-        </template>
-        <span>Login</span>
-      </v-tooltip>
-
-      <UserDelete :id="userId" redirect />
-    </v-col>
+    <UserDelete :id="userId" redirect />
   </div>
 
-  <v-card v-if="currentUser" class="mt-2 pa-4">
-    <v-card-text>
-      <div class="text-overline mt-3" v-if="currentUser.status">
-        <h3>Status:</h3>
+  <v-card class="mt-2 pa-4 bg-background border">
+    <v-card-text v-if="currentUser">
+      <div v-if="currentUser.status">
+        <h3 class="text-overline">Status:</h3>
         <UserStatusChip :status="currentUser.status" />
       </div>
       <div>
-        <div class="text-overline mt-3">
-          <h3>uid:</h3>
-        </div>
-        <div :data-test="currentUser.id">
-          <p>{{ currentUser.id }}</p>
-        </div>
+        <h3 class="text-overline mt-3">UID:</h3>
+        <p :data-test="currentUser.id">{{ currentUser.id }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Email:</h3>
-        </div>
-        <div :data-test="currentUser.email">
-          <p>{{ currentUser.email }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Email:</h3>
+        <p :data-test="currentUser.email">{{ currentUser.email }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Username:</h3>
-        </div>
-        <div :data-test="currentUser.username">
-          <p>{{ currentUser.username }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Username:</h3>
+        <p :data-test="currentUser.username">{{ currentUser.username }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Namespaces:</h3>
-        </div>
-        <div :data-test="currentUser.namespaces">
-          <p>{{ currentUser.namespaces }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Namespaces:</h3>
+        <p :data-test="currentUser.namespaces">{{ currentUser.namespaces }}</p>
       </div>
     </v-card-text>
-  </v-card>
-  <v-card class="mt-2 pa-4" v-else>
-    <p class="text-center">Something is wrong, try again !</p>
+    <p v-else class="text-center">Something is wrong, try again !</p>
   </v-card>
 </template>
 

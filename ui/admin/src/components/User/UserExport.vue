@@ -1,5 +1,12 @@
 <template>
-  <v-btn class="mr-6" @click="showDialog = true" v-bind="$attrs">Export CSV</v-btn>
+  <v-btn
+    class="mr-6"
+    @click="showDialog = true"
+    v-bind="$attrs"
+    color="primary"
+    variant="outlined"
+    text="Export CSV"
+  />
 
   <BaseDialog v-model="showDialog" @close="closeDialog" transition="dialog-bottom-transition">
     <v-card>

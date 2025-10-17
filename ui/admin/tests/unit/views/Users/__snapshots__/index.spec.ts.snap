@@ -1,58 +1,58 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Users > Renders the component 1`] = `
-"<div class="d-flex flex-column justify-space-between align-center flex-sm-row">
-  <h1 class="mr-2">Users</h1>
-  <div class="w-50">
-    <div class="v-input v-input--horizontal v-input--density-comfortable v-theme--light v-locale--is-ltr v-text-field v-input--plain-underlined">
-      <!---->
-      <div class="v-input__control">
-        <div class="v-field v-field--appended v-field--single-line v-field--variant-underlined v-theme--light v-locale--is-ltr">
-          <div class="v-field__overlay"></div>
-          <div class="v-field__loader">
-            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-              <!---->
-              <div class="v-progress-linear__background bg-primary"></div>
-              <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
-              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                <div class="v-progress-linear__indeterminate">
-                  <div class="v-progress-linear__indeterminate long bg-primary"></div>
-                  <div class="v-progress-linear__indeterminate short bg-primary"></div>
-                </div>
-              </transition-stub>
-              <!---->
-            </div>
-          </div>
-          <!---->
-          <div class="v-field__field" data-no-activator="">
-            <!----><label class="v-label v-field-label" for="input-v-1">
-              <!---->Search by username
-            </label>
-            <!----><input size="1" type="text" id="input-v-1" class="v-field__input" value="">
+"<div class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2">
+  <h1>Users</h1>
+  <div class="v-spacer"></div>
+  <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field w-50">
+    <!---->
+    <div class="v-input__control">
+      <div class="v-field v-field--appended v-field--center-affix v-field--single-line v-field--variant-filled v-theme--light v-locale--is-ltr">
+        <div class="v-field__overlay"></div>
+        <div class="v-field__loader">
+          <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
             <!---->
-          </div>
-          <!---->
-          <div class="v-field__append-inner">
-            <!----><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Search by username appended action"></i>
-          </div>
-          <div class="v-field__outline">
-            <!---->
+            <div class="v-progress-linear__background bg-primary"></div>
+            <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
+            <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+              <div class="v-progress-linear__indeterminate">
+                <div class="v-progress-linear__indeterminate long bg-primary"></div>
+                <div class="v-progress-linear__indeterminate short bg-primary"></div>
+              </div>
+            </transition-stub>
             <!---->
           </div>
         </div>
+        <!---->
+        <div class="v-field__field" data-no-activator="">
+          <!----><label class="v-label v-field-label" for="input-v-1">
+            <!---->Search by username
+          </label>
+          <!----><input size="1" type="text" id="input-v-1" class="v-field__input" value="">
+          <!---->
+        </div>
+        <!---->
+        <div class="v-field__append-inner">
+          <!----><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Search by username appended action"></i>
+        </div>
+        <div class="v-field__outline">
+          <!---->
+          <!---->
+        </div>
       </div>
-      <!---->
-      <!---->
     </div>
+    <!---->
+    <!---->
   </div>
-  <div class="d-flex mt-4"><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-6 ml-2" data-test="users-export-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+  <div class="v-spacer"></div>
+  <div class="d-flex mt-2 mt-md-0"><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-outlined mr-6 ml-2" data-test="users-export-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator="">Export CSV</span>
       <!---->
       <!---->
     </button>
     <!---->
-    <!----><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-2" outlined="" aria-label="Dialog Add user" data-test="user-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-      <!----><span class="v-btn__content" data-no-activator=""> Add User </span>
+    <!----><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-2" aria-label="Dialog Add user" data-test="user-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator="">Add User</span>
       <!---->
       <!---->
     </button>
@@ -60,111 +60,88 @@ exports[`Users > Renders the component 1`] = `
     <!---->
   </div>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2">
-  <!---->
-  <div class="v-card__loader">
-    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-      <!---->
-      <div class="v-progress-linear__background"></div>
-      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-        <div class="v-progress-linear__indeterminate">
-          <div class="v-progress-linear__indeterminate long"></div>
-          <div class="v-progress-linear__indeterminate short"></div>
-        </div>
-      </transition-stub>
-      <!---->
+<div data-test="users-list">
+  <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
+    <!---->
+    <div class="v-table__wrapper">
+      <table>
+        <thead class="bg-v-theme-background">
+          <tr>
+            <th class="text-center"><span>Name</span></th>
+            <th class="text-center"><span>Email</span></th>
+            <th class="text-center"><span>Username</span></th>
+            <th class="text-center"><span>Namespaces</span></th>
+            <th class="text-center"><span>Status</span></th>
+            <th class="text-center"><span>Actions</span></th>
+          </tr>
+        </thead>
+        <tbody class="pa-4 text-subtitle-2">
+          <tr>
+            <td colspan="6" class="pa-4 text-subtitle-2 text-center"> No data available </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <!---->
   </div>
-  <!---->
-  <!---->
-  <div>
-    <div data-test="users-list">
-      <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
+  <!--v-if-->
+  <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
+    <div>
+      <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
         <!---->
-        <div class="v-table__wrapper">
-          <table>
-            <thead class="bg-v-theme-background">
-              <tr>
-                <th class="text-center"><span>Name</span></th>
-                <th class="text-center"><span>Email</span></th>
-                <th class="text-center"><span>Username</span></th>
-                <th class="text-center"><span>Namespaces</span></th>
-                <th class="text-center"><span>Status</span></th>
-                <th class="text-center"><span>Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="pa-4 text-subtitle-2">
-              <tr>
-                <td colspan="6" class="pa-4 text-subtitle-2 text-center"> No data available </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <!---->
-      </div>
-      <!--v-if-->
-      <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
-        <div>
-          <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
-            <!---->
-            <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-5">
-                <div class="v-field__overlay"></div>
-                <div class="v-field__loader">
-                  <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-                    <!---->
-                    <div class="v-progress-linear__background"></div>
-                    <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                    <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                      <div class="v-progress-linear__indeterminate">
-                        <div class="v-progress-linear__indeterminate long"></div>
-                        <div class="v-progress-linear__indeterminate short"></div>
-                      </div>
-                    </transition-stub>
-                    <!---->
-                  </div>
-                </div>
+        <div class="v-input__control">
+          <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-5">
+            <div class="v-field__overlay"></div>
+            <div class="v-field__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
                 <!---->
-                <div class="v-field__field" data-no-activator="">
-                  <!---->
-                  <!---->
-                  <!---->
-                  <div class="v-field__input" data-no-activator="">
-                    <!---->
-                    <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-7" aria-expanded="false" aria-controls="menu-v-5" outlined="" value="10">
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
                   </div>
-                  <!---->
-                </div>
+                </transition-stub>
                 <!---->
-                <div class="v-field__append-inner">
-                  <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="false" tabindex="-1" aria-label="Open" title="Open"></i>
-                  <!---->
-                </div>
-                <div class="v-field__outline">
-                  <!---->
-                  <!---->
-                </div>
               </div>
             </div>
             <!---->
+            <div class="v-field__field" data-no-activator="">
+              <!---->
+              <!---->
+              <!---->
+              <div class="v-field__input" data-no-activator="">
+                <!---->
+                <!---->
+                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-7" aria-expanded="false" aria-controls="menu-v-5" outlined="" value="10">
+              </div>
+              <!---->
+            </div>
             <!---->
+            <div class="v-field__append-inner">
+              <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="false" tabindex="-1" aria-label="Open" title="Open"></i>
+              <!---->
+            </div>
+            <div class="v-field__outline">
+              <!---->
+              <!---->
+            </div>
           </div>
         </div>
-        <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-            <!---->
-            <!---->
-          </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-            <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
-            <!---->
-            <!---->
-          </button></div>
+        <!---->
+        <!---->
       </div>
     </div>
+    <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+        <!---->
+        <!---->
+      </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+        <!---->
+        <!---->
+      </button></div>
   </div>
-  <!---->
-  <!----><span class="v-card__underlay"></span>
 </div>"
 `;

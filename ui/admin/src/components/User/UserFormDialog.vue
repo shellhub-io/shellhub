@@ -3,13 +3,12 @@
     v-if="createUser"
     @click="showDialog = true"
     class="mr-2"
-    outlined
+    color="primary"
     tabindex="0"
     aria-label="Dialog Add user"
     data-test="user-add-btn"
-  >
-    Add User
-  </v-btn>
+    text="Add User"
+  />
 
   <v-tooltip v-else bottom anchor="bottom">
     <template v-slot:activator="{ props }">

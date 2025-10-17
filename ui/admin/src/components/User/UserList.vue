@@ -1,78 +1,76 @@
 <template>
-  <div>
-    <DataTable
-      :headers
-      :items="users"
-      v-model:itemsPerPage="itemsPerPage"
-      v-model:page="page"
-      :loading
-      :itemsPerPageOptions="[10, 20, 50, 100]"
-      :totalCount="userCount"
-      data-test="users-list"
-    >
-      <template v-slot:rows>
-        <tr v-for="(item, i) in users" :key="i">
-          <td :name-test="item.name">
-            {{ item.name }}
-          </td>
-          <td :email-test="item.email">
-            {{ item.email }}
-          </td>
-          <td :username-test="item.username">
-            {{ item.username }}
-          </td>
-          <td :namespaces-test="item.namespaces">
-            {{ item.namespaces }}
-          </td>
-          <td>
-            <UserStatusChip :status="item.status" />
-          </td>
+  <DataTable
+    :headers
+    :items="users"
+    v-model:itemsPerPage="itemsPerPage"
+    v-model:page="page"
+    :loading
+    :itemsPerPageOptions="[10, 20, 50, 100]"
+    :totalCount="userCount"
+    data-test="users-list"
+  >
+    <template v-slot:rows>
+      <tr v-for="(item, i) in users" :key="i">
+        <td :name-test="item.name">
+          {{ item.name }}
+        </td>
+        <td :email-test="item.email">
+          {{ item.email }}
+        </td>
+        <td :username-test="item.username">
+          {{ item.username }}
+        </td>
+        <td :namespaces-test="item.namespaces">
+          {{ item.namespaces }}
+        </td>
+        <td>
+          <UserStatusChip :status="item.status" />
+        </td>
 
-          <td>
-            <v-tooltip bottom anchor="bottom">
-              <template v-slot:activator="{ props }">
-                <v-icon
-                  tag="a"
-                  dark
-                  v-bind="props"
-                  @click="redirectToUser(item)"
-                  @keyup.enter="redirectToUser(item)"
-                  tabindex="0"
-                  icon="mdi-information"
-                />
-              </template>
-              <span>Info</span>
-            </v-tooltip>
+        <td>
+          <v-tooltip bottom anchor="bottom">
+            <template v-slot:activator="{ props }">
+              <v-icon
+                tag="a"
+                dark
+                v-bind="props"
+                @click="redirectToUser(item)"
+                @keyup.enter="redirectToUser(item)"
+                tabindex="0"
+                icon="mdi-information"
+              />
+            </template>
+            <span>Info</span>
+          </v-tooltip>
 
-            <UserFormDialog titleCard="Edit user" :user="item" />
+          <UserFormDialog titleCard="Edit user" :user="item" />
 
-            <v-tooltip bottom anchor="bottom">
-              <template v-slot:activator="{ props }">
-                <v-icon
-                  tag="a"
-                  dark
-                  v-bind="props"
-                  @click="loginWithToken(item.id)"
-                  tabindex="0"
-                  @keyup.enter="loginWithToken(item.id)"
-                  icon="mdi-login"
-                />
-              </template>
-              <span>Login</span>
-            </v-tooltip>
+          <v-tooltip bottom anchor="bottom">
+            <template v-slot:activator="{ props }">
+              <v-icon
+                tag="a"
+                dark
+                v-bind="props"
+                @click="loginWithToken(item.id)"
+                tabindex="0"
+                @keyup.enter="loginWithToken(item.id)"
+                icon="mdi-login"
+              />
+            </template>
+            <span>Login</span>
+          </v-tooltip>
 
-            <UserResetPassword
-              v-if="userPrefersSAMLAuthentication(item.preferences.auth_methods)"
-              :userId="item.id"
-              @update="fetchUsers"
-            />
+          <UserResetPassword
+            v-if="userPrefersSAMLAuthentication(item.preferences.auth_methods)"
+            :userId="item.id"
+            @update="fetchUsers"
+          />
 
-            <UserDelete :id="item.id" />
-          </td>
-        </tr>
-      </template>
-    </DataTable>
-  </div>
+          <UserDelete :id="item.id" />
+        </td>
+      </tr>
+    </template>
+  </DataTable>
 </template>
 
 <script setup lang="ts">
