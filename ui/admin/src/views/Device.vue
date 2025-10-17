@@ -1,25 +1,21 @@
 <template>
-  <div class="d-flex flex-column justify-space-between align-center flex-sm-row">
+  <div class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2">
     <h1>Devices</h1>
     <v-spacer />
-    <div class="w-50">
-      <v-text-field
-        label="Search by hostname"
-        variant="underlined"
-        color="primary"
-        single-line
-        hide-details
-        v-model.trim="filter"
-        v-on:keyup="searchDevices"
-        append-inner-icon="mdi-magnify"
-        density="comfortable"
-      />
-    </div>
+    <v-text-field
+      class="w-50"
+      label="Search by hostname"
+      color="primary"
+      single-line
+      hide-details
+      v-model.trim="filter"
+      v-on:keyup="searchDevices"
+      append-inner-icon="mdi-magnify"
+      density="compact"
+    />
     <v-spacer />
   </div>
-  <v-card class="mt-2">
-    <DeviceList />
-  </v-card>
+  <DeviceList />
 </template>
 
 <script setup lang="ts">
