@@ -159,16 +159,18 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			return nil, err
 		}
 	} else {
-		changes := &models.DeviceChanges{LastSeen: clock.Now(), DisconnectedAt: nil, RemovedAt: device.RemovedAt}
+		device.LastSeen = clock.Now()
+		device.DisconnectedAt = nil
+
 		if device.RemovedAt != nil {
-			changes.Status = models.DeviceStatusPending
+			device.Status = models.DeviceStatusPending
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
 				return nil, err
 			}
 		}
 
 		if req.Info != nil {
-			changes.Info = &models.DeviceInfo{
+			device.Info = &models.DeviceInfo{
 				ID:         req.Info.ID,
 				PrettyName: req.Info.PrettyName,
 				Version:    req.Info.Version,
@@ -177,7 +179,7 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			}
 		}
 
-		if err := s.store.DeviceUpdate(ctx, req.TenantID, uid, changes); err != nil {
+		if err := s.store.DeviceUpdate(ctx, device); err != nil {
 			log.WithError(err).Error("failed to updated device to online")
 
 			return nil, err
@@ -308,15 +310,16 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	// Updates last_login and the hash algorithm to bcrypt if still using SHA256
-	changes := &models.UserChanges{LastLogin: clock.Now(), PreferredNamespace: &tenantID}
+	user.LastLogin = clock.Now()
+	user.Preferences.PreferredNamespace = tenantID
 	if !strings.HasPrefix(user.Password.Hash, "$") {
 		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
-			changes.Password = neo.Hash
+			user.Password = neo
 		}
 	}
 
 	// TODO: evaluate make this update in a go routine.
-	if err := s.store.UserUpdate(ctx, user.ID, changes); err != nil {
+	if err := s.store.UserUpdate(ctx, user); err != nil {
 		return nil, 0, "", NewErrUserUpdate(user, err)
 	}
 
@@ -389,7 +392,11 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		role = member.Role.String()
 
 		if user.Preferences.PreferredNamespace != namespace.TenantID {
-			_ = s.store.UserUpdate(ctx, user.ID, &models.UserChanges{PreferredNamespace: &tenantID})
+			user.Preferences.PreferredNamespace = tenantID
+			// TODO: evaluate make this update in a go routine.
+			if err := s.store.UserUpdate(ctx, user); err != nil {
+				return nil, NewErrUserUpdate(user, err)
+			}
 		}
 	}
 

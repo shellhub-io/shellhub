@@ -328,14 +328,12 @@ func TestUserDelete(t *testing.T) {
 					AssociatedNamespaces: namespaceMember,
 				}, nil)
 
-				for _, v := range namespaceOwned {
-					mock.On("NamespaceDelete", ctx, v.TenantID).Return(nil).Once()
-				}
+				mock.On("NamespaceDeleteMany", ctx, []string{"10000000-0000-0000-0000-000000000000", "20000000-0000-0000-0000-000000000000"}).Return(int64(2), nil).Once()
 				for _, v := range namespaceMember {
 					mock.On("NamespaceRemoveMember", ctx, v.TenantID, "507f191e810c19729de860ea").Return(nil, nil).Once()
 				}
 
-				mock.On("UserDelete", ctx, "507f191e810c19729de860ea").Return(nil).Once()
+				mock.On("UserDelete", ctx, user).Return(nil).Once()
 			},
 			expected: nil,
 		},
@@ -391,8 +389,11 @@ func TestUserResetPassword(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
+				expectedUser := *user
+				expectedUser.Password = models.UserPassword{Plain: "secret", Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}
+
 				mock.
-					On("UserUpdate", ctx, "507f191e810c19729de860ea", &models.UserChanges{Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
+					On("UserUpdate", ctx, &expectedUser).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -412,8 +413,11 @@ func TestUserResetPassword(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
+				expectedUser := *user
+				expectedUser.Password = models.UserPassword{Plain: "secret", Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}
+
 				mock.
-					On("UserUpdate", ctx, "507f191e810c19729de860ea", &models.UserChanges{Password: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}).
+					On("UserUpdate", ctx, &expectedUser).
 					Return(nil).
 					Once()
 			},

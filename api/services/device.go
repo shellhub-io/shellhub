@@ -153,8 +153,11 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 	// namespace and void the device switching.
 	if envs.IsCloud() && !ns.Billing.IsActive() && device.Status == models.DeviceStatusAccepted {
 		now := clock.Now()
-		changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: &now, Status: models.DeviceStatusRemoved}
-		if err := s.store.DeviceUpdate(ctx, tenant, string(uid), changes); err != nil {
+
+		deviceCopy := *device
+		deviceCopy.Status = models.DeviceStatusRemoved
+		deviceCopy.RemovedAt = &now
+		if err := s.store.DeviceUpdate(ctx, &deviceCopy); err != nil {
 			return err
 		}
 
@@ -162,7 +165,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 			return err
 		}
 	} else {
-		if err := s.store.DeviceDelete(ctx, uid); err != nil {
+		if err := s.store.DeviceDelete(ctx, device); err != nil {
 			return err
 		}
 	}
@@ -184,8 +187,8 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 		return nil
 	}
 
-	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: device.RemovedAt, Name: strings.ToLower(name)}
-	if err := s.store.DeviceUpdate(ctx, device.TenantID, string(uid), changes); err != nil { // nolint:revive
+	device.Name = strings.ToLower(name)
+	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
 		return err
 	}
 
@@ -222,8 +225,8 @@ func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
 	}
 
 	now := clock.Now()
-	changes := &models.DeviceChanges{RemovedAt: device.RemovedAt, DisconnectedAt: &now}
-	if err := s.store.DeviceUpdate(ctx, "", string(uid), changes); err != nil {
+	device.DisconnectedAt = &now
+	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
 		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrDeviceNotFound(uid, err)
 		}
@@ -342,8 +345,9 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 			}
 		}
 
-		changes := &models.DeviceChanges{RemovedAt: device.RemovedAt, DisconnectedAt: device.DisconnectedAt, Status: newStatus}
-		if err := s.store.DeviceUpdate(ctx, namespace.TenantID, device.UID, changes); err != nil {
+		device.Status = newStatus
+		device.StatusUpdatedAt = clock.Now()
+		if err := s.store.DeviceUpdate(ctx, device); err != nil {
 			return err
 		}
 
@@ -369,38 +373,58 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return NewErrDeviceDuplicated(req.Name, err)
 	}
 
-	// We pass DisconnectedAt because we don't want to update it to nil
-	changes := &models.DeviceChanges{DisconnectedAt: device.DisconnectedAt, RemovedAt: device.RemovedAt}
-	if req.Name != "" && strings.ToLower(req.Name) != device.Name {
-		changes.Name = strings.ToLower(req.Name)
+	if req.Name != "" && !strings.EqualFold(req.Name, device.Name) {
+		device.Name = strings.ToLower(req.Name)
 	}
 
-	return s.store.DeviceUpdate(ctx, req.TenantID, req.UID, changes)
+	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
+		return err
+	}
+
+	return nil
 }
 
 // mergeDevice merges an old device into a new device. It transfers all sessions from the old device to the new one and
 // renames the new device to preserve the old device's identity. The old device is then deleted and the namespace's device count is decremented.
 func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
+	logFields := log.Fields{"tenant_id": tenantID, "old_device_uid": oldDevice.UID, "new_device_uid": newDevice.UID}
+
+	log.WithFields(logFields).Debug("transferring tunnels from old device to new device")
 	if err := s.store.TunnelUpdateDeviceUID(ctx, tenantID, oldDevice.UID, newDevice.UID); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to transfer tunnels")
+
 		return err
 	}
 
+	log.WithFields(logFields).Debug("transferring sessions from old device to new device")
 	if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(oldDevice.UID), models.UID(newDevice.UID)); err != nil && !errors.Is(err, store.ErrNoDocuments) {
+		log.WithError(err).WithFields(logFields).Error("failed to transfer sessions")
+
 		return err
 	}
 
-	changes := &models.DeviceChanges{DisconnectedAt: newDevice.DisconnectedAt, RemovedAt: newDevice.RemovedAt, Name: oldDevice.Name}
-	if err := s.store.DeviceUpdate(ctx, tenantID, newDevice.UID, changes); err != nil {
+	log.WithFields(logFields).Debug("updating new device name to preserve old device identity")
+	newDevice.Name = oldDevice.Name
+	if err := s.store.DeviceUpdate(ctx, newDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to update new device name")
+
 		return err
 	}
 
-	if err := s.store.DeviceDelete(ctx, models.UID(oldDevice.UID)); err != nil {
+	log.WithFields(logFields).Debug("mergeDevice: deleting old device")
+	if err := s.store.DeviceDelete(ctx, oldDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to delete old device")
+
 		return err
 	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, oldDevice.Status, -1); err != nil { //nolint:revive
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, tenantID, oldDevice.Status, -1); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to decrement namespace device count")
+
 		return err
 	}
+
+	log.WithFields(logFields).Info("device merge operation completed successfully")
 
 	return nil
 }

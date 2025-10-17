@@ -165,6 +165,11 @@ func (s *service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKe
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {
+	publicKey, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	if err != nil {
+		return nil, NewErrPublicKeyNotFound(fingerprint, err)
+	}
+
 	// Checks if public key filter type is Tags. If it is, checks if there are, at least, one tag on the public key
 	// filter and if the all tags exist on database.
 	tagIDs := []string{}
@@ -191,18 +196,18 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		}
 	}
 
-	model := models.PublicKeyUpdate{
-		PublicKeyFields: models.PublicKeyFields{
-			Name:     key.Name,
-			Username: key.Username,
-			Filter: models.PublicKeyFilter{
-				Hostname: key.Filter.Hostname,
-				Taggable: models.Taggable{TagIDs: tagIDs, Tags: nil},
-			},
-		},
+	// Update the public key fields
+	publicKey.Name = key.Name
+	publicKey.Username = key.Username
+	publicKey.Filter.Hostname = key.Filter.Hostname
+	publicKey.Filter.TagIDs = tagIDs
+	publicKey.Filter.Tags = nil
+
+	if err := s.store.PublicKeyUpdate(ctx, publicKey); err != nil {
+		return nil, err
 	}
 
-	return s.store.PublicKeyUpdate(ctx, fingerprint, tenant, &model)
+	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
@@ -210,11 +215,12 @@ func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant strin
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	if _, err := s.store.PublicKeyGet(ctx, fingerprint, tenant); err != nil {
+	publicKey, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	if err != nil {
 		return NewErrPublicKeyNotFound(fingerprint, err)
 	}
 
-	return s.store.PublicKeyDelete(ctx, fingerprint, tenant)
+	return s.store.PublicKeyDelete(ctx, publicKey)
 }
 
 func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {
