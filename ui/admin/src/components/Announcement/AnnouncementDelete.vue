@@ -13,25 +13,23 @@
   </v-tooltip>
 
   <BaseDialog v-model="showDialog">
-    <v-card>
-      <v-card-title class="lighten-2 text-center mt-2">
-        Are you sure?
-      </v-card-title>
-      <v-divider />
+    <v-card-title class="lighten-2 text-center mt-2">
+      Are you sure?
+    </v-card-title>
+    <v-divider />
 
-      <v-card-text class="mt-4 mb-3 pb-1">
-        You are about to remove this announcement.
-        <p>This action cannot be undone.</p>
-      </v-card-text>
+    <v-card-text class="mt-4 mb-3 pb-1">
+      You are about to remove this announcement.
+      <p>This action cannot be undone.</p>
+    </v-card-text>
 
-      <v-card-actions>
-        <v-spacer />
+    <v-card-actions>
+      <v-spacer />
 
-        <v-btn text @click="showDialog = false"> Cancel </v-btn>
+      <v-btn text @click="showDialog = false"> Cancel </v-btn>
 
-        <v-btn color="red darken-1" text @click="remove()"> Remove </v-btn>
-      </v-card-actions>
-    </v-card>
+      <v-btn color="red darken-1" text @click="remove()"> Remove </v-btn>
+    </v-card-actions>
   </BaseDialog>
 </template>
 
