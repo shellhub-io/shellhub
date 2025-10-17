@@ -1,28 +1,26 @@
 <template>
-  <div class="d-flex flex-column justify-space-between align-center flex-sm-row">
-    <h1 class="mr-2">Users</h1>
-    <div class="w-50">
-      <v-text-field
-        label="Search by username"
-        variant="underlined"
-        color="primary"
-        single-line
-        hide-details
-        v-model.trim="filter"
-        v-on:keyup.enter="searchUsers"
-        append-inner-icon="mdi-magnify"
-        @click:append-inner="searchUsers"
-        density="comfortable"
-      />
-    </div>
-    <div class="d-flex mt-4">
+  <div class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2">
+    <h1>Users</h1>
+    <v-spacer />
+    <v-text-field
+      label="Search by username"
+      color="primary"
+      class="w-50"
+      single-line
+      hide-details
+      v-model.trim="filter"
+      v-on:keyup.enter="searchUsers"
+      append-inner-icon="mdi-magnify"
+      @click:append-inner="searchUsers"
+      density="compact"
+    />
+    <v-spacer />
+    <div class="d-flex mt-2 mt-md-0">
       <UserExport class="ml-2" data-test="users-export-btn" />
       <UserFormDialog title-card="Create new user" create-user />
     </div>
   </div>
-  <v-card class="mt-2">
-    <UserList />
-  </v-card>
+  <UserList />
 </template>
 
 <script setup lang="ts">
