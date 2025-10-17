@@ -9,12 +9,6 @@ import { adminApi } from "@admin/api/http";
 import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-Object.assign(navigator, {
-  clipboard: {
-    writeText: vi.fn(),
-  },
-});
-
 window.matchMedia = vi.fn().mockImplementation((query) => ({
   matches: false,
   media: query,
@@ -107,11 +101,6 @@ describe("Authentication", () => {
 
   it("renders SP certificate button when certificate exists", () => {
     expect(wrapper.find("[data-test='download-certificate-btn']").exists()).toBe(true);
-  });
-
-  it("copies assertion URL to clipboard", async () => {
-    await wrapper.find("[data-test='copy-assertion-btn']").trigger("click");
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(authData.saml.assertion_url);
   });
 
   it("opens authentication URL in new tab when 'Redirect' is clicked", async () => {

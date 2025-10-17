@@ -12,7 +12,7 @@
         <v-switch
           v-model="isLocalAuthEnabled"
           @click.prevent="changeLocalAuthStatus"
-          :color="isLocalAuthEnabled ? 'success' : 'error'"
+          :color="isLocalAuthEnabled ? 'primary' : 'gray'"
           data-test="local-auth-switch"
           hide-details
         />
@@ -22,7 +22,7 @@
         <v-switch
           v-model="isSamlEnabled"
           @click.prevent="changeSamlAuthStatus"
-          :color="isSamlEnabled ? 'success' : 'error'"
+          :color="isSamlEnabled ? 'primary' : 'gray'"
           data-test="saml-auth-switch"
           hide-details
         />
@@ -49,12 +49,18 @@
             their list of allowed callback URLs.
           </span>
         </div>
-        <v-btn
-          @click="copyAssertionURL(ssoSettings.saml?.assertion_url)"
-          data-test="copy-assertion-btn"
-        >
-          Copy Assertion URL
-        </v-btn>
+        <CopyWarning copied-item="Assertion URL">
+          <template #default="{ copyText }">
+            <v-btn
+              color="primary"
+              prepend-icon="mdi-content-copy"
+              variant="text"
+              @click="copyText(ssoSettings.saml?.assertion_url || '')"
+              data-test="copy-assertion-btn"
+              text="Copy"
+            />
+          </template>
+        </CopyWarning>
       </v-row>
 
       <v-row v-if="'post' in binding && binding?.post">
@@ -100,15 +106,21 @@
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
+              color="primary"
+              append-icon="mdi-open-in-new"
               @click="redirectToAuthURL(ssoSettings.saml?.auth_url)"
               data-test="redirect-auth-btn"
-            >
-              Test Auth Integration
-            </v-btn>
+              text="Test Auth Integration"
+            />
           </template>
           <span>Opens a new window directly calling the Authentication URL</span>
         </v-tooltip>
-        <v-btn @click="showSSODialog = true" data-test="sso-config-btn">{{ ssoSettings.saml?.enabled ? "Edit" : "Configure" }}</v-btn>
+        <v-btn
+          @click="showSSODialog = true"
+          data-test="sso-config-btn"
+          color="primary"
+          variant="elevated"
+          :text="ssoSettings.saml?.enabled ? 'Edit' : 'Configure'" />
       </v-card-actions>
     </v-card-item>
   </v-card>
@@ -121,6 +133,7 @@ import { useDisplay } from "vuetify";
 import useInstanceStore from "@admin/store/modules/instance";
 import useSnackbar from "@/helpers/snackbar";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
+import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const showSSODialog = ref(false);
 const snackbar = useSnackbar();
@@ -182,13 +195,6 @@ const downloadSSOCertificate = () => {
 };
 
 const redirectToAuthURL = (url?: string) => { window.open(url, "_blank"); };
-
-const copyAssertionURL = (url?: string) => {
-  if (url) {
-    navigator.clipboard.writeText(url);
-    snackbar.showInfo("Authentication URL copied to clipboard.");
-  }
-};
 
 onMounted(async () => { await instanceStore.fetchAuthenticationSettings(); });
 
