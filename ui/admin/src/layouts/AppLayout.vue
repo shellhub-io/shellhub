@@ -144,7 +144,7 @@ import useLayoutStore from "@admin/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
 import useSpinnerStore from "@/store/modules/spinner";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
-import Logo from "../assets/logo-inverted.png";
+import Logo from "../assets/logo-inverted.svg";
 import { createNewClient } from "../api/http";
 import { envVariables } from "../envVariables";
 

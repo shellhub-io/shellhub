@@ -63,7 +63,7 @@ import * as yup from "yup";
 import { useRoute, useRouter } from "vue-router";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
-import Logo from "../assets/logo-inverted.png";
+import Logo from "../assets/logo-inverted.svg";
 import { createNewClient } from "../api/http";
 
 const showPassword = ref(false);
