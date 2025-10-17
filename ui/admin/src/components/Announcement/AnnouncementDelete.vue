@@ -12,27 +12,18 @@
     <span>Remove</span>
   </v-tooltip>
 
-  <BaseDialog v-model="showDialog">
-    <v-card>
-      <v-card-title class="lighten-2 text-center mt-2">
-        Are you sure?
-      </v-card-title>
-      <v-divider />
-
-      <v-card-text class="mt-4 mb-3 pb-1">
-        You are about to remove this announcement.
-        <p>This action cannot be undone.</p>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-
-        <v-btn text @click="showDialog = false"> Cancel </v-btn>
-
-        <v-btn color="red darken-1" text @click="remove()"> Remove </v-btn>
-      </v-card-actions>
-    </v-card>
-  </BaseDialog>
+  <MessageDialog
+    v-model="showDialog"
+    title="Are you sure?"
+    description="You are about to remove this announcement. This action cannot be undone."
+    icon="mdi-alert-circle"
+    icon-color="error"
+    confirm-text="Remove"
+    confirm-color="error"
+    cancel-text="Cancel"
+    @confirm="remove"
+    @cancel="showDialog = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -40,7 +31,7 @@ import { ref } from "vue";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
 import handleError from "@/utils/handleError";
-import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 
 const props = defineProps<{ uuid: string }>();
 
