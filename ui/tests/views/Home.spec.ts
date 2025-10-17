@@ -77,7 +77,9 @@ describe("Home", () => {
   });
 
   it("Renders the template with data", async () => {
-    expect(wrapper.find('[data-test="home-card"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain("ACCEPTED DEVICES");
+    expect(wrapper.text()).toContain("ONLINE DEVICES");
+    expect(wrapper.text()).toContain("PENDING DEVICES");
     wrapper.vm.hasStatus = true; // Set the conditional validation to true so it can show the error card.
     await nextTick();
     expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
