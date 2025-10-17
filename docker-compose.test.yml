@@ -34,9 +34,3 @@ services:
       start_period: 10s
       retries: 20
     ports: []
-  mongo:
-    healthcheck:
-      interval: 5s
-      start_period: 10s
-      retries: 20
-    ports: []

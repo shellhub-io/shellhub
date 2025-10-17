@@ -60,10 +60,8 @@ services:
       - SHELLHUB_INTERNAL_HTTP_CLIENT_API_BASE_URL=${SHELLHUB_INTERNAL_HTTP_CLIENT_API_BASE_URL}
       - SHELLHUB_INTERNAL_HTTP_CLIENT_ENTERPRISE_BASE_URL=${SHELLHUB_INTERNAL_HTTP_CLIENT_ENTERPRISE_BASE_URL}
     depends_on:
-      - mongo
       - redis
     links:
-      - mongo
       - redis
     secrets:
       - api_private_key
@@ -149,16 +147,6 @@ services:
     environment:
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
       - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
-    networks:
-      - shellhub
-  mongo:
-    image: mongo:4.4.29
-    restart: unless-stopped
-    healthcheck:
-      test: 'test $$(echo "rs.initiate({ _id: ''rs'', members: [ { _id: 0, host: ''mongo:27017'' } ] }).ok || rs.status().ok" | mongo --quiet) -eq 1'
-      interval: 30s
-      start_period: 10s
-    command: ["--replSet", "rs", "--bind_ip_all"]
     networks:
       - shellhub
   redis:

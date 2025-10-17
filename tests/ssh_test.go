@@ -1340,92 +1340,92 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 	ctx := context.Background()
 
-	compose := environment.New(t).Up(ctx)
-	t.Cleanup(func() {
-		compose.Down()
-	})
+	databases := []string{"mongo"}
+	for _, db := range databases {
+		compose := environment.New(t).WithEnv("SHELLHUB_DATABASE", db).Up(ctx)
+		compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
+		compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
-	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
+		auth := models.UserAuthResponse{}
 
-	auth := models.UserAuthResponse{}
-
-	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		resp, err := compose.R(ctx).
-			SetBody(map[string]string{
-				"username": ShellHubUsername,
-				"password": ShellHubPassword,
-			}).
-			SetResult(&auth).
-			Post("/api/login")
-		assert.Equal(tt, 200, resp.StatusCode())
-		assert.NoError(tt, err)
-	}, 30*time.Second, 1*time.Second)
-
-	compose.JWT(auth.Token)
-
-	for _, tc := range tests {
-		test := tc
-		t.Run(test.name, func(tt *testing.T) {
-			// Combine connection version with test-specific options
-			opts := append([]NewAgentContainerOption{
-				NewAgentContainerWithConnectionVersion(connectionVersion),
-			}, test.options...)
-
-			agent, err := NewAgentContainer(
-				ctx,
-				compose.Env("SHELLHUB_HTTP_PORT"),
-				opts...,
-			)
-			require.NoError(tt, err)
-
-			agent.Stop(ctx, nil)
-
-			err = agent.Start(ctx)
-			require.NoError(tt, err)
-
-			tt.Cleanup(func() {
-				agent.Stop(context.Background(), nil)
-			})
-
-			t.Cleanup(func() {
-				agent.Terminate(context.Background())
-			})
-
-			devices := []models.Device{}
-
-			require.EventuallyWithT(tt, func(tt *assert.CollectT) {
-				resp, err := compose.R(ctx).SetResult(&devices).
-					Get("/api/devices?status=pending")
-				assert.Equal(tt, 200, resp.StatusCode())
-				assert.NoError(tt, err)
-
-				assert.Len(tt, devices, 1)
-			}, 30*time.Second, 1*time.Second)
-
+		require.EventuallyWithT(t, func(tt *assert.CollectT) {
 			resp, err := compose.R(ctx).
-				Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
-			require.Equal(tt, 200, resp.StatusCode())
-			require.NoError(tt, err)
+				SetBody(map[string]string{
+					"username": ShellHubUsername,
+					"password": ShellHubPassword,
+				}).
+				SetResult(&auth).
+				Post("/api/login")
+			assert.Equal(tt, 200, resp.StatusCode())
+			assert.NoError(tt, err)
+		}, 30*time.Second, 1*time.Second)
 
-			device := models.Device{}
+		compose.JWT(auth.Token)
 
-			require.EventuallyWithT(tt, func(tt *assert.CollectT) {
+		for _, tc := range tests {
+			test := tc
+			t.Run(db+" "+test.name, func(tt *testing.T) {
+				opts := append([]NewAgentContainerOption{
+					NewAgentContainerWithConnectionVersion(connectionVersion),
+				}, test.options...)
+
+				agent, err := NewAgentContainer(
+					ctx,
+					compose.Env("SHELLHUB_HTTP_PORT"),
+					opts...,
+				)
+				require.NoError(tt, err)
+
+				agent.Stop(ctx, nil)
+
+				err = agent.Start(ctx)
+				require.NoError(tt, err)
+
+				tt.Cleanup(func() {
+					agent.Stop(context.Background(), nil)
+				})
+
+				t.Cleanup(func() {
+					agent.Terminate(context.Background())
+				})
+
+				devices := []models.Device{}
+
+				require.EventuallyWithT(tt, func(tt *assert.CollectT) {
+					resp, err := compose.R(ctx).SetResult(&devices).
+						Get("/api/devices?status=pending")
+					assert.Equal(tt, 200, resp.StatusCode())
+					assert.NoError(tt, err)
+
+					assert.Len(tt, devices, 1)
+				}, 30*time.Second, 1*time.Second)
+
 				resp, err := compose.R(ctx).
-					SetResult(&device).
-					Get(fmt.Sprintf("/api/devices/%s", devices[0].UID))
-				assert.Equal(tt, 200, resp.StatusCode())
-				assert.NoError(tt, err)
+					Patch(fmt.Sprintf("/api/devices/%s/accept", devices[0].UID))
+				require.Equal(tt, 200, resp.StatusCode())
+				require.NoError(tt, err)
 
-				assert.True(tt, device.Online)
-			}, 30*time.Second, 1*time.Second)
+				device := models.Device{}
 
-			// --
+				require.EventuallyWithT(tt, func(tt *assert.CollectT) {
+					resp, err := compose.R(ctx).
+						SetResult(&device).
+						Get(fmt.Sprintf("/api/devices/%s", devices[0].UID))
+					assert.Equal(tt, 200, resp.StatusCode())
+					assert.NoError(tt, err)
 
-			test.run(tt, &Environment{
-				services: compose,
-				agent:    agent,
-			}, &device)
-		})
+					assert.True(tt, device.Online)
+				}, 30*time.Second, 1*time.Second)
+
+				// --
+
+				test.run(tt, &Environment{
+					services: compose,
+					agent:    agent,
+				}, &device)
+			})
+		}
+
+		compose.Down()
 	}
 }
