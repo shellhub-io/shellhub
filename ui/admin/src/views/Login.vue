@@ -4,57 +4,50 @@
       <v-container class="full-height d-flex justify-center align-center" fluid>
         <v-row align="center" justify="center">
           <v-col cols="12" sm="8" md="4">
-            <v-card theme="dark" class="pa-6" rounded="lg">
+            <v-card class="pa-6 bg-v-theme-surface">
               <v-card-title class="d-flex justify-center align-center mt-4">
                 <v-img
                   :src="Logo"
                   max-width="220"
-                  alt="logo do ShellHub, uma nuvem de com a escrita ShellHub Admin ao lado"
+                  alt=""
                 />
                 <span class="mt-6 text-overline">Admin</span>
               </v-card-title>
-              <v-card-item>
-                <form @submit.prevent="login">
-                  <v-container>
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-account"
-                      v-model="username"
-                      :error-messages="usernameError"
-                      required
-                      label="Username"
-                      variant="underlined"
-                      data-test="username-text"
-                    />
+              <form @submit.prevent="login">
+                <v-text-field
+                  color="primary"
+                  prepend-inner-icon="mdi-account"
+                  v-model="username"
+                  :error-messages="usernameError"
+                  required
+                  label="Username"
+                  data-test="username-text"
+                />
 
-                    <v-text-field
-                      color="primary"
-                      prepend-icon="mdi-lock"
-                      :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                      v-model="password"
-                      :error-messages="passwordError"
-                      label="Password"
-                      required
-                      variant="underlined"
-                      data-test="password-text"
-                      :type="showPassword ? 'text' : 'password'"
-                      @click:append-inner="showPassword = !showPassword"
-                    />
-                    <v-card-actions class="justify-center">
-                      <v-btn
-                        type="submit"
-                        data-test="login-btn"
-                        color="primary"
-                        variant="tonal"
-                        block
-                        @click="login"
-                      >
-                        LOGIN
-                      </v-btn>
-                    </v-card-actions>
-                  </v-container>
-                </form>
-              </v-card-item>
+                <v-text-field
+                  color="primary"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  v-model="password"
+                  :error-messages="passwordError"
+                  label="Password"
+                  required
+                  data-test="password-text"
+                  :type="showPassword ? 'text' : 'password'"
+                  @click:append-inner="showPassword = !showPassword"
+                />
+                <v-card-actions>
+                  <v-btn
+                    class="w-100 text-center"
+                    type="submit"
+                    data-test="login-btn"
+                    color="primary"
+                    variant="elevated"
+                    @click="login"
+                    text="Login"
+                  />
+                </v-card-actions>
+              </form>
             </v-card>
           </v-col>
         </v-row>
