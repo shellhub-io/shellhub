@@ -59,6 +59,7 @@ services:
     environment:
       - SHELLHUB_VERSION=latest
       - SHELLHUB_ENV=${SHELLHUB_ENV}
+      - ENABLE_ACCESS_LOGS=${ENABLE_ACCESS_LOGS}
   cli:
     image: cli
     build:
