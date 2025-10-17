@@ -1,10 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Device Details > Renders the component 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Device Details</h1>
-</div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
+"<h1>Device Details</h1>
+<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4 bg-background border">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -24,31 +22,19 @@ exports[`Device Details > Renders the component 1`] = `
   <!---->
   <div class="v-card-text">
     <div>
-      <div class="text-overline mt-3">
-        <h3>uid:</h3>
-      </div>
-      <div data-test="a582b47a42e">
-        <p>a582b47a42e</p>
-      </div>
+      <h3 class="text-overline">UID:</h3>
+      <p data-test="a582b47a42e">a582b47a42e</p>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>name:</h3>
-      </div>
-      <div data-test="39-5e-2b">
-        <p>39-5e-2b</p>
-      </div>
+      <h3 class="text-overline mt-3">Name:</h3>
+      <p data-test="39-5e-2b">39-5e-2b</p>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>mac:</h3>
-      </div>
-      <div data-test="00:00:00:00:00:00">00:00:00:00:00:00</div>
+      <h3 class="text-overline mt-3">MAC Address:</h3>
+      <p data-test="00:00:00:00:00:00">00:00:00:00:00:00</p>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>info:</h3>
-      </div>
+      <h3 class="text-overline mt-3">Info:</h3>
       <ul data-test="linuxmint">
         <li class="ml-8"><span class="font-weight-bold mr-1">id:</span><span>linuxmint</span></li>
       </ul>
@@ -66,33 +52,19 @@ exports[`Device Details > Renders the component 1`] = `
       </ul>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>Public Key:</h3>
-      </div>
-      <div data-test="----- PUBLIC KEY -----">
-        <p>----- PUBLIC KEY -----</p>
-      </div>
+      <h3 class="text-overline mt-3">Public Key:</h3>
+      <p data-test="----- PUBLIC KEY -----">----- PUBLIC KEY -----</p>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>Tenant Id:</h3>
-      </div>
-      <div data-test="fake-tenant-data">
-        <p>fake-tenant-data</p>
-      </div>
+      <h3 class="text-overline mt-3">Tenant ID:</h3>
+      <p data-test="fake-tenant-data">fake-tenant-data</p>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>Online:</h3>
-      </div>
-      <div data-test="true">
-        <p>true</p>
-      </div>
+      <h3 class="text-overline mt-3">Online:</h3>
+      <p data-test="true">true</p>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>Tags:</h3>
-      </div>
+      <h3 class="text-overline mt-3">Tags:</h3>
       <div data-test="[object Object]"><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-0"><!----><span class="v-chip__underlay"></span>
         <!---->
         <!---->
@@ -104,20 +76,12 @@ exports[`Device Details > Renders the component 1`] = `
       </div>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>Namespace:</h3>
-      </div>
-      <div data-test="user">
-        <p>user</p>
-      </div>
+      <h3 class="text-overline mt-3">Namespace:</h3>
+      <p data-test="user">user</p>
     </div>
     <div>
-      <div class="text-overline mt-3">
-        <h3>Status:</h3>
-      </div>
-      <div data-test="accepted">
-        <p>accepted</p>
-      </div>
+      <h3 class="text-overline mt-3">Status:</h3>
+      <p data-test="accepted" class="text-capitalize">accepted</p>
     </div>
   </div>
   <!---->
