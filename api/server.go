@@ -98,7 +98,7 @@ func (s *Server) Setup(ctx context.Context) error {
 		store, err = mongo.NewStore(ctx, s.env.MongoURI, cache, mongooptions.RunMigatrions)
 	case "postgres":
 		uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
-		store, err = pg.New(ctx, uri, pgoptions.Log("INFO", true)) // TODO: Log envs
+		store, err = pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate()) // TODO: Log envs
 	default:
 		log.WithField("database", s.env.Database).Error("invalid database")
 		return errors.New("invalid database")
