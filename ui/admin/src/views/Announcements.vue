@@ -1,24 +1,17 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-md-row"
-  >
+  <div class="d-flex flex-column justify-space-between align-center flex-md-row mb-2">
     <h1 data-test="announcement-title">Announcements</h1>
     <v-spacer />
-    <v-card class="mt-2">
-      <v-btn
-        :tabindex="0"
-        @click="newAnnouncement"
-        data-test="new-announcement-btn"
-      >
-        New
-        <v-icon class="ml-1">mdi-plus</v-icon>
-      </v-btn>
-    </v-card>
+    <v-btn
+      :tabindex="0"
+      @click="newAnnouncement"
+      data-test="new-announcement-btn"
+      color="primary"
+      append-icon="mdi-plus"
+      text="New"
+    />
   </div>
-
-  <v-card class="mt-2" data-test="announcement-list">
-    <AnnouncementList />
-  </v-card>
+  <AnnouncementList />
 </template>
 
 <script setup lang="ts">

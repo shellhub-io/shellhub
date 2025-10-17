@@ -1,46 +1,27 @@
 <template>
-  <div class="d-flex pa-0 align-center">
-    <h1>Announcement Details</h1>
-  </div>
-
-  <v-card class="mt-2 pa-4">
+  <h1>Announcement Details</h1>
+  <v-card class="mt-2 pa-4 bg-background border">
     <v-card-text>
       <div>
-        <div class="text-overline mt-3">
-          <h3>Uuid:</h3>
-        </div>
-        <div :data-test="announcement.uuid">
-          <p>{{ announcement.uuid }}</p>
+        <h3 class="text-overline">Uuid:</h3>
+        <p :data-test="announcement.uuid">{{ announcement.uuid }}</p>
+      </div>
+
+      <div>
+        <h3 class="text-overline mt-3">Title:</h3>
+        <p :data-test="announcement.title">{{ announcement.title }}</p>
+      </div>
+
+      <div>
+        <h3 class="text-overline mt-3">Content:</h3>
+        <div class="pa-2" :data-test="announcement.content">
+          <div class="content-announcement" v-html="contentToHtml" />
         </div>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Title:</h3>
-        </div>
-        <div :data-test="announcement.title">
-          <p>{{ announcement.title }}</p>
-        </div>
-      </div>
-
-      <div>
-        <div class="text-overline mt-3">
-          <h3>Content:</h3>
-        </div>
-        <div class="pa-2">
-          <div :data-test="announcement.content">
-            <div class="content-announcement" v-html="contentToHtml" />
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="text-overline mt-3">
-          <h3>Date:</h3>
-        </div>
-        <div :data-test="announcement.date">
-          <p>{{ date }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Date:</h3>
+        <p :data-test="announcement.date">{{ date }}</p>
       </div>
     </v-card-text>
   </v-card>

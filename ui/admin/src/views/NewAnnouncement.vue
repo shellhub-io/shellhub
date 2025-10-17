@@ -1,7 +1,7 @@
 <template>
   <h1>Create new Announcement</h1>
 
-  <v-card class="mt-2">
+  <v-card class="pa-4 mt-2 bg-background border">
     <v-card-item>
       <v-card-title>Title</v-card-title>
 
@@ -53,13 +53,12 @@
       <v-spacer />
       <v-btn
         @click="postAnnouncement"
-        color="dark"
-        variant="text"
+        color="primary"
+        variant="elevated"
         tabindex="0"
         data-test="announcement-btn-post"
-      >
-        Post
-      </v-btn>
+        text="Post"
+      />
     </v-card-actions>
   </v-card>
 </template>

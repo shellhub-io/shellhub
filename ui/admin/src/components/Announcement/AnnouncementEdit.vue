@@ -4,13 +4,11 @@
       <v-icon
         @click="open"
         tag="button"
-        dark
         v-bind="props"
         tabindex="0"
         data-test="edit-button"
-        @keypress.enter="open"
-      >mdi-pencil
-      </v-icon>
+        icon="mdi-pencil"
+      />
     </template>
     <span>Edit</span>
   </v-tooltip>
@@ -23,7 +21,7 @@
     transition="dialog-bottom-transition"
   >
     <v-card>
-      <v-card-title class="text-h5 pb-2"> Edit Announcement </v-card-title>
+      <v-card-title class="text-h5 pb-2">Edit Announcement</v-card-title>
       <v-divider />
       <form @submit.prevent="onSubmit">
         <v-card-text>

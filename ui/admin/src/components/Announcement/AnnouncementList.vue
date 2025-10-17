@@ -71,12 +71,8 @@ const snackbar = useSnackbar();
 const page = ref(1);
 const itemsPerPage = ref(10);
 const loading = ref(false);
-const announcements = computed(
-  () => announcementStore.announcements as Array<IAdminAnnouncementShort>,
-);
-const announcementCount = computed(
-  () => announcementStore.announcementCount,
-);
+const announcements = computed(() => announcementStore.announcements as Array<IAdminAnnouncementShort>);
+const announcementCount = computed(() => announcementStore.announcementCount);
 const headers = ref([
   {
     text: "Id",
