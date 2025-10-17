@@ -1,70 +1,42 @@
 <template>
-  <div class="d-flex pa-0 align-center">
-    <h1>Firewall Details</h1>
-  </div>
-  <v-card class="mt-2 pa-4" v-if="!firewallRuleIsEmpty">
-    <v-card-text>
+  <h1>Firewall Details</h1>
+  <v-card class="mt-2 pa-4 bg-background border">
+    <v-card-text v-if="!isFirewallRuleEmpty">
       <div>
-        <div class="text-overline mt-3">
-          <h3>id:</h3>
-        </div>
-        <div :data-test="firewallRule.id">
-          <p>{{ firewallRule.id }}</p>
-        </div>
+        <h3 class="text-overline">id:</h3>
+        <p :data-test="firewallRule.id">{{ firewallRule.id }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Tenant Id:</h3>
-        </div>
-        <div :data-test="firewallRule.tenant_id">
-          <p>{{ firewallRule.tenant_id }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Tenant Id:</h3>
+        <p :data-test="firewallRule.tenant_id">{{ firewallRule.tenant_id }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Priority:</h3>
-        </div>
-        <div :data-test="firewallRule.priority">
-          <p>{{ firewallRule.priority }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Priority:</h3>
+        <p :data-test="firewallRule.priority">{{ firewallRule.priority }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Action:</h3>
-        </div>
-        <div :data-test="firewallRule.action" class="text-capitalize">
-          <p>{{ firewallRule.action }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Action:</h3>
+        <p :data-test="firewallRule.action" class="text-capitalize">{{ firewallRule.action }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Source Ip:</h3>
-        </div>
-        <div :data-test="firewallRule.source_ip">
-          <p>{{ formatSourceIP(firewallRule.source_ip) }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Source Ip:</h3>
+        <p :data-test="firewallRule.source_ip">{{ formatSourceIP(firewallRule.source_ip) }}</p>
       </div>
 
       <div>
-        <div class="text-overline mt-3">
-          <h3>Username:</h3>
-        </div>
-        <div :data-test="firewallRule.username">
-          <p>{{ formatUsername(firewallRule.username) }}</p>
-        </div>
+        <h3 class="text-overline mt-3">Username:</h3>
+        <p :data-test="firewallRule.username">{{ formatUsername(firewallRule.username) }}</p>
       </div>
 
       <div v-if="firewallRule.filter">
-        <div class="text-overline mt-3">
-          <h3>Filter:</h3>
-        </div>
-        <div v-if="isHostname(firewallRule.filter)" :data-test="firewallRule.filter">
+        <h3 class="text-overline mt-3">Filter:</h3>
+        <p v-if="isHostname(firewallRule.filter)" :data-test="firewallRule.filter">
           {{ formatHostnameFilter(firewallRule.filter) }}
-        </div>
+        </p>
         <div v-else :data-test="firewallRule.filter">
           <v-tooltip
             v-for="(tag, index) in firewallRule.filter.tags"
@@ -85,9 +57,7 @@
         </div>
       </div>
     </v-card-text>
-  </v-card>
-  <v-card class="mt-2 pa-4" v-else>
-    <p class="text-center">Something is wrong, try again !</p>
+    <p v-else class="text-center">Something is wrong, try again!</p>
   </v-card>
 </template>
 
@@ -116,7 +86,7 @@ onMounted(async () => {
   }
 });
 
-const firewallRuleIsEmpty = computed(() => !firewallRule.value || !firewallRule.value.id);
+const isFirewallRuleEmpty = computed(() => !firewallRule.value || !firewallRule.value.id);
 
 defineExpose({ firewallRule });
 </script>

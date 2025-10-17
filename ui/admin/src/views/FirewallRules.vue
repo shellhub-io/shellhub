@@ -1,10 +1,6 @@
 <template>
-  <div>
-    <h1>Firewall Rules</h1>
-  </div>
-  <v-card class="mt-2">
-    <FirewallRulesList />
-  </v-card>
+  <h1 class="mb-2">Firewall Rules</h1>
+  <FirewallRulesList />
 </template>
 
 <script setup lang="ts">
