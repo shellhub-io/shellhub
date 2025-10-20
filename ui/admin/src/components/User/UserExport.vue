@@ -8,36 +8,35 @@
     text="Export CSV"
   />
 
-  <BaseDialog v-model="showDialog" @close="closeDialog" transition="dialog-bottom-transition">
-    <v-card>
-      <v-card-title class="text-h5 pb-2">Export users data</v-card-title>
-      <v-divider />
-      <v-form @submit.prevent="handleSubmit">
-        <v-card-text>
-          <v-radio-group v-model="selectedFilter">
-            <v-radio class="mb-1" label="Users with more than:" :value="FilterOptions.MoreThan" />
-            <v-radio class="mb-1" label="Users with exactly:" :value="FilterOptions.Exactly" />
-          </v-radio-group>
-          <v-row no-gutters class="d-flex justify-center align-center ml-3">
-            <v-text-field
-              v-model="numberOfNamespaces"
-              suffix="namespaces"
-              label="Number of namespaces"
-              color="primary"
-              density="comfortable"
-              variant="outlined"
-              :error-messages="numberOfNamespacesError"
-            />
-          </v-row>
-        </v-card-text>
-
-        <v-card-actions class="pa-4 d-flex justify-end ga-2">
-          <v-btn @click="closeDialog">Cancel</v-btn>
-          <v-btn color="primary" type="submit" :loading="isLoading" :disabled="!!numberOfNamespacesError || isLoading">Export</v-btn>
-        </v-card-actions>
-      </v-form>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    title="Export users data"
+    icon="mdi-download"
+    icon-color="primary"
+    confirm-text="Export"
+    cancel-text="Cancel"
+    :confirm-disabled="!!numberOfNamespacesError || isLoading"
+    :confirm-loading="isLoading"
+    @confirm="handleSubmit"
+    @cancel="closeDialog"
+    @close="closeDialog"
+  >
+    <v-card-text class="pa-6">
+      <v-radio-group v-model="selectedFilter" hide-details>
+        <v-radio class="mb-1" label="Users with more than:" :value="FilterOptions.MoreThan" />
+        <v-radio class="mb-3" label="Users with exactly:" :value="FilterOptions.Exactly" />
+      </v-radio-group>
+      <v-text-field
+        v-model.number="numberOfNamespaces"
+        suffix="namespaces"
+        label="Number of namespaces"
+        color="primary"
+        density="comfortable"
+        variant="outlined"
+        :error-messages="numberOfNamespacesError"
+      />
+    </v-card-text>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -48,7 +47,7 @@ import { useField } from "vee-validate";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
 import handleError from "@/utils/handleError";
-import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 
 enum FilterOptions {
   MoreThan = "moreThan",
@@ -84,6 +83,12 @@ const getFilename = () => {
   return `users_with_${filterType}_${numberOfNamespaces.value}_namespaces.csv`;
 };
 
+const closeDialog = () => {
+  showDialog.value = false;
+  numberOfNamespaces.value = 0;
+  selectedFilter.value = FilterOptions.MoreThan;
+};
+
 const handleSubmit = async () => {
   isLoading.value = true;
   const encodedFilter = encodeFilter();
@@ -92,22 +97,13 @@ const handleSubmit = async () => {
     const blob = new Blob([response], { type: "text/csv;charset=utf-8" });
     saveAs(blob, getFilename());
     snackbar.showSuccess("Exported users successfully.");
+    closeDialog();
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to export users.");
   }
 
   isLoading.value = false;
-};
-
-const resetForm = () => {
-  numberOfNamespaces.value = 0;
-  selectedFilter.value = FilterOptions.MoreThan;
-};
-
-const closeDialog = () => {
-  showDialog.value = false;
-  resetForm();
 };
 
 defineExpose({ numberOfNamespaces, showDialog, selectedFilter });
