@@ -43,7 +43,7 @@ import hasPermission from "@/utils/permission";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useNamespacesStore from "@/store/modules/namespaces";

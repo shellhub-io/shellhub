@@ -135,7 +135,7 @@ import { useField, useForm } from "vee-validate";
 import useUsersStore from "@admin/store/modules/users";
 import { IAdminUser, IAdminUserFormData } from "@admin/interfaces/IUser";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "@/components/BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 const props = defineProps<{
   createUser?: boolean;

@@ -51,7 +51,7 @@ import { AdminNamespaceFilterOptions } from "@admin/interfaces/IFilter";
 import useSnackbar from "@/helpers/snackbar";
 import getFilter from "@/utils/namespaceExport";
 import handleError from "@/utils/handleError";
-import BaseDialog from "@/components/BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 const showDialog = ref(false);
 const isLoading = ref(false);

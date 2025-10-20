@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 
 const router = useRouter();
 const showWarningDialog = defineModel({ default: false });

@@ -1,9 +1,14 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Member Delete > Renders the component 1`] = `
+exports[`WindowDialog > Renders the component 1`] = `
 "<body>
+  <div data-v-app="">
+    <!---->
+    <!--teleport start-->
+    <!--teleport end-->
+  </div>
   <div class="v-overlay-container">
-    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-0e9a08b3="" data-test="member-delete-card">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-0e9a08b3="">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <div class="v-overlay__scrim"></div>
       </transition-stub>
@@ -29,30 +34,30 @@ exports[`Member Delete > Renders the component 1`] = `
             <!---->
             <!-- Content -->
             <!-- Titlebar -->
-            <!--v-if-->
-            <!-- Content -->
-            <div class="v-card-text text-center py-8"><i class="mdi-account-minus mdi v-icon notranslate v-theme--light text-error mb-4" style="font-size: 48px; height: 48px; width: 48px;" aria-hidden="true"></i>
-              <div class="text-h5 mb-4">Are you sure?</div>
-              <div class="text-body-2 text-medium-emphasis mb-6">You are about to remove this user from the namespace. If needed, you can re-invite this user to the namespace at any time.</div>
-            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <!--v-if-->
+                <!--v-if-->
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div data-test="default-slot">Default content</div><!-- Footer -->
             <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
                 <!---->
-                <!-- Block Layout: Full width buttons -->
-                <div class="v-row ma-0 ga-3">
-                  <div class="v-col pa-0"><button type="button" class="v-btn v-btn--block v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-tonal" data-test="member-delete-close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                      <!----><span class="v-btn__content" data-no-activator="">Close</span>
-                      <!---->
-                      <!---->
-                    </button></div>
-                  <div class="v-col pa-0"><button type="button" class="v-btn v-btn--block v-theme--light bg-error v-btn--density-default v-btn--size-default v-btn--variant-flat" data-test="member-delete-remove-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                      <!----><span class="v-btn__content" data-no-activator="">Remove</span>
-                      <!---->
-                      <!---->
-                    </button></div>
-                </div>
                 <!---->
               </div>
               <transition-stub name="expand-transition" appear="false" persisted="false" css="true">

@@ -44,9 +44,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import axios from "axios";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "@/components/FormDialog.vue";
 import ApiKeyForm from "./ApiKeyForm.vue";
 import { BasicRole } from "@/interfaces/INamespace";
 import useApiKeysStore from "@/store/modules/api_keys";

@@ -81,7 +81,7 @@ import { onMounted, reactive, ref, watch } from "vue";
 import handleError from "@/utils/handleError";
 import useCountdown from "@/utils/countdownTimeout";
 import useSnackbar from "@/helpers/snackbar";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 
 const showDialog = defineModel<boolean>({ required: true });

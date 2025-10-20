@@ -41,9 +41,9 @@ import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "../FormDialog.vue";
 import useDevicesStore from "@/store/modules/devices";
 
 const props = defineProps<{

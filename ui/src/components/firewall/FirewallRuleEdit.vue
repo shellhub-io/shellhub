@@ -150,11 +150,11 @@
 import { computed, ref, nextTick, watch, onUnmounted } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
-import FormDialog from "../FormDialog.vue";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 import useTagsStore from "@/store/modules/tags";
 

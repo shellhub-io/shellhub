@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 
 const showDialog = defineModel({ default: false });
 

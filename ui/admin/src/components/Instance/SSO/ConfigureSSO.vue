@@ -181,7 +181,7 @@ import * as yup from "yup";
 import { IAdminUpdateSAML } from "@admin/interfaces/IInstance";
 import useSnackbar from "@/helpers/snackbar";
 import { isX509CertificateValid } from "@/utils/sshKeys";
-import BaseDialog from "@/components/BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 const useMetadataUrl = ref(false);
 const signRequest = ref(false);

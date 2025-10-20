@@ -38,7 +38,7 @@
 import { computed, ref } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useTagsStore from "@/store/modules/tags";
 
 defineOptions({ inheritAttrs: false });

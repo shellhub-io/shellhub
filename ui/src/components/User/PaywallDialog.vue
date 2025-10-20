@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useUsersStore from "@/store/modules/users";
 import { IPremiumFeature } from "@/interfaces/IUser";
 

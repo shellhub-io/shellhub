@@ -60,7 +60,7 @@ import {
 } from "@/utils/sshKeys";
 
 import handleError from "@/utils/handleError";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 import TerminalThemeDrawer from "./TerminalThemeDrawer.vue";
 import useTerminalThemeStore from "@/store/modules/terminal_theme";
 

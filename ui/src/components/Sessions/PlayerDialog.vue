@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import BaseDialog from "../BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 import Player from "./Player.vue";
 
 const { logs } = defineProps<{ logs: string | null }>();

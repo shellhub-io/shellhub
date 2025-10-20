@@ -76,11 +76,11 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from "vue";
 import axios, { AxiosError } from "axios";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import DeviceListChooser from "./DeviceListChooser.vue";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "../FormDialog.vue";
 import useDevicesStore from "@/store/modules/devices";
 import { IDevice } from "@/interfaces/IDevice";
 

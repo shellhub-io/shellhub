@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import BaseDialog from "../BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 const showDialog = defineModel<boolean>({ required: true });
 </script>

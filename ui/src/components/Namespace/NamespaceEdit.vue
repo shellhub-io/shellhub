@@ -35,9 +35,9 @@ import { computed, onMounted, ref } from "vue";
 import { useField } from "vee-validate";
 import axios from "axios";
 import * as yup from "yup";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "../FormDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
 

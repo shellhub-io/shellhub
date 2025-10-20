@@ -75,13 +75,13 @@
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import { computed, ref, watch } from "vue";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import { envVariables } from "@/envVariables";
 import { IConnectorPayload } from "@/interfaces/IConnector";
 import { parseCertificate, parsePrivateKey } from "@/utils/sshKeys";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "../FormDialog.vue";
 import useUsersStore from "@/store/modules/users";
 
 const props = defineProps<{

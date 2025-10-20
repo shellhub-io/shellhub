@@ -118,7 +118,7 @@ import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 
 const authStore = useAuthStore();

@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import MessageDialog from "@/components/MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 
 const props = defineProps<{ apiKey: string }>();

@@ -32,7 +32,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "@/components/BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 import handleError from "@/utils/handleError";
 
 const props = defineProps<{

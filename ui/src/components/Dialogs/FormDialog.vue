@@ -178,11 +178,11 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(["close", "confirm", "cancel", "alert-dismissed"]);
 const showDialog = defineModel<boolean>({ required: true });
 
-// Window control
-const footerWindow = ref(0); // 0 = buttons, 1 = alert
-
 // Alert state
 const showAlert = computed(() => !!props.alertMessage);
+
+// Window control
+const footerWindow = ref(showAlert.value ? 1 : 0); // 0 = buttons, 1 = alert
 
 // Check if dialog has buttons configured
 const hasButtons = computed(() => !!(props.confirmText || props.cancelText));
@@ -206,4 +206,6 @@ const handleConfirm = () => {
     emit("confirm");
   }
 };
+
+defineExpose({ footerWindow });
 </script>

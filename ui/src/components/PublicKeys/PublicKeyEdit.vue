@@ -131,10 +131,10 @@
 import { useField } from "vee-validate";
 import { ref, watch, onMounted, computed, nextTick, onUnmounted } from "vue";
 import * as yup from "yup";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import { IPublicKey } from "@/interfaces/IPublicKey";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "../FormDialog.vue";
 import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";

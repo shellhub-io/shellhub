@@ -36,7 +36,7 @@
 import { ref } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
 const props = defineProps<{

@@ -67,13 +67,13 @@
 import { ref, computed, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import {
   convertToFingerprint,
   parsePrivateKey,
 } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "../FormDialog.vue";
 import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 

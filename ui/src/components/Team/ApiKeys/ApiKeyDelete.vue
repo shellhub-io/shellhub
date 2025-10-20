@@ -31,7 +31,7 @@
 import { ref } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "@/components/MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useApiKeysStore from "@/store/modules/api_keys";
 
 const props = defineProps<{
