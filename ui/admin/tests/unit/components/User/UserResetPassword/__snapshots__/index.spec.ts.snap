@@ -1,7 +1,120 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`User Reset Password > renders correctly 1`] = `
-"<button class="mdi-account-lock-open mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-0" data-test="open-dialog-icon"></button>
+"<button class="mdi-account-lock-open mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-0" data-test="open-dialog-icon"></button>
 <!--teleport start-->
 <!--teleport end-->"
+`;
+
+exports[`User Reset Password > renders correctly 2`] = `
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-0" role="tooltip" bottom="" anchor="bottom">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <!---->
+      </transition-stub>
+      <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLButtonElement]">
+        <div class="v-overlay__content" style="min-width: 0px; display: none;"><span>Enable Local Authentication</span></div>
+      </transition-stub>
+    </div>
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-0e9a08b3="">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <div class="v-overlay__scrim"></div>
+      </transition-stub>
+      <transition-stub name="dialog-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-0e9a08b3="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-account-lock-open mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Enable Local Authentication
+                    </div>
+                  </div>
+                  <!--v-if-->
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <div class="v-card-text pa-6">
+              <div class="v-window v-theme--light">
+                <div class="v-window__container">
+                  <transition-stub name="" appear="false" persisted="false" css="true">
+                    <div class="v-window-item v-window-item--active" style="">
+                      <p> This action will enable local authentication to this user and generate a new password. Do you want to enable? </p>
+                    </div>
+                  </transition-stub>
+                  <transition-stub name="" appear="false" persisted="false" css="true">
+                    <div class="v-window-item" style="display: none;">
+                      <!---->
+                    </div>
+                  </transition-stub>
+                  <!---->
+                </div>
+                <!---->
+              </div>
+            </div><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-spacer"></div><button type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="cancel-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator="">Cancel</span>
+                  <!---->
+                  <!---->
+                </button><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="enable-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator="">Enable</span>
+                  <!---->
+                  <!---->
+                </button>
+                <!--v-if-->
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
 `;
