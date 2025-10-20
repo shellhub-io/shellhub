@@ -17,7 +17,7 @@
     <v-spacer />
     <div class="d-flex mt-2 mt-md-0">
       <UserExport class="ml-2" data-test="users-export-btn" />
-      <UserFormDialog title-card="Create new user" create-user />
+      <UserFormDialog create-user />
     </div>
   </div>
   <UserList />

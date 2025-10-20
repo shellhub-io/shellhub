@@ -43,7 +43,7 @@
             <span>Info</span>
           </v-tooltip>
 
-          <UserFormDialog titleCard="Edit user" :user="item" />
+          <UserFormDialog :user="item" />
 
           <v-tooltip bottom anchor="bottom">
             <template v-slot:activator="{ props }">

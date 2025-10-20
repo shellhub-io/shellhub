@@ -33,7 +33,7 @@ exports[`UserList > Renders the component 1`] = `
             </td>
             <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-2"></a>
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-3" aria-label="Dialog edit user"></button>
+              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-3"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
