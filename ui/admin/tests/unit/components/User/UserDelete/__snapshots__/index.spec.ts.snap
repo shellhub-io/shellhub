@@ -5,3 +5,18 @@ exports[`User Delete > Renders the component 1`] = `
 <!--teleport start-->
 <!--teleport end-->"
 `;
+
+exports[`User Delete > Renders the component 2`] = `
+"<body>
+  <div class="v-overlay-container">
+    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-0" role="tooltip" bottom="" anchor="bottom">
+      <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
+        <!---->
+      </transition-stub>
+      <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="">
+        <div class="v-overlay__content" style="min-width: 0px; display: none;"><span>Remove</span></div>
+      </transition-stub>
+    </div>
+  </div>
+</body>"
+`;

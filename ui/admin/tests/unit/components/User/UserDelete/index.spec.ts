@@ -1,5 +1,5 @@
 import { createVuetify } from "vuetify";
-import { mount } from "@vue/test-utils";
+import { DOMWrapper, mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useUsersStore from "@admin/store/modules/users";
@@ -10,8 +10,6 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 describe("User Delete", () => {
   setActivePinia(createPinia());
   const usersStore = useUsersStore();
-  const vuetify = createVuetify();
-
   usersStore.deleteUser = vi.fn();
   usersStore.fetchUsersList = vi.fn();
 
@@ -20,25 +18,17 @@ describe("User Delete", () => {
       id: "6256d9e3ea6f26bc595130fa",
       redirect: false,
     },
-    global: {
-      plugins: [vuetify, routes, SnackbarPlugin],
-    },
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+    global: { plugins: [createVuetify(), routes, SnackbarPlugin] },
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Receives props correctly", () => {
     expect(wrapper.vm.id).toBe("6256d9e3ea6f26bc595130fa");
     expect(wrapper.vm.redirect).toBe(false);
-  });
-
-  it("Dialog should be false by default", () => {
-    expect(wrapper.vm.showDialog).toBe(false);
   });
 });
