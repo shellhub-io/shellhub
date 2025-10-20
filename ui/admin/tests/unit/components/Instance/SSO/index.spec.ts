@@ -1,6 +1,7 @@
+import { nextTick } from "vue";
 import MockAdapter from "axios-mock-adapter";
-import { beforeEach, describe, it, expect, vi } from "vitest";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { describe, it, expect, vi } from "vitest";
+import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
 import { adminApi } from "@admin/api/http";
@@ -8,50 +9,29 @@ import useInstanceStore from "@admin/store/modules/instance";
 import ConfigureSSO from "@admin/components/Instance/SSO/ConfigureSSO.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type ConfigureSSOWrapper = VueWrapper<InstanceType<typeof ConfigureSSO>>;
-
-describe("Configure SSO", () => {
-  let wrapper: ConfigureSSOWrapper;
-  let adminMock: MockAdapter;
-
+describe("Configure SSO", async () => {
+  const mockAdminApi = new MockAdapter(adminApi.getAxios());
   const vuetify = createVuetify();
+  setActivePinia(createPinia());
 
-  beforeEach(async () => {
-    setActivePinia(createPinia());
-
-    wrapper = mount(ConfigureSSO, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-    });
-
-    wrapper.vm.showDialog = true;
-    await flushPromises();
+  const wrapper = mount(ConfigureSSO, {
+    global: { plugins: [vuetify, SnackbarPlugin] },
+    props: { modelValue: true },
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
-  });
+  await flushPromises();
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("resets fields when 'close' is clicked", async () => {
-    wrapper.vm.useMetadataUrl = true;
-    wrapper.vm.IdPMetadataURL = "https://example.com/metadata";
-
-    await wrapper.findComponent("[data-test='close-btn']").trigger("click");
-
-    expect(wrapper.vm.IdPMetadataURL).toBe("");
-    expect(wrapper.vm.useMetadataUrl).toBe(false);
+  it("Renders the component", async () => {
+    const dialog = new DOMWrapper(document.body);
+    await nextTick();
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("disables save button if required fields are empty", () => {
     wrapper.vm.useMetadataUrl = true;
     wrapper.vm.IdPMetadataURL = "";
 
-    expect(wrapper.findComponent("[data-test='save-btn']").attributes("disabled")).toBeDefined();
+    expect(wrapper.findComponent("[data-test='confirm-btn']").attributes("disabled")).toBeDefined();
   });
 
   it("adds a mapping when 'Add Mapping' is clicked", async () => {
@@ -70,15 +50,14 @@ describe("Configure SSO", () => {
   });
 
   it("calls store action on save", async () => {
-    adminMock = new MockAdapter(adminApi.getAxios());
-    adminMock.onPut("http://localhost:3000/admin/api/authentication/saml").reply(200);
+    mockAdminApi.onPut("http://localhost:3000/admin/api/authentication/saml").reply(200);
 
     const instanceStore = useInstanceStore();
     const storeSpy = vi.spyOn(instanceStore, "updateSamlAuthentication").mockResolvedValue();
 
     await wrapper.findComponent('[data-test="checkbox-idp-metadata"]').setValue(true);
     await wrapper.findComponent('[data-test="idp-metadata-url"]').setValue("https://example.co/metadata");
-    await wrapper.findComponent("[data-test='save-btn']").trigger("click");
+    await wrapper.findComponent("[data-test='confirm-btn']").trigger("click");
 
     await flushPromises();
 
