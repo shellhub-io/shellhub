@@ -5,7 +5,6 @@
     class="mr-2"
     color="primary"
     tabindex="0"
-    aria-label="Dialog Add user"
     data-test="user-add-btn"
     text="Add User"
   />
@@ -18,129 +17,117 @@
         dark
         v-bind="props"
         tabindex="0"
-        aria-label="Dialog edit user"
-      >mdi-pencil
-      </v-icon>
+        icon="mdi-pencil"
+      />
     </template>
     <span>Edit</span>
   </v-tooltip>
 
-  <BaseDialog v-model="showDialog" @close="close" transition="dialog-bottom-transition">
-    <v-card>
-      <v-card-title class="text-h5 pb-2">{{ titleCard }}</v-card-title>
-      <v-divider />
-      <form @submit="onSubmit">
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-container>
-                  <v-text-field
-                    v-model="name"
-                    label="Name"
-                    required
-                    :error-messages="nameError"
-                    color="primary"
-                    variant="underlined"
-                  />
-                  <v-text-field
-                    v-model="username"
-                    label="Username"
-                    required
-                    :error-messages="usernameError"
-                    color="primary"
-                    variant="underlined"
-                  />
-                  <v-text-field
-                    v-model="email"
-                    label="Email"
-                    required
-                    name="email"
-                    :error-messages="emailError"
-                    color="primary"
-                    variant="underlined"
-                  />
-                  <v-text-field
-                    v-model="password"
-                    label="Password"
-                    :required="createUser"
-                    name="password"
-                    :error-messages="passwordError"
-                    color="primary"
-                    variant="underlined"
-                    :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                    @click:append-inner="togglePasswordVisibility"
-                    :type="showPassword ? 'text' : 'password'"
-                  />
-                  <v-checkbox
-                    v-model="changeNamespaceLimit"
-                    label="Change the namespace creation limit for this user"
-                    color="primary"
-                    class="ml-n2"
-                  />
-                  <v-checkbox
-                    v-if="changeNamespaceLimit"
-                    v-model="disableNamespaceCreation"
-                    label="Disable namespace creation"
-                    color="primary"
-                    class="ml-n2"
-                    @change="setMaxNamespaces"
-                  />
-                  <v-number-input
-                    v-if="changeNamespaceLimit"
-                    :disabled="disableNamespaceCreation"
-                    v-model="maxNamespaces"
-                    label="Namespace limit"
-                    :min="1"
-                    class="ml-n2"
-                    color="primary"
-                    variant="outlined"
-                  />
-                  <v-tooltip location="bottom" class="text-center" :disabled="canChangeStatus">
-                    <template v-slot:activator="{ props }">
-                      <div v-bind="props">
-                        <v-checkbox
-                          v-if="!createUser"
-                          label="User confirmed"
-                          v-model="isConfirmed"
-                          :disabled="!canChangeStatus"
-                          density="compact"
-                          hide-details
-                          color="primary"
-                        />
-                      </div>
-                    </template>
-                    <span>{{ statusTooltipMessage }}</span>
-                  </v-tooltip>
-                </v-container>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-card-actions class="pa-4">
-          <v-spacer />
-          <v-btn class="mr-2" @click="close" type="reset">Cancel</v-btn>
-          <v-btn class="mr-2" color="primary" type="submit">{{ createUser ? "Create" : "Update" }}</v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    :title="`${createUser ? 'Add new' : 'Edit'} user`"
+    icon="mdi-account"
+    icon-color="primary"
+    :confirm-text="createUser ? 'Create' : 'Update'"
+    cancel-text="Cancel"
+    @confirm="submitForm"
+    @cancel="close"
+    @close="close"
+  >
+    <v-card-text class="pa-6">
+      <v-text-field
+        v-model="name"
+        label="Name"
+        required
+        :error-messages="nameError"
+        color="primary"
+      />
+      <v-text-field
+        v-model="username"
+        label="Username"
+        required
+        :error-messages="usernameError"
+        color="primary"
+      />
+      <v-text-field
+        v-model="email"
+        label="Email"
+        required
+        name="email"
+        :error-messages="emailError"
+        color="primary"
+      />
+      <v-text-field
+        v-model="password"
+        label="Password"
+        :required="createUser"
+        name="password"
+        :error-messages="passwordError"
+        color="primary"
+        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+        @click:append-inner="togglePasswordVisibility"
+        :type="showPassword ? 'text' : 'password'"
+      />
+      <v-checkbox
+        v-model="changeNamespaceLimit"
+        @update:model-value="disableNamespaceCreation = false"
+        label="Change the namespace creation limit for this user"
+        color="primary"
+        density="compact"
+        hide-details
+      />
+      <v-checkbox
+        v-if="changeNamespaceLimit"
+        v-model="disableNamespaceCreation"
+        label="Disable namespace creation"
+        color="primary"
+        class="mb-3"
+        density="compact"
+        hide-details
+        @update:model-value="setMaxNamespaces"
+      />
+      <v-number-input
+        v-if="changeNamespaceLimit"
+        :disabled="disableNamespaceCreation"
+        v-model="maxNamespaces"
+        label="Namespace limit"
+        :min="1"
+        color="primary"
+        variant="outlined"
+      />
+      <v-tooltip location="bottom" class="text-center" :disabled="canChangeStatus">
+        <template v-slot:activator="{ props }">
+          <div v-bind="props">
+            <v-checkbox
+              v-if="!createUser"
+              label="User confirmed"
+              v-model="isConfirmed"
+              :disabled="!canChangeStatus"
+              density="compact"
+              hide-details
+              color="primary"
+            />
+          </div>
+        </template>
+        <span>{{ statusTooltipMessage }}</span>
+      </v-tooltip>
+    </v-card-text>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
 import useUsersStore from "@admin/store/modules/users";
 import { IAdminUser, IAdminUserFormData } from "@admin/interfaces/IUser";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 
 const props = defineProps<{
   createUser?: boolean;
   user?: IAdminUser;
-  titleCard: string;
 }>();
 
 const showDialog = ref(false);
@@ -204,15 +191,15 @@ const togglePasswordVisibility = () => {
 };
 
 const setMaxNamespaces = () => {
-  maxNamespaces.value = disableNamespaceCreation.value ? 0 : maxNamespaces.value;
+  maxNamespaces.value = disableNamespaceCreation.value ? 0 : 1;
 };
 
 const { handleSubmit } = useForm<IAdminUser>();
 
 const handleErrors = (error: AxiosError) => {
   if (!error.response?.data) return;
-
   const errorFields = error.response.data as string[];
+
   errorFields.forEach((field) => {
     switch (field) {
       case "username":
@@ -227,8 +214,7 @@ const handleErrors = (error: AxiosError) => {
       case "password":
         passwordError.value = "This password is invalid!";
         break;
-      default:
-        break;
+      default: break;
     }
   });
 };
@@ -273,7 +259,7 @@ const prepareUserData = () => ({
 
 const validateErrors = (): boolean => !nameError.value && !emailError.value && !usernameError.value;
 
-const onSubmit = handleSubmit(async () => {
+const submitForm = handleSubmit(async () => {
   if (validateErrors()) {
     const userData = prepareUserData();
     await submitUser(!!props.createUser, userData);
@@ -286,14 +272,6 @@ const close = () => {
   showDialog.value = false;
   resetFormFields();
 };
-
-watch(changeNamespaceLimit, (newValue) => {
-  if (!newValue) disableNamespaceCreation.value = false;
-});
-
-watch(disableNamespaceCreation, (newValue) => {
-  if (!newValue) maxNamespaces.value = 1;
-});
 
 defineExpose({
   showDialog,

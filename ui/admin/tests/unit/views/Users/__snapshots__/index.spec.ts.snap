@@ -51,7 +51,7 @@ exports[`Users > Renders the component 1`] = `
       <!---->
     </button>
     <!---->
-    <!----><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-2" aria-label="Dialog Add user" data-test="user-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <!----><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated mr-2" data-test="user-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator="">Add User</span>
       <!---->
       <!---->
