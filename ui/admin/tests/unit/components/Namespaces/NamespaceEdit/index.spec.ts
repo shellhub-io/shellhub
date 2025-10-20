@@ -1,13 +1,11 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import NamespaceEdit from "@admin/components/Namespace/NamespaceEdit.vue";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
-
-type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
 
 const namespace = {
   billing: {
@@ -46,31 +44,23 @@ const mockSnackbar = {
 };
 
 describe("Namespace Edit", () => {
-  let wrapper: NamespaceEditWrapper;
   setActivePinia(createPinia());
   const namespacesStore = useNamespacesStore();
-  const vuetify = createVuetify();
   namespacesStore.updateNamespace = vi.fn();
   namespacesStore.fetchNamespaceList = vi.fn();
 
-  beforeEach(() => {
-    wrapper = mount(NamespaceEdit, {
-      global: {
-        plugins: [vuetify],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: {
-        namespace: namespace as IAdminNamespace,
-      },
-    });
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+  const wrapper = mount(NamespaceEdit, {
+    global: {
+      plugins: [createVuetify()],
+      provide: { [SnackbarInjectionKey]: mockSnackbar },
+    },
+    props: { namespace: namespace as IAdminNamespace },
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Has the correct initial data", () => {
@@ -80,7 +70,7 @@ describe("Namespace Edit", () => {
   });
 
   it("Calls namespace store and snackbar on form submission", async () => {
-    wrapper.vm.onSubmit();
+    wrapper.vm.submitForm();
     await flushPromises();
     expect(namespacesStore.updateNamespace).toHaveBeenCalled();
     expect(namespacesStore.fetchNamespaceList).toHaveBeenCalled();
