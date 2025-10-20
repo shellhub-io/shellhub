@@ -39,7 +39,7 @@ exports[`UserList > Renders the component 1`] = `
               <!---->
               <!----><a class="mdi-login mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-4"></a>
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-account-lock-open mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-5" data-test="open-dialog-icon"></button>
+              <!--teleport end--><button class="mdi-account-lock-open mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-5" data-test="open-dialog-icon"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
