@@ -9,76 +9,60 @@
         tabindex="0"
         aria-label="Edit Namespace"
         data-test="dialog-btn"
-      >mdi-pencil
-      </v-icon>
+        icon="mdi-pencil"
+      />
     </template>
     <span>Edit</span>
   </v-tooltip>
 
-  <BaseDialog v-model="showDialog" transition="dialog-bottom-transition">
-    <v-card>
-      <v-card-title class="text-h5 pb-2"> Edit Namespace </v-card-title>
-      <v-divider />
-
-      <form @submit.prevent="onSubmit">
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-container>
-                  <v-text-field
-                    v-model="name"
-                    label="Name"
-                    required
-                    :error-messages="nameError"
-                    color="primary"
-                    variant="underlined"
-                    data-test="name-text"
-                  />
-
-                  <v-text-field
-                    v-model="maxDevices"
-                    label="Maximum Devices"
-                    required
-                    type="number"
-                    :min="-1"
-                    :error-messages="maxDevicesError"
-                    color="primary"
-                    variant="underlined"
-                    data-test="maxDevices-text"
-                  />
-                  <div class="d-flex align-center justify-center">
-                    <span class="mr-4 text-body-1">Session record:</span>
-                    <v-switch
-                      v-model="sessionRecord"
-                      :error-messages="sessionRecordError"
-                      color="primary"
-                      hide-details
-                    />
-                  </div>
-                </v-container>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-card-actions class="pa-4">
-          <v-spacer />
-          <v-btn class="mr-2" @click="showDialog = false" type="reset"> Cancel </v-btn>
-          <v-btn color="primary" type="submit" class="mr-4"> Save </v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </BaseDialog>
+  <FormDialog
+    v-model="showDialog"
+    title="Edit Namespace"
+    icon="mdi-folder-edit"
+    icon-color="primary"
+    confirm-text="Save"
+    cancel-text="Cancel"
+    :confirm-disabled="!!hasErrors"
+    @close="closeDialog"
+    @confirm="submitForm"
+    @cancel="closeDialog"
+  >
+    <v-card-text class="pa-6">
+      <v-text-field
+        v-model="name"
+        label="Name"
+        required
+        :error-messages="nameError"
+        data-test="name-text"
+      />
+      <v-text-field
+        v-model="maxDevices"
+        label="Maximum Devices"
+        required
+        type="number"
+        :min="-1"
+        :error-messages="maxDevicesError"
+        data-test="maxDevices-text"
+      />
+      <v-switch
+        v-model="sessionRecord"
+        :error-messages="sessionRecordError"
+        color="primary"
+        hide-details
+        label="Session Record"
+      />
+    </v-card-text>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import * as yup from "yup";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminNamespace } from "../../interfaces/INamespace";
-import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 
 const props = defineProps<{ namespace: IAdminNamespace }>();
 
@@ -86,28 +70,36 @@ const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
 const showDialog = ref(false);
 
-const { value: name, errorMessage: nameError } = useField<string | undefined>(
+const { value: name, errorMessage: nameError, resetField: resetName } = useField<string | undefined>(
   "name",
   yup.string().required(),
   { initialValue: props.namespace.name },
 );
 
-const { value: maxDevices, errorMessage: maxDevicesError } = useField<number | undefined>(
+const { value: maxDevices, errorMessage: maxDevicesError, resetField: resetMaxDevices } = useField<number | undefined>(
   "maxDevices",
   yup.number().required(),
   { initialValue: props.namespace.max_devices },
 );
 
-const { value: sessionRecord, errorMessage: sessionRecordError } = useField<boolean>(
+const { value: sessionRecord, errorMessage: sessionRecordError, resetField: resetSessionRecord } = useField<boolean>(
   "sessionRecord",
   yup.boolean(),
   { initialValue: props.namespace.settings.session_record || false },
 );
 
-const hasErrors = () => nameError.value || maxDevicesError.value || sessionRecordError.value;
+const hasErrors = computed(() => nameError.value || maxDevicesError.value || sessionRecordError.value);
 
-const onSubmit = async () => {
-  if (!hasErrors()) {
+const closeDialog = () => {
+  showDialog.value = false;
+  resetName();
+  resetMaxDevices();
+  resetSessionRecord();
+};
+
+const submitForm = async () => {
+  if (hasErrors.value) return;
+  try {
     await namespacesStore.updateNamespace({
       ...props.namespace as IAdminNamespace,
       name: name.value as string,
@@ -117,10 +109,10 @@ const onSubmit = async () => {
     await namespacesStore.fetchNamespaceList();
     snackbar.showSuccess("Namespace updated successfully.");
     showDialog.value = false;
-  } else {
-    snackbar.showError("Please fill in all required fields.");
+  } catch (error) {
+    snackbar.showError("Failed to update namespace.");
   }
 };
 
-defineExpose({ name, maxDevices, sessionRecord, onSubmit });
+defineExpose({ name, maxDevices, sessionRecord, submitForm });
 </script>
