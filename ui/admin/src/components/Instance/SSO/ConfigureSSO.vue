@@ -1,176 +1,177 @@
 <template>
-  <BaseDialog v-model="showDialog" @close="close">
-    <v-card-title class="text-h5 pb-2" data-test="dialog-title">Configure Single Sign-on</v-card-title>
-    <v-card-text>
-      <v-form>
-        <v-checkbox
-          v-model="useMetadataUrl"
-          label="Use IDP Metadata URL"
-          data-test="checkbox-idp-metadata"
-          hide-details
+  <FormDialog
+    v-model="showDialog"
+    title="Configure Single Sign-on"
+    icon="mdi-shield-account"
+    icon-color="primary"
+    confirm-text="Save Configuration"
+    cancel-text="Close"
+    :confirm-disabled="hasErrors"
+    @confirm="updateSAMLConfiguration"
+    @cancel="close"
+    @close="close"
+  >
+    <v-card-text class="pa-6 pt-4">
+      <v-checkbox
+        v-model="useMetadataUrl"
+        label="Use IDP Metadata URL"
+        data-test="checkbox-idp-metadata"
+        hide-details
+      />
+      <v-text-field
+        v-model="IdPMetadataURL"
+        density="compact"
+        v-if="useMetadataUrl"
+        :error-messages="IdPMetadataURLError"
+        class="mb-4 pt-0"
+        label="IDP Metadata URL"
+        hint="Found in your identity provider's SAML app settings. Alternative to manual configuration"
+        persistent-hint
+        variant="underlined"
+        required
+        data-test="idp-metadata-url"
+      />
+      <div v-else data-test="idp-manual-section">
+        <v-alert
+          type="warning"
+          class="mb-4"
+          data-test="manual-config-info"
+          v-if="!isAtLeastOneUrlValid()"
+        >
+          You need to provide at least one of the following URLs: POST URL or Redirect URL.
+        </v-alert>
+        <v-text-field
+          v-model="postUrl"
+          :error-messages="postUrlError"
+          label="IdP SignOn POST URL"
+          hint="SAML sign-on URL from your IdP console or metadata (HTTP-POST binding)"
+          class="mb-2"
+          variant="underlined"
+          :required="!redirectUrl"
+          data-test="idp-signon-post-url"
         />
         <v-text-field
-          v-model="IdPMetadataURL"
-          density="compact"
-          v-if="useMetadataUrl"
-          :error-messages="IdPMetadataURLError"
-          class="mb-4 pt-0"
-          label="IDP Metadata URL"
-          hint="Found in your identity provider's SAML app settings. Alternative to manual configuration"
-          persistent-hint
+          v-model="redirectUrl"
+          :error-messages="redirectUrlError"
+          label="IdP SignOn Redirect URL"
+          hint="SAML sign-on URL from your IdP console or metadata (HTTP-Redirect binding)"
+          class="mb-2"
+          variant="underlined"
+          :required="!postUrl"
+          data-test="idp-signon-redirect-url"
+        />
+        <v-text-field
+          v-model="entityID"
+          label="IdP Entity ID"
+          hint="Issuer/Entity ID from your IdP's SAML configuration"
+          variant="underlined"
+          class="mb-2"
+          required
+          data-test="idp-entity-id"
+        />
+        <v-textarea
+          :model-value="x509Certificate"
+          @update:model-value="handleCertificateChange"
+          label="IdP X.509 Certificate"
+          hint="Public certificate used by IdP to sign SAML responses. Found in IdP console or metadata"
+          class="mb-3"
           variant="underlined"
           required
-          data-test="idp-metadata-url"
+          data-test="idp-x509-certificate"
+          :error-messages="x509CertificateErrorMessage"
         />
-        <div v-else data-test="idp-manual-section">
-          <v-alert
-            type="warning"
-            class="mb-4"
-            data-test="manual-config-info"
-            v-if="!isAtLeastOneUrlValid()"
-          >
-            You need to provide at least one of the following URLs: POST URL or Redirect URL.
-          </v-alert>
-          <v-text-field
-            v-model="postUrl"
-            :error-messages="postUrlError"
-            label="IdP SignOn POST URL"
-            hint="SAML sign-on URL from your IdP console or metadata (HTTP-POST binding)"
-            class="mb-2"
-            variant="underlined"
-            :required="!redirectUrl"
-            data-test="idp-signon-post-url"
-          />
-          <v-text-field
-            v-model="redirectUrl"
-            :error-messages="redirectUrlError"
-            label="IdP SignOn Redirect URL"
-            hint="SAML sign-on URL from your IdP console or metadata (HTTP-Redirect binding)"
-            class="mb-2"
-            variant="underlined"
-            :required="!postUrl"
-            data-test="idp-signon-redirect-url"
-          />
-          <v-text-field
-            v-model="entityID"
-            label="IdP Entity ID"
-            hint="Issuer/Entity ID from your IdP's SAML configuration"
-            variant="underlined"
-            class="mb-2"
-            required
-            data-test="idp-entity-id"
-          />
-          <v-textarea
-            :model-value="x509Certificate"
-            @update:model-value="handleCertificateChange"
-            label="IdP X.509 Certificate"
-            hint="Public certificate used by IdP to sign SAML responses. Found in IdP console or metadata"
-            class="mb-3"
-            variant="underlined"
-            required
-            data-test="idp-x509-certificate"
-            :error-messages="x509CertificateErrorMessage"
-          />
-        </div>
-        <v-expansion-panels elevation="0">
-          <v-expansion-panel>
-            <v-expansion-panel-title data-test="advanced-settings-title">Advanced Settings</v-expansion-panel-title>
-            <v-expansion-panel-text>
-              <v-data-table
-                :items="mappings"
-                item-value="key"
-                density="compact"
-                disable-sort
-                hide-default-footer
-                data-test="saml-mappings-table"
-              >
-                <template v-slot:top>
-                  <v-row class="justify-space-between align-center mb-3">
-                    <h3>SAML Mappings</h3>
+      </div>
+      <v-expansion-panels elevation="0">
+        <v-expansion-panel class="bg-background border">
+          <v-expansion-panel-title data-test="advanced-settings-title">Advanced Settings</v-expansion-panel-title>
+          <v-expansion-panel-text>
+            <v-data-table
+              class="bg-background"
+              :items="mappings"
+              item-value="key"
+              density="compact"
+              disable-sort
+              hide-default-footer
+              data-test="saml-mappings-table"
+            >
+              <template v-slot:top>
+                <v-row class="justify-space-between align-center mb-3">
+                  <h3>SAML Mappings</h3>
+                  <v-btn
+                    color="primary"
+                    :disabled="mappings.length >= 2"
+                    @click="addMapping"
+                    data-test="add-mapping-btn"
+                  >
+                    Add Mapping
+                  </v-btn>
+                </v-row>
+                <p class="mb-3">Maps SAML attributes to user fields.</p>
+              </template>
+              <template v-slot:headers>
+                <tr>
+                  <th v-for="(header, i) in tableHeaders" :key="i" :class="`text-${header.align}`">
+                    <span>{{ header.text }}</span>
+                  </th>
+                </tr>
+              </template>
+              <template v-slot:item="{ item, index }">
+                <tr>
+                  <td>
+                    <v-select
+                      :items="getSelectableKeys(index)"
+                      hide-details
+                      :model-value="item.key"
+                      @update:model-value="(newKey) => handleKeyChange(index, newKey)"
+                      variant="outlined"
+                      density="compact"
+                      placeholder="Select Key"
+                      :menu-props="{ closeOnContentClick: false }"
+                      data-test="saml-mapping-key"
+                    />
+                  </td>
+                  <td>
+                    <v-text-field
+                      class="py-4"
+                      hide-details
+                      v-model="item.value"
+                      placeholder="Value"
+                      density="compact"
+                      variant="outlined"
+                      data-test="saml-mapping-value"
+                    />
+                  </td>
+                  <td class="text-center">
                     <v-btn
-                      color="primary"
-                      :disabled="mappings.length >= 2"
-                      @click="addMapping"
-                      data-test="add-mapping-btn"
-                    >
-                      Add Mapping
-                    </v-btn>
-                  </v-row>
-                  <p class="mb-3">Maps SAML attributes to user fields.</p>
-                </template>
-                <template v-slot:headers>
-                  <tr>
-                    <th v-for="(header, i) in tableHeaders" :key="i" :class="`text-${header.align}`">
-                      <span>{{ header.text }}</span>
-                    </th>
-                  </tr>
-                </template>
-                <template v-slot:item="{ item, index }">
-                  <tr>
-                    <td>
-                      <v-select
-                        :items="getSelectableKeys(index)"
-                        hide-details
-                        :model-value="item.key"
-                        @update:model-value="(newKey) => handleKeyChange(index, newKey)"
-                        variant="outlined"
-                        density="compact"
-                        placeholder="Select Key"
-                        :menu-props="{ closeOnContentClick: false }"
-                        data-test="saml-mapping-key"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        class="py-4"
-                        hide-details
-                        v-model="item.value"
-                        placeholder="Value"
-                        density="compact"
-                        variant="outlined"
-                        data-test="saml-mapping-value"
-                      />
-                    </td>
-                    <td class="text-center">
-                      <v-btn
-                        color="red"
-                        icon="mdi-delete"
-                        size="small"
-                        elevation="0"
-                        @click="removeMapping(index)"
-                        data-test="remove-mapping-btn"
-                      />
-                    </td>
-                  </tr>
-                </template>
-              </v-data-table>
-              <v-tooltip location="bottom" contained offset="-10">
-                <template v-slot:activator="{ props }">
-                  <v-checkbox
-                    v-bind="props"
-                    class="mt-4"
-                    v-model="signRequest"
-                    label="Sign authorization requests"
-                    hide-details
-                    data-test="sign-request-checkbox"
-                  />
-                </template>
-                <span>Allows IdP to verify that SAML requests originated from ShellHub</span>
-              </v-tooltip>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-form>
+                      color="red"
+                      icon="mdi-delete"
+                      size="small"
+                      elevation="0"
+                      @click="removeMapping(index)"
+                      data-test="remove-mapping-btn"
+                    />
+                  </td>
+                </tr>
+              </template>
+            </v-data-table>
+            <v-tooltip location="bottom" contained offset="-10">
+              <template v-slot:activator="{ props }">
+                <v-checkbox
+                  v-bind="props"
+                  class="mt-4"
+                  v-model="signRequest"
+                  label="Sign authorization requests"
+                  hide-details
+                  data-test="sign-request-checkbox"
+                />
+              </template>
+              <span>Allows IdP to verify that SAML requests originated from ShellHub</span>
+            </v-tooltip>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
     </v-card-text>
-    <v-card-actions>
-      <v-btn @click="close()" data-test="close-btn">
-        Close
-      </v-btn>
-      <v-btn :disabled="hasErrors" @click="updateSAMLConfiguration" color="primary" data-test="save-btn">
-        Save Configuration
-      </v-btn>
-    </v-card-actions>
-  </BaseDialog>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -181,11 +182,11 @@ import * as yup from "yup";
 import { IAdminUpdateSAML } from "@admin/interfaces/IInstance";
 import useSnackbar from "@/helpers/snackbar";
 import { isX509CertificateValid } from "@/utils/sshKeys";
-import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 
 const useMetadataUrl = ref(false);
 const signRequest = ref(false);
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const snackbar = useSnackbar();
 const instanceStore = useInstanceStore();
 
