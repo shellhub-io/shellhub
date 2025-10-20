@@ -13,86 +13,52 @@
     <span>Edit</span>
   </v-tooltip>
 
-  <BaseDialog
+  <FormDialog
     v-model="showDialog"
-    persistent
-    :retain-focus="false"
-    :eager="true"
-    transition="dialog-bottom-transition"
+    title="Edit Announcement"
+    icon="mdi-bullhorn"
+    icon-color="primary"
+    confirm-text="Submit"
+    cancel-text="Cancel"
+    @close="showDialog = false"
+    @confirm="onSubmit"
+    @cancel="showDialog = false"
   >
-    <v-card>
-      <v-card-title class="text-h5 pb-2">Edit Announcement</v-card-title>
-      <v-divider />
-      <form @submit.prevent="onSubmit">
-        <v-card-text>
-          <v-container>
-            <v-row>
-              <v-col cols="12">
-                <v-container>
-                  <v-text-field
-                    v-model="title"
-                    label="Title"
-                    required
-                    :error-messages="titleError"
-                    color="primary"
-                    variant="underlined"
-                  />
-
-                  <Editor
-                    :api-key="tinyMceKey"
-                    v-model="contentInHtml"
-                    :init="{
-                      plugins: 'lists link image code help wordcount',
-                      menubar: 'file edit insert view tools help',
-                    }"
-                    toolbar="undo redo | blocks | fontsize image | bold italic link blockquote |
-                      \ bullist numlist | removeformat | help"
-                    data-test="announcement-content"
-                  />
-
-                  <v-alert
-                    v-if="contentError"
-                    type="error"
-                    class="mt-2"
-                    data-test="announcement-error"
-                  >
-                    The announcement cannot be empty!
-                  </v-alert>
-
-                  <v-alert
-                    v-if="tinyMceKeyIsEmpty"
-                    type="warning"
-                    class="mt-2"
-                    data-test="announcement-key-warning"
-                  >
-                    It's recommended to set the TinyMCE key in the .env file.
-                  </v-alert>
-
-                </v-container>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-card-text>
-        <v-divider />
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            text
-            @click="showDialog = false"
-            aria-label="Cancel"
-          >Cancel
-          </v-btn>
-          <v-btn
-            text
-            type="submit"
-            color="primary"
-            aria-label="Edit"
-          >Submit
-          </v-btn>
-        </v-card-actions>
-      </form>
-    </v-card>
-  </BaseDialog>
+    <v-card-text class="pa-6">
+      <v-text-field
+        v-model="title"
+        label="Title"
+        required
+        :error-messages="titleError"
+        color="primary"
+      />
+      <Editor
+        :api-key="tinyMceKey"
+        v-model="contentInHtml"
+        :init="{
+          plugins: 'lists link image code help wordcount',
+          menubar: 'file edit insert view tools help',
+        }"
+        toolbar="undo redo | blocks | fontsize image | bold italic link blockquote |
+                  \ bullist numlist | removeformat | help"
+        data-test="announcement-content"
+      />
+      <v-alert
+        v-if="contentError"
+        type="error"
+        class="mt-2"
+        data-test="announcement-error"
+        text="The announcement cannot be empty!"
+      />
+      <v-alert
+        v-if="isTinyMceKeyEmpty"
+        type="warning"
+        class="mt-2"
+        data-test="announcement-key-warning"
+        text="It's recommended to set the TinyMCE key in the .env file."
+      />
+    </v-card-text>
+  </FormDialog>
 </template>
 
 <script setup lang="ts">
@@ -107,7 +73,7 @@ import { IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncement";
 import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "../../envVariables";
 import handleError from "@/utils/handleError";
-import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 
 const props = defineProps<{ announcementItem: IAdminAnnouncementShort }>();
 
@@ -118,7 +84,7 @@ const showDialog = ref(false);
 const md = new MarkdownIt();
 const turndownService = new TurndownService();
 const tinyMceKey = computed(() => envVariables.tinyMceKey);
-const tinyMceKeyIsEmpty = computed(() => tinyMceKey.value === "");
+const isTinyMceKeyEmpty = computed(() => tinyMceKey.value === "");
 const announcement = computed(() => announcementStore.announcement);
 const contentInHtml = ref("");
 const contentError = ref(false);
