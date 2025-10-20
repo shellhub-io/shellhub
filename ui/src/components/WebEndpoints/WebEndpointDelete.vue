@@ -32,7 +32,7 @@
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 
 defineOptions({ inheritAttrs: false });

@@ -87,7 +87,7 @@ import BillingPayment from "./BillingPayment.vue";
 import BillingCheckout from "./BillingCheckout.vue";
 import BillingSuccessful from "./BillingSuccessful.vue";
 import handleError from "@/utils/handleError";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 import useCustomerStore from "@/store/modules/customer";
 
 const customerStore = useCustomerStore();

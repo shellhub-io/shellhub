@@ -57,7 +57,7 @@ import hasPermission from "@/utils/permission";
 import { capitalizeText } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
 import useNotificationsStore from "@/store/modules/notifications";

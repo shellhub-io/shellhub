@@ -78,7 +78,7 @@ import * as yup from "yup";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminNamespace } from "../../interfaces/INamespace";
-import BaseDialog from "@/components/BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 const props = defineProps<{ namespace: IAdminNamespace }>();
 

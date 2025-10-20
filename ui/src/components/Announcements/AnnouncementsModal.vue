@@ -39,7 +39,7 @@
 import { computed } from "vue";
 import MarkdownIt from "markdown-it";
 import moment from "moment";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 import { IAnnouncement } from "@/interfaces/IAnnouncement";
 
 const props = defineProps<{ announcement: IAnnouncement }>();

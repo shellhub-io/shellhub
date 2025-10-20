@@ -31,7 +31,7 @@
 import { ref } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import usePublicKeysStore from "@/store/modules/public_keys";
 
 const { fingerprint, hasAuthorization } = defineProps<{

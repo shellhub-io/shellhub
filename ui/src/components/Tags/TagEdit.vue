@@ -44,10 +44,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useTagsStore from "@/store/modules/tags";
-import FormDialog from "../FormDialog.vue";
 
 const props = defineProps({
   tagName: { type: String, required: true },

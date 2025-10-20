@@ -3,13 +3,13 @@
 exports[`Recovery Helper > Renders the component 1`] = `
 "<body>
   <div class="v-overlay-container">
-    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-51513c71="">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-0e9a08b3="">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
         <div class="v-overlay__scrim"></div>
       </transition-stub>
       <transition-stub name="dialog-bottom-transition" appear="true" persisted="true" css="true">
         <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
-          <div data-v-51513c71="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+          <div data-v-0e9a08b3="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
             <!---->
             <div class="v-card__loader">
               <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">

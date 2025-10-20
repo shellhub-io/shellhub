@@ -90,7 +90,7 @@ import { computed, ref } from "vue";
 import { useDisplay } from "vuetify";
 import { useMagicKeys } from "@vueuse/core";
 import QuickConnectionList from "./QuickConnectionList.vue";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 
 const showDialog = ref(false);
 const filter = ref("");

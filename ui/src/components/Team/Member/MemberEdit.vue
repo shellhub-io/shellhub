@@ -37,10 +37,10 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import axios from "axios";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import { BasicRole, INamespaceMember } from "@/interfaces/INamespace";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "@/components/FormDialog.vue";
 import RoleSelect from "@/components/Team/RoleSelect.vue";
 import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";

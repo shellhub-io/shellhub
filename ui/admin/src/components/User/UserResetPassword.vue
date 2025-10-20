@@ -72,7 +72,7 @@
 import { ref } from "vue";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
-import BaseDialog from "@/components/BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 const props = defineProps<{ userId: string }>();
 

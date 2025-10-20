@@ -61,7 +61,7 @@ import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { envVariables } from "@/envVariables";
 import NamespaceAdd from "./NamespaceAdd.vue";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 
 const route = useRoute();
 const showDialog = defineModel<boolean>({ default: false });

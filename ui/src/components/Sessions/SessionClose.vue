@@ -38,7 +38,7 @@ import { ref } from "vue";
 import { IDevice } from "@/interfaces/IDevice";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useSessionsStore from "@/store/modules/sessions";
 
 const props = defineProps<{

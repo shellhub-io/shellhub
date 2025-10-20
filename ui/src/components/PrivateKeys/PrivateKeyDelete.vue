@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const props = defineProps<{ id: number }>();

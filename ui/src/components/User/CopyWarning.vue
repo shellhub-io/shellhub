@@ -23,7 +23,7 @@
 import { ref, onMounted } from "vue";
 import { useClipboard, useMagicKeys } from "@vueuse/core";
 import useSnackbar from "@/helpers/snackbar";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 
 const props = defineProps<{
   macro?: string;

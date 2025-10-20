@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import hasPermission from "@/utils/permission";
-import MessageDialog from "../MessageDialog.vue";
+import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useDevicesStore from "@/store/modules/devices";
 
 const devicesStore = useDevicesStore();

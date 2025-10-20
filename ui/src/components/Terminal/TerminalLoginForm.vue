@@ -90,10 +90,10 @@
 import { ref, computed } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import { LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
-import FormDialog from "../FormDialog.vue";
 
 const emit = defineEmits<{
   submit: [formData: LoginFormData];

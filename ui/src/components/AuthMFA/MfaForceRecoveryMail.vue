@@ -55,7 +55,7 @@ import { computed } from "vue";
 import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import WindowDialog from "../WindowDialog.vue";
+import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 import useAuthStore from "@/store/modules/auth";
 import useUsersStore from "@/store/modules/users";
 import { IUserPatch } from "@/interfaces/IUser";

@@ -40,7 +40,7 @@ import { ref } from "vue";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
 import handleError from "@/utils/handleError";
-import BaseDialog from "@/components/BaseDialog.vue";
+import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 const props = defineProps<{ uuid: string }>();
 

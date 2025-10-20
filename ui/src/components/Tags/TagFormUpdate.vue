@@ -98,9 +98,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import axios, { AxiosError } from "axios";
+import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
-import FormDialog from "../FormDialog.vue";
 import useTagsStore from "@/store/modules/tags";
 import type { ITag as StoreTags } from "@/interfaces/ITags";
 
