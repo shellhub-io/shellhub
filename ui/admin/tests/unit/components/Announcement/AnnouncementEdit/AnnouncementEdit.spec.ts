@@ -1,13 +1,18 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper, mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import AnnouncementEdit from "@admin/components/Announcement/AnnouncementEdit.vue";
-import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type AnnouncementEditWrapper = VueWrapper<InstanceType<typeof AnnouncementEdit>>;
+vi.mock("@tinymce/tinymce-vue", () => ({
+  default: {
+    name: "Editor",
+    template: '<div class="tinymce-mock"><textarea v-model="modelValue"></textarea></div>',
+    props: ["modelValue", "init", "apiKey"],
+  },
+}));
 
 const shortAnnouncement = {
   uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
@@ -21,30 +26,17 @@ const announcement = {
 };
 
 describe("Announcement Edit", () => {
-  const vuetify = createVuetify();
-  let wrapper: AnnouncementEditWrapper;
+  setActivePinia(createPinia());
+  const announcementStore = useAnnouncementStore();
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const announcementStore = useAnnouncementStore();
-
+  announcementStore.announcement = announcement;
+  vi.spyOn(announcementStore, "fetchAnnouncement").mockImplementation(async () => {
     announcementStore.announcement = announcement;
-    vi.spyOn(announcementStore, "fetchAnnouncement").mockImplementation(async () => {
-      announcementStore.announcement = announcement;
-    });
-
-    wrapper = mount(AnnouncementEdit, {
-      global: {
-        plugins: [vuetify, routes, SnackbarPlugin],
-      },
-      props: {
-        announcementItem: shortAnnouncement,
-      },
-    });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+  const wrapper = mount(AnnouncementEdit, {
+    global: { plugins: [createVuetify(), SnackbarPlugin] },
+    props: { announcementItem: shortAnnouncement },
   });
 
   it("Renders the component", () => {
@@ -68,5 +60,7 @@ describe("Announcement Edit", () => {
     await editButton.trigger("click");
 
     expect(wrapper.vm.showDialog).toBe(true);
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
   });
 });

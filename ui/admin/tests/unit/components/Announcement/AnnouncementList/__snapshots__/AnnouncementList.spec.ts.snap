@@ -31,8 +31,7 @@ exports[`Announcement List > Renders the component 1`] = `
               <!--teleport start-->
               <!--teleport end-->
               <!---->
-              <!--teleport start-->
-              <!--teleport end--><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-9" data-test="delete-button"></button>
+              <!----><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-4" data-test="delete-button"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
@@ -49,14 +48,13 @@ exports[`Announcement List > Renders the component 1`] = `
             </td>
             <td data-test="announcement-title">Announcement 2</td>
             <td>December 15, 2022</td>
-            <td data-test="announcement-actions"><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-12"></a>
+            <td data-test="announcement-actions"><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-7"></a>
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-13" data-test="edit-button"></button>
+              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-8" data-test="edit-button"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
-              <!--teleport start-->
-              <!--teleport end--><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-19" data-test="delete-button"></button>
+              <!----><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-9" data-test="delete-button"></button>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
@@ -74,7 +72,7 @@ exports[`Announcement List > Renders the component 1`] = `
       <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
         <!---->
         <div class="v-input__control">
-          <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-20">
+          <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-10">
             <div class="v-field__overlay"></div>
             <div class="v-field__loader">
               <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -98,7 +96,7 @@ exports[`Announcement List > Renders the component 1`] = `
               <div class="v-field__input" data-no-activator="">
                 <!---->
                 <!---->
-                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-22" aria-expanded="false" aria-controls="menu-v-20" outlined="" value="10">
+                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="text" id="input-v-12" aria-expanded="false" aria-controls="menu-v-10" outlined="" value="10">
               </div>
               <!---->
             </div>
