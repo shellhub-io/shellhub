@@ -8,5 +8,5 @@ import (
 
 type SystemStore interface {
 	SystemGet(ctx context.Context) (*models.System, error)
-	SystemSet(ctx context.Context, key string, value any) error
+	SystemSet(ctx context.Context, system *models.System) error
 }

@@ -302,18 +302,16 @@ func TestSetup(t *testing.T) {
 				Password: "secret",
 			},
 			requiredMocks: func() {
-				storeMock.On("SystemGet", ctx).Return(&models.System{
-					Setup: false,
-				}, nil).Once()
+				initialSystem := &models.System{Setup: false}
+				finalSystem := &models.System{Setup: true}
 
-				clockMock.On("Now").Return(now).Twice()
-				uuidMock := &uuidmock.Uuid{}
-				uuidMock.On("Generate").Return("random_uuid").Once()
+				storeMock.On("SystemGet", ctx).Return(initialSystem, nil).Once()
 
-				hashMock.
-					On("Do", "secret").
+				hashMock.On("Do", "secret").
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
+
+				clockMock.On("Now").Return(now).Twice()
 
 				user := &models.User{
 					Origin:    models.UserOriginLocal,
@@ -356,10 +354,8 @@ func TestSetup(t *testing.T) {
 					},
 					CreatedAt: now,
 				}
-				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
 				storeMock.On("NamespaceCreate", ctx, namespace).Return(tenant, nil).Once()
-
-				storeMock.On("SystemSet", ctx, "setup", true).Return(nil).Once()
+				storeMock.On("SystemSet", ctx, finalSystem).Return(nil).Once()
 			},
 			expected: nil,
 		},

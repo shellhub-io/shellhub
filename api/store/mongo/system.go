@@ -40,22 +40,15 @@ func (s *Store) SystemGet(ctx context.Context) (*models.System, error) {
 	return system, nil
 }
 
-func (s *Store) SystemSet(ctx context.Context, key string, value any) error {
+func (s *Store) SystemSet(ctx context.Context, system *models.System) error {
 	upsert := true
-
-	_, err := s.db.Collection(SystemCollection).UpdateOne(ctx, bson.M{}, bson.M{
-		"$set": bson.M{
-			key: value,
-		},
-	}, &options.UpdateOptions{
-		Upsert: &upsert,
-	})
+	_, err := s.db.Collection(SystemCollection).UpdateOne(ctx, bson.M{}, bson.M{"$set": system}, &options.UpdateOptions{Upsert: &upsert})
 	if err != nil {
 		return FromMongoError(err)
 	}
 
 	if err := s.cache.Delete(ctx, SystemCollection); err != nil {
-		log.WithField(SystemCollection, key).Warn("failed to delete system from cache")
+		log.WithField("system", system).Warn("failed to delete system from cache")
 	}
 
 	return nil

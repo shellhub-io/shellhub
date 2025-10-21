@@ -26,7 +26,8 @@ type SetupService interface {
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) error {
-	if system, err := s.store.SystemGet(ctx); err != nil || system.Setup {
+	system, err := s.store.SystemGet(ctx)
+	if err != nil || system.Setup {
 		return NewErrSetupForbidden(err)
 	}
 
@@ -98,7 +99,8 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		return NewErrNamespaceDuplicated(err)
 	}
 
-	if err := s.store.SystemSet(ctx, "setup", true); err != nil { //nolint:revive
+	system.Setup = true
+	if err := s.store.SystemSet(ctx, system); err != nil {
 		return err
 	}
 

@@ -1319,17 +1319,17 @@ func (_m *Store) SystemGet(ctx context.Context) (*models.System, error) {
 	return r0, r1
 }
 
-// SystemSet provides a mock function with given fields: ctx, key, value
-func (_m *Store) SystemSet(ctx context.Context, key string, value interface{}) error {
-	ret := _m.Called(ctx, key, value)
+// SystemSet provides a mock function with given fields: ctx, system
+func (_m *Store) SystemSet(ctx context.Context, system *models.System) error {
+	ret := _m.Called(ctx, system)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SystemSet")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, interface{}) error); ok {
-		r0 = rf(ctx, key, value)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.System) error); ok {
+		r0 = rf(ctx, system)
 	} else {
 		r0 = ret.Error(0)
 	}

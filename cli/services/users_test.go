@@ -185,8 +185,11 @@ func TestUserCreate(t *testing.T) {
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
+
 				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
-				mock.On("SystemSet", ctx, "setup", true).Return(nil).Once()
+
+				mock.On("SystemGet", ctx).Return(&models.System{Setup: false}, nil).Once()
+				mock.On("SystemSet", ctx, &models.System{Setup: true}).Return(nil).Once()
 			},
 			expected: Expected{&models.User{
 				Origin: models.UserOriginLocal,
