@@ -184,11 +184,16 @@ func TestPublicKeyList(t *testing.T) {
 }
 
 func TestPublicKeyCreate(t *testing.T) {
+	type Expected struct {
+		fingerprint string
+		err         error
+	}
+
 	cases := []struct {
 		description string
 		key         *models.PublicKey
 		fixtures    []string
-		expected    error
+		expected    Expected
 	}{
 		{
 			description: "succeeds when data is valid",
@@ -199,7 +204,7 @@ func TestPublicKeyCreate(t *testing.T) {
 				PublicKeyFields: models.PublicKeyFields{Name: "public_key", Filter: models.PublicKeyFilter{Hostname: ".*"}},
 			},
 			fixtures: []string{},
-			expected: nil,
+			expected: Expected{fingerprint: "fingerprint", err: nil},
 		},
 	}
 
@@ -212,8 +217,8 @@ func TestPublicKeyCreate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.PublicKeyCreate(ctx, tc.key)
-			assert.Equal(t, tc.expected, err)
+			fingerprint, err := s.PublicKeyCreate(ctx, tc.key)
+			assert.Equal(t, tc.expected, Expected{fingerprint: fingerprint, err: err})
 		})
 	}
 }

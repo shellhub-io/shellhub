@@ -855,7 +855,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				}
 
 				storeMock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return(errors.New("error", "", 0)).Once()
+				storeMock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return("", errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
 		},
@@ -894,7 +894,7 @@ func TestCreatePublicKeys(t *testing.T) {
 				}
 
 				storeMock.On("PublicKeyGet", ctx, keyWithHostname.Fingerprint, "tenant").Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return(nil).Once()
+				storeMock.On("PublicKeyCreate", ctx, &keyWithHostnameModel).Return(ssh.FingerprintLegacyMD5(pubKey), nil).Once()
 			},
 			expected: Expected{&responses.PublicKeyCreate{
 				Data: ssh.MarshalAuthorizedKey(pubKey),
@@ -952,7 +952,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					Once()
 				storeMock.On("TagList", ctx, mock.AnythingOfType("store.QueryOption")).Return(tags, len(tags), nil).Once()
 				storeMock.On("PublicKeyGet", ctx, keyWithTags.Fingerprint, "tenant").Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(errors.New("error", "", 0)).Once()
+				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return("", errors.New("error", "", 0)).Once()
 			},
 			expected: Expected{nil, errors.New("error", "", 0)},
 		},
@@ -1000,7 +1000,7 @@ func TestCreatePublicKeys(t *testing.T) {
 					Once()
 				storeMock.On("TagList", ctx, mock.AnythingOfType("store.QueryOption")).Return(tags, len(tags), nil).Once()
 				storeMock.On("PublicKeyGet", ctx, keyWithTags.Fingerprint, "tenant").Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(nil).Once()
+				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return(ssh.FingerprintLegacyMD5(pubKey), nil).Once()
 			},
 			expected: Expected{&responses.PublicKeyCreate{
 				Data: ssh.MarshalAuthorizedKey(pubKey),

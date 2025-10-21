@@ -141,8 +141,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 		},
 	}
 
-	err = s.store.PublicKeyCreate(ctx, &model)
-	if err != nil {
+	if _, err := s.store.PublicKeyCreate(ctx, &model); err != nil {
 		return nil, err
 	}
 

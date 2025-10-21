@@ -842,21 +842,31 @@ func (_m *Store) PrivateKeyGet(ctx context.Context, fingerprint string) (*models
 }
 
 // PublicKeyCreate provides a mock function with given fields: ctx, key
-func (_m *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
+func (_m *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) (string, error) {
 	ret := _m.Called(ctx, key)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PublicKeyCreate")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey) error); ok {
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey) (string, error)); ok {
+		return rf(ctx, key)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *models.PublicKey) string); ok {
 		r0 = rf(ctx, key)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, *models.PublicKey) error); ok {
+		r1 = rf(ctx, key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // PublicKeyDelete provides a mock function with given fields: ctx, publicKey
