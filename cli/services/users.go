@@ -99,7 +99,8 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 	}
 
 	for _, ns := range userInfo.AssociatedNamespaces {
-		if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
+		member := &models.Member{ID: user.ID}
+		if err := s.store.NamespaceDeleteMembership(ctx, ns.TenantID, member); err != nil {
 			return err
 		}
 	}

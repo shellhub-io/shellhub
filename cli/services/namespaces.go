@@ -84,7 +84,12 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 		return nil, ErrNamespaceNotFound
 	}
 
-	if err = s.store.NamespaceAddMember(ctx, ns.TenantID, &models.Member{ID: user.ID, Role: input.Role}); err != nil {
+	if err = s.store.NamespaceCreateMembership(ctx, ns.TenantID, &models.Member{
+		ID:      user.ID,
+		Role:    input.Role,
+		AddedAt: clock.Now(),
+		Status:  models.MemberStatusAccepted,
+	}); err != nil {
 		return nil, ErrFailedNamespaceAddMember
 	}
 
@@ -107,7 +112,12 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 		return nil, ErrNamespaceNotFound
 	}
 
-	if err = s.store.NamespaceRemoveMember(ctx, ns.TenantID, user.ID); err != nil {
+	member, ok := ns.FindMember(user.ID)
+	if !ok {
+		return nil, ErrFailedNamespaceRemoveMember
+	}
+
+	if err = s.store.NamespaceDeleteMembership(ctx, ns.TenantID, member); err != nil {
 		return nil, ErrFailedNamespaceRemoveMember
 	}
 

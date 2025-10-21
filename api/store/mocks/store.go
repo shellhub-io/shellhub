@@ -468,24 +468,6 @@ func (_m *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 	return r0, r1
 }
 
-// NamespaceAddMember provides a mock function with given fields: ctx, tenantID, member
-func (_m *Store) NamespaceAddMember(ctx context.Context, tenantID string, member *models.Member) error {
-	ret := _m.Called(ctx, tenantID, member)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceAddMember")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *models.Member) error); ok {
-		r0 = rf(ctx, tenantID, member)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NamespaceConflicts provides a mock function with given fields: ctx, target
 func (_m *Store) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
 	ret := _m.Called(ctx, target)
@@ -551,6 +533,24 @@ func (_m *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespac
 	return r0, r1
 }
 
+// NamespaceCreateMembership provides a mock function with given fields: ctx, tenantID, member
+func (_m *Store) NamespaceCreateMembership(ctx context.Context, tenantID string, member *models.Member) error {
+	ret := _m.Called(ctx, tenantID, member)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceCreateMembership")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.Member) error); ok {
+		r0 = rf(ctx, tenantID, member)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NamespaceDelete provides a mock function with given fields: ctx, namespace
 func (_m *Store) NamespaceDelete(ctx context.Context, namespace *models.Namespace) error {
 	ret := _m.Called(ctx, namespace)
@@ -595,6 +595,24 @@ func (_m *Store) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (i
 	}
 
 	return r0, r1
+}
+
+// NamespaceDeleteMembership provides a mock function with given fields: ctx, tenantID, member
+func (_m *Store) NamespaceDeleteMembership(ctx context.Context, tenantID string, member *models.Member) error {
+	ret := _m.Called(ctx, tenantID, member)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceDeleteMembership")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.Member) error); ok {
+		r0 = rf(ctx, tenantID, member)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NamespaceGetPreferred provides a mock function with given fields: ctx, userID
@@ -689,24 +707,6 @@ func (_m *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) (
 	return r0, r1, r2
 }
 
-// NamespaceRemoveMember provides a mock function with given fields: ctx, tenantID, memberID
-func (_m *Store) NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error {
-	ret := _m.Called(ctx, tenantID, memberID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceRemoveMember")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, tenantID, memberID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NamespaceResolve provides a mock function with given fields: ctx, resolver, value
 func (_m *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceResolver, value string) (*models.Namespace, error) {
 	ret := _m.Called(ctx, resolver, value)
@@ -755,17 +755,17 @@ func (_m *Store) NamespaceUpdate(ctx context.Context, namespace *models.Namespac
 	return r0
 }
 
-// NamespaceUpdateMember provides a mock function with given fields: ctx, tenantID, memberID, changes
-func (_m *Store) NamespaceUpdateMember(ctx context.Context, tenantID string, memberID string, changes *models.MemberChanges) error {
-	ret := _m.Called(ctx, tenantID, memberID, changes)
+// NamespaceUpdateMembership provides a mock function with given fields: ctx, tenantID, member
+func (_m *Store) NamespaceUpdateMembership(ctx context.Context, tenantID string, member *models.Member) error {
+	ret := _m.Called(ctx, tenantID, member)
 
 	if len(ret) == 0 {
-		panic("no return value specified for NamespaceUpdateMember")
+		panic("no return value specified for NamespaceUpdateMembership")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *models.MemberChanges) error); ok {
-		r0 = rf(ctx, tenantID, memberID, changes)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *models.Member) error); ok {
+		r0 = rf(ctx, tenantID, member)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -7,6 +7,7 @@ type Store interface {
 	SessionStore
 	UserStore
 	NamespaceStore
+	MemberStore
 	PublicKeyStore
 	PrivateKeyStore
 	StatsStore

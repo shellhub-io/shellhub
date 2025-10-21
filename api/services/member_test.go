@@ -792,7 +792,7 @@ func TestService_addMember(t *testing.T) {
 					Return("false").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: time.Time{}}).
+					On("NamespaceCreateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: time.Time{}}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -814,7 +814,7 @@ func TestService_addMember(t *testing.T) {
 					Return("false").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: time.Time{}}).
+					On("NamespaceCreateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusAccepted, AddedAt: now, ExpiresAt: time.Time{}}).
 					Return(nil).
 					Once()
 				envMock.
@@ -840,7 +840,7 @@ func TestService_addMember(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					On("NamespaceCreateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -862,7 +862,7 @@ func TestService_addMember(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					On("NamespaceCreateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
 					Return(nil).
 					Once()
 				envMock.
@@ -892,7 +892,7 @@ func TestService_addMember(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("NamespaceAddMember", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
+					On("NamespaceCreateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleObserver, Status: models.MemberStatusPending, AddedAt: now, ExpiresAt: now.Add(7 * (24 * time.Hour))}).
 					Return(nil).
 					Once()
 				envMock.
@@ -937,23 +937,34 @@ func TestService_resendMemberInvite(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		memberID      string
+		member        *models.Member
 		req           *requests.NamespaceAddMember
 		requiredMocks func(context.Context)
 		expected      error
 	}{
 		{
 			description: "fails cannot update the member",
-			memberID:    "000000000000000000000000",
+			member: &models.Member{
+				ID:        "000000000000000000000000",
+				AddedAt:   now.Add(-7 * (24 * time.Hour)),
+				ExpiresAt: now.Add(-1 * (24 * time.Hour)),
+				Role:      authorizer.RoleAdministrator,
+				Status:    models.MemberStatusPending,
+			},
 			req: &requests.NamespaceAddMember{
 				FowardedHost: "localhost",
 				TenantID:     "00000000-0000-4000-0000-000000000000",
 				MemberRole:   authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
-				expiresAt := now.Add(7 * (24 * time.Hour))
 				storeMock.
-					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000", &models.MemberChanges{Role: authorizer.RoleObserver, ExpiresAt: &expiresAt}).
+					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{
+						ID:        "000000000000000000000000",
+						AddedAt:   now.Add(-7 * (24 * time.Hour)),
+						ExpiresAt: now.Add(7 * (24 * time.Hour)),
+						Role:      authorizer.RoleObserver,
+						Status:    models.MemberStatusPending,
+					}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -961,16 +972,27 @@ func TestService_resendMemberInvite(t *testing.T) {
 		},
 		{
 			description: "fails when cannot send the invite",
-			memberID:    "000000000000000000000000",
+			member: &models.Member{
+				ID:        "000000000000000000000000",
+				AddedAt:   now.Add(-7 * (24 * time.Hour)),
+				ExpiresAt: now.Add(-1 * (24 * time.Hour)),
+				Role:      authorizer.RoleAdministrator,
+				Status:    models.MemberStatusPending,
+			},
 			req: &requests.NamespaceAddMember{
 				FowardedHost: "localhost",
 				TenantID:     "00000000-0000-4000-0000-000000000000",
 				MemberRole:   authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
-				expiresAt := now.Add(7 * (24 * time.Hour))
 				storeMock.
-					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000", &models.MemberChanges{Role: authorizer.RoleObserver, ExpiresAt: &expiresAt}).
+					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{
+						ID:        "000000000000000000000000",
+						AddedAt:   now.Add(-7 * (24 * time.Hour)),
+						ExpiresAt: now.Add(7 * (24 * time.Hour)),
+						Role:      authorizer.RoleObserver,
+						Status:    models.MemberStatusPending,
+					}).
 					Return(nil).
 					Once()
 				clientMock.
@@ -982,16 +1004,27 @@ func TestService_resendMemberInvite(t *testing.T) {
 		},
 		{
 			description: "succeeds",
-			memberID:    "000000000000000000000000",
+			member: &models.Member{
+				ID:        "000000000000000000000000",
+				AddedAt:   now.Add(-7 * (24 * time.Hour)),
+				ExpiresAt: now.Add(-1 * (24 * time.Hour)),
+				Role:      authorizer.RoleAdministrator,
+				Status:    models.MemberStatusPending,
+			},
 			req: &requests.NamespaceAddMember{
 				FowardedHost: "localhost",
 				TenantID:     "00000000-0000-4000-0000-000000000000",
 				MemberRole:   authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
-				expiresAt := now.Add(7 * (24 * time.Hour))
 				storeMock.
-					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000", &models.MemberChanges{Role: authorizer.RoleObserver, ExpiresAt: &expiresAt}).
+					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{
+						ID:        "000000000000000000000000",
+						AddedAt:   now.Add(-7 * (24 * time.Hour)),
+						ExpiresAt: now.Add(7 * (24 * time.Hour)),
+						Role:      authorizer.RoleObserver,
+						Status:    models.MemberStatusPending,
+					}).
 					Return(nil).
 					Once()
 				clientMock.
@@ -1010,12 +1043,11 @@ func TestService_resendMemberInvite(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 
-			cb := s.resendMemberInvite(tc.memberID, tc.req)
+			cb := s.resendMemberInvite(tc.member, tc.req)
 			assert.Equal(tt, tc.expected, cb(ctx))
 
-			envMock.AssertExpectations(tt)
 			storeMock.AssertExpectations(tt)
-			clockMock.AssertExpectations(tt)
+			envMock.AssertExpectations(tt)
 		})
 	}
 }
@@ -1240,7 +1272,7 @@ func TestUpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceUpdateMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001", &models.MemberChanges{Role: authorizer.RoleAdministrator}).
+					On("NamespaceUpdateMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 			},
@@ -1458,7 +1490,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1501,7 +1533,7 @@ func TestRemoveNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000001").
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1657,7 +1689,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -1689,7 +1721,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 			},
@@ -1764,7 +1796,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
-					On("NamespaceRemoveMember", ctx, "00000000-0000-4000-0000-000000000000", "000000000000000000000000").
+					On("NamespaceDeleteMembership", ctx, "00000000-0000-4000-0000-000000000000", &models.Member{ID: "000000000000000000000000", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
 				storeMock.
