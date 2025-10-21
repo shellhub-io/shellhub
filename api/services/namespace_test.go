@@ -541,7 +541,7 @@ func TestCreateNamespace(t *testing.T) {
 							MaxDevices: -1,
 						},
 					).
-					Return(nil, errors.New("error")).
+					Return("", errors.New("error")).
 					Once()
 			},
 			expected: Expected{
@@ -618,28 +618,7 @@ func TestCreateNamespace(t *testing.T) {
 							MaxDevices: -1,
 						},
 					).
-					Return(
-						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
-									AddedAt: now,
-								},
-							},
-							Settings: &models.NamespaceSettings{
-								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-							},
-							MaxDevices: -1,
-						},
-						nil,
-					).
+					Return("00000000-0000-4000-0000-000000000000", nil).
 					Once()
 			},
 			expected: Expected{
@@ -738,28 +717,7 @@ func TestCreateNamespace(t *testing.T) {
 							MaxDevices: -1,
 						},
 					).
-					Return(
-						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
-									AddedAt: now,
-								},
-							},
-							Settings: &models.NamespaceSettings{
-								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-							},
-							MaxDevices: -1,
-						},
-						nil,
-					).
+					Return("00000000-0000-4000-0000-000000000000", nil).
 					Once()
 			},
 			expected: Expected{
@@ -855,28 +813,7 @@ func TestCreateNamespace(t *testing.T) {
 							MaxDevices: -1,
 						},
 					).
-					Return(
-						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
-									AddedAt: now,
-								},
-							},
-							Settings: &models.NamespaceSettings{
-								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-							},
-							MaxDevices: -1,
-						},
-						nil,
-					).
+					Return("00000000-0000-4000-0000-000000000000", nil).
 					Once()
 			},
 			expected: Expected{
@@ -972,28 +909,7 @@ func TestCreateNamespace(t *testing.T) {
 							MaxDevices: 3,
 						},
 					).
-					Return(
-						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
-									AddedAt: now,
-								},
-							},
-							Settings: &models.NamespaceSettings{
-								SessionRecord:          true,
-								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
-							},
-							MaxDevices: -1,
-						},
-						nil,
-					).
+					Return("00000000-0000-4000-0000-000000000000", nil).
 					Once()
 			},
 			expected: Expected{

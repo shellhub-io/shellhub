@@ -524,24 +524,22 @@ func (_m *Store) NamespaceConflicts(ctx context.Context, target *models.Namespac
 }
 
 // NamespaceCreate provides a mock function with given fields: ctx, namespace
-func (_m *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+func (_m *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
 	ret := _m.Called(ctx, namespace)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceCreate")
 	}
 
-	var r0 *models.Namespace
+	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) (*models.Namespace, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) (string, error)); ok {
 		return rf(ctx, namespace)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) *models.Namespace); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Namespace) string); ok {
 		r0 = rf(ctx, namespace)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Namespace)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, *models.Namespace) error); ok {

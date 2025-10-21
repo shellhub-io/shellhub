@@ -118,7 +118,7 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return(nil, errors.New("error")).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("", errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrDuplicateNamespace},
 		},
@@ -162,7 +162,7 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
@@ -225,7 +225,7 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesLimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
@@ -288,7 +288,7 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesLimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
@@ -351,7 +351,7 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
@@ -414,7 +414,7 @@ func TestNamespaceCreate(t *testing.T) {
 					MaxDevices: MaxNumberDevicesUnlimited,
 					CreatedAt:  now,
 				}
-				mock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",

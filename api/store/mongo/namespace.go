@@ -266,15 +266,13 @@ func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string) (*mode
 	return ns, nil
 }
 
-func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (*models.Namespace, error) {
+func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
 	namespace.CreatedAt = clock.Now()
-
-	_, err := s.db.Collection("namespaces").InsertOne(ctx, namespace)
-	if err != nil {
-		return nil, err
+	if _, err := s.db.Collection("namespaces").InsertOne(ctx, namespace); err != nil {
+		return "", err
 	}
 
-	return namespace, err
+	return namespace.TenantID, nil
 }
 
 func (s *Store) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {

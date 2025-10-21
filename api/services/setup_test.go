@@ -199,7 +199,7 @@ func TestSetup(t *testing.T) {
 					CreatedAt: now,
 				}
 
-				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
+				storeMock.On("NamespaceCreate", ctx, namespace).Return("", errors.New("error", "", 0)).Once()
 				storeMock.On("UserDelete", ctx, userWithID).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrUserDelete(errors.New("error", "", 0)),
@@ -288,7 +288,7 @@ func TestSetup(t *testing.T) {
 					CreatedAt: now,
 				}
 
-				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, errors.New("error", "", 0)).Once()
+				storeMock.On("NamespaceCreate", ctx, namespace).Return("", errors.New("error", "", 0)).Once()
 				storeMock.On("UserDelete", ctx, userWithID).Return(errors.New("error", "", 0)).Once()
 			},
 			expected: NewErrUserDelete(errors.New("error", "", 0)),
@@ -357,7 +357,7 @@ func TestSetup(t *testing.T) {
 					CreatedAt: now,
 				}
 				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
-				storeMock.On("NamespaceCreate", ctx, namespace).Return(namespace, nil).Once()
+				storeMock.On("NamespaceCreate", ctx, namespace).Return(tenant, nil).Once()
 
 				storeMock.On("SystemSet", ctx, "setup", true).Return(nil).Once()
 			},

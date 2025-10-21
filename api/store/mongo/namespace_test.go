@@ -368,8 +368,8 @@ func TestNamespaceCreate(t *testing.T) {
 	clock.DefaultBackend = clockMock
 
 	type Expected struct {
-		ns  *models.Namespace
-		err error
+		tenantID string
+		err      error
 	}
 
 	cases := []struct {
@@ -395,21 +395,8 @@ func TestNamespaceCreate(t *testing.T) {
 			},
 			fixtures: []string{},
 			expected: Expected{
-				ns: &models.Namespace{
-					CreatedAt: now,
-					Name:      "namespace-1",
-					Owner:     "507f1f77bcf86cd799439011",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:   "507f1f77bcf86cd799439011",
-							Role: authorizer.RoleOwner,
-						},
-					},
-					MaxDevices: -1,
-					Settings:   &models.NamespaceSettings{SessionRecord: true},
-				},
-				err: nil,
+				tenantID: "00000000-0000-4000-0000-000000000000",
+				err:      nil,
 			},
 		},
 	}
@@ -423,8 +410,8 @@ func TestNamespaceCreate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			ns, err := s.NamespaceCreate(ctx, tc.ns)
-			assert.Equal(t, tc.expected, Expected{ns: ns, err: err})
+			tenantID, err := s.NamespaceCreate(ctx, tc.ns)
+			assert.Equal(t, tc.expected, Expected{tenantID: tenantID, err: err})
 		})
 	}
 }
