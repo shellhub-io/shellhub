@@ -144,7 +144,7 @@ const {
 const showAddDialog = ref(false);
 const userId = computed(() => authStore.id);
 
-const showAdminPanel = computed(() => envVariables.isEnterprise);
+const showAdminPanel = computed(() => envVariables.isEnterprise && !envVariables.isCloud);
 
 const otherNamespaces = computed(() => namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id));
 
