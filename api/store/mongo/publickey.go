@@ -88,15 +88,15 @@ func (s *Store) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([
 	return list, count, err
 }
 
-func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) error {
+func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) (string, error) {
 	bsonBytes, err := bson.Marshal(key)
 	if err != nil {
-		return FromMongoError(err)
+		return "", FromMongoError(err)
 	}
 
 	doc := make(bson.M)
 	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
-		return FromMongoError(err)
+		return "", FromMongoError(err)
 	}
 
 	// WORKAROUND: Convert string TagIDs to MongoDB ObjectIDs for referential integrity
@@ -110,10 +110,10 @@ func (s *Store) PublicKeyCreate(ctx context.Context, key *models.PublicKey) erro
 	}
 
 	if _, err := s.db.Collection("public_keys").InsertOne(ctx, doc); err != nil {
-		return FromMongoError(err)
+		return "", FromMongoError(err)
 	}
 
-	return nil
+	return doc["fingerprint"].(string), nil
 }
 
 func (s *Store) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) error {
