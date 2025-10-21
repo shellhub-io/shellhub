@@ -61,8 +61,7 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		ns.Type = models.TypePersonal
 	}
 
-	ns, err = s.store.NamespaceCreate(ctx, ns)
-	if err != nil {
+	if _, err = s.store.NamespaceCreate(ctx, ns); err != nil {
 		return nil, ErrDuplicateNamespace
 	}
 
