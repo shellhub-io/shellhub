@@ -120,7 +120,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
 import NamespaceAdd from "./NamespaceAdd.vue";
 import NamespaceChip from "./NamespaceChip.vue";
 import NamespaceListItem from "./NamespaceListItem.vue";
@@ -133,7 +132,6 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const router = useRouter();
 const authStore = useAuthStore();
 const {
   currentNamespace,
@@ -154,9 +152,7 @@ const handleNamespaceSwitch = async (tenantId: string) => {
   await switchNamespace(tenantId);
 };
 
-const navigateToAdminPanel = () => {
-  router.push("/admin");
-};
+const navigateToAdminPanel = () => { window.location.href = "/admin"; };
 
 onMounted(async () => {
   await loadCurrentNamespace();
