@@ -112,6 +112,7 @@ const showPassphraseField = ref(false);
 const {
   value: username,
   errorMessage: usernameError,
+  resetField: resetUsernameField,
 } = useField<string>("username", yup.string().required(), {
   initialValue: "",
 });
@@ -119,6 +120,7 @@ const {
 const {
   value: password,
   errorMessage: passwordError,
+  resetField: resetPasswordField,
 } = useField<string>("password", yup.string().required(), {
   initialValue: "",
 });
@@ -159,8 +161,18 @@ const togglePassphraseField = () => {
   resetPassphraseField();
 };
 
+const resetFields = () => {
+  resetUsernameField();
+  resetPasswordField();
+  resetPassphraseField();
+  authenticationMethod.value = TerminalAuthMethods.Password;
+  selectedPrivateKeyName.value = privateKeys[0]?.name || "";
+  showPassphraseField.value = false;
+};
+
 const handleClose = () => {
   showDialog.value = false;
+  resetFields();
   emit("close");
 };
 
@@ -178,6 +190,7 @@ const submitForm = () => {
   };
 
   emit("submit", formData);
+  resetFields();
 };
 
 defineExpose({
