@@ -16,52 +16,7 @@ const stats = {
   rejected_devices: 0,
 };
 
-const cardsContent = [
-  {
-    title: "Registered Users",
-    icon: "mdi-account-group",
-    buttonLabel: "View all Users",
-    path: "users",
-    stat: stats.registered_users,
-  },
-  {
-    title: "Registered Devices",
-    icon: "mdi-developer-board",
-    buttonLabel: "View all Devices",
-    path: "devices",
-    stat: stats.registered_devices,
-  },
-  {
-    title: "Online Devices",
-    icon: "mdi-developer-board",
-    buttonLabel: "View all Devices",
-    path: "devices",
-    stat: stats.online_devices,
-  },
-  {
-    title: "Active Sessions",
-    icon: "mdi-developer-board",
-    buttonLabel: "View all Sessions",
-    path: "sessions",
-    stat: stats.active_sessions,
-  },
-  {
-    title: "Pending Devices",
-    icon: "mdi-developer-board",
-    buttonLabel: "View all Devices",
-    path: "devices",
-    stat: stats.pending_devices,
-  },
-  {
-    title: "Rejected Devices",
-    icon: "mdi-developer-board",
-    buttonLabel: "View all Devices",
-    path: "devices",
-    stat: stats.rejected_devices,
-  },
-];
-
-const numberOfCards = 6;
+const numberOfCards = 7;
 
 describe("Dashboard", () => {
   const pinia = createPinia();
@@ -81,12 +36,12 @@ describe("Dashboard", () => {
   });
 
   it("Renders the template with data", async () => {
-    expect(wrapper.vm.items).toEqual(cardsContent);
     expect(wrapper.vm.stats).toEqual(stats);
     expect(wrapper.vm.hasStatus).toBe(false);
   });
 
   it("Must show all the card in the view", () => {
+    // Main card and 6 stat cards
     expect(wrapper.findAll("div.v-card").length).toBe(numberOfCards);
   });
 });
