@@ -25,9 +25,3 @@ type Member struct {
 	Role   authorizer.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
 	Status MemberStatus    `json:"status" bson:"status"`
 }
-
-type MemberChanges struct {
-	Role      authorizer.Role `bson:"role,omitempty"`
-	Status    MemberStatus    `bson:"status,omitempty"`
-	ExpiresAt *time.Time      `bson:"expires_at,omitempty"`
-}

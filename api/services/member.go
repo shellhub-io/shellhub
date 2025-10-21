@@ -97,7 +97,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
 
-		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m.ID, req)); err != nil {
+		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m, req)); err != nil {
 			return nil, err
 		}
 	} else {
@@ -127,7 +127,7 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 			member.ExpiresAt = time.Time{}
 		}
 
-		if err := s.store.NamespaceAddMember(ctx, req.TenantID, member); err != nil {
+		if err := s.store.NamespaceCreateMembership(ctx, req.TenantID, member); err != nil {
 			return err
 		}
 
@@ -143,16 +143,16 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 
 // resendMemberInvite returns a transaction callback that resends an invitation to the member with the
 // specified ID.
-func (s *service) resendMemberInvite(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
+func (s *service) resendMemberInvite(member *models.Member, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		expiresAt := clock.Now().Add(7 * (24 * time.Hour))
-		changes := &models.MemberChanges{ExpiresAt: &expiresAt, Role: req.MemberRole}
+		member.ExpiresAt = clock.Now().Add(7 * (24 * time.Hour))
+		member.Role = req.MemberRole
 
-		if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, memberID, changes); err != nil {
+		if err := s.store.NamespaceUpdateMembership(ctx, req.TenantID, member); err != nil {
 			return err
 		}
 
-		return s.client.InviteMember(ctx, req.TenantID, memberID, req.FowardedHost)
+		return s.client.InviteMember(ctx, req.TenantID, member.ID, req.FowardedHost)
 	}
 }
 
@@ -172,19 +172,20 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return NewErrNamespaceMemberNotFound(user.ID, err)
 	}
 
-	if _, ok := namespace.FindMember(req.MemberID); !ok {
+	member, ok := namespace.FindMember(req.MemberID)
+	if !ok {
 		return NewErrNamespaceMemberNotFound(req.MemberID, err)
 	}
 
-	changes := &models.MemberChanges{Role: req.MemberRole}
-
-	if changes.Role != authorizer.RoleInvalid {
+	if req.MemberRole != authorizer.RoleInvalid {
 		if !active.Role.HasAuthority(req.MemberRole) {
 			return NewErrRoleInvalid()
 		}
+
+		member.Role = req.MemberRole
 	}
 
-	if err := s.store.NamespaceUpdateMember(ctx, req.TenantID, req.MemberID, changes); err != nil {
+	if err := s.store.NamespaceUpdateMembership(ctx, req.TenantID, member); err != nil {
 		return err
 	}
 
@@ -218,7 +219,7 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 		return nil, NewErrRoleInvalid()
 	}
 
-	if err := s.removeMember(ctx, namespace, req.MemberID); err != nil { //nolint:revive
+	if err := s.removeMember(ctx, namespace, passive); err != nil { //nolint:revive
 		return nil, err
 	}
 
@@ -238,11 +239,12 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}
 
-	if m, ok := ns.FindMember(req.UserID); !ok || m.Role == authorizer.RoleOwner {
+	member, ok := ns.FindMember(req.UserID)
+	if !ok || member.Role == authorizer.RoleOwner {
 		return nil, NewErrAuthForbidden()
 	}
 
-	if err := s.removeMember(ctx, ns, req.UserID); err != nil { //nolint:revive
+	if err := s.removeMember(ctx, ns, member); err != nil { //nolint:revive
 		return nil, err
 	}
 
@@ -276,13 +278,13 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID})
 }
 
-func (s *service) removeMember(ctx context.Context, ns *models.Namespace, userID string) error {
-	if err := s.store.NamespaceRemoveMember(ctx, ns.TenantID, userID); err != nil {
+func (s *service) removeMember(ctx context.Context, ns *models.Namespace, member *models.Member) error {
+	if err := s.store.NamespaceDeleteMembership(ctx, ns.TenantID, member); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
 			return NewErrNamespaceNotFound(ns.TenantID, err)
 		case errors.Is(err, mongo.ErrUserNotFound):
-			return NewErrNamespaceMemberNotFound(userID, err)
+			return NewErrNamespaceMemberNotFound(member.ID, err)
 		default:
 			return err
 		}

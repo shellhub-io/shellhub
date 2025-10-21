@@ -459,9 +459,12 @@ func TestNamespaceAddMember(t *testing.T) {
 	}
 
 	mock := new(mocks.Store)
+	mockClock := new(clockmock.Clock)
+	clock.DefaultBackend = mockClock
 
 	ctx := context.TODO()
 	now := time.Now()
+	mockClock.On("Now").Return(now)
 
 	cases := []struct {
 		description   string
@@ -526,7 +529,12 @@ func TestNamespaceAddMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceAddMember", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: authorizer.RoleObserver}).Return(nil).Once()
+				mock.On("NamespaceCreateMembership", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{
+					ID:      "507f191e810c19729de860ea",
+					Role:    authorizer.RoleObserver,
+					AddedAt: now,
+					Status:  models.MemberStatusAccepted,
+				}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",
@@ -624,7 +632,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(errors.New("error")).Once()
+				mock.On("NamespaceDeleteMembership", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
 		},
@@ -653,7 +661,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceRemoveMember", ctx, "00000000-0000-0000-0000-000000000000", "507f191e810c19729de860ea").Return(nil).Once()
+				mock.On("NamespaceDeleteMembership", ctx, "00000000-0000-0000-0000-000000000000", &models.Member{ID: "507f191e810c19729de860ea", Role: "owner"}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",

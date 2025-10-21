@@ -49,15 +49,4 @@ type NamespaceStore interface {
 
 	NamespaceDelete(ctx context.Context, namespace *models.Namespace) error
 	NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error)
-
-	// NamespaceAddMember adds a new member to the namespace with the specified tenantID.
-	// It returns an error if any.
-	NamespaceAddMember(ctx context.Context, tenantID string, member *models.Member) error
-	// NamespaceUpdateMember updates a member with the specified memberID in the namespace with the specified tenantID with
-	// the changes. It returns an error if any.
-	NamespaceUpdateMember(ctx context.Context, tenantID string, memberID string, changes *models.MemberChanges) error
-	// NamespaceRemoveMember removes a member with the specified memberID in the namespace with the specified tenantID.
-	// If the namespace's tenant ID is the member's preffered tenant ID, it will set the value to an empty string.
-	// It returns an error if any.
-	NamespaceRemoveMember(ctx context.Context, tenantID string, memberID string) error
 }
