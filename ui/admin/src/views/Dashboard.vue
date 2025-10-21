@@ -1,18 +1,88 @@
 <template>
-  <v-row class="mt-4 ml-2" v-if="!hasStatus">
-    <v-col cols="12" md="4" class="pt-0" v-for="(item, index) in items" :key="index">
-      <div>
-        <StatCard
-          :title="item.title"
-          :icon="item.icon"
-          :buttonLabel="item.buttonLabel"
-          :path="item.path"
-          :stat="item.stat"
-        />
+  <div v-if="!hasStatus">
+    <v-card class="bg-transparent mb-12" elevation="0">
+      <div class="d-flex align-start">
+        <v-avatar color="primary" size="48" class="mr-4">
+          <v-icon size="32" icon="mdi-view-dashboard" />
+        </v-avatar>
+        <div>
+          <h1 class="text-overline text-medium-emphasis mb-1">Admin Dashboard</h1>
+          <h2 class="text-h5 font-weight-bold mb-2">System Overview</h2>
+          <p class="text-body-2 text-medium-emphasis">
+            Monitor and manage your ShellHub instance metrics and statistics
+          </p>
+        </div>
       </div>
-    </v-col>
-  </v-row>
-  <v-card class="mt-2 pa-4" v-else>
+    </v-card>
+
+    <v-row class="d-flex align-center mb-2 pa-3">
+      <v-icon class="mr-2" icon="mdi-chart-box-outline" />
+      <h2 class="text-h6">Stats</h2>
+    </v-row>
+    <v-row>
+      <v-col cols="12" md="4">
+        <StatCard
+          title="Registered Users"
+          :stat="stats.registered_users ?? 0"
+          icon="mdi-account-group"
+          button-label="View all Users"
+          path="users"
+        />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <StatCard
+          title="Registered Devices"
+          :stat="stats.registered_devices ?? 0"
+          icon="mdi-developer-board"
+          button-label="View all Devices"
+          path="devices"
+        />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <StatCard
+          title="Online Devices"
+          :stat="stats.online_devices ?? 0"
+          icon="mdi-lan-connect"
+          button-label="View Online Devices"
+          path="devices"
+        />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <StatCard
+          title="Pending Devices"
+          :stat="stats.pending_devices ?? 0"
+          icon="mdi-clock-outline"
+          button-label="View Pending Devices"
+          path="devices"
+        />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <StatCard
+          title="Rejected Devices"
+          :stat="stats.rejected_devices ?? 0"
+          icon="mdi-close-circle"
+          button-label="View Rejected Devices"
+          path="devices"
+        />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <StatCard
+          title="Active Sessions"
+          :stat="stats.active_sessions ?? 0"
+          icon="mdi-console-network"
+          button-label="View all Sessions"
+          path="sessions"
+        />
+      </v-col>
+    </v-row>
+  </div>
+
+  <v-card data-test="dashboard-failed" class="mt-2 pa-4 bg-v-theme-surface" v-else>
     <p class="text-center">Something is wrong, try again!</p>
   </v-card>
 </template>
@@ -22,63 +92,17 @@ import axios, { AxiosError } from "axios";
 import { onMounted, ref } from "vue";
 import useStatsStore from "@admin/store/modules/stats";
 import { IAdminStats } from "@admin/interfaces/IStats";
-import { StatCardItem } from "@/interfaces/IStats";
 import useSnackbar from "@/helpers/snackbar";
 import StatCard from "@/components/StatCard.vue";
 
 const snackbar = useSnackbar();
 const statsStore = useStatsStore();
-const items = ref<StatCardItem[]>([]);
 const hasStatus = ref(false);
 const stats = ref({} as IAdminStats);
 
 onMounted(async () => {
   try {
     stats.value = await statsStore.getStats();
-    items.value = [
-      {
-        title: "Registered Users",
-        icon: "mdi-account-group",
-        buttonLabel: "View all Users",
-        path: "users",
-        stat: stats.value.registered_users ?? 0,
-      },
-      {
-        title: "Registered Devices",
-        icon: "mdi-developer-board",
-        buttonLabel: "View all Devices",
-        path: "devices",
-        stat: stats.value.registered_devices ?? 0,
-      },
-      {
-        title: "Online Devices",
-        icon: "mdi-developer-board",
-        buttonLabel: "View all Devices",
-        path: "devices",
-        stat: stats.value.online_devices ?? 0,
-      },
-      {
-        title: "Active Sessions",
-        icon: "mdi-developer-board",
-        buttonLabel: "View all Sessions",
-        path: "sessions",
-        stat: stats.value.active_sessions ?? 0,
-      },
-      {
-        title: "Pending Devices",
-        icon: "mdi-developer-board",
-        buttonLabel: "View all Devices",
-        path: "devices",
-        stat: stats.value.pending_devices ?? 0,
-      },
-      {
-        title: "Rejected Devices",
-        icon: "mdi-developer-board",
-        buttonLabel: "View all Devices",
-        path: "devices",
-        stat: stats.value.rejected_devices ?? 0,
-      },
-    ];
   } catch (error: unknown) {
     hasStatus.value = true;
     if (axios.isAxiosError(error)) {
@@ -92,5 +116,5 @@ onMounted(async () => {
   }
 });
 
-defineExpose({ items, stats, hasStatus });
+defineExpose({ stats, hasStatus });
 </script>
