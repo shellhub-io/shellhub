@@ -19,7 +19,6 @@ const stats = {
 const cardsContent = [
   {
     title: "Registered Users",
-    content: "Registered users",
     icon: "mdi-account-group",
     buttonLabel: "View all Users",
     path: "users",
@@ -27,7 +26,6 @@ const cardsContent = [
   },
   {
     title: "Registered Devices",
-    content: "Registered devices",
     icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
@@ -35,7 +33,6 @@ const cardsContent = [
   },
   {
     title: "Online Devices",
-    content: "Devices are online and ready for connecting",
     icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
@@ -43,7 +40,6 @@ const cardsContent = [
   },
   {
     title: "Active Sessions",
-    content: "Active SSH Sessions opened by users",
     icon: "mdi-developer-board",
     buttonLabel: "View all Sessions",
     path: "sessions",
@@ -51,7 +47,6 @@ const cardsContent = [
   },
   {
     title: "Pending Devices",
-    content: "Pending devices",
     icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
@@ -59,7 +54,6 @@ const cardsContent = [
   },
   {
     title: "Rejected Devices",
-    content: "Rejected devices",
     icon: "mdi-developer-board",
     buttonLabel: "View all Devices",
     path: "devices",
@@ -80,10 +74,6 @@ describe("Dashboard", () => {
     global: {
       plugins: [pinia, vuetify, routes, SnackbarPlugin],
     },
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBeTruthy();
   });
 
   it("Renders the component", () => {

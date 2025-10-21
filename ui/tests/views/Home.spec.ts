@@ -68,18 +68,14 @@ describe("Home", () => {
     wrapper.unmount();
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("Renders the template with data", async () => {
-    expect(wrapper.text()).toContain("ACCEPTED DEVICES");
-    expect(wrapper.text()).toContain("ONLINE DEVICES");
-    expect(wrapper.text()).toContain("PENDING DEVICES");
+    expect(wrapper.text()).toContain("Accepted Devices");
+    expect(wrapper.text()).toContain("Online Devices");
+    expect(wrapper.text()).toContain("Pending Devices");
     wrapper.vm.hasStatus = true; // Set the conditional validation to true so it can show the error card.
     await nextTick();
     expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
@@ -92,7 +88,7 @@ describe("Home", () => {
 
     expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="home-failed"]').text()).toContain(
-      "Something is wrong, try again !",
+      "Something is wrong, try again!",
     );
   });
 });

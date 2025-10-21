@@ -4,7 +4,6 @@
       <div>
         <StatCard
           :title="item.title"
-          :content="item.content"
           :icon="item.icon"
           :buttonLabel="item.buttonLabel"
           :path="item.path"
@@ -14,7 +13,7 @@
     </v-col>
   </v-row>
   <v-card class="mt-2 pa-4" v-else>
-    <p class="text-center">Something is wrong, try again !</p>
+    <p class="text-center">Something is wrong, try again!</p>
   </v-card>
 </template>
 
@@ -39,7 +38,6 @@ onMounted(async () => {
     items.value = [
       {
         title: "Registered Users",
-        content: "Registered users",
         icon: "mdi-account-group",
         buttonLabel: "View all Users",
         path: "users",
@@ -47,7 +45,6 @@ onMounted(async () => {
       },
       {
         title: "Registered Devices",
-        content: "Registered devices",
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
@@ -55,7 +52,6 @@ onMounted(async () => {
       },
       {
         title: "Online Devices",
-        content: "Devices are online and ready for connecting",
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
@@ -63,7 +59,6 @@ onMounted(async () => {
       },
       {
         title: "Active Sessions",
-        content: "Active SSH Sessions opened by users",
         icon: "mdi-developer-board",
         buttonLabel: "View all Sessions",
         path: "sessions",
@@ -71,7 +66,6 @@ onMounted(async () => {
       },
       {
         title: "Pending Devices",
-        content: "Pending devices",
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",
@@ -79,7 +73,6 @@ onMounted(async () => {
       },
       {
         title: "Rejected Devices",
-        content: "Rejected devices",
         icon: "mdi-developer-board",
         buttonLabel: "View all Devices",
         path: "devices",

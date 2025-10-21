@@ -57,84 +57,45 @@
     </v-row>
 
     <v-row>
-      <!-- Accepted Devices Card -->
       <v-col cols="12" md="3">
-        <v-card class="pa-6 bg-v-theme-surface text-center h-100" border>
-          <v-avatar color="primary" size="64" class="mb-4">
-            <v-icon size="40">mdi-check</v-icon>
-          </v-avatar>
-
-          <div class="text-overline text-medium-emphasis mb-2">ACCEPTED DEVICES</div>
-          <div class="text-h2 font-weight-bold mb-4">{{ stats.registered_devices || 0 }}</div>
-
-          <v-btn
-            variant="text"
-            color="primary"
-            size="small"
-            :to="'/devices'"
-            block
-          >
-            View all devices
-          </v-btn>
-        </v-card>
+        <StatCard
+          title="Accepted Devices"
+          :stat="stats.registered_devices || 0"
+          icon="mdi-check"
+          button-label="View all devices"
+          path="/devices"
+        />
       </v-col>
 
-      <!-- Online Devices Card -->
       <v-col cols="12" md="3">
-        <v-card class="pa-6 bg-v-theme-surface text-center h-100" border>
-          <v-avatar color="primary" size="64" class="mb-4">
-            <v-icon size="40">mdi-lan-connect</v-icon>
-          </v-avatar>
-
-          <div class="text-overline text-medium-emphasis mb-2">ONLINE DEVICES</div>
-          <div class="text-h2 font-weight-bold mb-4">{{ stats.online_devices || 0 }}</div>
-
-          <v-btn
-            variant="text"
-            color="primary"
-            size="small"
-            :to="'/devices'"
-            block
-          >
-            View Online Devices
-          </v-btn>
-        </v-card>
+        <StatCard
+          title="Online Devices"
+          :stat="stats.online_devices || 0"
+          icon="mdi-lan-connect"
+          button-label="View Online Devices"
+          path="/devices"
+        />
       </v-col>
 
-      <!-- Pending Devices Card -->
       <v-col cols="12" md="3">
-        <v-card class="pa-6 bg-v-theme-surface text-center h-100" border>
-          <v-avatar color="primary" size="64" class="mb-4">
-            <v-icon size="40">mdi-clock-outline</v-icon>
-          </v-avatar>
-
-          <div class="text-overline text-medium-emphasis mb-2">PENDING DEVICES</div>
-          <div class="text-h2 font-weight-bold mb-4">{{ stats.pending_devices || 0 }}</div>
-
-          <v-btn
-            variant="text"
-            color="primary"
-            size="small"
-            :to="'/devices/pending'"
-            block
-          >
-            Approve Devices
-          </v-btn>
-        </v-card>
+        <StatCard
+          title="Pending Devices"
+          :stat="stats.pending_devices || 0"
+          icon="mdi-clock-outline"
+          button-label="Approve Devices"
+          path="/devices/pending"
+        />
       </v-col>
 
-      <!-- Connect Device Card -->
       <v-col cols="12" md="3">
         <v-card class="pa-6 bg-transparent text-center h-100 border border-dashed">
           <v-avatar color="surface-variant" size="64" class="mb-4" theme="dark">
-            <v-icon size="40" color="primary">mdi-developer-board</v-icon>
+            <v-icon size="40" color="primary" icon="mdi-developer-board" />
           </v-avatar>
-
-          <div class="text-h6 font-weight-bold mb-2">Add a new device</div>
-          <div class="text-body-2 text-medium-emphasis mb-4">
+          <v-card-title class="text-h6 font-weight-bold mb-2">Add a new device</v-card-title>
+          <v-card-subtitle class="text-body-2 text-medium-emphasis mb-4 text-wrap">
             Register new devices to this namespace and start managing remote connections
-          </div>
-
+          </v-card-subtitle>
           <DeviceAdd />
         </v-card>
       </v-col>
@@ -142,7 +103,7 @@
 
   </div>
   <v-card data-test="home-failed" class="mt-2 pa-4 bg-v-theme-surface" v-else>
-    <p class="text-center">Something is wrong, try again !</p>
+    <p class="text-center">Something is wrong, try again!</p>
   </v-card>
 </template>
 
@@ -155,6 +116,7 @@ import useNamespacesStore from "@/store/modules/namespaces";
 import useStatsStore from "@/store/modules/stats";
 import DeviceAdd from "@/components/Devices/DeviceAdd.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import StatCard from "@/components/StatCard.vue";
 
 const namespacesStore = useNamespacesStore();
 const statsStore = useStatsStore();

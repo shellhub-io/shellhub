@@ -8,7 +8,6 @@ export interface IStats {
 
 export interface StatCardItem {
   title: string;
-  content: string;
   icon: string;
   buttonLabel: string;
   path: string;
