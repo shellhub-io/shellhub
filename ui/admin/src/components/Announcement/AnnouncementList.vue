@@ -60,7 +60,7 @@ import moment from "moment";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import { IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncement";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "@/components/Tables/DataTable.vue";
 import AnnouncementDelete from "./AnnouncementDelete.vue";
 import AnnouncementEdit from "./AnnouncementEdit.vue";
 import handleError from "@/utils/handleError";

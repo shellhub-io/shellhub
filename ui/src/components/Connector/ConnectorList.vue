@@ -131,7 +131,7 @@
 import { onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { envVariables } from "@/envVariables";
-import DataTable from "../DataTable.vue";
+import DataTable from "../Tables/DataTable.vue";
 import ConnectorDelete from "../Connector/ConnectorDelete.vue";
 import ConnectorEdit from "../Connector/ConnectorEdit.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";

@@ -124,7 +124,7 @@ import isHostname from "@/utils/isHostname";
 import { capitalizeText, displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import showTag from "@/utils/tag";
 import hasPermission from "@/utils/permission";
-import DataTable from "../DataTable.vue";
+import DataTable from "../Tables/DataTable.vue";
 import FirewallRuleDelete from "./FirewallRuleDelete.vue";
 import FirewallRuleEdit from "./FirewallRuleEdit.vue";
 import handleError from "@/utils/handleError";

@@ -257,7 +257,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import DataTable from "../DataTable.vue";
+import DataTable from "./DataTable.vue";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
 import DeviceActionButton from "../Devices/DeviceActionButton.vue";
 import DeviceDelete from "../Devices/DeviceDelete.vue";

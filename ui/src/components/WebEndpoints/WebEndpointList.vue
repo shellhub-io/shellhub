@@ -63,7 +63,7 @@
 import { ref, watch, computed, onMounted } from "vue";
 import moment from "moment";
 import { useRouter } from "vue-router";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "@/components/Tables/DataTable.vue";
 import WebEndpointDelete from "@/components/WebEndpoints/WebEndpointDelete.vue";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
 import { IWebEndpoint } from "@/interfaces/IWebEndpoints";

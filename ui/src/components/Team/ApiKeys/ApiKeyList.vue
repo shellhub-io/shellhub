@@ -85,7 +85,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import moment from "moment";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "@/components/Tables/DataTable.vue";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import ApiKeyDelete from "./ApiKeyDelete.vue";

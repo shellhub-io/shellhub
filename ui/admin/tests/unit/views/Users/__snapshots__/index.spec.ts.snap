@@ -61,23 +61,23 @@ exports[`Users > Renders the component 1`] = `
   </div>
 </div>
 <div data-test="users-list">
-  <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
+  <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
     <!---->
     <div class="v-table__wrapper">
       <table>
         <thead class="bg-v-theme-background">
           <tr>
-            <th class="text-center"><span>Name</span></th>
-            <th class="text-center"><span>Email</span></th>
-            <th class="text-center"><span>Username</span></th>
-            <th class="text-center"><span>Namespaces</span></th>
-            <th class="text-center"><span>Status</span></th>
-            <th class="text-center"><span>Actions</span></th>
+            <th class="text-center" data-test="th-name"><span data-test="th-label">Name</span></th>
+            <th class="text-center" data-test="th-email"><span data-test="th-label">Email</span></th>
+            <th class="text-center" data-test="th-username"><span data-test="th-label">Username</span></th>
+            <th class="text-center" data-test="th-namespaces"><span data-test="th-label">Namespaces</span></th>
+            <th class="text-center" data-test="th-status"><span data-test="th-label">Status</span></th>
+            <th class="text-center" data-test="th-actions"><span data-test="th-label">Actions</span></th>
           </tr>
         </thead>
-        <tbody class="pa-4 text-subtitle-2">
+        <tbody class="pa-4 text-subtitle-2" data-test="tbody-empty">
           <tr>
-            <td colspan="6" class="pa-4 text-subtitle-2 text-center"> No data available </td>
+            <td colspan="6" class="pa-4 text-subtitle-2 text-center" data-test="empty-state"> No data available </td>
           </tr>
         </tbody>
       </table>
@@ -85,9 +85,9 @@ exports[`Users > Renders the component 1`] = `
     <!---->
   </div>
   <!--v-if-->
-  <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
+  <div class="d-flex w-100 justify-end align-center" data-test="pager"><span class="text-subtitle-2 mr-4" data-test="ipp-label">Items per page:</span>
     <div>
-      <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
+      <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4" data-test="ipp-combo">
         <!---->
         <div class="v-input__control">
           <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-5">
@@ -133,11 +133,11 @@ exports[`Users > Renders the component 1`] = `
         <!---->
       </div>
     </div>
-    <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div class="d-flex align-center" data-test="pager-controls"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled="" data-test="pager-prev"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->
-      </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      </button><span class="text-subtitle-2" data-test="pager-text">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled="" data-test="pager-next"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
         <!---->

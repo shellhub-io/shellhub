@@ -139,7 +139,7 @@ import axios, { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
 import { formatShortDateTime } from "@/utils/date";
-import DataTable from "../DataTable.vue";
+import DataTable from "../Tables/DataTable.vue";
 import SessionClose from "./SessionClose.vue";
 import SessionPlay from "./SessionPlay.vue";
 import DeviceLink from "../Devices/DeviceLink.vue";

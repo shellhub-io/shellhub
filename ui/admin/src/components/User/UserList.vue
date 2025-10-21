@@ -80,7 +80,7 @@ import useUsersStore from "@admin/store/modules/users";
 import { IAdminUser, UserAuthMethods } from "@admin/interfaces/IUser";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "@/components/Tables/DataTable.vue";
 import UserStatusChip from "./UserStatusChip.vue";
 import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";

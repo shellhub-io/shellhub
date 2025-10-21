@@ -89,7 +89,7 @@ import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "@/components/Tables/DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import { formatFullDateTime } from "@/utils/date";
 import { displayOnlyTenCharacters } from "@/utils/string";

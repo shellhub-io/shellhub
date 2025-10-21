@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import axios, { AxiosError } from "axios";
-import DataTable from "../DataTable.vue";
+import DataTable from "../Tables/DataTable.vue";
 import DeviceIcon from "./DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
