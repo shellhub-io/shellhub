@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import hasPermission from "../../utils/permission";
-import DataTable from "../DataTable.vue";
+import DataTable from "../Tables/DataTable.vue";
 import TagRemove from "./TagRemove.vue";
 import TagEdit from "./TagEdit.vue";
 import handleError from "@/utils/handleError";

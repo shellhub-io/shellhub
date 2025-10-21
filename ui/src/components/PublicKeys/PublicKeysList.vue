@@ -124,7 +124,7 @@ import {
 } from "@/utils/string";
 import { formatAbbreviatedDateTime } from "@/utils/date";
 import showTag from "@/utils/tag";
-import DataTable from "../DataTable.vue";
+import DataTable from "../Tables/DataTable.vue";
 import PublicKeyDelete from "./PublicKeyDelete.vue";
 import PublicKeyEdit from "./PublicKeyEdit.vue";
 import handleError from "@/utils/handleError";

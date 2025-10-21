@@ -59,7 +59,7 @@ import { useRouter } from "vue-router";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "@/components/Tables/DataTable.vue";
 import NamespaceEdit from "./NamespaceEdit.vue";
 import handleError from "@/utils/handleError";
 

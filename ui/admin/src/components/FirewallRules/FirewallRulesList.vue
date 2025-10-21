@@ -81,7 +81,7 @@ import { useRouter } from "vue-router";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import isHostname from "@/utils/isHostname";
 import useSnackbar from "@/helpers/snackbar";
-import DataTable from "@/components/DataTable.vue";
+import DataTable from "@/components/Tables/DataTable.vue";
 import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import handleError from "@/utils/handleError";

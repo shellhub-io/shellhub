@@ -20,21 +20,21 @@ exports[`Device Chooser List > Renders the component 1`] = `
   <!---->
   <!---->
   <div data-test="devices-dataTable">
-    <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
+    <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
       <!---->
       <div class="v-table__wrapper">
         <table>
           <thead class="bg-v-theme-background">
             <tr>
-              <th class="text-center"><span></span></th>
-              <th class="text-center"><span>Hostname</span></th>
-              <th class="text-center"><span>Operating System</span></th>
-              <th class="text-center"><span>SSHID</span></th>
+              <th class="text-center" data-test="th-selected"><span data-test="th-label"></span></th>
+              <th class="text-center" data-test="th-hostname"><span data-test="th-label">Hostname</span></th>
+              <th class="text-center" data-test="th-info.pretty_name"><span data-test="th-label">Operating System</span></th>
+              <th class="text-center" data-test="th-namespace"><span data-test="th-label">SSHID</span></th>
             </tr>
           </thead>
-          <tbody class="pa-4 text-subtitle-2">
+          <tbody class="pa-4 text-subtitle-2" data-test="tbody-empty">
             <tr>
-              <td colspan="4" class="pa-4 text-subtitle-2 text-center"> No data available </td>
+              <td colspan="4" class="pa-4 text-subtitle-2 text-center" data-test="empty-state"> No data available </td>
             </tr>
           </tbody>
         </table>

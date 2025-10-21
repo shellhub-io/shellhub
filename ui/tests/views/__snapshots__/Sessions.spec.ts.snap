@@ -7,23 +7,23 @@ exports[`Sessions View > Renders the component 1`] = `
 <div>
   <div data-v-459ab1b4="" data-test="sessions-list">
     <div data-v-459ab1b4="" data-test="sessions-list">
-      <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center">
+      <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
         <!---->
         <div class="v-table__wrapper">
           <table>
             <thead class="bg-v-theme-background">
               <tr>
-                <th class="text-center"><span>Recorded</span></th>
-                <th class="text-center"><span>Device</span></th>
-                <th class="text-center"><span>Username</span></th>
-                <th class="text-center"><span>Authenticated</span></th>
-                <th class="text-center"><span>IP Address</span></th>
-                <th class="text-center"><span>Started</span></th>
-                <th class="text-center"><span>Last Seen</span></th>
-                <th class="text-center"><span>Actions</span></th>
+                <th class="text-center" data-test="th-recorded"><span data-test="th-label">Recorded</span></th>
+                <th class="text-center" data-test="th-device"><span data-test="th-label">Device</span></th>
+                <th class="text-center" data-test="th-username"><span data-test="th-label">Username</span></th>
+                <th class="text-center" data-test="th-authenticated"><span data-test="th-label">Authenticated</span></th>
+                <th class="text-center" data-test="th-ip_address"><span data-test="th-label">IP Address</span></th>
+                <th class="text-center" data-test="th-started"><span data-test="th-label">Started</span></th>
+                <th class="text-center" data-test="th-last_seen"><span data-test="th-label">Last Seen</span></th>
+                <th class="text-center" data-test="th-actions"><span data-test="th-label">Actions</span></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody data-test="tbody-has-items">
               <tr data-v-459ab1b4="">
                 <td data-v-459ab1b4="" class="text-center">
                   <div aria-describedby="v-tooltip-v-0"><button data-v-459ab1b4="" type="button" class="v-btn v-theme--light text-primary v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined" data-test="connect-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-play mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Play </span>
@@ -63,7 +63,7 @@ exports[`Sessions View > Renders the component 1`] = `
         </div>
         <!---->
       </div>
-      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading">
+      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading" data-test="loading">
         <!---->
         <div class="v-progress-linear__background"></div>
         <div class="v-progress-linear__buffer" style="width: 0%;"></div>
@@ -75,9 +75,9 @@ exports[`Sessions View > Renders the component 1`] = `
         </transition-stub>
         <!---->
       </div>
-      <div class="d-flex w-100 justify-end align-center"><span class="text-subtitle-2 mr-4">Items per page:</span>
+      <div class="d-flex w-100 justify-end align-center" data-test="pager"><span class="text-subtitle-2 mr-4" data-test="ipp-label">Items per page:</span>
         <div>
-          <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4">
+          <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4" data-test="ipp-combo">
             <!---->
             <div class="v-input__control">
               <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-7">
@@ -123,11 +123,11 @@ exports[`Sessions View > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div class="d-flex align-center"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <div class="d-flex align-center" data-test="pager-controls"><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled="" data-test="pager-prev"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-left mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
-          </button><span class="text-subtitle-2">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled=""><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </button><span class="text-subtitle-2" data-test="pager-text">1 of 1</span><button type="button" class="v-btn v-btn--disabled v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-plain" disabled="" data-test="pager-next"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-right mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
