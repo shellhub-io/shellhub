@@ -62,7 +62,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
-import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useContainersStore from "@/store/modules/containers";
@@ -94,9 +93,13 @@ let observer: IntersectionObserver | null = null;
 
 const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
 
-const getTagName = (tag: ITag): string => (typeof tag === "string" ? tag : tag.name);
+const getTagName = (tag: ITag): string => typeof tag === "string" ? tag : tag.name;
+
 const getSelectedTagNames = (): string[] => selectedTags.value.map((t) => getTagName(t));
-const tagIsSelected = (tag: ITag): boolean => selectedTags.value.some((sel) => getTagName(sel) === getTagName(tag));
+
+const tagIsSelected = (tag: ITag): boolean => selectedTags.value.some(
+  (sel) => getTagName(sel) === getTagName(tag),
+);
 
 const resetPagination = (): void => {
   currentPage.value = 1;
@@ -132,43 +135,33 @@ const loadInitialTags = async (): Promise<void> => {
   await loadTags();
 };
 
-const fetchDevices = async (filter = ""): Promise<void> => {
-  const fetch = {
-    device: () => devicesStore.fetchDeviceList({ filter }),
-    container: () => containersStore.fetchContainerList({ filter }),
-  }[props.variant];
-  await fetch();
-};
-
-const getItems = async (tagNames: string[]): Promise<void> => {
-  const filter = [{
-    type: "property",
-    params: { name: "tags.name", operator: "contains", value: tagNames },
-  }];
-  const encodedFilter = btoa(JSON.stringify(filter));
-  try {
-    await fetchDevices(encodedFilter);
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("You do not have permission to perform this action.");
-        handleError(error);
-        return;
-      }
-    }
-    snackbar.showError("Failed to load items.");
-    handleError(error);
+const setFilter = (filter?: string) => {
+  const encoded = filter && filter.length ? filter : undefined;
+  if (props.variant === "device") {
+    devicesStore.deviceListFilter = encoded;
+  } else {
+    containersStore.containerListFilter = encoded;
   }
 };
 
-const selectTag = async (item: ITag): Promise<void> => {
+const getItems = (tagNames: string[]) => {
+  const filter = [
+    {
+      type: "property",
+      params: { name: "tags.name", operator: "contains", value: tagNames },
+    },
+  ];
+  const encodedFilter = Buffer.from(JSON.stringify(filter), "utf-8").toString("base64");
+  setFilter(encodedFilter);
+};
+
+const selectTag = (item: ITag) => {
   tagsStore.setSelected({ variant: props.variant, tag: item });
 
   if (selectedTags.value.length > 0) {
-    await getItems(getSelectedTagNames());
+    getItems(getSelectedTagNames());
   } else {
-    await fetchDevices();
+    setFilter();
   }
 };
 
@@ -192,10 +185,7 @@ const setupObserver = () => {
         bumpPerPageAndLoad();
       }
     },
-    {
-      root: scrollArea.value,
-      threshold: 1.0,
-    },
+    { root: scrollArea.value, threshold: 1.0 },
   );
 
   observer.observe(sentinel.value);
