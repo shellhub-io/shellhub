@@ -30,7 +30,7 @@
       cancel-data-test="firewall-rule-cancel"
       data-test="firewall-rule-edit-dialog"
     >
-      <div class="px-6 pt-4">
+      <v-card-text class="pa-6">
         <v-row>
           <v-col>
             <v-select
@@ -61,12 +61,13 @@
           </v-col>
         </v-row>
 
-        <v-row class="mt-1 mb-1 px-3">
+        <v-row class="mt-1 mb-3 px-3">
           <v-select
             v-model="selectedIPOption"
             @update:model-value="handleSourceIpUpdate"
             label="Source IP access restriction"
             :items="sourceIPSelectOptions"
+            hide-details
             data-test="firewall-rule-source-ip-select"
           />
         </v-row>
@@ -76,15 +77,17 @@
           v-model="sourceIp"
           label="Rule source IP"
           :error-messages="sourceIpError"
+          hide-details="auto"
           data-test="firewall-rule-source-ip"
         />
 
-        <v-row class="mt-1 mb-1 px-3">
+        <v-row class="mt-5 mb-3 px-3">
           <v-select
             v-model="selectedUsernameOption"
             @update:model-value="handleUsernameUpdate"
             label="Device username access restriction"
             :items="usernameSelectOptions"
+            hide-details
             data-test="username-field"
           />
         </v-row>
@@ -95,15 +98,17 @@
           label="Username access restriction"
           placeholder="Username used during the connection"
           :error-messages="usernameError"
+          hide-details="auto"
           data-test="firewall-rule-username-restriction"
         />
 
-        <v-row class="mt-2 mb-1 px-3">
+        <v-row class="mt-5 mb-3 px-3">
           <v-select
             v-model="selectedFilterOption"
             @update:model-value="handleFilterUpdate"
             label="Device access restriction"
             :items="filterSelectOptions"
+            hide-details
             data-test="filter-select"
           />
         </v-row>
@@ -114,10 +119,11 @@
           label="Device hostname access restriction"
           placeholder="Device hostname used during the connection"
           :error-messages="hostnameError"
+          hide-details="auto"
           data-test="firewall-rule-hostname-restriction"
         />
 
-        <v-row v-else-if="selectedFilterOption === FormFilterOptions.Tags" class="px-3 mt-2">
+        <v-row v-else-if="selectedFilterOption === FormFilterOptions.Tags" class="px-3 mt-3">
           <v-autocomplete
             v-model="selectedTags"
             v-model:menu="acMenuOpen"
@@ -131,7 +137,9 @@
             label="Tags"
             :error-messages="selectedTagsError"
             variant="outlined"
+            density="comfortable"
             multiple
+            hide-details="auto"
             data-test="tags-selector"
             @update:model-value="setSelectedTagsError"
             @update:search="onSearch"
@@ -141,7 +149,7 @@
             </template>
           </v-autocomplete>
         </v-row>
-      </div>
+      </v-card-text>
     </FormDialog>
   </div>
 </template>
