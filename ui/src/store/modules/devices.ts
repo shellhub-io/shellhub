@@ -19,7 +19,7 @@ const useDevicesStore = defineStore("devices", () => {
   const selectedDevices = ref<Array<IDevice>>([]);
 
   const fetchDeviceList = async (data?: FetchDevicesParams) => {
-    const filter = data?.filter || deviceListFilter.value;
+    const filter = data?.filter === undefined ? deviceListFilter.value : data.filter;
     deviceListFilter.value = filter;
     try {
       const res = await devicesApi.fetchDevices(

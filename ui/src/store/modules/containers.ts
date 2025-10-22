@@ -11,7 +11,7 @@ const useContainersStore = defineStore("containers", () => {
   const containerListFilter = ref<string>();
 
   const fetchContainerList = async (data?: FetchContainerParams) => {
-    const filter = data?.filter || containerListFilter.value;
+    const filter = data?.filter === undefined ? containerListFilter.value : data.filter;
     containerListFilter.value = filter;
     try {
       const res = await containerApi.fetchContainers(
