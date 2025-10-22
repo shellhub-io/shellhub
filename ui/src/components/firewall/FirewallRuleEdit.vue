@@ -434,7 +434,7 @@ const setFilterData = async () => {
     if ("hostname" in firewallRule.filter && firewallRule.filter.hostname !== ".*") {
       selectedFilterOption.value = FormFilterOptions.Hostname;
       hostname.value = firewallRule.filter.hostname;
-    } else if ("tags" in firewallRule.filter) {
+    } else if ("tags" in firewallRule.filter && firewallRule.filter.tags.length > 0) {
       selectedFilterOption.value = FormFilterOptions.Tags;
       resetPagination();
       await loadTags();
