@@ -68,7 +68,7 @@ const filter = ref("");
 const showDevices = computed(() => devicesStore.showDevices);
 const isDeviceList = computed(() => route.name === "DeviceList");
 
-const updateDeviceListFilter = async () => {
+const updateDeviceListFilter = () => {
   const base64DeviceFilter = [{
     type: "property",
     params: { name: "name", operator: "contains", value: filter.value },
