@@ -132,7 +132,7 @@ const loadInitialTags = async (): Promise<void> => {
   await loadTags();
 };
 
-const fetchDevices = async (filter?: string): Promise<void> => {
+const fetchDevices = async (filter = ""): Promise<void> => {
   const fetch = {
     device: () => devicesStore.fetchDeviceList({ filter }),
     container: () => containersStore.fetchContainerList({ filter }),
