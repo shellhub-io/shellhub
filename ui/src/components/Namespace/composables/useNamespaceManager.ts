@@ -27,8 +27,18 @@ export default function useNamespaceManager() {
     }
   };
 
+  const loadNamespaces = async () => {
+    try {
+      await namespacesStore.fetchNamespaceList({ perPage: 30 });
+    } catch (error: unknown) {
+      snackbar.showError("Failed to load namespaces");
+      handleError(error);
+    }
+  };
+
   const loadCurrentNamespace = async () => {
     try {
+      await loadNamespaces();
       await namespacesStore.fetchNamespace(currentTenantId.value);
     } catch (error: unknown) {
       if (!axios.isAxiosError(error)) {

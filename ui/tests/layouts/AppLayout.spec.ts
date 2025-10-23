@@ -74,8 +74,8 @@ describe("App Layout Component", async () => {
     .onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending")
     .reply(200);
   mockNamespacesApi
-    .onGet("http://localhost:3000/api/namespaces")
-    .reply(200);
+    .onGet("http://localhost:3000/api/namespaces?page=1&per_page=30")
+    .reply(200, []);
 
   await router.push("/");
   await router.isReady();
