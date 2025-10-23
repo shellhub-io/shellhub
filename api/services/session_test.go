@@ -144,7 +144,7 @@ func TestGetSession(t *testing.T) {
 			name: "fails when session is not found",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionGet", ctx, models.UID("_uid")).
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
 					Return(nil, goerrors.New("error")).Once()
 			},
 			expected: Expected{
@@ -158,7 +158,7 @@ func TestGetSession(t *testing.T) {
 			requiredMocks: func() {
 				session := &models.Session{UID: "uid"}
 
-				mock.On("SessionGet", ctx, models.UID("uid")).
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "uid").
 					Return(session, nil).Once()
 			},
 			expected: Expected{
@@ -214,7 +214,7 @@ func TestCreateSession(t *testing.T) {
 				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
 					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
-					Return(nil, Err).Once()
+					Return("", Err).Once()
 			},
 			expected: Expected{
 				session: nil,
@@ -228,6 +228,8 @@ func TestCreateSession(t *testing.T) {
 				locator.On("GetPosition", net.ParseIP(model.IPAddress)).
 					Return(geoip.Position{}, nil).Once()
 				mock.On("SessionCreate", ctx, model).
+					Return("uid", nil).Once()
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "uid").
 					Return(&model, nil).Once()
 			},
 			expected: Expected{
@@ -265,7 +267,7 @@ func TestDeactivateSession(t *testing.T) {
 			name: "fails when session is not found",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionGet", ctx, models.UID("_uid")).
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
 					Return(nil, goerrors.New("get error")).Once()
 			},
 			expected: NewErrSessionNotFound("_uid", goerrors.New("get error")),
@@ -274,12 +276,12 @@ func TestDeactivateSession(t *testing.T) {
 			name: "fails",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionGet", ctx, models.UID("_uid")).
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
 					Return(&models.Session{
 						UID: "_uid",
 					}, nil).Once()
 
-				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
+				mock.On("ActiveSessionDelete", ctx, models.UID("_uid")).
 					Return(goerrors.New("error")).Once()
 			},
 			expected: goerrors.New("error"),
@@ -288,12 +290,12 @@ func TestDeactivateSession(t *testing.T) {
 			name: "succeeds",
 			uid:  models.UID("_uid"),
 			requiredMocks: func() {
-				mock.On("SessionGet", ctx, models.UID("_uid")).
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
 					Return(&models.Session{
 						UID: "_uid",
 					}, nil).Once()
 
-				mock.On("SessionDeleteActives", ctx, models.UID("_uid")).
+				mock.On("ActiveSessionDelete", ctx, models.UID("_uid")).
 					Return(nil).Once()
 			},
 			expected: nil,
@@ -331,7 +333,7 @@ func TestUpdateSession(t *testing.T) {
 		{
 			description: "fails when SessionGet returns error",
 			requiredMocks: func() {
-				mockStore.On("SessionGet", ctx, uid).
+				mockStore.On("SessionResolve", ctx, store.SessionUIDResolver, string(uid)).
 					Return(nil, goerrors.New("get error")).Once()
 			},
 			expectedErr: NewErrSessionNotFound(uid, goerrors.New("get error")),
@@ -339,9 +341,11 @@ func TestUpdateSession(t *testing.T) {
 		{
 			description: "fails when SessionUpdate returns error",
 			requiredMocks: func() {
-				mockStore.On("SessionGet", ctx, uid).
+				mockStore.On("SessionResolve", ctx, store.SessionUIDResolver, string(uid)).
 					Return(sess, nil).Once()
-				mockStore.On("SessionUpdate", ctx, uid, sess, &updateModel).
+				mockStore.On("ActiveSessionCreate", ctx, sess).
+					Return(nil).Once()
+				mockStore.On("SessionUpdate", ctx, sess).
 					Return(goerrors.New("update error")).Once()
 			},
 			expectedErr: goerrors.New("update error"),
@@ -349,9 +353,11 @@ func TestUpdateSession(t *testing.T) {
 		{
 			description: "succeeds when no errors",
 			requiredMocks: func() {
-				mockStore.On("SessionGet", ctx, uid).
+				mockStore.On("SessionResolve", ctx, store.SessionUIDResolver, string(uid)).
 					Return(sess, nil).Once()
-				mockStore.On("SessionUpdate", ctx, uid, sess, &updateModel).
+				mockStore.On("ActiveSessionCreate", ctx, sess).
+					Return(nil).Once()
+				mockStore.On("SessionUpdate", ctx, sess).
 					Return(nil).Once()
 			},
 			expectedErr: nil,
