@@ -23,7 +23,7 @@
             <div class="mr-4">
               <v-btn
                 v-if="!editDataStatus"
-                @click="editDataStatus = !editDataStatus"
+                @click="editDataStatus = true"
                 :disabled="!canRenameNamespace"
                 color="primary"
                 variant="text"
@@ -32,7 +32,7 @@
               >Edit Namespace</v-btn>
               <template v-else>
                 <v-btn
-                  @click="cancel('data')"
+                  @click="cancel"
                   color="primary"
                   variant="text"
                   class="mr-2"
@@ -231,11 +231,9 @@ const {
   },
 );
 
-const cancel = (type: string) => {
-  if (type === "data") {
-    name.value = namespace.value.name;
-    editDataStatus.value = !editDataStatus.value;
-  }
+const cancel = () => {
+  name.value = namespace.value.name;
+  editDataStatus.value = false;
 };
 
 const getNamespace = async () => {
@@ -285,7 +283,7 @@ const updateName = async () => {
 
     await getNamespace();
     snackbar.showSuccess("Namespace name updated successfully.");
-    editDataStatus.value = true;
+    editDataStatus.value = false;
   } catch (error) {
     handleUpdateNameError(error);
   }
