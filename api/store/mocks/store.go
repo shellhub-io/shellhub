@@ -971,36 +971,6 @@ func (_m *Store) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKe
 	return r0
 }
 
-// PublicKeyGet provides a mock function with given fields: ctx, fingerprint, tenantID
-func (_m *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
-	ret := _m.Called(ctx, fingerprint, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PublicKeyGet")
-	}
-
-	var r0 *models.PublicKey
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.PublicKey, error)); ok {
-		return rf(ctx, fingerprint, tenantID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.PublicKey); ok {
-		r0 = rf(ctx, fingerprint, tenantID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.PublicKey)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, fingerprint, tenantID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // PublicKeyList provides a mock function with given fields: ctx, opts
 func (_m *Store) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
 	_va := make([]interface{}, len(opts))
@@ -1043,6 +1013,43 @@ func (_m *Store) PublicKeyList(ctx context.Context, opts ...store.QueryOption) (
 	}
 
 	return r0, r1, r2
+}
+
+// PublicKeyResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, resolver, value)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PublicKeyResolve")
+	}
+
+	var r0 *models.PublicKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.PublicKeyResolver, string, ...store.QueryOption) (*models.PublicKey, error)); ok {
+		return rf(ctx, resolver, value, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.PublicKeyResolver, string, ...store.QueryOption) *models.PublicKey); ok {
+		r0 = rf(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.PublicKey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.PublicKeyResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // PublicKeyUpdate provides a mock function with given fields: ctx, publicKey
