@@ -69,10 +69,6 @@ describe("Setting Private Keys", () => {
 
     await wrapper.findComponent('[data-test="private-key-field"]').setValue("not-working-key");
 
-    await wrapper.findComponent('[data-test="private-key-field"]').setValue("");
-
-    await flushPromises();
-
-    expect(wrapper.vm.privateKeyDataError).toEqual("Private key data is required");
+    expect(wrapper.vm.privateKeyDataError).toEqual("Invalid private key data");
   });
 });

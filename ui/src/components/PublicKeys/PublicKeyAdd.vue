@@ -119,6 +119,7 @@
 
         <FileTextComponent
           v-model="publicKeyData"
+          v-model:error-message="publicKeyDataError"
           class="mt-4 mb-2"
           enable-paste
           :pasted-file
@@ -126,7 +127,6 @@
           description-text="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
           :validator="(t) => isKeyValid('public', t)"
           invalid-message="This is not a valid public key."
-          @error="setPublicKeyDataError($event)"
           @file-name="suggestNameFromFile"
         />
 
@@ -215,12 +215,8 @@ const {
   resetField: resetHostname,
 } = useField<string | undefined>("hostname", yup.string().required(), { initialValue: "" });
 
-const {
-  value: publicKeyData,
-  errorMessage: publicKeyDataError,
-  setErrors: setPublicKeyDataError,
-  resetField: resetPublicKeyData,
-} = useField<string>("publicKeyData", yup.string().required(), { initialValue: "" });
+const publicKeyData = ref("");
+const publicKeyDataError = ref("");
 
 const inputMode = ref<"file" | "text">("file");
 
@@ -251,11 +247,11 @@ watch([tagChoices, choiceFilter], ([list, currentFilter]) => {
 
 watch(publicKeyData, () => {
   if (!publicKeyData.value) {
-    setPublicKeyDataError("Field is required");
+    publicKeyDataError.value = "Field is required";
     return;
   }
-  if (!isKeyValid("public", publicKeyData.value)) setPublicKeyDataError("This is not valid key");
-  else setPublicKeyDataError("");
+  if (!isKeyValid("public", publicKeyData.value)) publicKeyDataError.value = "This is not valid key";
+  else publicKeyDataError.value = "";
 });
 
 const chooseUsername = () => {
@@ -285,7 +281,8 @@ const resetFields = () => {
   resetName();
   resetUsername();
   resetHostname();
-  resetPublicKeyData();
+  publicKeyData.value = "";
+  publicKeyDataError.value = "";
   pastedFile.value = null;
 };
 
@@ -337,7 +334,7 @@ const create = async () => {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 409) {
-        setPublicKeyDataError("Public Key data already exists");
+        publicKeyDataError.value = "Public Key data already exists";
         return;
       }
       snackbar.showError("Failed to create the public key.");

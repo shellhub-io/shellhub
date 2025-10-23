@@ -89,7 +89,7 @@ describe("FileTextComponent", () => {
     await wrapper.vm.onFiles([file]);
     await flushPromises();
 
-    expect(wrapper.emitted("error")?.[0]).toEqual(["Not valid"]);
+    expect(wrapper.vm.errorMessage).toEqual("Not valid");
     restore();
   });
 
@@ -119,8 +119,8 @@ describe("FileTextComponent", () => {
     });
 
     await wrapper.vm.onFiles([file]);
+    expect(wrapper.vm.errorMessage).toBe("Nope");
     await flushPromises();
-    expect(wrapper.emitted("error")).toBeTruthy();
 
     await wrapper.vm.onFiles(null);
     await flushPromises();
@@ -138,8 +138,7 @@ describe("FileTextComponent", () => {
     await wrapper.vm.onFiles([file]);
     await flushPromises();
 
-    const err = wrapper.emitted("error")?.[0]?.[0] as string | undefined;
-    expect(err).toContain("Could not read the file.");
+    expect(wrapper.vm.errorMessage).toBe("Could not read the file.");
     restore();
   });
 
@@ -156,11 +155,11 @@ describe("FileTextComponent", () => {
 
     await textarea.setValue("INVALID");
     await flushPromises();
-    expect(wrapper.vm.localError).toBe("Bad");
+    expect(wrapper.vm.errorMessage).toBe("Bad");
 
     await textarea.setValue("VALID");
     await flushPromises();
-    expect(wrapper.vm.localError).toBe("");
+    expect(wrapper.vm.errorMessage).toBe("");
   });
 
   it("switches mode and reuses existing file on button click", async () => {
@@ -221,8 +220,7 @@ describe("FileTextComponent", () => {
     await wrapper.vm.onFiles([file]);
     await flushPromises();
 
-    const err = wrapper.emitted("error")?.[0]?.[0] as string | undefined;
-    expect(err).toBe("Unsupported file type.");
+    expect(wrapper.vm.errorMessage).toBe("Unsupported file type.");
     restore();
   });
 });

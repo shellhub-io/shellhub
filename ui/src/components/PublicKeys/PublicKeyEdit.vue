@@ -111,6 +111,7 @@
 
         <FileTextComponent
           v-model="publicKeyData"
+          v-model:error-message="publicKeyDataError"
           class="mt-4 mb-2"
           enable-paste
           start-in-text
@@ -119,7 +120,6 @@
           :validator="(t) => isKeyValid('public', t)"
           invalid-message="This is not a valid public key."
           data-test="data-field"
-          @error="setPublicKeyDataError"
         />
       </div>
 
@@ -199,13 +199,8 @@ const {
   initialValue: (props.publicKey.filter as HostnameFilter)?.hostname || "",
 });
 
-const {
-  value: publicKeyData,
-  errorMessage: publicKeyDataError,
-  setErrors: setPublicKeyDataError,
-} = useField<string>("publicKeyData", yup.string().required(), {
-  initialValue: props.publicKey.data,
-});
+const publicKeyData = ref("");
+const publicKeyDataError = ref("");
 
 const hasAuthorization = computed(() => props.hasAuthorization ?? true);
 
@@ -387,7 +382,8 @@ const setLocalVariable = () => {
 const open = () => {
   showDialog.value = true;
   name.value = props.publicKey.name;
-  publicKeyData.value = props.publicKey.data;
+  publicKeyData.value = Buffer.from(props.publicKey.data, "base64").toString("utf-8");
+  publicKeyDataError.value = "";
   handleUpdate();
 };
 

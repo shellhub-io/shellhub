@@ -15,8 +15,8 @@
       :disabled
       :show-size
       density="comfortable"
-      :border="localError && 'opacity-100 error'"
-      :class="localError ? 'text-error bg-v-theme-surface' : 'py-3 bg-v-theme-surface'"
+      :border="errorMessage && 'opacity-100 error'"
+      :class="errorMessage ? 'text-error bg-v-theme-surface' : 'py-3 bg-v-theme-surface'"
       @update:model-value="onFiles"
       data-test="file-text-capture"
     >
@@ -85,7 +85,7 @@
         :disabled
         auto-grow
         rows="3"
-        :error-messages="localError"
+        :error-messages="errorMessage"
         data-test="ftc-textarea"
         @update:model-value="onTextInput"
       >
@@ -102,10 +102,10 @@
       </v-textarea>
     </div>
 
-    <v-row v-if="mode === 'file' && localError" no-gutters class="mt-1">
+    <v-row v-if="mode === 'file' && errorMessage" no-gutters class="mt-1">
       <v-col cols="12">
         <div class="text-error text-caption" data-test="ftc-file-error">
-          {{ localError }}
+          {{ errorMessage }}
         </div>
       </v-col>
     </v-row>
@@ -234,14 +234,12 @@ const props = withDefaults(defineProps<{
  * Emits
  *
  * - update:modelValue → triggered when the text content changes.
- * - error → emitted whenever a validation or file read error occurs.
  * - file-name → emitted when a file is successfully read.
  * - file-processed → emitted after a file has been fully read and validated.
  * - mode-changed → emitted whenever a change from the drop zone or the text area occurs.
  */
 const emit = defineEmits<{
   "update:modelValue": [value: string];
-  error: [message: string];
   "file-name": [filename: string];
   "file-processed": [];
   "mode-changed": ["file" | "text"];
@@ -251,14 +249,12 @@ const emit = defineEmits<{
 const rootEl = ref<HTMLElement | null>(null);
 const mode = ref<Mode>("file");
 const files = ref<File[]>([]);
-const localError = ref("");
 const uploadEl = ref();
 const textareaRef = ref<{ $el?: HTMLElement } | null>(null);
 const internalUpdate = ref(false);
 const { smAndDown } = useDisplay();
-
-// v-model binding
 const textModel = defineModel<string>({ default: "" });
+const errorMessage = defineModel<string>("errorMessage", { default: "" });
 
 /**
  * When allowing extensionless files, we give the OS picker an empty accept string
@@ -272,12 +268,6 @@ const setFiles = async (val: File[]) => {
   files.value = val;
   await nextTick();
   internalUpdate.value = false;
-};
-
-// Sets a local + emitted error message
-const setError = (msg: string) => {
-  localError.value = msg;
-  if (msg) emit("error", msg);
 };
 
 // Clears the selected file and resets model value
@@ -350,26 +340,26 @@ const focusTextarea = async () => {
 // Reads and validates a selected file
 const useFile = async (file: File) => {
   await clearSelection();
-  setError("");
+  errorMessage.value = "";
 
   if (!isTypeAccepted(file)) {
-    setError("Unsupported file type.");
+    errorMessage.value = "Unsupported file type.";
     return;
   }
   if (file.size > props.maxSize) {
-    setError(`File too large. Max ${Math.round(props.maxSize / 1024)} KB.`);
+    errorMessage.value = `File too large. Max ${Math.round(props.maxSize / 1024)} KB.`;
     return;
   }
 
   try {
     const text = (await readFileAsText(file)).trim();
     if (!text) {
-      setError("Empty file content.");
+      errorMessage.value = "Empty file content.";
       return;
     }
 
     if (props.validator && !props.validator(text)) {
-      setError(props.invalidMessage || "Invalid content.");
+      errorMessage.value = props.invalidMessage || "Invalid content.";
       return;
     }
 
@@ -378,7 +368,7 @@ const useFile = async (file: File) => {
     emit("update:modelValue", text);
     emit("file-processed");
   } catch {
-    setError("Could not read the file.");
+    errorMessage.value = "Could not read the file.";
   }
 };
 
@@ -387,13 +377,13 @@ const onFiles = async (val: File[] | File | null) => {
   if (internalUpdate.value) return;
   if (!val) {
     await clearSelection();
-    setError("");
+    errorMessage.value = "";
     return;
   }
   const picked = Array.isArray(val) ? val[0] : val;
   if (!picked) {
     await clearSelection();
-    setError("");
+    errorMessage.value = "";
     return;
   }
   await useFile(picked);
@@ -404,16 +394,16 @@ const onClearClick = async (clearProps: Record<string, unknown>) => {
   const handler = (clearProps as { onClick?: () => void }).onClick;
   if (typeof handler === "function") handler();
   await clearSelection();
-  setError("");
+  errorMessage.value = "";
 };
 
 // Validates text input in textarea mode
 const onTextInput = (val: string) => {
-  setError("");
+  errorMessage.value = "";
   const text = (val ?? "").trim();
   if (!text) return;
   if (props.validator && !props.validator(text)) {
-    setError(props.invalidMessage || "Invalid content.");
+    errorMessage.value = props.invalidMessage || "Invalid content.";
   }
 };
 
@@ -489,7 +479,7 @@ watch(() => props.pastedFile, async (f) => {
   }
 });
 
-defineExpose({ onFiles, switchToFileMode, localError });
+defineExpose({ onFiles, switchToFileMode, errorMessage });
 </script>
 
 <style scoped>
