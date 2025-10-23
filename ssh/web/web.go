@@ -13,59 +13,8 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
-func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
-	const WebsocketSSHBridgeRoute = "/ws/ssh"
-
-	manager := newManager(30 * time.Second)
-
-	// NOTICE: this is the route that users send your credentials securely.
-	router.Add(http.MethodPost, WebsocketSSHBridgeRoute, echo.WrapHandler(
-		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			type Success struct {
-				Token string `json:"token"`
-			}
-
-			type Fail struct {
-				Error string `json:"error"`
-			}
-
-			decoder := json.NewDecoder(req.Body)
-			encoder := json.NewEncoder(res)
-
-			response := func(res http.ResponseWriter, status int, data any) {
-				res.WriteHeader(status)
-				res.Header().Set("Content-Type", "application/json")
-
-				encoder.Encode(data) //nolint: errcheck,errchkjson
-			}
-
-			var request Credentials
-			if err := decoder.Decode(&request); err != nil {
-				response(res, http.StatusBadRequest, Fail{Error: err.Error()})
-
-				return
-			}
-
-			key := magickey.GetReference()
-
-			token, err := token.NewToken(key)
-			if err != nil {
-				response(res, http.StatusBadRequest, Fail{Error: err.Error()})
-
-				return
-			}
-
-			request.encryptPassword(key) //nolint:errcheck
-
-			// NOTICE: saved credentials are delete after a time period.
-			manager.save(token.ID, &request)
-
-			response(res, http.StatusOK, Success{Token: token.ID})
-		})),
-	)
-
-	router.Add(http.MethodGet, WebsocketSSHBridgeRoute, echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {
+func SSHTerminalHandler(manager *manager, cache cache.Cache) echo.HandlerFunc {
+	return echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {
 		defer wsconn.Close()
 
 		// exit sends the error's message to the client on the browser.
@@ -125,5 +74,132 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 
 			return
 		}
-	})))
+	}))
+}
+
+func SSHRFBHandler(manager *manager, cache cache.Cache) echo.HandlerFunc {
+	return echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {
+		defer wsconn.Close()
+
+		// exit sends the error's message to the client on the browser.
+		exit := func(wsconn *websocket.Conn, err error) {
+			buffer, err := json.Marshal(Message{
+				Kind: messageKindError,
+				Data: err.Error(),
+			})
+			if err != nil {
+				log.WithError(err).Error("SSH web bridge RFB exit with error")
+			}
+
+			wsconn.Write(buffer) //nolint:errcheck
+		}
+
+		token, err := getToken(wsconn.Request())
+		if err != nil {
+			log.Println("error getting token:", err)
+
+			exit(wsconn, ErrWebSocketGetToken)
+
+			return
+		}
+
+		// ip, err := getIP(wsconn.Request())
+		// if err != nil {
+		// 	exit(wsconn, ErrWebSocketGetIP)
+
+		// 	return
+		// }
+
+		creds, ok := manager.get(token)
+		if !ok {
+			log.Println("credentials not found for token:", token)
+
+			exit(wsconn, ErrBridgeCredentialsNotFound)
+		}
+
+		conn := NewConn(wsconn)
+		defer conn.Close()
+
+		go conn.KeepAlive()
+
+		creds.decryptPassword(magickey.GetReference()) //nolint:errcheck
+
+		if err := newRFBSession(
+			wsconn.Request().Context(),
+			cache,
+			conn,
+			creds,
+			Dimensions{},
+			Info{IP: "127.0.0.1"},
+		); err != nil {
+			log.Println("error creating new RFB session:", err)
+
+			exit(wsconn, err)
+
+			return
+		}
+	}))
+}
+
+// NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
+func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
+	const WebsocketSSHBridgeRoute = "/ws/ssh"
+	const WebsocketTerminalBridgeRoute = "/ws/terminal"
+	const WebsocketRFBBridgeRoute = "/ws/rfb"
+
+	manager := newManager(30 * time.Second)
+
+	// NOTE: this is the route that users send your credentials securely.
+	router.Add(http.MethodPost, WebsocketSSHBridgeRoute, echo.WrapHandler(
+		http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			type Success struct {
+				Token string `json:"token"`
+			}
+
+			type Fail struct {
+				Error string `json:"error"`
+			}
+
+			decoder := json.NewDecoder(req.Body)
+			encoder := json.NewEncoder(res)
+
+			response := func(res http.ResponseWriter, status int, data any) {
+				res.WriteHeader(status)
+				res.Header().Set("Content-Type", "application/json")
+
+				encoder.Encode(data) //nolint: errcheck,errchkjson
+			}
+
+			var request Credentials
+			if err := decoder.Decode(&request); err != nil {
+				response(res, http.StatusBadRequest, Fail{Error: err.Error()})
+
+				return
+			}
+
+			key := magickey.GetReference()
+
+			token, err := token.NewToken(key)
+			if err != nil {
+				response(res, http.StatusBadRequest, Fail{Error: err.Error()})
+
+				return
+			}
+
+			request.encryptPassword(key) //nolint:errcheck
+
+			// NOTE: saved credentials are delete after a time period.
+			manager.save(token.ID, &request)
+
+			response(res, http.StatusOK, Success{Token: token.ID})
+		})),
+	)
+
+	// NOTE: In order to make the websocket bridg connection more meaningful, we are using different routes for the
+	// terminal and RFB connections, but keeping the old `/ws/ssh` route for backward compatibility. This route is still
+	// used with POST method to exchange credentials for a token.
+	router.Add(http.MethodGet, WebsocketSSHBridgeRoute, SSHTerminalHandler(manager, cache))
+
+	router.Add(http.MethodGet, WebsocketTerminalBridgeRoute, SSHTerminalHandler(manager, cache))
+	router.Add(http.MethodGet, WebsocketRFBBridgeRoute, SSHRFBHandler(manager, cache))
 }

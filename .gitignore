@@ -26,3 +26,5 @@ agent/shellhub.key
 bin/agent
 
 agent/latest
+
+*.wasm

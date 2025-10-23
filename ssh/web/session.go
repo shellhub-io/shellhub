@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -264,6 +265,142 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	if err := agent.Wait(); err != nil {
 		logger.WithError(err).Warning("client remote command returned a error")
 	}
+
+	return nil
+}
+
+func newRFBSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Credentials, dim Dimensions, info Info) error {
+	logger := log.WithFields(log.Fields{
+		"user":   creds.Username,
+		"device": creds.Device,
+		"cols":   dim.Cols,
+		"rows":   dim.Rows,
+		"ip":     info.IP,
+	})
+
+	logger.Info("handling web client request started")
+
+	defer logger.Info("handling web client request end")
+
+	uuid := uuid.Generate()
+
+	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
+	auth, err := getAuth(ctx, conn, creds)
+	if err != nil {
+		logger.WithError(err).Debug("failed to get the credentials")
+
+		return ErrGetAuth
+	}
+
+	if err := cache.Set(ctx, "web-ip/"+user, fmt.Sprintf("%s:%s", creds.Device, info.IP), 1*time.Minute); err != nil {
+		logger.WithError(err).Debug("failed to set the session IP on the cache")
+
+		return err
+	}
+
+	defer cache.Delete(ctx, "web-ip/"+user) //nolint:errcheck
+
+	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
+		User:            user,
+		Auth:            auth,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+		BannerCallback: func(message string) error {
+			if message != "" {
+				return NewBannerError(message)
+			}
+
+			return nil
+		},
+	})
+	if err != nil {
+		var e *BannerError
+
+		// NOTE: if the connection return a error banner, wrap that message into an error and return to the session.
+		if errors.As(err, &e) {
+			logger.WithError(e).Debug("failed to receive the connection banner")
+
+			return e
+		}
+
+		// NOTE: Otherwise, any other error from the [ssh.Dial] process, we assume it was an authentication error,
+		// keeping the real error internally to avoid exposing some sensitive data.
+		logger.WithError(err).Debug("failed to dial to the ssh server")
+
+		return ErrAuthentication
+	}
+
+	defer connection.Close()
+
+	data := ssh.Marshal(&struct{ Display string }{Display: ":0"})
+
+	ch, reqs, err := connection.OpenChannel("rfb", data)
+	if err != nil {
+		logger.WithError(err).Debug("failed to open rfb channel")
+
+		return ErrSession
+	}
+
+	fmt.Println("RFB session started")
+
+	go ssh.DiscardRequests(reqs)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		defer fmt.Println("closed b")
+
+		b := make([]byte, 4096)
+		for {
+			r, err := ch.Read(b)
+			if r > 0 {
+				if _, err := conn.WriteBinary(b[:r]); err != nil {
+					logger.WithError(err).Error("failed to write to websocket")
+
+					return
+				}
+			}
+
+			if err != nil {
+				if err != io.EOF {
+					logger.WithError(err).Error("failed to read from rfb channel")
+				}
+
+				return
+			}
+		}
+
+		// conn.Close()
+	}()
+
+	go func() {
+		defer wg.Done()
+		defer fmt.Println("closed a")
+
+		b := make([]byte, 4096)
+		for {
+			r, err := conn.Read(b)
+			if r > 0 {
+				if _, err := ch.Write(b[:r]); err != nil {
+					logger.WithError(err).Error("failed to write to rfb channel")
+					return
+				}
+			}
+
+			if err != nil {
+				if err != io.EOF {
+					logger.WithError(err).Error("failed to read from websocket")
+				}
+
+				return
+			}
+		}
+	}()
+
+	wg.Wait()
+
+	fmt.Println("RFB session ended")
 
 	return nil
 }

@@ -116,6 +116,28 @@ func (c *Conn) ReadMessage(message *Message) (int, error) {
 	return int(decoder.InputOffset()), nil
 }
 
+func (c *Conn) ReadBinary(buffer []byte) (int, error) {
+	socket, ok := c.Socket.(*websocket.Conn)
+	if !ok {
+		// NOTE: If the underlying connection is not a websocket connection, fallback to a normal read.
+		// This is useful for testing purposes, where we use a mock socket that does not implement
+		// the websocket interface.
+		return c.Socket.Read(buffer)
+	}
+
+	frame, err := socket.NewFrameReader()
+	if err != nil {
+		return 0, errors.Join(errors.New("failed to  read new fram reader"), err)
+	}
+
+	read, err := frame.Read(buffer)
+	if err != nil {
+		return read, errors.Join(ErrConnReadMessageSocketRead, err)
+	}
+
+	return read, nil
+}
+
 func (c *Conn) WriteMessage(message *Message) (int, error) {
 	buffer, err := json.Marshal(message)
 	if err != nil {

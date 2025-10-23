@@ -13,6 +13,8 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/jarcoal/httpmock v1.3.1
+	github.com/jezek/xgb v1.1.1
+	github.com/jezek/xgbutil v0.0.0-20250620170308-517212d66001
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/labstack/gommon v0.4.0
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8
