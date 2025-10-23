@@ -80,7 +80,7 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 		return nil, NewErrNamespaceNotFound(tenant, err)
 	}
 
-	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	return s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
 }
 
 func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error) {
@@ -117,7 +117,7 @@ func (s *service) CreatePublicKey(ctx context.Context, req requests.PublicKeyCre
 
 	req.Fingerprint = ssh.FingerprintLegacyMD5(pubKey)
 
-	returnedKey, err := s.store.PublicKeyGet(ctx, req.Fingerprint, tenant)
+	returnedKey, err := s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, req.Fingerprint, s.store.Options().InNamespace(tenant))
 	if err != nil && err != store.ErrNoDocuments {
 		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)
 	}
@@ -164,7 +164,7 @@ func (s *service) ListPublicKeys(ctx context.Context, req *requests.ListPublicKe
 }
 
 func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error) {
-	publicKey, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	publicKey, err := s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
 	if err != nil {
 		return nil, NewErrPublicKeyNotFound(fingerprint, err)
 	}
@@ -206,7 +206,7 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 		return nil, err
 	}
 
-	return s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	return s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
@@ -214,7 +214,7 @@ func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant strin
 		return NewErrNamespaceNotFound(tenant, err)
 	}
 
-	publicKey, err := s.store.PublicKeyGet(ctx, fingerprint, tenant)
+	publicKey, err := s.store.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, s.store.Options().InNamespace(tenant))
 	if err != nil {
 		return NewErrPublicKeyNotFound(fingerprint, err)
 	}
