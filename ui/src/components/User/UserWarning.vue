@@ -160,8 +160,6 @@ const showDialogs = async () => {
   try {
     if (!authStore.isLoggedIn) return;
 
-    await namespacesStore.fetchNamespaceList({ perPage: 30 });
-
     if (hasNamespaces.value) {
       await statsStore.fetchStats();
 
