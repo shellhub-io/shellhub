@@ -9,12 +9,19 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID string) (*models.PublicKey, error) {
+func (s *Store) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
+	var fingerprint string
+	switch resolver {
+	case store.PublicKeyFingerprintResolver:
+		fingerprint = value
+	default:
+		return nil, store.ErrNoDocuments
+	}
+
 	pipeline := []bson.M{
 		{
 			"$match": bson.M{
 				"fingerprint": fingerprint,
-				"tenant_id":   tenantID,
 			},
 		},
 		{
@@ -25,6 +32,12 @@ func (s *Store) PublicKeyGet(ctx context.Context, fingerprint string, tenantID s
 				"as":           "filter.tags",
 			},
 		},
+	}
+
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &pipeline)); err != nil {
+			return nil, err
+		}
 	}
 
 	cursor, err := s.db.Collection("public_keys").Aggregate(ctx, pipeline)
