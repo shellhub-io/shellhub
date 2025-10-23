@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPublicKeyGet(t *testing.T) {
+func TestPublicKeyResolve(t *testing.T) {
 	type Expected struct {
 		pubKey *models.PublicKey
 		err    error
@@ -19,15 +19,17 @@ func TestPublicKeyGet(t *testing.T) {
 
 	cases := []struct {
 		description string
-		fingerprint string
-		tenant      string
+		resolver    store.PublicKeyResolver
+		value       string
+		opts        []store.QueryOption
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "succeeds when public key is not found due to fingerprint",
-			fingerprint: "nonexistent",
-			tenant:      "00000000-0000-4000-0000-000000000000",
+			resolver:    store.PublicKeyFingerprintResolver,
+			value:       "nonexistent",
+			opts:        []store.QueryOption{s.Options().InNamespace("00000000-0000-4000-0000-000000000000")},
 			fixtures:    []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
@@ -36,8 +38,9 @@ func TestPublicKeyGet(t *testing.T) {
 		},
 		{
 			description: "succeeds when public key is not found due to tenant",
-			fingerprint: "fingerprint",
-			tenant:      "nonexistent",
+			resolver:    store.PublicKeyFingerprintResolver,
+			value:       "fingerprint",
+			opts:        []store.QueryOption{s.Options().InNamespace("nonexistent")},
 			fixtures:    []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: nil,
@@ -46,8 +49,9 @@ func TestPublicKeyGet(t *testing.T) {
 		},
 		{
 			description: "succeeds when public key is found",
-			fingerprint: "fingerprint",
-			tenant:      "00000000-0000-4000-0000-000000000000",
+			resolver:    store.PublicKeyFingerprintResolver,
+			value:       "fingerprint",
+			opts:        []store.QueryOption{s.Options().InNamespace("00000000-0000-4000-0000-000000000000")},
 			fixtures:    []string{fixtureTags, fixturePublicKeys},
 			expected: Expected{
 				pubKey: &models.PublicKey{
@@ -95,7 +99,7 @@ func TestPublicKeyGet(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			pubKey, err := s.PublicKeyGet(ctx, tc.fingerprint, tc.tenant)
+			pubKey, err := s.PublicKeyResolve(ctx, tc.resolver, tc.value, tc.opts...)
 			assert.Equal(t, tc.expected, Expected{pubKey: pubKey, err: err})
 		})
 	}
