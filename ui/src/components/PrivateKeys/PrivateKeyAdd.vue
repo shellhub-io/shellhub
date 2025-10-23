@@ -34,6 +34,7 @@
 
       <FileTextComponent
         v-model="privateKeyData"
+        v-model:error-message="privateKeyDataError"
         class="mb-2"
         enable-paste
         allow-extensionless
@@ -42,7 +43,6 @@
         :validator="encryptionAwareValidator"
         :invalid-message="ftcInvalidMessage"
         data-test="private-key-field"
-        @error="onPrivateKeyError"
         @update:model-value="onPrivateKeyInput"
         @file-processed="onPrivateKeyFileProcessed"
         @mode-changed="onFileTextModeChanged"
@@ -95,16 +95,8 @@ const {
   initialValue: "",
 });
 
-const {
-  value: privateKeyData,
-  errorMessage: privateKeyDataError,
-  setErrors: setPrivateKeyDataError,
-  resetField: resetPrivateKeyData,
-} = useField<string>(
-  "privateKeyData",
-  yup.string().required("Private key data is required"),
-  { initialValue: "" },
-);
+const privateKeyData = ref("");
+const privateKeyDataError = ref("");
 
 const {
   value: passphrase,
@@ -140,23 +132,13 @@ const encryptionAwareValidator = (text: string): boolean => {
   }
 };
 
-const onPrivateKeyError = (errorMsg: string) => {
-  if (errorMsg && !encryptedDetected.value) {
-    setPrivateKeyDataError(errorMsg);
-  } else if (encryptedDetected.value) {
-    setPrivateKeyDataError("");
-  } else {
-    setPrivateKeyDataError("");
-  }
-};
-
 const onPrivateKeyInput = () => {
   const text = (privateKeyData.value || "").trim();
 
   if (!text) {
     hasPassphrase.value = false;
     encryptedDetected.value = false;
-    setPrivateKeyDataError("");
+    privateKeyDataError.value = "";
     setPassphraseError("");
     return;
   }
@@ -169,21 +151,21 @@ const onPrivateKeyInput = () => {
     parsePrivateKey(text, undefined);
     hasPassphrase.value = false;
     encryptedDetected.value = false;
-    setPrivateKeyDataError("");
+    privateKeyDataError.value = "";
     setPassphraseError("");
   } catch (err) {
     const e = err as { name?: string };
     if (e.name === "KeyEncryptedError") {
       hasPassphrase.value = true;
       encryptedDetected.value = true;
-      setPrivateKeyDataError("");
+      privateKeyDataError.value = "";
       if (!passphrase.value) {
         setPassphraseError("Passphrase for this private key is required");
       }
     } else {
       hasPassphrase.value = false;
       encryptedDetected.value = false;
-      setPrivateKeyDataError("Invalid private key data");
+      privateKeyDataError.value = "Invalid private key data";
       setPassphraseError("");
     }
   }
@@ -194,13 +176,12 @@ const onPrivateKeyFileProcessed = () => {
 };
 
 const onFileTextModeChanged = () => {
-  resetPrivateKeyData();
+  privateKeyData.value = "";
   resetPassphrase();
   hasPassphrase.value = false;
   encryptedDetected.value = false;
-  setPrivateKeyDataError("");
+  privateKeyDataError.value = "";
   setPassphraseError("");
-  privateKeyData.value = "";
 };
 
 watch(privateKeyData, (val) => {
@@ -210,7 +191,7 @@ watch(privateKeyData, (val) => {
     hasPassphrase.value = false;
     encryptedDetected.value = false;
     setPassphraseError("");
-    setPrivateKeyDataError("");
+    privateKeyDataError.value = "";
   }
 });
 
@@ -229,7 +210,8 @@ const confirmDisabled = computed(() => {
 
 const resetFields = () => {
   resetName();
-  resetPrivateKeyData();
+  privateKeyData.value = "";
+  privateKeyDataError.value = "";
   resetPassphrase();
   hasPassphrase.value = false;
   encryptedDetected.value = false;
@@ -250,13 +232,13 @@ const handleCreationError = (error: Error) => {
   switch (error.message) {
     case "both":
       setNameError("Name is already used");
-      setPrivateKeyDataError("Private key data is already used");
+      privateKeyDataError.value = "Private key data is already used";
       break;
     case "name":
       setNameError("Name is already used");
       break;
     case "private_key":
-      setPrivateKeyDataError("Private key data is already used");
+      privateKeyDataError.value = "Private key data is already used";
       break;
     default:
       snackbar.showError("Failed to create private key.");
@@ -273,7 +255,7 @@ const create = async () => {
   }
 
   if (!privateKeyData.value || !privateKeyData.value.trim()) {
-    setPrivateKeyDataError("Private key data is required");
+    privateKeyDataError.value = "Private key data is required";
     hasError = true;
   }
 
