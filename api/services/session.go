@@ -7,7 +7,9 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	log "github.com/sirupsen/logrus"
 )
 
 type SessionService interface {
@@ -33,7 +35,7 @@ func (s *service) ListSessions(ctx context.Context, req *requests.ListSessions) 
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	session, err := s.store.SessionGet(ctx, uid)
+	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return nil, NewErrSessionNotFound(uid, err)
 	}
@@ -44,7 +46,7 @@ func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Sessi
 func (s *service) CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error) {
 	position, _ := s.locator.GetPosition(net.ParseIP(session.IPAddress))
 
-	return s.store.SessionCreate(ctx, models.Session{
+	uid, err := s.store.SessionCreate(ctx, models.Session{
 		UID:       session.UID,
 		DeviceUID: models.UID(session.DeviceUID),
 		Username:  session.Username,
@@ -56,35 +58,66 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 			Latitude:  position.Latitude,
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return s.store.SessionResolve(ctx, store.SessionUIDResolver, uid)
 }
 
 func (s *service) DeactivateSession(ctx context.Context, uid models.UID) error {
-	sess, err := s.store.SessionGet(ctx, uid)
+	sess, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
 
-	return s.store.SessionDeleteActives(ctx, models.UID(sess.UID))
+	return s.store.ActiveSessionDelete(ctx, models.UID(sess.UID))
 }
 
 func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
-	return s.store.SessionSetLastSeen(ctx, uid)
+	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	if err != nil {
+		return NewErrSessionNotFound(uid, err)
+	}
+
+	session.LastSeen = clock.Now()
+
+	return s.store.SessionUpdate(ctx, session)
 }
 
 func (s *service) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {
-	sess, err := s.store.SessionGet(ctx, uid)
+	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
 	if err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
 
-	return s.store.SessionUpdate(ctx, uid, sess, &model)
+	if model.Authenticated != nil {
+		session.Authenticated = *model.Authenticated
+	}
+
+	if model.Type != nil {
+		session.Type = *model.Type
+	}
+
+	if model.Recorded != nil {
+		session.Recorded = *model.Recorded
+	}
+
+	// We need to create an active session when authenticated to maintain compatibility with the old store implementation.
+	// In the future, we may refactor the store to remove the active_session pattern.
+	if session.Authenticated {
+		if err := s.store.ActiveSessionCreate(ctx, session); err != nil {
+			log.WithError(err).WithField("session_id", session.UID).Warn("failed to activate the session")
+		}
+	}
+
+	return s.store.SessionUpdate(ctx, session)
 }
 
 func (s *service) EventSession(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	sess, err := s.store.SessionGet(ctx, uid)
-	if err != nil {
+	if _, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid)); err != nil {
 		return NewErrSessionNotFound(uid, err)
 	}
 
-	return s.store.SessionEvent(ctx, models.UID(sess.UID), event)
+	return s.store.SessionEventsCreate(ctx, event)
 }

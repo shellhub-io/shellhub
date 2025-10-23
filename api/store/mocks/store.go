@@ -200,6 +200,90 @@ func (_m *Store) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error 
 	return r0
 }
 
+// ActiveSessionCreate provides a mock function with given fields: ctx, session
+func (_m *Store) ActiveSessionCreate(ctx context.Context, session *models.Session) error {
+	ret := _m.Called(ctx, session)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActiveSessionCreate")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Session) error); ok {
+		r0 = rf(ctx, session)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ActiveSessionDelete provides a mock function with given fields: ctx, uid
+func (_m *Store) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
+	ret := _m.Called(ctx, uid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActiveSessionDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
+		r0 = rf(ctx, uid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ActiveSessionResolve provides a mock function with given fields: ctx, resolver, value
+func (_m *Store) ActiveSessionResolve(ctx context.Context, resolver store.SessionResolver, value string) (*models.ActiveSession, error) {
+	ret := _m.Called(ctx, resolver, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActiveSessionResolve")
+	}
+
+	var r0 *models.ActiveSession
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.SessionResolver, string) (*models.ActiveSession, error)); ok {
+		return rf(ctx, resolver, value)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.SessionResolver, string) *models.ActiveSession); ok {
+		r0 = rf(ctx, resolver, value)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.ActiveSession)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.SessionResolver, string) error); ok {
+		r1 = rf(ctx, resolver, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ActiveSessionUpdate provides a mock function with given fields: ctx, activeSession
+func (_m *Store) ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error {
+	ret := _m.Called(ctx, activeSession)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActiveSessionUpdate")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.ActiveSession) error); ok {
+		r0 = rf(ctx, activeSession)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeviceConflicts provides a mock function with given fields: ctx, target
 func (_m *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
 	ret := _m.Called(ctx, target)
@@ -980,24 +1064,22 @@ func (_m *Store) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKe
 }
 
 // SessionCreate provides a mock function with given fields: ctx, session
-func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*models.Session, error) {
+func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (string, error) {
 	ret := _m.Called(ctx, session)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionCreate")
 	}
 
-	var r0 *models.Session
+	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.Session) (*models.Session, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.Session) (string, error)); ok {
 		return rf(ctx, session)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.Session) *models.Session); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.Session) string); ok {
 		r0 = rf(ctx, session)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Session)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, models.Session) error); ok {
@@ -1009,17 +1091,17 @@ func (_m *Store) SessionCreate(ctx context.Context, session models.Session) (*mo
 	return r0, r1
 }
 
-// SessionCreateActive provides a mock function with given fields: ctx, uid, session
-func (_m *Store) SessionCreateActive(ctx context.Context, uid models.UID, session *models.Session) error {
-	ret := _m.Called(ctx, uid, session)
+// SessionEventsCreate provides a mock function with given fields: ctx, event
+func (_m *Store) SessionEventsCreate(ctx context.Context, event *models.SessionEvent) error {
+	ret := _m.Called(ctx, event)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SessionCreateActive")
+		panic("no return value specified for SessionEventsCreate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.Session) error); ok {
-		r0 = rf(ctx, uid, session)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.SessionEvent) error); ok {
+		r0 = rf(ctx, event)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1027,30 +1109,12 @@ func (_m *Store) SessionCreateActive(ctx context.Context, uid models.UID, sessio
 	return r0
 }
 
-// SessionDeleteActives provides a mock function with given fields: ctx, uid
-func (_m *Store) SessionDeleteActives(ctx context.Context, uid models.UID) error {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionDeleteActives")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SessionDeleteEvents provides a mock function with given fields: ctx, uid, seat, event
-func (_m *Store) SessionDeleteEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error {
+// SessionEventsDelete provides a mock function with given fields: ctx, uid, seat, event
+func (_m *Store) SessionEventsDelete(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error {
 	ret := _m.Called(ctx, uid, seat, event)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SessionDeleteEvents")
+		panic("no return value specified for SessionEventsDelete")
 	}
 
 	var r0 error
@@ -1063,52 +1127,48 @@ func (_m *Store) SessionDeleteEvents(ctx context.Context, uid models.UID, seat i
 	return r0
 }
 
-// SessionEvent provides a mock function with given fields: ctx, uid, event
-func (_m *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	ret := _m.Called(ctx, uid, event)
+// SessionEventsList provides a mock function with given fields: ctx, uid, seat, event, opts
+func (_m *Store) SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, uid, seat, event)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SessionEvent")
+		panic("no return value specified for SessionEventsList")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.SessionEvent) error); ok {
-		r0 = rf(ctx, uid, event)
-	} else {
-		r0 = ret.Error(0)
+	var r0 []models.SessionEvent
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) ([]models.SessionEvent, int, error)); ok {
+		return rf(ctx, uid, seat, event, opts...)
 	}
-
-	return r0
-}
-
-// SessionGet provides a mock function with given fields: ctx, uid
-func (_m *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session, error) {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionGet")
-	}
-
-	var r0 *models.Session
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) (*models.Session, error)); ok {
-		return rf(ctx, uid)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) *models.Session); ok {
-		r0 = rf(ctx, uid)
+	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) []models.SessionEvent); ok {
+		r0 = rf(ctx, uid, seat, event, opts...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.Session)
+			r0 = ret.Get(0).([]models.SessionEvent)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
-		r1 = rf(ctx, uid)
+	if rf, ok := ret.Get(1).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, uid, seat, event, opts...)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, uid, seat, event, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // SessionList provides a mock function with given fields: ctx, opts
@@ -1155,115 +1215,54 @@ func (_m *Store) SessionList(ctx context.Context, opts ...store.QueryOption) ([]
 	return r0, r1, r2
 }
 
-// SessionListEvents provides a mock function with given fields: ctx, uid, seat, event, opts
-func (_m *Store) SessionListEvents(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
+// SessionResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) SessionResolve(ctx context.Context, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, uid, seat, event)
+	_ca = append(_ca, ctx, resolver, value)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SessionListEvents")
+		panic("no return value specified for SessionResolve")
 	}
 
-	var r0 []models.SessionEvent
-	var r1 int
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) ([]models.SessionEvent, int, error)); ok {
-		return rf(ctx, uid, seat, event, opts...)
+	var r0 *models.Session
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.SessionResolver, string, ...store.QueryOption) (*models.Session, error)); ok {
+		return rf(ctx, resolver, value, opts...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) []models.SessionEvent); ok {
-		r0 = rf(ctx, uid, seat, event, opts...)
+	if rf, ok := ret.Get(0).(func(context.Context, store.SessionResolver, string, ...store.QueryOption) *models.Session); ok {
+		r0 = rf(ctx, resolver, value, opts...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.SessionEvent)
+			r0 = ret.Get(0).(*models.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) int); ok {
-		r1 = rf(ctx, uid, seat, event, opts...)
+	if rf, ok := ret.Get(1).(func(context.Context, store.SessionResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
 	} else {
-		r1 = ret.Get(1).(int)
+		r1 = ret.Error(1)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, models.UID, int, models.SessionEventType, ...store.QueryOption) error); ok {
-		r2 = rf(ctx, uid, seat, event, opts...)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
-// SessionSetLastSeen provides a mock function with given fields: ctx, uid
-func (_m *Store) SessionSetLastSeen(ctx context.Context, uid models.UID) error {
-	ret := _m.Called(ctx, uid)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionSetLastSeen")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SessionSetRecorded provides a mock function with given fields: ctx, uid, recorded
-func (_m *Store) SessionSetRecorded(ctx context.Context, uid models.UID, recorded bool) error {
-	ret := _m.Called(ctx, uid, recorded)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionSetRecorded")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, bool) error); ok {
-		r0 = rf(ctx, uid, recorded)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SessionSetType provides a mock function with given fields: ctx, uid, kind
-func (_m *Store) SessionSetType(ctx context.Context, uid models.UID, kind string) error {
-	ret := _m.Called(ctx, uid, kind)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SessionSetType")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, string) error); ok {
-		r0 = rf(ctx, uid, kind)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SessionUpdate provides a mock function with given fields: ctx, uid, sess, update
-func (_m *Store) SessionUpdate(ctx context.Context, uid models.UID, sess *models.Session, update *models.SessionUpdate) error {
-	ret := _m.Called(ctx, uid, sess, update)
+// SessionUpdate provides a mock function with given fields: ctx, session
+func (_m *Store) SessionUpdate(ctx context.Context, session *models.Session) error {
+	ret := _m.Called(ctx, session)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SessionUpdate")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UID, *models.Session, *models.SessionUpdate) error); ok {
-		r0 = rf(ctx, uid, sess, update)
+	if rf, ok := ret.Get(0).(func(context.Context, *models.Session) error); ok {
+		r0 = rf(ctx, session)
 	} else {
 		r0 = ret.Error(0)
 	}

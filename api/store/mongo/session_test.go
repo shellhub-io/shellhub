@@ -283,7 +283,7 @@ func TestSessionList(t *testing.T) {
 	}
 }
 
-func TestSessionGet(t *testing.T) {
+func TestSessionResolve(t *testing.T) {
 	type Expected struct {
 		s   *models.Session
 		err error
@@ -291,13 +291,15 @@ func TestSessionGet(t *testing.T) {
 
 	cases := []struct {
 		description string
-		UID         models.UID
+		resolver    store.SessionResolver
+		value       string
 		fixtures    []string
 		expected    Expected
 	}{
 		{
 			description: "fails when session is not found",
-			UID:         models.UID("nonexistent"),
+			resolver:    store.SessionUIDResolver,
+			value:       "nonexistent",
 			fixtures: []string{
 				fixtureNamespaces,
 				fixtureTags,
@@ -312,7 +314,8 @@ func TestSessionGet(t *testing.T) {
 		},
 		{
 			description: "succeeds when session is found",
-			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			resolver:    store.SessionUIDResolver,
+			value:       "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
 			fixtures: []string{
 				fixtureNamespaces,
 				fixtureTags,
@@ -388,7 +391,7 @@ func TestSessionGet(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			s, err := s.SessionGet(ctx, tc.UID)
+			s, err := s.SessionResolve(ctx, tc.resolver, tc.value)
 			assert.Equal(t, tc.expected, Expected{s: s, err: err})
 		})
 	}
@@ -425,9 +428,9 @@ func TestSessionCreate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			session, err := s.SessionCreate(ctx, tc.session)
+			uid, err := s.SessionCreate(ctx, tc.session)
 			assert.Equal(t, tc.expected, err)
-			assert.NotEmpty(t, session)
+			assert.NotEmpty(t, uid)
 		})
 	}
 }
@@ -471,61 +474,167 @@ func TestSessionUpdateDeviceUID(t *testing.T) {
 	}
 }
 
-// ptrBool and ptrString are helpers for creating pointer values in tests.
-func ptrBool(b bool) *bool       { return &b }
-func ptrString(s string) *string { return &s }
-
 // TestSessionUpdate exercises different update paths for the SessionUpdate method.
 func TestSessionUpdate(t *testing.T) {
-	type args struct {
-		sess   *models.Session
-		update *models.SessionUpdate
-	}
 	cases := []struct {
 		description string
-		UID         models.UID
-		args        args
+		session     *models.Session
 		fixtures    []string
 		expected    error
 	}{
 		{
-			description: "succeeds when session is found and no update fields",
-			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			args: args{
-				sess:   &models.Session{Authenticated: true},
-				update: &models.SessionUpdate{},
-			},
-			fixtures: []string{fixtureSessions},
-			expected: nil,
+			description: "succeeds when session is found",
+			session:     &models.Session{UID: "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68", Authenticated: true},
+			fixtures:    []string{fixtureSessions},
+			expected:    nil,
 		},
 		{
 			description: "succeeds when setting Authenticated to true",
-			UID:         models.UID("e7f3a56d8b9e1dc4c285c98c8ea9c33032a17bda5b6c6b05a6213c2a02f97824"),
-			args: args{
-				sess:   &models.Session{Authenticated: false, StartedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC), TenantID: "00000000-0000-4000-0000-000000000000"},
-				update: &models.SessionUpdate{Authenticated: ptrBool(true)},
-			},
-			fixtures: []string{fixtureSessions},
-			expected: nil,
+			session:     &models.Session{UID: "e7f3a56d8b9e1dc4c285c98c8ea9c33032a17bda5b6c6b05a6213c2a02f97824", Authenticated: true, StartedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC), TenantID: "00000000-0000-4000-0000-000000000000"},
+			fixtures:    []string{fixtureSessions},
+			expected:    nil,
 		},
 		{
 			description: "succeeds when updating Type field",
-			UID:         models.UID("fc2e1493d8b6a4c17bf6a2f7f9e55629e384b2d3a21e0c3d90f6e35b0c946178a"),
-			args: args{
-				sess:   &models.Session{},
-				update: &models.SessionUpdate{Type: ptrString("exec")},
-			},
-			fixtures: []string{fixtureSessions},
-			expected: nil,
+			session:     &models.Session{UID: "fc2e1493d8b6a4c17bf6a2f7f9e55629e384b2d3a21e0c3d90f6e35b0c946178a", Type: "exec"},
+			fixtures:    []string{fixtureSessions},
+			expected:    nil,
 		},
 		{
 			description: "succeeds when updating Recorded flag",
-			UID:         models.UID("bc3d75821a29cfe70bf7986f9ee5629e384b2d3a21e0c3d90f6e35b0c946178a"),
-			args: args{
-				sess:   &models.Session{},
-				update: &models.SessionUpdate{Recorded: ptrBool(true)},
+			session:     &models.Session{UID: "bc3d75821a29cfe70bf7986f9ee5629e384b2d3a21e0c3d90f6e35b0c946178a", Recorded: true},
+			fixtures:    []string{fixtureSessions},
+			expected:    nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			err := s.SessionUpdate(ctx, tc.session)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestActiveSessionDelete(t *testing.T) {
+	cases := []struct {
+		description string
+		UID         models.UID
+		fixtures    []string
+		expected    error
+	}{
+		{
+			description: "fails when session is not found",
+			UID:         models.UID("nonexistent"),
+			fixtures:    []string{fixtureSessions},
+			expected:    store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when session is found",
+			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
+			fixtures:    []string{fixtureSessions},
+			expected:    nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			err := s.ActiveSessionDelete(ctx, tc.UID)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+}
+
+func TestActiveSessionResolve(t *testing.T) {
+	type Expected struct {
+		activeSession *models.ActiveSession
+		err           error
+	}
+
+	cases := []struct {
+		description string
+		resolver    store.SessionResolver
+		value       string
+		fixtures    []string
+		expected    Expected
+	}{
+		{
+			description: "fails when active session is not found",
+			resolver:    store.SessionUIDResolver,
+			value:       "nonexistent",
+			fixtures:    []string{fixtureActiveSessions},
+			expected: Expected{
+				activeSession: nil,
+				err:           store.ErrNoDocuments,
 			},
-			fixtures: []string{fixtureSessions},
+		},
+		{
+			description: "succeeds when active session is found",
+			resolver:    store.SessionUIDResolver,
+			value:       "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+			fixtures:    []string{fixtureActiveSessions},
+			expected: Expected{
+				activeSession: &models.ActiveSession{
+					UID:      "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+					LastSeen: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+				},
+				err: nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := context.Background()
+
+			assert.NoError(t, srv.Apply(tc.fixtures...))
+			t.Cleanup(func() {
+				assert.NoError(t, srv.Reset())
+			})
+
+			activeSession, err := s.ActiveSessionResolve(ctx, tc.resolver, tc.value)
+			assert.Equal(t, tc.expected, Expected{activeSession: activeSession, err: err})
+		})
+	}
+}
+
+func TestActiveSessionUpdate(t *testing.T) {
+	cases := []struct {
+		description   string
+		activeSession *models.ActiveSession
+		fixtures      []string
+		expected      error
+	}{
+		{
+			description: "fails when active session is not found",
+			activeSession: &models.ActiveSession{
+				UID:      "nonexistent",
+				LastSeen: time.Now(),
+			},
+			fixtures: []string{fixtureActiveSessions},
+			expected: store.ErrNoDocuments,
+		},
+		{
+			description: "succeeds when active session is found",
+			activeSession: &models.ActiveSession{
+				UID:      "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
+				LastSeen: time.Date(2023, 2, 1, 12, 0, 0, 0, time.UTC),
+			},
+			fixtures: []string{fixtureActiveSessions},
 			expected: nil,
 		},
 	}
@@ -539,115 +648,7 @@ func TestSessionUpdate(t *testing.T) {
 				assert.NoError(t, srv.Reset())
 			})
 
-			err := s.SessionUpdate(ctx, tc.UID, tc.args.sess, tc.args.update)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestSessionSetRecorded(t *testing.T) {
-	cases := []struct {
-		description string
-		UID         models.UID
-		recorded    bool
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when session is not found",
-			UID:         models.UID("nonexistent"),
-			recorded:    false,
-			fixtures:    []string{fixtureSessions},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when session is found",
-			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			recorded:    false,
-			fixtures:    []string{fixtureSessions},
-			expected:    nil,
-		},
-	}
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-			err := s.SessionSetRecorded(ctx, tc.UID, tc.recorded)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestSessionSetLastSeen(t *testing.T) {
-	cases := []struct {
-		description string
-		UID         models.UID
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when session is not found",
-			UID:         models.UID("nonexistent"),
-			fixtures:    []string{fixtureSessions},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when session is found",
-			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			fixtures:    []string{fixtureSessions},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.SessionSetLastSeen(ctx, tc.UID)
-			assert.Equal(t, tc.expected, err)
-		})
-	}
-}
-
-func TestSessionDeleteActives(t *testing.T) {
-	cases := []struct {
-		description string
-		UID         models.UID
-		fixtures    []string
-		expected    error
-	}{
-		{
-			description: "fails when session is not found",
-			UID:         models.UID("nonexistent"),
-			fixtures:    []string{fixtureSessions},
-			expected:    store.ErrNoDocuments,
-		},
-		{
-			description: "succeeds when session is found",
-			UID:         models.UID("a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68"),
-			fixtures:    []string{fixtureSessions},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			ctx := context.Background()
-
-			assert.NoError(t, srv.Apply(tc.fixtures...))
-			t.Cleanup(func() {
-				assert.NoError(t, srv.Reset())
-			})
-
-			err := s.SessionDeleteActives(ctx, tc.UID)
+			err := s.ActiveSessionUpdate(ctx, tc.activeSession)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
