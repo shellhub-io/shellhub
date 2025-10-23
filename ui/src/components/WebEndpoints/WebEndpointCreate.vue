@@ -27,6 +27,8 @@
               class="mt-1"
               label="Host"
               :error-messages="hostError"
+              hint="IPv4 or IPv6 only"
+              persistent-hint
               data-test="host-text"
             />
           </v-col>
@@ -39,6 +41,7 @@
               label="Port"
               :error-messages="portError"
               variant="outlined"
+              type="number"
               data-test="port-text"
             />
           </v-col>
@@ -48,6 +51,7 @@
           <v-col>
             <v-autocomplete
               v-model="selectedDevice"
+              v-model:search="deviceSearch"
               :items="deviceOptions"
               :loading="loadingDevices"
               item-title="info.pretty_name"
@@ -56,7 +60,8 @@
               variant="outlined"
               return-object
               hide-details
-              @update:search="fetchDevices"
+              :no-filter="true"
+              @update:search="onSearchUpdate"
               data-test="web-endpoint-autocomplete"
             >
               <template #item="{ item, props }">
@@ -87,6 +92,7 @@
               item-value="value"
               label="Timeout (in seconds)"
               variant="outlined"
+              hide-details
               data-test="timeout-combobox"
             />
           </v-col>
@@ -99,6 +105,7 @@
               :error-messages="customTimeoutError"
               label="Custom Timeout (in seconds)"
               type="number"
+              hide-details
               variant="outlined"
               data-test="custom-timeout"
             />
@@ -120,7 +127,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useDevicesStore from "@/store/modules/devices";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
-import { IDevice } from "@/interfaces/IDevice";
+import type { IDevice } from "@/interfaces/IDevice";
 
 const props = defineProps<{
   uid?: string;
@@ -134,9 +141,16 @@ const snackbar = useSnackbar();
 const showDialog = defineModel({ default: false });
 const alertText = ref("");
 
+// eslint-disable-next-line vue/max-len
+const ipv4Regex = /^(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})$/;
+
+// eslint-disable-next-line vue/max-len
+const ipv6Regex = /^((?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,7}:|(?:[0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,5}(?::[0-9A-Fa-f]{1,4}){1,2}|(?:[0-9A-Fa-f]{1,4}:){1,4}(?::[0-9A-Fa-f]{1,4}){1,3}|(?:[0-9A-Fa-f]{1,4}:){1,3}(?::[0-9A-Fa-f]{1,4}){1,4}|(?:[0-9A-Fa-f]{1,4}:){1,2}(?::[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:(?::[0-9A-Fa-f]{1,4}){1,6}|:(?::[0-9A-Fa-f]{1,4}){1,7}|fe80:(?::[0-9A-Fa-f]{0,4}){0,4}%[0-9A-Za-z]{1,}|::(?:ffff(?::0{1,4})?:)?(?:25[0-5]|2[0-4]\d|1?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|1?\d{1,2})){3}|(?:[0-9A-Fa-f]{1,4}:){1,4}:(?:25[0-5]|2[0-4]\d|1?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|1?\d{1,2})){3})$/;
+
 const selectedDevice = ref<IDevice | null>(null);
 const deviceOptions = ref<IDevice[]>([]);
 const loadingDevices = ref(false);
+const deviceSearch = ref("");
 
 const predefinedTimeouts = ref([
   { value: -1, text: "Unlimited Timeout" },
@@ -152,17 +166,29 @@ const predefinedTimeouts = ref([
 
 const { value: host, errorMessage: hostError, resetField: resetHost } = useField<string>(
   "host",
-  yup.string().required(),
+  yup
+    .string()
+    .required("Host is required")
+    .test("is-ipv4-or-ipv6", "Enter a valid IPv4 or IPv6 address", (value) => {
+      const v = (value || "").trim();
+      return ipv4Regex.test(v) || ipv6Regex.test(v);
+    }),
   { initialValue: "127.0.0.1" },
 );
 
 const { value: port, errorMessage: portError, resetField: resetPort } = useField<number>(
   "port",
-  yup.number().integer().max(65535).required(),
+  yup.number().typeError("Port is a number between 1 and 65535").integer().min(1)
+    .max(65535)
+    .required(),
   { initialValue: undefined },
 );
 
-const { value: customTimeout, errorMessage: customTimeoutError, resetField: resetCustomTimeout } = useField<number>(
+const {
+  value: customTimeout,
+  errorMessage: customTimeoutError,
+  resetField: resetCustomTimeout,
+} = useField<number>(
   "customTimeout",
   yup.number().integer().min(1).max(9223372036)
     .required(),
@@ -170,15 +196,17 @@ const { value: customTimeout, errorMessage: customTimeoutError, resetField: rese
 );
 
 const selectedTimeout = ref<number | "custom">(-1);
-const timeout = computed(() => (selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value));
+const timeout = computed(() => selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value);
 
 const hasErrors = computed(() => {
+  const needsCustom = selectedTimeout.value === "custom";
   const formInvalid = !!portError.value
     || !!hostError.value
-    || !!customTimeoutError.value
+    || (needsCustom && !!customTimeoutError.value)
     || !port.value
     || !host.value
-    || !timeout.value;
+    || timeout.value === undefined
+    || timeout.value === null;
 
   if (props.useDevicesList) return formInvalid || !selectedDevice.value;
   return formInvalid;
@@ -191,11 +219,20 @@ const resetFields = () => {
   resetCustomTimeout();
   alertText.value = "";
   selectedDevice.value = null;
+  deviceSearch.value = "";
+  deviceOptions.value = [];
 };
 
-const close = () => {
+const clearFilterAndRefetch = async () => {
+  devicesStore.deviceListFilter = undefined;
+  await devicesStore.fetchDeviceList({ filter: undefined });
+  deviceOptions.value = devicesStore.devices;
+};
+
+const close = async () => {
   resetFields();
   showDialog.value = false;
+  await clearFilterAndRefetch();
 };
 
 const update = () => {
@@ -206,10 +243,13 @@ const update = () => {
 const fetchDevices = async (searchQuery?: string) => {
   loadingDevices.value = true;
 
-  const filter = searchQuery
-    ? btoa(JSON.stringify([
-      { type: "property", params: { name: "name", operator: "contains", value: searchQuery } },
-    ]))
+  const query = (searchQuery ?? deviceSearch.value ?? "").trim();
+  const filter = query
+    ? Buffer.from(
+      JSON.stringify([
+        { type: "property", params: { name: "name", operator: "contains", value: query } },
+      ]),
+    ).toString("base64")
     : undefined;
 
   try {
@@ -221,6 +261,16 @@ const fetchDevices = async (searchQuery?: string) => {
   } finally {
     loadingDevices.value = false;
   }
+};
+
+const onSearchUpdate = async (val: string) => {
+  deviceSearch.value = val;
+  const query = val.trim();
+  if (!query) {
+    await clearFilterAndRefetch();
+    return;
+  }
+  await fetchDevices(query);
 };
 
 const addWebEndpoint = async () => {
@@ -251,6 +301,6 @@ const addWebEndpoint = async () => {
 };
 
 onMounted(async () => {
-  if (props.useDevicesList) await fetchDevices();
+  if (props.useDevicesList) await clearFilterAndRefetch();
 });
 </script>
