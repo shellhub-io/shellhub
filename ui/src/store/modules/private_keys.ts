@@ -9,27 +9,34 @@ const usePrivateKeysStore = defineStore("privateKey", () => {
     privateKeys.value = JSON.parse(localStorage.getItem("privateKeys") || "[]");
   };
 
+  const validateKeyUniqueness = (name: string, data: string, currentKeyId?: number) => {
+    // currentKeyId prevents validating against the key being edited
+    const hasSameName = privateKeys.value.some((key) => key.id !== currentKeyId && key.name === name);
+    const hasSameData = privateKeys.value.some((key) => key.id !== currentKeyId && key.data === data);
+
+    if (hasSameName && hasSameData) throw new Error("both");
+    if (hasSameData) throw new Error("private_key");
+    if (hasSameName) throw new Error("name");
+  };
+
   const addPrivateKey = (newKey: Omit<IPrivateKey, "id">) => {
-    const existentIds: number[] = [];
+    validateKeyUniqueness(newKey.name, newKey.data);
 
-    privateKeys.value.forEach((key: IPrivateKey) => {
-      if (key.data === newKey.data && key.name === newKey.name) throw new Error("both");
-      if (key.data === newKey.data) throw new Error("private_key");
-      if (key.name === newKey.name) throw new Error("name");
-      existentIds.push(key.id);
-    });
-
+    const existentIds = privateKeys.value.map((key) => key.id);
     const newKeyId = existentIds.length ? Math.max(...existentIds) + 1 : 1;
+
     privateKeys.value.push({ ...newKey, id: newKeyId });
     localStorage.setItem("privateKeys", JSON.stringify(privateKeys.value));
   };
 
   const editPrivateKey = (updatedKey: IPrivateKey) => {
     const index = privateKeys.value.findIndex((key) => key.id === updatedKey.id);
+    if (index === -1) throw new Error("Key not found");
+
     const existingKey = privateKeys.value[index];
 
-    if (existingKey && existingKey.data === updatedKey.data && existingKey.name === updatedKey.name) {
-      throw new Error();
+    if (existingKey.name !== updatedKey.name || existingKey.data !== updatedKey.data) {
+      validateKeyUniqueness(updatedKey.name, updatedKey.data, updatedKey.id);
     }
 
     privateKeys.value.splice(index, 1, updatedKey);

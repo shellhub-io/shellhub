@@ -32,6 +32,8 @@ describe("PrivateKey Store", () => {
   });
 
   it("Edits a private key", () => {
+    const initialPrivateKey = { data: "data1", name: "name1", hasPassphrase: false, fingerprint: "fp1" };
+    privateKeysStore.addPrivateKey(initialPrivateKey);
     const privateKey = { id: 1, data: "data1-updated", name: "name1-updated", hasPassphrase: true, fingerprint: "fp1-updated" };
 
     privateKeysStore.editPrivateKey(privateKey);

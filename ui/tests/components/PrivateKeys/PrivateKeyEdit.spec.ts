@@ -95,6 +95,7 @@ describe("Private Key Edit", () => {
   });
 
   it("updates the store, emits 'update', and shows a success message on valid submission", async () => {
+    privateKeysStore.addPrivateKey(mockPrivateKey); // Ensure the key exists in the store
     const storeSpy = vi.spyOn(privateKeysStore, "editPrivateKey");
 
     await wrapper.find('[data-test="privatekey-edit-btn"]').trigger("click");

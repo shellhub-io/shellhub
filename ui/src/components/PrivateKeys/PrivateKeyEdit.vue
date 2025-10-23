@@ -285,9 +285,24 @@ const edit = async () => {
   } catch (error) {
     if ((error as Error).name === "KeyParseError") {
       setPassphraseError("Passphrase is not correct.");
-    } else {
-      snackbar.showError("Failed to update private key.");
-      handleError(error as Error);
+      return;
+    }
+
+    const errorMessage = (error as Error).message;
+    switch (errorMessage) {
+      case "both":
+        setNameError("Name is already used");
+        privateKeyDataError.value = "Private key data is already used";
+        break;
+      case "name":
+        setNameError("Name is already used");
+        break;
+      case "private_key":
+        privateKeyDataError.value = "Private key data is already used";
+        break;
+      default:
+        snackbar.showError("Failed to update private key.");
+        handleError(error as Error);
     }
   }
 };
