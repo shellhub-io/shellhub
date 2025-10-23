@@ -50,7 +50,7 @@
             >
               <v-col class="d-flex align-center pb-2">
                 <v-icon>mdi-check-circle</v-icon>
-                <p class="ml-2">{{ feature }}</p>
+                <p class="ml-2 text-left">{{ feature }}</p>
               </v-col>
             </v-row>
           </v-card-text>
