@@ -187,10 +187,34 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 	}
 
 	for _, sessionUID := range req.Sessions {
-		if err := s.store.SessionSetLastSeen(ctx, models.UID(sessionUID)); err != nil {
+		session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, sessionUID)
+		if err != nil {
+			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot resolve session")
+
+			continue
+		}
+
+		if session.Closed {
+			continue
+		}
+
+		session.LastSeen = clock.Now()
+		if err := s.store.SessionUpdate(ctx, session); err != nil {
 			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot set session's last seen")
 
 			continue
+		}
+
+		activeSession, err := s.store.ActiveSessionResolve(ctx, store.SessionUIDResolver, sessionUID)
+		if err != nil {
+			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot resolve active session")
+
+			continue
+		}
+
+		activeSession.LastSeen = session.LastSeen
+		if err := s.store.ActiveSessionUpdate(ctx, activeSession); err != nil {
+			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot update active session's last seen")
 		}
 	}
 

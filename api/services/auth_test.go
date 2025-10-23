@@ -302,12 +302,11 @@ func TestAuthDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "[device exists] succeeds to authenticate device with sessions",
+			description: "[device exists] succeeds to authenticate device with closed sessions",
 			req: requests.DeviceAuth{
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Hostname:  "hostname",
 				Identity:  &requests.DeviceIdentity{MAC: ""},
-				Info:      nil,
 				PublicKey: "",
 				Sessions:  []string{"session_1", "session_2"},
 				RealIP:    "127.0.0.1",
@@ -315,34 +314,110 @@ func TestAuthDevice(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 				device := &models.Device{UID: uid, Name: "hostname"}
+				expectedDevice := *device
+				expectedDevice.LastSeen = clock.Now()
 
+				cacheMock.
+					On("Get", ctx, "auth_device/"+uid, testifymock.AnythingOfType("*map[string]string")).
+					Return(store.ErrNoDocuments).
+					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
-					Once()
-				cacheMock.
-					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
-					Return(nil).
 					Once()
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
-
-				expectedDevice := *device
-				expectedDevice.LastSeen = now
-				expectedDevice.DisconnectedAt = nil
-
 				storeMock.
 					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionSetLastSeen", ctx, models.UID("session_1")).
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					Return(&models.Session{UID: "session_1", Closed: true}, nil).
+					Once()
+				storeMock.
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					Return(&models.Session{UID: "session_2", Closed: true}, nil).
+					Once()
+				cacheMock.
+					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res: &models.DeviceAuthResponse{
+					UID:       toUID("00000000-0000-4000-0000-000000000000", "hostname", "", ""),
+					Token:     toToken("00000000-0000-4000-0000-000000000000", toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")),
+					Name:      "hostname",
+					Namespace: "test",
+				},
+				err: nil,
+			},
+		},
+		{
+			description: "[device exists] succeeds to authenticate device with open sessions",
+			req: requests.DeviceAuth{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Hostname:  "hostname",
+				Identity:  &requests.DeviceIdentity{MAC: ""},
+				PublicKey: "",
+				Sessions:  []string{"session_1", "session_2"},
+				RealIP:    "127.0.0.1",
+			},
+			requiredMocks: func(ctx context.Context) {
+				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
+				device := &models.Device{UID: uid, Name: "hostname"}
+				expectedDevice := *device
+				expectedDevice.LastSeen = clock.Now()
+
+				cacheMock.
+					On("Get", ctx, "auth_device/"+uid, testifymock.AnythingOfType("*map[string]string")).
+					Return(store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}, nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, uid).
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionSetLastSeen", ctx, models.UID("session_2")).
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					Return(&models.Session{UID: "session_1", Closed: false}, nil).
+					Once()
+				storeMock.
+					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
+					Return(nil).
+					Once()
+				storeMock.
+					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					Return(&models.ActiveSession{UID: "session_1"}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionUpdate", ctx, testifymock.MatchedBy(func(as *models.ActiveSession) bool { return as.UID == "session_1" })).
+					Return(nil).
+					Once()
+				storeMock.
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					Return(&models.Session{UID: "session_2", Closed: false}, nil).
+					Once()
+				storeMock.
+					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
+					Return(nil).
+					Once()
+				storeMock.
+					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					Return(&models.ActiveSession{UID: "session_2"}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionUpdate", ctx, testifymock.MatchedBy(func(as *models.ActiveSession) bool { return as.UID == "session_2" })).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -685,11 +760,35 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionSetLastSeen", ctx, models.UID("session_1")).
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					Return(&models.Session{UID: "session_1", Closed: false}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					Return(&models.ActiveSession{UID: "session_1"}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionUpdate", ctx, testifymock.MatchedBy(func(as *models.ActiveSession) bool { return as.UID == "session_1" })).
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionSetLastSeen", ctx, models.UID("session_2")).
+					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
+					Return(nil).
+					Once()
+				storeMock.
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					Return(&models.Session{UID: "session_2", Closed: false}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					Return(&models.ActiveSession{UID: "session_2"}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionUpdate", ctx, testifymock.MatchedBy(func(as *models.ActiveSession) bool { return as.UID == "session_2" })).
+					Return(nil).
+					Once()
+				storeMock.
+					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -921,11 +1020,35 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionSetLastSeen", ctx, models.UID("session_1")).
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					Return(&models.Session{UID: "session_1", Closed: false}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_1").
+					Return(&models.ActiveSession{UID: "session_1"}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionUpdate", ctx, testifymock.MatchedBy(func(as *models.ActiveSession) bool { return as.UID == "session_1" })).
 					Return(nil).
 					Once()
 				storeMock.
-					On("SessionSetLastSeen", ctx, models.UID("session_2")).
+					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_1" })).
+					Return(nil).
+					Once()
+				storeMock.
+					On("SessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					Return(&models.Session{UID: "session_2", Closed: false}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "session_2").
+					Return(&models.ActiveSession{UID: "session_2"}, nil).
+					Once()
+				storeMock.
+					On("ActiveSessionUpdate", ctx, testifymock.MatchedBy(func(as *models.ActiveSession) bool { return as.UID == "session_2" })).
+					Return(nil).
+					Once()
+				storeMock.
+					On("SessionUpdate", ctx, testifymock.MatchedBy(func(s *models.Session) bool { return s.UID == "session_2" })).
 					Return(nil).
 					Once()
 				cacheMock.
