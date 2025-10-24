@@ -37,6 +37,8 @@
             :error-messages="nameError"
             required
             data-test="name-field"
+            class="mb-5"
+            hide-details="auto"
           />
         </v-row>
 
@@ -51,7 +53,7 @@
           />
         </v-row>
 
-        <v-row class="mt-1 px-3">
+        <v-row class="mt-2 px-3">
           <v-text-field
             v-if="choiceUsername === 'username'"
             v-model="username"
