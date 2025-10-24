@@ -30,6 +30,8 @@
         label="Key name"
         placeholder="Name used to identify the private key"
         data-test="name-field"
+        class="my-3"
+        hide-details="auto"
       />
 
       <FileTextComponent
