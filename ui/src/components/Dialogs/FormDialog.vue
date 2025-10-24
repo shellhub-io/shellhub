@@ -12,7 +12,7 @@
     :show-footer="showFooter"
   >
     <!-- Content -->
-    <v-form>
+    <v-form @submit.prevent="handleConfirm">
       <slot />
     </v-form>
 
