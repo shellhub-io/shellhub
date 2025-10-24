@@ -91,7 +91,6 @@
             :messages="noTagsSelected ? 'No tags selected' : ''"
             placeholder="Select up to 3 tags"
             variant="outlined"
-
             density="comfortable"
             multiple
             data-test="tags-selector"
@@ -463,7 +462,7 @@ const edit = async () => {
     ...(keyLocal.value as LocalPublicKey),
     username: usernameToSend,
     filter: filterToSend,
-    data: Buffer.from(keyLocal.value.data as string, "utf-8").toString("base64"),
+    data: Buffer.from(publicKeyData.value, "utf-8").toString("base64"),
   };
 
   try {
