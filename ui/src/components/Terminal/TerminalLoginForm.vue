@@ -50,7 +50,6 @@
       />
 
       <v-text-field
-        color="primary"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         v-model="password"
         v-else
@@ -67,7 +66,6 @@
       />
 
       <v-text-field
-        color="primary"
         v-if="showPassphraseField"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         v-model="passphrase"
