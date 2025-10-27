@@ -88,6 +88,7 @@ func TestSessionList(t *testing.T) {
 						Type:          "shell",
 						Term:          "xterm",
 						Position:      models.SessionPosition{Longitude: 0, Latitude: 0},
+						Events:        models.SessionEvents{Types: []string{}, Seats: []int{}},
 					},
 					{
 						StartedAt: time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
@@ -140,6 +141,7 @@ func TestSessionList(t *testing.T) {
 						Type:          "shell",
 						Term:          "xterm",
 						Position:      models.SessionPosition{Longitude: 45.6789, Latitude: -12.3456},
+						Events:        models.SessionEvents{Types: []string{}, Seats: []int{}},
 					},
 					{
 						StartedAt: time.Date(2023, 1, 3, 12, 0, 0, 0, time.UTC),
@@ -192,6 +194,7 @@ func TestSessionList(t *testing.T) {
 						Type:          "exec",
 						Term:          "",
 						Position:      models.SessionPosition{Longitude: -78.9012, Latitude: 23.4567},
+						Events:        models.SessionEvents{Types: []string{}, Seats: []int{}},
 					},
 					{
 						StartedAt: time.Date(2023, 1, 4, 12, 0, 0, 0, time.UTC),
@@ -244,6 +247,7 @@ func TestSessionList(t *testing.T) {
 						Type:          "shell",
 						Term:          "xterm",
 						Position:      models.SessionPosition{Longitude: -56.7890, Latitude: 34.5678},
+						Events:        models.SessionEvents{Types: []string{}, Seats: []int{}},
 					},
 				},
 				count: 4,
@@ -368,6 +372,7 @@ func TestSessionGet(t *testing.T) {
 					Type:          "shell",
 					Term:          "xterm",
 					Position:      models.SessionPosition{Longitude: 0, Latitude: 0},
+					Events:        models.SessionEvents{Types: []string{}, Seats: []int{}},
 				},
 				err: nil,
 			},
