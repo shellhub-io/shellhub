@@ -39,7 +39,7 @@ jobs:
       - name: Set image tag
         run: |
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "IMAGE_TAG=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=${{ env.RELEASE_VERSION }},latest" >> $GITHUB_ENV
             echo "BUILD_ARGS=--build-arg SHELLHUB_VERSION=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
           else
             echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
@@ -48,10 +48,16 @@ jobs:
 
       - name: Build and push multiarch image
         run: |
+          TAGS=""
+          IFS=',' read -ra TAG_ARRAY <<< "${{ env.IMAGE_TAG }}"
+          for tag in "${TAG_ARRAY[@]}"; do
+            TAGS="$TAGS --tag shellhubio/agent:$tag"
+          done
+
           docker buildx build \
             --platform linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6,linux/386 \
             --file agent/Dockerfile \
-            --tag shellhubio/agent:${{ env.IMAGE_TAG }} \
+            $TAGS \
             ${{ env.BUILD_ARGS }} \
             ${{ github.event_name != 'pull_request' && '--push' || '' }} \
             --provenance=false \
