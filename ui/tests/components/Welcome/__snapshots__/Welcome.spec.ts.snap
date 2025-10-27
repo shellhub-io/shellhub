@@ -59,7 +59,7 @@ exports[`Welcome > Renders the component 1`] = `
             <div class="v-window v-theme--light overflow-y-auto" data-test="welcome-window">
               <div class="v-window__container">
                 <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true" data-test="welcome-first-screen">
-                  <div class="v-window-item v-window-item--active" style="">
+                  <div class="v-window-item v-window-item--active">
                     <div class="pa-6">
                       <div class="text-center mb-6">
                         <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i class="mdi-rocket-launch mdi v-icon notranslate v-theme--light text-white" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>

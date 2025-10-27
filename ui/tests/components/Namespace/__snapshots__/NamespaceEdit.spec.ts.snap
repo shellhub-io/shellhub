@@ -58,7 +58,7 @@ exports[`Namespace Edit > Renders the component 1`] = `
             </header><!-- Content -->
             <form class="v-form" novalidate="">
               <div class="v-card-text pa-6">
-                <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-textarea v-text-field v-textarea--auto-grow v-textarea--no-resize" data-test="connection-announcement-text">
+                <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-textarea v-text-field v-textarea--auto-grow v-textarea--no-resize" style="--v-textarea-scroll-bar-width: 0px;" data-test="connection-announcement-text">
                   <!---->
                   <div class="v-input__control">
                     <div class="v-field v-field--variant-filled v-theme--light v-locale--is-ltr" style="--v-textarea-control-height: NaN;">
@@ -115,7 +115,7 @@ exports[`Namespace Edit > Renders the component 1`] = `
                   <div class="v-window__container">
                     <!-- Default buttons window -->
                     <transition-stub name="" appear="false" persisted="false" css="true">
-                      <div class="v-window-item v-window-item--active w-100" style="">
+                      <div class="v-window-item v-window-item--active w-100">
                         <div class="d-flex align-center w-100">
                           <!-- Helper text on the left -->
                           <!--v-if-->

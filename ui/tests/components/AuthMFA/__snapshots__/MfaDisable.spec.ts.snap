@@ -1648,7 +1648,7 @@ exports[`MfaDisable > Renders the component (Verification Code window) 1`] = `
                   <!---->
                 </transition-stub>
                 <transition-stub name="" appear="false" persisted="false" css="true">
-                  <div class="v-window-item v-window-item--active" style="">
+                  <div class="v-window-item v-window-item--active">
                     <div class="v-otp-input mb-4" data-test="verification-code" required="">
                       <div class="v-otp-input__content">
                         <!---->
