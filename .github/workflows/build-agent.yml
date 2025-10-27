@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload rootfs artifacts
         if: "contains(github.ref, 'refs/tags/v')"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: rootfs-artifacts
           path: rootfs/*.tar.gz
@@ -139,7 +139,7 @@ jobs:
           gzip "$BINARY_NAME"
 
       - name: upload binary artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: agent-binary-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}
           path: agent/shellhub-agent-*.gz
@@ -157,7 +157,7 @@ jobs:
           cd ./agent && go mod vendor && cd .. && tar czf shellhub-agent.tar.gz agent
 
       - name: upload agent tarball artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shellhub-agent
           path: shellhub-agent.tar.gz
