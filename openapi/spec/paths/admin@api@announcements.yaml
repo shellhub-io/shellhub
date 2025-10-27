@@ -1,0 +1,75 @@
+get:
+  operationId: listAnnouncementsAdmin
+  summary: List announcements
+  description: List the announcements posted by ShellHub Cloud.
+  tags:
+    - cloud
+    - admin
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: order_by
+      schema:
+        description: Announcements' list order.
+        type: string
+        enum:
+          - asc
+          - desc
+        example: asc
+        default: desc
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success to get the announcements.
+      headers:
+        X-Total-Count:
+          description: Announcements' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/announcementShort.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createAnnouncement
+  summary: Create an announcement
+  description: Create an announcement.
+  tags:
+    - cloud
+    - admin
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            title:
+              $ref: ../components/schemas/announcementTitle.yaml
+            content:
+              $ref: ../components/schemas/announcementContent.yaml
+  responses:
+    '200':
+      description: Success to create an announcement.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/announcement.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

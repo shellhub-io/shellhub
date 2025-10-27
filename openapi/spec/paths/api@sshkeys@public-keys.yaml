@@ -1,0 +1,82 @@
+get:
+  operationId: getPublicKeys
+  summary: Get public keys
+  description: Get a list from all public keys.
+  tags:
+    - ssh
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/filterQuery.yaml
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to get a list of public keys.
+      headers:
+        X-Total-Count:
+          description: Public keys' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/publicKeyResponse.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createPublicKey
+  summary: Create public key
+  description: Create a new public key.
+  tags:
+    - ssh
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/publicKeyRequest.yaml
+  responses:
+    '200':
+      description: Success to create a public key.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: ../components/schemas/publicKeyData.yaml
+              fingerprint:
+                $ref: ../components/schemas/publickKeyFingerprint.yaml
+              tenant_id:
+                $ref: ../components/schemas/namespaceTenantID.yaml
+              name:
+                description: Public key's name.
+                type: string
+                example: example
+              filter:
+                $ref: ../components/schemas/publicKeyFilter.yaml
+              username:
+                $ref: ../components/schemas/publicKeyUsername.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '422':
+      description: UnprocessableEntity
+    '500':
+      $ref: ../components/responses/500.yaml

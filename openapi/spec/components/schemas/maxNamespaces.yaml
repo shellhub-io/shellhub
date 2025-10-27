@@ -1,0 +1,3 @@
+type: number
+description: Indicates the maximum number of namespaces a user is allowed to create. If set to 0, the user is not permitted to create any namespaces. If set to -1, the user has no limit on the number of namespaces they can create.
+example: 3

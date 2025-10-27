@@ -1,0 +1,8 @@
+description: |
+  Device's name
+
+
+  By default, the name is the device's MAC address when it just
+  added.
+type: string
+example: example

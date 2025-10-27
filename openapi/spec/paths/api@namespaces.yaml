@@ -1,0 +1,99 @@
+get:
+  operationId: getNamespaces
+  summary: Get namespaces list
+  description: Returns a list of namespaces.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: filter
+      description: |
+        Namespaces's filter.
+
+
+        Filter field receives a base64 enconded JSON object for limit a search.
+        The JSON object should have a property called `type`, it will filter by a `property` called `name` where the value should `contains` `examplespace`.
+
+        If you want get only Namespaces name as `examplespace`, the JSON object will looks
+        like this 
+
+        ```json
+        [
+          {
+            "type":"property",
+            "params":{
+              "name":"name",
+              "operator":"contains",
+              "value":"examplespace"
+            }
+          }
+        ]
+        ```
+
+        So, the output encoded string will result on:
+        `W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZXhhbXBsZXNwYWNlIn19XQ==`
+      schema:
+        type: string
+        pattern: ^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
+        example: W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lIiwib3BlcmF0b3IiOiJjb250YWlucyIsInZhbHVlIjoiZXhhbXBsZXNwYWNlIn19XQ==
+      required: false
+      in: query
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to get a namespace list.
+      headers:
+        X-Total-Count:
+          description: Namespaces' total number.
+          schema:
+            type: string
+            minimum: 0
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/namespace.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createNamespace
+  summary: Create namespace
+  description: Create a namespace.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              $ref: ../components/schemas/namespaceName.yaml
+          required:
+            - name
+  responses:
+    '200':
+      description: Success to create a namespace.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

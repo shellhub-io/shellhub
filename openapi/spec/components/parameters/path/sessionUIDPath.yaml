@@ -1,0 +1,5 @@
+name: uid
+schema:
+  $ref: ../../schemas/sessionUID.yaml
+required: true
+in: path

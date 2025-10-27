@@ -1,0 +1,30 @@
+type: object
+properties:
+  address:
+    $ref: webendpointAddress.yaml
+  full_address:
+    description: Full webendpoint address including domain
+    type: string
+    example: '9a8df9321368d567cfac8679cec7848c.localhost'
+  namespace:
+    $ref: namespaceTenantID.yaml
+  device_uid:
+    $ref: deviceUID.yaml
+  device:
+    $ref: device.yaml
+  host:
+    $ref: webendpointHost.yaml
+  port:
+    $ref: webendpointPort.yaml
+  ttl:
+    $ref: webendpointTTL.yaml
+  expires_in:
+    description: Web endpoint's expiration date
+    type: string
+    format: date-time
+    example: 2020-05-01T00:01:00.000Z
+  created_at:
+    description: Web endpoint's creation date
+    type: string
+    format: date-time
+    example: 2020-05-01T00:00:00.000Z

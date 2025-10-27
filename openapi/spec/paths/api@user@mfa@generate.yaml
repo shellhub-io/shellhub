@@ -1,0 +1,27 @@
+get:
+  operationId: generateMFA
+  summary: Generate MFA Credentials
+  description: |
+    Generate the credentials to enable a user's MFA. The user must save the recovery codes a secure manner.
+  tags:
+    - cloud
+    - mfa
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Successfully generated MFA credentials.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/mfaGenerate.yaml'
+    '400':
+      $ref: '../components/responses/400.yaml'
+    '401':
+      $ref: '../components/responses/401.yaml'
+    '403':
+      $ref: '../components/responses/403.yaml'
+    '404':
+      $ref: '../components/responses/404.yaml'
+    '500':
+      $ref: '../components/responses/500.yaml'

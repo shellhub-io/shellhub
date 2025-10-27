@@ -1,0 +1,59 @@
+post:
+  operationId: authUser
+  summary: Auth a user
+  description: Authenticate a user, returning the session's JWT token and data about the user.
+  tags:
+    - external
+    - users
+  security: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              $ref: ../components/schemas/userUsername.yaml
+            password:
+              $ref: ../components/schemas/userPassword.yaml
+          required:
+            - username
+            - password
+  responses:
+    '200':
+      description: Success to auth the user.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: getUserInfo
+  summary: Get user info
+  tags:
+    - users
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get the user info.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

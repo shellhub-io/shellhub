@@ -1,0 +1,125 @@
+parameters:
+  - name: id
+    schema:
+      description: User's ID
+      type: string
+      example: 507f1f77bcf86cd799439011
+    required: true
+    in: path
+delete:
+  operationId: deleteUser
+  summary: Delete user
+  description: Delete a user.
+  tags:
+    - admin
+    - users
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: adminUpdateUser
+  summary: Update user
+  description: Update a user.
+  tags:
+    - admin
+    - users
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/userAdminRequest.yaml
+        examples:
+          update_name:
+            value:
+              name: example_new
+              email: example@example.com
+              username: example
+              password: ''
+              confirmed: true
+          update_password:
+            value:
+              name: example
+              email: example_new@example.com
+              username: example
+              password: example_new
+              confirmed: true
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/invalidFields.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/conflictFields.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: getUser
+  summary: Get user
+  description: Get a user.
+  tags:
+    - admin
+    - users
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get a user.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user:
+                $ref: ../components/schemas/userAdminResponse.yaml
+              namespacesOwned:
+                description: User's integer of owned namespaces
+                type: integer
+                minimum: 0
+          examples:
+            user_confirmed:
+              value:
+                user:
+                  id: 507f1f77bcf86cd799439011
+                  namespaces: 0
+                  confirmed: true
+                  created_at: 2020-05-01T00:00:00.000Z
+                  last_login: 2020-05-01T00:00:00.000Z
+                  name: example
+                  email: example@example.com
+                  username: example
+                  password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+                namespacesOwned: 0
+            user_not_confirmed:
+              value:
+                user:
+                  id: 507f1f77bcf86cd799439011
+                  namespaces: 2
+                  confirmed: false
+                  created_at: 2012-01-02T00:00:00.000Z
+                  last_login: 2012-01-02T00:00:00.000Z
+                  name: example
+                  email: example@example.com
+                  username: example
+                  password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+                namespacesOwned: 2
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

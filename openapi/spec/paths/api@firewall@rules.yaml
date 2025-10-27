@@ -1,0 +1,69 @@
+post:
+  operationId: createFirewallRule
+  summary: Create firewall rule
+  description: Create a firewall rule.
+  tags:
+    - cloud
+
+    - rules
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/firewallRulesRequest.yaml
+  responses:
+    '200':
+      description: Success to create firewall rule.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/firewallRulesResponse.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: getFirewallRules
+  summary: Get firewall rules
+  description: Get a list of firewall rules.
+  tags:
+    - cloud
+
+    - rules
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to get firewall rules.
+      headers:
+        X-Total-Count:
+          description: Firewall rules' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/firewallRulesResponse.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

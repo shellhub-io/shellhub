@@ -1,0 +1,66 @@
+type: object
+properties:
+  uid:
+    $ref: deviceUID.yaml
+  name:
+    description: |
+      Device's name
+
+
+      By default, the name is the device's MAC address when it just added.
+    type: string
+    example: example
+  identity:
+    $ref: deviceIdentity.yaml
+  info:
+    description: Device's info
+    $ref: deviceInfo.yaml
+  public_key:
+    description: Device's public key.
+    type: string
+    example: '-----BEGIN RSA PUBLIC KEY-----MIIBCgKCAQEA0vH2Bob3mn+uWVaHlOoZD8ai01W6VnRTnXlnHVF7Ny1Vb7pl1Hc4D8bsBhb1vt7aZOYHbCyDR2r5lsrWXCELE8pY8vzfFDA+jNrLbBCJ66E1BcmTqfXCJcLospWD2lIAwU2O7IPxwZujuVkHrF8nYuEFsKeG60QTWNS++RTqydqe2KmFMEdWCQmYPm/ykN871fSR9+PzoRJMYWidY6Szn+X2ardGmS/Ldhl/PEu9h7xjcQXANWz6yV/RVReGVkLcK6TxlfuxgdpbsWAx+cS52P7xWrshNefHqjpdlm3KNbo6vqfTpU8Ld/FFISXXaa1Md5GyAHF+jzuRzQ5z5aKBGwIDAQAB-----END RSA PUBLIC KEY-----'
+  tenant_id:
+    $ref: namespaceTenantID.yaml
+  last_seen:
+    description: Device's last seen date
+    type: string
+    format: date-time
+    example: 2020-01-01T00:00:00Z
+  online:
+    description: Device's availability status
+    type: boolean
+    example: true
+  namespace:
+    description: Device's namespace
+    $ref: namespaceName.yaml
+  status:
+    $ref: deviceStatus.yaml
+  status_update_at:
+    $ref: deviceUpdateAt.yaml
+  created_at:
+    description: Device's creation date
+    type: string
+    format: date-time
+    example: 2020-01-01T00:00:00Z
+  remote_addr:
+    description: Device's remote address
+    type: string
+    example: 127.0.0.1
+  position:
+    description: Device's geolocation position
+    type: object
+    properties:
+      latitude:
+        description: Device's latitude position
+        type: number
+        example: -31.7566628
+      longitude:
+        description: Device's longitude position
+        type: number
+        example: -52.322474
+  tags:
+    $ref: deviceTags.yaml
+  public_url:
+    $ref: devicePublicURL.yaml
+  acceptable:
+    $ref: deviceAcceptable.yaml

@@ -1,0 +1,10 @@
+name: order_by
+in: query
+description: Sort order (asc or desc)
+required: false
+schema:
+  type: string
+  enum:
+    - asc
+    - desc
+  default: desc

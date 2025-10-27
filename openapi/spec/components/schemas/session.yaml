@@ -1,0 +1,99 @@
+# Session object containing information about an active or completed session
+type: object
+properties:
+  uid:
+    $ref: sessionUID.yaml
+  device_uid:
+    $ref: deviceUID.yaml
+  device:
+    $ref: device.yaml
+  tenant_id:
+    $ref: namespaceTenantID.yaml
+  username:
+    description: Session's username
+    type: string
+  ip_address:
+    description: Session's IP address
+    type: string
+    pattern: ^[0-9]{1,3}(\.[0-9]{1,3}){3}$
+    example: 127.0.0.1
+  started_at:
+    description: Session's started date
+    type: string
+    example: 2020-01-01T00:00:00Z
+  last_seen:
+    description: Session's last seen date
+    type: string
+    example: 2020-01-01T00:00:00Z
+  active:
+    description: Session's active status
+    type: boolean
+  authenticated:
+    description: Session's authenticated status
+    type: boolean
+  recorded:
+    description: Session's recorded status
+    type: boolean
+  type:
+    description: Session's type
+    type: string
+    enum:
+      - web
+      - term
+    example: web
+  term:
+    description: Session's terminal
+    type: string
+    example: xterm.js
+  position:
+    description: Session's geolocation position
+    type: object
+    properties:
+      latitude:
+        description: Session's latitude position
+        type: number
+        example: -31.7566628
+      longitude:
+        description: Session's longitude position
+        type: number
+        example: -52.322474
+  events:
+    description: Session's events
+    type: object
+    properties:
+      types:
+        description: Session's set of types
+        type: array
+        items:
+          type: string
+          example: shell
+      seats:
+        description: Session's seats
+        type: array
+        items:
+          type: integer
+          minimum: 0
+        example:
+          - 0
+      items:
+        description: Session's list of events
+        type: array
+        items:
+          type: object
+          properties:
+            type:
+              description: The type of the event
+              type: string
+              example: 'shell'
+            timestamp:
+              description: The time the event occurred in ISO 8601 format
+              type: string
+              format: date-time
+              example: '2023-10-01T12:00:00Z'
+            data:
+              description: Additional data related to the event
+              type: object
+            seat:
+              description: Seat where the event happened
+              type: integer
+              minimum: 0

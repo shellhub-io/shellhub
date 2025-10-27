@@ -1,0 +1,108 @@
+post:
+  operationId: createCustomer
+  summary: Create customer
+  description: creates a new customer defining, optionaly, the default payment method.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to create a new customer.
+    '400':
+      description: Bad Request.
+      $ref: ../components/schemas/billingError.yaml
+    '401':
+      description: Unauthorized.
+      $ref: ../components/schemas/billingError.yaml
+    '403':
+      description: Forbidden.
+      $ref: ../components/schemas/billingError.yaml
+    '404':
+      description: Not Found.
+      $ref: ../components/schemas/billingError.yaml
+    '409':
+      description: Conflict.
+      $ref: ../components/schemas/billingError.yaml
+    '424':
+      description: Failed dependency.
+      $ref: ../components/schemas/billingError.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: getCustomer
+  summary: Get Customer
+  description: Get the customer.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to get a customer.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                description: Customer's ID.
+                type: string
+                example: 'cus_H9J5n2eZvKYlo2C7X1QX2Qg'
+              name:
+                description: Customer's name.
+                type: string
+                example: 'user'
+              email:
+                description: Customer's e-mail.
+                type: string
+                format: email
+                example: 'user@shellhub.io'
+              payment_methods:
+                description: Customer's payment methods.
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      description: Payment method's ID.
+                      type: string
+                      example: 'pm_1H9J5n2eZvKYlo2C7X1QX2Qg'
+                    number:
+                      description: Payment method card's number.
+                      type: string
+                      example: '4242424242424242'
+                    brand:
+                      description: Payment method card's brand.
+                      type: string
+                      example: 'visa'
+                    exp_month:
+                      description: Payment method card's expiration month.
+                      type: integer
+                      example: 10
+                    exp_year:
+                      description: Payment method card's expiration year.
+                      type: integer
+                      example: 2030
+                    cvc:
+                      description: Payment method card's CVC.
+                      type: string
+                      example: '123'
+                    default:
+                      description: Payment method default status.
+                      type: boolean
+                      example: true
+    '400':
+      $ref: ../components/schemas/billingError.yaml
+    '403':
+      $ref: ../components/schemas/billingError.yaml
+    '404':
+      $ref: ../components/schemas/billingError.yaml
+    '424':
+      $ref: ../components/schemas/billingError.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

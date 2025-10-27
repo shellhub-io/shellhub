@@ -1,0 +1,76 @@
+parameters:
+  - $ref: ../components/parameters/path/deviceUIDPath.yaml
+get:
+  operationId: getContainer
+  summary: Get container
+  description: Get a container.
+  tags:
+    - containers
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success get a container.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/device.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteContainer
+  summary: Delete container
+  description: Delete a container.
+  tags:
+    - containers
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to delete a container.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: updateContainer
+  summary: Update container
+  description: Update container's data.
+  tags:
+    - containers
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              $ref: ../components/schemas/deviceName.yaml
+            public_url:
+              $ref: ../components/schemas/devicePublicURL.yaml
+  responses:
+    '200':
+      description: Success to update container's data.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

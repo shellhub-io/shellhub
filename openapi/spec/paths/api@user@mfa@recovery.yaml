@@ -1,0 +1,43 @@
+post:
+  operationId: mfaRecover
+  summary: Recover MFA
+  description: |
+    Recover account access by providing one of the user's recovery codes. It
+    will be invalidated for future uses.
+
+    The recovery code will be cached for 10 minutes. During this period, the
+    user can use the same recovery code to disable their MFA without needing to
+    provide two separate codes. The `X-Expires-At` header specifies the epoch
+    value marking the end of the cache period.
+  tags:
+    - cloud
+    - mfa
+    - users
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/mfaRecover.yaml
+  responses:
+    '200':
+      description: Success recover account's access.
+      headers:
+        X-Expires-At:
+          description: The epoch time at which the recovery code will become invalid.
+          schema:
+            type: string
+            minimum: 0
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -1,0 +1,34 @@
+type: object
+properties:
+  version:
+    description: The current version of ShellHub.
+    type: string
+    example: 'v0.20.0'
+  endpoints:
+    type: object
+    description: Network endpoints for the ShellHub instance.
+    properties:
+      ssh:
+        description: The SSH endpoint where devices connect.
+        type: string
+        example: 'localhost:2222'
+      api:
+        description: The API endpoint for managing ShellHub configurations.
+        type: string
+        example: 'localhost:8080'
+  setup:
+    description: Indicates whether the instance setup is complete.
+    type: boolean
+    example: true
+  authentication:
+    description: Authentication methods available for the ShellHub instance.
+    type: object
+    properties:
+      local:
+        description: Indicates if local authentication using email and password is enabled.
+        type: boolean
+        example: true
+      saml:
+        description: Indicates if SAML-based single sign-on (SSO) is enabled.
+        type: boolean
+        example: false

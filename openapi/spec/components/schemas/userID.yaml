@@ -1,0 +1,4 @@
+description: User's ID.
+type: string
+pattern: ^[0-9a-f]{24}$
+example: 507f1f77bcf86cd799439011

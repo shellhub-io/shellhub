@@ -1,0 +1,17 @@
+type: object
+properties:
+  data:
+    $ref: publicKeyData.yaml
+  filter:
+    $ref: publicKeyFilter.yaml
+  name:
+    description: Public key's name.
+    type: string
+    example: example
+  username:
+    $ref: publicKeyUsername.yaml
+required:
+  - data
+  - filter
+  - name
+  - username

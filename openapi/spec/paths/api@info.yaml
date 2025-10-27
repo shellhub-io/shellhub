@@ -1,0 +1,23 @@
+get:
+  operationId: getInfo
+  summary: Get info
+  description: Get information about ShellHub instance like version, SSH and API addresses.
+  security: []
+  tags:
+    - system
+  parameters:
+    - name: agent_version
+      description: Agent's version. This parameter is used to filter instance information based on the requesting agent's version.
+      schema:
+        type: string
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success to get ShellHub instance info.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/info.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

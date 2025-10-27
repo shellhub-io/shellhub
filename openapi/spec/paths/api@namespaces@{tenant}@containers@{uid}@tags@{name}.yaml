@@ -1,0 +1,65 @@
+post:
+  operationId: pushTagToContainer
+  summary: Associate a tag with a container
+  tags:
+    - tags
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - $ref: ../components/parameters/path/deviceUIDPath.yaml
+    - name: name
+      description: Tag name to associate
+      schema:
+        type: string
+        pattern: ^[a-zA-Z0-9-_]+$
+        example: prod
+      required: true
+      in: path
+  responses:
+    '204':
+      description: Tag successfully associated with container
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+
+delete:
+  operationId: pullTagFromContainer
+  summary: Remove a tag from a container
+  tags:
+    - tags
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - $ref: ../components/parameters/path/deviceUIDPath.yaml
+    - name: name
+      description: Tag name to remove
+      schema:
+        type: string
+        pattern: ^[a-zA-Z0-9-_]+$
+        example: prod
+      required: true
+      in: path
+  responses:
+    '204':
+      description: Tag successfully removed from container
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

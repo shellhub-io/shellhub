@@ -1,0 +1,13 @@
+type: object
+properties:
+  token:
+    description: The `X-MFA-Token` header returned by the authUser endpoint.
+    type: string
+    example: bf265bf8-0065-4f44-a3ac-55eb3134c6ec
+  code:
+    description: The current code from the MFA authenticator.
+    type: string
+    example: '123456'
+required:
+  - token
+  - code

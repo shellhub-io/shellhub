@@ -1,0 +1,62 @@
+type: object
+properties:
+  id:
+    description: Firewall rule's ID.
+    type: string
+    example: 507f1f77bcf86cd799439011
+  tenant_id:
+    $ref: namespaceTenantID.yaml
+  action:
+    description: Firewall rule's action
+    type: string
+    enum:
+      - allow
+      - deny
+    example: allow
+  active:
+    description: Firewall rule active's status
+    type: boolean
+    example: true
+  filter:
+    description: Firewall rule's filter
+    oneOf:
+      - type: object
+        properties:
+          hostname:
+            description: Firewall rule's hostname
+            type: string
+            example: .*
+        required:
+          - hostname
+      - type: object
+        properties:
+          tags:
+            description: Firewall's rule tags
+            type: array
+            items:
+              $ref: tag.yaml
+            minItems: 1
+            maxItems: 3
+        required:
+          - tags
+  priority:
+    description: Firewall rule's priority
+    type: integer
+    minimum: 0
+    example: 1
+  source_ip:
+    description: Firewall rule's source IP regexp
+    type: string
+    example: .*
+  username:
+    description: Firewall rule's username regexp
+    type: string
+    example: .*
+required:
+  - tenant_id
+  - action
+  - active
+  - filter
+  - priority
+  - source_ip
+  - username

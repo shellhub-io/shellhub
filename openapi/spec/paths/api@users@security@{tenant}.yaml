@@ -1,0 +1,32 @@
+put:
+  operationId: setSessionRecord
+  summary: Set session record
+  description: Define if sessions will be recorded.
+  tags:
+    - users
+    - sessions
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            session_record:
+              description: Session's record status.
+              type: boolean
+              default: false
+  responses:
+    '200':
+      description: Success to set session record status.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

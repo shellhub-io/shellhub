@@ -1,0 +1,31 @@
+parameters:
+  - $ref: ../components/parameters/path/sessionUIDPath.yaml
+get:
+  operationId: listSessionRecords
+  summary: List session records
+  description: List session records
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - sessions
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to list the session records.
+      headers:
+        X-Total-Count:
+          description: Session records' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+    '400':
+      $ref: ../components/responses/400.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

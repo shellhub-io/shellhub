@@ -1,0 +1,36 @@
+patch:
+  operationId: updateDeviceStatus
+  summary: Update device status
+  description: Update device's status.
+  tags:
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/deviceUIDPath.yaml
+    - name: status
+      description: Device's status
+      schema:
+        type: string
+        enum:
+          - accept
+          - reject
+          - pending
+          - unused
+        example: accept
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success to update device status.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

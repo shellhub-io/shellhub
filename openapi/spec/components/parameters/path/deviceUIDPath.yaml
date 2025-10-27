@@ -1,0 +1,6 @@
+name: uid
+description: Device's UID
+schema:
+  $ref: ../../schemas/deviceUID.yaml
+required: true
+in: path

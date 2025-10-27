@@ -1,0 +1,33 @@
+get:
+  operationId: getSessionsAdmin
+  summary: Get sessions admin
+  description: Get a list sessions.
+  tags:
+    - admin
+    - sessions
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to get list of sessions.
+      headers:
+        X-Total-Count:
+          description: Sessions' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/session.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

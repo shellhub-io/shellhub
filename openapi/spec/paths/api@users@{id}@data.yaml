@@ -1,0 +1,51 @@
+patch:
+  operationId: updateUserData
+  deprecated: true
+  summary: Update user data
+  description: Update user's data.
+  tags:
+    - users
+  security:
+    - jwt: []
+  parameters:
+    - name: id
+      description: User's ID.
+      schema:
+        type: string
+      required: true
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: User's name.
+              type: string
+            username:
+              description: User's username.
+              type: string
+            email:
+              description: User's e-mail.
+              type: string
+              format: email
+            recovery_email:
+              description: |
+                User's recovery e-mail. A recovery email serves as the user's
+                final recourse to regain access to their account.
+              type: string
+              format: email
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/invalidFields.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/conflictFields.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -1,0 +1,42 @@
+type: array
+items:
+  type: object
+  properties:
+    uid:
+      description: Session's ID
+      type: string
+      minLength: 64
+      maxLength: 64
+      example: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+    seat:
+      description: Session's Seat
+      type: integer
+      minimum: 0
+    message:
+      description: Session's Data
+      type: string
+    tenant_id:
+      $ref: namespaceTenantID.yaml
+    time:
+      description: Session's time
+      type: string
+      format: date-time
+      example: 2020-05-01T00:00:00.000Z
+    width:
+      description: Session's terminal width
+      type: integer
+      minimum: 0
+      example: 24
+    height:
+      description: Session's terminal height
+      type: integer
+      minimum: 0
+      example: 111
+  required:
+    - uid
+    - seat
+    - message
+    - tenant_id
+    - time
+    - width
+    - height

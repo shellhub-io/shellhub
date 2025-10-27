@@ -1,0 +1,66 @@
+parameters:
+  - $ref: ../components/parameters/path/publicKeyFingerprintPath.yaml
+put:
+  operationId: updatePublicKey
+  summary: Update public key
+  description: Update a public key.
+  tags:
+    - ssh
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Public key's name.
+              type: string
+              example: example
+            username:
+              description: Public key's username.
+              type: string
+              example: example
+            filter:
+              $ref: ../components/schemas/publicKeyFilter.yaml
+          required:
+            - name
+            - username
+            - filter
+  responses:
+    '200':
+      description: Success to update a public key.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/publicKeyResponse.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deletePublicKey
+  summary: Delete public key
+  description: Delete a public key.
+  tags:
+    - ssh
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Success to delete a public key.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -1,0 +1,32 @@
+post:
+  operationId: authMFA
+  summary: Auth MFA
+  description: |
+    Authenticate a user who has MFA enabled. This endpoint should be called after the default authUser endpoint,
+    which generates an `X-MFA-Token` indicating that the user has already authenticated with a password.
+  tags:
+    - cloud
+    - mfa
+    - users
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/mfaAuth.yaml
+  responses:
+    '200':
+      description: Success to authenticate.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

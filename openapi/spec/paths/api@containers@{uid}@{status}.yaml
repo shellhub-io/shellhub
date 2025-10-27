@@ -1,0 +1,36 @@
+patch:
+  operationId: updateContainerStatus
+  summary: Update container status
+  description: Update container's status.
+  tags:
+    - containers
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/deviceUIDPath.yaml
+    - name: status
+      description: Container's status
+      schema:
+        type: string
+        enum:
+          - accept
+          - reject
+          - pending
+          - unused
+        example: accept
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success to update container status.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

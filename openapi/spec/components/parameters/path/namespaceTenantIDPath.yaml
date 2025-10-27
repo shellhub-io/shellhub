@@ -1,0 +1,6 @@
+name: tenant
+description: Namespace's tenant ID
+schema:
+  $ref: ../../schemas/namespaceTenantID.yaml
+required: true
+in: path

@@ -1,0 +1,31 @@
+type: object
+properties:
+  uid:
+    description: Connector's UID
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  tenant_id:
+    $ref: namespaceTenantID.yaml
+  enable:
+    type: boolean
+    description: Connector's connection is enabled.
+    example: true
+  address:
+    type: string
+    description: Address to the Container Engine.
+    format: hostname
+    example: 127.0.0.1
+  port:
+    type: integer
+    description: Port to the Container Engine.
+    example: 2375
+  secure:
+    type: boolean
+    description: onnector's connection is using HTTPS for authentication.
+    example: false
+  status:
+    $ref: connectorStatus.yaml
+  tls:
+    $ref: connectorTLS.yaml
+    example: null

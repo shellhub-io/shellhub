@@ -1,0 +1,30 @@
+get:
+  operationId: getNamespaceToken
+  summary: Get a new namespace's token
+  description: |
+    This route works like a login's one; returns a JWT token and extra
+    information about namespace.
+
+    You can use this route to swap between namespaces.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  responses:
+    '200':
+      description: Success to get namespace's token
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

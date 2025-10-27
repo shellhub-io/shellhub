@@ -1,0 +1,41 @@
+type: object
+properties:
+  tenant_id:
+    description: The tenant ID of the namespace with which the key is associated.
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  created_by:
+    description: The ID of the user who created the API key.
+    type: string
+    pattern: ^[0-9a-f]{24}$
+    example: 507f1f77bcf86cd799439011
+  role:
+    type: string
+    description: |
+      The role of the key. It serves as a "level" indicating which endpoints the key can
+      access.
+    example: owner
+  name:
+    type: string
+    description: |
+      The name of the API key. This serves as an "external ID" since the UUID
+      will never be returned. It is unique per namespace.
+    example: dev
+  expires_in:
+    description: |
+      Epoch time until expiration. It for unlimited keys.
+    type: integer
+    minimum: -1
+    example: 1707958989
+  created_at:
+    type: string
+    description: The UTC date when the key was created.
+    format: date
+    example: 2020-05-01
+  updated_at:
+    type: string
+    description: |
+      The UTC date when the key was last updated. It is updated whenever the key is modified.
+    format: date
+    example: 2020-05-01

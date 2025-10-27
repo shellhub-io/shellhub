@@ -1,0 +1,10 @@
+type: object
+properties:
+  State:
+    type: boolean
+    description: Connector's connetion state type.
+    example: connected
+  Message:
+    type: string
+    description: Connector's connetion status message.
+    example: ''

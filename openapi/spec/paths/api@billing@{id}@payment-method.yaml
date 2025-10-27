@@ -1,0 +1,147 @@
+parameters:
+  - name: id
+    description: Payment method ID
+    schema:
+      type: string
+    required: true
+    in: path
+post:
+  operationId: addPaymentMethod
+  summary: Add payment method
+  description: Add a new payment method.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success add a new payment method.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                description: Payment method's ID.
+                type: string
+    '400':
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '403':
+      description: |-
+        Forbidden.
+
+        - Invalid length
+        - Unathorized
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '404':
+      description: |-
+        Not found. 
+
+        - Billing not found
+        - Payment method not found
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '423':
+      description: Locked.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '500':
+      $ref: ../components/responses/500.yaml
+patch:
+  operationId: updatePaymentMethod
+  summary: Update payment method
+  description: Update the payment method.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to update the payment method.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                description: Payment method's ID.
+                type: string
+    '400':
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '403':
+      description: Forbidden.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '404':
+      description: Not found.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deattachPaymentMethod
+  summary: Deattach payment method
+  description: Deattach a payment method.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to deattach the payment method.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                description: Payment method's ID.
+                type: string
+    '403':
+      description: Forbidden.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '404':
+      description: Not found.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '500':
+      $ref: ../components/responses/500.yaml

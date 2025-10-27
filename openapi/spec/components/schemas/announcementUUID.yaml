@@ -1,0 +1,4 @@
+description: Announcement UUID.
+type: string
+format: uuid
+example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65

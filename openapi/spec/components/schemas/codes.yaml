@@ -1,0 +1,11 @@
+description: codes
+type: array
+items:
+  type: string
+example:
+  - HW2wlxV40B
+  - 2xsmMUHHHb
+  - DTQgVsaVac
+  - KXPBoXvuWD
+  - QQYTPfotBi
+  - XWiKBEPyb4

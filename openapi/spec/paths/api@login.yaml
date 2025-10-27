@@ -1,0 +1,82 @@
+post:
+  operationId: login
+  summary: Login
+  description: |
+    Authenticate a "local" user by returning the session's JWT token and user
+    data. Local users are those registered via the ShellHub form without
+    relying on external Identity Providers (IdPs).
+
+    Authentication may result in an account lockout after N consecutive
+    incorrect login attempts. The lockout applies specifically to a particular
+    source and user combination. Check for the presence of the
+    `X-Account-Lockout` header to determine the account lockout status. When
+    it's 0, there are no active lockouts.
+
+    Users with MFA enabled cannot authenticate via this route. In such cases,
+    the API will respond with a status `401` and an `X-MFA-Token` header with a
+    UUID. Authentication must be med to `/api/mfa/auth` with this token in
+    these instances.
+  tags:
+    - external
+    - users
+  security: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              $ref: ../components/schemas/userUsername.yaml
+            password:
+              $ref: ../components/schemas/userPassword.yaml
+          required:
+            - username
+            - password
+  responses:
+    '200':
+      description: Success to login.
+      headers:
+        X-Account-Lockout:
+          schema:
+            type: integer
+            description: Indicates the Unix timestamp in seconds of when the account lockout period ends.
+            example: 0
+        X-MFA-Token:
+          schema:
+            type: string
+            description: Indicates whether the user has MFA enabled, which blocks authentication through this route.
+            example: ''
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      description: Unauthorized
+      headers:
+        X-MFA-Token:
+          schema:
+            type: string
+            description: Indicates whether the user has MFA enabled, which blocks authentication through this route.
+            example: 'bf265bf8-0065-4f44-a3ac-55eb3134c6ec'
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '429':
+      description: Too Many Requests
+      headers:
+        X-Account-Lockout:
+          schema:
+            type: integer
+            description: Indicates the Unix timestamp in seconds of when the account lockout period ends.
+            example: 1711575401
+        X-MFA-Token:
+          schema:
+            type: string
+            description: Indicates whether the user has MFA enabled, which blocks authentication through this route.
+            example: ''
+    '500':
+      $ref: ../components/responses/500.yaml

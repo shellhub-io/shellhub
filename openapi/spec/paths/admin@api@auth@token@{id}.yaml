@@ -1,0 +1,41 @@
+get:
+  operationId: getUserTokenAdmin
+  summary: Get user token
+  description: Get user JWT token to login.
+  tags:
+    - admin
+    - users
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: id
+      description: User's ID
+      schema:
+        $ref: ../components/schemas/userID.yaml
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success to get the JWT token to login.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                $ref: ../components/schemas/jwt.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Error message
+                type: string
+    '500':
+      $ref: ../components/responses/500.yaml

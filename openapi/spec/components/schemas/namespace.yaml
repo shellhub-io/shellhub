@@ -1,0 +1,94 @@
+type: object
+properties:
+  name:
+    $ref: namespaceName.yaml
+  owner:
+    $ref: userID.yaml
+  tenant_id:
+    $ref: namespaceTenantID.yaml
+  members:
+    description: Namespace's members
+    type: array
+    items:
+      type: object
+      properties:
+        id:
+          $ref: userID.yaml
+        added_at:
+          type: string
+          format: date-time
+          description: The time when the member was invited.
+          example: 2024-09-03T23:17:50.51Z
+        expires_at:
+          type: string
+          format: date-time
+          description: |
+            **NOTE: ONLY USED IN CLOUD INSTANCE.**
+
+            The time when the invite expires. If the member is not in
+            `pending` status, this will be set to the zero UTC time.
+          example: 0001-01-01T00:00:00Z
+        role:
+          $ref: namespaceMemberRole.yaml
+          default: owner
+        type:
+          type: string
+          enum:
+            - personal
+            - team
+          default: personal
+          description: |
+            this field, on majority of cases is default 'personal', if the running
+            instance of shellhub is cloud, the default value is 'team'.
+
+            This field requires a valid input of either 'personal' or 'team'. the default
+            will match the current Shellhub instance type. When a "type" field value is
+            specified, it will override the default, but must be either 'personal' or 'team'.
+            Any other input will be rejected.
+
+          example: team
+        status:
+          type: string
+          enum:
+            - accepted
+            - pending
+          default: accepted
+        email:
+          type: string
+          description: Member's email.
+          example: john.doe@test.com
+  settings:
+    $ref: namespaceSettings.yaml
+  max_devices:
+    description: Namespace's max device numbers
+    type: integer
+    minimum: 3
+    default: 3
+  device_count:
+    description: Namespace's total devices
+    type: integer
+    minimum: 0
+  created_at:
+    description: Namespace's creation date
+    type: string
+    format: date-time
+    example: 2020-05-01T00:00:00.000Z
+  billing:
+    description: Namespace's billing
+    type: object
+    example: null
+  devices_pending_count:
+    description: Number of devices currently in pending status awaiting approval
+    type: integer
+    minimum: 0
+    example: 2
+  devices_accepted_count:
+    description: Number of devices that have been accepted and are active in the namespace
+    type: integer
+    minimum: 0
+    example: 23
+  devices_rejected_count:
+    description: Number of devices that have been explicitly rejected from the namespace
+    type: integer
+    minimum: 0
+    example: 0

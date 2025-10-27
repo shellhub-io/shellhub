@@ -1,0 +1,25 @@
+parameters:
+  - $ref: ../components/parameters/path/deviceUIDPath.yaml
+  - $ref: ../components/parameters/path/tunnelAddressPath.yaml
+delete:
+  operationId: deleteTunnel
+  summary: Delete a tunnel
+  description: Deletes a tunnel for a specific device and port.
+  deprecated: true
+  tags:
+    - devices
+    - tunnels
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Tunnel deleted successfully.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

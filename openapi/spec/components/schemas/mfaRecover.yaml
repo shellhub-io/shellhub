@@ -1,0 +1,13 @@
+type: object
+properties:
+  identifier:
+    description: The same as the login identifier; can be either the user's email or username.
+    type: string
+    example: john_doe
+  recovery_code:
+    description: One of the user's recovery codes.
+    type: string
+    example: '6DIGYYGM3JM7GXC4'
+required:
+  - identifier
+  - recovery_code

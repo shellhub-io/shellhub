@@ -1,0 +1,6 @@
+name: fingerprint
+description: Public key's fingerprint.
+schema:
+  $ref: ../../schemas/publickKeyFingerprint.yaml
+required: true
+in: path

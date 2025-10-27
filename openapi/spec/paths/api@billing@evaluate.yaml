@@ -1,0 +1,63 @@
+post:
+  operationId: evaluate
+  summary: Evaluate
+  description: evaluate the namespace capabilities.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to evaluate the namespace.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              can_accept:
+                description: Namespaces's acceptance status.
+                type: boolean
+                example: false
+              can_connect:
+                description: Namespace's connection status.
+                type: boolean
+                example: true
+    '400':
+      description: Bad Request.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '401':
+      description: Unauthorized.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '403':
+      description: Forbidden.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '404':
+      description: Not found.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '424':
+      description: Failed dependency.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '500':
+      $ref: ../components/responses/500.yaml

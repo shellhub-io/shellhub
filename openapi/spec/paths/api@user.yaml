@@ -1,0 +1,24 @@
+delete:
+  operationId: deleteUser
+  summary: Delete user
+  description: |
+    Deletes the authenticated user. The user will be removed from any
+    namespaces they are a member of. Users who are owners of namespaces cannot
+    be deleted. In such cases, the user must delete the namespace(s) first.
+
+    > NOTE: This route is available only for **cloud** instances. Enterprise
+    users must use the admin console, and community users must use the CLI.
+  tags:
+    - users
+    - cloud
+  security:
+    - jwt: []
+  responses:
+    '204':
+      description: Success to delete the user
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

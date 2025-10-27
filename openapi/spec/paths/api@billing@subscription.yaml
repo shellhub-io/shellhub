@@ -1,0 +1,109 @@
+post:
+  operationId: createSubscription
+  summary: Create subscription
+  description: Create a subscription.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to create a new subscription.
+    '400':
+      $ref: ../components/schemas/billingError.yaml
+    '402':
+      $ref: ../components/schemas/billingError.yaml
+    '403':
+      $ref: ../components/schemas/billingError.yaml
+    '404':
+      $ref: ../components/schemas/billingError.yaml
+    '409':
+      $ref: ../components/schemas/billingError.yaml
+    '424':
+      $ref: ../components/schemas/billingError.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: getSubscription
+  summary: Get subscription
+  description: Get the subscription.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to get a subscription.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                description: Subscription's ID.
+                type: string
+                example: 'sub_H9J5n2eZvKYlo2C7X1QX2Qg'
+              active:
+                description: Subscription's active.
+                type: boolean
+                example: true
+              status:
+                description: Subscription's status.
+                type: string
+                enum:
+                  [
+                    'inactive',
+                    'active',
+                    'trialing',
+                    'incomplete',
+                    'incomplete_expired',
+                    'past_due',
+                    'canceled',
+                    'unpaid',
+                    'paused',
+                    'to_cancel_at_end_of_period',
+                  ]
+                example: 'active'
+              end_at:
+                description: Subscription's current period end.
+                type: integer
+                example: 31536000
+              invoices:
+                description: Subscription's invoices.
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      description: Invoice's ID.
+                      type: string
+                      example: 'in_H9J5n2eZvKYlo2C7X1QX2Qg'
+                    status:
+                      description: Invoice's status.
+                      type: string
+                      enum: ['draft', 'open', 'paid', 'uncollectible', 'voided']
+                      example: 'open'
+                    currency:
+                      description: Invoice's currency.
+                      type: string
+                      enum: ['usd', 'brl']
+                      example: 'usd'
+                    amount:
+                      description: Invoice's amount in cents.
+                      type: integer
+                      example: 0
+
+    '402':
+      $ref: ../components/schemas/billingError.yaml
+    '403':
+      $ref: ../components/schemas/billingError.yaml
+    '404':
+      $ref: ../components/schemas/billingError.yaml
+    '424':
+      $ref: ../components/schemas/billingError.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

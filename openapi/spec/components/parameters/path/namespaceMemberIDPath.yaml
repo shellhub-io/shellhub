@@ -1,0 +1,6 @@
+name: uid
+description: Member's ID
+schema:
+  type: string
+required: true
+in: path

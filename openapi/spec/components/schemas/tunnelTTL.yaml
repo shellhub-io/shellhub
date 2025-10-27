@@ -1,0 +1,5 @@
+description: Tunnel's time to live in seconds
+type: integer
+minimum: -1
+maximum: 9223372036
+example: 60

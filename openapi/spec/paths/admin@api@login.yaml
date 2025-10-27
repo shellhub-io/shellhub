@@ -1,0 +1,49 @@
+post:
+  operationId: loginAdmin
+  summary: Login on Admin
+  description: Login on Admin
+  tags:
+    - admin
+  security: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              description: Admin's username
+              type: string
+              minLength: 3
+              maxLength: 20
+            password:
+              description: Admin's password
+              type: string
+              minLength: 3
+              maxLength: 30
+          required:
+            - username
+            - password
+  responses:
+    '200':
+      description: Success to Login on Admin
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                description: JWT token
+                type: string
+                example: |
+                  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlIiwibmFtZSI6ImV4YW1wbGUiLCJpYXQiOjE1MTYyMzkwMjJ9.zqCt70KspnNnitZlv89hDbFZ5iGMMRUn0wFEmmlY-to
+              user:
+                description: username
+                type: string
+                minLength: 3
+                maxLength: 20
+                example: admin
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

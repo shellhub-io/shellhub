@@ -1,0 +1,61 @@
+patch:
+  summary: Update an API key
+  operationId: apiKeyUpdate
+  tags:
+    - api-keys
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - name: key
+      schema:
+        type: string
+        description: The API key name.
+        example: dev
+      required: true
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/apiKeyUpdate.yaml
+  responses:
+    '200':
+      description: Success
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  summary: Delete an API key
+  operationId: apiKeyDelete
+  tags:
+    - api-keys
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - name: key
+      schema:
+        type: string
+        description: The API key name.
+        example: dev
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

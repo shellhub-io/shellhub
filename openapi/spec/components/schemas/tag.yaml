@@ -1,0 +1,10 @@
+description: |
+  A tag represents a label or category that can be attached to devices,
+  firewall rules and public keys for organization and filtering purposes.
+type: object
+properties:
+  name:
+    type: string
+    description: The display name of the tag
+    minLength: 3
+    maxLength: 255

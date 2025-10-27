@@ -1,0 +1,7 @@
+description: |
+  Public key's regex username.
+
+
+  The `username` field define which user, in the device, may be access through this public key.
+type: string
+example: '.*'

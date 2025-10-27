@@ -1,0 +1,28 @@
+parameters:
+  - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+get:
+  operationId: getNamespaceSupport
+  summary: Get a namespace support identifier.
+  description: Get a namespace support identifier.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get a namespace support identifier.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/support.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      $ref: ../components/responses/402.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

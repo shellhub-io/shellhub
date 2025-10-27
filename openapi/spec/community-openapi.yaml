@@ -1,0 +1,133 @@
+openapi: 3.0.3
+info:
+  title: ShellHub OpenAPI
+  description: |
+    > THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.
+
+    This is the OpenAPI specification for ShellHub community version. It documents the parameters and bodies for
+    performs HTTP requests to the ShellHub server endpoints related to users, namespaces, members, devices, tags, SSH,
+    sessions, etc.
+
+    These endpoints require a JSON Web Token (JWT) as its security scheme, that means you need to send, to almost each
+    request, an HTTP header called `Authorization` with the `bearer` token. To obtains this token, uses the `/api/login`
+    route, fulfilling its request body to return that token with some essential information about the user whom logged 
+    in.
+  contact:
+    name: ShellHub contact address.
+    email: contato@ossystems.com.br
+  license:
+    name: Apache License 2.0
+    url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
+  version: 0.20.0
+servers:
+  - url: /
+    description: ShellHub server.
+components:
+  securitySchemes:
+    $ref: ./components/schemas/security.yaml
+tags:
+  - name: internal
+    description: Requests executed internally by ShellHub server.
+  - name: external
+    description: Requests executed by the ShellHub user.
+  - name: users
+    description: Routes related to user resource.
+  - name: devices
+    description: Routes related to device resource.
+  - name: containers
+    description: Routes related to containers resource.
+  - name: ssh
+    description: Routes related to SSH resource.
+  - name: api-keys
+    description: |
+      An API key is a unique identifier used to access protected endpoints. It
+      has a defined lifespan, is associated with a namespace, and cannot be
+      used to authenticate user routes. Typically, it replaces login-based
+      authentication when automating processes.
+
+      To utilize an API key, it must be included in the `X-API-KEY` header. API
+      keys are preferred over JWT tokens and will be used even if one is
+      provided.
+
+      Except for `GET` endpoints, API key-related routes cannot be
+      authenticated with an API key.
+  - name: system
+    description: Routes related to running instance.
+
+paths:
+  /info:
+    $ref: paths/api@info.yaml
+  /api/login:
+    $ref: paths/api@login.yaml
+  /api/auth/user:
+    $ref: paths/api@auth@user.yaml
+  /api/auth/ssh:
+    $ref: paths/api@auth@ssh.yaml
+  /api/auth/token/{tenant}:
+    $ref: paths/api@auth@token@{tenant}.yaml
+  /api/token/{tenant}:
+    $ref: paths/api@token@{tenant}.yaml
+  /api/devices/{uid}/accept:
+    $ref: paths/api@devices@{uid}@accept.yaml
+  /api/users:
+    $ref: paths/api@users.yaml
+  /api/users/{id}/data:
+    $ref: paths/api@users@{id}@data.yaml
+  /api/users/{id}/password:
+    $ref: paths/api@users@{id}@password.yaml
+  /api/users/security/{tenant}:
+    $ref: paths/api@users@security@{tenant}.yaml
+  /api/users/security:
+    $ref: paths/api@users@security.yaml
+  /api/devices:
+    $ref: paths/api@devices.yaml
+  /api/devices/{uid}:
+    $ref: paths/api@devices@{uid}.yaml
+  /api/devices/resolve:
+    $ref: paths/api@devices@resolve.yaml
+  /api/devices/{uid}/{status}:
+    $ref: paths/api@devices@{uid}@{status}.yaml
+  /internal/devices/{uid}/offline:
+    $ref: paths/api@devices@{uid}@offline.yaml
+  /api/sessions:
+    $ref: paths/api@sessions.yaml
+  /api/sessions/{uid}:
+    $ref: paths/api@sessions@{uid}.yaml
+  /api/sshkeys/public-keys:
+    $ref: paths/api@sshkeys@public-keys.yaml
+  /api/sshkeys/public-keys/{fingerprint}:
+    $ref: paths/api@sshkeys@public-keys@{fingerprint}.yaml
+  /api/stats:
+    $ref: paths/api@stats.yaml
+  /api/namespaces:
+    $ref: paths/api@namespaces.yaml
+  /api/namespaces/{tenant}:
+    $ref: paths/api@namespaces@{tenant}.yaml
+  /api/namespaces/{tenant}/members:
+    $ref: paths/api@namespaces@{tenant}@members.yaml
+  /api/namespaces/{tenant}/members/{uid}:
+    $ref: paths/api@namespaces@{tenant}@members@{uid}.yaml
+  /api/namespaces/api-key:
+    $ref: paths/api@namespaces@api-key.yaml
+  /api/namespaces/api-key/{key}:
+    $ref: paths/api@namespaces@api-key@{key}.yaml
+  /api/namespaces/{tenant}/tags:
+    $ref: paths/api@namespaces@{tenant}@tags.yaml
+  /api/namespaces/{tenant}/tags/{name}:
+    $ref: paths/api@namespaces@{tenant}@tags@{name}.yaml
+  /api/namespaces/{tenant}/devices/{uid}/tags/{name}:
+    $ref: paths/api@namespaces@{tenant}@devices@{uid}@tags@{name}.yaml
+  /api/namespaces/{tenant}/containers/{uid}/tags/{name}:
+    $ref: paths/api@namespaces@{tenant}@containers@{uid}@tags@{name}.yaml
+  /api/announcements:
+    $ref: paths/api@announcements.yaml
+  /api/announcements/{uuid}:
+    $ref: paths/api@announcements@{uuid}.yaml
+  /api/containers:
+    $ref: paths/api@containers.yaml
+  /api/containers/{uid}:
+    $ref: paths/api@containers@{uid}.yaml
+  /api/containers/{uid}/{status}:
+    $ref: paths/api@containers@{uid}@{status}.yaml
+  /api/setup:
+    $ref: paths/api@setup.yaml

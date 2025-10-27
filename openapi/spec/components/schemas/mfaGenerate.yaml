@@ -1,0 +1,22 @@
+type: object
+properties:
+  link:
+    description: The link to establish a connection with the OTP server.
+    type: string
+    example: 'otpauth://totp/shellhub-enterprise:662ba312616a7bdb5a2b608d?issuer=shellhub-enterprise&secret=TWBIH44WRHW44B773HJSG3RNZXH4KWSD'
+  secret:
+    description: A secret key to authenticate with the OTP server.
+    type: string
+    example: TWBIH44WRHW44B773HJSG3RNZXH4KWSD
+  recovery_codes:
+    description: A list of recovery codes to use when the user loses access to their MFA app.
+    type: array
+    items:
+      type: string
+      example:
+        - MLNSPOB2L2ZRO2D5
+        - 35QBUON4JAA4V6KP
+        - UYH34OY5RNDRRSUS
+        - IBWGL3IN42LTS3PP
+        - 6DIGYYGM3JM7GXC4
+        - 6UIHAIN3CYUEFY5X

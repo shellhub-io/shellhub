@@ -1,0 +1,30 @@
+get:
+  operationId: getDevicesMostUsed
+  summary: Get devices most used
+  description: Get the most used devices.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  responses:
+    '200':
+      description: Success to get the most used devices.
+      headers:
+        X-Total-Count:
+          description: Devices' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/device.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

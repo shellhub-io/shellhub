@@ -1,0 +1,60 @@
+get:
+  operationId: getDevices
+  summary: Get devices
+  description: Get a list of devices.
+  tags:
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/filterQuery.yaml
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: status
+      description: Device's status
+      schema:
+        allOf:
+          - $ref: ../components/schemas/deviceStatus.yaml
+        default: accepted
+      required: false
+      in: query
+    - name: sort_by
+      description: Device's property to sort of
+      schema:
+        type: string
+        example: name
+        default: last_seen
+      required: false
+      in: query
+    - name: order_by
+      schema:
+        description: Device's list order
+        type: string
+        enum:
+          - asc
+          - desc
+        example: asc
+        default: desc
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success to get a list of devices.
+      headers:
+        X-Total-Count:
+          description: Devices' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/device.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

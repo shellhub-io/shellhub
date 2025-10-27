@@ -1,0 +1,36 @@
+post:
+  operationId: requestResetMFA
+  summary: Request Reset MFA
+  description: |
+    Sends an email to both the user's main and recovery addresses. Each email
+    contains a unique code, which remains valid for at most 1 day. The user
+    must provide both codes to reset their MFA.
+  tags:
+    - cloud
+    - mfa
+    - users
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            identifier:
+              description: The same as the login identifier; can be either the user's email or username.
+              type: string
+              example: john_doe
+          required:
+            - identifier
+  responses:
+    '200':
+      description: Success to send the email.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

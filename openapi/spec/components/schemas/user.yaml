@@ -1,0 +1,17 @@
+type: object
+properties:
+  name:
+    $ref: userName.yaml
+  email:
+    $ref: userEmail.yaml
+  username:
+    $ref: userUsername.yaml
+  password:
+    $ref: userPassword.yaml
+  email_marketing:
+    $ref: userMarketing.yaml
+required:
+  - name
+  - email
+  - username
+  - password

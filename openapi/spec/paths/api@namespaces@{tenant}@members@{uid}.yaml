@@ -1,0 +1,56 @@
+delete:
+  operationId: removeNamespaceMember
+  summary: Remove a member from a namespace
+  description: Remove a member from a namespace.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - $ref: ../components/parameters/path/namespaceMemberIDPath.yaml
+  responses:
+    '200':
+      description: Success to delete a member from namespace.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+patch:
+  operationId: updateNamespaceMember
+  summary: Update a member from a namespace
+  description: Update a member role from a namespace.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - $ref: ../components/parameters/path/namespaceMemberIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            role:
+              $ref: ../components/schemas/namespaceMemberRole.yaml
+  responses:
+    '200':
+      description: Success to update member role from a namespace.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

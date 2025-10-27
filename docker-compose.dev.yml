@@ -74,3 +74,20 @@ services:
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./.golangci.yaml:/.golangci.yaml
+  openapi:
+    image: openapi
+    build:
+      context: .
+      dockerfile: openapi/Dockerfile
+      target: development
+      args:
+        - GOPROXY=${SHELLHUB_GOPROXY:-}
+    volumes:
+      - ./openapi:/go/src/github.com/shellhub-io/shellhub/openapi
+      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - ./.golangci.yaml:/.golangci.yaml
+    environment:
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+    networks:
+      - shellhub

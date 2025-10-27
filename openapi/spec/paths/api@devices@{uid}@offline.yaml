@@ -1,0 +1,25 @@
+post:
+  operationId: updateDeviceStatusOffline
+  summary: Update device status to offline
+  description: Update device's status to offiline.
+  tags:
+    - internal
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/deviceUIDPath.yaml
+  responses:
+    '200':
+      description: Success to update device status to offline.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

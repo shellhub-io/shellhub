@@ -1,0 +1,9 @@
+description: Device's status
+type: string
+enum:
+  - accepted
+  - rejected
+  - pending
+  - removed
+  - unused
+example: accepted

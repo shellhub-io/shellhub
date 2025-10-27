@@ -1,0 +1,13 @@
+type: object
+properties:
+  main_email_code:
+    description: The code sent to the main email address.
+    type: string
+    example: JR36Q
+  recovery_email_code:
+    description: The code sent to the recovery email address.
+    type: string
+    example: AB2D8
+required:
+  - main_email_code
+  - recovery_email_code

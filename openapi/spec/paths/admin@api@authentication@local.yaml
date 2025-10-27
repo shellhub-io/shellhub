@@ -1,0 +1,30 @@
+put:
+  operationId: configureLocalAuthentication
+  summary: Configure Local Authentication
+  description: Configure local authentication settings for the ShellHub instance.
+  tags:
+    - admin
+    - authentication-settings
+  security:
+    - jwt: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [enable]
+          properties:
+            enable:
+              type: boolean
+              description: |
+                Specifies whether to activate (`true`) or deactivate (`false`) local authentication.
+  responses:
+    '200':
+      $ref: '../components/responses/200.yaml'
+    '400':
+      $ref: '../components/responses/400.yaml'
+    '401':
+      $ref: '../components/responses/401.yaml'
+    '500':
+      $ref: '../components/responses/500.yaml'

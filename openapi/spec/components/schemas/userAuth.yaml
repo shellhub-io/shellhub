@@ -1,0 +1,30 @@
+type: object
+properties:
+  token:
+    $ref: jwt.yaml
+  id:
+    $ref: userID.yaml
+  origin:
+    $ref: userOrigin.yaml
+  user:
+    $ref: userUsername.yaml
+  name:
+    $ref: userName.yaml
+  email:
+    $ref: userEmail.yaml
+  recovery_email:
+    description: |
+      The recovery email serves as the user's final recourse to regain access
+      to their account.
+    type: string
+    format: email
+  tenant:
+    $ref: namespaceTenantID.yaml
+  role:
+    $ref: namespaceMemberRole.yaml
+  mfa:
+    type: boolean
+    description: Indicates whether the user has MFA enabled.
+    example: false
+  max_namespaces:
+    $ref: maxNamespaces.yaml

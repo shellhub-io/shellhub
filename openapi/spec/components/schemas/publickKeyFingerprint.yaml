@@ -1,0 +1,4 @@
+description: Public key's fingerprint.
+type: string
+pattern: ^([0-9a-f]{2}:){15}[0-9a-f]{2}$
+example: 48:6e:fc:94:01:01:74:57:eb:57:49:91:15:e4:9c:7a

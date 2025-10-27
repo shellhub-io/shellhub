@@ -1,0 +1,12 @@
+name: sort_by
+in: query
+description: Field to sort by
+required: false
+schema:
+  type: string
+  enum:
+    - created_at
+    - updated_at
+    - address
+    - uid
+  default: created_at

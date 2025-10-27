@@ -1,0 +1,51 @@
+#!/usr/bin/env sh
+
+usage() {
+    cat <<EOF
+Run generation of TypeScript client from OpenAPI spec.
+Usage:
+    $0 <output-directory>
+Options:
+    --help  Display this help message
+EOF
+    exit 1
+}
+
+generate() {
+    output_dir=$1
+
+    if [ "$output_dir" == "-h" ] || [ "$output_dir" == "--help" ]; then
+        usage
+        return 0
+    fi
+
+    if [ -z "$output_dir" ]; then
+        echo "Error: No output directory specified."
+        usage
+        return 1
+    fi
+
+    echo "Generating TypeScript client to $output_dir..."
+
+    ./bin/docker-compose \
+        run \
+        --rm \
+        -v "$output_dir":/tmp/client \
+        --entrypoint "openapi-generator-cli generate --skip-validate-spec -i ./static/openapi.json -g typescript-axios -o /tmp/client --inline-schema-options RESOLVE_INLINE_ENUMS=true" \
+        openapi
+
+    if [ $? -ne 0 ]; then
+        echo "Error: OpenAPI generation failed."
+        echo "Check if the OpenAPI container is running and the spec is valid."
+
+        return 1
+    fi
+
+    echo "Generation completed."
+}
+
+main() {
+    generate $1
+}
+
+main $@

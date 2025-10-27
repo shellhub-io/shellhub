@@ -1,0 +1,64 @@
+post:
+  operationId: report
+  summary: Report
+  description: Report an action.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  parameters:
+    - name: action
+      schema:
+        type: string
+        enum: ['device_accept', 'namespace_delete']
+      required: true
+      in: query
+  responses:
+    '200':
+      description: Success to report a action.
+    '400':
+      description: Bad Request.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '401':
+      description: Unauthorized.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '402':
+      description: Payment Required.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '403':
+      description: Forbidden.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '404':
+      description: Not found.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '424':
+      description: Failed dependency.
+      content:
+        application/json:
+          schema:
+            description: Error's message.
+            type: string
+    '500':
+      $ref: ../components/responses/500.yaml

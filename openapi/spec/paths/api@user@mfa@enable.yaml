@@ -1,0 +1,32 @@
+put:
+  operationId: enableMFA
+  summary: Enable MFA
+  description: |
+    Enable MFA for a user. The secret and recovery codes must be created by the
+    generateMFA endpoint. Users with MFA already enabled cannot override their
+    MFA credentials; in these cases, a user must disable MFA before proceeding.
+    The recovery e-mail must be a valid value in order to enable the MFA.
+  tags:
+    - cloud
+    - mfa
+    - users
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/mfaEnable.yaml
+  responses:
+    '200':
+      description: Success to enable a MFA.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

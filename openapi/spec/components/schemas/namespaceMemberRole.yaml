@@ -1,0 +1,7 @@
+description: Namespace's member role
+type: string
+enum:
+  - administrator
+  - operator
+  - observer
+  - owner

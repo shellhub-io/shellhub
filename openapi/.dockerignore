@@ -1,0 +1,6 @@
+.vscode/
+.idea/
+.vim/
+node_modules/
+bundled/
+.env
