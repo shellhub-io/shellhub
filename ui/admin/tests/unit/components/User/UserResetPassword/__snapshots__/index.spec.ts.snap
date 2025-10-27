@@ -74,7 +74,7 @@ exports[`User Reset Password > renders correctly 2`] = `
               <div class="v-window v-theme--light">
                 <div class="v-window__container">
                   <transition-stub name="" appear="false" persisted="false" css="true">
-                    <div class="v-window-item v-window-item--active" style="">
+                    <div class="v-window-item v-window-item--active">
                       <p> This action will enable local authentication to this user and generate a new password. Do you want to enable? </p>
                     </div>
                   </transition-stub>

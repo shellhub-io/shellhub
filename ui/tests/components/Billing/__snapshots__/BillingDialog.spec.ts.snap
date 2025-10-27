@@ -1128,7 +1128,7 @@ exports[`Billing Dialog > Renders the component (Welcome window) 1`] = `
               <div class="v-window v-theme--light">
                 <div class="v-window__container">
                   <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
-                    <div class="v-window-item v-window-item--active" style="">
+                    <div class="v-window-item v-window-item--active">
                       <div class="v-card-title mb-1 pt-0" align="center" data-test="title">ShellHub Cloud Premium Subscription</div>
                       <div data-test="text" class="text-justify">
                         <p> Our hosted service helps you manage your devices, with costs based on your device count. It's perfect for easy, secure, and remote control, whatever your fleet size. </p>

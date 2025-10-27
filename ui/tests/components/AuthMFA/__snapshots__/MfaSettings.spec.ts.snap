@@ -59,7 +59,7 @@ exports[`MfaSettings > Renders the component (Recovery email window) 1`] = `
             <div data-v-491349b1="" class="v-window v-theme--light pa-6">
               <div class="v-window__container">
                 <transition-stub data-v-491349b1="" name="" appear="false" persisted="false" css="true">
-                  <div class="v-window-item v-window-item--active" style="">
+                  <div class="v-window-item v-window-item--active">
                     <p data-v-491349b1="" class="text-justify mb-4 px-1"> In case you lose access to all your MFA credentials, we'll need a recovery email to verify your identity and reset your account access. To ensure you can recover your account if you lose access to your MFA credentials, please associate a recovery email. </p>
                     <div data-v-491349b1="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mx-auto" style="width: 400px;" data-test="recovery-email-text">
                       <!---->
@@ -81,12 +81,12 @@ exports[`MfaSettings > Renders the component (Recovery email window) 1`] = `
                             </div>
                           </div>
                           <!---->
-                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="true">
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
                               <!---->Recovery Email
-                            </label><label class="v-label v-field-label" for="input-v-8">
+                            </label><label class="v-label v-field-label" for="input-v-3">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" id="input-v-8" required="" class="v-field__input" value="">
+                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -233,12 +233,12 @@ exports[`MfaSettings > Renders the components (Recovery codes window) 1`] = `
                             </div>
                           </div>
                           <!---->
-                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="true">
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
                               <!---->Recovery Email
-                            </label><label class="v-label v-field-label" for="input-v-8">
+                            </label><label class="v-label v-field-label" for="input-v-3">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" id="input-v-8" required="" class="v-field__input" value="">
+                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -446,12 +446,12 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                             </div>
                           </div>
                           <!---->
-                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="true">
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
                               <!---->Recovery Email
-                            </label><label class="v-label v-field-label" for="input-v-8">
+                            </label><label class="v-label v-field-label" for="input-v-3">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" id="input-v-8" required="" class="v-field__input" value="">
+                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
