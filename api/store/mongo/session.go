@@ -10,8 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readconcern"
-	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 func (s *Store) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
@@ -52,9 +50,46 @@ func (s *Store) SessionList(ctx context.Context, opts ...store.QueryOption) ([]m
 			},
 		},
 		{
+			"$lookup": bson.M{
+				"from": "sessions_events",
+				"let":  bson.M{"sessionUID": "$uid"},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{
+							"$expr": bson.M{"$eq": []string{"$session", "$$sessionUID"}},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":   nil,
+							"types": bson.M{"$addToSet": "$type"},
+							"seats": bson.M{"$addToSet": "$seat"},
+						},
+					},
+				},
+				"as": "eventData",
+			},
+		},
+		{
 			"$addFields": bson.M{
 				"active": bson.M{"$anyElementTrue": []any{"$active"}},
+				"events": bson.M{
+					"$cond": bson.M{
+						"if": bson.M{"$gt": []any{bson.M{"$size": "$eventData"}, 0}},
+						"then": bson.M{
+							"types": bson.M{"$arrayElemAt": []any{"$eventData.types", 0}},
+							"seats": bson.M{"$arrayElemAt": []any{"$eventData.seats", 0}},
+						},
+						"else": bson.M{
+							"types": []string{},
+							"seats": []int{},
+						},
+					},
+				},
 			},
+		},
+		{
+			"$unset": "eventData",
 		},
 	}...)
 
@@ -98,9 +133,46 @@ func (s *Store) SessionGet(ctx context.Context, uid models.UID) (*models.Session
 			},
 		},
 		{
+			"$lookup": bson.M{
+				"from": "sessions_events",
+				"let":  bson.M{"sessionUID": "$uid"},
+				"pipeline": []bson.M{
+					{
+						"$match": bson.M{
+							"$expr": bson.M{"$eq": []string{"$session", "$$sessionUID"}},
+						},
+					},
+					{
+						"$group": bson.M{
+							"_id":   nil,
+							"types": bson.M{"$addToSet": "$type"},
+							"seats": bson.M{"$addToSet": "$seat"},
+						},
+					},
+				},
+				"as": "eventData",
+			},
+		},
+		{
 			"$addFields": bson.M{
 				"active": bson.M{"$anyElementTrue": []any{"$active"}},
+				"events": bson.M{
+					"$cond": bson.M{
+						"if": bson.M{"$gt": []any{bson.M{"$size": "$eventData"}, 0}},
+						"then": bson.M{
+							"types": bson.M{"$arrayElemAt": []any{"$eventData.types", 0}},
+							"seats": bson.M{"$arrayElemAt": []any{"$eventData.seats", 0}},
+						},
+						"else": bson.M{
+							"types": []string{},
+							"seats": []int{},
+						},
+					},
+				},
 			},
+		},
+		{
+			"$unset": "eventData",
 		},
 	}
 
@@ -305,37 +377,8 @@ func (s *Store) SessionCreateActive(ctx context.Context, uid models.UID, session
 //
 // It pushes the event into events type array, and the event type into a separated set. The set is used to improve the
 // performance of indexing when looking for sessions.
-func (s *Store) SessionEvent(ctx context.Context, uid models.UID, event *models.SessionEvent) error {
-	session, err := s.db.Client().StartSession()
-	if err != nil {
-		return FromMongoError(err)
-	}
-
-	defer session.EndSession(ctx)
-
-	txnOpts := options.Transaction().
-		SetReadConcern(readconcern.Snapshot()).
-		SetWriteConcern(writeconcern.Majority())
-
-	if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (any, error) {
-		if _, err := s.db.Collection("sessions").UpdateOne(ctx,
-			bson.M{"uid": uid},
-			bson.M{
-				"$addToSet": bson.M{
-					"events.types": event.Type,
-					"events.seats": event.Seat,
-				},
-			},
-		); err != nil {
-			return nil, err
-		}
-
-		if _, err := s.db.Collection("sessions_events").InsertOne(ctx, event); err != nil {
-			return nil, err
-		}
-
-		return nil, nil
-	}, txnOpts); err != nil {
+func (s *Store) SessionEvent(ctx context.Context, _ models.UID, event *models.SessionEvent) error {
+	if _, err := s.db.Collection("sessions_events").InsertOne(ctx, event); err != nil {
 		return FromMongoError(err)
 	}
 
