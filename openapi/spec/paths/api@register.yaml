@@ -1,0 +1,70 @@
+post:
+  operationId: registerUser
+  summary: Register a new user
+  tags:
+    - cloud
+    - users
+  security: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: John Doe
+              description: The full name of the user.
+            email:
+              type: string
+              example: john.doe@test.com
+              description: |
+                The user's email address, which must be unique. This email will
+                be used for login and for receiving important notifications,
+                such as password reset emails. If `email_marketing` is set to
+                `true`, promotional emails will also be sent to this address.
+            username:
+              type: string
+              example: john_doe
+              description: |
+                The username, which must be unique across the system. Users can
+                log in using either their username or email.
+            password:
+              type: string
+              format: ^([a-zA-Z0-9_-]){1,64}$
+              example: mS@aZ%n267M@3&k!H46^#78s!@$F4^@7
+              description: |
+                The password for the user account. Must follow the regex.
+            email_marketing:
+              type: boolean
+              example: true
+              description: |
+                Indicates whether the user opts to receive marketing and
+                promotional emails.
+            sig:
+              type: string
+              example: ''
+              description: |
+                **For standard registration processes, this field should be
+                ignored.** 
+
+                A unique signature included in an invitation email. This is
+                used to automatically confirm the user's registration without
+                requiring an additional confirmation email.
+          required:
+            - name
+            - email
+            - username
+            - password
+            - email_marketing
+  responses:
+    '200':
+      description: User registered successfully
+    '400':
+      $ref: ../components/responses/invalidFields.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '409':
+      $ref: ../components/responses/conflictFields.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -1,0 +1,18 @@
+description: Error
+content:
+  application/json:
+    schema:
+      oneOf:
+        - type: object
+          properties:
+            message:
+              description: Error's message.
+              type: string
+        - type: object
+          properties:
+            message:
+              description: Error's message.
+              type: string
+            code:
+              description: Error's code.
+              type: string

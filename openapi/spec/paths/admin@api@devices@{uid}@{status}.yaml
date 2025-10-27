@@ -1,0 +1,26 @@
+patch:
+  operationId: updateDeviceStatusAdmin
+  summary: Update status Admin
+  description: Update device's status.
+  tags:
+    - admin
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/deviceUIDPath.yaml
+    - $ref: ../components/parameters/path/deviceStatusPath.yaml
+  responses:
+    '200':
+      description: Success to update device status.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '402':
+      description: Payment required.
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

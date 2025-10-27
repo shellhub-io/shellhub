@@ -1,0 +1,79 @@
+parameters:
+  - name: id
+    schema:
+      description: Firewall rule's ID
+      type: string
+    in: path
+    required: true
+get:
+  operationId: getFirewallRule
+  summary: Get firewall rule
+  description: Get a firewall rule.
+  tags:
+    - cloud
+    - rules
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get firewall rule.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/firewallRulesResponse.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: updateFirewallRule
+  summary: Update firewall rule
+  description: Update a firewall rule.
+  tags:
+    - cloud
+    - rules
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/firewallRulesRequest.yaml
+  responses:
+    '200':
+      description: Success to update firewall rule.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/firewallRulesResponse.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteFirewallRule
+  summary: Delete firewall rule
+  description: Delete a firewall rule.
+  tags:
+    - cloud
+    - rules
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to delete a firewall rule.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

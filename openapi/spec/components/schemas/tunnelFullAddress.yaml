@@ -1,0 +1,4 @@
+description: Tunnel's full address
+type: string
+pattern: "^[a-f0-9]{32}\\.[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+example: '9a8df9321368d567cfac8679cec7848c.example.com'

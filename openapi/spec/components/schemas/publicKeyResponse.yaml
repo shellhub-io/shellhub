@@ -1,0 +1,21 @@
+type: object
+properties:
+  data:
+    $ref: publicKeyData.yaml
+  fingerprint:
+    $ref: publickKeyFingerprint.yaml
+  created_at:
+    description: Public key's creation date.
+    type: string
+    format: date-time
+    example: 2020-05-01T00:00:00.000Z
+  tenant_id:
+    $ref: namespaceTenantID.yaml
+  name:
+    description: Public key's name.
+    type: string
+    example: example
+  filter:
+    $ref: publicKeyFilter.yaml
+  username:
+    $ref: publicKeyUsername.yaml

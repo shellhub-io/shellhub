@@ -1,0 +1,76 @@
+get:
+  operationId: getTags
+  summary: Retrieve all tags associated with a namespace
+  tags:
+    - tags
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - $ref: ../components/parameters/query/filterQuery.yaml
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to get tag list.
+      headers:
+        X-Total-Count:
+          description: Tags' total number.
+          schema:
+            type: string
+            minimum: 0
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/tag.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createTag
+  summary: Create a new tag in the namespace
+  description: Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+  tags:
+    - tags
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              minLength: 3
+              maxLength: 255
+              example: dev
+  responses:
+    '201':
+      description: Tag successfully created
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

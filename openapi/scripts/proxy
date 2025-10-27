@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+
+usage() {
+    cat <<EOF
+Proxy the OpenAPI instances.
+
+Usage:
+    $0 <instance>
+
+Instances:
+  community   Proxy the community instance
+  cloud       Proxy the cloud instance
+  enterprise  Mock the enterprise instance
+
+Options:
+    --help  Display this help message
+
+EOF
+    exit 1
+}
+
+proxy() {
+  local instance=$1
+  shift 
+  local args="$@"
+
+  ./bin/docker-compose exec openapi redocly bundle spec/$instance-openapi.yaml -o /tmp/openapi/proxy/openapi.json
+  ./bin/docker-compose exec openapi prism proxy -h 0.0.0.0 -p 4020 --errors $args /tmp/openapi/proxy/openapi.json http://gateway:80
+}
+
+main() {
+  instances="community cloud enterprise"
+  instance=$1
+  shift  
+  args="$@"
+
+  if [ "$1" = "--help" ]; then  # Corrigido: == para =
+    usage
+    exit 0
+  fi
+
+  for i in $instances; do
+    if [ "$i" = "$instance" ]; then  # Corrigido: == para =
+      echo "proxy and watching for changes in $instance instance"
+
+      proxy $instance $args
+      exit $?
+    fi
+  done
+
+  usage
+  exit 0
+}
+
+main "$@"

@@ -1,0 +1,33 @@
+put:
+  operationId: disableMFA
+  summary: Disable MFA
+  description: |
+    Disable MFA for a user. To disable MFA, the user must provide either
+    a recovery code or the current MFA code. If a recovery code is used, it will be invalidated for future use.
+
+    The recovery code used to regain access to the account can be used within a 10-minute window on this
+    endpoint.
+  tags:
+    - cloud
+    - mfa
+    - users
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/mfaDisable.yaml
+  responses:
+    '200':
+      description: Success to disable a MFA status.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

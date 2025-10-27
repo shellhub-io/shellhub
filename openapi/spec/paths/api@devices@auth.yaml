@@ -1,0 +1,81 @@
+post:
+  operationId: authDevice
+  summary: Auth device
+  description: |
+    Authenticate a ShellHub agent into the ShellHub server.
+
+    Every 30 seconds, this route is hit by ShellHub agent to inform device availability.
+  tags:
+    - internal
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: X-Real-IP
+      schema:
+        description: |
+          Device's IP address.
+
+
+          `X-Real-IP` header is used to set a geolocation position to device when
+          `geoip` feature is enable.
+        type: string
+        pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
+        example: 127.0.0.1
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            info:
+              $ref: ../components/schemas/deviceInfo.yaml
+            sessions:
+              type: array
+              items:
+                # NOTICE: what is session?
+                type: string
+            hostname:
+              type: string
+              pattern: ^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]))*$
+              example: device-hostname
+            identity:
+              $ref: ../components/schemas/deviceIdentity.yaml
+            public_key:
+              description: Device's public key in PEM format.
+              type: string
+              example: "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA0vH2Bob3mn+uWVaHlOoZD8ai01W6VnRTnXlnHVF7Ny1Vb7pl1Hc4\nD8bsBhb1vt7aZOYHbCyDR2r5lsrWXCELE8pY8vzfFDA+jNrLbBCJ66E1BcmTqfXC\nJcLospWD2lIAwU2O7IPxwZujuVkHrF8nYuEFsKeG60QTWNS++RTqydqe2KmFMEdW\nCQmYPm/ykN871fSR9+PzoRJMYWidY6Szn+X2ardGmS/Ldhl/PEu9h7xjcQXANWz6\nyV/RVReGVkLcK6TxlfuxgdpbsWAx+cS52P7xWrshNefHqjpdlm3KNbo6vqfTpU8L\nd/FFISXXaa1Md5GyAHF+jzuRzQ5z5aKBGwIDAQAB\n-----END RSA PUBLIC KEY-----"
+            tenant_id:
+              $ref: ../components/schemas/namespaceTenantID.yaml
+          required:
+            - info
+            - session
+            - hostname
+            - public_key
+            - tenant_id
+  responses:
+    '200':
+      description: Success to auth device.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              uid:
+                $ref: ../components/schemas/deviceUID.yaml
+              token:
+                $ref: ../components/schemas/deviceToken.yaml
+              name:
+                $ref: ../components/schemas/deviceName.yaml
+              namespace:
+                $ref: ../components/schemas/deviceNamespaceName.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

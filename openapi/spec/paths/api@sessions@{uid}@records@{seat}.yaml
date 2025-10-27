@@ -1,0 +1,104 @@
+parameters:
+  - $ref: ../components/parameters/path/sessionUIDPath.yaml
+  - name: seat
+    schema:
+      description: Record's seat
+      type: integer
+    in: path
+    required: true
+post:
+  operationId: recordSession
+  summary: Record session
+  description: Record data about session session.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - sessions
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            uid:
+              description: Session's UID.
+              type: string
+            seat:
+              description: Session's Seat
+              type: integer
+            message:
+              description: Session's data.
+              type: string
+            width:
+              description: Session's pty width.
+              type: integer
+            height:
+              description: Session's pty height.
+              type: integer
+          required:
+            - uid
+            - seat
+            - message
+            - width
+            - height
+  responses:
+    '200':
+      description: Success to record session.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '422':
+      description: Unprocessable Entity
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Error's message.
+                type: string
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: getSessionRecord
+  summary: Get session record
+  description: Get a session record based on its seat.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - sessions
+  responses:
+    '200':
+      description: Success to play a session's record.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/recordedSessionResponse.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteSessionRecord
+  summary: Delete session record
+  description: Deletes a session record based on its seat.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - sessions
+  responses:
+    '200':
+      description: Success to delete a session's record.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

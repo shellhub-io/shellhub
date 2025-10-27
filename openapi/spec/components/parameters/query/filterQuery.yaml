@@ -1,0 +1,75 @@
+name: filter
+description: |
+  Filter field receives a JSON object enconded as base64 string for limit a search.
+
+  The JSON enconded must follow these interafaces:
+  ```typescript
+  interface ParamProperty {
+    name: string;
+    operator: "contains" | "eq" | "bool" | "gt" | "lt";
+    value: string;
+  }
+
+  interface ParamOperator {
+    name: "and" | "or";
+  }
+
+  interface Filter {
+    type: "property" | "operator";
+    param: ParamOperator | ParamProperty;
+  }
+
+  interface FilterList {
+    Filters: Array<Filter>;
+  }
+
+  ```
+
+  ## Examples
+
+  This is a example to filter and get only the resource what property "confirmed" is "true"
+  ```json
+  [
+    {
+    "type": "property",
+    "params": {
+        "name": "confirmed",
+        "operator": "bool",
+        "value": "true"
+        }
+    }
+  ]
+  ```
+
+  This one, filter resource by the property "id" inside "info" structure when it is equal to "manjaro" and online property is set to "true"
+  ```json
+  [
+    {
+      "type": "property",
+      "params": {
+        "name": "info.id",
+        "operator": "eq",
+        "value": "manjaro"
+      }
+    },
+    {
+      "type": "property",
+      "params": {
+        "name": "online",
+        "operator": "bool",
+        "value": "true"
+      }
+    },
+    {
+      "type": "operator",
+      "params": {
+        "name": "and"
+      }
+    }
+  ]
+  ```
+schema:
+  type: string
+  format: byte
+required: false
+in: query

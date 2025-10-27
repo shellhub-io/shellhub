@@ -1,0 +1,40 @@
+get:
+  operationId: getValidateAccount
+  summary: Validate activation link
+  description: Validate the activation link for user.
+  tags:
+    - cloud
+
+    - users
+  security: []
+  parameters:
+    - name: email
+      description: User's email.
+      schema:
+        type: string
+        format: email
+        example: example@example.com
+      required: true
+      in: query
+    - name: token
+      description: |-
+        User's validation token.
+
+
+        It is a token received from the email used to validate the user.
+      schema:
+        type: string
+        example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+      required: true
+      in: query
+  responses:
+    '200':
+      description: Success to validate user.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

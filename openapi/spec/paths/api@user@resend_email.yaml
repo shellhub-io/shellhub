@@ -1,0 +1,30 @@
+post:
+  operationId: resendEmail
+  summary: Resend confirmation
+  description: Resend confirmation to user.
+  tags:
+    - cloud
+    - users
+  security: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            username:
+              description: User's username.
+              type: string
+              minLength: 3
+              maxLength: 20
+          required:
+            - username
+          example:
+            username: example
+  responses:
+    '200':
+      description: Success to resend confirmation to user.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

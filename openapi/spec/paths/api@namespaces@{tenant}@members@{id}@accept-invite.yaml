@@ -1,0 +1,46 @@
+get:
+  operationId: lookupUserStatus
+  summary: Lookup User's Status
+  description: |
+    Clients may need to check a user's status before deciding whether to redirect
+    to the accept-invite workflow or to the signup process. It is intended for use
+    exclusively by clients in the `invite-member` pipeline.
+  tags:
+    - namespaces
+    - members
+  parameters:
+    - name: tenant
+      in: path
+      required: true
+      description: The tenant ID of the namespace.
+      schema:
+        type: string
+    - name: id
+      in: path
+      required: true
+      description: The user's ID.
+      schema:
+        type: string
+    - name: sig
+      in: query
+      required: true
+      description: The signature included in the email. This is used instead of the user's token to authenticate the request.
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: invited
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

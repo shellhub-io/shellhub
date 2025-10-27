@@ -1,0 +1,6 @@
+name: address
+description: Tunnel's address
+schema:
+  $ref: ../../schemas/tunnelAddress.yaml
+required: true
+in: path

@@ -1,0 +1,30 @@
+type: object
+properties:
+  id:
+    $ref: userID.yaml
+  namespaces:
+    description: User's integer of owned namespaces.
+    type: integer
+    minimum: 0
+  confirmed:
+    description: User's confirmation.
+    type: boolean
+  created_at:
+    description: User's creating date.
+    type: string
+    format: date-format
+  last_login:
+    description: User's last login date.
+    type: string
+    format: date-format
+  name:
+    $ref: userName.yaml
+  email:
+    $ref: userEmail.yaml
+  username:
+    $ref: userUsername.yaml
+  password:
+    description: User's hashed password.
+    type: string
+    minLength: 64
+    maxLength: 64

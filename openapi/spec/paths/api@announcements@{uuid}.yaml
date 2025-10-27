@@ -1,0 +1,23 @@
+get:
+  operationId: getAnnouncement
+  summary: Get a announcement
+  description: Get a announcement.
+  tags:
+    - announcements
+  servers:
+    - url: https://cloud.shellhub.io
+      description: ShellHub Cloud API server
+  security: []
+  parameters:
+    - $ref: ../components/parameters/path/announcementUUID.yaml
+  responses:
+    '200':
+      description: Success to get a announcement.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/announcement.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

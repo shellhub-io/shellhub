@@ -1,0 +1,4 @@
+description: User's email confirmed.
+type: boolean
+example: true
+default: false

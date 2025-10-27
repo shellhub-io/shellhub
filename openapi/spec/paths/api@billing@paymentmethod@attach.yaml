@@ -1,0 +1,37 @@
+post:
+  operationId: attachPaymentMethod
+  summary: Attach payment method
+  description: Attachs a payment method to a customer.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+    - billing
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              description: Payment method's ID.
+              type: string
+              example: 'pm_H9J5n2eZvKYlo2C7X1QX2Qg'
+          required:
+            - id
+  responses:
+    '200':
+      description: Success to attach the payment method to a customer.
+    '400':
+      $ref: ../components/schemas/billingError.yaml
+    '401':
+      $ref: ../components/schemas/billingError.yaml
+    '403':
+      $ref: ../components/schemas/billingError.yaml
+    '404':
+      $ref: ../components/schemas/billingError.yaml
+    '424':
+      $ref: ../components/schemas/billingError.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

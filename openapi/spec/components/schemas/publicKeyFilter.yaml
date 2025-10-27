@@ -1,0 +1,29 @@
+description: |
+  Public key's filter rule.
+
+
+  The `filter`` rule defines how if the public key is valid to a device.
+
+  - When `hostname` object is set, the public key will be used in a device what matches with hostname.
+  - When `tags` object is set, it matches the device what contains at least one of that tags.
+oneOf:
+  - type: object
+    properties:
+      hostname:
+        description: Public key's regex hostname.
+        type: string
+        example: .*
+    required:
+      - hostname
+  - type: object
+    properties:
+      tags:
+        description: Public key's tags.
+        type: array
+        items:
+          $ref: tag.yaml
+        minItems: 1
+        maxItems: 3
+        uniqueItems: true
+    required:
+      - tags

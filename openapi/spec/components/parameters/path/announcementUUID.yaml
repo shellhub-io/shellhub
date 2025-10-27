@@ -1,0 +1,5 @@
+name: uuid
+schema:
+  $ref: ../../schemas/announcementUUID.yaml
+required: true
+in: path

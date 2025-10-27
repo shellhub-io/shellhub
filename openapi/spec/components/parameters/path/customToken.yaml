@@ -1,0 +1,6 @@
+name: authCustomToken
+description: custom token
+schema:
+  $ref: ../../schemas/customToken.yaml
+required: true
+in: path

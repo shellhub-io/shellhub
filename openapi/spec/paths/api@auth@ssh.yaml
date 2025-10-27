@@ -1,0 +1,42 @@
+post:
+  operationId: authSSHPublicKey
+  summary: Auth SSH public key
+  description: Authenticate a SSH public key to ShellHub server.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - internal
+    - ssh
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            fingerprint:
+              $ref: ../components/schemas/publickKeyFingerprint.yaml
+            data:
+              description: Public key's data in PEM format.
+              type: string
+              format: byte
+          required:
+            - fingerprint
+            - data
+  responses:
+    '200':
+      description: Success to auth a SSH public key.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              signature:
+                description: Device's signature.
+                type: string
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

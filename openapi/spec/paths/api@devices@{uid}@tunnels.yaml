@@ -1,0 +1,76 @@
+parameters:
+  - $ref: ../components/parameters/path/deviceUIDPath.yaml
+get:
+  operationId: listTunnels
+  summary: List tunnels
+  description: List the tunnels per devices.
+  deprecated: true
+  tags:
+    - devices
+    - tunnels
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get the tunnels.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/tunnel.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+post:
+  operationId: createTunnel
+  summary: Create a tunnel
+  description: Creates a new tunnel for a device.
+  deprecated: true
+  tags:
+    - devices
+    - tunnels
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            host:
+              $ref: ../components/schemas/tunnelHost.yaml
+            port:
+              $ref: ../components/schemas/tunnelPort.yaml
+            ttl:
+              $ref: ../components/schemas/tunnelTTL.yaml
+          required:
+            - host
+            - port
+            - ttl
+  responses:
+    '200':
+      description: Tunnel created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/tunnel.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

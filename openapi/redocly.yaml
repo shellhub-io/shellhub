@@ -1,0 +1,33 @@
+# This is the Redocly configuration file, and it is used by Redocly CLI and other Redocly apps to control their behavior
+# — from the strictness of the lint command, to how Redocly renders your docs.
+#
+#   - Workflows uses it in the API registry to manage your APIs and control advanced features like region and link resolution.
+#   - Workflows and on-premise tools use it to apply your features and theme when building API docs.
+#   - Redocly's VS Code extension uses it for linting criteria, to apply custom settings for live documentation previews,
+#   and to identify the path API definition root files.
+#
+#   https://redocly.com/docs/cli/configuration/
+organization: shellhub
+
+# This extends the recommended configuration values.
+# https://redocly.com/docs/cli/rules/#recommended-config
+extends:
+  - recommended
+
+rules:
+  no-ambiguous-paths: off
+
+apis:
+  community@v1:
+    root: ./spec/community-openapi.yaml
+  cloud@v1:
+    root: ./spec/cloud-openapi.yaml
+  enterprise@v1:
+    root: ./spec/enterprise-openapi.yaml
+
+features.openapi:
+  schemaExpansionLevel: 2
+  generateCodeSamples:
+    languages:
+      - lang: curl
+      - lang: Go

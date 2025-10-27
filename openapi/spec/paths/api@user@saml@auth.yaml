@@ -1,0 +1,31 @@
+get:
+  operationId: getSamlAuthUrl
+  summary: Get SAML authentication URL
+  description: |
+    Retrieves the Identity Provider (IdP) URL for authentication within ShellHub.
+    After successful authentication, users are automatically redirected to the ShellHub dashboard.
+
+    To access this endpoint, SAML authentication must be enabled and the
+    instance must be running the Enterprise edition. If not, the endpoint
+    returns a `501 Not Implemented` status code.
+  tags:
+    - users
+  security: []
+  responses:
+    '200':
+      description: Successfully retrieved the SAML authentication URL
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+                description: The complete URL to the Identity Provider's login page
+                example: 'https://login.microsoftonline.com/tenant-id/saml2?SAMLRequest=encoded-request'
+    '500':
+      $ref: '../components/responses/500.yaml'
+    '501':
+      description: SAML authentication is not enabled or instance is not running Enterprise edition

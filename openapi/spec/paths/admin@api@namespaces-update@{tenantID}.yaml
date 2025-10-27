@@ -1,0 +1,30 @@
+parameters:
+  - name: tenantID
+    description: Namespace's tenant ID
+    schema:
+      $ref: ../components/schemas/namespaceTenantID.yaml
+    required: true
+    in: path
+put:
+  operationId: editNamespaceAdmin
+  summary: Edit namespace admin
+  description: Edit a namespace.
+  tags:
+    - admin
+
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/namespace.yaml
+  responses:
+    '200':
+      description: Success to edit a namespace.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

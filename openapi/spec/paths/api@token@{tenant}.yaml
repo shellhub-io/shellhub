@@ -1,0 +1,26 @@
+get:
+  operationId: getToken
+  summary: Get token
+  description: Get a token from its tenant.
+  tags:
+    - users
+  security:
+    - jwt: []
+  parameters:
+    - name: tenant
+      description: Tenant
+      schema:
+        type: string
+      required: true
+      in: path
+  responses:
+    '200':
+      description: Success get token
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

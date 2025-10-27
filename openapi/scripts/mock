@@ -1,0 +1,55 @@
+#!/usr/bin/env sh
+
+usage() {
+    cat <<EOF
+Mock the OpenAPI instances.
+
+Usage:
+    $0 <instance>
+
+Instances:
+  community   Mock the community instance
+  cloud       Mock the cloud instance
+  enterprise  Mock the enterprise instance
+
+Options:
+    --help  Display this help message
+
+EOF
+    exit 1
+}
+
+mock() {
+  local instance=$1
+  shift
+  local args="$@"
+
+  ./bin/docker-compose exec openapi redocly bundle spec/$instance-openapi.yaml -o /tmp/openapi/mock/openapi.json
+  ./bin/docker-compose exec openapi prism mock -h 0.0.0.0 -p 4010 $args /tmp/openapi/mock/openapi.json
+}
+
+main() {
+  instances="community cloud enterprise"
+  instance=$1
+  shift
+  args="$@"
+
+  if [ "$1" = "--help" ]; then
+    usage
+    exit 0
+  fi
+
+  for i in $instances; do
+    if [ "$i" = "$instance" ]; then
+      echo "mocking and watching for changes in $instance instance"
+
+      mock $instance $args
+      exit $?
+    fi
+  done
+
+  usage
+  exit 0
+}
+
+main "$@"

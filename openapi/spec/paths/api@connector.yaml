@@ -1,0 +1,74 @@
+post:
+  operationId: connectorCreate
+  summary: Connector's create
+  description: Create a new connector.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/connectorData.yaml
+          required:
+            - enable
+            - secure
+            - address
+            - tls
+  responses:
+    '200':
+      description: Create a Connector and connected successfully
+    '201':
+      description: Create a Connector successfully, but failed to connect
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: connectorList
+  summary: Connector's list
+  description: List connectors.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: enable
+      description: Enable status.
+      schema:
+        type: boolean
+      in: query
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: List Connectors for a namespace successfully
+      headers:
+        X-Total-Count:
+          description: Connectors' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/connector.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

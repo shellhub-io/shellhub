@@ -1,0 +1,4 @@
+description: Web endpoint's agent host address
+type: string
+format: ip
+example: 127.0.0.1

@@ -1,0 +1,57 @@
+get:
+  operationId: exportUsers
+  summary: export users
+  description: Export users to csv file.
+  tags:
+    - admin
+    - users
+  security:
+    - jwt: []
+  parameters:
+    - name: filter
+      description: |
+        User's filter
+
+
+        Filter field receives a base64 enconded JSON object for limit a search.
+        The JSON object should have a property called `type`, it will filter by a `property` called `namespaces` where the value should be `eq` to `0`.
+
+        An example of JSON object will looks like this:
+
+        ```json
+          [
+            {
+              "type":"property",
+              "params":
+                {
+                  "name":"namespace",
+                  "operator":"eq",
+                  "value":"0"
+                }
+            }
+          ]
+        ```
+
+        So, the output encoded string will result on:
+        `W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lc3BhY2VzIiwib3BlcmF0b3IiOiJndCIsInZhbHVlIjoiMCJ9fV0=`
+      schema:
+        type: string
+        pattern: ^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
+        example: W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJuYW1lc3BhY2VzIiwib3BlcmF0b3IiOiJndCIsInZhbHVlIjoiMCJ9fV0=
+      in: query
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to export users.
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: 'binary'
+    '204':
+      description: No content.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

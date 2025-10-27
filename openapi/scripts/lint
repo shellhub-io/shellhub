@@ -1,0 +1,49 @@
+#!/usr/bin/env sh
+
+usage() {
+    cat <<EOF
+Lint the OpenAPI instances.
+
+Usage:
+    $0 <instance>
+
+Instances:
+  community   Lint the community instance
+  cloud       Lint the cloud instance
+  enterprise  Lint the enterprise instance
+
+Options:
+    --help  Display this help message
+
+EOF
+    exit 1
+}
+
+main() {
+  instances="community cloud enterprise"
+  instance=$1
+
+  if [ "$1" == "--help" ]; then
+    usage
+    exit 0
+  fi
+
+  for i in $instances; do
+    if [ "$i" == "$instance" ]; then
+      echo "Linting $instance instance"
+
+      ./bin/docker-compose exec openapi redocly lint ${@:2} spec/$instance-openapi.yaml --skip-rule no-ambiguous-paths operation-4xx-response
+      if [ $? -ne 0 ]; then
+        echo "error: $instance OpenAPI instance failed linting."
+        exit 1
+      fi
+
+      exit 0
+    fi
+  done
+
+  usage
+  exit 0
+}
+
+main $@

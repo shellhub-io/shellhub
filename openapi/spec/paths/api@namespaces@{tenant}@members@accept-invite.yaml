@@ -1,0 +1,39 @@
+patch:
+  operationId: acceptInvite
+  summary: Accept a membership invite
+  description: |
+    This route is intended to be accessed directly through the link sent in the invitation email.
+    The user must be logged into the account that was invited.
+  tags:
+    - namespaces
+    - users
+    - members
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            sig:
+              description: The unique key included in the email link.
+              type: string
+              example: b25e93bc-22ac-4f02-901a-52af9f358a5d
+          required:
+            - sig
+  responses:
+    '200':
+      description: Invitation successfully accepted
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

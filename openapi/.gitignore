@@ -1,0 +1,6 @@
+.vscode/
+.idea/
+.vim/
+bundled/
+.env
+openapi.json

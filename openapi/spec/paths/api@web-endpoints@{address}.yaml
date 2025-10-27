@@ -1,0 +1,22 @@
+parameters:
+  - $ref: ../components/parameters/path/tunnelAddressPath.yaml
+delete:
+  operationId: deleteWebEndpoint
+  summary: Delete a web-endpoint
+  description: Deletes a web-endpoint by address.
+  tags:
+    - web-endpoints
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Web-endpoint deleted successfully.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

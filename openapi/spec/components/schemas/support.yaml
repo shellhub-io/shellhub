@@ -1,0 +1,7 @@
+type: object
+properties:
+  identifier:
+    description: Support identifier.
+    type: string
+    example: '1a1e64452ebba63e39983aa05ea176a31072241af66da72559a539af91d00f52'
+    pattern: '^[a-fA-F0-9]{64}$'

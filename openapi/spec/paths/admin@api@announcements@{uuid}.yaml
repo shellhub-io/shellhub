@@ -1,0 +1,79 @@
+get:
+  operationId: getAnnouncementAdmin
+  summary: Get a announcement
+  description: Get a announcement.
+  tags:
+    - cloud
+    - admin
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/announcementUUID.yaml
+  responses:
+    '200':
+      description: Success to get a announcement.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/announcement.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: updateAnnouncement
+  summary: Update an announcement
+  description: Update an announcement.
+  tags:
+    - cloud
+    - admin
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/announcementUUID.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            title:
+              $ref: ../components/schemas/announcementTitle.yaml
+            content:
+              $ref: ../components/schemas/announcementContent.yaml
+  responses:
+    '200':
+      description: Success to update an announcement.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/announcement.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteAnnouncement
+  summary: Delete an announcement
+  description: Delete an announcement.
+  tags:
+    - cloud
+    - admin
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/announcementUUID.yaml
+  responses:
+    '200':
+      description: Success to delete an announcement.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/announcement.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

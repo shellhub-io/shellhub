@@ -1,0 +1,84 @@
+parameters:
+  - $ref: ../components/parameters/path/deviceUIDPath.yaml
+get:
+  operationId: getDeviceAdmin
+  summary: Get device admin
+  description: Get a device.
+  tags:
+    - admin
+
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get a device.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/device.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteDeviceAdmin
+  summary: Delete device admin
+  description: Delete a device.
+  tags:
+    - admin
+
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to delete a device.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+patch:
+  operationId: updateDeviceNameAdmin
+  summary: Update device name Admin
+  description: Update device's name.
+  tags:
+    - admin
+
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              description: Device's new name.
+              type: string
+              example: example
+          required:
+            - name
+  responses:
+    '200':
+      description: Success to update device's name.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

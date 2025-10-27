@@ -1,0 +1,12 @@
+jwt:
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  description: JSON Web Token for authentication.
+api-key:
+  type: apiKey
+  in: header
+  name: X-API-KEY
+  description: |
+    An API key is an alternative to the standard JWT authentication.
+    Authentication with this method is namespace-related and is not tied to any user.

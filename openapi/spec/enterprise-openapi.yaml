@@ -1,0 +1,113 @@
+openapi: 3.0.3
+info:
+  title: ShellHub Enterprise OpenAPI
+  description: |
+    > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.
+
+    ShellHub Enterprise OpenAPI specification.
+
+    It documents all routes provided by ShellHub Enterprise.
+  contact:
+    email: contato@ossystems.com.br
+  license:
+    name: Apache License 2.0
+    url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
+  version: 0.20.0
+servers:
+  - url: /
+    description: ShellHub server as a Enterprise instance.
+tags:
+  - name: cloud
+    description: Routes provided by ShellHub Cloud API.
+  - name: authentication-settings
+    description: |
+      Defines the routes to configure and retrieve the ShellHub authentication
+      settings. Currently, ShellHub supports both local authentication (email 
+      and password) and SAML-based authentication (Single Sign-On).
+  - name: admin
+    description: Routes provide by ShellHub Admin API.
+  - name: users
+    description: Routes related to user resource.
+  - name: stats
+    description: Routes related to stats resource.
+  - name: license
+    description: Routes related to license resource.
+  - name: sessions
+    description: Routes related to session resource.
+  - name: users
+    description: Routes related to users resource.
+  - name: rules
+    description: Routes related to firewall rules resource.
+  - name: api-keys
+    description: |
+      An API key is a unique identifier used to access protected endpoints. It
+      has a defined lifespan, is associated with a namespace, and cannot be
+      used to authenticate user routes. Typically, it replaces login-based
+      authentication when automating processes.
+
+      To utilize an API key, it must be included in the `X-API-KEY` header. API
+      keys are preferred over JWT tokens and will be used even if one is
+      provided.
+
+      Except for `GET` endpoints, API key-related routes cannot be
+      authenticated with an API key.
+  - name: tunnels
+    description: Routes related to tunnels resource.
+  - name: web-endpoints
+    description: Routes related to web-endpoints resource.
+
+components:
+  securitySchemes:
+    $ref: ./components/schemas/security.yaml
+paths:
+  $ref: cloud-openapi.yaml#/paths
+  /admin/api/authentication:
+    $ref: paths/admin@api@authentication.yaml
+  /admin/api/authentication/local:
+    $ref: paths/admin@api@authentication@local.yaml
+  /admin/api/authentication/saml:
+    $ref: paths/admin@api@authentication@saml.yaml
+  /admin/api/devices:
+    $ref: paths/admin@api@devices.yaml
+  /admin/api/devices/{uid}:
+    $ref: paths/admin@api@devices@{uid}.yaml
+  /admin/api/devices/{uid}/{status}:
+    $ref: paths/admin@api@devices@{uid}@{status}.yaml
+  /admin/api/firewall/rules:
+    $ref: paths/admin@api@firewall@rules.yaml
+  /admin/api/firewall/rules/{id}:
+    $ref: paths/admin@api@firewall@rules@{id}.yaml
+  /admin/api/sessions:
+    $ref: paths/admin@api@sessions.yaml
+  /admin/api/sessions/{uid}:
+    $ref: paths/admin@api@sessions@{uid}.yaml
+  /admin/api/sshkeys/public-keys:
+    $ref: paths/admin@api@sshkeys@public-keys.yaml
+  /admin/api/namespaces:
+    $ref: paths/admin@api@namespaces.yaml
+  /admin/api/namespaces/{tenant}:
+    $ref: paths/admin@api@namespaces@{tenant}.yaml
+  /admin/api/namespaces-update/{tenantID}:
+    $ref: paths/admin@api@namespaces-update@{tenantID}.yaml
+  /admin/api/login:
+    $ref: paths/admin@api@login.yaml
+  /admin/api/users:
+    $ref: paths/admin@api@users.yaml
+  /admin/api/users/{id}:
+    $ref: paths/admin@api@users@{id}.yaml
+  /admin/api/users/{id}/password/reset:
+    $ref: paths/admin@api@users@{id}@password@reset.yaml
+  /admin/api/stats:
+    $ref: paths/admin@api@stats.yaml
+  /admin/api/license:
+    $ref: paths/admin@api@license.yaml
+  /admin/api/auth/token/{id}:
+    $ref: paths/admin@api@auth@token@{id}.yaml
+  /admin/api/export/namespaces:
+    $ref: paths/admin@api@export@namespaces.yaml
+  /admin/api/export/users:
+    $ref: paths/admin@api@export@users.yaml
+  /admin/api/announcements:
+    $ref: paths/admin@api@announcements.yaml
+  /admin/api/announcements/{uuid}:
+    $ref: paths/admin@api@announcements@{uuid}.yaml

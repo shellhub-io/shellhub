@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: ShellHub Cloud OpenAPI
+  description: |
+    > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.
+
+    ShellHub Cloud OpenAPI specification.
+
+    It documents all routes provided by ShellHub Cloud.
+  contact:
+    email: contato@ossystems.com.br
+  license:
+    name: Apache License 2.0
+    url: https://github.com/shellhub-io/shellhub/blob/master/LICENSE.md
+  version: 0.20.0
+servers:
+  - url: /
+    description: ShellHub server as a Cloud instance.
+components:
+  securitySchemes:
+    $ref: ./components/schemas/security.yaml
+tags:
+  - name: cloud
+    description: Routes provided by ShellHub Cloud API.
+  - name: sessions
+    description: Routes related to session resource.
+  - name: users
+    description: Routes related to users resource.
+  - name: rules
+    description: Routes related to firewall rules resource
+  - name: announcements
+    description: Routes related to announcements resource
+  - name: mfa
+    description: Routes related to MFA
+  - name: api-keys
+    description: |
+      An API key is a unique identifier used to access protected endpoints. It
+      has a defined lifespan, is associated with a namespace, and cannot be
+      used to authenticate user routes. Typically, it replaces login-based
+      authentication when automating processes.
+
+      To utilize an API key, it must be included in the `X-API-KEY` header. API
+      keys are preferred over JWT tokens and will be used even if one is
+      provided.
+
+      Except for `GET` endpoints, API key-related routes cannot be
+      authenticated with an API key.
+  - name: tunnels
+    description: Routes related to tunnels resource.
+  - name: web-endpoints
+    description: Routes related to web-endpoints resource.
+
+paths:
+  $ref: community-openapi.yaml#/paths
+  /api/sessions/{uid}/close:
+    $ref: paths/api@sessions@{uid}@close.yaml
+  /api/sessions/{uid}/records/{seat}:
+    $ref: paths/api@sessions@{uid}@records@{seat}.yaml
+  /api/firewall/rules:
+    $ref: paths/api@firewall@rules.yaml
+  /api/firewall/rules/{id}:
+    $ref: paths/api@firewall@rules@{id}.yaml
+  /api/register:
+    $ref: paths/api@register.yaml
+  /api/user/resend_email:
+    $ref: paths/api@user@resend_email.yaml
+  /api/user/{uid}/update_password:
+    $ref: paths/api@user@{uid}@update_password.yaml
+  /api/user/validation_account:
+    $ref: paths/api@user@validation_account.yaml
+  /api/user/recover_password:
+    $ref: paths/api@user@recover_password.yaml
+  /api/billing/customer:
+    $ref: paths/api@billing@customer.yaml
+  /api/billing/subscription:
+    $ref: paths/api@billing@subscription.yaml
+  /api/billing/paymentmethod/attach:
+    $ref: paths/api@billing@paymentmethod@attach.yaml
+  /api/billing/paymentmethod/detach:
+    $ref: paths/api@billing@paymentmethod@detach.yaml
+  /api/billing/paymentmethod/default:
+    $ref: paths/api@billing@paymentmethod@default.yaml
+  /api/billing/device-choice:
+    $ref: paths/api@billing@device-choice.yaml
+  /api/billing/devices-most-used:
+    $ref: paths/api@billing@devices-most-used.yaml
+  /api/billing/report:
+    $ref: paths/api@billing@report.yaml
+  /api/billing/evaluate:
+    $ref: paths/api@billing@evaluate.yaml
+  /api/user/saml/auth:
+    $ref: paths/api@user@saml@auth.yaml
+  /api/user/mfa/auth:
+    $ref: paths/api@user@mfa@auth.yaml
+  /api/user/mfa/recover:
+    $ref: paths/api@user@mfa@recovery.yaml
+  /api/user/mfa/reset:
+    $ref: paths/api@user@mfa@reset.yaml
+  /api/user/mfa/generate:
+    $ref: paths/api@user@mfa@generate.yaml
+  /api/user/mfa/enable:
+    $ref: paths/api@user@mfa@enable.yaml
+  /api/user/mfa/disable:
+    $ref: paths/api@user@mfa@disable.yaml
+  /api/user/mfa/reset/{user-id}:
+    $ref: paths/api@user@mfa@reset@{user-id}.yaml
+  /api/user:
+    $ref: paths/api@user.yaml
+  /api/connector:
+    $ref: paths/api@connector.yaml
+  /api/connector/{uid}:
+    $ref: paths/api@connector@{uid}.yaml
+  /api/connector/{uid}/info:
+    $ref: paths/api@connector@{uid}@info.yaml
+  /api/namespaces/{tenant}/members/accept-invite:
+    $ref: paths/api@namespaces@{tenant}@members@accept-invite.yaml
+  /api/namespaces/{tenant}/members/invites:
+    $ref: paths/api@namespaces@{tenant}@members@invites.yaml
+  /api/namespaces/{tenant}/members/{id}/accept-invite:
+    $ref: paths/api@namespaces@{tenant}@members@{id}@accept-invite.yaml
+  /api/namespaces/{tenant}/support:
+    $ref: paths/api@namespaces@{tenant}@support.yaml
+  /api/web-endpoints:
+    $ref: paths/api@web-endpoints.yaml
+  /api/web-endpoints/{address}:
+    $ref: paths/api@web-endpoints@{address}.yaml
+  /api/devices/{uid}/tunnels:
+    $ref: paths/api@devices@{uid}@tunnels.yaml
+  /api/devices/{uid}/tunnels/{address}:
+    $ref: paths/api@devices@{uid}@tunnels@{address}.yaml

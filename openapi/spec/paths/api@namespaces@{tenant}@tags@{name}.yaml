@@ -1,0 +1,86 @@
+patch:
+  operationId: updateTag
+  summary: Update a tag
+  tags:
+    - tags
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - name: name
+      description: Current tag name
+      schema:
+        type: string
+        pattern: ^[a-zA-Z0-9-_]+$
+        example: prod
+      required: true
+      in: path
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              minLength: 3
+              maxLength: 255
+              pattern: ^[a-zA-Z0-9-_]+$
+              example: dev
+              description: New tag name
+  responses:
+    '200':
+      description: Tag successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/tag.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+
+delete:
+  operationId: deleteTag
+  summary: Delete a tag
+  description: Removes a tag and all its associations
+  tags:
+    - tags
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - name: name
+      description: Tag name to delete
+      schema:
+        type: string
+        pattern: ^[a-zA-Z0-9-_]+$
+        example: prod
+      required: true
+      in: path
+  responses:
+    '204':
+      description: Tag successfully deleted
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

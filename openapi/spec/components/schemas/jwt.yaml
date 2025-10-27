@@ -1,0 +1,4 @@
+description: JWT Token
+type: string
+pattern: ^[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*$
+example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlIiwibmFtZSI6ImV4YW1wbGUiLCJpYXQiOjE1MTYyMzkwMjJ9.zqCt70KspnNnitZlv89hDbFZ5iGMMRUn0wFEmmlY-to

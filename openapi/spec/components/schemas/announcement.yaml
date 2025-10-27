@@ -1,0 +1,12 @@
+description: Announcement.
+type: object
+properties:
+  uuid:
+    $ref: announcementUUID.yaml
+  title:
+    $ref: announcementTitle.yaml
+  content:
+    $ref: announcementContent.yaml
+  date:
+    type: string
+    format: date-time

@@ -1,0 +1,27 @@
+root = "../"
+tmp_dir = "tmp"
+
+[build]
+pre_cmd = []
+cmd = "go build -gcflags=\"all=-N -l\" -o ./tmp/main ."
+post_cmd = []
+bin = ""
+full_bin = ""
+args_bin = []
+delay = 500
+exclude_dir = ["assets", "tmp", "vendor", "testdata"]
+exclude_file = []
+exclude_regex = ["_test.go"]
+exclude_unchanged = false
+follow_symlink = false
+include_dir = []
+include_ext = ["html", "go", "yml", "yaml"]
+include_file = []
+kill_delay = "0s"
+log = "build-errors.log"
+poll = false
+poll_interval = 0
+rerun = false
+rerun_delay = 500
+send_interrupt = false
+stop_on_error = false

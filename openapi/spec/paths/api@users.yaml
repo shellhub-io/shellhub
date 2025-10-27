@@ -1,0 +1,45 @@
+patch:
+  operationId: updateUser
+  summary: Update user
+  tags:
+    - users
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            username:
+              type: string
+            email:
+              type: string
+            recovery_email:
+              description: |
+                A recovery email serves as the user's final recourse to regain
+                access to their account. It cannot be the same as the user's
+                primary email. Once defined, it cannot be updated to an empty
+                value.
+              type: string
+            password:
+              type: string
+            current_password:
+              description: |
+                It's required when updating the user's password.
+              type: string
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/invalidFields.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/conflictFields.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

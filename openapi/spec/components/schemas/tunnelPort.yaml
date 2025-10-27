@@ -1,0 +1,6 @@
+description: Tunnel's agent port number
+type: integer
+format: int32
+minimum: 1
+maximum: 65535
+example: 8080

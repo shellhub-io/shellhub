@@ -1,0 +1,22 @@
+type: object
+properties:
+  name:
+    $ref: userName.yaml
+  email:
+    $ref: userEmail.yaml
+  username:
+    $ref: userUsername.yaml
+  password:
+    description: User's password.
+    type: string
+    maxLength: 30
+    example: example
+  confirmed:
+    $ref: userConfirmedEmail.yaml
+  max_namespaces:
+    $ref: maxNamespaces.yaml
+required:
+  - name
+  - email
+  - username
+  - password

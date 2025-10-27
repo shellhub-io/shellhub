@@ -1,0 +1,14 @@
+description: Namespace's settings.
+type: object
+properties:
+  session_record:
+    description: The session records define when the namespace should save or not record a session. This can be used to check logged activity when connecting to a device.
+    type: boolean
+    example: true
+  connection_announcement:
+    description: A connection announcement is a custom string written during a session when a connection is established on a device within the namespace.
+    type: string
+    minLength: 0
+    maxLength: 4096
+    format: alphanumunicode
+    example: my awesome connection announcement

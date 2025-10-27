@@ -1,0 +1,12 @@
+type: object
+properties:
+  uuid:
+    $ref: announcementUUID.yaml
+  title:
+    $ref: announcementTitle.yaml
+  date:
+    type: string
+    format: date-time
+example:
+  title: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  date: 2017-07-21T17:32:28Z

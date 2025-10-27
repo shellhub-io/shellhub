@@ -1,0 +1,46 @@
+get:
+  operationId: getStats
+  summary: Get stats
+  description: Get stats about the ShellHub instance.
+  tags:
+    - admin
+    - stats
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get stats about the ShellHub instance
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              registered_users:
+                description: Number of registered users.
+                type: integer
+                minimum: 0
+              registered_devices:
+                description: Number of registered devices.
+                type: integer
+                minimum: 0
+              online_devices:
+                description: Number of online devices.
+                type: integer
+                minimum: 0
+              active_sessions:
+                description: Number of active sessions.
+                type: integer
+                minimum: 0
+              pending_devices:
+                description: Number of pending devices.
+                type: integer
+                minimum: 0
+              rejected_devices:
+                description: Number of rejected devices.
+                type: integer
+                minimum: 0
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

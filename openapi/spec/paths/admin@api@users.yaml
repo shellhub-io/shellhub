@@ -1,0 +1,97 @@
+post:
+  operationId: createUserAdmin
+  summary: Create a User admin
+  description: Create a User.
+  tags:
+    - admin
+    - users
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/userAdminRequest.yaml
+        example:
+          name: example
+          email: example@example.com
+          username: example
+          password: example
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/invalidFields.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '409':
+      $ref: ../components/responses/conflictFields.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: getUsers
+  summary: Get users
+  description: Get a list of users.
+  tags:
+    - admin
+    - users
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/filterQuery.yaml
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success to get a list of users.
+      headers:
+        X-Total-Count:
+          description: users' total number.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/userAdminResponse.yaml
+          examples:
+            one_user:
+              value:
+                - id: 507f1f77bcf86cd799439011
+                  namespaces: 0
+                  status: not-confirmed
+                  created_at: 2020-05-01T00:00:00.000Z
+                  last_login: 2020-05-01T00:00:00.000Z
+                  name: example
+                  email: example@example.com
+                  username: example
+                  password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+            two_users:
+              value:
+                - id: 507f1f77bcf86cd799439011
+                  namespaces: 0
+                  status: confirmed
+                  created_at: 2020-05-01T00:00:00.000Z
+                  last_login: 2020-05-01T00:00:00.000Z
+                  name: example
+                  email: example@example.com
+                  username: example
+                  password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+                - id: 507f191e810c19729de860ea
+                  namespaces: 2
+                  status: invited
+                  created_at: 2012-01-02T00:00:00.000Z
+                  last_login: 2012-01-02T00:00:00.000Z
+                  name: example
+                  email: example@example.com
+                  username: example
+                  password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

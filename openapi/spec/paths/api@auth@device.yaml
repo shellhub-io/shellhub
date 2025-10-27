@@ -1,0 +1,73 @@
+post:
+  operationId: authDeviceV2
+  summary: Auth device v2
+  description: |
+    Auth a device.
+
+    Every 30 seconds, this route is hit by internal ShellHub to check device
+    availability.
+  tags:
+    - device
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: X-Real-IP
+      schema:
+        description: |
+          Device's IP address.
+
+
+          `X-Real-IP` header is used to set a geolocation position to device when
+          `geoip` feature is enable.
+        type: string
+        pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
+        example: 127.0.0.1
+      in: header
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            uid:
+              $ref: ../components/schemas/deviceUID.yaml
+            token:
+              $ref: ../components/schemas/deviceToken.yaml
+            name:
+              $ref: ../components/schemas/deviceName.yaml
+            namespace:
+              $ref: ../components/schemas/deviceNamespaceName.yaml
+          required:
+            - uid
+            - token
+            - name
+            - namespaces
+  responses:
+    '200':
+      description: Success to auth device
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              UID:
+                description: Device UID
+                type: string
+              Token:
+                description: Device token
+                type: string
+              Name:
+                description: Device name
+                type: string
+              Namespace:
+                description: Device owner namespace
+                type: string
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

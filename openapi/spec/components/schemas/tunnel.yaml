@@ -1,0 +1,28 @@
+type: object
+properties:
+  address:
+    $ref: tunnelAddress.yaml
+  full_address:
+    description: Full tunnel address including domain
+    type: string
+    example: '9a8df9321368d567cfac8679cec7848c.localhost'
+  namespace:
+    $ref: namespaceTenantID.yaml
+  device:
+    $ref: deviceUID.yaml
+  host:
+    $ref: tunnelHost.yaml
+  port:
+    $ref: tunnelPort.yaml
+  ttl:
+    $ref: tunnelTTL.yaml
+  expires_in:
+    description: Tunnel's expiration date
+    type: string
+    format: date-time
+    example: 2020-05-01T00:01:00.000Z
+  created_at:
+    description: Tunnel's creation date
+    type: string
+    format: date-time
+    example: 2020-05-01T00:00:00.000Z

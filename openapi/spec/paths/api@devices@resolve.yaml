@@ -1,0 +1,49 @@
+get:
+  operationId: resolveDevice
+  summary: Resolve Device
+  description: |
+    Retrieve a device using flexible resolution methods. The device can be
+    identified by either its unique identifier (UID) or hostname. The endpoint
+    automatically scopes results to the authenticated tenant's namespace for
+    security isolation.
+
+    When both UID and hostname are provided, UID takes precedence over hostname.
+  tags:
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - name: hostname
+      in: query
+      required: false
+      description: The UID of the device
+      schema:
+        type: string
+    - name: uid
+      in: query
+      required: false
+      description: The hostname of the device
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Device successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/device.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      description: Device not found with the specified resolver
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: 'Device not found'
+    '500':
+      $ref: ../components/responses/500.yaml

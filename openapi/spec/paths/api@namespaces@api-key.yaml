@@ -1,0 +1,88 @@
+post:
+  operationId: apiKeyCreate
+  summary: Creates an API key.
+  description: |
+    The `created_by`, `tenant_id`, and `role` (unless provided in the request
+    body) values will be obtained from the JWT token.
+  tags:
+    - api-keys
+    - namespaces
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/apiKeyCreate.yaml
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiKeyWithID.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: apiKeyList
+  summary: List API Keys
+  tags:
+    - api-keys
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+    - name: order_by
+      schema:
+        description: The list order.
+        type: string
+        enum:
+          - asc
+          - desc
+        default: desc
+      required: false
+      in: query
+    - name: sort_by
+      description: The property to sort of.
+      schema:
+        type: string
+        example: name
+        default: expires_in
+      required: false
+      in: query
+  responses:
+    '200':
+      description: Success.
+      headers:
+        X-Total-Count:
+          description: Total matched documents.
+          schema:
+            type: string
+            minimum: 0
+            readOnly: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/apiKey.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

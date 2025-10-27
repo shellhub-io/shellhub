@@ -1,0 +1,69 @@
+name: OpenAPI Continuous Delivery
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+
+jobs:
+  openapi-bundle:
+    name: Bundle OpenAPI Specifications
+    runs-on: ubuntu-latest
+    needs:
+      - openapi-ci
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.1.1
+        with:
+          node-version: "18.1"
+
+      - name: Setup bundler
+        run: |
+          npm install -g @redocly/cli@1.0.0-beta.100
+          mkdir bundled/
+
+      - name: Bundle community instance
+        run: redocly bundle openapi/spec/community-openapi.yaml -o bundled/community-openapi.yaml
+
+      - name: Bundle cloud instance
+        run: redocly bundle openapi/spec/cloud-openapi.yaml -o bundled/cloud-openapi.yaml
+
+      - name: Bundle enterprise instance
+        run: redocly bundle openapi/spec/enterprise-openapi.yaml -o bundled/enterprise-openapi.yaml
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled
+          path: bundled/
+
+  openapi-delivery:
+    name: Deliver OpenAPI Specifications
+    runs-on: ubuntu-latest
+    needs:
+      - openapi-bundle
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup uploader
+        run: mkdir bundled/
+
+      - name: Download artificats
+        uses: actions/download-artifact@v4
+        with:
+          name: bundled
+          path: bundled/
+
+      - name: Delivery OpenAPI to Space
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.ACCESS_KEY }}
+          secret_key: ${{ secrets.SECRET_KEY }}
+          space_name: ${{ secrets.SPACE_NAME }}
+          space_region: ${{ secrets.SPACE_REGION }}
+          source: bundled/

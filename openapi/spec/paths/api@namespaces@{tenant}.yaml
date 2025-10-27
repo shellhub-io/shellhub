@@ -1,0 +1,84 @@
+parameters:
+  - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+get:
+  operationId: getNamespace
+  summary: Get a namespace
+  description: Get a namespace.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get a namespace.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: editNamespace
+  summary: Edit namespace
+  description: Edit a namespace.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            name:
+              $ref: ../components/schemas/namespaceName.yaml
+            settings:
+              $ref: ../components/schemas/namespaceSettings.yaml
+  responses:
+    '200':
+      description: Success to edit a namespace.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/namespace.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteNamespace
+  summary: Delete namespace
+  description: Delete a namespace.
+  tags:
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to delete a namespace.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

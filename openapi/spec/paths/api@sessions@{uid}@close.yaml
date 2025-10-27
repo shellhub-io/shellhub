@@ -1,0 +1,30 @@
+post:
+  operationId: clsoeSession
+  summary: Close session
+  description: Close a session.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+
+    - sessions
+  parameters:
+    - $ref: ../components/parameters/path/sessionUIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            device:
+              $ref: ../components/schemas/deviceUID.yaml
+          required:
+            - device
+  responses:
+    '200':
+      description: Success to close session.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

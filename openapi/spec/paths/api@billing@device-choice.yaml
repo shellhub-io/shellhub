@@ -1,0 +1,36 @@
+post:
+  operationId: choiceDevices
+  summary: Choice devices
+  description: Choice devices when device's limit is rechead.
+  security:
+    - jwt: []
+    - api-key: []
+  tags:
+    - cloud
+
+    - billing
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            choices:
+              description: Device's list.
+              type: array
+              items:
+                description: Device's ID.
+                type: string
+                minItems: 0
+                maxItems: 3
+          required:
+            - choices
+  responses:
+    '200':
+      description: Success to choice devices.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

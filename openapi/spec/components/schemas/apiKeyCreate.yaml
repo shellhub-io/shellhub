@@ -1,0 +1,38 @@
+type: object
+properties:
+  name:
+    type: string
+    description: |
+      The name of the API key. This serves as an "external ID" since the UUID
+      will never be returned. It is unique per namespace.
+    maxLength: 20
+    minLength: 3
+    example: dev
+  expires_at:
+    type: integer
+    description: Number of days until expiration. Use -1 for no expiration.
+    enum:
+      - -1
+      - 30
+      - 60
+      - 90
+      - 365
+    example: 30
+  role:
+    type: string
+    description: |
+      The role of the key. It serves as a "level" indicating which endpoints
+      the key can access. It must be less or equal than the user's role. Leave
+      it blank to use the user's role.
+    example: owner
+  key:
+    type: string
+    format: uuidv4
+    description: |
+      An optional and unique value to be used as the API key's internal identifier. This value
+      is the "internal ID" and will NEVER be returned to the client. Leave it
+      blank for a random one to be generated.
+    example: c629572a-b643-4301-90fe-4572b00d007e
+required:
+  - name
+  - expires_at

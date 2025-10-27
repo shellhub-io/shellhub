@@ -1,0 +1,100 @@
+get:
+  operationId: getAuthenticationSettings
+  summary: Get Authentication Settings
+  description: Retrieves the current authentication settings.
+  tags:
+    - admin
+    - authentication-settings
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: Successfully retrieved the authentication settings.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              local:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    description: Indicates whether local authentication is active.
+              saml:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    description: Indicates whether SAML authentication is active.
+                  auth_url:
+                    type: string
+                    description: The URL used to authenticate the SAML user.
+                  assertion_url:
+                    type: string
+                    description: The URL where the IdP must permit redirects.
+                  idp:
+                    type: object
+                    properties:
+                      entity_id:
+                        type: string
+                        description: The Entity ID of the IdP.
+                      certificates:
+                        type: array
+                        description: The list of public X509 certificates of the IdP.
+                        items:
+                          type: string
+                          description: A single public X509 certificate of the IdP.
+                      binding:
+                        type: object
+                        description: |
+                          Configuration for SAML binding methods that define how authentication requests 
+                          and responses are transmitted between ShellHub and the IdP.
+                        properties:
+                          post:
+                            type: string
+                            format: url
+                            description: |
+                              The Single Sign-On URL for HTTP-POST binding. This URL is where ShellHub 
+                              will redirect users for authentication using the HTTP-POST method.
+                          redirect:
+                            type: string
+                            format: url
+                            description: |
+                              The Single Sign-On URL for HTTP-Redirect binding. This URL is where ShellHub 
+                              will redirect users for authentication using the HTTP-Redirect method.
+                          preferred:
+                            type: string
+                            enum: [post, redirect]
+                            description: |
+                              Specifies which binding method ShellHub prefers when both POST and 
+                              Redirect bindings are available. If left blank or empty, POST binding is preferred.
+                      mappings:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                            default: emailAddress
+                          name:
+                            type: string
+                            default: displayName
+                  sp:
+                    type: object
+                    properties:
+                      sign_requests:
+                        type: boolean
+                        description: Indicates whether ShellHub signs authentication requests.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                description: Error message.
+                type: string
+    '500':
+      $ref: ../components/responses/500.yaml

@@ -1,0 +1,57 @@
+post:
+  operationId: generateInvitationLink
+  summary: Generate an invitation link for a namespace member
+  description: |
+    Generates a unique invitation link to invite a member to a namespace using
+    their email. Each invitation link is unique and tied to the provided email.
+    Upon accepting the invitation, the user's status will automatically be set
+    to `accepted`. If the user associated with the email does not exist, the
+    invitation link will redirect them to the signup page.
+
+    The invitation remains valid for **7 days**.
+  tags:
+    - namespaces
+    - members
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            email:
+              description: The email of the member.
+              type: string
+              example: john.doe@test.com
+            role:
+              $ref: ../components/schemas/namespaceMemberRole.yaml
+          required:
+            - email
+            - role
+  responses:
+    '200':
+      description: Success to generate a invitation link.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              link:
+                description: The invitation link.
+                type: string
+                example: https://cloud.shellhub.io/accept-invite?query=...
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

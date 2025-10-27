@@ -1,0 +1,24 @@
+get:
+  operationId: checkSessionRecord
+  summary: Check session record status
+  description: Check status from if `session record` feature is enable.
+  tags:
+    - users
+    - sessions
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success get session record status
+      content:
+        application/json:
+          schema:
+            description: Session record status
+            type: boolean
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
