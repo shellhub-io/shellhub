@@ -3,6 +3,7 @@ get:
   summary: Get public keys
   description: Get a list from all public keys.
   tags:
+    - community
     - ssh
   security:
     - jwt: []
@@ -36,6 +37,7 @@ post:
   summary: Create public key
   description: Create a new public key.
   tags:
+    - community
     - ssh
   security:
     - jwt: []

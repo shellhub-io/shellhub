@@ -2,7 +2,7 @@ parameters:
   - name: id
     schema:
       description: Firewall rule's ID
-      type: integer
+      type: string
     in: path
     required: true
 get:
@@ -11,6 +11,7 @@ get:
   description: Get a firewall rule.
   tags:
     - admin
+    - enterprise
     - rules
   security:
     - jwt: []
@@ -32,6 +33,7 @@ put:
   description: Update a firewall rule.
   tags:
     - admin
+    - enterprise
     - rules
   security:
     - jwt: []
@@ -64,6 +66,7 @@ delete:
   description: Delete a firewall rule.
   tags:
     - admin
+    - enterprise
     - rules
   security:
     - jwt: []

@@ -4,6 +4,7 @@ post:
   description: Register an user and create namespace with the same name as username
   security: []
   tags:
+    - community
     - system
   parameters:
     - name: sign

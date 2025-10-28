@@ -7,11 +7,12 @@ parameters:
     required: true
     in: path
 delete:
-  operationId: deleteUser
+  operationId: adminDeleteUser
   summary: Delete user
   description: Delete a user.
   tags:
     - admin
+    - enterprise
     - users
   security:
     - jwt: []
@@ -29,6 +30,7 @@ put:
   description: Update a user.
   tags:
     - admin
+    - enterprise
     - users
   security:
     - jwt: []
@@ -72,6 +74,7 @@ get:
   description: Get a user.
   tags:
     - admin
+    - enterprise
     - users
   security:
     - jwt: []

@@ -4,6 +4,7 @@ get:
   description: Get the license data.
   tags:
     - admin
+    - enterprise
     - license
   security:
     - jwt: []
@@ -397,6 +398,7 @@ post:
   description: Send license data
   tags:
     - admin
+    - enterprise
     - license
   security:
     - jwt: []

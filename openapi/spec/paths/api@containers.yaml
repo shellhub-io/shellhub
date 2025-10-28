@@ -3,6 +3,7 @@ get:
   summary: Get containers
   description: Get a list of containers.
   tags:
+    - community
     - containers
   security:
     - jwt: []

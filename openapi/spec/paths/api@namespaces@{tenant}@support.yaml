@@ -5,6 +5,7 @@ get:
   summary: Get a namespace support identifier.
   description: Get a namespace support identifier.
   tags:
+    - cloud
     - namespaces
   security:
     - jwt: []

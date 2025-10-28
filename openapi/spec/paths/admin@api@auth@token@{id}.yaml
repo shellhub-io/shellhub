@@ -4,6 +4,7 @@ get:
   description: Get user JWT token to login.
   tags:
     - admin
+    - enterprise
     - users
   security:
     - jwt: []

@@ -3,8 +3,9 @@ post:
   summary: Update device status to offline
   description: Update device's status to offiline.
   tags:
-    - internal
+    - community
     - devices
+    - internal
   security:
     - jwt: []
     - api-key: []

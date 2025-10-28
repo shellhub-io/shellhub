@@ -4,6 +4,7 @@ get:
   description: Get information about ShellHub instance like version, SSH and API addresses.
   security: []
   tags:
+    - community
     - system
   parameters:
     - name: agent_version
@@ -19,5 +20,7 @@ get:
         application/json:
           schema:
             $ref: ../components/schemas/info.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
     '500':
       $ref: ../components/responses/500.yaml

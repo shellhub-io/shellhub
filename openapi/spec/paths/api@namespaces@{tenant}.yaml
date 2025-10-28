@@ -5,6 +5,7 @@ get:
   summary: Get a namespace
   description: Get a namespace.
   tags:
+    - community
     - namespaces
   security:
     - jwt: []
@@ -29,6 +30,7 @@ put:
   summary: Edit namespace
   description: Edit a namespace.
   tags:
+    - community
     - namespaces
   security:
     - jwt: []
@@ -67,6 +69,7 @@ delete:
   summary: Delete namespace
   description: Delete a namespace.
   tags:
+    - community
     - namespaces
   security:
     - jwt: []

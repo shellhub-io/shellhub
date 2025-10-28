@@ -5,6 +5,7 @@ get:
   tags:
     - admin
     - devices
+    - enterprise
   security:
     - jwt: []
     - api-key: []

@@ -2,6 +2,7 @@ patch:
   operationId: updateTag
   summary: Update a tag
   tags:
+    - community
     - tags
   security:
     - jwt: []
@@ -51,12 +52,12 @@ patch:
       $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml
-
 delete:
   operationId: deleteTag
   summary: Delete a tag
   description: Removes a tag and all its associations
   tags:
+    - community
     - tags
   security:
     - jwt: []

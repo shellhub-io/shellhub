@@ -5,6 +5,7 @@ delete:
   summary: Delete a web-endpoint
   description: Deletes a web-endpoint by address.
   tags:
+    - cloud
     - web-endpoints
   security:
     - jwt: []

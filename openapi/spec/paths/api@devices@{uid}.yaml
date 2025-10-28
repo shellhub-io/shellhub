@@ -5,6 +5,7 @@ get:
   summary: Get device
   description: Get a device.
   tags:
+    - community
     - devices
   security:
     - jwt: []
@@ -27,6 +28,7 @@ delete:
   summary: Delete device
   description: Delete a device.
   tags:
+    - community
     - devices
   security:
     - jwt: []
@@ -45,6 +47,7 @@ put:
   summary: Update device
   description: Update device's data.
   tags:
+    - community
     - devices
   security:
     - jwt: []

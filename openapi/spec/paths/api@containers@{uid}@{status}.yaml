@@ -3,6 +3,7 @@ patch:
   summary: Update container status
   description: Update container's status.
   tags:
+    - community
     - containers
   security:
     - jwt: []
