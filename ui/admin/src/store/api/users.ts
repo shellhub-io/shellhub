@@ -1,5 +1,5 @@
 import { IAdminUserFormData } from "@admin/interfaces/IUser";
-import { UserAdminRequest } from "@admin/api/client";
+import { UserAdminRequest } from "@/api/client";
 import { adminApi } from "@/api/http";
 
 export const fetchUsers = async (
