@@ -4,21 +4,36 @@ import { Configuration } from "./client";
 import { BaseAPI } from "./client/base";
 import { setupInterceptorsTo } from "./interceptors";
 
-// This is the default configuration for local instance endpoints
+// Default configuration for main UI's endpoints
 const configuration = new Configuration();
 configuration.basePath = `${window.location.protocol}//${window.location.host}`;
 configuration.accessToken = localStorage.getItem("token") || "";
 
-// We need a custom configuration for cloud endpoints
+// Admin configuration
+const adminConfiguration = new Configuration();
+adminConfiguration.basePath = `${window.location.protocol}//${window.location.host}`;
+adminConfiguration.accessToken = localStorage.getItem("cloud_token") || "";
+
+// Custom configuration for cloud endpoints
 const cloudApiConfiguration = new Configuration();
 cloudApiConfiguration.basePath = "https://cloud.shellhub.io";
 
-// Creates a new axios instance and setup interceptors by default
-const newAxiosInstance = (setupInterceptor = true): AxiosInstance => {
+// Creates a new axios instance and sets up interceptors
+const newAxiosInstance = (setupInterceptor = true, isAdmin = false): AxiosInstance => {
   const instance = axios.create();
-  if (setupInterceptor) setupInterceptorsTo(instance);
+  if (setupInterceptor) setupInterceptorsTo(instance, isAdmin);
   return instance;
 };
+
+// Admin API instance
+// eslint-disable-next-line import/no-mutable-exports
+let adminApi = new axiosTs.AdminApi(
+  adminConfiguration,
+  undefined,
+  newAxiosInstance(true, true),
+);
+
+// Main UI API instances
 const sessionsApi = new axiosTs.SessionsApi(
   configuration,
   undefined,
@@ -91,7 +106,7 @@ const announcementApi = new axiosTs.AnnouncementsApi(
 );
 
 /**
- * Extends the interface BaseAPI to include a new method `getAxios` allowing
+ * Extends the interface BaseAPI to include a new method `getAxios`, allowing
  * access to the protected axios property without the need to access it
  * directly from outside the class and avoiding a linting error caused by
  * accessing a protected property.
@@ -104,22 +119,22 @@ declare module "./client/base" {
   }
 }
 
-/** Returns the axios instance */
+// Returns the axios instance
 BaseAPI.prototype.getAxios = function getAxios(this: BaseAPI): AxiosInstance {
   return this.axios;
 };
 
-/** Returns the configuration */
+// Returns the configuration
 BaseAPI.prototype.getConfiguration = function getConfiguration(this: BaseAPI): Configuration | undefined {
   return this.configuration;
 };
 
-/** Sets the configuration */
+// Sets the configuration
 BaseAPI.prototype.setConfiguration = function setConfiguration(this: BaseAPI, configuration: Configuration): void {
   this.configuration = configuration;
 };
 
-// Reloads the configuration for all APIs
+// Reloads the configuration for main UI APIs
 const reloadConfiguration = () => {
   [
     sessionsApi,
@@ -140,9 +155,21 @@ const reloadConfiguration = () => {
   });
 };
 
+// Recreates the admin API client with fresh configuration (for admin auth persistence)
+const createNewAdminClient = () => {
+  const newConfiguration = new Configuration();
+  newConfiguration.basePath = `${window.location.protocol}//${window.location.host}`;
+  newConfiguration.accessToken = localStorage.getItem("cloud_token") || "";
+  adminApi = new axiosTs.AdminApi(newConfiguration, undefined, newAxiosInstance(true, true));
+  return { adminApi };
+};
+
 export {
   configuration,
+  adminConfiguration,
   reloadConfiguration,
+  createNewAdminClient,
+  adminApi,
   sessionsApi,
   devicesApi,
   containersApi,

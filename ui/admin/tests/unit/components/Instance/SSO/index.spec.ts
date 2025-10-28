@@ -4,9 +4,9 @@ import { describe, it, expect, vi } from "vitest";
 import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import { createPinia, setActivePinia } from "pinia";
-import { adminApi } from "@admin/api/http";
 import useInstanceStore from "@admin/store/modules/instance";
 import ConfigureSSO from "@admin/components/Instance/SSO/ConfigureSSO.vue";
+import { adminApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Configure SSO", async () => {

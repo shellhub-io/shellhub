@@ -64,7 +64,7 @@ import { useRoute, useRouter } from "vue-router";
 import useAuthStore from "@admin/store/modules/auth";
 import useSnackbar from "@/helpers/snackbar";
 import Logo from "../assets/logo-inverted.svg";
-import { createNewClient } from "../api/http";
+import { createNewAdminClient } from "@/api/http";
 
 const showPassword = ref(false);
 const snackbar = useSnackbar();
@@ -99,7 +99,7 @@ const login = async () => {
         username: username.value,
         password: password.value,
       });
-      createNewClient();
+      createNewAdminClient();
       if (route.query.redirect) {
         router.push(`${route.query.redirect}`);
       } else {

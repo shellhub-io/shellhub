@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import useLicenseStore from "@admin/store/modules/license";
-import { adminApi } from "@admin/api/http";
 import License from "@admin/components/Settings/SettingsLicense.vue";
 import routes from "@admin/router";
+import { adminApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 const licenseMock = {

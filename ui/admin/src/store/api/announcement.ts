@@ -1,5 +1,5 @@
-import { adminApi } from "@admin/api/http";
 import { IAdminAnnouncementRequestBody } from "@admin/interfaces/IAnnouncement";
+import { adminApi } from "@/api/http";
 
 export const createAnnouncement = async (
   announcement: IAdminAnnouncementRequestBody,

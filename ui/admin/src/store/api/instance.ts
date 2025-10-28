@@ -1,5 +1,5 @@
-import { adminApi } from "@admin/api/http";
 import { IAdminUpdateSAML } from "@admin/interfaces/IInstance";
+import { adminApi } from "@/api/http";
 
 const getAuthenticationSettings = async () => adminApi.getAuthenticationSettings();
 
