@@ -56,6 +56,12 @@ func DefaultHTTPHandler[S any](service S, cfg *DefaultHTTPHandlerConfig) http.Ha
 	})
 	server.Use(pkgmiddleware.Log)
 
+	if envs.IsDevelopment() {
+		// NOTE: In development mode, we enable the OpenAPI response validator middleware to help validate the responses
+		// against the OpenAPI schema.
+		server.Use(routesmiddleware.OpenAPIValidator())
+	}
+
 	return server
 }
 

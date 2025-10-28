@@ -9,6 +9,10 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
 COPY ./go.mod ./
 
+WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/openapi
+
+COPY ./openapi/go.mod ./openapi/go.sum ./
+
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
 COPY ./api/go.mod ./api/go.sum ./
@@ -23,6 +27,7 @@ FROM base AS builder
 ARG GOPROXY
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
+COPY ./openapi $GOPATH/src/github.com/shellhub-io/shellhub/openapi
 COPY ./api .
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub

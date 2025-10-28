@@ -28,6 +28,7 @@ services:
     volumes:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
+      - ./openapi:/go/src/github.com/shellhub-io/shellhub/openapi
       - /var/run/docker.sock:/var/run/docker.sock
       - ./.golangci.yaml:/.golangci.yaml
     environment:
