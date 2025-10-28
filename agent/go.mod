@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/agent
 
-go 1.24.7
+go 1.24.9
 
 require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5
