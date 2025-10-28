@@ -1,4 +1,4 @@
-import { adminApi } from "@admin/api/http";
+import { adminApi } from "@/api/http";
 
 const getAdminStats = async () => adminApi.getStats();
 

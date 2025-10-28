@@ -1,4 +1,4 @@
-import { adminApi } from "./../../api/http";
+import { adminApi } from "@/api/http";
 
 type UserLogin = {
   username: string;

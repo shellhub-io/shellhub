@@ -1,5 +1,5 @@
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
-import { adminApi } from "./../../api/http";
+import { adminApi } from "@/api/http";
 
 export const fetchNamespaces = async (
   page: number,

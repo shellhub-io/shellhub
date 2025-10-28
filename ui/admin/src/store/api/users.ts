@@ -1,6 +1,6 @@
 import { IAdminUserFormData } from "@admin/interfaces/IUser";
 import { UserAdminRequest } from "@admin/api/client";
-import { adminApi } from "@admin/api/http";
+import { adminApi } from "@/api/http";
 
 export const fetchUsers = async (
   page: number,
@@ -31,4 +31,4 @@ export const updateUser = async (id: string, userData: IAdminUserFormData) => ad
 
 export const resetUserPassword = async (id: string) => adminApi.adminResetUserPassword(id);
 
-export const deleteUser = (id: string) => adminApi.deleteUser(id);
+export const deleteUser = (id: string) => adminApi.adminDeleteUser(id);

@@ -4,10 +4,10 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import { adminApi } from "@admin/api/http";
 import routes from "@admin/router";
 import Announcements from "@admin/views/Announcements.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { adminApi } from "@/api/http";
 
 type AnnouncementsWrapper = VueWrapper<InstanceType<typeof Announcements>>;
 

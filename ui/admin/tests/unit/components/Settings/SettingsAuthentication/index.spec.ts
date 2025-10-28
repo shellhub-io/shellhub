@@ -5,8 +5,8 @@ import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import useInstanceStore from "@admin/store/modules/instance";
 import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentication.vue";
-import { adminApi } from "@admin/api/http";
 import routes from "@admin/router";
+import { adminApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 window.matchMedia = vi.fn().mockImplementation((query) => ({

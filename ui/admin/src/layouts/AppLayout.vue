@@ -145,7 +145,7 @@ import useAuthStore from "@admin/store/modules/auth";
 import useSpinnerStore from "@/store/modules/spinner";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import Logo from "../assets/logo-inverted.svg";
-import { createNewClient } from "../api/http";
+import { createNewAdminClient } from "@/api/http";
 import { envVariables } from "../envVariables";
 
 type MenuItem = {
@@ -194,7 +194,7 @@ watch(drawer, () => {
 const logout = async () => {
   authStore.logout();
   await router.push("/login");
-  createNewClient();
+  createNewAdminClient();
   layoutStore.layout = "SimpleLayout";
 };
 

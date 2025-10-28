@@ -1,4 +1,4 @@
-import { adminApi } from "../../api/http";
+import { adminApi } from "@/api/http";
 
 const fetchSessions = async (perPage: number, page: number) => adminApi.getSessionsAdmin(page, perPage);
 
