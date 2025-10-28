@@ -10,8 +10,6 @@ jobs:
   openapi-bundle:
     name: Bundle OpenAPI Specifications
     runs-on: ubuntu-latest
-    needs:
-      - openapi-ci
 
     steps:
       - uses: actions/checkout@v5
