@@ -3,6 +3,7 @@ get:
   summary: Get public keys admin
   description: Get a list from all public keys.
   tags:
+    - enterprise
     - ssh
   security:
     - jwt: []
@@ -34,6 +35,7 @@ post:
   summary: Create public key admin
   description: Create a new public key.
   tags:
+    - enterprise
     - ssh
   security:
     - jwt: []

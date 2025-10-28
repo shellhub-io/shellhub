@@ -2,6 +2,7 @@ patch:
   operationId: updateUser
   summary: Update user
   tags:
+    - community
     - users
   security:
     - jwt: []

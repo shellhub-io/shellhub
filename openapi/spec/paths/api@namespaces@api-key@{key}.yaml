@@ -3,6 +3,7 @@ patch:
   operationId: apiKeyUpdate
   tags:
     - api-keys
+    - community
     - namespaces
   security:
     - jwt: []
@@ -37,6 +38,7 @@ delete:
   operationId: apiKeyDelete
   tags:
     - api-keys
+    - community
     - namespaces
   security:
     - jwt: []

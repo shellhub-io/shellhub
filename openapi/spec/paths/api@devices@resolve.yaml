@@ -9,6 +9,7 @@ get:
 
     When both UID and hostname are provided, UID takes precedence over hostname.
   tags:
+    - community
     - devices
   security:
     - jwt: []

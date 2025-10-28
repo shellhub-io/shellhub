@@ -4,6 +4,7 @@ get:
   description: Get a list sessions.
   tags:
     - admin
+    - enterprise
     - sessions
   security:
     - jwt: []

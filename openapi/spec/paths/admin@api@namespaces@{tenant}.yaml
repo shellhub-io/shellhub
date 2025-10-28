@@ -6,6 +6,7 @@ get:
   description: Get a namespace.
   tags:
     - admin
+    - enterprise
     - namespaces
   security:
     - jwt: []
@@ -31,6 +32,7 @@ post:
   description: Create a namespace.
   tags:
     - admin
+    - enterprise
     - namespaces
   security:
     - jwt: []
@@ -67,6 +69,7 @@ delete:
   description: Delete a namespace.
   tags:
     - admin
+    - enterprise
     - namespaces
   security:
     - jwt: []

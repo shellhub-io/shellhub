@@ -3,8 +3,9 @@ put:
   summary: Set session record
   description: Define if sessions will be recorded.
   tags:
-    - users
+    - community
     - sessions
+    - users
   security:
     - jwt: []
   parameters:

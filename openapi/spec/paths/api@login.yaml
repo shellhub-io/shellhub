@@ -17,6 +17,7 @@ post:
     UUID. Authentication must be med to `/api/mfa/auth` with this token in
     these instances.
   tags:
+    - community
     - external
     - users
   security: []

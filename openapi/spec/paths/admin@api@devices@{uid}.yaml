@@ -6,8 +6,8 @@ get:
   description: Get a device.
   tags:
     - admin
-
     - devices
+    - enterprise
   security:
     - jwt: []
     - api-key: []
@@ -30,8 +30,8 @@ delete:
   description: Delete a device.
   tags:
     - admin
-
     - devices
+    - enterprise
   security:
     - jwt: []
     - api-key: []
@@ -50,8 +50,8 @@ patch:
   description: Update device's name.
   tags:
     - admin
-
     - devices
+    - enterprise
   security:
     - jwt: []
     - api-key: []

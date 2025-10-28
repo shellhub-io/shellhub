@@ -3,6 +3,7 @@ delete:
   summary: Remove a member from a namespace
   description: Remove a member from a namespace.
   tags:
+    - community
     - namespaces
   security:
     - jwt: []
@@ -29,6 +30,7 @@ patch:
   summary: Update a member from a namespace
   description: Update a member role from a namespace.
   tags:
+    - community
     - namespaces
   security:
     - jwt: []

@@ -24,14 +24,8 @@ jobs:
           npm install -g @redocly/cli@1.0.0-beta.100
           mkdir bundled/
 
-      - name: Bundle community instance
-        run: redocly bundle openapi/spec/community-openapi.yaml -o bundled/community-openapi.yaml
-
-      - name: Bundle cloud instance
-        run: redocly bundle openapi/spec/cloud-openapi.yaml -o bundled/cloud-openapi.yaml
-
-      - name: Bundle enterprise instance
-        run: redocly bundle openapi/spec/enterprise-openapi.yaml -o bundled/enterprise-openapi.yaml
+      - name: Bundle
+        run: redocly bundle openapi/spec/openapi.yaml -o bundled/openapi.yaml
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

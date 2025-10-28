@@ -6,6 +6,7 @@ get:
     Export namespaces to csv file. This endpoint has been deprecated and will be removed in v1.0.0.
   tags:
     - admin
+    - enterprise
     - namespaces
   security:
     - jwt: []

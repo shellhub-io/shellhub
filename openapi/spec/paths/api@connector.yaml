@@ -3,6 +3,7 @@ post:
   summary: Connector's create
   description: Create a new connector.
   tags:
+    - cloud
     - namespaces
   security:
     - jwt: []
@@ -36,6 +37,7 @@ get:
   summary: Connector's list
   description: List connectors.
   tags:
+    - cloud
     - namespaces
   security:
     - jwt: []
