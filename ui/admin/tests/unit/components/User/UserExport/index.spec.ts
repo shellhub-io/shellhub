@@ -10,7 +10,7 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 describe("User Export", () => {
   setActivePinia(createPinia());
   const usersStore = useUsersStore();
-  vi.spyOn(usersStore, "exportUsersToCsv").mockResolvedValue("fake-csv-data");
+  vi.spyOn(usersStore, "exportUsersToCsv").mockResolvedValue(new File([], "users.csv"));
 
   const wrapper = mount(UserExport, {
     global: {

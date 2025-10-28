@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * ShellHub Cloud OpenAPI
- * > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  ShellHub Cloud OpenAPI specification.  It documents all routes provided by ShellHub Cloud. 
+ * ShellHub OpenAPI
+ * > THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  This is the OpenAPI specification for ShellHub community version. It documents the parameters and bodies for performs HTTP requests to the ShellHub server endpoints related to users, namespaces, members, devices, tags, SSH, sessions, etc.  These endpoints require a JSON Web Token (JWT) as its security scheme, that means you need to send, to almost each request, an HTTP header called `Authorization` with the `bearer` token. To obtains this token, uses the `/api/login` route, fulfilling its request body to return that token with some essential information about the user whom logged  in. 
  *
  * The version of the OpenAPI document: 0.20.0
  * Contact: contato@ossystems.com.br
@@ -13,17 +13,14 @@
  */
 
 
-import { Configuration } from "./configuration";
+import type { Configuration } from './configuration';
 // Some imports not used depending on template conditions
 // @ts-ignore
-import globalAxios, { AxiosPromise, AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
+import globalAxios from 'axios';
 
 export const BASE_PATH = "http://localhost".replace(/\/+$/, "");
 
-/**
- *
- * @export
- */
 export const COLLECTION_FORMATS = {
     csv: ",",
     ssv: " ",
@@ -31,41 +28,59 @@ export const COLLECTION_FORMATS = {
     pipes: "|",
 };
 
-/**
- *
- * @export
- * @interface RequestArgs
- */
 export interface RequestArgs {
     url: string;
-    options: AxiosRequestConfig;
+    options: RawAxiosRequestConfig;
 }
 
-/**
- *
- * @export
- * @class BaseAPI
- */
 export class BaseAPI {
     protected configuration: Configuration | undefined;
 
     constructor(configuration?: Configuration, protected basePath: string = BASE_PATH, protected axios: AxiosInstance = globalAxios) {
         if (configuration) {
             this.configuration = configuration;
-            this.basePath = configuration.basePath || this.basePath;
+            this.basePath = configuration.basePath ?? basePath;
         }
     }
 };
 
-/**
- *
- * @export
- * @class RequiredError
- * @extends {Error}
- */
 export class RequiredError extends Error {
-    name: "RequiredError" = "RequiredError";
     constructor(public field: string, msg?: string) {
         super(msg);
+        this.name = "RequiredError"
     }
+}
+
+interface ServerMap {
+    [key: string]: {
+        url: string,
+        description: string,
+    }[];
+}
+
+export const operationServerMap: ServerMap = {
+    "AnnouncementsApi.getAnnouncement": [
+        {
+            url: "https://cloud.shellhub.io",
+            description: "ShellHub Cloud API server",
+        }
+    ],
+    "AnnouncementsApi.listAnnouncements": [
+        {
+            url: "https://cloud.shellhub.io",
+            description: "ShellHub Cloud API server",
+        }
+    ],
+    "CommunityApi.getAnnouncement": [
+        {
+            url: "https://cloud.shellhub.io",
+            description: "ShellHub Cloud API server",
+        }
+    ],
+    "CommunityApi.listAnnouncements": [
+        {
+            url: "https://cloud.shellhub.io",
+            description: "ShellHub Cloud API server",
+        }
+    ],
 }

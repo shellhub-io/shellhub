@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * ShellHub Cloud OpenAPI
- * > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  ShellHub Cloud OpenAPI specification.  It documents all routes provided by ShellHub Cloud. 
+ * ShellHub OpenAPI
+ * > THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  This is the OpenAPI specification for ShellHub community version. It documents the parameters and bodies for performs HTTP requests to the ShellHub server endpoints related to users, namespaces, members, devices, tags, SSH, sessions, etc.  These endpoints require a JSON Web Token (JWT) as its security scheme, that means you need to send, to almost each request, an HTTP header called `Authorization` with the `bearer` token. To obtains this token, uses the `/api/login` route, fulfilling its request body to return that token with some essential information about the user whom logged  in. 
  *
  * The version of the OpenAPI document: 0.20.0
  * Contact: contato@ossystems.com.br
@@ -13,20 +13,16 @@
  */
 
 
-import { Configuration } from "./configuration";
-import { RequiredError, RequestArgs } from "./base";
-import { AxiosInstance, AxiosResponse } from 'axios';
+import type { Configuration } from "./configuration";
+import type { RequestArgs } from "./base";
+import type { AxiosInstance, AxiosResponse } from 'axios';
+import { RequiredError } from "./base";
 
-/**
- *
- * @export
- */
 export const DUMMY_BASE_URL = 'https://example.com'
 
 /**
  *
  * @throws {RequiredError}
- * @export
  */
 export const assertParamExists = function (functionName: string, paramName: string, paramValue: unknown) {
     if (paramValue === null || paramValue === undefined) {
@@ -34,10 +30,6 @@ export const assertParamExists = function (functionName: string, paramName: stri
     }
 }
 
-/**
- *
- * @export
- */
 export const setApiKeyToObject = async function (object: any, keyParamName: string, configuration?: Configuration) {
     if (configuration && configuration.apiKey) {
         const localVarApiKeyValue = typeof configuration.apiKey === 'function'
@@ -47,20 +39,12 @@ export const setApiKeyToObject = async function (object: any, keyParamName: stri
     }
 }
 
-/**
- *
- * @export
- */
 export const setBasicAuthToObject = function (object: any, configuration?: Configuration) {
     if (configuration && (configuration.username || configuration.password)) {
         object["auth"] = { username: configuration.username, password: configuration.password };
     }
 }
 
-/**
- *
- * @export
- */
 export const setBearerAuthToObject = async function (object: any, configuration?: Configuration) {
     if (configuration && configuration.accessToken) {
         const accessToken = typeof configuration.accessToken === 'function'
@@ -70,10 +54,6 @@ export const setBearerAuthToObject = async function (object: any, configuration?
     }
 }
 
-/**
- *
- * @export
- */
 export const setOAuthToObject = async function (object: any, name: string, scopes: string[], configuration?: Configuration) {
     if (configuration && configuration.accessToken) {
         const localVarAccessTokenValue = typeof configuration.accessToken === 'function'
@@ -83,31 +63,34 @@ export const setOAuthToObject = async function (object: any, name: string, scope
     }
 }
 
-/**
- *
- * @export
- */
-export const setSearchParams = function (url: URL, ...objects: any[]) {
-    const searchParams = new URLSearchParams(url.search);
-    for (const object of objects) {
-        for (const key in object) {
-            if (Array.isArray(object[key])) {
-                searchParams.delete(key);
-                for (const item of object[key]) {
-                    searchParams.append(key, item);
-                }
-            } else {
-                searchParams.set(key, object[key]);
-            }
+function setFlattenedQueryParams(urlSearchParams: URLSearchParams, parameter: any, key: string = ""): void {
+    if (parameter == null) return;
+    if (typeof parameter === "object") {
+        if (Array.isArray(parameter)) {
+            (parameter as any[]).forEach(item => setFlattenedQueryParams(urlSearchParams, item, key));
+        }
+        else {
+            Object.keys(parameter).forEach(currentKey =>
+                setFlattenedQueryParams(urlSearchParams, parameter[currentKey], `${key}${key !== '' ? '.' : ''}${currentKey}`)
+            );
         }
     }
+    else {
+        if (urlSearchParams.has(key)) {
+            urlSearchParams.append(key, parameter);
+        }
+        else {
+            urlSearchParams.set(key, parameter);
+        }
+    }
+}
+
+export const setSearchParams = function (url: URL, ...objects: any[]) {
+    const searchParams = new URLSearchParams(url.search);
+    setFlattenedQueryParams(searchParams, objects);
     url.search = searchParams.toString();
 }
 
-/**
- *
- * @export
- */
 export const serializeDataIfNeeded = function (value: any, requestOptions: any, configuration?: Configuration) {
     const nonString = typeof value !== 'string';
     const needsSerialization = nonString && configuration && configuration.isJsonMime
@@ -118,21 +101,13 @@ export const serializeDataIfNeeded = function (value: any, requestOptions: any, 
         : (value || "");
 }
 
-/**
- *
- * @export
- */
 export const toPathString = function (url: URL) {
     return url.pathname + url.search + url.hash
 }
 
-/**
- *
- * @export
- */
 export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxios: AxiosInstance, BASE_PATH: string, configuration?: Configuration) {
     return <T = unknown, R = AxiosResponse<T>>(axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
-        const axiosRequestArgs = {...axiosArgs.options, url: (configuration?.basePath || basePath) + axiosArgs.url};
+        const axiosRequestArgs = {...axiosArgs.options, url: (axios.defaults.baseURL ? '' : configuration?.basePath ?? basePath) + axiosArgs.url};
         return axios.request<T, R>(axiosRequestArgs);
     };
 }

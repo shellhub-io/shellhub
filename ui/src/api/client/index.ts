@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * ShellHub Cloud OpenAPI
- * > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  ShellHub Cloud OpenAPI specification.  It documents all routes provided by ShellHub Cloud. 
+ * ShellHub OpenAPI
+ * > THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  This is the OpenAPI specification for ShellHub community version. It documents the parameters and bodies for performs HTTP requests to the ShellHub server endpoints related to users, namespaces, members, devices, tags, SSH, sessions, etc.  These endpoints require a JSON Web Token (JWT) as its security scheme, that means you need to send, to almost each request, an HTTP header called `Authorization` with the `bearer` token. To obtains this token, uses the `/api/login` route, fulfilling its request body to return that token with some essential information about the user whom logged  in. 
  *
  * The version of the OpenAPI document: 0.20.0
  * Contact: contato@ossystems.com.br
