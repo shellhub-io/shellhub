@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * ShellHub Cloud OpenAPI
- * > NOTICE: THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  ShellHub Cloud OpenAPI specification.  It documents all routes provided by ShellHub Cloud. 
+ * ShellHub OpenAPI
+ * > THE API IS NOT STABLE YET; ERROR AND INCONSISTENCIES MAY OCCUR.  This is the OpenAPI specification for ShellHub community version. It documents the parameters and bodies for performs HTTP requests to the ShellHub server endpoints related to users, namespaces, members, devices, tags, SSH, sessions, etc.  These endpoints require a JSON Web Token (JWT) as its security scheme, that means you need to send, to almost each request, an HTTP header called `Authorization` with the `bearer` token. To obtains this token, uses the `/api/login` route, fulfilling its request body to return that token with some essential information about the user whom logged  in. 
  *
  * The version of the OpenAPI document: 0.20.0
  * Contact: contato@ossystems.com.br
@@ -19,6 +19,7 @@ export interface ConfigurationParameters {
     password?: string;
     accessToken?: string | Promise<string> | ((name?: string, scopes?: string[]) => string) | ((name?: string, scopes?: string[]) => Promise<string>);
     basePath?: string;
+    serverIndex?: number;
     baseOptions?: any;
     formDataCtor?: new () => any;
 }
@@ -27,42 +28,32 @@ export class Configuration {
     /**
      * parameter for apiKey security
      * @param name security name
-     * @memberof Configuration
      */
     apiKey?: string | Promise<string> | ((name: string) => string) | ((name: string) => Promise<string>);
     /**
      * parameter for basic security
-     *
-     * @type {string}
-     * @memberof Configuration
      */
     username?: string;
     /**
      * parameter for basic security
-     *
-     * @type {string}
-     * @memberof Configuration
      */
     password?: string;
     /**
      * parameter for oauth2 security
      * @param name security name
      * @param scopes oauth2 scope
-     * @memberof Configuration
      */
     accessToken?: string | Promise<string> | ((name?: string, scopes?: string[]) => string) | ((name?: string, scopes?: string[]) => Promise<string>);
     /**
      * override base path
-     *
-     * @type {string}
-     * @memberof Configuration
      */
     basePath?: string;
     /**
+     * override server index
+     */
+    serverIndex?: number;
+    /**
      * base options for axios calls
-     *
-     * @type {any}
-     * @memberof Configuration
      */
     baseOptions?: any;
     /**
@@ -80,7 +71,13 @@ export class Configuration {
         this.password = param.password;
         this.accessToken = param.accessToken;
         this.basePath = param.basePath;
-        this.baseOptions = param.baseOptions;
+        this.serverIndex = param.serverIndex;
+        this.baseOptions = {
+            ...param.baseOptions,
+            headers: {
+                ...param.baseOptions?.headers,
+            },
+        };
         this.formDataCtor = param.formDataCtor;
     }
 

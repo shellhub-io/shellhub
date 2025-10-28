@@ -20,7 +20,7 @@ describe("NamespaceExport", () => {
   setActivePinia(createPinia());
   const namespacesStore = useNamespacesStore();
 
-  vi.spyOn(namespacesStore, "exportNamespacesToCsv").mockResolvedValue("csv_content");
+  vi.spyOn(namespacesStore, "exportNamespacesToCsv").mockResolvedValue(new File([], "namespaces.csv"));
 
   const wrapper = mount(NamespaceExport, {
     attachTo: document.body,
