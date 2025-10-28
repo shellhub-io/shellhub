@@ -23,10 +23,11 @@
               <v-card class="pa-4" variant="tonal">
                 <div class="text-overline text-medium-emphasis mb-2">TENANT ID</div>
                 <div class="d-flex align-center justify-space-between">
-                  <code class="text-primary">{{ namespace.tenant_id }}</code>
+                  <code class="text-primary" data-test="tenant-info-text">{{ namespace.tenant_id }}</code>
                   <CopyWarning :copied-item="'Tenant ID'">
                     <template #default="{ copyText }">
                       <v-btn
+                        data-test="copy-tenant-btn"
                         @click="copyText(namespace.tenant_id)"
                         color="primary"
                         variant="elevated"
@@ -108,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
@@ -126,7 +127,7 @@ const stats = computed(() => statsStore.stats);
 const namespace = computed(() => namespacesStore.currentNamespace);
 const hasNamespace = computed(() => namespacesStore.namespaceList.length !== 0);
 
-onMounted(async () => {
+const fetchStats = async () => {
   if (!hasNamespace.value) return;
 
   try {
@@ -147,6 +148,16 @@ onMounted(async () => {
       }
     }
     handleError(error);
+  }
+};
+
+onMounted(async () => {
+  await fetchStats();
+});
+
+watch(hasNamespace, (newValue) => {
+  if (newValue) {
+    fetchStats();
   }
 });
 
