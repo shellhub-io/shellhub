@@ -11,6 +11,7 @@ import { router } from "@/router";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 import { IWebEndpoint } from "@/interfaces/IWebEndpoints";
 import useAuthStore from "@/store/modules/auth";
+import useDevicesStore from "@/store/modules/devices";
 
 type WebEndpointsWrapper = VueWrapper<InstanceType<typeof WebEndpoints>>;
 
@@ -38,8 +39,11 @@ describe("WebEndpoints.vue", () => {
   const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
   setActivePinia(createPinia());
   const authStore = useAuthStore();
+  const devicesStore = useDevicesStore();
   const webEndpointsStore = useWebEndpointsStore();
   const vuetify = createVuetify();
+
+  devicesStore.fetchDeviceList = vi.fn().mockResolvedValue([]);
 
   beforeEach(async () => {
     mockWebEndpointsApi
