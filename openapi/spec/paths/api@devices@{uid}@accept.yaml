@@ -3,6 +3,7 @@ patch:
   summary: Accept device
   description: Change device status to `accepted`.
   tags:
+    - community
     - devices
   security:
     - jwt: []

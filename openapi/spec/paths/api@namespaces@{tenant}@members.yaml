@@ -7,8 +7,9 @@ delete:
     to leave their current authenticated namespace, the response will provide a
     new token that excludes this namespace.
   tags:
-    - namespaces
+    - community
     - members
+    - namespaces
   security:
     - jwt: []
     - api-key: []
@@ -43,8 +44,9 @@ post:
     If the member was previously invited and the invite is no longer valid, the same route
     will resend the invite.
   tags:
-    - namespaces
+    - community
     - members
+    - namespaces
   security:
     - jwt: []
   parameters:

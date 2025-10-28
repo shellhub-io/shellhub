@@ -4,6 +4,7 @@ get:
   description: Export users to csv file.
   tags:
     - admin
+    - enterprise
     - users
   security:
     - jwt: []

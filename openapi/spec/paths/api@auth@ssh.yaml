@@ -6,6 +6,7 @@ post:
     - jwt: []
     - api-key: []
   tags:
+    - community
     - internal
     - ssh
   requestBody:

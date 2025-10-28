@@ -2,6 +2,7 @@ post:
   operationId: pushTagToContainer
   summary: Associate a tag with a container
   tags:
+    - community
     - tags
   security:
     - jwt: []
@@ -30,11 +31,11 @@ post:
       $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
-
 delete:
   operationId: pullTagFromContainer
   summary: Remove a tag from a container
   tags:
+    - community
     - tags
   security:
     - jwt: []

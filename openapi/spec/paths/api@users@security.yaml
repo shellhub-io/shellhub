@@ -3,8 +3,9 @@ get:
   summary: Check session record status
   description: Check status from if `session record` feature is enable.
   tags:
-    - users
+    - community
     - sessions
+    - users
   security:
     - jwt: []
     - api-key: []

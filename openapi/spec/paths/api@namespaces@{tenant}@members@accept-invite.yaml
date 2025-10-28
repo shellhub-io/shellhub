@@ -5,9 +5,10 @@ patch:
     This route is intended to be accessed directly through the link sent in the invitation email.
     The user must be logged into the account that was invited.
   tags:
+    - cloud
+    - members
     - namespaces
     - users
-    - members
   security:
     - jwt: []
   parameters:

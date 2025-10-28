@@ -6,6 +6,7 @@ post:
     body) values will be obtained from the JWT token.
   tags:
     - api-keys
+    - community
     - namespaces
   security:
     - jwt: []
@@ -36,6 +37,7 @@ get:
   summary: List API Keys
   tags:
     - api-keys
+    - community
     - namespaces
   security:
     - jwt: []

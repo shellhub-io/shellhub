@@ -3,6 +3,7 @@ get:
   summary: Get token
   description: Get a token from its tenant.
   tags:
+    - community
     - users
   security:
     - jwt: []

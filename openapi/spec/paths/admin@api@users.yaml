@@ -4,6 +4,7 @@ post:
   description: Create a User.
   tags:
     - admin
+    - enterprise
     - users
   security:
     - jwt: []
@@ -35,6 +36,7 @@ get:
   description: Get a list of users.
   tags:
     - admin
+    - enterprise
     - users
   security:
     - jwt: []
@@ -64,7 +66,7 @@ get:
               value:
                 - id: 507f1f77bcf86cd799439011
                   namespaces: 0
-                  status: not-confirmed
+                  confirmed: false
                   created_at: 2020-05-01T00:00:00.000Z
                   last_login: 2020-05-01T00:00:00.000Z
                   name: example
@@ -75,7 +77,7 @@ get:
               value:
                 - id: 507f1f77bcf86cd799439011
                   namespaces: 0
-                  status: confirmed
+                  confirmed: true
                   created_at: 2020-05-01T00:00:00.000Z
                   last_login: 2020-05-01T00:00:00.000Z
                   name: example
@@ -84,7 +86,7 @@ get:
                   password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
                 - id: 507f191e810c19729de860ea
                   namespaces: 2
-                  status: invited
+                  confirmed: false
                   created_at: 2012-01-02T00:00:00.000Z
                   last_login: 2012-01-02T00:00:00.000Z
                   name: example

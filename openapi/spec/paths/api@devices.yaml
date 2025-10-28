@@ -3,6 +3,7 @@ get:
   summary: Get devices
   description: Get a list of devices.
   tags:
+    - community
     - devices
   security:
     - jwt: []

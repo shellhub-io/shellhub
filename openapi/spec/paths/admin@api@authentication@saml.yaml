@@ -11,6 +11,7 @@ put:
   tags:
     - admin
     - authentication-settings
+    - enterprise
   security:
     - jwt: []
   requestBody:

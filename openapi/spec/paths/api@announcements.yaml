@@ -4,6 +4,7 @@ get:
   description: List the announcements posted by ShellHub Cloud.
   tags:
     - announcements
+    - community
   servers:
     - url: https://cloud.shellhub.io
       description: ShellHub Cloud API server

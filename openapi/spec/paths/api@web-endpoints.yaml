@@ -3,6 +3,7 @@ get:
   summary: List web-endpoints
   description: List all web-endpoints in the namespace.
   tags:
+    - cloud
     - web-endpoints
   parameters:
     - in: query
@@ -52,6 +53,7 @@ post:
   summary: Create a web-endpoint
   description: Creates a new web-endpoint for a device.
   tags:
+    - cloud
     - web-endpoints
   security:
     - jwt: []

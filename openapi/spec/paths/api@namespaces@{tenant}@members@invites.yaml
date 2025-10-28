@@ -10,8 +10,9 @@ post:
 
     The invitation remains valid for **7 days**.
   tags:
-    - namespaces
+    - cloud
     - members
+    - namespaces
   security:
     - jwt: []
   parameters:

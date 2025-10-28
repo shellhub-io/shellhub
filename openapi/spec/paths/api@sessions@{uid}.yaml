@@ -5,6 +5,7 @@ get:
   summary: Get session
   description: Get a session.
   tags:
+    - community
     - sessions
   security:
     - jwt: []
@@ -25,6 +26,7 @@ post:
   summary: Set session authentication status
   description: Set session authentication status.
   tags:
+    - community
     - sessions
   security:
     - jwt: []

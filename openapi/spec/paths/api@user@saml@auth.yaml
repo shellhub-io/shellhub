@@ -9,6 +9,7 @@ get:
     instance must be running the Enterprise edition. If not, the endpoint
     returns a `501 Not Implemented` status code.
   tags:
+    - cloud
     - users
   security: []
   responses:
@@ -25,6 +26,8 @@ get:
                 type: string
                 description: The complete URL to the Identity Provider's login page
                 example: 'https://login.microsoftonline.com/tenant-id/saml2?SAMLRequest=encoded-request'
+    '400':
+      $ref: '../components/responses/400.yaml'
     '500':
       $ref: '../components/responses/500.yaml'
     '501':

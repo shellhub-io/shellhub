@@ -4,6 +4,7 @@ get:
   description: Get stats about the ShellHub instance.
   tags:
     - admin
+    - enterprise
     - stats
   security:
     - jwt: []

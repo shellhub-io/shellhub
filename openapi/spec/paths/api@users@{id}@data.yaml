@@ -4,6 +4,7 @@ patch:
   summary: Update user data
   description: Update user's data.
   tags:
+    - community
     - users
   security:
     - jwt: []

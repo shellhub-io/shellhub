@@ -4,7 +4,7 @@ get:
   description: Returns a list of namespaces.
   tags:
     - admin
-
+    - enterprise
     - namespaces
   security:
     - jwt: []

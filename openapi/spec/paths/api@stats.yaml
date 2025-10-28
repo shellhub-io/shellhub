@@ -3,6 +3,7 @@ get:
   summary: Get stats ShellHub instance
   description: Get stats ShellHub instance.
   tags:
+    - community
     - devices
   security:
     - jwt: []

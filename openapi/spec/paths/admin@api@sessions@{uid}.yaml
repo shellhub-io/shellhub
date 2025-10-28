@@ -6,7 +6,7 @@ get:
   description: Get a session.
   tags:
     - admin
-
+    - enterprise
     - sessions
   security:
     - jwt: []
@@ -28,7 +28,7 @@ post:
   description: Set session authentication status.
   tags:
     - admin
-
+    - enterprise
     - sessions
   security:
     - jwt: []

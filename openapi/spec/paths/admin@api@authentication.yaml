@@ -5,6 +5,7 @@ get:
   tags:
     - admin
     - authentication-settings
+    - enterprise
   security:
     - jwt: []
   responses:

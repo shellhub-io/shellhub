@@ -3,6 +3,7 @@ patch:
   summary: Update device status
   description: Update device's status.
   tags:
+    - community
     - devices
   security:
     - jwt: []

@@ -33,11 +33,5 @@ jobs:
       - name: Setup Redocly
         run: npm install -g @redocly/cli@1.0.0-beta.100
 
-      - name: Run Redocly lint on community instance
-        run: redocly lint openapi/spec/community-openapi.yaml
-
-      - name: Run Redocly lint on cloud instance
-        run: redocly lint openapi/spec/cloud-openapi.yaml
-
-      - name: Run Redocly lint on enterprise instance
-        run: redocly lint openapi/spec/enterprise-openapi.yaml
+      - name: Run Redocly lint
+        run: redocly lint openapi/spec/openapi.yaml

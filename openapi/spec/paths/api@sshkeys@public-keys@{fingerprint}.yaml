@@ -5,6 +5,7 @@ put:
   summary: Update public key
   description: Update a public key.
   tags:
+    - community
     - ssh
   security:
     - jwt: []
@@ -50,6 +51,7 @@ delete:
   summary: Delete public key
   description: Delete a public key.
   tags:
+    - community
     - ssh
   security:
     - jwt: []

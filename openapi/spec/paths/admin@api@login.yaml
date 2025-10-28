@@ -4,6 +4,7 @@ post:
   description: Login on Admin
   tags:
     - admin
+    - enterprise
   security: []
   requestBody:
     content:

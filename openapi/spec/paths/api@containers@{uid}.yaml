@@ -5,6 +5,7 @@ get:
   summary: Get container
   description: Get a container.
   tags:
+    - community
     - containers
   security:
     - jwt: []
@@ -27,6 +28,7 @@ delete:
   summary: Delete container
   description: Delete a container.
   tags:
+    - community
     - containers
   security:
     - jwt: []
@@ -45,6 +47,7 @@ put:
   summary: Update container
   description: Update container's data.
   tags:
+    - community
     - containers
   security:
     - jwt: []

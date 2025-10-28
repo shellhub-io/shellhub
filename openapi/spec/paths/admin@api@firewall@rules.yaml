@@ -4,6 +4,7 @@ post:
   description: Create a firewall rule.
   tags:
     - admin
+    - enterprise
     - rules
   security:
     - jwt: []
@@ -36,6 +37,7 @@ get:
   description: Get a list of firewall rules.
   tags:
     - admin
+    - enterprise
     - rules
   security:
     - jwt: []

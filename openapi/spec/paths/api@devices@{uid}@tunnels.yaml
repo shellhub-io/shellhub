@@ -6,6 +6,7 @@ get:
   description: List the tunnels per devices.
   deprecated: true
   tags:
+    - cloud
     - devices
     - tunnels
   parameters:
@@ -37,6 +38,7 @@ post:
   description: Creates a new tunnel for a device.
   deprecated: true
   tags:
+    - cloud
     - devices
     - tunnels
   security:

@@ -3,6 +3,7 @@ post:
   summary: Auth a user
   description: Authenticate a user, returning the session's JWT token and data about the user.
   tags:
+    - community
     - external
     - users
   security: []
@@ -40,6 +41,7 @@ get:
   operationId: getUserInfo
   summary: Get user info
   tags:
+    - community
     - users
   security:
     - jwt: []

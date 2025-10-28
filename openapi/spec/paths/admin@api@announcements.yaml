@@ -3,8 +3,9 @@ get:
   summary: List announcements
   description: List the announcements posted by ShellHub Cloud.
   tags:
-    - cloud
     - admin
+    - cloud
+    - enterprise
   security:
     - jwt: []
     - api-key: []
@@ -47,8 +48,9 @@ post:
   summary: Create an announcement
   description: Create an announcement.
   tags:
-    - cloud
     - admin
+    - cloud
+    - enterprise
   security:
     - jwt: []
     - api-key: []

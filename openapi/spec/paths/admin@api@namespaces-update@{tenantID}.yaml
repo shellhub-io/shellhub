@@ -11,7 +11,7 @@ put:
   description: Edit a namespace.
   tags:
     - admin
-
+    - enterprise
     - namespaces
   security:
     - jwt: []

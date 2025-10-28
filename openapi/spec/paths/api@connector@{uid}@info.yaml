@@ -10,6 +10,7 @@ get:
   summary: Connector's get Docker info
   description: Gets the connector's connection docker info.
   tags:
+    - cloud
     - namespaces
   security:
     - jwt: []

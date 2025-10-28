@@ -3,6 +3,7 @@ get:
   summary: Get sessions
   description: Get a list sessions.
   tags:
+    - community
     - sessions
   security:
     - jwt: []

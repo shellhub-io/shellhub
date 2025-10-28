@@ -2,6 +2,7 @@ get:
   operationId: getTags
   summary: Retrieve all tags associated with a namespace
   tags:
+    - community
     - tags
   security:
     - jwt: []
@@ -39,6 +40,7 @@ post:
   summary: Create a new tag in the namespace
   description: Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
   tags:
+    - community
     - tags
   security:
     - jwt: []
