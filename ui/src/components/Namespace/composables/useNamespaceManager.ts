@@ -14,9 +14,7 @@ export default function useNamespaceManager() {
   const currentTenantId = computed(() => localStorage.getItem("tenant") || "");
 
   const switchNamespace = async (tenantId: string) => {
-    if (tenantId === currentNamespace.value.tenant_id) {
-      return;
-    }
+    if (tenantId === currentNamespace.value.tenant_id) return;
 
     try {
       await namespacesStore.switchNamespace(tenantId);
@@ -52,9 +50,7 @@ export default function useNamespaceManager() {
       // Namespace not found, try to switch to first available
       if (axiosError.response?.status === 404) {
         const firstNamespace = namespaceList.value[0];
-        if (currentTenantId.value === "" && firstNamespace) {
-          await switchNamespace(firstNamespace.tenant_id);
-        }
+        if (firstNamespace) await switchNamespace(firstNamespace.tenant_id);
         return;
       }
 
