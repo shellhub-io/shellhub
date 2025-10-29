@@ -902,39 +902,49 @@ func TestSSH(t *testing.T) {
 				err = sess.Shell()
 				require.NoError(t, err)
 
-				fmt.Fprintln(stdin, "bind 'set enable-bracketed-paste off'")
+				reader := bufio.NewReader(stdout)
+
+				// NOTE: Disable bracketed paste mode to simplify output parsing.
+				_, err = fmt.Fprintln(stdin, "bind 'set enable-bracketed-paste off'")
 				require.NoError(t, err)
 
-				_, err = fmt.Fprintf(stdin, "stty size; echo DONE\n")
+				_, err = fmt.Fprintln(stdin, "echo START")
 				require.NoError(t, err)
 
-				scanner := bufio.NewScanner(stdout)
-				var initialSizeOutput string
-				for scanner.Scan() {
-					line := scanner.Text()
-					if line == "DONE" {
+				// NOTE: Wait for the shell to be ready.
+				for {
+					line, err := reader.ReadString('\n')
+					require.NoError(t, err)
+
+					if strings.TrimSpace(line) == "START" {
 						break
 					}
-					initialSizeOutput = line
 				}
+
+				_, err = fmt.Fprintln(stdin, "stty size")
+				require.NoError(t, err)
+
+				// NOTE: Read and discard the command echo line.
+				reader.ReadString('\n')
+
+				initialSizeOutput, err := reader.ReadString('\n') // Read line
+				require.NoError(t, err)
+
+				assert.Equal(t, fmt.Sprintf("%d %d", initialHeight, initialWidth), strings.TrimSpace(initialSizeOutput))
 
 				newWidth, newHeight := 120, 40
 				err = sess.WindowChange(newHeight, newWidth)
 				require.NoError(t, err)
 
-				_, err = fmt.Fprintf(stdin, "stty size; echo DONE\n")
+				_, err = fmt.Fprintln(stdin, "stty size")
 				require.NoError(t, err)
 
-				var newSizeOutput string
-				for scanner.Scan() {
-					line := scanner.Text()
-					if line == "DONE" {
-						break
-					}
-					newSizeOutput = line
-				}
+				// NOTE: Read and discard the command echo line.
+				reader.ReadString('\n')
 
-				assert.Equal(t, fmt.Sprintf("%d %d", initialHeight, initialWidth), strings.TrimSpace(initialSizeOutput))
+				newSizeOutput, err := reader.ReadString('\n') // Read line
+				require.NoError(t, err)
+
 				assert.Equal(t, fmt.Sprintf("%d %d", newHeight, newWidth), strings.TrimSpace(newSizeOutput))
 			},
 		},
