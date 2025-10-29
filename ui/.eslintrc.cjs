@@ -90,5 +90,11 @@ module.exports = {
         jest: true,
       },
     },
+    {
+      files: ["**/client/*.ts"],
+      rules: {
+        "vue/max-len": "off",
+      },
+    }
   ],
 };
