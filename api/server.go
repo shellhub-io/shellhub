@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store/mongo/options"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/geoip/geolite2"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
@@ -198,6 +199,12 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 		log.Info("Enabling metrics endpoint")
 
 		opts = append(opts, routes.WithMetrics())
+	}
+
+	if envs.IsDevelopment() {
+		log.Info("Enabling OpenAPI validation in development mode")
+
+		opts = append(opts, routes.WithOpenAPIValidator(nil))
 	}
 
 	return opts, nil
