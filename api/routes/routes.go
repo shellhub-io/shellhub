@@ -78,6 +78,14 @@ func WithMetrics() Option {
 	}
 }
 
+func WithOpenAPIValidator(cfg *routesmiddleware.OpenAPIValidatorConfig) Option {
+	return func(e *echo.Echo, _ *Handler) error {
+		e.Use(routesmiddleware.OpenAPIValidator(cfg))
+
+		return nil
+	}
+}
+
 func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	router := DefaultHTTPHandler(service, new(DefaultHTTPHandlerConfig)).(*echo.Echo)
 
