@@ -418,7 +418,7 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
         <!---->
       </transition-stub>
       <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLDivElement]">
-        <div class="v-overlay__content" style="min-width: 0px; display: none;"><span>You cannot remove confirmation from a user.</span></div>
+        <div class="v-overlay__content" style="min-width: 0px; display: none;">You cannot remove confirmation from an user.</div>
       </transition-stub>
     </div>
   </div>
@@ -843,7 +843,7 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
         <!---->
       </transition-stub>
       <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLDivElement]">
-        <div class="v-overlay__content" style="min-width: 0px; display: none;"><span>You cannot remove confirmation from a user.</span></div>
+        <div class="v-overlay__content" style="min-width: 0px; display: none;">You cannot remove confirmation from an user.</div>
       </transition-stub>
     </div>
   </div>
