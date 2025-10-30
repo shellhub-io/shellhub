@@ -112,14 +112,11 @@
 
         <FileTextComponent
           v-model="publicKeyData"
-          v-model:error-message="publicKeyDataError"
           class="mt-4 mb-2"
-          enable-paste
-          start-in-text
+          text-only
           textarea-label="Public key data"
-          description-text="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-          :validator="(t) => isKeyValid('public', t)"
-          invalid-message="This is not a valid public key."
+          description-text="Public key data cannot be modified after creation."
+          :disabled="true"
           data-test="data-field"
         />
       </div>
@@ -140,7 +137,6 @@ import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";
 import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
-import { isKeyValid } from "@/utils/sshKeys";
 
 type TagsFilterNames = { tags: string[] };
 type LocalFilter = HostnameFilter | TagsFilterNames;
@@ -201,7 +197,6 @@ const {
 });
 
 const publicKeyData = ref("");
-const publicKeyDataError = ref("");
 
 const hasAuthorization = computed(() => props.hasAuthorization ?? true);
 
@@ -377,14 +372,12 @@ const handleUpdate = () => {
 
 const setLocalVariable = () => {
   keyLocal.value = { ...(props.publicKey as LocalPublicKey) };
-  keyLocal.value.data = Buffer.from(props.publicKey.data, "base64").toString("utf-8");
 };
 
 const open = () => {
   showDialog.value = true;
   name.value = props.publicKey.name;
   publicKeyData.value = Buffer.from(props.publicKey.data, "base64").toString("utf-8");
-  publicKeyDataError.value = "";
   handleUpdate();
 };
 
@@ -430,13 +423,12 @@ const isHostnameMissing = computed(() => choiceFilter.value === "hostname" && ho
 const areTagsMissing = computed(() => choiceFilter.value === "tags" && toTagNames(tagChoices.value).length === 0);
 
 const confirmDisabled = computed(() => {
-  if (!name.value || !publicKeyData.value) return true;
+  if (!name.value) return true;
 
   const tagRuleBlocking = choiceFilter.value === "tags" && !validateLength.value;
 
   return Boolean(
     nameError.value
-    || publicKeyDataError.value
     || isUsernameMissing.value
     || isHostnameMissing.value
     || areTagsMissing.value
@@ -462,7 +454,6 @@ const edit = async () => {
     ...(keyLocal.value as LocalPublicKey),
     username: usernameToSend,
     filter: filterToSend,
-    data: Buffer.from(publicKeyData.value, "utf-8").toString("base64"),
   };
 
   try {
