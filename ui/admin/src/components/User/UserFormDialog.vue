@@ -95,7 +95,7 @@
         color="primary"
         variant="outlined"
       />
-      <v-tooltip location="bottom" class="text-center" :disabled="canChangeStatus">
+      <v-tooltip location="bottom start" class="text-center" :disabled="canChangeStatus" :text="statusTooltipMessage">
         <template v-slot:activator="{ props }">
           <div v-bind="props">
             <v-checkbox
@@ -109,7 +109,6 @@
             />
           </div>
         </template>
-        <span>{{ statusTooltipMessage }}</span>
       </v-tooltip>
     </v-card-text>
   </FormDialog>
@@ -140,7 +139,7 @@ const snackbar = useSnackbar();
 const usersStore = useUsersStore();
 const statusTooltipMessage = props.user?.status === "invited"
   ? "You cannot change the status of an invited user."
-  : "You cannot remove confirmation from a user.";
+  : "You cannot remove confirmation from an user.";
 
 const { value: name,
   errorMessage: nameError,
