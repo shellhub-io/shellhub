@@ -35,12 +35,14 @@
         :error-messages="nameError"
         data-test="name-text"
       />
-      <v-text-field
+      <v-number-input
         v-model="maxDevices"
         label="Maximum Devices"
         required
-        type="number"
-        :min="-1"
+        variant="outlined"
+        density="comfortable"
+        inset
+        controlVariant="hidden"
         :error-messages="maxDevicesError"
         data-test="maxDevices-text"
       />
@@ -78,7 +80,7 @@ const { value: name, errorMessage: nameError, resetField: resetName } = useField
 
 const { value: maxDevices, errorMessage: maxDevicesError, resetField: resetMaxDevices } = useField<number | undefined>(
   "maxDevices",
-  yup.number().required(),
+  yup.number().integer().required().min(-1, "Maximum devices must be -1 (unlimited) or greater"),
   { initialValue: props.namespace.max_devices },
 );
 
