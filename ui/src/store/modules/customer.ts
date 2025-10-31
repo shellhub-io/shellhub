@@ -49,11 +49,8 @@ const useCustomerStore = defineStore("customer", () => {
     try {
       await billingApi.createSubscription();
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw error.response?.status;
-      } else {
-        handleError(error);
-      }
+      if (axios.isAxiosError(error)) throw error;
+      handleError(error);
     }
   };
 

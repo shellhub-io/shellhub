@@ -6,7 +6,7 @@ export enum NotificationType {
   CONTAINER = "container"
 }
 
-type NotificationData = IDevice | IContainer;
+type NotificationData = IDevice  ;
 
 export interface INotification {
   id: string;

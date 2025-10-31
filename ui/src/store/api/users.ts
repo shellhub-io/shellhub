@@ -6,6 +6,7 @@ import {
   IUserSetup,
   IUserPatch,
   IUserPatchPassword,
+  IPremiumFeature,
 } from "@/interfaces/IUser";
 import { usersApi, systemApi } from "@/api/http";
 
@@ -46,7 +47,7 @@ export const patchUserPassword = async (data: IUserPatchPassword) => usersApi.up
 
 export const getPremiumContent = async () => {
   const response = await fetch("https://static.shellhub.io/premium-features.v1.json");
-  const data = await response.json();
+  const data = await response.json() as Array<IPremiumFeature>;
   return data;
 };
 

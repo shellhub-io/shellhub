@@ -1,5 +1,6 @@
 import MockAdapter from "axios-mock-adapter";
 import { beforeAll, vi } from "vitest";
+import { createVuetify } from "vuetify";
 import ResizeObserver from "resize-observer-polyfill";
 import { systemApi } from "../src/api/http";
 
