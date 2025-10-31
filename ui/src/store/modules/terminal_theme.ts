@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import FontFaceObserver from "fontfaceobserver";
 import { computed, ref } from "vue";
 import axios from "axios";
 import { ITerminalTheme, IThemeMetadata } from "@/interfaces/ITerminal";
@@ -33,9 +32,8 @@ const useTerminalThemeStore = defineStore("terminal-theme", () => {
   const currentFontSize = ref<number>(parseInt(localStorage.getItem("terminalFontSize") || "15", 10));
 
   const setFontSettings = async (fontFamily: TerminalFontFamily, fontSize: number) => {
-    const font = new FontFaceObserver(fontFamily);
     try {
-      if (fontFamily !== "Monospace") await font.load();
+      if (fontFamily !== "Monospace") await document.fonts.load(`${fontSize}px '${fontFamily}'`);
       currentFontFamily.value = fontFamily;
       currentFontSize.value = fontSize;
       localStorage.setItem("terminalFontFamily", fontFamily);
@@ -50,9 +48,8 @@ const useTerminalThemeStore = defineStore("terminal-theme", () => {
     // No need to load the browser's default monospace font
     if (currentFontFamily.value === "Monospace") return;
 
-    const font = new FontFaceObserver(currentFontFamily.value);
     try {
-      await font.load();
+      await document.fonts.load(`${currentFontSize.value}px '${currentFontFamily.value}'`);
     } catch {
       currentFontFamily.value = "Monospace";
       localStorage.setItem("terminalFontFamily", "Monospace");
