@@ -10,6 +10,21 @@ import {
 import { IMfaGenerate, IUserLogin, IMfaDisable, IMfaEnable, IMfaReset } from "@/interfaces/IUserLogin";
 import { IUser } from "@/interfaces/IUser";
 
+interface IAuthData {
+  token?: string;
+  user?: string;
+  username?: string;
+  name?: string;
+  tenantId?: string;
+  tenant?: string;
+  email?: string;
+  id?: string;
+  role?: string;
+  recovery_email?: string;
+  mfa?: boolean;
+  auth_methods?: string[];
+}
+
 const useAuthStore = defineStore("auth", () => {
   const token = ref(localStorage.getItem("token") || "");
   const username = ref(localStorage.getItem("user") || "");
@@ -31,7 +46,7 @@ const useAuthStore = defineStore("auth", () => {
   const showForceRecoveryMail = computed(() => !recoveryEmail.value && isMfaEnabled.value);
   const showRecoveryModal = computed(() => isRecoveringMfa.value && isMfaEnabled.value);
 
-  const persistAuth = (data) => {
+  const persistAuth = (data: IAuthData) => {
     token.value = data.token || "";
     username.value = data.user || data.username || "";
     name.value = data.name || "";
@@ -64,7 +79,7 @@ const useAuthStore = defineStore("auth", () => {
       persistAuth(resp.data);
     } catch (error) {
       const axiosError = error as AxiosError;
-      const token = axiosError.response?.headers["x-mfa-token"];
+      const token = axiosError.response?.headers["x-mfa-token"] as string;
       if (token) {
         isMfaEnabled.value = true;
         localStorage.setItem("mfa", "true");
@@ -72,7 +87,7 @@ const useAuthStore = defineStore("auth", () => {
         return;
       }
 
-      loginTimeout.value = axiosError?.response?.headers["x-account-lockout"];
+      loginTimeout.value = axiosError?.response?.headers["x-account-lockout"] as number;
       throw error;
     }
   };
@@ -101,7 +116,7 @@ const useAuthStore = defineStore("auth", () => {
       mfaToken.value = resp.data.token;
       isRecoveringMfa.value = true;
       recoveryCode.value = code;
-      disableTimeout.value = resp.headers["x-expires-at"];
+      disableTimeout.value = resp.headers["x-expires-at"] as number;
     }
   };
 
@@ -178,7 +193,7 @@ const useAuthStore = defineStore("auth", () => {
   };
 
   const setShowWelcomeScreen = (tenantID: string) => {
-    const current = JSON.parse(localStorage.getItem("namespacesWelcome") || "{}");
+    const current = JSON.parse(localStorage.getItem("namespacesWelcome") || "{}") as Record<string, boolean>;
     current[tenantID] = true;
     localStorage.setItem("namespacesWelcome", JSON.stringify(current));
   };

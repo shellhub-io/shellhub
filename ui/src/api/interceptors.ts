@@ -36,7 +36,7 @@ const onResponseError = async (error: AxiosError, isAdmin: boolean): Promise<Axi
   return Promise.reject(error);
 };
 
-// eslint-disable-next-line import/prefer-default-export
+ 
 export function setupInterceptorsTo(axiosInstance: AxiosInstance, isAdmin = false): AxiosInstance {
   axiosInstance.interceptors.request.use(onRequest, onRequestError);
   axiosInstance.interceptors.response.use(onResponse, (error) => onResponseError(error, isAdmin));

@@ -10,8 +10,6 @@ export const fetchPublicKeys = async (
   filter?: string,
 ) => sshApi.getPublicKeys(filter, page, perPage);
 
-export const updatePublicKey = async (data: IPublicKey) => {
-  sshApi.updatePublicKey(data.fingerprint, data as UpdatePublicKeyRequest);
-};
+export const updatePublicKey = async (data: IPublicKey) => sshApi.updatePublicKey(data.fingerprint, data as UpdatePublicKeyRequest);
 
 export const deletePublicKey = async (fingerprint: string) => sshApi.deletePublicKey(fingerprint);

@@ -13,7 +13,7 @@ const useConnectorStore = defineStore("connectors", () => {
     try {
       const res = await connectorsApi.getConnectorList(data.page, data.perPage);
       connectors.value = res.data as IConnector[];
-      connectorCount.value = parseInt(res.headers["x-total-count"], 10);
+      connectorCount.value = parseInt(res.headers["x-total-count"] as string, 10);
     } catch (error) {
       connectors.value = [];
       connectorCount.value = 0;

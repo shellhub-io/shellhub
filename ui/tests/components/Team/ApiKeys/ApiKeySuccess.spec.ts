@@ -83,7 +83,7 @@ describe("Api Key Success", () => {
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
-    const keyField = dialog.find('[data-test="generated-key-field"] input') as DOMWrapper<HTMLInputElement>;
+    const keyField = dialog.find('[data-test="generated-key-field"] input');
     expect(keyField.element.value).toBe("test-api-key-12345");
   });
 
