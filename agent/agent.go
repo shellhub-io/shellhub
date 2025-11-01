@@ -112,6 +112,10 @@ type Config struct {
 	// MaxRetryConnectionTimeout specifies the maximum time, in seconds, that an agent will wait
 	// before attempting to reconnect to the ShellHub server. Default is 60 seconds.
 	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
+
+	// SRDP enables or disables the SRDP feature.
+	// SRDP enables the graphical remote desktop protocol support to a X11 server running on the device.
+	SRDP bool `env:"SRDP,default=false"`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {

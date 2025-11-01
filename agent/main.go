@@ -44,6 +44,16 @@ func main() {
 				os.Exit(1)
 			}
 
+			// Wait for shutdown signal
+			// <-sigChan
+			// log.Println("Shutting down VNC server...")
+
+			// if err := server.Stop(); err != nil {
+			// 	log.Printf("Error during shutdown: %v", err)
+			// }
+
+			// log.Println("VNC server stopped")
+
 			updater, err := selfupdater.NewUpdater(AgentVersion)
 			if err != nil {
 				log.Panic(err)

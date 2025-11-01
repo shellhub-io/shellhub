@@ -109,6 +109,7 @@ func NewServer(opts *Options, tunnel *httptunnel.Tunnel, cache cache.Cache) *Ser
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			channels.SessionChannel:     channels.DefaultSessionHandler(),
 			channels.DirectTCPIPChannel: channels.DefaultDirectTCPIPHandler,
+			channels.SRDPChannel:        channels.DefaultSRDPHandler(),
 		},
 		LocalPortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return true

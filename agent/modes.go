@@ -29,7 +29,7 @@ type Mode interface {
 	GetInfo() (*Info, error)
 }
 
-// ModeHost is the Agent execution mode for `Host`.
+// HostMode is the Agent execution mode for `Host`.
 //
 // The host mode is the default mode one, and turns the host machine into a ShellHub's Agent. The host is
 // responsible for the SSH server, authentication and authorization, `/etc/passwd`, `/etc/shadow`, and etc.
@@ -38,6 +38,13 @@ type HostMode struct{}
 var _ Mode = new(HostMode)
 
 func (m *HostMode) Serve(agent *Agent) {
+	var features server.Feature
+
+	features |= server.LocalPortForwardFeature
+	if agent.config.SRDP {
+		features |= server.SRDPFeature
+	}
+
 	agent.server = server.NewServer(
 		agent.cli,
 		&host.Mode{
@@ -47,7 +54,7 @@ func (m *HostMode) Serve(agent *Agent) {
 		&server.Config{
 			PrivateKey:        agent.config.PrivateKey,
 			KeepAliveInterval: agent.config.KeepAliveInterval,
-			Features:          server.LocalPortForwardFeature,
+			Features:          features,
 		},
 	)
 
@@ -66,7 +73,7 @@ func (m *HostMode) GetInfo() (*Info, error) {
 	}, nil
 }
 
-// ModeConnector is the Agent execution mode for `Connector`.
+// ConnectorMode is the Agent execution mode for `Connector`.
 //
 // The `Connector` mode is used to turn a container inside a host into a single device ShellHub's Agent. The host is
 // responsible for the SSH server, but the authentication and authorization is made by either the conainer

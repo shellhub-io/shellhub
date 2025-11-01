@@ -48,3 +48,12 @@ func getIP(req *http.Request) (string, error) {
 
 	return ip, nil
 }
+
+func getDisplay(req *http.Request) (string, error) {
+	display := req.URL.Query().Get("display")
+	if display == "" {
+		return "", ErrGetDisplay
+	}
+
+	return display, nil
+}

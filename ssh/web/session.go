@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -264,6 +265,140 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	if err := agent.Wait(); err != nil {
 		logger.WithError(err).Warning("client remote command returned a error")
 	}
+
+	return nil
+}
+
+const SRDPChannel = "srdp"
+
+type SRDPChannelData struct {
+	Display string
+}
+
+type SRDPConfig struct {
+	Credentials *Credentials
+	IP          string
+	Display     string
+}
+
+func newSRDPSession(ctx context.Context, cache cache.Cache, conn *Conn, cfg *SRDPConfig) error {
+	logger := log.WithFields(log.Fields{
+		"user":    cfg.Credentials.Username,
+		"device":  cfg.Credentials.Device,
+		"ip":      cfg.IP,
+		"display": cfg.Display,
+	})
+
+	logger.Info("handling web client request started")
+	defer logger.Info("handling web client request end")
+
+	uuid := uuid.Generate()
+
+	user := fmt.Sprintf("%s@%s", cfg.Credentials.Username, uuid)
+	auth, err := getAuth(ctx, conn, cfg.Credentials)
+	if err != nil {
+		logger.WithError(err).Debug("failed to get the credentials")
+
+		return ErrGetAuth
+	}
+
+	if err := cache.Set(ctx, "web-ip/"+user, fmt.Sprintf("%s:%s", cfg.Credentials.Device, cfg.IP), 1*time.Minute); err != nil {
+		logger.WithError(err).Debug("failed to set the session IP on the cache")
+
+		return err
+	}
+
+	defer cache.Delete(ctx, "web-ip/"+user) //nolint:errcheck
+
+	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint: exhaustruct
+		User:            user,
+		Auth:            auth,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
+		BannerCallback: func(message string) error {
+			if message != "" {
+				return NewBannerError(message)
+			}
+
+			return nil
+		},
+	})
+	if err != nil {
+		var e *BannerError
+
+		// NOTE: if the connection return a error banner, wrap that message into an error and return to the session.
+		if errors.As(err, &e) {
+			logger.WithError(e).Debug("failed to receive the connection banner")
+
+			return e
+		}
+
+		// NOTE: Otherwise, any other error from the [ssh.Dial] process, we assume it was an authentication error,
+		// keeping the real error internally to avoid exposing some sensitive data.
+		logger.WithError(err).Debug("failed to dial to the ssh server")
+
+		return ErrAuthentication
+	}
+
+	defer connection.Close()
+
+	// NOTE: Mashal the SRDP display data to be sent on the channel open request.
+	data := ssh.Marshal(&SRDPChannelData{
+		Display: cfg.Display,
+	})
+
+	ch, reqs, err := connection.OpenChannel(SRDPChannel, data)
+	if err != nil {
+		logger.WithError(err).Error("failed to open srdp channel")
+
+		return ErrSession
+	}
+
+	go ssh.DiscardRequests(reqs)
+
+	if _, err := conn.WriteMessage(&Message{Kind: messageKindSuccess, Data: "SRDP session established"}); err != nil {
+		logger.WithError(err).Error("failed to write success message to websocket")
+
+		return err
+	}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+
+		b := make([]byte, 4096)
+		for {
+			r, err := ch.Read(b)
+			if r > 0 {
+				if _, err := conn.WriteBinary(b[:r]); err != nil {
+					logger.WithError(err).Error("failed to write to websocket")
+
+					return
+				}
+			}
+
+			if err != nil {
+				if err != io.EOF {
+					logger.WithError(err).Error("failed to read from srdp channel")
+				}
+
+				return
+			}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		if _, err := io.Copy(ch, conn); err != nil && err != io.EOF {
+			logger.WithError(err).Error("failed to copy from websocket to srdp channel")
+		}
+	}()
+
+	wg.Wait()
+
+	fmt.Println("SRDP session ended")
 
 	return nil
 }

@@ -386,6 +386,26 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 	return a, nil
 }
 
+func (s *Session) NewAgentChannelWithData(name string, seat int, data []byte) (*AgentChannel, error) {
+	if _, ok := s.Agent.Channels[seat]; ok {
+		return nil, ErrSeatAlreadySet
+	}
+
+	channel, requests, err := s.Agent.Client.OpenChannel(name, data)
+	if err != nil {
+		return nil, err
+	}
+
+	a := &AgentChannel{
+		Channel:  channel,
+		Requests: requests,
+	}
+
+	s.Agent.Channels[seat] = a
+
+	return a, nil
+}
+
 func (s *Session) checkFirewall(ctx context.Context) (bool, error) {
 	// TODO: Refactor firewall evaluation to remove the map requirement.
 	if err := s.api.FirewallEvaluate(ctx, map[string]string{

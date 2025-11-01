@@ -50,6 +50,8 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jezek/xgb v1.1.1 // indirect
+	github.com/jezek/xgbutil v0.0.0-20250620170308-517212d66001 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
