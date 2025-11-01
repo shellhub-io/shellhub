@@ -1,5 +1,9 @@
 <template>
-  <v-row class="d-flex align-center flex-column">
+  <v-btn-group
+    variant="outlined"
+    density="compact"
+  >
+    <!-- Main connection buttons group -->
     <v-btn-group
       :color="online ? 'success' : 'normal'"
       divided
@@ -40,7 +44,20 @@
         </v-list>
       </v-menu>
     </v-btn-group>
-  </v-row>
+
+    <!-- SRDP dedicated button for visibility -->
+    <v-btn
+      :disabled="!online"
+      color="info"
+      density="compact"
+      prepend-icon="mdi-desktop-classic"
+      data-test="srdp-btn"
+      @click="openSRDPDialog"
+      class="srdp-btn"
+    >
+      Remote Desktop
+    </v-btn>
+  </v-btn-group>
   <TerminalDialog
     v-model="showWebTerminal"
     :device-uid
@@ -50,12 +67,18 @@
     v-model="showTerminalHelper"
     :sshid
   />
+  <SRDPDialog
+    v-model="showSRDPDialog"
+    :device-uid
+    :device-name
+  />
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import TerminalDialog from "./TerminalDialog.vue";
 import TerminalHelper from "./TerminalHelper.vue";
+import SRDPDialog from "../SRDP/SRDPDialog.vue";
 
 defineOptions({
   inheritAttrs: false,
@@ -72,12 +95,18 @@ const showWebTerminal = ref(false);
 
 const showTerminalHelper = ref(false);
 
+const showSRDPDialog = ref(false);
+
 const openWebTerminal = () => {
   showWebTerminal.value = true;
 };
 
 const openTerminalHelper = () => {
   showTerminalHelper.value = true;
+};
+
+const openSRDPDialog = () => {
+  showSRDPDialog.value = true;
 };
 
 const menu = reactive([
@@ -95,7 +124,7 @@ const menu = reactive([
   },
 ]);
 
-defineExpose({ showWebTerminal, showTerminalHelper });
+defineExpose({ showWebTerminal, showTerminalHelper, showSRDPDialog });
 </script>
 
 <style scoped lang="scss">
@@ -116,5 +145,14 @@ defineExpose({ showWebTerminal, showTerminalHelper });
 
 .v-btn-group--divided .v-btn:not(:last-child) {
   border-inline-end-color: var(--v-theme-success);
+}
+
+.srdp-btn {
+  white-space: nowrap;
+}
+
+.srdp-btn {
+  min-width: 140px;
+  font-weight: 500;
 }
 </style>

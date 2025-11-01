@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRDP Remote Desktop</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        body.SRDP-active {
+            display: block;
+        }
+        
+        #loading {
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        #error {
+            color: #ff6b6b;
+            font-size: 16px;
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading SRDP Client...</div>
+    <div id="error" style="display: none;"></div>
+
+    <!-- WebCodec H.264 decoder bridge for browser-native video decoding -->
+    <script src="decoder_wasm.js"></script>
+    
+    <!-- WASM execution helper -->
+    <script src="wasm_exec.js"></script>
+    <script>
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+
+        // Get credentials from URL parameters (passed by the parent component)
+        const urlParams = new URLSearchParams(window.location.search);
+        const device = urlParams.get('device');
+        const username = urlParams.get('username');
+        const password = urlParams.get('password');
+        const display = urlParams.get('display') || ':0';
+
+        console.log('[SRDP] Debug - URL Search:', window.location.search);
+        console.log('[SRDP] Debug - Device:', device);
+        console.log('[SRDP] Debug - Username:', username);
+        console.log('[SRDP] Debug - Password:', password ? '***' : 'undefined');
+        console.log('[SRDP] Debug - Display:', display || 'undefined');
+
+        if (!device || !username || !password) {
+            errorDiv.textContent = 'Missing credentials: device, username, and password are required';
+            errorDiv.style.display = 'block';
+            loadingDiv.style.display = 'none';
+            throw new Error('Missing SRDP credentials');
+        }
+
+        async function initializeWASM() {
+            try {
+                // Check if Go is available
+                if (typeof Go === 'undefined') {
+                    throw new Error('Go WASM runtime not available');
+                }
+
+                // Verify WebCodec bridge is loaded
+                console.log('[SRDP] WebCodec bridge functions check:');
+                console.log('[SRDP] wasmInitializeDecoder:', typeof window.wasmInitializeDecoder);
+                console.log('[SRDP] wasmDecodeH264:', typeof window.wasmDecodeH264);
+                console.log('[SRDP] wasmGetNextFrame:', typeof window.wasmGetNextFrame);
+                console.log('[SRDP] wasmGetFrameQueueSize:', typeof window.wasmGetFrameQueueSize);
+                
+                if (typeof window.wasmInitializeDecoder === 'undefined') {
+                    throw new Error('WebCodec bridge functions not loaded. Check if webcodec_bridge.js is accessible.');
+                }
+
+                const go = new Go();
+
+                // Set environment variables for the WASM module
+                go.env['SRDP_DEVICE'] = device;
+                go.env['SRDP_USERNAME'] = username;
+                go.env['SRDP_PASSWORD'] = password;
+                go.env['SRDP_DISPLAY'] = display;
+
+                console.log('[SRDP] Debug - Environment variables set:');
+                console.log('[SRDP] SRDP_DEVICE:', go.env['SRDP_DEVICE']);
+                console.log('[SRDP] SRDP_USERNAME:', go.env['SRDP_USERNAME']);
+                console.log('[SRDP] SRDP_PASSWORD:', go.env['SRDP_PASSWORD'] ? '***' : 'undefined');
+                console.log('[SRDP] SRDP_DISPLAY:', go.env['SRDP_DISPLAY']);
+                console.log('[SRDP] go.env keys:', Object.keys(go.env));
+
+                // Load and instantiate WASM
+                const wasmFile = 'SRDP.wasm';
+                const response = await fetch(wasmFile);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load WASM: HTTP ${response.status}`);
+                }
+
+                const buffer = await response.arrayBuffer();
+                const result = await WebAssembly.instantiate(buffer, go.importObject);
+                
+                // Clear loading message
+                loadingDiv.style.display = 'none';
+                document.body.classList.add('SRDP-active');
+                
+                // Run the WASM instance - it handles everything:
+                // - Makes POST request to /ws/ssh for authentication
+                // - Connects WebSocket with token
+                // - Performs SRDP protocol handshake
+                // - Receives and decodes H.264 frames
+                // - Renders to canvas
+                // - Handles keyboard/mouse input
+                go.run(result.instance);
+                
+            } catch (error) {
+                console.error('[SRDP] Error:', error);
+                errorDiv.textContent = `Failed to initialize SRDP: ${error.message}`;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Start initialization when page loads
+        window.addEventListener('load', initializeWASM);
+    </script>
+</body>
+</html>
