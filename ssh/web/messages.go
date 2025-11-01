@@ -14,6 +14,9 @@ const (
 	// messageKindError is the identifier to output an erro rmessage. This kind of message contains data to be show
 	// in terminal for information propose.
 	messageKindError
+	// messageKindSuccess is the identifier to output a success message. From this message onwards, the data transmitted
+	// should be considered valid and the session established.
+	messageKindSuccess
 )
 
 // MessageMinSize is the minimum size of a message in bytes. This is used to validate if the message is valid.

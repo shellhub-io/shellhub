@@ -24,9 +24,9 @@ func newManager(ttl time.Duration) *manager {
 func (m *manager) save(id string, data *Credentials) {
 	m.credentials.Store(id, data)
 
-	go time.AfterFunc(m.ttl, func() {
-		m.credentials.Delete(id)
-	})
+	// go time.AfterFunc(m.ttl, func() {
+	// 	m.credentials.Delete(id)
+	// })
 }
 
 // get gets the credentials if it time period have not ended.

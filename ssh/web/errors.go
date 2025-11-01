@@ -56,6 +56,7 @@ var (
 	ErrGetToken      = errors.New("token not found on request query")
 	ErrGetIP         = errors.New("ip not found on request query")
 	ErrGetDimensions = errors.New("failed to get a terminal dimension")
+	ErrGetDisplay    = errors.New("display not found on request query")
 )
 
 var ErrCreditialsNoPassword = errors.New("this creditials does not have a password defined")

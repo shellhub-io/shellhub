@@ -7,6 +7,7 @@ import (
 	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
+	"github.com/shellhub-io/shellhub/agent/server/channels"
 	"github.com/shellhub-io/shellhub/agent/server/modes"
 	"github.com/shellhub-io/shellhub/agent/server/modes/host"
 	"github.com/shellhub-io/shellhub/pkg/api/client"
@@ -52,39 +53,17 @@ type Server struct {
 	mode     modes.Mode
 	Sessions sync.Map
 }
-
-// SSH channels supported by the SSH server.
-//
-// An SSH channel refers to a communication link established between a client and a server. SSH channels are multiplexed
-// over a single encrypted connection, facilitating concurrent and secure communication for various purposes.
-//
-// SSH_MSG_CHANNEL_OPEN
-//
-// Check www.ietf.org/rfc/rfc4254.txt for more information.
-const (
-	// ChannelSession refers to a type of SSH channel that is established between a client and a server for interactive
-	// shell sessions or command execution. SSH channels are used to multiplex multiple logical communication channels
-	// over a single SSH connection.
-	//
-	// Check www.ietf.org/rfc/rfc4254.txt at section 6.1 for more information.
-	ChannelSession string = "session"
-	// ChannelDirectTcpip is the channel type in SSH is used to establish a direct TCP/IP connection between the SSH
-	// client and a target host through the SSH server. This channel type allows the client to initiate a connection to
-	// a specific destination host and port, and the SSH server acts as a bridge to facilitate this connection.
-	//
-	// Check www.ietf.org/rfc/rfc4254.txt at section 7.2 for more information.
-	ChannelDirectTcpip string = "direct-tcpip"
-)
-
 type Feature uint
 
 const (
 	// NoFeature no features enable.
 	NoFeature Feature = 0
 	// LocalPortForwardFeature enable local port forward feature.
-	LocalPortForwardFeature Feature = iota << 1
+	LocalPortForwardFeature Feature = 1 << iota
 	// ReversePortForwardFeature enable reverse port forward feature.
 	ReversePortForwardFeature
+	// SRDPFeature enable SRDP support feature.
+	SRDPFeature
 )
 
 // Config stores configuration needs for the SSH server.
@@ -109,6 +88,23 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 
 	if m, ok := mode.(*host.Mode); ok {
 		m.Sessioner.SetCmds(server.cmds)
+	}
+
+	channelHandlers := map[string]gliderssh.ChannelHandler{
+		channels.ChannelSession:     gliderssh.DefaultSessionHandler,
+		channels.ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
+	}
+
+	// NOTE: Initialize SRDP channel handler if the feature is enabled.
+	if (cfg.Features & SRDPFeature) > 0 {
+		log.Info("SRDP feature enabled")
+
+		srdp, err := channels.NewSRDPChannel(nil)
+		if err != nil {
+			log.Warn("Failed to initialize SRDP channel:", err)
+		} else {
+			channelHandlers[channels.ChannelSRDP] = srdp.SRDPHandler
+		}
 	}
 
 	server.sshd = &gliderssh.Server{
@@ -138,14 +134,10 @@ func NewServer(api client.Client, mode modes.Mode, cfg *Config) *Server {
 		ReversePortForwardingCallback: func(_ gliderssh.Context, _ string, _ uint32) bool {
 			return cfg.Features&ReversePortForwardFeature > 0
 		},
-		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			ChannelSession:     gliderssh.DefaultSessionHandler,
-			ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
-		},
+		ChannelHandlers: channelHandlers,
 	}
 
-	err := server.sshd.SetOption(gliderssh.HostKeyFile(cfg.PrivateKey))
-	if err != nil {
+	if err := server.sshd.SetOption(gliderssh.HostKeyFile(cfg.PrivateKey)); err != nil {
 		log.Warn(err)
 	}
 
