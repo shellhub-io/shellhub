@@ -24,6 +24,8 @@ type Connection struct {
 	encoder encoders.Encoder
 	display displays.Display
 	logger  *log.Entry
+
+	version string
 }
 
 func NewConnection(conn io.ReadWriteCloser, display displays.Display, logger *log.Entry) (*Connection, error) {
@@ -45,6 +47,8 @@ func NewConnection(conn io.ReadWriteCloser, display displays.Display, logger *lo
 		fps:     fps,
 		display: display,
 		logger:  logger,
+		// TODO: Add configurable version.
+		version: "SRDP 000.001\n",
 	}, nil
 }
 
@@ -65,8 +69,7 @@ func (c *Connection) exhangeVersion(version string) error {
 		return err
 	}
 
-	// For simplicity, accept any
-	if string(clientVersion[:8]) != "SRDP 000" {
+	if string(clientVersion[:]) != version {
 		return fmt.Errorf("unsupported protocol version: %s", string(clientVersion))
 	}
 
