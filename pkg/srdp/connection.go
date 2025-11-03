@@ -13,42 +13,53 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	DefaultFPS uint16 = 30 // Default frames per second
+
+	// FPS constraints enforced by server
+	MaxFPS uint16 = 60 // Maximum frames per second (clamped on server)
+	MinFPS uint16 = 1  // Minimum frames per second (clamped on server)
+
+	// Client options validation
+	MinClientOptions = 0 // Minimum allowed client options (0 = defaults used)
+	MaxClientOptions = 3 // Maximum allowed client options (WindowSize, FPS, Encoder)
+)
+
+type Options struct {
+	Width    uint16
+	Height   uint16
+	FPS      uint16
+	Encoders []byte
+}
+
 type Connection struct {
+	version string
 	connID  uint64
 	conn    io.ReadWriteCloser
 	reader  *bufio.Reader
 	writer  *bufio.Writer
-	width   uint16
-	height  uint16
-	fps     uint32
 	encoder encoders.Encoder
 	display displays.Display
-	logger  *log.Entry
+	options Options
 
-	version string
+	logger *log.Entry
 }
 
 func NewConnection(conn io.ReadWriteCloser, display displays.Display, logger *log.Entry) (*Connection, error) {
-	width, height := display.GetScreenSize()
-
 	if logger == nil {
 		logger = log.NewEntry(log.StandardLogger())
 	}
 
-	var fps uint32 = 30 // Target frames per second
-
 	return &Connection{
+		// TODO: Add configurable version.
+		version: "SRDP 000.001\n",
 		connID:  uint64(time.Now().UnixNano() % 0xFFFFFFFF), //nolint:gosec
 		conn:    conn,
 		reader:  bufio.NewReader(conn),
 		writer:  bufio.NewWriter(conn),
-		width:   width,
-		height:  height,
-		fps:     fps,
 		display: display,
-		logger:  logger,
-		// TODO: Add configurable version.
-		version: "SRDP 000.001\n",
+
+		logger: logger,
 	}, nil
 }
 
@@ -154,55 +165,146 @@ func (c *Connection) securityHandshake(auths []Auth) error {
 }
 
 func (c *Connection) clientInit() error {
-	buf := make([]byte, 1)
-	if _, err := io.ReadFull(c.reader, buf); err != nil {
+	optionsBuf := make([]byte, 1)
+	if _, err := io.ReadFull(c.reader, optionsBuf); err != nil {
 		return err
 	}
 
-	numEncoders := buf[0] // Number of supported encoders
-	c.logger.Tracef("Client supports %d encoders", numEncoders)
+	numOptions := optionsBuf[0]
+	c.logger.Tracef("Client sent %d options", numOptions)
 
-	encodersList := make([]byte, numEncoders) // List of supported encoders
-	if _, err := io.ReadFull(c.reader, encodersList); err != nil {
-		return err
+	if numOptions == 0 {
+		c.logger.Info("No client options sent; using default settings")
+
+		return nil
 	}
 
-	c.logger.Tracef("Client encoders: %v", encodersList)
+	if numOptions < MinClientOptions || numOptions > MaxClientOptions {
+		return fmt.Errorf("invalid number of client options: %d", numOptions)
+	}
 
-	for _, enc := range encodersList {
-		switch enc {
-		// NOTE: only H.264 is supported for now.
-		// TODO: Add property to connection with all supported encoder by the device, filling it when creating the SRDP
-		// server on Agent.
-		case EncoderH264:
-			encoder, err := encoders.NewH264(int(c.width), int(c.height), c.fps)
-			if err != nil {
+	for i := 0; i < int(numOptions); i++ {
+		optTypeBuf := make([]byte, 1)
+		if _, err := io.ReadFull(c.reader, optTypeBuf); err != nil {
+			return err
+		}
+
+		optType := optTypeBuf[0]
+		c.logger.Tracef("Processing client option type: %d", optType)
+
+		switch optType {
+		case ClientOptionWindowSize:
+			sizeBuf := make([]byte, 4)
+			if _, err := io.ReadFull(c.reader, sizeBuf); err != nil {
 				return err
 			}
 
-			c.encoder = encoder
+			// NOTE: For now, always use display screen even if client did not request it.
+			// width := binary.BigEndian.Uint16(sizeBuf[0:2])
+			// height := binary.BigEndian.Uint16(sizeBuf[2:4])
+			// c.options.Width = width
+			// c.options.Height = height
 
-			c.logger.Infof("Selected encoder: H.264")
+			c.logger.Infof("Client requested window size: %dx%d", c.options.Width, c.options.Height)
+		case ClientOptionFPS:
+			fpsBuf := make([]byte, 2)
+			if _, err := io.ReadFull(c.reader, fpsBuf); err != nil {
+				return err
+			}
+
+			fps := binary.BigEndian.Uint16(fpsBuf)
+			c.logger.Tracef("Client requested FPS: %d", fps)
+
+			if fps > MaxFPS {
+				fps = MaxFPS
+			} else if fps < MinFPS {
+				fps = MinFPS
+			}
+
+			c.options.FPS = fps
+
+			c.logger.Infof("Client requested FPS set to: %d", c.options.FPS)
+		case ClientOptionEncoder:
+			encodersBuf := make([]byte, 1)
+			if _, err := io.ReadFull(c.reader, encodersBuf); err != nil {
+				return err
+			}
+
+			encoderNums := encodersBuf[0]
+			if encoderNums <= 0 {
+				c.logger.Warn("Client sent invalid number of encoders; using default encoder (H.264)")
+
+				break
+			}
+
+			encodersList := make([]byte, encoderNums)
+			if _, err := io.ReadFull(c.reader, encodersList); err != nil {
+				return err
+			}
+
+			if encoderNums == 0 {
+				c.logger.Info("No encoder preference sent by client; using default encoder (H.264)")
+
+				break
+			}
+
+			c.logger.Tracef("Client supported encoders: %v", encodersList)
+
+			c.options.Encoders = encodersList
 		default:
-			c.logger.Warnf("Unsupported encoder from client: %d", enc)
+			c.logger.Warnf("Unknown client option type: %d", optType)
 		}
-	}
-
-	if c.encoder == nil {
-		c.writer.WriteByte(EncoderInvalid)
-	} else {
-		c.writer.WriteByte(byte(c.encoder.Code()))
 	}
 
 	return c.writer.Flush()
 }
 
-// serverInit sends the server initialization message
 func (c *Connection) serverInit() error {
-	buf := make([]byte, 4)
+	buf := make([]byte, 7)
 
-	binary.BigEndian.PutUint16(buf[0:2], c.width)
-	binary.BigEndian.PutUint16(buf[2:4], c.height)
+	if c.options.Width == 0 || c.options.Height == 0 {
+		width, height := c.display.GetScreenSize()
+		c.logger.Infof("Using display screen size: %dx%d", width, height)
+
+		c.options.Width = width
+		c.options.Height = height
+	}
+
+	if c.options.FPS == 0 {
+		c.options.FPS = DefaultFPS
+	}
+
+	if len(c.options.Encoders) == 0 {
+		c.logger.Info("No encoder preference sent by client; using default encoder (H.264)")
+
+		c.options.Encoders = []byte{EncoderH264}
+	}
+
+	for _, encoderType := range c.options.Encoders {
+		switch encoderType {
+		case EncoderH264:
+			var err error
+
+			c.encoder, err = encoders.NewH264(int(c.options.Width), int(c.options.Height), c.options.FPS)
+			if err != nil {
+				return err
+			}
+
+			c.logger.Infof("Using encoder: H.264")
+		}
+	}
+
+	c.logger.WithFields(log.Fields{
+		"width":   c.options.Width,
+		"height":  c.options.Height,
+		"fps":     c.options.FPS,
+		"encoder": c.encoder.Code(),
+	}).Info("Server initialized with options")
+
+	binary.BigEndian.PutUint16(buf[0:2], c.options.Width)
+	binary.BigEndian.PutUint16(buf[2:4], c.options.Height)
+	binary.BigEndian.PutUint16(buf[4:6], c.options.FPS)
+	buf[6] = byte(c.encoder.Code()) // Encoder type
 	if _, err := c.writer.Write(buf); err != nil {
 		return err
 	}
@@ -220,7 +322,7 @@ func (c *Connection) sendVideoFrame() error {
 		return err
 	}
 
-	encoded, err := c.encoder.Encode(c.width, c.height, data)
+	encoded, err := c.encoder.Encode(c.options.Width, c.options.Height, data)
 	if err != nil {
 		return fmt.Errorf("H.264 encoding failed: %v", err)
 	}
@@ -241,7 +343,7 @@ func (c *Connection) sendVideoFrame() error {
 }
 
 func (c *Connection) startVideoStream() {
-	ticker := time.NewTicker(1000 / time.Duration(c.fps))
+	ticker := time.NewTicker(1000 / time.Duration(c.options.FPS))
 	defer ticker.Stop()
 	defer c.Close()
 

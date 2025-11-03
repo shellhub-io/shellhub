@@ -88,9 +88,9 @@ func (s *SRDPServer) Handle(conn io.ReadWriteCloser, display displays.Display) e
 
 	logger := s.logger.WithFields(log.Fields{
 		"conn_id": c.connID,
-		"width":   c.width,
-		"height":  c.height,
-		"fps":     c.fps,
+		"width":   c.options.Width,
+		"height":  c.options.Height,
+		"fps":     c.options.FPS,
 	})
 
 	logger.Trace("Starting SRDP handshake")

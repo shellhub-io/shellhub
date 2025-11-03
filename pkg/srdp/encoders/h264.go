@@ -43,7 +43,7 @@ var DefaultH264Params = H264Params{
 	Bitrate: 500,
 }
 
-func NewH264(width, height int, fps uint32, ops ...func(*H264Params)) (*H264, error) {
+func NewH264(width, height int, fps uint16, ops ...func(*H264Params)) (*H264, error) {
 	params := DefaultH264Params
 	for _, op := range ops {
 		op(&params)
