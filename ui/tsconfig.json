@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "useDefineForClassFields": true,
-    "module": "commonjs",
+    "module": "es2022",
     "moduleResolution": "node",
     "strict": true,
     "jsx": "preserve",
@@ -32,13 +32,12 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/*.ts",
-    "src/router/index.js",
-    "src/sshpk.js",
-    "example.ts",
-    "src/sshpk.Js",
     "admin/**/*.ts",
     "admin/**/*.d.ts",
     "admin/**/*.vue",
+    "vitest/**/*.ts",
+    "vitest/*.ts",
+    "vitest.config.ts"
   ],
   "extensions": [
     ".vue"

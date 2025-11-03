@@ -1,7 +1,7 @@
 /**
  * Vitest setup function
  */
-export async function setup() {
+export function setup() {
   global.CSS = {
     supports: () => false,
     escape: (str: string) => str,
@@ -10,7 +10,6 @@ export async function setup() {
 
 // FAIL LOUDLY on unhandled promise rejections / errors
 process.on("unhandledRejection", (reason) => {
-  // eslint-disable-next-line no-console
   console.log("FAILED TO HANDLE PROMISE REJECTION");
   throw reason;
 });
@@ -18,6 +17,6 @@ process.on("unhandledRejection", (reason) => {
 /**
  * Vitest Teardown function
  */
-export async function teardown() {
+export function teardown() {
   console.log("📝 vitest globalTeardown");
 }
