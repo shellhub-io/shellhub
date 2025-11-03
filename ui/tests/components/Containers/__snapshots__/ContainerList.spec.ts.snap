@@ -26,7 +26,7 @@ exports[`Container List > Renders the component 1`] = `
                         <!----><span class="v-btn__content" data-no-activator="">Offline</span>
                         <!---->
                         <!---->
-                      </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                      </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                         <!---->
                         <!---->
@@ -66,7 +66,7 @@ exports[`Container List > Renders the component 1`] = `
                     <!--teleport end-->
                   </div>
                 </td>
-                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-11"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-11" aria-owns="v-menu-v-11"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
@@ -82,7 +82,7 @@ exports[`Container List > Renders the component 1`] = `
                         <!----><span class="v-btn__content" data-no-activator="">Connect</span>
                         <!---->
                         <!---->
-                      </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-16"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                      </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-16" aria-owns="v-menu-v-16"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                         <!---->
                         <!---->
@@ -122,7 +122,7 @@ exports[`Container List > Renders the component 1`] = `
                     <!--teleport end-->
                   </div>
                 </td>
-                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-24"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-24" aria-owns="v-menu-v-24"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
@@ -153,7 +153,7 @@ exports[`Container List > Renders the component 1`] = `
           <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4" data-test="ipp-combo">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-28">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-28" aria-owns="menu-v-28">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">

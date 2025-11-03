@@ -49,7 +49,7 @@ exports[`Sessions View > Renders the component 1`] = `
                 <td data-v-459ab1b4="" class="text-center"><code data-v-459ab1b4="" class="v-code bg-tabs">192.168.0.1</code></td>
                 <td data-v-459ab1b4="" class="text-center"><span data-v-459ab1b4="">January 2, 2025 12:00 AM</span></td>
                 <td data-v-459ab1b4="" class="text-center"><span data-v-459ab1b4="">January 2, 2025 12:00 AM</span></td>
-                <td data-v-459ab1b4="" class="text-center"><button data-v-459ab1b4="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-4" data-test="session-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <td data-v-459ab1b4="" class="text-center"><button data-v-459ab1b4="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-4" aria-owns="v-menu-v-4" data-test="session-list-actions"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
@@ -80,7 +80,7 @@ exports[`Sessions View > Renders the component 1`] = `
           <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4" data-test="ipp-combo">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-7">
+              <div class="v-field v-field--active v-field--appended v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-7" aria-owns="menu-v-7">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">

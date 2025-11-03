@@ -29,7 +29,7 @@ exports[`Details Device > Renders the component 1`] = `
             <!----><span class="v-btn__content" data-no-activator="">Offline</span>
             <!---->
             <!---->
-          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1" aria-owns="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
@@ -41,7 +41,7 @@ exports[`Details Device > Renders the component 1`] = `
       <!---->
       <!---->
       <!----><span data-v-46133275="" class="ml-6">39-5e-2a</span>
-    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
@@ -123,7 +123,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
             <!----><span class="v-btn__content" data-no-activator="">Offline</span>
             <!---->
             <!---->
-          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1" aria-owns="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
@@ -135,7 +135,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
       <!---->
       <!---->
       <!----><span data-v-46133275="" class="ml-6">39-5e-2a</span>
-    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
@@ -217,7 +217,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
             <!----><span class="v-btn__content" data-no-activator="">Offline</span>
             <!---->
             <!---->
-          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1" aria-owns="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
@@ -229,7 +229,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
       <!---->
       <!---->
       <!----><span data-v-46133275="" class="ml-6">39-5e-2a</span>
-    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
@@ -300,7 +300,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
             <!----><span class="v-btn__content" data-no-activator="">Offline</span>
             <!---->
             <!---->
-          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--disabled v-btn--flat v-btn--icon v-theme--light text-normal v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" disabled="" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1" aria-owns="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
             <!---->
             <!---->
@@ -312,7 +312,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
       <!---->
       <!---->
       <!----><span data-v-46133275="" class="ml-6">39-5e-2a</span>
-    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
@@ -390,7 +390,7 @@ exports[`Details Device > Renders the component when device status is not accept
   <div data-v-46133275="" class="v-card-title pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
     <div data-v-46133275="" class="d-flex align-center ml-2">
       <!--v-if--><span data-v-46133275="" class="ml-6">39-5e-2a</span>
-    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </div><button data-v-46133275="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
