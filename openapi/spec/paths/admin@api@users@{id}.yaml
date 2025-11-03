@@ -87,39 +87,107 @@ get:
           schema:
             type: object
             properties:
-              user:
-                $ref: ../components/schemas/userAdminResponse.yaml
-              namespacesOwned:
-                description: User's integer of owned namespaces
+              id:
+                $ref: ../components/schemas/userID.yaml
+              status:
+                description: User's status
+                type: string
+                enum: [confirmed, pending]
+              max_namespaces:
+                description: Maximum number of namespaces the user can own
                 type: integer
                 minimum: 0
+              created_at:
+                description: User's creating date
+                type: string
+                format: date-time
+              last_login:
+                description: User's last login date
+                type: string
+                format: date-time
+              name:
+                $ref: ../components/schemas/userName.yaml
+              username:
+                $ref: ../components/schemas/userUsername.yaml
+              email:
+                $ref: ../components/schemas/userEmail.yaml
+              recovery_email:
+                description: User's recovery email address
+                type: string
+                format: email
+              mfa:
+                description: Multi-factor authentication settings
+                type: object
+                properties:
+                  enabled:
+                    description: Whether MFA is enabled for the user
+                    type: boolean
+                required:
+                  - enabled
+              namespacesOwned:
+                description: Number of namespaces owned by the user
+                type: integer
+                minimum: 0
+              preferences:
+                description: User preferences
+                type: object
+                properties:
+                  auth_methods:
+                    description: Preferred authentication methods
+                    type: array
+                    items:
+                      type: string
+                      enum: [local, saml]
+                required:
+                  - auth_methods
+            required:
+              - id
+              - status
+              - max_namespaces
+              - created_at
+              - last_login
+              - name
+              - username
+              - email
+              - mfa
+              - namespacesOwned
+              - preferences
           examples:
             user_confirmed:
               value:
-                user:
-                  id: 507f1f77bcf86cd799439011
-                  namespaces: 0
-                  confirmed: true
-                  created_at: 2020-05-01T00:00:00.000Z
-                  last_login: 2020-05-01T00:00:00.000Z
-                  name: example
-                  email: example@example.com
-                  username: example
-                  password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
-                namespacesOwned: 0
-            user_not_confirmed:
+                id: '68ada99d2f96ee43fd86306a'
+                status: 'confirmed'
+                max_namespaces: 0
+                created_at: '2025-08-26T12:33:33.19Z'
+                last_login: '2025-10-27T13:10:59.458Z'
+                name: 'dev'
+                username: 'dev'
+                email: 'dev@dev.com'
+                recovery_email: 'banana@banana.com'
+                mfa:
+                  enabled: false
+                namespacesOwned: 1
+                preferences:
+                  auth_methods:
+                    - 'local'
+            user_pending:
               value:
-                user:
-                  id: 507f1f77bcf86cd799439011
-                  namespaces: 2
-                  confirmed: false
-                  created_at: 2012-01-02T00:00:00.000Z
-                  last_login: 2012-01-02T00:00:00.000Z
-                  name: example
-                  email: example@example.com
-                  username: example
-                  password: 50d858e0985ecc7f60418aaf0cc5ab587f42c2570a884095a9e8ccacd0f6545c
+                id: '507f1f77bcf86cd799439012'
+                status: 'pending'
+                max_namespaces: 5
+                created_at: '2025-01-15T10:00:00.000Z'
+                last_login: '2025-01-20T15:30:00.000Z'
+                name: 'testuser'
+                username: 'testuser'
+                email: 'test@example.com'
+                recovery_email: 'recovery@example.com'
+                mfa:
+                  enabled: true
                 namespacesOwned: 2
+                preferences:
+                  auth_methods:
+                    - 'local'
+                    - 'saml'
     '401':
       $ref: ../components/responses/401.yaml
     '404':
