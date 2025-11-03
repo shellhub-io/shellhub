@@ -22,7 +22,7 @@ const tags = [
   { name: "tag11" },
 ];
 
-describe("Tag Selector", async () => {
+describe("Tag Selector", () => {
   let wrapper: VueWrapper<InstanceType<typeof TagSelector>>;
   setActivePinia(createPinia());
   const vuetify = createVuetify();
@@ -32,7 +32,7 @@ describe("Tag Selector", async () => {
     .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
     .reply(200, tags);
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(TagSelector, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
@@ -55,11 +55,11 @@ describe("Tag Selector", async () => {
     expect(wrapper.vm.$data).toBeDefined();
   });
 
-  it("Renders components", async () => {
+  it("Renders components", () => {
     expect(wrapper.findComponent('[data-test="tags-btn"]').exists()).toBe(true);
   });
 
-  it("Succesfully load tags", async () => {
+  it("Successfully loads tags", async () => {
     mockTagsApi
       .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
       .reply(200, tags);

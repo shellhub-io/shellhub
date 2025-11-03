@@ -5,6 +5,7 @@ import { BrowserTracing } from "@sentry/vue";
 import { configure as configGtag } from "vue-gtag";
 import { createChatWoot } from "@productdevbook/chatwoot/vue";
 import { envVariables } from "./envVariables";
+import type { Plugin } from "vue";
 import vuetify from "./plugins/vuetify";
 import { router } from "./router";
 import App from "./App.vue";
@@ -38,8 +39,8 @@ Sentry.init({
 });
 Sentry.setTag("project", "shellhub-ui");
 
-loadFonts();
-app.use(vuetify);
+loadFonts()
+app.use(vuetify as Plugin);
 app.use(router);
 app.use(pinia);
 

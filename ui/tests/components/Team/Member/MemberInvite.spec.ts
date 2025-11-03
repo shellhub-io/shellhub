@@ -27,7 +27,7 @@ describe("Member Invite", () => {
   const vuetify = createVuetify();
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     envVariables.isCloud = true;
     localStorage.setItem("tenant", "fake-tenant-data");
     authStore.$patch({

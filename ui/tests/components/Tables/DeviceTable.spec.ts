@@ -66,7 +66,7 @@ describe("Device Table", () => {
     getFilter: () => undefined,
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);
 
     wrapper = shallowMount(DeviceTable, {
@@ -82,7 +82,7 @@ describe("Device Table", () => {
     });
   });
 
-  it("Is a Vue instance", async () => {
+  it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
@@ -90,7 +90,7 @@ describe("Device Table", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component HTML", async () => {
+  it("Renders the component HTML", () => {
     expect(wrapper.findComponent('[data-test="items-list"]').exists()).toBe(true);
   });
 });

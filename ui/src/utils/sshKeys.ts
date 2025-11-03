@@ -10,7 +10,7 @@ export const isKeyValid = (type: "private" | "public", key: string, passphrase?:
   try {
     if (type === "private") return !!parsePrivateKey(key, passphrase);
     return !!parsePublicKey(key);
-  } catch (error) { return false; }
+  } catch { return false; }
 };
 
 const generateRsaKeySignature = (
@@ -44,7 +44,7 @@ export const parseCertificate = (certificate: string) => sshpk.parseCertificate(
 export const isX509CertificateValid = (certificate: string) => {
   try {
     return !!sshpk.parseCertificate(certificate, "pem");
-  } catch (error) { return false; }
+  } catch { return false; }
 };
 
 export const convertToFingerprint = (privateKey: string, passphrase?: string) => (

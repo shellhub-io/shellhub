@@ -27,7 +27,7 @@ describe("Firewall Rule Add", () => {
 
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
   const mockTags = new MockAdapter(tagsApi.getAxios());
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockTags

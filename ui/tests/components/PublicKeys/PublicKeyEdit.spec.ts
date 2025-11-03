@@ -34,7 +34,7 @@ describe("Public Key Edit", () => {
     tenant_id: "fake-tenant",
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     document.body.innerHTML = "";
 
     localStorage.setItem("tenant", "fake-tenant-data");

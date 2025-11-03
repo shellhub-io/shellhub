@@ -43,7 +43,7 @@ describe("Public Key List", () => {
     .reply(200, []);
   publicKeysStore.publicKeys = mockPublicKeys.data;
   authStore.role = "owner";
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(PublicKeysList, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
@@ -59,7 +59,7 @@ describe("Public Key List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders components", async () => {
+  it("Renders components", () => {
     expect(wrapper.find('[data-test="public-keys-list"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="public-key-item"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="public-key-name"]').exists()).toBe(true);
@@ -70,7 +70,7 @@ describe("Public Key List", () => {
     expect(wrapper.find('[data-test="public-key-actions"]').exists()).toBe(true);
   });
 
-  it("Handles authorization for editing and removing keys", async () => {
+  it("Handles authorization for editing and removing keys", () => {
     expect(wrapper.vm.canEditPublicKey).toBeTruthy();
     expect(wrapper.vm.canRemovePublicKey).toBeTruthy();
 

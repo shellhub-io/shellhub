@@ -60,7 +60,7 @@ describe("Device Chooser", () => {
   const mockBillingApi = new MockAdapter(billingApi.getAxios());
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     mockBillingApi.onGet("http://localhost:3000/api/billing/devices-most-used").reply(200, devices);

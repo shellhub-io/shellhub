@@ -44,7 +44,7 @@
 
       <div v-if="device.tags?.length">
         <h3 class="text-overline mt-3">Tags:</h3>
-        <div :data-test="device.tags">
+        <div data-test="device-tags">
           <v-tooltip
             v-for="(tag, index) in device.tags"
             :key="index"

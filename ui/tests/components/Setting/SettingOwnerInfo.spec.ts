@@ -44,7 +44,7 @@ describe("Setting Owner Info", () => {
   const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     namespacesStore.currentNamespace = namespaceData;
 
     wrapper = mount(SettingOwnerInfo, {
@@ -62,7 +62,7 @@ describe("Setting Owner Info", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Displays message when user is not the owner", async () => {
+  it("Displays message when user is not the owner", () => {
     expect(wrapper.find('[data-test="message-div"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="contactUser-p"]').text()).toContain("Contact the owner for more information.");
   });

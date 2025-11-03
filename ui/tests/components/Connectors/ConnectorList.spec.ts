@@ -39,7 +39,7 @@ describe("Connector List", () => {
     },
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,
       media: query,
@@ -68,7 +68,7 @@ describe("Connector List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component HTML", async () => {
+  it("Renders the component HTML", () => {
     expect(wrapper.findComponent('[data-test="connector-list"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="status-connector"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="switch-enable"]').exists()).toBe(true);

@@ -61,7 +61,7 @@ describe("Session Details", () => {
   sessionsStore.fetchSessionById = vi.fn().mockResolvedValue(sessionDetail);
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(SessionDetails, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],

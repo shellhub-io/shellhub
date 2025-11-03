@@ -74,7 +74,7 @@ describe("Sessions Store", () => {
 
     try {
       await sessionsStore.fetchSessionList({ page: 1, perPage: 10 });
-    } catch (error) {
+    } catch {
       expect(sessionsStore.sessions).toEqual([]);
       expect(sessionsStore.sessionCount).toEqual(0);
     }

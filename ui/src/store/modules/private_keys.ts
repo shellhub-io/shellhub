@@ -6,7 +6,7 @@ const usePrivateKeysStore = defineStore("privateKey", () => {
   const privateKeys = ref<Array<IPrivateKey>>([]);
 
   const getPrivateKeyList = () => {
-    privateKeys.value = JSON.parse(localStorage.getItem("privateKeys") || "[]");
+    privateKeys.value = JSON.parse(localStorage.getItem("privateKeys") || "[]") as Array<IPrivateKey>;
   };
 
   const validateKeyUniqueness = (name: string, data: string, currentKeyId?: number) => {

@@ -7,7 +7,7 @@ describe("Billing Icon", () => {
   let wrapper: VueWrapper<InstanceType<typeof BillingIcon>>;
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(BillingIcon, {
       global: {
         plugins: [vuetify],

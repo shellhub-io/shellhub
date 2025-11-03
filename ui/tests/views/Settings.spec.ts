@@ -12,7 +12,7 @@ describe("Settings View", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(Settings, {
       global: {
         plugins: [vuetify, router],

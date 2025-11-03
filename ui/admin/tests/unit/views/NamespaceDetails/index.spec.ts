@@ -53,7 +53,7 @@ describe("Namespace Details", () => {
   const vuetify = createVuetify();
   namespacesStore.fetchNamespaceById = vi.fn().mockResolvedValue(namespaceDetail);
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(NamespaceDetails, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],

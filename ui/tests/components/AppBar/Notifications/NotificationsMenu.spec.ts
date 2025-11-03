@@ -10,12 +10,12 @@ import { router } from "@/router";
 import useAuthStore from "@/store/modules/auth";
 import useNotificationsStore from "@/store/modules/notifications";
 
-const deviceData = [{
+const mockDeviceData = [{
   uid: "a582b47a42d",
   name: "39-5e-2a",
 }];
 
-const containerData = [{
+const mockContainerData = [{
   uid: "a582b47a42e",
   name: "39-5e-2b",
 }];
@@ -27,21 +27,21 @@ const mockSnackbar = {
 const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
-describe("Notifications Menu", async () => {
+describe("Notifications Menu", () => {
   let wrapper: VueWrapper<InstanceType<typeof NotificationsMenu>>;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
   const authStore = useAuthStore();
   const notificationsStore = useNotificationsStore();
 
-  const mockPendingNotifications = (deviceData, containerData, status = 200) => {
+  const mockPendingNotifications = (deviceData: typeof mockDeviceData, containerData: typeof mockContainerData, status = 200) => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending").reply(status, deviceData);
     mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=pending").reply(status, containerData);
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     authStore.role = "owner";
-    mockPendingNotifications(deviceData, containerData);
+    mockPendingNotifications(mockDeviceData, mockContainerData);
     wrapper = mount(NotificationsMenu, {
       global: {
         plugins: [router, vuetify],

@@ -17,7 +17,7 @@ const vuetify = createVuetify();
 const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
 describe("Namespace Invite Dialog (Invalid User)", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(NamespaceInviteCard, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
@@ -56,7 +56,7 @@ describe("Namespace Invite Dialog", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders dialog elements with correct data-test attributes", async () => {
+  it("Renders dialog elements with correct data-test attributes", () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="message"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="actions"]').exists()).toBe(true);

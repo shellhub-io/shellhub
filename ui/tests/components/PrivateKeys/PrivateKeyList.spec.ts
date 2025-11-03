@@ -20,7 +20,7 @@ describe("Private Key List", () => {
   const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(PrivateKeyList, {
       global: {
         plugins: [vuetify, SnackbarPlugin],

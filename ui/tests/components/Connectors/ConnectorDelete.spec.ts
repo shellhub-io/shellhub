@@ -24,7 +24,7 @@ describe("Connector Delete", () => {
 
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(ConnectorDelete, {
       global: {
         plugins: [vuetify, router],

@@ -20,7 +20,7 @@ const useApiKeysStore = defineStore("apiKeys", () => {
       sortField,
     );
     apiKeys.value = res.data as IApiKey[] || [];
-    apiKeysCount.value = parseInt(res.headers["x-total-count"], 10) || 0;
+    apiKeysCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
   };
 
   const generateApiKey = async (data: IApiKeyCreate) => {

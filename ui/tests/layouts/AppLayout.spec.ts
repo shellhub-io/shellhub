@@ -50,7 +50,7 @@ describe("App Layout Component", async () => {
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
-    json: async () => (cards),
+    json: () => (cards),
   })));
 
   const AppWrapperComponent = defineComponent({
@@ -135,7 +135,7 @@ describe("App Layout Component", async () => {
     expect(layoutWrapper.find('[data-test="navigation-drawer"]').isVisible()).toBe(layoutWrapper.vm.lgAndUp);
   });
 
-  it("Renders navigation items from router", async () => {
+  it("Renders navigation items from router", () => {
     const layoutWrapper = wrapper.findComponent(AppLayout);
     const { items } = layoutWrapper.vm;
 

@@ -17,14 +17,14 @@ const useBillingStore = defineStore("billing", () => {
         const res = await billingApi.getSubscriptionInfo();
         billing.value = res.data as IBilling;
       }
-    } catch (error) {
+    } catch {
       billing.value.active = false;
     }
   };
 
   const openBillingPortal = async (): Promise<void> => {
-    const res = await billingApi.getBillingPortalUrl();
-    window.open(res.data.url, "_blank");
+    const { data } = await billingApi.getBillingPortalUrl() as { data: { url: string } };
+    window.open(data.url, "_blank");
   };
 
   return {

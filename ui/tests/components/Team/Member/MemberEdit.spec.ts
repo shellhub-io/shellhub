@@ -34,7 +34,7 @@ describe("Member Edit", () => {
 
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     authStore.tenantId = "fake-tenant-data";
 
     wrapper = mount(MemberEdit, {

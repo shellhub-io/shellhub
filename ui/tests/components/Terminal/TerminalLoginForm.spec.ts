@@ -13,14 +13,14 @@ const mockPrivateKeys: Array<IPrivateKey> = [
   { id: 2, name: "test-key-2", data: "private-key-data-2", hasPassphrase: false, fingerprint: "fingerprint-2" },
 ];
 
-describe("Terminal Login Form", async () => {
+describe("Terminal Login Form", () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalLoginForm>>;
   let dialog: DOMWrapper<HTMLElement>;
   setActivePinia(createPinia());
   const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     privateKeysStore.privateKeys = mockPrivateKeys;
 
     wrapper = mount(TerminalLoginForm, {

@@ -13,7 +13,7 @@ describe("Connector Edit", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(ConnectorEdit, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],

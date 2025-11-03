@@ -62,7 +62,7 @@ describe("Quick Connection", () => {
     },
   ];
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockDevicesApi
       // eslint-disable-next-line vue/max-len
       .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fSx7InR5cGUiOiJwcm9wZXJ0eSIsInBhcmFtcyI6eyJuYW1lIjoibmFtZSIsIm9wZXJhdG9yIjoiY29udGFpbnMiLCJ2YWx1ZSI6IiJ9fSx7InR5cGUiOiJvcGVyYXRvciIsInBhcmFtcyI6eyJuYW1lIjoiYW5kIn19XQ%3D%3D&page=1&per_page=10&status=accepted")
@@ -103,7 +103,7 @@ describe("Quick Connection", () => {
     expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
   });
 
-  it("keyboardMacros function toggles dialog value on Ctrl + K keydown", async () => {
+  it("keyboardMacros function toggles dialog value on Ctrl + K keydown", () => {
     const event = new KeyboardEvent("keydown", { ctrlKey: true, key: "k" });
 
     dispatchEvent(event);

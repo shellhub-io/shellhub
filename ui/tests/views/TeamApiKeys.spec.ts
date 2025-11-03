@@ -30,7 +30,7 @@ describe("Team Api Keys", () => {
     },
   ];
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockApiKeysApi.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(
       200,
       { data: mockApiKeys, headers: { "x-total-count": "1" } },
@@ -60,7 +60,7 @@ describe("Team Api Keys", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with data", async () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="api-key-generate"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="api-key-list"]').exists()).toBe(true);

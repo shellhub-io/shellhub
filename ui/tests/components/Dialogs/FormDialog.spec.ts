@@ -6,6 +6,7 @@ import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 
 vi.mock("vuetify", async () => {
   const actual = await vi.importActual<typeof import("vuetify")>("vuetify");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     ...actual,
     useDisplay: () => ({
@@ -65,7 +66,7 @@ describe("FormDialog", () => {
   });
 
   describe("WindowDialog integration", () => {
-    it("Wraps content in WindowDialog", async () => {
+    it("Wraps content in WindowDialog", () => {
       const windowDialog = wrapper.findComponent(WindowDialog);
       expect(windowDialog.exists()).toBe(true);
     });
@@ -117,12 +118,12 @@ describe("FormDialog", () => {
   });
 
   describe("Form content", () => {
-    it("Renders form element", async () => {
+    it("Renders form element", () => {
       const form = dialogDom.find("form");
       expect(form.exists()).toBe(true);
     });
 
-    it("Renders default slot content inside form", async () => {
+    it("Renders default slot content inside form", () => {
       const formInput = dialogDom.find('[data-test="form-input"]');
       expect(formInput.exists()).toBe(true);
     });

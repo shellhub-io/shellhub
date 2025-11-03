@@ -11,7 +11,7 @@ describe("Device Icon", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(DeviceIcon, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],

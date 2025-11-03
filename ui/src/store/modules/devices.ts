@@ -31,7 +31,7 @@ const useDevicesStore = defineStore("devices", () => {
         data?.sortOrder,
       );
       devices.value = res.data as IDevice[];
-      deviceCount.value = parseInt(res.headers["x-total-count"], 10);
+      deviceCount.value = parseInt(res.headers["x-total-count"] as string, 10);
       if (deviceCount.value) showDevices.value = true;
     } catch (error) {
       devices.value = [];
@@ -42,7 +42,7 @@ const useDevicesStore = defineStore("devices", () => {
 
   const setDeviceListVisibility = async () => {
     const { headers } = await devicesApi.fetchDevices(1, 1);
-    if (parseInt(headers["x-total-count"], 10)) showDevices.value = true;
+    if (parseInt(headers["x-total-count"] as string, 10)) showDevices.value = true;
   };
 
   const fetchOnlineDevices = async (filter?: string) => {

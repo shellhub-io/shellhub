@@ -10,7 +10,7 @@ describe("PaywallChat", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(PaywallChat, {
       global: {
         plugins: [vuetify, SnackbarPlugin],

@@ -56,7 +56,7 @@ describe("Device Pending List", () => {
   const vuetify = createVuetify();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=pending").reply(
       200,
       mockDevices,
@@ -79,7 +79,7 @@ describe("Device Pending List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component data table", async () => {
+  it("Renders the component data table",  () => {
     expect(wrapper.findComponent('[data-test="device-table"]').exists()).toBe(true);
   });
 });

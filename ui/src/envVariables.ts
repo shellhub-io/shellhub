@@ -14,21 +14,21 @@ variables can be accessed directly through `process.env` object.
 
 */
 
-
+const env = (window.env || process.env);
 export const envVariables = {
-  isEnterprise: (window.env || process.env).VUE_APP_SHELLHUB_ENTERPRISE === "true",
-  hasConnector: (window.env || process.env).VUE_APP_SHELLHUB_CONNECTOR === "true",
-  hasWebEndpoints: (window.env || process.env).VUE_APP_SHELLHUB_WEB_ENDPOINTS === "true",
-  tunnelsDomain: (window.env || process.env).VUE_APP_SHELLHUB_WEB_ENDPOINTS_DOMAIN,
-  isCloud: (window.env || process.env).VUE_APP_SHELLHUB_CLOUD === "true",
-  isCommunity: (window.env || process.env).VUE_APP_SHELLHUB_CLOUD === "false" && (window.env || process.env).VUE_APP_SHELLHUB_ENTERPRISE === "false",
-  premiumPaywall: (window.env || process.env).VUE_APP_SHELLHUB_PAYWALL === "true",
-  stripePublishableKey: (window.env || process.env).VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY,
-  chatWootWebsiteToken:(window.env || process.env).VUE_APP_SHELLHUB_CHATWOOT_WEBSITE_TOKEN,
-  chatWootBaseURL:(window.env || process.env).VUE_APP_SHELLHUB_CHATWOOT_BASEURL,
-  version: (window.env || process.env).VUE_APP_SHELLHUB_VERSION,
-  announcementsEnable: (window.env || process.env).VUE_APP_SHELLHUB_ANNOUNCEMENTS === "true",
-  stripeKey: (window.env || process.env).VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY,
-  sentryDsn: (window.env || process.env).VUE_APP_SHELLHUB_SENTRY_DSN_VERSION,
-  googleAnalyticsID: (window.env || process.env).VUE_APP_SHELLHUB_GOOGLE_ANALYTICS_ID,
+  isEnterprise: env.VUE_APP_SHELLHUB_ENTERPRISE === "true",
+  hasConnector: env.VUE_APP_SHELLHUB_CONNECTOR === "true",
+  hasWebEndpoints: env.VUE_APP_SHELLHUB_WEB_ENDPOINTS === "true",
+  tunnelsDomain: env.VUE_APP_SHELLHUB_WEB_ENDPOINTS_DOMAIN as string,
+  isCloud: env.VUE_APP_SHELLHUB_CLOUD === "true",
+  isCommunity: env.VUE_APP_SHELLHUB_CLOUD === "false" && env.VUE_APP_SHELLHUB_ENTERPRISE === "false",
+  premiumPaywall: env.VUE_APP_SHELLHUB_PAYWALL === "true",
+  stripePublishableKey: env.VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY as string,
+  chatWootWebsiteToken: env.VUE_APP_SHELLHUB_CHATWOOT_WEBSITE_TOKEN as string,
+  chatWootBaseURL: env.VUE_APP_SHELLHUB_CHATWOOT_BASEURL as string,
+  version: env.VUE_APP_SHELLHUB_VERSION as string,
+  announcementsEnable: env.VUE_APP_SHELLHUB_ANNOUNCEMENTS === "true",
+  stripeKey: env.VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY as string,
+  sentryDsn: env.VUE_APP_SHELLHUB_SENTRY_DSN_VERSION as string,
+  googleAnalyticsID: env.VUE_APP_SHELLHUB_GOOGLE_ANALYTICS_ID as string,
 };

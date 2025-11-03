@@ -33,16 +33,16 @@ const cards = [
   },
 ];
 
-describe("PaywallDialog", async () => {
+describe("PaywallDialog", () => {
   let wrapper: VueWrapper<InstanceType<typeof PaywallDialog>>;
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
   vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
-    json: async () => (cards),
+    json: () => (cards),
   })));
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(PaywallDialog, {
       global: {
         plugins: [vuetify, SnackbarPlugin],
@@ -93,7 +93,7 @@ describe("PaywallDialog", async () => {
     expect(dialog.find('[data-test="no-link-available-btn"]').exists()).toBe(false);
   });
 
-  it("Renders the component table with a successful request to get card infos", async () => {
+  it("Renders the component table with a successful request to get card infos", () => {
     const dialog = new DOMWrapper(document.body);
     expect(dialog.find('[data-test="no-link-available-btn"]').exists()).toBe(true);
   });

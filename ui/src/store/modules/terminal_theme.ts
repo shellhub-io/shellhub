@@ -68,7 +68,7 @@ const useTerminalThemeStore = defineStore("terminal-theme", () => {
 
       const themePromises = metadata.map(async (meta) => {
         try {
-          const { data: themeColors } = await axios.get(`/xterm-themes/${meta.file}`);
+          const { data: themeColors } = await axios.get<ITerminalTheme["colors"]>(`/xterm-themes/${meta.file}`);
 
           return {
             name: meta.name,

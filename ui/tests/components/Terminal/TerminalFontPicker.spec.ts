@@ -36,7 +36,7 @@ describe("TerminalFontPicker.vue", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("shows current font size value", async () => {
+  it("shows current font size value", () => {
     const fontSizeInput = wrapper.find(".v-number-input input");
     expect((fontSizeInput.element as HTMLInputElement).value).toBe("15");
   });

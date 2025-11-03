@@ -6,7 +6,7 @@ const handleErrorInTests = (error: unknown) => {
     return;
   }
 
-  const requestUrl = error.response?.request.responseURL;
+  const requestUrl = (error.response?.request as { responseURL?: string })?.responseURL || "unknown URL";
   console.log(`${error.message}\nRequest URL: ${requestUrl}`);
 };
 

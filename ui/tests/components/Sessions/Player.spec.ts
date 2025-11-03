@@ -30,7 +30,7 @@ describe("Asciinema Player", () => {
   // eslint-disable-next-line vue/max-len
   const logsMock = "{\"version\": 2, \"width\": 80, \"height\": 24}\n[0.123, \"r\", \"80x24\"]\n[1.0, \"o\", \"Asciinema player test\"]\n[2.0, \"o\", \"logout\"]";
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(Player, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
@@ -53,7 +53,7 @@ describe("Asciinema Player", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders components", async () => {
+  it("Renders components", () => {
     expect(wrapper.find('[data-test="player-container"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="player-controls"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="pause-btn"]').exists()).toBe(true);
@@ -64,7 +64,7 @@ describe("Asciinema Player", () => {
     expect(wrapper.find('[data-test="shortcuts-btn"]').exists()).toBe(true);
   });
 
-  it("Creates player on mount", async () => {
+  it("Creates player on mount", () => {
     expect(wrapper.vm.player).toBeDefined();
   });
 
@@ -158,7 +158,7 @@ describe("Asciinema Player", () => {
     expect(wrapper.vm.player.play).toHaveBeenCalled();
   });
 
-  it("Disposes player when component is unmounted", async () => {
+  it("Disposes player when component is unmounted", () => {
     wrapper.unmount();
     expect(wrapper.vm.player.dispose).toHaveBeenCalled();
   });

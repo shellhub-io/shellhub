@@ -60,7 +60,7 @@ const tags = [
   { name: "tag3" },
 ];
 
-describe("Tag Form Update", async () => {
+describe("Tag Form Update", () => {
   let wrapper: VueWrapper<InstanceType<typeof TagFormUpdate>>;
   setActivePinia(createPinia());
   const tagsStore = useTagsStore();
@@ -71,7 +71,7 @@ describe("Tag Form Update", async () => {
     .reply(200, tags);
   localStorage.setItem("tenant", "fake-tenant-data");
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(TagFormUpdate, {
       attachTo: document.body,
       global: {

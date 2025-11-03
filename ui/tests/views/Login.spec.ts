@@ -202,7 +202,7 @@ describe("Login", () => {
     let attempts = 0;
 
     mockUsersApi.onPost("http://localhost:3000/api/login").reply((config) => {
-      const { username: reqUsername, password } = JSON.parse(config.data);
+      const { username: reqUsername, password } = JSON.parse(config.data as string);
       if (reqUsername === username && password === "wrongpassword") {
         attempts++;
         if (attempts >= maxAttempts) {
@@ -215,9 +215,9 @@ describe("Login", () => {
 
     // Simulate 10 failed login attempts
     for (let i = 0; i < maxAttempts; i++) {
-      wrapper.findComponent('[data-test="username-text"]').setValue(username);
-      wrapper.findComponent('[data-test="password-text"]').setValue("wrongpassword");
-      wrapper.findComponent('[data-test="form"]').trigger("submit");
+      await wrapper.findComponent('[data-test="username-text"]').setValue(username);
+      await wrapper.findComponent('[data-test="password-text"]').setValue("wrongpassword");
+      await wrapper.findComponent('[data-test="form"]').trigger("submit");
     }
 
     await flushPromises();

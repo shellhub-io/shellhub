@@ -30,7 +30,7 @@ describe("Member Delete", () => {
     },
   ] as INamespaceMember[];
 
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorage.setItem("tenant", "fake-tenant-data");
 
     wrapper = mount(MemberDelete, {

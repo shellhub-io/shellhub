@@ -22,7 +22,7 @@ describe("Api Key Delete", () => {
   const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
   const apiKeysStore = useApiKeysStore();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(ApiKeyDelete, {
       global: {
         plugins: [vuetify],

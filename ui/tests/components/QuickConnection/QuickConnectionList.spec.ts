@@ -69,7 +69,7 @@ describe("Quick Connection List", () => {
   const vuetify = createVuetify();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockDevicesApi.onGet(mockDeviceApiUrl).reply(200, devices);
 
     wrapper = mount(QuickConnectionList, {

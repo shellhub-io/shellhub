@@ -62,7 +62,7 @@ describe("Sessions View", () => {
 
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockSessionsApi.onGet("http://localhost:3000/api/sessions?page=1&per_page=10").reply(200, [mockSession], { "x-total-count": "1" });
 
     wrapper = mount(Sessions, {

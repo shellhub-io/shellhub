@@ -17,7 +17,7 @@ describe("Setting Session Recording", () => {
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,
       media: query,
@@ -52,7 +52,7 @@ describe("Setting Session Recording", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Changes status in store when ref is mutated", async () => {
+  it("Changes status in store when ref is mutated", () => {
     mockUsersApi.onPut("http://localhost:3000/api/users/security/fake-tenant-data").reply(200);
 
     const storeSpy = vi.spyOn(sessionRecordingStore, "setStatus");

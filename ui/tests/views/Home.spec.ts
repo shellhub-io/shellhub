@@ -231,7 +231,7 @@ describe("Home", () => {
   });
 
   describe("User Interactions", () => {
-    it("allows copying tenant ID", async () => {
+    it("allows copying tenant ID", () => {
       const copyButton = wrapper.find('[data-test="copy-tenant-btn"]');
       expect(copyButton.exists()).toBe(true);
     });

@@ -7,7 +7,7 @@ import useAuthStore from "@admin/store/modules/auth";
 import useLayoutStore from "@admin/store/modules/layout";
 import useLicenseStore from "@admin/store/modules/license";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import Login from "../../../../src/views/Login.vue";
+import Login from "@admin/views/Login.vue";
 
 type LoginWrapper = VueWrapper<InstanceType<typeof Login>>;
 
@@ -40,8 +40,8 @@ describe("Login", () => {
     expect(wrapper.exists()).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    router.push("/login");
+  it("Renders the component", async () => {
+    await router.push("/login");
     expect(wrapper.html()).toMatchSnapshot();
   });
 

@@ -91,7 +91,7 @@ describe("Container List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component HTML", async () => {
+  it("Renders the component HTML", () => {
     expect(wrapper.findComponent('[data-test="container-table"]').exists()).toBe(true);
   });
 });

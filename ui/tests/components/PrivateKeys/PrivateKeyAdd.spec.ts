@@ -12,7 +12,7 @@ describe("Setting Private Keys", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(PrivateKeyAdd, {
       global: {
         plugins: [vuetify, SnackbarPlugin],

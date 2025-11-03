@@ -52,7 +52,7 @@ describe("TerminalThemePicker.vue", () => {
     currentThemeName: "ShellHub Dark",
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(TerminalThemePicker, {
       global: {
         plugins: [vuetify],
@@ -67,7 +67,7 @@ describe("TerminalThemePicker.vue", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("displays list of available themes and its descriptions", async () => {
+  it("displays list of available themes and its descriptions", () => {
     const themeItems = wrapper.findAll('[data-test="theme-item"]');
     expect(themeItems).toHaveLength(mockThemes.length);
 
@@ -78,7 +78,7 @@ describe("TerminalThemePicker.vue", () => {
     expect(wrapper.text()).toContain("Light theme");
   });
 
-  it("shows preview for each theme with correct colors", async () => {
+  it("shows preview for each theme with correct colors", () => {
     const themePreviews = wrapper.findAll(".theme-preview");
     expect(themePreviews).toHaveLength(mockThemes.length);
 
@@ -88,7 +88,7 @@ describe("TerminalThemePicker.vue", () => {
     expect(style).toContain("color: rgb(255, 255, 255)"); // #ffffff
   });
 
-  it("marks the selected theme as active", async () => {
+  it("marks the selected theme as active", () => {
     const themeItems = wrapper.findAll('[data-test="theme-item"]');
     const activeTheme = themeItems.find((item) => item.classes().includes("v-list-item--active"));
 
@@ -96,7 +96,7 @@ describe("TerminalThemePicker.vue", () => {
     expect(activeTheme?.text()).toContain("ShellHub Dark");
   });
 
-  it("shows check icon for selected theme", async () => {
+  it("shows check icon for selected theme", () => {
     const checkIcons = wrapper.findAll(".mdi-check");
     expect(checkIcons).toHaveLength(1);
 
@@ -117,7 +117,7 @@ describe("TerminalThemePicker.vue", () => {
     expect(emitted?.[0][0]).toEqual(mockThemes[2]); // Dracula theme
   });
 
-  it("generates correct theme preview styles for different color combinations", async () => {
+  it("generates correct theme preview styles for different color combinations", () => {
     const themeItems = wrapper.findAll('[data-test="theme-item"]');
 
     // Test first theme (ShellHub Dark)

@@ -57,7 +57,7 @@ describe("Container Rejected List", () => {
   const vuetify = createVuetify();
   const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=rejected").reply(200, containers);
 
     wrapper = mount(ContainerRejectedList, {
@@ -73,9 +73,5 @@ describe("Container Rejected List", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the component HTML", async () => {
-    expect(wrapper.findComponent('[data-test="container-table"]').exists()).toBe(true);
   });
 });

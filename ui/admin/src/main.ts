@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+import { createApp, type Plugin } from "vue";
 import { createPinia } from "pinia";
 import vuetify from "@/plugins/vuetify";
 import App from "./App.vue";
@@ -10,7 +10,7 @@ const pinia = createPinia();
 const app = createApp(App);
 
 loadFonts();
-app.use(vuetify);
+app.use(vuetify as Plugin);
 app.use(router);
 app.use(pinia);
 app.use(SnackbarPlugin);

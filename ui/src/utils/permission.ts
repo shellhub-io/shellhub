@@ -64,7 +64,7 @@ type Action = keyof typeof permissions;
 
 const hasPermission = (action: Action) => {
   const { role } = useAuthStore();
-  const roleLevel = Roles[role.toUpperCase()] || 0;
+  const roleLevel = Roles[role.toUpperCase()] as Roles || 0;
   const requiredLevel = permissions[action];
 
   return roleLevel >= requiredLevel;

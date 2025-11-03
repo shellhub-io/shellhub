@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useDevicesStore from "@admin/store/modules/devices";
+import DeviceList from "@admin/components/Device/DeviceList.vue";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import DeviceList from "../../../../../src/components/Device/DeviceList.vue";
-import routes from "../../../../../src/router";
 
 type DeviceListWrapper = VueWrapper<InstanceType<typeof DeviceList>>;
 
@@ -121,7 +121,7 @@ describe("Device List", () => {
     expect(wrapper.vm.itemsPerPage).toEqual(10);
   });
 
-  it("Renders data in the computed", async () => {
+  it("Renders data in the computed", () => {
     expect(wrapper.vm.devices).toEqual(devices);
   });
 });

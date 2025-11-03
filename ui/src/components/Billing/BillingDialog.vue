@@ -89,6 +89,7 @@ import BillingSuccessful from "./BillingSuccessful.vue";
 import handleError from "@/utils/handleError";
 import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 import useCustomerStore from "@/store/modules/customer";
+import { AxiosError } from "axios";
 
 const customerStore = useCustomerStore();
 const showCheckoutDialog = defineModel({ default: false });
@@ -119,7 +120,8 @@ const subscribe = async () => {
   try {
     await customerStore.createSubscription();
     el.value = 4;
-  } catch (status) {
+  } catch (error) {
+    const status = (error as AxiosError).response?.status;
     switch (status) {
       case 402:
         alertRender.value = true;
