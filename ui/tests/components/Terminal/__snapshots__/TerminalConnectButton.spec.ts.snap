@@ -6,7 +6,7 @@ exports[`Terminal Connect Button > Renders the component 1`] = `
       <!----><span class="v-btn__content" data-no-activator="">Connect</span>
       <!---->
       <!---->
-    </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-1" aria-owns="v-menu-v-1"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
