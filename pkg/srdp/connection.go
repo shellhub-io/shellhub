@@ -172,6 +172,8 @@ func (c *Connection) clientInit() error {
 	for _, enc := range encodersList {
 		switch enc {
 		// NOTE: only H.264 is supported for now.
+		// TODO: Add property to connection with all supported encoder by the device, filling it when creating the SRDP
+		// server on Agent.
 		case EncoderH264:
 			encoder, err := encoders.NewH264(int(c.width), int(c.height), c.fps)
 			if err != nil {
@@ -189,7 +191,7 @@ func (c *Connection) clientInit() error {
 	if c.encoder == nil {
 		c.writer.WriteByte(EncoderInvalid)
 	} else {
-		c.writer.WriteByte(c.encoder.Code())
+		c.writer.WriteByte(byte(c.encoder.Code()))
 	}
 
 	return c.writer.Flush()

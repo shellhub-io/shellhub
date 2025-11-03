@@ -1,11 +1,15 @@
 package encoders
 
 /*
-#cgo pkg-config: x264
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <x264.h>
+#cgo pkg-config: libavcodec libavutil
+#include <libavcodec/avcodec.h>
+#include <libavutil/opt.h>
+#include <libavutil/imgutils.h>
+#include <errno.h>
+
+// expose AVERROR_* macros for Go
+static inline int AVERR_EOF() { return AVERROR_EOF; }
+static inline int AVERR_EAGAIN() { return AVERROR(EAGAIN); }
 */
 import "C"
 
@@ -15,22 +19,20 @@ import (
 )
 
 type H264 struct {
-	handle   *C.x264_t
-	params   C.x264_param_t
-	picIn    C.x264_picture_t
-	picOut   C.x264_picture_t
-	frameNum int64 // Track frame count for PTS calculation
+	encoderID EncoderType
+	codecCtx  *C.AVCodecContext
+	frame     *C.AVFrame
+	packet    *C.AVPacket
+	frameNum  int64
+	width     int
+	height    int
 }
 
-var _ Encoder = (*H264)(nil)
-
 type H264Params struct {
-	// https://trac.ffmpeg.org/wiki/Encode/H.264#Preset
-	Preset string
-	// https://trac.ffmpeg.org/wiki/Encode/H.264#Tune
-	Tune string
-	// https://trac.ffmpeg.org/wiki/Encode/H.264#Profile
+	Preset  string
+	Tune    string
 	Profile string
+	// Bitrate in kbps.
 	Bitrate uint
 }
 
@@ -38,126 +40,161 @@ var DefaultH264Params = H264Params{
 	Preset:  "veryfast",
 	Tune:    "zerolatency",
 	Profile: "baseline",
-	Bitrate: 1000,
+	Bitrate: 500,
 }
 
-type H264Option func(*H264Params)
-
-func NewH264(width, height int, fps uint32, ops ...H264Option) (*H264, error) {
-	var enc H264
-
+func NewH264(width, height int, fps uint32, ops ...func(*H264Params)) (*H264, error) {
 	params := DefaultH264Params
 	for _, op := range ops {
 		op(&params)
 	}
 
-	preset := C.CString(params.Preset)
-	tune := C.CString(params.Tune)
-	defer C.free(unsafe.Pointer(preset))
-	defer C.free(unsafe.Pointer(tune))
-
-	if C.x264_param_default_preset(&enc.params, preset, tune) != 0 {
-		return nil, errors.New("failed to apply preset")
+	codec := C.avcodec_find_encoder(C.AV_CODEC_ID_H264)
+	if codec == nil {
+		return nil, errors.New("VAAPI encoder not found (h264_vaapi missing in ffmpeg build)")
 	}
 
-	enc.params.i_csp = C.X264_CSP_I420
-	enc.params.i_width = C.int(width)
-	enc.params.i_height = C.int(height)
-	enc.params.b_repeat_headers = 1
-	enc.params.b_annexb = 1
-
-	enc.params.i_fps_num = C.uint(fps)
-	enc.params.i_fps_den = 1
-
-	enc.params.i_timebase_den = C.uint(fps) // Matches fps: each PTS increment = 1 frame
-	enc.params.i_timebase_num = 1
-
-	// TODO: Adjust bitrate settings as needed on runtime if the sharing is too slow.
-	enc.params.rc.i_rc_method = C.X264_RC_ABR
-	enc.params.rc.i_bitrate = C.int(params.Bitrate)
-	enc.params.rc.i_vbv_buffer_size = C.int(params.Bitrate * 2)
-	enc.params.rc.i_vbv_max_bitrate = C.int(params.Bitrate * 2)
-
-	profile := C.CString(params.Profile)
-	defer C.free(unsafe.Pointer(profile))
-
-	if C.x264_param_apply_profile(&enc.params, profile) != 0 {
-		return nil, errors.New("failed to apply profile")
+	ctx := C.avcodec_alloc_context3(codec)
+	if ctx == nil {
+		return nil, errors.New("failed to allocate codec context")
 	}
 
-	if C.x264_picture_alloc(&enc.picIn, enc.params.i_csp, enc.params.i_width, enc.params.i_height) != 0 {
-		return nil, errors.New("failed to allocate picture")
+	ctx.bit_rate = C.int64_t(params.Bitrate * 1000) // in bits per second // 1000 * 1000 = 1 Mbps
+	ctx.rc_max_rate = C.int64_t((params.Bitrate * 1000) * 2)
+	ctx.rc_min_rate = C.int64_t((params.Bitrate * 1000) / 2)
+
+	ctx.width = C.int(width)
+	ctx.height = C.int(height)
+	ctx.time_base = C.AVRational{num: 1, den: C.int(fps)}
+	ctx.framerate = C.AVRational{num: C.int(fps), den: 1}
+	ctx.gop_size = C.int(fps)
+	ctx.max_b_frames = 0
+	ctx.pix_fmt = C.AV_PIX_FMT_YUV420P
+
+	// Preset, tune, profile
+	C.av_opt_set(ctx.priv_data, C.CString("preset"), C.CString(params.Preset), 0)
+	C.av_opt_set(ctx.priv_data, C.CString("tune"), C.CString(params.Tune), 0)
+	C.av_opt_set(ctx.priv_data, C.CString("profile"), C.CString(params.Profile), 0)
+
+	if C.avcodec_open2(ctx, codec, nil) < 0 {
+		C.avcodec_free_context(&ctx)
+
+		return nil, errors.New("failed to open H.264 codec")
 	}
 
-	enc.handle = C.x264_encoder_open(&enc.params)
-	if enc.handle == nil {
-		C.x264_picture_clean(&enc.picIn)
-		return nil, errors.New("failed to open encoder")
+	frame := C.av_frame_alloc()
+	if frame == nil {
+		C.avcodec_free_context(&ctx)
+
+		return nil, errors.New("failed to allocate frame")
 	}
 
-	enc.frameNum = 0
+	frame.format = C.int(ctx.pix_fmt)
+	frame.width = C.int(width)
+	frame.height = C.int(height)
 
-	return &enc, nil
+	if C.av_frame_get_buffer(frame, 32) < 0 {
+		C.av_frame_free(&frame)
+		C.avcodec_free_context(&ctx)
+
+		return nil, errors.New("failed to allocate frame buffer")
+	}
+
+	packet := C.av_packet_alloc()
+	if packet == nil {
+		C.av_frame_free(&frame)
+		C.avcodec_free_context(&ctx)
+
+		return nil, errors.New("failed to allocate packet")
+	}
+
+	return &H264{
+		encoderID: EncoderTypeH264,
+		codecCtx:  ctx,
+		frame:     frame,
+		packet:    packet,
+		width:     width,
+		height:    height,
+	}, nil
 }
 
-const EncoderH264 = 1
-
-func (e *H264) Code() uint8 {
-	return EncoderH264
+// Code returns the encoder type code.
+func (e *H264) Code() EncoderType {
+	return e.encoderID
 }
 
-// Encode encodes one RGBA frame to H.264
 func (e *H264) Encode(width, height uint16, data []byte) ([]byte, error) {
-	// TODO: Optimize!
 	y, u, v := rgbToYUV420(int(width), int(height), data)
 
-	C.memcpy(unsafe.Pointer(e.picIn.img.plane[0]), unsafe.Pointer(&y[0]), C.size_t(len(y)))
-	C.memcpy(unsafe.Pointer(e.picIn.img.plane[1]), unsafe.Pointer(&u[0]), C.size_t(len(u)))
-	C.memcpy(unsafe.Pointer(e.picIn.img.plane[2]), unsafe.Pointer(&v[0]), C.size_t(len(v)))
+	if C.av_frame_make_writable(e.frame) < 0 {
+		return nil, errors.New("frame not writable")
+	}
 
-	// FIXME: Set presentation timestamp.
-	e.picIn.i_pts = C.int64_t(e.frameNum)
+	C.memcpy(unsafe.Pointer(e.frame.data[0]), unsafe.Pointer(&y[0]), C.size_t(len(y)))
+	C.memcpy(unsafe.Pointer(e.frame.data[1]), unsafe.Pointer(&u[0]), C.size_t(len(u)))
+	C.memcpy(unsafe.Pointer(e.frame.data[2]), unsafe.Pointer(&v[0]), C.size_t(len(v)))
+
+	e.frame.pts = C.int64_t(e.frameNum)
 	e.frameNum++
 
-	var nal *C.x264_nal_t
-	var iNal C.int
-	size := C.x264_encoder_encode(e.handle, &nal, &iNal, &e.picIn, &e.picOut)
-	if size < 0 {
-		return nil, errors.New("encode failed")
-	}
-	if size == 0 {
-		return nil, nil // Delayed frame
+	// NOTE: This is the main encoding process. The idea is send a frame to the encoder and receive a packet, data
+	// encoded in H.264 format, to be sent to the client.
+	if C.avcodec_send_frame(e.codecCtx, e.frame) < 0 {
+		return nil, errors.New("failed to send frame to encoder")
 	}
 
-	return C.GoBytes(unsafe.Pointer(nal.p_payload), size), nil
+	ret := C.avcodec_receive_packet(e.codecCtx, e.packet)
+	if ret == C.AVERR_EAGAIN() || ret == C.AVERR_EOF() {
+		return nil, nil
+	}
+
+	if ret < 0 {
+		return nil, errors.New("failed to receive packet")
+	}
+
+	out := C.GoBytes(unsafe.Pointer(e.packet.data), e.packet.size)
+	C.av_packet_unref(e.packet)
+
+	return out, nil
 }
 
-// Flush returns delayed frames
 func (e *H264) Flush() ([][]byte, error) {
 	var frames [][]byte
+	C.avcodec_send_frame(e.codecCtx, nil)
 	for {
-		var nal *C.x264_nal_t
-		var iNal C.int
-		size := C.x264_encoder_encode(e.handle, &nal, &iNal, nil, &e.picOut)
-		if size < 0 {
-			return nil, errors.New("flush failed")
-		}
-		if size == 0 {
+		ret := C.avcodec_receive_packet(e.codecCtx, e.packet)
+		if ret == C.AVERR_EOF() || ret == C.AVERR_EAGAIN() {
 			break
 		}
-		frames = append(frames, C.GoBytes(unsafe.Pointer(nal.p_payload), size))
+
+		if ret < 0 {
+			return nil, errors.New("flush failed")
+		}
+
+		frames = append(frames, C.GoBytes(unsafe.Pointer(e.packet.data), e.packet.size))
+		C.av_packet_unref(e.packet)
 	}
+
 	return frames, nil
 }
 
 func (e *H264) Close() {
-	if e.handle != nil {
-		C.x264_encoder_close(e.handle)
-		C.x264_picture_clean(&e.picIn)
-		e.handle = nil
+	if e.packet != nil {
+		C.av_packet_free(&e.packet)
+	}
+
+	if e.frame != nil {
+		C.av_frame_free(&e.frame)
+	}
+
+	if e.codecCtx != nil {
+		C.avcodec_free_context(&e.codecCtx)
 	}
 }
 
+// rgbToYUV420 converts RGBA 16-bit data to YUV420 planar format.
+// TODO: Optimize this function for performance.
+// TODO: Verify color accuracy.
 func rgbToYUV420(width, height int, data []byte) (y, u, v []byte) {
 	y = make([]byte, width*height)
 	u = make([]byte, (width/2)*(height/2))
