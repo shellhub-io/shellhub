@@ -1,10 +1,9 @@
-import { flushPromises, DOMWrapper, mount } from "@vue/test-utils";
+import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, vi, beforeEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import TagRemove from "@/components/Tags/TagRemove.vue";
-import { router } from "@/router";
 import { tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useTagsStore from "@/store/modules/tags";
@@ -14,10 +13,12 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
-describe("Tag Remove", () => {
-  let wrapper: ReturnType<typeof mount>;
-  let mockTagsApi: MockAdapter;
+type TagRemoveWrapper = VueWrapper<InstanceType<typeof TagRemove>>;
 
+describe("Tag Remove", () => {
+  let wrapper: TagRemoveWrapper;
+  let mockTagsApi: MockAdapter;
+  const vuetify = createVuetify();
   beforeEach(() => {
     setActivePinia(createPinia());
     mockTagsApi = new MockAdapter(tagsApi.getAxios());
@@ -25,7 +26,7 @@ describe("Tag Remove", () => {
 
     wrapper = mount(TagRemove, {
       global: {
-        plugins: [createVuetify(), router],
+        plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
       props: {
@@ -41,10 +42,6 @@ describe("Tag Remove", () => {
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders dialog and controls", async () => {

@@ -10,19 +10,13 @@ describe("User Status Chip", () => {
   const vuetify = createVuetify();
 
   const createWrapper = (status: UserStatus) => mount(UserStatusChip, {
-    global: {
-      plugins: [vuetify, SnackbarPlugin],
-    },
+    global: { plugins: [vuetify, SnackbarPlugin], },
     props: { status },
   });
 
-  beforeEach(async () => {
-    wrapper = createWrapper("confirmed");
-  });
+  beforeEach(() => { wrapper = createWrapper("confirmed"); });
 
-  afterEach(() => {
-    wrapper.unmount();
-  });
+  afterEach(() => { wrapper.unmount(); });
 
   it("Is a Vue instance", () => {
     expect(wrapper.exists()).toBe(true);

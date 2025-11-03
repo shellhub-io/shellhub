@@ -20,7 +20,7 @@ const useNamespacesStore = defineStore("namespaces", () => {
 
     const res = await namespacesApi.fetchNamespaces(page, perPage, filter);
     namespaces.value = res.data as IAdminNamespace[];
-    namespaceCount.value = parseInt(res.headers["x-total-count"], 10);
+    namespaceCount.value = parseInt(res.headers["x-total-count"] as string, 10);
   };
 
   const fetchNamespaceById = async (id: string) => {

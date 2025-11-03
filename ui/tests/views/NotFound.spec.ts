@@ -11,7 +11,7 @@ describe("Not Found Page", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(NotFound, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],

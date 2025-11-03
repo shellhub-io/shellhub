@@ -52,7 +52,7 @@ describe("Namespace Leave", () => {
     type: "team" as const,
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorage.setItem("tenant", "fake-tenant");
     mockNamespace = new MockAdapter(namespacesApi.getAxios());
     mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);

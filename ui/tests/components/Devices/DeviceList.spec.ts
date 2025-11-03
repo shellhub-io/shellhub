@@ -76,7 +76,7 @@ describe("Device List", () => {
     .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
     .reply(200, []);
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(DeviceList, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
@@ -92,7 +92,7 @@ describe("Device List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component HTML", async () => {
+  it("Renders the component HTML", () => {
     expect(wrapper.findComponent('[data-test="device-table"]').exists()).toBe(true);
   });
 });

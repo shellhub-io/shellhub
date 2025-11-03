@@ -1,8 +1,14 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import * as apiTags from "../api/tags";
+import * as tagsApi from "../api/tags";
 import { ITag } from "@/interfaces/ITags";
 import { UpdateTagRequest } from "@/api/client";
+
+// Temporary solution until module refactoring
+interface TagsResponse {
+  data: Array<ITag>;
+  headers: Record<string, string>;
+}
 
 const useTagsStore = defineStore("tags", () => {
   const tags = ref<Array<ITag>>([]);
@@ -26,7 +32,7 @@ const useTagsStore = defineStore("tags", () => {
 
   const getSelected = (variant: "device" | "container") => selected.value[variant];
 
-  const setTags = (res) => {
+  const setTags = (res: TagsResponse) => {
     tags.value = res.data;
     numberTags.value = parseInt(res.headers["x-total-count"], 10);
   };
@@ -78,8 +84,8 @@ const useTagsStore = defineStore("tags", () => {
     perPage: number;
   }) => {
     try {
-      const res = await apiTags.getTags(tenant, filter, page, perPage);
-      setTags(res);
+      const res = await tagsApi.getTags(tenant, filter, page, perPage);
+      setTags(res as unknown as TagsResponse);
       setPagePerPage({ page, perPage });
       setFilter(filter);
     } catch (error) {
@@ -96,8 +102,8 @@ const useTagsStore = defineStore("tags", () => {
     filter: string;
   }) => {
     try {
-      const res = await apiTags.getTags(tenant, filter, page.value, perPage.value);
-      setTags(res);
+      const res = await tagsApi.getTags(tenant, filter, page.value, perPage.value);
+      setTags(res as unknown as TagsResponse);
       setFilter(filter);
     } catch (error) {
       clearListTags();
@@ -117,8 +123,8 @@ const useTagsStore = defineStore("tags", () => {
     perPage: number;
   }) => {
     try {
-      const res = await apiTags.getTags(tenant, filter, page, perPage);
-      setTags(res);
+      const res = await tagsApi.getTags(tenant, filter, page, perPage);
+      setTags(res as unknown as TagsResponse);
       setFilter(filter);
     } catch (error) {
       clearListTags();
@@ -133,7 +139,7 @@ const useTagsStore = defineStore("tags", () => {
     tenant: string;
     name: string;
   }) => {
-    await apiTags.createTag(tenant, name);
+    await tagsApi.createTag(tenant, name);
   };
 
   const editTag = async ({
@@ -145,7 +151,7 @@ const useTagsStore = defineStore("tags", () => {
     currentName: string;
     newName: UpdateTagRequest;
   }) => {
-    await apiTags.updateTag(tenant, currentName, newName);
+    await tagsApi.updateTag(tenant, currentName, newName);
   };
 
   const removeTag = async ({
@@ -155,7 +161,7 @@ const useTagsStore = defineStore("tags", () => {
     tenant: string;
     currentName: string;
   }) => {
-    await apiTags.removeTag(tenant, currentName);
+    await tagsApi.removeTag(tenant, currentName);
   };
 
   const pushTagToDevice = async ({
@@ -167,7 +173,7 @@ const useTagsStore = defineStore("tags", () => {
     uid: string;
     name: string;
   }) => {
-    await apiTags.pushTagToDevice(tenant, uid, name);
+    await tagsApi.pushTagToDevice(tenant, uid, name);
   };
 
   const removeTagFromDevice = async ({
@@ -179,7 +185,7 @@ const useTagsStore = defineStore("tags", () => {
     uid: string;
     name: string;
   }) => {
-    await apiTags.removeTagFromDevice(tenant, uid, name);
+    await tagsApi.removeTagFromDevice(tenant, uid, name);
   };
 
   return {

@@ -30,9 +30,7 @@ describe("Announcement Edit", () => {
   const announcementStore = useAnnouncementStore();
 
   announcementStore.announcement = announcement;
-  vi.spyOn(announcementStore, "fetchAnnouncement").mockImplementation(async () => {
-    announcementStore.announcement = announcement;
-  });
+  announcementStore.fetchAnnouncement = vi.fn().mockResolvedValue(announcement);
 
   const wrapper = mount(AnnouncementEdit, {
     global: { plugins: [createVuetify(), SnackbarPlugin] },

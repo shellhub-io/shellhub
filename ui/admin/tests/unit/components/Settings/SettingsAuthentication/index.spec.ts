@@ -56,7 +56,7 @@ describe("Authentication", () => {
   const instanceStore = useInstanceStore();
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockAdminApi.onGet("http://localhost:3000/admin/api/authentication").reply(200, authData);
 
     vi.spyOn(instanceStore, "fetchAuthenticationSettings").mockResolvedValue(undefined);

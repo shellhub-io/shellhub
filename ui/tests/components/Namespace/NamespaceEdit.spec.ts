@@ -50,7 +50,7 @@ describe("Namespace Edit", () => {
     type: "team" as const,
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     localStorage.setItem("tenant", "fake-tenant-data");
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=10").reply(200, [namespaceData]);

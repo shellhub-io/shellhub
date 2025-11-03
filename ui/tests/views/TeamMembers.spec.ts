@@ -40,7 +40,7 @@ describe("Team Members", () => {
     type: "team" as const,
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     namespacesStore.currentNamespace = namespaceData;
 
     wrapper = mount(TeamMembers, {
@@ -64,7 +64,7 @@ describe("Team Members", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with data", async () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="member-invite"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="member-list"]').exists()).toBe(true);

@@ -14,7 +14,7 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
-describe("Tag Form Edit", async () => {
+describe("Tag Form Edit", () => {
   let wrapper: VueWrapper<InstanceType<typeof TagEdit>>;
   setActivePinia(createPinia());
   const tagsStore = useTagsStore();
@@ -22,7 +22,7 @@ describe("Tag Form Edit", async () => {
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   localStorage.setItem("tenant", "fake-tenant-data");
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(TagEdit, {
       global: {
         plugins: [vuetify, router],

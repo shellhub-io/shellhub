@@ -32,7 +32,7 @@ const useDevicesStore = defineStore("devices", () => {
 
     const res = await devicesApi.getDevices(page, perPage, filter, sortField, sortOrder);
     devices.value = res.data as unknown as IAdminDevice[];
-    deviceCount.value = parseInt(res.headers["x-total-count"], 10);
+    deviceCount.value = parseInt(res.headers["x-total-count"] as string, 10);
   };
 
   const fetchDeviceById = async (uid: string) => {

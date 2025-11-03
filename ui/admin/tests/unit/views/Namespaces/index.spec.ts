@@ -17,7 +17,7 @@ describe("Namespaces", () => {
   namespacesStore.fetchNamespaceList = vi.fn();
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(Namespaces, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],

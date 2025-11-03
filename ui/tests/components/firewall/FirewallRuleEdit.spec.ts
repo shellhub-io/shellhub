@@ -53,7 +53,7 @@ describe("Firewall Rule Edit", () => {
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockTagsApi
       .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
       .reply(200, [{ name: "1" }, { name: "2" }]);

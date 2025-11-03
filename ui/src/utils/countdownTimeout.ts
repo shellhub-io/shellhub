@@ -4,7 +4,7 @@ import moment from "moment";
 export default function useCountdown() {
   const countdown = ref("");
 
-  let countdownInterval;
+  let countdownInterval: NodeJS.Timeout;
 
   function startCountdown(loginTimeoutEpoch: number) {
     clearInterval(countdownInterval);

@@ -34,7 +34,7 @@
 
       <div v-if="firewallRule.filter">
         <h3 class="text-overline mt-3">Filter:</h3>
-        <p v-if="isHostname(firewallRule.filter)" :data-test="firewallRule.filter">
+        <p v-if="isHostname(firewallRule.filter)" data-test="firewall-rule-filter">
           {{ formatHostnameFilter(firewallRule.filter) }}
         </p>
         <div v-else :data-test="firewallRule.filter">

@@ -12,7 +12,7 @@ describe("Setting Private Keys", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(SettingPrivateKeys, {
       global: {
         plugins: [vuetify, SnackbarPlugin],
@@ -28,7 +28,7 @@ describe("Setting Private Keys", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders components", async () => {
+  it("Renders components", () => {
     expect(wrapper.find('[data-test="card"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="card-header"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="card-title"]').exists()).toBe(true);

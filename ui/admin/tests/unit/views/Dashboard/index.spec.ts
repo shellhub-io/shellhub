@@ -35,7 +35,7 @@ describe("Dashboard", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with data", async () => {
+  it("Renders the template with data", () => {
     expect(wrapper.vm.stats).toEqual(stats);
     expect(wrapper.vm.hasStatus).toBe(false);
   });

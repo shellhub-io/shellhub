@@ -36,7 +36,7 @@ describe("Public Keys", () => {
     .reply(200, []);
   publicKeysStore.publicKeys = mockPublicKeys;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(PublicKeys, {
       global: {
         plugins: [vuetify, SnackbarPlugin],

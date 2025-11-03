@@ -31,15 +31,15 @@ describe("Validation Account", () => {
     wrapper.unmount();
   });
 
-  it("Is a Vue instance", async () => {
+  it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", async () => {
+  it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with data", async () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="verification-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="processing-cardText"]').exists()).toBe(true);
   });

@@ -52,7 +52,7 @@ describe("Firewall Rule List", () => {
     },
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, res);
     firewallRulesStore.firewallRules = firewallRules as IFirewallRule[];
 
@@ -71,7 +71,7 @@ describe("Firewall Rule List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the Firewall List", async () => {
+  it("Renders the Firewall List", () => {
     expect(wrapper.find('[data-test="firewallRules-list"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-active"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-priority"]').exists()).toBe(true);

@@ -43,7 +43,7 @@ describe("Member List", () => {
     billing: null,
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
     namespacesStore.currentNamespace = namespaceData as INamespace;
 
@@ -62,7 +62,7 @@ describe("Member List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component HTML", async () => {
+  it("Renders the component HTML", () => {
     expect(wrapper.findComponent('[data-test="member-table"]').exists()).toBe(true);
   });
 });

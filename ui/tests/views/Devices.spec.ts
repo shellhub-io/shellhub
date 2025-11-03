@@ -58,7 +58,7 @@ describe("Devices View", () => {
     },
   ];
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(
       200,
       { data: mockDevicesApi, headers: { "x-total-count": 2 } },
@@ -87,14 +87,14 @@ describe("Devices View", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with data", async () => {
+  it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="search-text"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="device-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="device-header-component-group"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(false);
   });
 
-  it("Shows the no items message when there are no public keys", async () => {
+  it("Shows the no items message when there are no public keys", () => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(200, []);
     devicesStore.devices = [];
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);

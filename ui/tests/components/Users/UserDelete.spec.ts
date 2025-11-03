@@ -23,7 +23,7 @@ describe("User Delete", () => {
   const authStore = useAuthStore();
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(UserDelete, {
       global: {
         plugins: [router, vuetify],

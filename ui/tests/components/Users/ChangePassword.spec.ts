@@ -38,7 +38,7 @@ describe("Change Password", () => {
     },
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
 

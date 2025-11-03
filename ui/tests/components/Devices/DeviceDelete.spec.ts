@@ -18,7 +18,7 @@ describe("Device Delete", () => {
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, []);
 
     wrapper = mount(DeviceDelete, {

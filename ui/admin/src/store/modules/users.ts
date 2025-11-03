@@ -18,7 +18,7 @@ const useUsersStore = defineStore("users", () => {
     const res = await usersApi.fetchUsers(data?.page || 1, data?.perPage || 10, filter);
 
     users.value = res.data as IAdminUser[];
-    usersCount.value = parseInt(res.headers["x-total-count"], 10);
+    usersCount.value = parseInt(res.headers["x-total-count"] as string, 10);
   };
 
   const exportUsersToCsv = async (filter: string) => {

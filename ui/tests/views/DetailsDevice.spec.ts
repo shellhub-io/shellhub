@@ -61,7 +61,7 @@ describe("Details Device", () => {
       history: createWebHistory(),
       routes,
     });
-    router.push("/devices/123456");
+    await router.push("/devices/123456");
     await router.isReady();
 
     mockDevicesApi.onGet("http://localhost:3000/api/devices/resolve?uid=123456")

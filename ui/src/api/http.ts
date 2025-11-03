@@ -26,7 +26,7 @@ const newAxiosInstance = (setupInterceptor = true, isAdmin = false): AxiosInstan
 };
 
 // Admin API instance
-// eslint-disable-next-line import/no-mutable-exports
+ 
 let adminApi = new axiosTs.AdminApi(
   adminConfiguration,
   undefined,

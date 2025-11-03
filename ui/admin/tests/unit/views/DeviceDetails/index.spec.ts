@@ -53,7 +53,7 @@ const mockRoute = {
 describe("Device Details", () => {
   let wrapper: DeviceDetailsWrapper;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     const pinia = createPinia();
     setActivePinia(pinia);
 
@@ -80,7 +80,7 @@ describe("Device Details", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Has the correct data", async () => {
+  it("Has the correct data", () => {
     expect(wrapper.vm.device).toEqual(deviceDetail);
   });
 
@@ -95,7 +95,7 @@ describe("Device Details", () => {
     expect(wrapper.find(`[data-test='${deviceDetail.info.id}']`).text()).toContain(deviceDetail.info.id);
     expect(wrapper.find(`[data-test='${deviceDetail.tenant_id}']`).text()).toContain(deviceDetail.tenant_id);
     expect(wrapper.find(`[data-test='${deviceDetail.online}']`).text()).toContain(String(deviceDetail.online));
-    expect(wrapper.find(`[data-test='${deviceDetail.tags}']`).text()).toContain(deviceDetail.tags[0].name);
+    expect(wrapper.find("[data-test='device-tags']").text()).toContain(deviceDetail.tags[0].name);
     expect(wrapper.find(`[data-test='${deviceDetail.namespace}']`).text()).toContain(deviceDetail.namespace);
     expect(wrapper.find(`[data-test='${deviceDetail.status}']`).text()).toContain(deviceDetail.status);
   });

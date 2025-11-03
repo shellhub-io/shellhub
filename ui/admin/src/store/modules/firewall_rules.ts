@@ -10,7 +10,7 @@ const useFirewallRulesStore = defineStore("firewallRules", () => {
   const fetchFirewallRulesList = async (data?: { page: number; perPage: number }) => {
     const res = await firewallRulesApi.fetchFirewalls(data?.page || 1, data?.perPage || 10);
     firewallRules.value = res.data as IAdminFirewallRule[];
-    firewallRulesCount.value = parseInt(res.headers["x-total-count"], 10);
+    firewallRulesCount.value = parseInt(res.headers["x-total-count"] as string, 10);
   };
 
   const fetchFirewallRuleById = async (uid: string) => {

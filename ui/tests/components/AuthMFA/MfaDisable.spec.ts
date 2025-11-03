@@ -32,7 +32,7 @@ describe("MfaDisable", () => {
     await flushPromises();
   });
 
-  it("Renders the component (Verification Code window)", async () => {
+  it("Renders the component (Verification Code window)", () => {
     expect(dialog.html()).toMatchSnapshot();
   });
 

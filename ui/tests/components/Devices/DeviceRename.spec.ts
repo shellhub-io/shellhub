@@ -15,7 +15,7 @@ describe("DeviceRename", () => {
   const vuetify = createVuetify();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(DeviceRename, {
       global: {
         plugins: [vuetify, SnackbarPlugin],

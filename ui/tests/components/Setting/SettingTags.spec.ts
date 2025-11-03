@@ -16,7 +16,7 @@ describe("Setting Tags", () => {
   const vuetify = createVuetify();
   const mockTags = new MockAdapter(tagsApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.useFakeTimers();
     localStorage.setItem("tenant", "fake-tenant-data");
     envVariables.isCloud = true;
@@ -40,7 +40,7 @@ describe("Setting Tags", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders components", async () => {
+  it("Renders components", () => {
     expect(wrapper.find('[data-test="tagList-component"]').exists());
   });
 });

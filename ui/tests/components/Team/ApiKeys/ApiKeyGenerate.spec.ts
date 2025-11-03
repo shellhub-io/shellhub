@@ -31,7 +31,7 @@ describe("Api Key Generate", () => {
   const vuetify = createVuetify();
   setActivePinia(createPinia());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
     wrapper = mount(ApiKeyGenerate, {
       global: {

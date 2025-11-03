@@ -8,7 +8,7 @@ describe("RoleSelect", () => {
   let wrapper: VueWrapper<InstanceType<typeof RoleSelect>>;
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(RoleSelect, {
       global: {
         plugins: [vuetify],
@@ -31,7 +31,7 @@ describe("RoleSelect", () => {
     expect(wrapper.find('[data-test="role-select"]').exists()).toBe(true);
   });
 
-  it("displays the initial model value", async () => {
+  it("displays the initial model value", () => {
     const selectComponent = wrapper.findComponent({ name: "VSelect" });
     expect(selectComponent.props("modelValue")).toBe("administrator");
   });

@@ -11,7 +11,7 @@ const useSessionsStore = defineStore("sessions", () => {
     const res = await sessionsApi.fetchSessions(data.perPage, data.page);
 
     sessions.value = res.data as Array<IAdminSession>;
-    sessionCount.value = parseInt(res.headers["x-total-count"], 10);
+    sessionCount.value = parseInt(res.headers["x-total-count"] as string, 10);
   };
 
   const fetchSessionById = async (uid: string) => {

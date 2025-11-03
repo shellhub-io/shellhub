@@ -26,12 +26,12 @@ const mockNotifications = [
   },
 ];
 
-describe("Notifications List", async () => {
+describe("Notifications List", () => {
   let wrapper: VueWrapper<InstanceType<typeof NotificationsList>>;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(NotificationsList, {
       global: {
         plugins: [router, vuetify, SnackbarPlugin],

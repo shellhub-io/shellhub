@@ -10,7 +10,7 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 
 const tags = [{ name: "123x" }, { name: "newtag" }];
 
-describe("Tag List", async () => {
+describe("Tag List", () => {
   const vuetify = createVuetify();
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   setActivePinia(createPinia());

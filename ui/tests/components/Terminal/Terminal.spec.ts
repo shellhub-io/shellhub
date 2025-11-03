@@ -167,7 +167,7 @@ describe("Terminal.vue", () => {
     expect(mockXterm.write).toHaveBeenCalledWith("\r\nConnection ended\r\n");
   });
 
-  it("Closes the terminal dialog on double ESC press", async () => {
+  it("Closes the terminal dialog on double ESC press", () => {
     const escEvent = new KeyboardEvent("keyup", { key: "Escape", bubbles: true });
 
     document.dispatchEvent(escEvent);

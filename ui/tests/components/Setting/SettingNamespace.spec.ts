@@ -54,7 +54,7 @@ describe("Setting Namespace", () => {
     },
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,
       media: query,

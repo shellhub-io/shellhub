@@ -29,7 +29,7 @@ describe("Mfa Mail Recover ", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the components", async () => {
+  it("Renders the components", () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="back-to-login"]').exists()).toBe(true);

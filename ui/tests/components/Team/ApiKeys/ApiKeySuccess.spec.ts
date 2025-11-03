@@ -51,7 +51,7 @@ describe("Api Key Success", () => {
     keyName: "test-key",
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(ApiKeySuccess, {
       global: {
         plugins: [vuetify, SnackbarPlugin],
@@ -83,8 +83,8 @@ describe("Api Key Success", () => {
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
 
-    const keyField = dialog.find('[data-test="generated-key-field"] input') as DOMWrapper<HTMLInputElement>;
-    expect(keyField.element.value).toBe("test-api-key-12345");
+    const keyField = dialog.find('[data-test="generated-key-field"] input').element as HTMLInputElement;
+    expect(keyField.value).toBe("test-api-key-12345");
   });
 
   it("Copies API key to clipboard when copy button is clicked", async () => {

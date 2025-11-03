@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { AxiosResponse } from "axios";
 import * as usersApi from "../api/users";
 import useAuthStore from "@/store/modules/auth";
 import { IUser, IUserPatch, IUserPatchPassword, IUserSetup, IUserSignUp, IUserSystemInfo, IUserUpdatePassword } from "@/interfaces/IUser";
@@ -11,12 +10,13 @@ const useUsersStore = defineStore("users", () => {
   const systemInfo = ref<IUserSystemInfo>({} as IUserSystemInfo);
 
   const signUp = async (data: IUserSignUp) => {
-    const res: AxiosResponse = await usersApi.signUp(data);
+    // OpenAPI typing issue workaround
+    const { data: user } = await usersApi.signUp(data) as unknown as { data: { token?: string } };
 
-    if (!res.data.token) return false;
+    if (!user.token) return false;
 
-    useAuthStore().persistAuth(res.data);
-    return res.data.token;
+    useAuthStore().persistAuth(user);
+    return user.token;
   };
 
   const patchData = async (data: IUserPatch) => {

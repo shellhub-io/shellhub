@@ -74,7 +74,7 @@ describe("Billing Dialog", async () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component (Welcome window)", async () => {
+  it("Renders the component (Welcome window)", () => {
     const dialog = new DOMWrapper(document.body);
     expect(dialog.html()).toMatchSnapshot();
   });

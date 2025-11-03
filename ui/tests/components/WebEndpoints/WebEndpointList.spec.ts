@@ -46,7 +46,7 @@ describe("WebEndpointList.vue", () => {
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockWebEndpointsApi.onGet("http://localhost:3000/api/web-endpoints?page=1&per_page=10")
       .reply(200, mockEndpoints, { "x-total-count": "1" });
 

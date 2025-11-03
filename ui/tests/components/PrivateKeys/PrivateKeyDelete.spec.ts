@@ -14,7 +14,7 @@ describe("Private Key Delete", () => {
   const privateKeysStore = usePrivateKeysStore();
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(PrivateKeyDelete, {
       global: {
         plugins: [vuetify, SnackbarPlugin],

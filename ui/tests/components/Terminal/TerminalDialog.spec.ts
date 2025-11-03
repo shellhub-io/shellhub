@@ -30,7 +30,7 @@ vi.mock("@xterm/addon-fit", () => ({
   })),
 }));
 
-describe("Terminal Dialog", async () => {
+describe("Terminal Dialog", () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalDialog>>;
   let dialog: DOMWrapper<HTMLElement>;
   setActivePinia(createPinia());
@@ -43,7 +43,7 @@ describe("Terminal Dialog", async () => {
   });
 
   const vuetify = createVuetify();
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(TerminalDialog, {
       global: {
         plugins: [vuetify, router],

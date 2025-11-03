@@ -31,7 +31,7 @@ const mockRoute = {
 describe("Firewall Rule Details", () => {
   let wrapper: FirewallRulesDetailsWrapper;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     const pinia = createPinia();
     setActivePinia(pinia);
 
@@ -58,7 +58,7 @@ describe("Firewall Rule Details", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Has the correct data", async () => {
+  it("Has the correct data", () => {
     expect(wrapper.vm.firewallRule).toEqual(firewallRuleDetail);
   });
 
@@ -73,6 +73,6 @@ describe("Firewall Rule Details", () => {
     expect(wrapper.find(`[data-test='${firewallRuleDetail.action}']`).text()).toContain(firewallRuleDetail.action);
     expect(wrapper.find(`[data-test='${firewallRuleDetail.source_ip}']`).exists()).toBe(true);
     expect(wrapper.find(`[data-test='${firewallRuleDetail.username}']`).exists()).toBe(true);
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.filter}']`).exists()).toBe(true);
+    expect(wrapper.find("[data-test='firewall-rule-filter']").exists()).toBe(true);
   });
 });

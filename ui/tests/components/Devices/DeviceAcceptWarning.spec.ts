@@ -15,7 +15,7 @@ describe("DeviceAcceptWarning", () => {
   const devicesStore = useDevicesStore();
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Reset stores to clean state
     authStore.role = "owner";
     devicesStore.duplicatedDeviceName = "";

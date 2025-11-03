@@ -39,7 +39,7 @@ describe("Billing Checkout", () => {
       },
     ],
   };
-  beforeEach(async () => {
+  beforeEach(() => {
     mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
     customerStore.customer = customerData;
 
@@ -58,7 +58,7 @@ describe("Billing Checkout", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("renders the correct html", async () => {
+  it("renders the correct html", () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="card"]').exists()).toBe(true);

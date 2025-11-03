@@ -74,7 +74,7 @@ describe("AppBar Component", () => {
   const billingStore = useBillingStore();
   const supportStore = useSupportStore();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,
       media: query,
@@ -107,9 +107,7 @@ describe("AppBar Component", () => {
     });
   });
 
-  afterEach(async () => {
-    wrapper.unmount();
-  });
+  afterEach(() => { wrapper.unmount(); });
 
   it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
@@ -119,7 +117,7 @@ describe("AppBar Component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders internal components", async () => {
+  it("Renders internal components", () => {
     expect(wrapper.find('[data-test="app-bar"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="menu-toggle"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="breadcrumbs"]').exists()).toBe(true);

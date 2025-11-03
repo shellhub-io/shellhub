@@ -17,7 +17,7 @@ describe("Auth", () => {
     expect(authStore.isLoggedIn).toBe(false);
   });
 
-  it("handles login states correctly", async () => {
+  it("handles login states correctly", () => {
     const statusLoading = "loading";
     const statusError = "error";
     const statusSuccess = "success";

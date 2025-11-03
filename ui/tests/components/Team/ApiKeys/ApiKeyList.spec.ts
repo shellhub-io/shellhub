@@ -39,7 +39,7 @@ describe("Api Key List", () => {
     },
   ];
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockApiKeysApi.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, mockApiKeys, { "x-total-count": 2 });
     apiKeysStore.$patch({
       apiKeys: mockApiKeys,
@@ -61,7 +61,7 @@ describe("Api Key List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders components", async () => {
+  it("Renders components", () => {
     expect(wrapper.find('[data-test="api-key-list"]').exists()).toBe(true);
   });
 

@@ -1,4 +1,3 @@
-import { IContainer } from "@/interfaces/IContainer";
 import { IDevice } from "@/interfaces/IDevice";
 
 export enum NotificationType {
@@ -6,7 +5,7 @@ export enum NotificationType {
   CONTAINER = "container"
 }
 
-type NotificationData = IDevice | IContainer;
+type NotificationData = IDevice;
 
 export interface INotification {
   id: string;

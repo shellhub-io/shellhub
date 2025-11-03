@@ -53,7 +53,7 @@ describe("Containers", () => {
   const vuetify = createVuetify();
   const mockContainersApi = new MockAdapter(containersApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=accepted").reply(200, containers);
 
     wrapper = mount(Containers, {

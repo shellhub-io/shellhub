@@ -21,5 +21,5 @@ export const getSubscriptionInfo = async () => billingApi.getSubscription();
 export const getDevicesMostUsed = async () => billingApi.getDevicesMostUsed();
 
 export const getBillingPortalUrl = async () => axios.post("/api/billing/portal", {}, {
-  headers: { Authorization: `Bearer ${configuration.accessToken}` },
+  headers: { Authorization: `Bearer ${configuration.accessToken as string}` },
 });

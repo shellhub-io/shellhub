@@ -68,7 +68,7 @@ describe("Details Sessions", () => {
   });
 
   beforeEach(async () => {
-    router.push("/sessions/1");
+    await router.push("/sessions/1");
     await router.isReady();
 
     mockSessionsApi.onGet("http://localhost:3000/api/sessions/1").reply(200, mockSession);

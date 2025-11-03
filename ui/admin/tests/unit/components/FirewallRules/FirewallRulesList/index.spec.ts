@@ -3,9 +3,9 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
+import FirewallRulesList from "@admin/components/FirewallRules/FirewallRulesList.vue";
+import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-import FirewallRulesList from "../../../../../src/components/FirewallRules/FirewallRulesList.vue";
-import routes from "../../../../../src/router";
 
 type FirewallRulesListWrapper = VueWrapper<InstanceType<typeof FirewallRulesList>>;
 
@@ -78,7 +78,7 @@ describe("Firewall Rules List", () => {
     expect(wrapper.vm.page).toEqual(1);
   });
 
-  it("Renders data in the computed", async () => {
+  it("Renders data in the computed", () => {
     expect(wrapper.vm.firewallRules).toEqual(firewallRules);
   });
 

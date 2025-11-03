@@ -15,7 +15,7 @@ describe("Welcome Second Screen", () => {
 
   it("Renders the component", () => { expect(wrapper.html()).toMatchSnapshot(); });
 
-  it("Renders the correct command", async () => {
+  it("Renders the correct command", () => {
     const command = "curl -sSf http://localhost:3000/install.sh | TENANT_ID=fake-tenant-data SERVER_ADDRESS=http://localhost:3000 sh";
     expect(wrapper.find('[data-test="copy-command-field"] input').attributes("value")).toBe(command);
   });

@@ -64,7 +64,7 @@ describe("Settings Namespace", () => {
     dispatchEvent: vi.fn(),
   }));
 
-  beforeEach(async () => {
+  beforeEach(() => {
     envVariables.isCommunity = true; // used in the MFA switch test only
     mockUsersApi.onGet("http://localhost:3000/api/auth/user").reply(200, authData);
     mockMfaApi.onGet("http://localhost:3000/api/user/mfa/generate").reply(200, mfaGenerateData);
@@ -115,7 +115,7 @@ describe("Settings Namespace", () => {
     });
   });
 
-  it("Disables the MFA switch for Community accounts", async () => {
+  it("Disables the MFA switch for Community accounts", () => {
     const switchMfa = wrapper.find('[data-test="switch-mfa"] input');
     expect(switchMfa.attributes().disabled).toBeDefined();
   });

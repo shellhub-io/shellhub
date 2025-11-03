@@ -3,25 +3,6 @@ import { mount, VueWrapper, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DataTable from "@/components/Tables/DataTable.vue";
 
-vi.mock("vuetify", async () => {
-  const actual = await vi.importActual<typeof import("vuetify")>("vuetify");
-  return {
-    ...actual,
-    useDisplay: () => ({
-      smAndDown: { value: false },
-      thresholds: {
-        value: {
-          sm: 600,
-          md: 960,
-          lg: 1280,
-          xl: 1920,
-          xxl: 2560,
-        },
-      },
-    }),
-  };
-});
-
 type DataTableWrapper = VueWrapper<InstanceType<typeof DataTable>>;
 
 describe("DataTable", () => {

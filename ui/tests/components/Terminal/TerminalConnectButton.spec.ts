@@ -6,12 +6,12 @@ import TerminalConnectButton from "@/components/Terminal/TerminalConnectButton.v
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-describe("Terminal Connect Button", async () => {
+describe("Terminal Connect Button", () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalConnectButton>>;
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     wrapper = mount(TerminalConnectButton, {
       global: {
         plugins: [router, vuetify, SnackbarPlugin],

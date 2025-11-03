@@ -53,7 +53,7 @@ describe("Device", () => {
   const vuetify = createVuetify();
   let mockDevices: MockAdapter;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockDevices = new MockAdapter(devicesApi.getAxios());
 
     mockDevices.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);

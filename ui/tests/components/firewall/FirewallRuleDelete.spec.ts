@@ -23,7 +23,7 @@ describe("Firewall Rule Delete", () => {
   const firewallRulesStore = useFirewallRulesStore();
   const mockRulesApi = new MockAdapter(rulesApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks(); // important: reset spies between tests
 
     wrapper = mount(FirewallRuleDelete, {

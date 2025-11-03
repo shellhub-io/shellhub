@@ -1,7 +1,5 @@
 import { DeviceStatus, IDeviceRename } from "@/interfaces/IDevice";
-import { devicesApi, tagsApi } from "@/api/http";
-
-export const postTag = async (data) => tagsApi.createTag(data.uid, data.name);
+import { devicesApi } from "@/api/http";
 
 export const fetchDevices = async (
   page: number,

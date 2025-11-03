@@ -24,7 +24,7 @@ describe("Api Key Edit", () => {
   setActivePinia(createPinia());
   const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
     wrapper = mount(ApiKeyEdit, {
       global: {

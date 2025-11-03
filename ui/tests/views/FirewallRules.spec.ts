@@ -32,7 +32,7 @@ describe("Firewall Rules", () => {
     },
   ];
 
-  beforeEach(async () => {
+  beforeEach(() => {
     mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRules);
     firewallRulesStore.firewallRules = firewallRules as IFirewallRule[];
     firewallRulesStore.firewallRuleCount = 1;
