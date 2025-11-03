@@ -28,7 +28,7 @@ jobs:
         run: redocly bundle openapi/spec/openapi.yaml -o bundled/openapi.yaml
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: bundled
           path: bundled/
