@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { defineConfig } from "vite";
 import Vue from "@vitejs/plugin-vue";
 import VuetifyPlugin from "vite-plugin-vuetify";
@@ -18,6 +19,7 @@ export default defineConfig({
         admin: path.resolve(dirname, "admin/index.html"),
       },
     },
+    target: "es2022",
   },
   plugins: [
     nodePolyfills(),
