@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -120,10 +119,6 @@ func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Resp
 		return result
 	}
 
-	if v.shouldSkipPath(r.URL.Path) {
-		return result
-	}
-
 	route, pathParams, err := v.router.FindRoute(r)
 	if err != nil {
 		v.logger.WithFields(logrus.Fields{
@@ -205,26 +200,4 @@ func GetDefaultSchemaPath() *url.URL {
 	}
 
 	return u
-}
-
-// shouldSkipPath determines if a path should be skipped from validation
-func (v *OpenAPIValidator) shouldSkipPath(path string) bool {
-	// Skip internal endpoints
-	if strings.HasPrefix(path, "/internal") {
-		return true
-	}
-
-	skipPaths := []string{
-		"/api/healthcheck",
-		"/metrics",
-		"/openapi",
-	}
-
-	for _, skipPath := range skipPaths {
-		if strings.HasPrefix(path, skipPath) {
-			return true
-		}
-	}
-
-	return false
 }

@@ -45,6 +45,8 @@ type OpenAPIValidatorConfig struct {
 	FailOnMismatch bool
 	// SchemaPath overrides the default schema path
 	SchemaPath *url.URL
+	// Skipper defines a function to skip middleware. If Skipper returns true, middleware is skipped.
+	Skipper func(echo.Context) bool
 }
 
 type OpenAPIValidationMessage struct {
@@ -60,6 +62,10 @@ func OpenAPIValidator(cfg *OpenAPIValidatorConfig) echo.MiddlewareFunc {
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			if cfg.Skipper != nil && cfg.Skipper(c) {
+				return next(c)
+			}
+
 			validator := getOrCreateValidator(*cfg)
 			if validator == nil {
 				return next(c)
