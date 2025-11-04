@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"os"
+	"strings"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/routes"
+	"github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/api/store/mongo/options"
@@ -204,7 +206,20 @@ func (s *Server) routerOptions() ([]routes.Option, error) {
 	if envs.IsDevelopment() {
 		log.Info("Enabling OpenAPI validation in development mode")
 
-		opts = append(opts, routes.WithOpenAPIValidator(nil))
+		opts = append(opts, routes.WithOpenAPIValidator(&middleware.OpenAPIValidatorConfig{
+			// NOTE: By default, metrics and internal endpoints are skipped from validation for now.
+			Skipper: func(ctx echo.Context) bool {
+				routes := []string{"/metrics", "/internal"}
+
+				for _, path := range routes {
+					if strings.HasPrefix(ctx.Request().URL.Path, path) {
+						return true
+					}
+				}
+
+				return false
+			},
+		}))
 	}
 
 	return opts, nil
