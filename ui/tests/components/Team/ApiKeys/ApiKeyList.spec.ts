@@ -1,6 +1,6 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it } from "vitest";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import moment from "moment";
 import { createPinia, setActivePinia } from "pinia";
@@ -38,7 +38,7 @@ describe("Api Key List", () => {
       expires_in: 1720354256,
     },
   ];
-
+  
   beforeEach(() => {
     mockApiKeysApi.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, mockApiKeys, { "x-total-count": 2 });
     apiKeysStore.$patch({
@@ -52,6 +52,11 @@ describe("Api Key List", () => {
       },
     });
   });
+
+  afterEach(async () => {
+    await flushPromises();
+    wrapper.unmount();
+  })
 
   it("Is a Vue instance", () => {
     expect(wrapper.vm).toBeTruthy();
