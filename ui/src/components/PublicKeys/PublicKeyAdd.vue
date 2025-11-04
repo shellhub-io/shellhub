@@ -248,6 +248,7 @@ watch([tagChoices, choiceFilter], ([list, currentFilter]) => {
 });
 
 watch(publicKeyData, () => {
+  if (!showDialog.value) return;
   if (!publicKeyData.value) {
     publicKeyDataError.value = "Field is required";
     return;
