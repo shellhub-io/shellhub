@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach, afterEach } from "vitest";
+import { expect, describe, it } from "vitest";
 import NotificationsList from "@/components/AppBar/Notifications/NotificationsList.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
@@ -27,25 +27,27 @@ const mockNotifications = [
 ];
 
 describe("Notifications List", () => {
-  let wrapper: VueWrapper<InstanceType<typeof NotificationsList>>;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
 
-  beforeEach(() => {
-    wrapper = mount(NotificationsList, {
-      global: {
-        plugins: [router, vuetify, SnackbarPlugin],
+  const wrapper = mount(NotificationsList, {
+    global: {
+      plugins: [router, vuetify, SnackbarPlugin],
+      stubs: {
+        DeviceActionButton: {
+          name: "DeviceActionButton",
+          template: "<div data-test='device-action-button-stub'></div>",
+          props: ["uid", "name", "variant", "isInNotification", "show", "action"]
+        },
+        RouterLink: {
+          template: "<a :href=\"`/devices/${to.params.identifier}`\"><slot /></a>",
+          props: ["to"]
+        }
       },
-      props: {
-        notifications: mockNotifications as INotification[],
-      },
-    });
-  });
-
-  afterEach(() => { wrapper.unmount(); });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+    },
+    props: {
+      notifications: mockNotifications as INotification[],
+    },
   });
 
   it("Renders the correct number of list items", () => {
