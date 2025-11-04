@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"net/url"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -42,8 +43,8 @@ type OpenAPIValidatorConfig struct {
 	EnabledPaths []string
 	// FailOnMismatch determines if validation failures should return HTTP errors
 	FailOnMismatch bool
-	// OpenAPIPath overrides the default schema path
-	OpenAPIPath string
+	// SchemaPath overrides the default schema path
+	SchemaPath *url.URL
 }
 
 type OpenAPIValidationMessage struct {
@@ -115,15 +116,15 @@ func getOrCreateValidator(cfg OpenAPIValidatorConfig) *openapi.OpenAPIValidator 
 		logger := logrus.WithField("component", "openapi_validator")
 
 		validatorConfig := &openapi.OpenAPIValidatorConfig{
-			SchemaPath:     cfg.OpenAPIPath,
+			SchemaPath:     cfg.SchemaPath,
 			EnabledPaths:   cfg.EnabledPaths,
 			FailOnMismatch: cfg.FailOnMismatch,
 			Logger:         logger,
 		}
 
 		ctx := context.Background()
-		globalValidator, validatorErr = openapi.NewOpenAPIValidator(ctx, validatorConfig)
 
+		globalValidator, validatorErr = openapi.NewOpenAPIValidator(ctx, validatorConfig)
 		if validatorErr != nil {
 			logger.WithError(validatorErr).Error("Failed to initialize OpenAPI validator")
 

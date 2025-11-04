@@ -40,8 +40,8 @@ type ValidationResult struct {
 
 // OpenAPIValidatorConfig holds configuration for the validator
 type OpenAPIValidatorConfig struct {
-	// SchemaPath is the path to the OpenAPI schema file
-	SchemaPath string
+	// SchemaPath is the URL to the OpenAPI schema.
+	SchemaPath *url.URL
 	// EnabledPaths are the paths that should be validated (nil = all paths)
 	EnabledPaths []string
 	// FailOnMismatch determines if validation failures should cause HTTP errors
@@ -73,26 +73,20 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 		return validator, nil
 	}
 
-	if config.SchemaPath == "" {
-		config.SchemaPath = getDefaultSchemaPath()
+	if config.SchemaPath == nil {
+		config.SchemaPath = GetDefaultSchemaPath()
+	}
+
+	if config.SchemaPath == nil {
+		return nil, fmt.Errorf("OpenAPI schema path is not defined")
 	}
 
 	loader := &openapi3.Loader{
 		Context:               ctx,
 		IsExternalRefsAllowed: true,
-		ReadFromURIFunc: func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
-			fmt.Println("Loading external ref:", url.String())
-
-			// NOTE: Adjust path for local references in the schema.
-			if strings.HasPrefix(url.Path, "paths/") {
-				url.Path = strings.Replace(url.Path, "paths/", "../openapi/spec/paths/", 1)
-			}
-
-			return os.ReadFile(url.Path)
-		},
 	}
 
-	doc, err := loader.LoadFromFile(config.SchemaPath)
+	doc, err := loader.LoadFromURI(config.SchemaPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
 	}
@@ -225,10 +219,16 @@ func shouldEnableValidation() bool {
 	return envs.IsDevelopment() || os.Getenv("SHELLHUB_OPENAPI_VALIDATION") == "true"
 }
 
-// getDefaultSchemaPath returns the default path to the OpenAPI schema
-func getDefaultSchemaPath() string {
+// GetDefaultSchemaPath returns the default path to the OpenAPI schema
+func GetDefaultSchemaPath() *url.URL {
 	// NOTE: This path refers to the generated OpenAPI spec file.
-	return "../openapi/static/openapi.json"
+	// TODO: Make this configurable via environment variable if needed.
+	u, err := url.Parse("http://openapi:8080/openapi/openapi.json")
+	if err != nil {
+		return nil
+	}
+
+	return u
 }
 
 // shouldSkipPath determines if a path should be skipped from validation
