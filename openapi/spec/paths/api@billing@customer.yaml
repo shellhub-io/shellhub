@@ -12,22 +12,16 @@ post:
     '200':
       description: Success to create a new customer.
     '400':
-      description: Bad Request.
       $ref: ../components/schemas/billingError.yaml
     '401':
-      description: Unauthorized.
       $ref: ../components/schemas/billingError.yaml
     '403':
-      description: Forbidden.
       $ref: ../components/schemas/billingError.yaml
     '404':
-      description: Not Found.
       $ref: ../components/schemas/billingError.yaml
     '409':
-      description: Conflict.
       $ref: ../components/schemas/billingError.yaml
     '424':
-      description: Failed dependency.
       $ref: ../components/schemas/billingError.yaml
     '500':
       $ref: ../components/responses/500.yaml
