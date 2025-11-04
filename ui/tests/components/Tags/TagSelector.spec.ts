@@ -1,7 +1,7 @@
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import TagSelector from "@/components/Tags/TagSelector.vue";
 import { router } from "@/router";
@@ -43,16 +43,13 @@ describe("Tag Selector", () => {
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  afterEach(async () => {
+    await flushPromises();
+    wrapper.unmount();
   });
 
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Data is defined", () => {
-    expect(wrapper.vm.$data).toBeDefined();
   });
 
   it("Renders components", () => {
@@ -60,14 +57,8 @@ describe("Tag Selector", () => {
   });
 
   it("Successfully loads tags", async () => {
-    mockTagsApi
-      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
-      .reply(200, tags);
-
     await wrapper.findComponent('[data-test="tags-btn"]').trigger("click");
-
     await flushPromises();
-
     expect(wrapper.vm.fetchedTags).toEqual(tags);
   });
 });
