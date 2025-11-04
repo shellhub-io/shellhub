@@ -51,7 +51,7 @@ post:
               $ref: ../components/schemas/namespaceTenantID.yaml
           required:
             - info
-            - session
+            - sessions
             - hostname
             - public_key
             - tenant_id

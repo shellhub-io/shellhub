@@ -13,10 +13,10 @@ properties:
     type: array
     items:
       type: string
-      example:
-        - MLNSPOB2L2ZRO2D5
-        - 35QBUON4JAA4V6KP
-        - UYH34OY5RNDRRSUS
-        - IBWGL3IN42LTS3PP
-        - 6DIGYYGM3JM7GXC4
-        - 6UIHAIN3CYUEFY5X
+    example:
+      - MLNSPOB2L2ZRO2D5
+      - 35QBUON4JAA4V6KP
+      - UYH34OY5RNDRRSUS
+      - IBWGL3IN42LTS3PP
+      - 6DIGYYGM3JM7GXC4
+      - 6UIHAIN3CYUEFY5X

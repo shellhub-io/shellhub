@@ -14,11 +14,6 @@ post:
       application/json:
         schema:
           $ref: ../components/schemas/connectorData.yaml
-          required:
-            - enable
-            - secure
-            - address
-            - tls
   responses:
     '200':
       description: Create a Connector and connected successfully

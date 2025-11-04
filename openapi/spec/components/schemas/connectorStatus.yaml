@@ -3,7 +3,7 @@ properties:
   State:
     type: boolean
     description: Connector's connetion state type.
-    example: connected
+    example: true
   Message:
     type: string
     description: Connector's connetion status message.
