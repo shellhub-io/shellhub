@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 
@@ -22,7 +21,6 @@ import (
 // OpenAPIValidator validates HTTP responses against OpenAPI specification
 type OpenAPIValidator struct {
 	router         routers.Router
-	enabled        bool
 	failOnMismatch bool
 	enabledPaths   map[string]bool
 	mu             sync.RWMutex
@@ -61,16 +59,9 @@ func NewOpenAPIValidator(ctx context.Context, config *OpenAPIValidatorConfig) (*
 	}
 
 	validator := &OpenAPIValidator{
-		enabled:        shouldEnableValidation(),
 		failOnMismatch: config.FailOnMismatch && envs.IsDevelopment(),
 		enabledPaths:   make(map[string]bool),
 		logger:         config.Logger,
-	}
-
-	if !validator.enabled {
-		config.Logger.Debug("OpenAPI validation disabled")
-
-		return validator, nil
 	}
 
 	if config.SchemaPath == nil {
@@ -120,10 +111,6 @@ func (v *OpenAPIValidator) ValidateResponse(r *http.Request, response *http.Resp
 		Path:       r.URL.Path,
 		Method:     r.Method,
 		StatusCode: response.StatusCode,
-	}
-
-	if !v.enabled {
-		return result
 	}
 
 	v.mu.RLock()
@@ -206,17 +193,6 @@ func (v *OpenAPIValidator) DisablePath(path string) {
 // ShouldFailOnMismatch returns whether validation failures should cause HTTP errors
 func (v *OpenAPIValidator) ShouldFailOnMismatch() bool {
 	return v.failOnMismatch
-}
-
-// IsEnabled returns whether validation is enabled
-func (v *OpenAPIValidator) IsEnabled() bool {
-	return v.enabled
-}
-
-// shouldEnableValidation determines if OpenAPI validation should be enabled
-func shouldEnableValidation() bool {
-	// NOTE: Enable in development always, in production only if explicitly requested.
-	return envs.IsDevelopment() || os.Getenv("SHELLHUB_OPENAPI_VALIDATION") == "true"
 }
 
 // GetDefaultSchemaPath returns the default path to the OpenAPI schema

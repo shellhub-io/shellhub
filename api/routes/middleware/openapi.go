@@ -65,10 +65,6 @@ func OpenAPIValidator(cfg *OpenAPIValidatorConfig) echo.MiddlewareFunc {
 				return next(c)
 			}
 
-			if !validator.IsEnabled() {
-				return next(c)
-			}
-
 			req := c.Request()
 			res := c.Response()
 
@@ -129,10 +125,6 @@ func getOrCreateValidator(cfg OpenAPIValidatorConfig) *openapi.OpenAPIValidator 
 			logger.WithError(validatorErr).Error("Failed to initialize OpenAPI validator")
 
 			return
-		}
-
-		if globalValidator.IsEnabled() {
-			logger.Info("OpenAPI response validation middleware initialized")
 		}
 	})
 
