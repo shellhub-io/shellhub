@@ -200,32 +200,25 @@ func rgbToYUV420(width, height int, data []byte) (y, u, v []byte) {
 	u = make([]byte, (width/2)*(height/2))
 	v = make([]byte, (width/2)*(height/2))
 
-	var r, g, b uint16
-	var r8, g8, b8 float64
+	var pixelIdx int
+	var r, g, b float64
 	var yy float64
 
 	for j := range height {
 		for i := range width {
-			r = uint16(data[(j*width+i)*4+0])<<8 | uint16(data[(j*width+i)*4+0])
-			g = uint16(data[(j*width+i)*4+1])<<8 | uint16(data[(j*width+i)*4+1])
-			b = uint16(data[(j*width+i)*4+2])<<8 | uint16(data[(j*width+i)*4+2])
-			// _ = uint16(data[(j*width+i)*4+3])<<8 | uint16(data[(j*width+i)*4+3]) // Alpha channel, ignored.
+			pixelIdx = (j*width + i) * 4
 
-			// Convert 16-bit to 8-bit (more precise)
-			r8 = float64(r / 257)
-			g8 = float64(g / 257)
-			b8 = float64(b / 257)
+			r = float64(data[pixelIdx+0])
+			g = float64(data[pixelIdx+1])
+			b = float64(data[pixelIdx+2])
 
-			// Y (luma)
-			yy = 0.299*r8 + 0.587*g8 + 0.114*b8
+			yy = 0.299*r + 0.587*g + 0.114*b
 			y[j*width+i] = byte(yy)
 
-			// Subsample U and V (4:2:0)
 			if j%2 == 0 && i%2 == 0 {
 				uIdx := (j/2)*(width/2) + i/2
-				// SWAPPED: Assign Cr to u and Cb to v if that's what your decoder expects
-				u[uIdx] = byte(0.5*r8 - 0.419*g8 - 0.081*b8 + 128)  // Cr
-				v[uIdx] = byte(-0.169*r8 - 0.331*g8 + 0.5*b8 + 128) // Cb
+				u[uIdx] = byte(0.5*r - 0.419*g - 0.081*b + 128)
+				v[uIdx] = byte(-0.169*r - 0.331*g + 0.5*b + 128)
 			}
 		}
 	}
