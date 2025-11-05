@@ -32,6 +32,7 @@ export interface IDevice {
   namespace: string;
   status: DeviceStatus;
   created_at: string;
+  status_updated_at: string;
   remote_addr: string;
   position: Position;
   tags: Array<ITag>;

@@ -24,6 +24,7 @@ const mockSession: ISession = {
     public_key: "",
     tenant_id: "tenant1",
     last_seen: "2023-01-01T00:00:00Z",
+    status_updated_at: "2020-05-20T18:58:53.276Z",
     online: true,
     namespace: "default",
     status: "accepted",
