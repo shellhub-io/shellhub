@@ -9,21 +9,18 @@ const users = [
     name: "user",
     email: "user@email.com",
     username: "username",
-    password: "hash_password",
   },
   {
     id: "xxxxxxx2",
     name: "user2",
     email: "user2@email.com",
     username: "username2",
-    password: "hash_password2",
   },
   {
     id: "xxxxxxx3",
     name: "user3",
     email: "user3@email.com",
     username: "username3",
-    password: "hash_password3",
   },
 ];
 
