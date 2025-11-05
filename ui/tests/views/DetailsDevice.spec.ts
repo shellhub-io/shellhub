@@ -39,6 +39,7 @@ describe("Details Device", () => {
     tenant_id: "fake-tenant-data",
     last_seen: "2020-05-20T18:58:53.276Z",
     created_at: "2020-05-20T18:00:00.000Z",
+    status_updated_at: "2020-05-20T18:58:53.276Z",
     online: false,
     namespace: "user",
     status: "accepted" as const,
