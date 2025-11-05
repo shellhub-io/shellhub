@@ -149,6 +149,7 @@ describe("Device Management Dropdown", () => {
           "v-layout": VLayout,
           DevicesDropdown,
         },
+        stubs: { teleport: true }
       },
     });
     await wrapper.find('[data-test="devices-icon"]').trigger("click");
