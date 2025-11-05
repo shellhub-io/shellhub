@@ -20,9 +20,6 @@
         <td :username-test="item.username">
           {{ item.username }}
         </td>
-        <td :namespaces-test="item.namespaces">
-          {{ item.namespaces }}
-        </td>
         <td>
           <UserStatusChip :status="item.status" />
         </td>
@@ -108,10 +105,6 @@ const headers = [
   {
     text: "Username",
     value: "username",
-  },
-  {
-    text: "Namespaces",
-    value: "namespaces",
   },
   {
     text: "Status",

@@ -34,8 +34,8 @@
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Namespaces:</h3>
-        <p :data-test="currentUser.namespaces">{{ currentUser.namespaces }}</p>
+        <h3 class="text-overline mt-3">Owned namespaces:</h3>
+        <p :data-test="currentUser.namespacesOwned">{{ currentUser.namespacesOwned }}</p>
       </div>
     </v-card-text>
     <p v-else class="text-center">Something is wrong, try again !</p>

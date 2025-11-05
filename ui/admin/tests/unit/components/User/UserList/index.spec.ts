@@ -6,18 +6,20 @@ import useUsersStore from "@admin/store/modules/users";
 import UserList from "@admin/components/User/UserList.vue";
 import routes from "@admin/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
+import { IAdminUser } from "@admin/interfaces/IUser";
 
-const mockUsers = [
+const mockUsers: IAdminUser[] = [
   {
     status: "confirmed" as const,
     created_at: "2022-04-13T11:42:49.578Z",
     email: "depaulacostaantony@gmail.com",
+    recovery_email: "blabla@gmail.com",
+    mfa: { enabled: false },
     id: "6256b739302b50b6cc5eafcc",
     last_login: "0001-01-01T00:00:00Z",
     name: "antony",
-    namespaces: 2,
+    namespacesOwned: 2,
     max_namespaces: 5,
-    password: "dummy",
     username: "antony",
     preferences: {
       auth_methods: ["saml" as const],
@@ -59,6 +61,5 @@ describe("UserList", async () => {
     expect(wrapper.find("[name-test]").text()).toContain(mockUsers[0].name);
     expect(wrapper.find("[email-test]").text()).toContain(mockUsers[0].email);
     expect(wrapper.find("[username-test]").text()).toContain(mockUsers[0].username);
-    expect(wrapper.find("[namespaces-test]").text()).toContain(String(mockUsers[0].namespaces));
   });
 });

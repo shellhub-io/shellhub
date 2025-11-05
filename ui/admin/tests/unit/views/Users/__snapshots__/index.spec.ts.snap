@@ -70,14 +70,13 @@ exports[`Users > Renders the component 1`] = `
             <th class="text-center" data-test="th-name"><span data-test="th-label">Name</span></th>
             <th class="text-center" data-test="th-email"><span data-test="th-label">Email</span></th>
             <th class="text-center" data-test="th-username"><span data-test="th-label">Username</span></th>
-            <th class="text-center" data-test="th-namespaces"><span data-test="th-label">Namespaces</span></th>
             <th class="text-center" data-test="th-status"><span data-test="th-label">Status</span></th>
             <th class="text-center" data-test="th-actions"><span data-test="th-label">Actions</span></th>
           </tr>
         </thead>
         <tbody class="pa-4 text-subtitle-2" data-test="tbody-empty">
           <tr>
-            <td colspan="6" class="pa-4 text-subtitle-2 text-center" data-test="empty-state"> No data available </td>
+            <td colspan="5" class="pa-4 text-subtitle-2 text-center" data-test="empty-state"> No data available </td>
           </tr>
         </tbody>
       </table>

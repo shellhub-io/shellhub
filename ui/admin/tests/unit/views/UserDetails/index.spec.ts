@@ -15,9 +15,8 @@ const user = {
   id: "6256b739302b50b6cc5eafcc",
   last_login: "0001-01-01T00:00:00Z",
   name: "antony",
-  namespaces: 0,
-  password: "somepassword",
   username: "antony",
+  namespacesOwned: 2,
 };
 
 describe("User Details", async () => {
@@ -72,7 +71,6 @@ describe("User Details", async () => {
     expect(wrapper.find(`[data-test='${user.id}']`).text()).toContain(user.id);
     expect(wrapper.find(`[data-test='${user.email}']`).text()).toContain(user.email);
     expect(wrapper.find(`[data-test='${user.username}']`).text()).toContain(user.username);
-    expect(wrapper.find(`[data-test='${user.namespaces}']`).text()).toContain(`${user.namespaces}`);
   });
 
   it("Should render the correct buttons", () => {

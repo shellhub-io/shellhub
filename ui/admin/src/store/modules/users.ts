@@ -32,7 +32,7 @@ const useUsersStore = defineStore("users", () => {
 
   const fetchUserById = async (id: string) => {
     const { data } = await usersApi.getUser(id);
-    return data.user as IAdminUser;
+    return data as IAdminUser;
   };
 
   const updateUser = async (data: IAdminUserFormData) => {
