@@ -4,7 +4,6 @@
     aria-label="Open devices menu"
     icon="mdi-developer-board"
     data-test="devices-icon"
-    class="ml-3 mr-2"
     @click="toggleDrawer"
   />
 
