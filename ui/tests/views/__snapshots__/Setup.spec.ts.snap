@@ -4,7 +4,7 @@ exports[`Setup Account > Renders the component 1`] = `
 "<div class="v-container v-locale--is-ltr pb-0 mb-0">
   <!--v-if-->
   <form>
-    <div class="v-card-title text-center" data-test="welcome-title">Welcome to ShellHub!</div>
+    <div class="v-card-title text-center" data-test="welcome-title"> Welcome to ShellHub! </div>
     <div class="v-window v-theme--light">
       <div class="v-window__container">
         <transition-stub name="" appear="false" persisted="false" css="true">

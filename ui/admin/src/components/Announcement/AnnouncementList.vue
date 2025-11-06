@@ -1,16 +1,19 @@
 <template>
   <DataTable
+    v-model:items-per-page="itemsPerPage"
+    v-model:page="page"
     :headers
     :items="announcements"
-    v-model:itemsPerPage="itemsPerPage"
-    v-model:page="page"
-    :totalCount="announcementCount"
+    :total-count="announcementCount"
     :loading
-    :itemsPerPageOptions="[10, 20, 50, 100]"
+    :items-per-page-options="[10, 20, 50, 100]"
     data-test="announcement-list"
   >
-    <template v-slot:rows>
-      <tr v-for="(announcement, index) in announcements" :key="index">
+    <template #rows>
+      <tr
+        v-for="(announcement, index) in announcements"
+        :key="index"
+      >
         <td data-test="announcement-uuid">
           <v-chip>
             {{ announcement.uuid }}
@@ -23,23 +26,26 @@
           {{ formatDate(announcement.date) }}
         </td>
         <td data-test="announcement-actions">
-          <v-tooltip bottom anchor="bottom">
-            <template v-slot:activator="{ props }">
+          <v-tooltip
+            bottom
+            anchor="bottom"
+          >
+            <template #activator="{ props }">
               <v-icon
                 tag="a"
                 dark
                 v-bind="props"
-                @click="redirectToAnnouncement(announcement)"
-                @keyup.enter="redirectToAnnouncement(announcement)"
                 tabindex="0"
                 icon="mdi-information"
+                @click="redirectToAnnouncement(announcement)"
+                @keyup.enter="redirectToAnnouncement(announcement)"
               />
             </template>
             <span>Info</span>
           </v-tooltip>
 
           <AnnouncementEdit
-            :announcementItem="announcement"
+            :announcement-item="announcement"
             @update="refreshAnnouncements"
           />
 
@@ -109,11 +115,8 @@ const refreshAnnouncements = async () => {
 
 const formatDate = (date: string) => moment(date).format("LL");
 
-const redirectToAnnouncement = (announcement: IAdminAnnouncementShort) => {
-  router.push({
-    name: "announcementDetails",
-    params: { uuid: announcement.uuid },
-  });
+const redirectToAnnouncement = async (announcement: IAdminAnnouncementShort) => {
+  await router.push({ name: "announcementDetails", params: { uuid: announcement.uuid } });
 };
 
 watch([itemsPerPage, page], async () => {

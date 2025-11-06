@@ -1,6 +1,12 @@
 <template>
   <div class="mr-4">
-    <v-menu v-model="menuOpen" location="bottom" v-bind="$attrs" scrim eager>
+    <v-menu
+      v-model="menuOpen"
+      location="bottom"
+      v-bind="$attrs"
+      scrim
+      eager
+    >
       <template #activator="{ props }">
         <v-badge
           bordered
@@ -17,7 +23,9 @@
             @click="loadInitialTags"
           >
             Tags
-            <v-icon right>mdi-chevron-down</v-icon>
+            <v-icon right>
+              mdi-chevron-down
+            </v-icon>
           </v-btn>
         </v-badge>
       </template>
@@ -25,18 +33,27 @@
       <div
         ref="scrollArea"
         class="bg-v-theme-surface"
-        style="max-height: 320px; overflow-y: auto;"
+        style="max-height: 320px; overflow-y: auto"
       >
-        <v-list shaped density="compact">
-          <template v-for="(item, i) in tags" :key="`row-${i}`">
-            <v-divider v-if="!item" :key="`divider-${i}`" />
+        <v-list
+          shaped
+          density="compact"
+        >
+          <template
+            v-for="(item, i) in tags"
+            :key="`row-${i}`"
+          >
+            <v-divider
+              v-if="!item"
+              :key="`divider-${i}`"
+            />
             <v-list-item
               v-else
               :key="`item-${i}`"
               :value="item"
               color="primary"
-              @click="selectTag(item)"
               data-test="tag-item"
+              @click="selectTag(item)"
             >
               <template #default>
                 <div class="d-flex align-center">
@@ -46,14 +63,22 @@
                       color="primary"
                       hide-details
                     />
-                    <v-list-item-title>{{ getTagName(item) }}</v-list-item-title>
+                    <v-list-item-title>
+                      {{
+                        getTagName(item)
+                      }}
+                    </v-list-item-title>
                   </v-list-item-action>
                 </div>
               </template>
             </v-list-item>
           </template>
 
-          <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+          <div
+            ref="sentinel"
+            data-test="tags-sentinel"
+            style="height: 1px"
+          />
         </v-list>
       </div>
     </v-menu>
@@ -84,7 +109,9 @@ const perPage = ref(10);
 
 const fetchedTags = ref<ITag[]>([]);
 const tags = computed(() => fetchedTags.value);
-const selectedTags = computed<ITag[]>(() => tagsStore.getSelected(props.variant));
+const selectedTags = computed<ITag[]>(() =>
+  tagsStore.getSelected(props.variant),
+);
 const isLoading = ref(false);
 
 const scrollArea = ref<HTMLElement | null>(null);
@@ -93,13 +120,14 @@ let observer: IntersectionObserver | null = null;
 
 const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
 
-const getTagName = (tag: ITag): string => typeof tag === "string" ? tag : tag.name;
+const getTagName = (tag: ITag): string =>
+  typeof tag === "string" ? tag : tag.name;
 
-const getSelectedTagNames = (): string[] => selectedTags.value.map((t) => getTagName(t));
+const getSelectedTagNames = (): string[] =>
+  selectedTags.value.map((t) => getTagName(t));
 
-const tagIsSelected = (tag: ITag): boolean => selectedTags.value.some(
-  (sel) => getTagName(sel) === getTagName(tag),
-);
+const tagIsSelected = (tag: ITag): boolean =>
+  selectedTags.value.some((sel) => getTagName(sel) === getTagName(tag));
 
 const resetPagination = (): void => {
   currentPage.value = 1;
@@ -151,7 +179,9 @@ const getItems = (tagNames: string[]) => {
       params: { name: "tags.name", operator: "contains", value: tagNames },
     },
   ];
-  const encodedFilter = Buffer.from(JSON.stringify(filter), "utf-8").toString("base64");
+  const encodedFilter = Buffer.from(JSON.stringify(filter), "utf-8").toString(
+    "base64",
+  );
   setFilter(encodedFilter);
 };
 
@@ -181,9 +211,7 @@ const setupObserver = () => {
   observer = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
-      if (entry?.isIntersecting) {
-        bumpPerPageAndLoad();
-      }
+      if (entry?.isIntersecting) void bumpPerPageAndLoad();
     },
     { root: scrollArea.value, threshold: 1.0 },
   );

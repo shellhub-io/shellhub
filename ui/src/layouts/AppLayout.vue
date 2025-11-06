@@ -1,15 +1,17 @@
 <template>
   <v-navigation-drawer
-    :theme="theme"
     v-model="showNavigationDrawer"
+    :theme="theme"
     :permanent="permanent"
     absolute
     app
     class="bg-v-theme-surface"
     data-test="navigation-drawer"
-
   >
-    <v-toolbar class="bg-v-theme-surface border-b-thin" data-test="drawer-toolbar">
+    <v-toolbar
+      class="bg-v-theme-surface border-b-thin"
+      data-test="drawer-toolbar"
+    >
       <div class="w-100 d-flex align-center justify-center">
         <router-link
           to="/"
@@ -24,33 +26,45 @@
       </div>
     </v-toolbar>
 
-    <div class="d-flex justify-center" v-if="!hasNamespaces">
+    <div
+      v-if="!hasNamespaces"
+      class="d-flex justify-center"
+    >
       <v-btn
         color="primary"
+        data-test="save-btn"
         @click="showNamespaceAdd = true"
-        data-test="save-btn">
+      >
         Add Namespace
       </v-btn>
       <NamespaceAdd
         v-model="showNamespaceAdd"
-        enableSwitchIn
+        enable-switch-in
         data-test="namespace-add-component"
       />
     </div>
 
-    <v-list density="compact" class="bg-v-theme-surface" data-test="list">
-      <template v-for="item in visibleItems" :key="item.title">
+    <v-list
+      density="compact"
+      class="bg-v-theme-surface"
+      data-test="list"
+    >
+      <template
+        v-for="item in visibleItems"
+        :key="item.title"
+      >
         <v-list-group
           v-if="item.children && getFilteredChildren(item.children).length > 0"
-          prepend-icon="mdi-chevron-down"
           v-model="subMenuState[item.title]"
+          prepend-icon="mdi-chevron-down"
           data-test="list-group"
         >
-          <template v-slot:activator="{ props }">
+          <template #activator="{ props }">
             <v-list-item
               lines="two"
               v-bind="props"
-              :disabled="disableItem(item.title)">
+              :disabled="disableItem(item.title)"
+            >
               <template #prepend>
                 <v-icon data-test="icon">
                   {{ item.icon }}
@@ -105,7 +119,6 @@
             >
               BETA
             </v-chip>
-
           </template>
           <v-list-item-title :data-test="item.icon + '-listItem'">
             {{ item.title }}
@@ -121,7 +134,10 @@
 
   <Snackbar />
 
-  <AppBar v-model="showNavigationDrawer" data-test="app-bar" />
+  <AppBar
+    v-model="showNavigationDrawer"
+    data-test="app-bar"
+  />
 
   <v-main data-test="main">
     <slot>
@@ -174,6 +190,16 @@ defineOptions({
   inheritAttrs: false,
 });
 
+type RouteMeta = {
+  title: string;
+  icon: string;
+  showInSidebar: boolean;
+  sidebarOrder: number;
+  isPremium?: boolean;
+  isBeta?: boolean;
+  isHidden?: () => boolean;
+};
+
 const router = useRouter();
 const layoutStore = useLayoutStore();
 const namespacesStore = useNamespacesStore();
@@ -196,9 +222,9 @@ const hasSpinner = computed({
 
 const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
 
-const isItemHidden = (meta?: Record<string, unknown>) => {
-  if (meta?.isHidden && typeof meta.isHidden === "function") return meta.isHidden();
-  return false;
+const isItemHidden = (meta?: RouteMeta) => {
+  if (!meta?.isHidden) return false;
+  return meta.isHidden();
 };
 
 const items = computed(() => {
@@ -214,14 +240,14 @@ const items = computed(() => {
       path: route.path,
       isPremium: route.meta?.isPremium as boolean,
       isBeta: route.meta?.isBeta as boolean,
-      hidden: isItemHidden(route.meta),
+      hidden: isItemHidden(route.meta as RouteMeta),
       sidebarOrder: route.meta?.sidebarOrder as number,
       children: route.children
         ?.filter((child) => child.meta?.showInSidebar)
         .map((child) => ({
           title: child.meta?.title as string,
           path: child.path.startsWith("/") ? child.path : `${route.path}/${child.path}`,
-          hidden: isItemHidden(child.meta),
+          hidden: isItemHidden(child.meta as RouteMeta),
         })),
     }))
     .sort((a, b) => a.sidebarOrder - b.sidebarOrder);
@@ -235,7 +261,7 @@ items.value.forEach((item) => {
   }
 });
 
-function getFilteredChildren(children) {
+function getFilteredChildren(children: Array<{ title: string; path: string; hidden?: boolean }>) {
   return children.filter((child) => !child.hidden);
 }
 

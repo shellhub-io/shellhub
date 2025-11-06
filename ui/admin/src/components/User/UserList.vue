@@ -1,16 +1,19 @@
 <template>
   <DataTable
+    v-model:items-per-page="itemsPerPage"
+    v-model:page="page"
     :headers
     :items="users"
-    v-model:itemsPerPage="itemsPerPage"
-    v-model:page="page"
     :loading
-    :itemsPerPageOptions="[10, 20, 50, 100]"
-    :totalCount="userCount"
+    :items-per-page-options="[10, 20, 50, 100]"
+    :total-count="userCount"
     data-test="users-list"
   >
-    <template v-slot:rows>
-      <tr v-for="(item, i) in users" :key="i">
+    <template #rows>
+      <tr
+        v-for="(item, i) in users"
+        :key="i"
+      >
         <td :name-test="item.name">
           {{ item.name }}
         </td>
@@ -25,16 +28,19 @@
         </td>
 
         <td>
-          <v-tooltip bottom anchor="bottom">
-            <template v-slot:activator="{ props }">
+          <v-tooltip
+            bottom
+            anchor="bottom"
+          >
+            <template #activator="{ props }">
               <v-icon
                 tag="a"
                 dark
                 v-bind="props"
-                @click="redirectToUser(item)"
-                @keyup.enter="redirectToUser(item)"
                 tabindex="0"
                 icon="mdi-information"
+                @click="redirectToUser(item)"
+                @keyup.enter="redirectToUser(item)"
               />
             </template>
             <span>Info</span>
@@ -42,16 +48,19 @@
 
           <UserFormDialog :user="item" />
 
-          <v-tooltip bottom anchor="bottom">
-            <template v-slot:activator="{ props }">
+          <v-tooltip
+            bottom
+            anchor="bottom"
+          >
+            <template #activator="{ props }">
               <v-icon
                 tag="a"
                 dark
                 v-bind="props"
-                @click="loginWithToken(item.id)"
                 tabindex="0"
-                @keyup.enter="loginWithToken(item.id)"
                 icon="mdi-login"
+                @click="loginWithToken(item.id)"
+                @keyup.enter="loginWithToken(item.id)"
               />
             </template>
             <span>Login</span>
@@ -59,7 +68,7 @@
 
           <UserResetPassword
             v-if="userPrefersSAMLAuthentication(item.preferences.auth_methods)"
-            :userId="item.id"
+            :user-id="item.id"
             @update="fetchUsers"
           />
 
@@ -148,7 +157,7 @@ const loginWithToken = async (userId: string) => {
 };
 
 const redirectToUser = async (user: IAdminUser) => {
-  router.push({ name: "userDetails", params: { id: user.id } });
+  await router.push({ name: "userDetails", params: { id: user.id } });
 };
 
 watch([itemsPerPage, page], async () => {

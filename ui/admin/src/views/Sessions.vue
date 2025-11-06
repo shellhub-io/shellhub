@@ -1,5 +1,7 @@
 <template>
-  <h1 class="mb-2">Sessions</h1>
+  <h1 class="mb-2">
+    Sessions
+  </h1>
   <SessionList />
 </template>
 

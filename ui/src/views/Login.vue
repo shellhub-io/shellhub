@@ -30,11 +30,11 @@
         type="error"
         :title="invalid.title + (invalid.timeout ? countdownTimer : '')"
         :text="invalid.msg"
-        @click:close="!invalidCredentials"
         closable
         variant="tonal"
         class="mb-4"
         data-test="invalid-login-alert"
+        @click:close="!invalidCredentials"
       />
     </v-slide-y-reverse-transition>
     <v-slide-y-reverse-transition>
@@ -51,14 +51,14 @@
     </v-slide-y-reverse-transition>
     <v-form
       v-model="validForm"
-      @submit.prevent="login"
       data-test="form"
+      @submit.prevent="login"
     >
       <v-col>
         <v-text-field
+          v-model="username"
           color="primary"
           prepend-inner-icon="mdi-account"
-          v-model="username"
           :disabled="!authentication?.local && isEnterprise"
           :rules="rules"
           required
@@ -67,10 +67,10 @@
         />
 
         <v-text-field
+          v-model="password"
           color="primary"
           prepend-inner-icon="mdi-lock"
           :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-          v-model="password"
           :disabled="!authentication?.local && isEnterprise"
           :rules="rules"
           label="Password"
@@ -91,7 +91,6 @@
             Login
           </v-btn>
         </v-card-actions>
-
       </v-col>
     </v-form>
     <v-col v-if="isCloud">
@@ -122,7 +121,10 @@
         </router-link>
       </v-card-subtitle>
     </v-col>
-    <div v-if="authentication?.saml && isEnterprise" data-test="or-divider-sso">
+    <div
+      v-if="authentication?.saml && isEnterprise"
+      data-test="or-divider-sso"
+    >
       <v-row class="mb-2">
         <v-col class="mr-1">
           <v-divider />
@@ -136,13 +138,15 @@
         class="d-flex align-center justify-center"
       >
         <v-btn
-          @click="redirectToSaml()"
           color="primary"
           class="bg-primary"
           prepend-icon="mdi-cloud-sync-outline"
           size="large"
           data-test="sso-btn"
-        >Login with SSO</v-btn>
+          @click="redirectToSaml()"
+        >
+          Login with SSO
+        </v-btn>
       </v-col>
     </div>
   </v-container>
@@ -265,7 +269,7 @@ const login = async () => {
           });
           break;
         case 403:
-          router.push({ name: "ConfirmAccount", query: { username: username.value } });
+          await router.push({ name: "ConfirmAccount", query: { username: username.value } });
           break;
         case 429:
           startCountdown(loginTimeout.value);

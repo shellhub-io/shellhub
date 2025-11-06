@@ -1,9 +1,19 @@
 <template>
   <v-app>
     <v-main>
-      <v-container class="full-height d-flex justify-center align-center" fluid>
-        <v-row align="center" justify="center">
-          <v-col cols="12" sm="8" md="4">
+      <v-container
+        class="full-height d-flex justify-center align-center"
+        fluid
+      >
+        <v-row
+          align="center"
+          justify="center"
+        >
+          <v-col
+            cols="12"
+            sm="8"
+            md="4"
+          >
             <v-card class="pa-6 bg-v-theme-surface">
               <v-card-title class="d-flex justify-center align-center mt-4">
                 <v-img
@@ -15,9 +25,9 @@
               </v-card-title>
               <form @submit.prevent="login">
                 <v-text-field
+                  v-model="username"
                   color="primary"
                   prepend-inner-icon="mdi-account"
-                  v-model="username"
                   :error-messages="usernameError"
                   required
                   label="Username"
@@ -25,10 +35,10 @@
                 />
 
                 <v-text-field
+                  v-model="password"
                   color="primary"
                   prepend-inner-icon="mdi-lock"
                   :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  v-model="password"
                   :error-messages="passwordError"
                   label="Password"
                   required
@@ -43,8 +53,8 @@
                     data-test="login-btn"
                     color="primary"
                     variant="elevated"
-                    @click="login"
                     text="Login"
+                    @click="login"
                   />
                 </v-card-actions>
               </form>
@@ -101,11 +111,11 @@ const login = async () => {
       });
       createNewAdminClient();
       if (route.query.redirect) {
-        router.push(`${route.query.redirect}`);
+        await router.push(route.query.redirect as string);
       } else {
-        router.push("/");
+        await router.push("/");
       }
-    } catch (error) {
+    } catch {
       snackbar.showError("Failed to log in. Please check your credentials and try again.");
     }
   } else {

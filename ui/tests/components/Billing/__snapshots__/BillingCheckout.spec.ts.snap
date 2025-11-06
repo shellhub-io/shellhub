@@ -4,12 +4,12 @@ exports[`Billing Checkout > Renders the component 1`] = `
 "<div class="v-container v-locale--is-ltr">
   <div class="v-row">
     <div class="v-col">
-      <h2 data-test="title">Payment Method:</h2>
+      <h2 data-test="title"> Payment Method: </h2>
     </div>
   </div>
   <div class="v-row">
     <div class="v-col">
-      <p data-test="sub-title">This is the payment method you have selected for your ShellHub Cloud subscription</p>
+      <p data-test="sub-title"> This is the payment method you have selected for your ShellHub Cloud subscription </p>
     </div>
   </div>
   <div class="v-col">
@@ -38,7 +38,7 @@ exports[`Billing Checkout > Renders the component 1`] = `
           <!---->
           <!---->
           <div class="v-row align-center pa-0 pa-2" cols="12">
-            <div class="v-col v-col-1"><i class="fa:far fa-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default" style="font-size: 1.5rem;" aria-hidden="true" data-test="default-icon"></i></div>
+            <div class="v-col v-col-1"><i class="fa:far fa-credit-card mdi v-icon notranslate v-theme--light" style="font-size: 1.5rem; height: 1.5rem; width: 1.5rem;" aria-hidden="true" data-test="default-icon"></i></div>
             <div class="v-col v-col-3"><b></b></div>
             <div class="v-col v-col-3">0/0</div>
             <div class="v-col v-col-2"></div>
@@ -64,7 +64,7 @@ exports[`Billing Checkout > Renders the component 1`] = `
   <div class="v-spacer mb-5"></div>
   <div class="v-row">
     <div class="v-col">
-      <h3 data-test="additional-information">Additional Information:</h3>
+      <h3 data-test="additional-information"> Additional Information: </h3>
       <div class="v-spacer mb-2"></div>
       <ul data-test="additional-information-list" class="text-justify">
         <li>

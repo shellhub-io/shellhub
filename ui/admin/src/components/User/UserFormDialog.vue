@@ -1,23 +1,27 @@
 <template>
   <v-btn
     v-if="createUser"
-    @click="showDialog = true"
     class="mr-2"
     color="primary"
     tabindex="0"
     data-test="user-add-btn"
     text="Add User"
+    @click="showDialog = true"
   />
 
-  <v-tooltip v-else bottom anchor="bottom">
-    <template v-slot:activator="{ props }">
+  <v-tooltip
+    v-else
+    bottom
+    anchor="bottom"
+  >
+    <template #activator="{ props }">
       <v-icon
-        @click="showDialog = true"
         tag="button"
         dark
         v-bind="props"
         tabindex="0"
         icon="mdi-pencil"
+        @click="showDialog = true"
       />
     </template>
     <span>Edit</span>
@@ -65,16 +69,16 @@
         :error-messages="passwordError"
         color="primary"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-        @click:append-inner="togglePasswordVisibility"
         :type="showPassword ? 'text' : 'password'"
+        @click:append-inner="togglePasswordVisibility"
       />
       <v-checkbox
         v-model="changeNamespaceLimit"
-        @update:model-value="disableNamespaceCreation = false"
         label="Change the namespace creation limit for this user"
         color="primary"
         density="compact"
         hide-details
+        @update:model-value="disableNamespaceCreation = false"
       />
       <v-checkbox
         v-if="changeNamespaceLimit"
@@ -88,20 +92,25 @@
       />
       <v-number-input
         v-if="changeNamespaceLimit"
-        :disabled="disableNamespaceCreation"
         v-model="maxNamespaces"
+        :disabled="disableNamespaceCreation"
         label="Namespace limit"
         :min="1"
         color="primary"
         variant="outlined"
       />
-      <v-tooltip location="bottom start" class="text-center" :disabled="canChangeStatus" :text="statusTooltipMessage">
-        <template v-slot:activator="{ props }">
+      <v-tooltip
+        location="bottom start"
+        class="text-center"
+        :disabled="canChangeStatus"
+        :text="statusTooltipMessage"
+      >
+        <template #activator="{ props }">
           <div v-bind="props">
             <v-checkbox
               v-if="!createUser"
-              label="User confirmed"
               v-model="isConfirmed"
+              label="User confirmed"
               :disabled="!canChangeStatus"
               density="compact"
               hide-details
@@ -137,25 +146,29 @@ const maxNamespaces = ref(props.user?.max_namespaces || 0);
 const canChangeStatus = props.user?.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
 const snackbar = useSnackbar();
 const usersStore = useUsersStore();
-const statusTooltipMessage = props.user?.status === "invited"
-  ? "You cannot change the status of an invited user."
-  : "You cannot remove confirmation from an user.";
+const statusTooltipMessage
+  = props.user?.status === "invited"
+    ? "You cannot change the status of an invited user."
+    : "You cannot remove confirmation from an user.";
 
-const { value: name,
+const {
+  value: name,
   errorMessage: nameError,
   resetField: resetName,
 } = useField<string | undefined>("name", yup.string().required(), {
   initialValue: props.user?.name,
 });
 
-const { value: email,
+const {
+  value: email,
   errorMessage: emailError,
   resetField: resetEmail,
 } = useField<string | undefined>("email", yup.string().email().required(), {
   initialValue: props.user?.email,
 });
 
-const { value: username,
+const {
+  value: username,
   errorMessage: usernameError,
   resetField: resetUsername,
 } = useField<string | undefined>("username", yup.string().required(), {
@@ -170,10 +183,9 @@ const {
   initialValue: undefined,
 });
 
-const {
-  value: isConfirmed,
-  resetField: resetIsConfirmed,
-} = useField<boolean | undefined>("isConfirmed", undefined, {
+const { value: isConfirmed, resetField: resetIsConfirmed } = useField<
+  boolean | undefined
+>("isConfirmed", undefined, {
   initialValue: props.user?.status === "confirmed",
 });
 
@@ -213,17 +225,25 @@ const handleErrors = (error: AxiosError) => {
       case "password":
         passwordError.value = "This password is invalid!";
         break;
-      default: break;
+      default:
+        break;
     }
   });
 };
 
-const submitUser = async (isCreating: boolean, userData: IAdminUserFormData) => {
+const submitUser = async (
+  isCreating: boolean,
+  userData: IAdminUserFormData,
+) => {
   try {
-    const usersStoreAction = isCreating ? usersStore.addUser : usersStore.updateUser;
+    const usersStoreAction = isCreating
+      ? usersStore.addUser
+      : usersStore.updateUser;
     await usersStoreAction(userData);
 
-    snackbar.showSuccess(`User ${isCreating ? "added" : "updated"} successfully.`);
+    snackbar.showSuccess(
+      `User ${isCreating ? "added" : "updated"} successfully.`,
+    );
 
     await usersStore.fetchUsersList();
     showDialog.value = false;
@@ -245,18 +265,22 @@ const getStatus = () => {
   return props.user?.status;
 };
 
-const prepareUserData = () => ({
-  name: name.value,
-  email: email.value,
-  username: username.value,
-  password: password.value || "",
-  max_namespaces: changeNamespaceLimit.value ? maxNamespaces.value : undefined,
-  confirmed: !props.createUser ? isConfirmed.value : undefined,
-  status: getStatus(),
-  id: !props.createUser ? props.user?.id : undefined,
-}) as IAdminUserFormData;
+const prepareUserData = () =>
+  ({
+    name: name.value,
+    email: email.value,
+    username: username.value,
+    password: password.value || "",
+    max_namespaces: changeNamespaceLimit.value
+      ? maxNamespaces.value
+      : undefined,
+    confirmed: !props.createUser ? isConfirmed.value : undefined,
+    status: getStatus(),
+    id: !props.createUser ? props.user?.id : undefined,
+  }) as IAdminUserFormData;
 
-const validateErrors = (): boolean => !nameError.value && !emailError.value && !usernameError.value;
+const validateErrors = (): boolean =>
+  !nameError.value && !emailError.value && !usernameError.value;
 
 const submitForm = handleSubmit(async () => {
   if (validateErrors()) {

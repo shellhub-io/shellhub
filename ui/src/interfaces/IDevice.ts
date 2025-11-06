@@ -3,7 +3,7 @@ import { ITag } from "./ITags";
 
 type Identity = {
   mac: string;
-}
+};
 
 type InfoDetails = {
   id: string;
@@ -11,12 +11,12 @@ type InfoDetails = {
   version: string;
   arch: string;
   platform: string;
-}
+};
 
 type Position = {
   latitude: number;
   longitude: number;
-}
+};
 
 export type DeviceStatus = "accepted" | "pending" | "rejected";
 

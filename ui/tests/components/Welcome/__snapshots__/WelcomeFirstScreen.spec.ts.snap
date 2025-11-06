@@ -6,8 +6,8 @@ exports[`Welcome First Screen > Renders the component 1`] = `
     <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i class="mdi-rocket-launch mdi v-icon notranslate v-theme--light text-white" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
       <!----><span class="v-avatar__underlay"></span>
     </div>
-    <h2 class="text-h4 mb-2" data-test="welcome-name">Welcome, <span class="text-primary">test</span>! </h2>
-    <p class="text-subtitle-1 text-medium-emphasis">Let's get you started with ShellHub</p>
+    <h2 class="text-h4 mb-2" data-test="welcome-name"> Welcome, <span class="text-primary">test</span>! </h2>
+    <p class="text-subtitle-1 text-medium-emphasis"> Let's get you started with ShellHub </p>
   </div>
   <p class="text-body-1 my-5 text-justify"> ShellHub is a modern SSH server that eliminates the complexity of remote device access. Connect to your Linux devices effortlessly without worrying about network configurations, firewalls, or IP addresses. Everything is automated and secure. </p>
   <div class="v-card v-theme--light text-primary v-card--density-default v-card--variant-outlined pa-4 ma-3">

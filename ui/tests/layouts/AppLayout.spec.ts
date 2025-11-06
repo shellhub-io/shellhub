@@ -58,7 +58,7 @@ describe("App Layout Component", async () => {
       <v-app>
         <AppLayout />
       </v-app>
-    `,
+      `,
   });
 
   localStorage.setItem("theme", "dark");

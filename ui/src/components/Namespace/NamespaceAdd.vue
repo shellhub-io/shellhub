@@ -1,10 +1,9 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @confirm="addNamespace"
-    @cancel="close"
-    :title="isCommunityVersion ? 'Add a namespace using the CLI' : 'New Namespace'"
+    :title="
+      isCommunityVersion ? 'Add a namespace using the CLI' : 'New Namespace'
+    "
     icon="mdi-folder-plus"
     :confirm-text="isCommunityVersion ? '' : 'Submit'"
     :confirm-disabled="isCommunityVersion || !fieldMeta.valid"
@@ -13,9 +12,18 @@
     confirm-data-test="add-btn"
     cancel-data-test="close-btn"
     :footer-helper-text="isCommunityVersion ? 'Learn more on' : ''"
-    :footer-helper-link-text="isCommunityVersion ? 'ShellHub Administration Guide' : ''"
-    :footer-helper-link="isCommunityVersion ? 'https://docs.shellhub.io/self-hosted/administration' : ''"
+    :footer-helper-link-text="
+      isCommunityVersion ? 'ShellHub Administration Guide' : ''
+    "
+    :footer-helper-link="
+      isCommunityVersion
+        ? 'https://docs.shellhub.io/self-hosted/administration'
+        : ''
+    "
     data-test="namespace-add-card"
+    @close="close"
+    @confirm="addNamespace"
+    @cancel="close"
   >
     <v-card-text class="pa-6">
       <template v-if="!isCommunityVersion">
@@ -28,18 +36,28 @@
         />
         <div class="text-body-2 text-justify">
           <ul class="pl-4">
-            <li>The namespace you choose here will be used for in the SSHID of your devices.</li>
-            <li>The namespace can contain only lowercase alphanumeric characters and hyphens.</li>
+            <li>
+              The namespace you choose here will be used for in the SSHID of
+              your devices.
+            </li>
+            <li>
+              The namespace can contain only lowercase alphanumeric characters
+              and hyphens.
+            </li>
             <li>It cannot begin or end with a hyphen ("-").</li>
-            <li>The namespace must be a minimum of 3 characters and a maximum of 63 characters.</li>
+            <li>
+              The namespace must be a minimum of 3 characters and a maximum of
+              63 characters.
+            </li>
             <li>The namespace cannot be changed after creation.</li>
           </ul>
         </div>
       </template>
       <template v-else>
         <p class="text-body-2">
-          In the Community Edition of ShellHub, namespaces must be added using the administration CLI.
-          For detailed instructions on how to add namespaces, please refer to the documentation at the ShellHub
+          In the Community Edition of ShellHub, namespaces must be added using
+          the administration CLI. For detailed instructions on how to add
+          namespaces, please refer to the documentation at the ShellHub
           Administration Guide.
         </p>
       </template>
@@ -60,7 +78,7 @@ import useNamespacesStore from "@/store/modules/namespaces";
 
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const isCommunityVersion = computed(() => envVariables.isCommunity);
 const isLoading = ref(false);
 
@@ -108,7 +126,9 @@ const handleErrorAndNotify = (error: unknown) => {
 const addNamespace = async () => {
   isLoading.value = true;
   try {
-    const newNamespaceId = await namespacesStore.createNamespace(namespaceName.value);
+    const newNamespaceId = await namespacesStore.createNamespace(
+      namespaceName.value,
+    );
     await changeNamespace(newNamespaceId);
     close();
     snackbar.showSuccess("Namespace created successfully");

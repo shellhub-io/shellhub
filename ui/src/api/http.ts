@@ -26,7 +26,7 @@ const newAxiosInstance = (setupInterceptor = true, isAdmin = false): AxiosInstan
 };
 
 // Admin API instance
- 
+
 let adminApi = new axiosTs.AdminApi(
   adminConfiguration,
   undefined,

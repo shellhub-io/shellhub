@@ -1,21 +1,29 @@
 <template>
-  <v-tooltip location="bottom" :disabled="disableTooltip" v-bind="$attrs">
-    <template v-slot:activator="{ props }">
+  <v-tooltip
+    location="bottom"
+    :disabled="disableTooltip"
+    v-bind="$attrs"
+  >
+    <template #activator="{ props }">
       <div v-bind="props">
-        <slot :loading :disabled :openDialog />
+        <slot
+          :loading
+          :disabled
+          :open-dialog
+        />
       </div>
     </template>
     <span>{{ tooltipMessage }}</span>
   </v-tooltip>
 
-  <PlayerDialog v-model="showDialog" :logs />
+  <PlayerDialog
+    v-model="showDialog"
+    :logs
+  />
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  ref,
-} from "vue";
+import { computed, ref } from "vue";
 import hasPermission from "@/utils/permission";
 import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
@@ -37,14 +45,20 @@ const snackbar = useSnackbar();
 const loading = ref(false);
 const logs = ref<string | null>(null);
 const { isCommunity } = envVariables;
-const disabled = computed(() => !isCommunity && (!props.recorded || !props.authenticated));
-const tooltipMessage = computed(() => props.recorded
-  ? "You don't have permission to play this session."
-  : "This session was not recorded.");
+const disabled = computed(
+  () => !isCommunity && (!props.recorded || !props.authenticated),
+);
+const tooltipMessage = computed(() =>
+  props.recorded
+    ? "You don't have permission to play this session."
+    : "This session was not recorded.",
+);
 
 const canPlaySession = hasPermission("session:play");
 
-const disableTooltip = computed(() => isCommunity || (canPlaySession && props.recorded));
+const disableTooltip = computed(
+  () => isCommunity || (canPlaySession && props.recorded),
+);
 
 const getSessionLogs = async () => {
   if (!props.recorded) return false;

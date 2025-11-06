@@ -1,35 +1,35 @@
 <template>
   <WindowDialog
     v-model="showDialog"
-    @close="close"
     transition="dialog-bottom-transition"
     :title="currentStepConfig.title"
     :description="currentStepConfig.description"
     :icon="currentStepConfig.icon"
     icon-color="primary"
     data-test="dialog"
+    @close="close"
   >
-    <v-window v-model="step" class="pa-6">
+    <v-window
+      v-model="step"
+      class="pa-6"
+    >
       <v-window-item :value="1">
         <p class="text-justify mb-4 px-1">
-          In case you lose access to all your MFA credentials,
-          we'll need a recovery email to verify your identity
-          and reset your account access.
-          To ensure you can recover your account if you lose
-          access to your MFA credentials, please associate a
-          recovery email.
+          In case you lose access to all your MFA credentials, we'll need a
+          recovery email to verify your identity and reset your account access.
+          To ensure you can recover your account if you lose access to your MFA
+          credentials, please associate a recovery email.
         </p>
         <v-text-field
+          v-model="recoveryEmail"
           width="400"
           class="mx-auto"
-          v-model="recoveryEmail"
           label="Recovery Email"
           :error-messages="recoveryEmailError"
           hide-details="auto"
           required
           data-test="recovery-email-text"
         />
-
       </v-window-item>
       <v-window-item :value="2">
         <v-alert
@@ -53,27 +53,30 @@
           </div>
         </v-card>
 
-        <v-row class="my-4" justify="center">
+        <v-row
+          class="my-4"
+          justify="center"
+        >
           <v-btn
-            @click="downloadRecoveryCodes"
             color="primary"
             tabindex="0"
             variant="text"
             prepend-icon="mdi-download-box-outline"
             class="mr-3"
             data-test="download-recovery-codes-btn"
+            @click="downloadRecoveryCodes"
           >
             Download
           </v-btn>
           <CopyWarning :copied-item="'Recovery codes'">
             <template #default="{ copyText }">
               <v-btn
-                @click="copyText(recoveryCodes.join('\n'))"
                 color="primary"
                 tabindex="0"
                 variant="text"
                 prepend-icon="mdi-content-copy"
                 data-test="copy-recovery-codes-btn"
+                @click="copyText(recoveryCodes.join('\n'))"
               >
                 Copy
               </v-btn>
@@ -85,24 +88,39 @@
           v-model="checkbox"
           data-test="checkbox-recovery"
           label="I have saved my recovery codes and I want to continue the MFA Setup"
-          @click="checkbox === true"
           hide-details
+          @click="checkbox === true"
         />
       </v-window-item>
-      <v-window-item :value="3" class="text-center">
-        <qrcode-vue :value="mfaQRCode" :size="250" level="L" render-as="svg" :margin="2" />
+      <v-window-item
+        :value="3"
+        class="text-center"
+      >
+        <qrcode-vue
+          :value="mfaQRCode"
+          :size="250"
+          level="L"
+          render-as="svg"
+          :margin="2"
+        />
         <v-text-field
+          v-model="secret"
           readonly
           class="my-4 text-left"
           label="Secret"
-          v-model="secret"
           hint="Alternatively, you can use this secret to enable in your MFA App if you cannot read the QR code."
           persistent-hint
         />
         <div class="text-left">
-          <p class="mb-2"><strong>Step 1:</strong> Scan the QR code above or manually enter the Secret Key provided
-            into your preferred TOTP (Time-Based One-Time Password) provider.</p>
-          <p class="my-2"><strong>Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in.</p>
+          <p class="mb-2">
+            <strong>Step 1:</strong> Scan the QR code above or manually enter
+            the Secret Key provided into your preferred TOTP (Time-Based
+            One-Time Password) provider.
+          </p>
+          <p class="my-2">
+            <strong>Step 2:</strong> Enter the 6-digit code from your TOTP
+            provider after signing in.
+          </p>
         </div>
         <v-alert
           v-if="errorMessage"
@@ -111,11 +129,11 @@
           :text="errorMessage"
         />
         <v-otp-input
+          v-model="verificationCode"
           data-test="verification-code"
           required
-          v-model="verificationCode"
-          @keyup.enter="verificationCode ? enableMfa() : false"
           label="Verification Code"
+          @keyup.enter="verificationCode ? enableMfa() : false"
         />
       </v-window-item>
       <v-window-item :value="4">
@@ -127,21 +145,45 @@
             class="mx-auto mb-6 green-cloud"
             data-test="green-cloud-icon"
           />
-          <p class="text-h5 font-weight-medium">Congratulations! You've successfully enabled MFA.</p>
+          <p class="text-h5 font-weight-medium">
+            Congratulations! You've successfully enabled MFA.
+          </p>
         </div>
-        <p class="ml-3 mt-3 font-weight-medium">Your account is now more secure with:</p>
-        <ul class="ml-8 pt-0" data-test="congratulation-bullet-point">
+        <p class="ml-3 mt-3 font-weight-medium">
+          Your account is now more secure with:
+        </p>
+        <ul
+          class="ml-8 pt-0"
+          data-test="congratulation-bullet-point"
+        >
           <li>Two-step verification adding an extra layer of protection.</li>
-          <li>Reduced risk of unauthorized access even if your password is compromised.</li>
-          <li>Enhanced security against phishing attacks and identity theft.</li>
+          <li>
+            Reduced risk of unauthorized access even if your password is
+            compromised.
+          </li>
+          <li>
+            Enhanced security against phishing attacks and identity theft.
+          </li>
         </ul>
       </v-window-item>
     </v-window>
     <template #footer>
       <v-spacer />
       <v-card-actions>
-        <v-btn v-if="step === 3" data-test="back-btn" @click="step--">Back</v-btn>
-        <v-btn v-else data-test="close-btn" @click="close">Close</v-btn>
+        <v-btn
+          v-if="step === 3"
+          data-test="back-btn"
+          @click="step--"
+        >
+          Back
+        </v-btn>
+        <v-btn
+          v-else
+          data-test="close-btn"
+          @click="close"
+        >
+          Close
+        </v-btn>
         <v-btn
           v-if="step === 1"
           :disabled="!recoveryEmail || !!recoveryEmailError"
@@ -151,7 +193,13 @@
         >
           Save Recovery Email
         </v-btn>
-        <v-btn v-else-if="step === 2" :disabled="!checkbox" color="primary" data-test="next-btn" @click="goToNextStep">
+        <v-btn
+          v-else-if="step === 2"
+          :disabled="!checkbox"
+          color="primary"
+          data-test="next-btn"
+          @click="goToNextStep"
+        >
           Next Step
         </v-btn>
         <v-btn
@@ -187,7 +235,7 @@ const usersStore = useUsersStore();
 const snackbar = useSnackbar();
 const step = ref<number>(1);
 const emit = defineEmits(["update:recovery-email"]);
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const mfaQRCode = ref("");
 const secret = ref("");
 const recoveryCodes = ref<Array<string>>([]);
@@ -216,12 +264,15 @@ const stepConfig = {
   },
   4: {
     title: "MFA Setup Complete",
-    description: "Your account is now secured with multi-factor authentication!",
+    description:
+      "Your account is now secured with multi-factor authentication!",
     icon: "mdi-shield-check-outline",
   },
 };
 
-const currentStepConfig = computed(() => stepConfig[step.value as keyof typeof stepConfig]);
+const currentStepConfig = computed(
+  () => stepConfig[step.value as keyof typeof stepConfig],
+);
 
 const {
   value: recoveryEmail,
@@ -313,10 +364,12 @@ const enableMfa = async () => {
       errorAlert.value = true;
       switch (axiosError.response?.status) {
         case 401:
-          errorMessage.value = "The verification code sent in your MFA verification is invalid, please try again.";
+          errorMessage.value
+            = "The verification code sent in your MFA verification is invalid, please try again.";
           break;
         default:
-          errorMessage.value = "An error occurred during your MFA verification, try again later.";
+          errorMessage.value
+            = "An error occurred during your MFA verification, try again later.";
           handleError(error);
       }
       return;
@@ -344,12 +397,11 @@ defineExpose({
   step,
   showDialog,
 });
-
 </script>
 
 <style scoped>
 .green-cloud {
-  filter: drop-shadow(0px 0px 30px rgba(43, 255, 10, 0.444))
+  filter: drop-shadow(0px 0px 30px rgba(43, 255, 10, 0.444));
 }
 
 .recovery-codes-grid {

@@ -1,23 +1,26 @@
 <template>
-  <v-list-item @click="open()" :disabled="!hasAuthorization || props.disabled">
+  <v-list-item
+    :disabled="!hasAuthorization || props.disabled"
+    @click="open()"
+  >
     <div class="d-flex align-center">
-
       <div class="d-flex align-center">
-        <div class="mr-2" data-test="edit-icon">
+        <div
+          class="mr-2"
+          data-test="edit-icon"
+        >
           <v-icon>mdi-pencil</v-icon>
         </div>
 
-        <v-list-item-title data-test="edit-main-btn-title"> Edit </v-list-item-title>
+        <v-list-item-title data-test="edit-main-btn-title">
+          Edit
+        </v-list-item-title>
       </div>
     </div>
   </v-list-item>
 
   <FormDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @confirm="handleSubmit"
-    @cancel="showDialog = false"
-    @alert-dismissed="errorMessage = ''"
     title="Edit API Key"
     description="Update the name and role for this API key"
     icon="mdi-pencil"
@@ -28,6 +31,10 @@
     data-test="edit-dialog"
     :alert-message="errorMessage"
     alert-type="error"
+    @close="showDialog = false"
+    @confirm="handleSubmit"
+    @cancel="showDialog = false"
+    @alert-dismissed="errorMessage = ''"
   >
     <ApiKeyForm
       ref="formRef"
@@ -66,7 +73,7 @@ const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const errorMessage = ref("");
 const isFormValid = ref(false);
-const formRef = ref();
+const formRef = ref<InstanceType<typeof ApiKeyForm>>();
 const apiKeyStore = useApiKeysStore();
 const snackbar = useSnackbar();
 

@@ -1,6 +1,9 @@
 <template>
   <v-table class="bg-background border rounded mx-4">
-    <thead class="bg-v-theme-background" data-test="privateKey-thead">
+    <thead
+      class="bg-v-theme-background"
+      data-test="privateKey-thead"
+    >
       <tr>
         <th
           v-for="(head, i) in headers"
@@ -12,11 +15,20 @@
       </tr>
     </thead>
     <tbody v-if="privateKeys.length">
-      <tr v-for="(privateKey, i) in privateKeys" :key="i">
-        <td class="text-center" data-test="privateKey-name">
+      <tr
+        v-for="(privateKey, i) in privateKeys"
+        :key="i"
+      >
+        <td
+          class="text-center"
+          data-test="privateKey-name"
+        >
           {{ privateKey.name }}
         </td>
-        <td class="text-center" data-test="privateKey-fingerprint">
+        <td
+          class="text-center"
+          data-test="privateKey-fingerprint"
+        >
           {{ getKeyFingerprint(privateKey) }}
         </td>
         <td class="text-center">
@@ -25,7 +37,7 @@
             scrim
             eager
           >
-            <template v-slot:activator="{ props }">
+            <template #activator="{ props }">
               <v-btn
                 v-bind="props"
                 variant="plain"
@@ -36,7 +48,11 @@
                 data-test="privateKey-actions"
               />
             </template>
-            <v-list class="bg-v-theme-surface" lines="two" density="compact">
+            <v-list
+              class="bg-v-theme-surface"
+              lines="two"
+              density="compact"
+            >
               <PrivateKeyEdit
                 :private-key="privateKey"
                 @update="getPrivateKeys"
@@ -51,7 +67,12 @@
         </td>
       </tr>
     </tbody>
-    <div v-else sm="12" class="text-start mt-2 mb-3" data-test="no-private-key-warning">
+    <div
+      v-else
+      sm="12"
+      class="text-start mt-2 mb-3"
+      data-test="no-private-key-warning"
+    >
       <span class="ml-4">No data available</span>
     </div>
   </v-table>

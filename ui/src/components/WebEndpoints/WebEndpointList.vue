@@ -1,14 +1,14 @@
 <template>
   <DataTable
     v-model:page="page"
-    v-model:itemsPerPage="itemsPerPage"
+    v-model:items-per-page="itemsPerPage"
     :headers="headers"
     :items="webEndpoints"
-    :totalCount="totalCount"
+    :total-count="totalCount"
     :loading="loading"
-    :itemsPerPageOptions="[10, 20, 50]"
-    @update:sort="sortByItem"
+    :items-per-page-options="[10, 20, 50]"
     data-test="web-endpoints-table"
+    @update:sort="sortByItem"
   >
     <template #rows>
       <tr
@@ -23,9 +23,9 @@
           />
           <div class="d-flex flex-column align-center">
             <p
+              class="link text-truncate"
               @click="redirectDevice(endpoint.device_uid)"
               @keyup="redirectDevice(endpoint.device_uid)"
-              class="link text-truncate"
             >
               {{ endpoint.device?.name }}
             </p>
@@ -44,9 +44,15 @@
           </a>
         </td>
 
-        <td class="text-center">{{ endpoint.host }}</td>
-        <td class="text-center">{{ endpoint.port }}</td>
-        <td class="text-center">{{ formatDate(endpoint.expires_in) }}</td>
+        <td class="text-center">
+          {{ endpoint.host }}
+        </td>
+        <td class="text-center">
+          {{ endpoint.port }}
+        </td>
+        <td class="text-center">
+          {{ formatDate(endpoint.expires_in) }}
+        </td>
         <td class="text-center">
           <WebEndpointDelete
             :uid="endpoint.device_uid"
@@ -138,11 +144,11 @@ const formatDate = (expiresIn: string) => {
 };
 
 const handleClick = () => {
-  setTimeout(() => fetchWebEndpoints(), 30000);
+  setTimeout(() => void fetchWebEndpoints(), 30000);
 };
 
-const redirectDevice = (deviceUid: string) => {
-  router.push({ name: "DeviceDetails", params: { identifier: deviceUid } });
+const redirectDevice = async (deviceUid: string) => {
+  await router.push({ name: "DeviceDetails", params: { identifier: deviceUid } });
 };
 
 onMounted(fetchWebEndpoints);

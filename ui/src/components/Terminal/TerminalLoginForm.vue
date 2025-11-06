@@ -1,9 +1,6 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    @close="handleClose"
-    @confirm="submitForm"
-    @cancel="handleClose"
     title="Terminal Login"
     icon="mdi-login"
     confirm-text="Connect"
@@ -12,8 +9,14 @@
     cancel-text="Cancel"
     confirm-data-test="submit-btn"
     cancel-data-test="cancel-btn"
+    @close="handleClose"
+    @confirm="submitForm"
+    @cancel="handleClose"
   >
-    <v-card-text class="d-flex flex-column ga-4 pa-6" data-test="terminal-login-form">
+    <v-card-text
+      class="d-flex flex-column ga-4 pa-6"
+      data-test="terminal-login-form"
+    >
       <v-text-field
         v-model="username"
         :error-messages="usernameError"
@@ -28,18 +31,17 @@
 
       <v-select
         v-model="authenticationMethod"
-        @update:model-value="togglePassphraseField"
         :items="[TerminalAuthMethods.Password, TerminalAuthMethods.PrivateKey]"
         label="Authentication method"
         data-test="auth-method-select"
         hide-details
         class="mb-2"
+        @update:model-value="togglePassphraseField"
       />
 
       <v-select
-        v-model="selectedPrivateKeyName"
-        @update:model-value="togglePassphraseField"
         v-if="authenticationMethod === TerminalAuthMethods.PrivateKey"
+        v-model="selectedPrivateKeyName"
         :items="privateKeysNames"
         item-text="name"
         item-value="data"
@@ -47,12 +49,13 @@
         hint="Select a private key file for authentication"
         persistent-hint
         data-test="private-keys-select"
+        @update:model-value="togglePassphraseField"
       />
 
       <v-text-field
-        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-        v-model="password"
         v-else
+        v-model="password"
+        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         :error-messages="passwordError"
         label="Password"
         required
@@ -67,8 +70,8 @@
 
       <v-text-field
         v-if="showPassphraseField"
-        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         v-model="passphrase"
+        :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         :error-messages="passphraseError"
         label="Passphrase"
         required

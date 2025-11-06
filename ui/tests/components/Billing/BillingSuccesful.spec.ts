@@ -4,7 +4,7 @@ import { expect, describe, it } from "vitest";
 import BillingSuccessful from "@/components/Billing/BillingSuccessful.vue";
 
 describe("Billing Successful Card", () => {
-  const wrapper = mount(BillingSuccessful, { global: { plugins: [ createVuetify()] } });
+  const wrapper = mount(BillingSuccessful, { global: { plugins: [createVuetify()] } });
   it("renders the correct text", () => {
     expect(wrapper.findComponent('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.findComponent('[data-test="green-cloud-icon"]').exists()).toBe(true);

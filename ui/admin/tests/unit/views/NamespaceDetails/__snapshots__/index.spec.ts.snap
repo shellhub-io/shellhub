@@ -24,23 +24,23 @@ exports[`Namespace Details > Renders the component 1`] = `
   <!---->
   <div class="v-card-text">
     <div>
-      <h3 class="text-overline">Name:</h3>
+      <h3 class="text-overline"> Name: </h3>
       <p data-test="dev">dev</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Devices:</h3>
+      <h3 class="text-overline mt-3"> Devices: </h3>
       <p data-test="namespace-devices-count">1</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Owner:</h3>
+      <h3 class="text-overline mt-3"> Owner: </h3>
       <p tabindex="0" class="text-decoration-underline cursor-pointer" data-test="6256b739302b50b6cc5eafcc">6256b739302b50b6cc5eafcc</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Tenant Id:</h3>
+      <h3 class="text-overline mt-3"> Tenant Id: </h3>
       <p data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Members:</h3>
+      <h3 class="text-overline mt-3"> Members: </h3>
       <ul>
         <li class="ml-8">
           <div><span class="font-weight-bold mr-1" data-test="id-item">id:</span><span tabindex="0" class="text-decoration-underline cursor-pointer" data-test="id-value">6256b739302b50b6cc5eafcc</span></div>
@@ -59,7 +59,7 @@ exports[`Namespace Details > Renders the component 1`] = `
       </ul>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Session Record:</h3>
+      <h3 class="text-overline mt-3"> Session Record: </h3>
       <p data-test="true">true</p>
     </div>
   </div>

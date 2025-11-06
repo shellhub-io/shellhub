@@ -3,20 +3,23 @@
     <h1>Users</h1>
     <v-spacer />
     <v-text-field
+      v-model.trim="filter"
       label="Search by username"
       color="primary"
       class="w-50"
       single-line
       hide-details
-      v-model.trim="filter"
-      v-on:keyup.enter="searchUsers"
       append-inner-icon="mdi-magnify"
-      @click:append-inner="searchUsers"
       density="compact"
+      @keyup.enter="searchUsers"
+      @click:append-inner="searchUsers"
     />
     <v-spacer />
     <div class="d-flex mt-2 mt-md-0">
-      <UserExport class="ml-2" data-test="users-export-btn" />
+      <UserExport
+        class="ml-2"
+        data-test="users-export-btn"
+      />
       <UserFormDialog create-user />
     </div>
   </div>
@@ -46,8 +49,8 @@ const searchUsers = async () => {
   await usersStore.fetchUsersList({ filter: encodedFilter });
 };
 
-watchDebounced(filter, () => {
-  searchUsers();
+watchDebounced(filter, async () => {
+  await searchUsers();
 }, { debounce: 1000, maxWait: 5000 });
 
 defineExpose({ filter });

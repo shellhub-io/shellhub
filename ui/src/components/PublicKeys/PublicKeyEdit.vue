@@ -1,13 +1,16 @@
 <template>
   <div>
     <v-list-item
-      @click="open()"
       v-bind="$attrs"
       :disabled="!hasAuthorization"
       data-test="public-key-edit-title-btn"
+      @click="open()"
     >
       <div class="d-flex align-center">
-        <div data-test="public-key-edit-icon" class="mr-2">
+        <div
+          data-test="public-key-edit-icon"
+          class="mr-2"
+        >
           <v-icon> mdi-pencil </v-icon>
         </div>
         <v-list-item-title>Edit</v-list-item-title>
@@ -16,9 +19,6 @@
 
     <FormDialog
       v-model="showDialog"
-      @close="close"
-      @cancel="close"
-      @confirm="edit"
       title="Edit Public Key"
       icon="mdi-key-outline"
       confirm-text="Save"
@@ -27,6 +27,9 @@
       confirm-data-test="pk-edit-save-btn"
       cancel-data-test="pk-edit-cancel-btn"
       data-test="public-key-edit-dialog"
+      @close="close"
+      @cancel="close"
+      @confirm="edit"
     >
       <div class="px-6 pt-4">
         <v-row class="mt-1 px-3">
@@ -97,7 +100,11 @@
             @update:search="onSearch"
           >
             <template #append-item>
-              <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+              <div
+                ref="sentinel"
+                data-test="tags-sentinel"
+                style="height: 1px;"
+              />
             </template>
           </v-autocomplete>
 
@@ -120,7 +127,6 @@
           data-test="data-field"
         />
       </div>
-
     </FormDialog>
   </div>
 </template>
@@ -137,7 +143,9 @@ import { HostnameFilter, TagsFilter } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import useTagsStore from "@/store/modules/tags";
 import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
+import { ITag } from "@/interfaces/ITags";
 
+type TagName = { name: string };
 type TagsFilterNames = { tags: string[] };
 type LocalFilter = HostnameFilter | TagsFilterNames;
 type LocalPublicKey = Omit<IPublicKey, "filter"> & { filter: LocalFilter };
@@ -206,14 +214,12 @@ const hasTags = computed(() => {
   return Reflect.ownKeys(publicKey.filter)[0] === "tags";
 });
 
-type LocalTag = { name: string };
-
 const acMenuOpen = ref(false);
 const menuContentClass = computed(
   () => `pk-edit-tags-ac-${(props.publicKey?.name || "key").replace(/\W/g, "-")}`,
 );
 
-const fetchedTags = ref<LocalTag[]>([]);
+const fetchedTags = ref<TagName[]>([]);
 const tags = computed(() => fetchedTags.value);
 
 const sentinel = ref<HTMLElement | null>(null);
@@ -234,12 +240,12 @@ const encodeFilter = (search: string) => {
   return Buffer.from(JSON.stringify(filterToEncodeBase64), "utf-8").toString("base64");
 };
 
-const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
+const normalizeStoreItems = (arr: ITag[]): TagName[] => (arr ?? [])
   .map((tag) => {
     const name = typeof tag === "string" ? tag : tag?.name;
-    return name ? ({ name } as LocalTag) : null;
+    return name ? ({ name } as TagName) : null;
   })
-  .filter((tag: LocalTag | null): tag is LocalTag => !!tag);
+  .filter((tag: TagName | null): tag is TagName => !!tag);
 
 const resetPagination = () => {
   page.value = 1;
@@ -278,7 +284,7 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`) as HTMLElement | null;
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`);
 
 const cleanupObserver = () => {
   if (observer) {
@@ -295,7 +301,7 @@ const setupObserver = () => {
   observer = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
-      if (entry?.isIntersecting) bumpPerPageAndLoad();
+      if (entry?.isIntersecting) void bumpPerPageAndLoad();
     },
     { root, threshold: 1.0 },
   );
@@ -321,7 +327,7 @@ watch(choiceFilter, async (val) => {
   }
 });
 
-watch([tagChoices, choiceFilter], ([list, filterMode]) => {
+watch([tagChoices, choiceFilter], async ([list, filterMode]) => {
   if (filterMode !== "tags") {
     validateLength.value = true;
     errMsg.value = "";
@@ -329,7 +335,7 @@ watch([tagChoices, choiceFilter], ([list, filterMode]) => {
   }
   if (list.length > 3) {
     validateLength.value = false;
-    nextTick(() => tagChoices.value.pop());
+    await nextTick(() => tagChoices.value.pop());
     errMsg.value = "The maximum capacity has reached";
   } else {
     validateLength.value = true;
@@ -381,10 +387,10 @@ const open = () => {
   handleUpdate();
 };
 
-onMounted(() => {
+onMounted(async () => {
   setLocalVariable();
   resetPagination();
-  loadTags();
+  await loadTags();
 });
 
 onUnmounted(() => {

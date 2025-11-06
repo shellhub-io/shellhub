@@ -10,4 +10,4 @@ export interface IPublicKey {
   username: string;
 }
 
-export type IPublicKeyCreate = Pick<IPublicKey, "data" | "name" | "username" | "filter">
+export type IPublicKeyCreate = Pick<IPublicKey, "data" | "name" | "username" | "filter">;

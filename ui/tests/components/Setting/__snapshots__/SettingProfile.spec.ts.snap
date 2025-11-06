@@ -48,14 +48,14 @@ exports[`Settings Namespace > Renders the component 1`] = `
           </div>
           <div class="v-list-item__content" data-no-activator="">
             <div class="v-list-item-title">
-              <h1 data-v-b3fa301d="" data-test="profile-title">Account Profile</h1>
+              <h1 data-v-b3fa301d="" data-test="profile-title"> Account Profile </h1>
             </div>
             <div class="v-list-item-subtitle"><span data-v-b3fa301d="" data-test="profile-subtitle">Manage your account profile</span></div>
             <!---->
           </div>
           <div class="v-list-item__append">
             <div data-v-b3fa301d="" class="mr-4"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border" data-test="edit-profile-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                <!----><span class="v-btn__content" data-no-activator="">Edit Profile</span>
+                <!----><span class="v-btn__content" data-no-activator=""> Edit Profile </span>
                 <!---->
                 <!---->
               </button></div>
@@ -270,7 +270,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
             </div>
             <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                <!----><span class="v-btn__content" data-no-activator="">Change Password</span>
+                <!----><span class="v-btn__content" data-no-activator=""> Change Password </span>
                 <!---->
                 <!---->
               </button>
@@ -358,7 +358,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!---->
           </div>
           <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="delete-account-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-              <!----><span class="v-btn__content" data-no-activator="">Delete</span>
+              <!----><span class="v-btn__content" data-no-activator=""> Delete </span>
               <!---->
               <!---->
             </button></div>

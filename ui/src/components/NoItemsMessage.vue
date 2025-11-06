@@ -6,9 +6,16 @@
     />
     <v-card-title class="d-flex flex-column justify-center pa-5 ga-6 position-relative card-title">
       <div>
-        <v-icon size="x-large" data-test="message-icon" :icon="icon" />
+        <v-icon
+          size="x-large"
+          data-test="message-icon"
+          :icon="icon"
+        />
       </div>
-      <div class="text-sm-h5 text-wrap font-weight-medium" data-test="message-title">
+      <div
+        class="text-sm-h5 text-wrap font-weight-medium"
+        data-test="message-title"
+      >
         Looks like you don't have any {{ item }}
       </div>
     </v-card-title>

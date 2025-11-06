@@ -1,7 +1,6 @@
 <template>
   <WindowDialog
     v-model="showDialog"
-    @close="close"
     transition="dialog-bottom-transition"
     :persistent="!checkbox"
     title="MFA Recovery Verification"
@@ -9,6 +8,7 @@
     icon="mdi-shield-refresh-outline"
     icon-color="warning"
     :show-close-button="false"
+    @close="close"
   >
     <div class="pa-8">
       <v-slide-y-reverse-transition>
@@ -17,10 +17,10 @@
           type="warning"
           :title="invalid.title + (invalid.timeout ? countdownTimer : '')"
           :text="invalid.msg"
-          @click:close="!tokenCountdownAlert"
           variant="tonal"
           data-test="invalid-login-alert"
           class="mb-4"
+          @click:close="!tokenCountdownAlert"
         />
       </v-slide-y-reverse-transition>
 
@@ -105,7 +105,7 @@ watch(countdown, (newValue) => {
   }
 });
 
-const close = async () => {
+const close = () => {
   authStore.isRecoveringMfa = false;
   showDialog.value = false;
 };

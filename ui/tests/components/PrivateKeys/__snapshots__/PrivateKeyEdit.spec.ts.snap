@@ -9,7 +9,7 @@ exports[`Private Key Edit > Renders the component snapshot correctly 1`] = `
       <!---->
       <div class="d-flex align-center">
         <div data-test="privatekey-icon" class="mr-2"><i class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-        <div class="v-list-item-title" data-test="privatekey-title">Edit</div>
+        <div class="v-list-item-title" data-test="privatekey-title"> Edit </div>
       </div>
     </div>
     <!---->

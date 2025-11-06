@@ -1,10 +1,16 @@
 <template>
   <v-container>
-    <v-card-title class="d-flex justify-center" data-test="title">
+    <v-card-title
+      class="d-flex justify-center"
+      data-test="title"
+    >
       Account Activation Required
     </v-card-title>
 
-    <v-card-text class="d-flex align-center justify-center text-center" data-test="subtitle">
+    <v-card-text
+      class="d-flex align-center justify-center text-center"
+      data-test="subtitle"
+    >
       Thank you for registering an account on ShellHub.
       An email was sent with a confirmation link. You need to click on the link to activate your account.
       If you haven't received the email, click on Resend Email button.

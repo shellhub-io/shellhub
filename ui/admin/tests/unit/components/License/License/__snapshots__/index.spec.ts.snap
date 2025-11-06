@@ -2,7 +2,7 @@
 
 exports[`License > Renders the component 1`] = `
 "<!--v-if-->
-<h1 data-v-75f26564="" class="pb-2">License Details</h1>
+<h1 data-v-75f26564="" class="pb-2"> License Details </h1>
 <div data-v-75f26564="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated w-100 pa-4 bg-background border" data-test="license-card">
   <!---->
   <div class="v-card__loader">
@@ -64,7 +64,7 @@ exports[`License > Renders the component 1`] = `
       <div class="v-card-item__content">
         <!---->
         <!---->
-        <div data-v-75f26564="" class="v-card-title text-h6 text-center">License Owner</div>
+        <div data-v-75f26564="" class="v-card-title text-h6 text-center"> License Owner </div>
         <div data-v-75f26564="" class="v-row" data-test="id"><span data-v-75f26564="">Id</span>
           <div data-v-75f26564=""><span data-v-75f26564="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
             <!---->
@@ -91,7 +91,7 @@ exports[`License > Renders the component 1`] = `
       <div class="v-card-item__content">
         <!---->
         <!---->
-        <div data-v-75f26564="" class="v-card-title text-h6 text-center">Features</div>
+        <div data-v-75f26564="" class="v-card-title text-h6 text-center"> Features </div>
         <div data-v-75f26564="" class="v-row" data-test="devices"><span data-v-75f26564="">Devices</span><span data-v-75f26564="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
           <!---->
           <!---->
@@ -118,7 +118,7 @@ exports[`License > Renders the component 1`] = `
     <div class="v-card-item__content">
       <!---->
       <!---->
-      <div data-v-75f26564="" class="v-card-title text-h6 text-center">License Field</div>
+      <div data-v-75f26564="" class="v-card-title text-h6 text-center"> License Field </div>
       <div data-v-75f26564="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-file-input mt-4 mb-2">
         <div class="v-input__prepend">
           <!----><i class="mdi-paperclip mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Select license file prepended action"></i>

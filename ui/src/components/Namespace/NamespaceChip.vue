@@ -1,5 +1,9 @@
 <template>
-  <v-chip label color="primary" class="text-uppercase">
+  <v-chip
+    label
+    color="primary"
+    class="text-uppercase"
+  >
     {{ firstNamespaceLetter }}
   </v-chip>
 </template>

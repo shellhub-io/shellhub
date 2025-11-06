@@ -6,11 +6,21 @@
         color="primary"
         class="mb-4"
       >
-        <v-icon size="32" color="white" icon="mdi-rocket-launch" />
+        <v-icon
+          size="32"
+          color="white"
+          icon="mdi-rocket-launch"
+        />
       </v-avatar>
-      <h2 class="text-h4 mb-2" data-test="welcome-name">Welcome, <span class="text-primary">{{ name }}</span>!
+      <h2
+        class="text-h4 mb-2"
+        data-test="welcome-name"
+      >
+        Welcome, <span class="text-primary">{{ name }}</span>!
       </h2>
-      <p class="text-subtitle-1 text-medium-emphasis">Let's get you started with ShellHub</p>
+      <p class="text-subtitle-1 text-medium-emphasis">
+        Let's get you started with ShellHub
+      </p>
     </div>
 
     <p class="text-body-1 my-5 text-justify">
@@ -27,10 +37,19 @@
       class="pa-4 ma-3"
     >
       <div class="d-flex align-center h-100">
-        <v-icon size="32" color="primary" class="mr-4" :icon="feature.icon" />
+        <v-icon
+          size="32"
+          color="primary"
+          class="mr-4"
+          :icon="feature.icon"
+        />
         <div class="text-white">
-          <v-card-title class="text-h6 mb-1 pa-0">{{ feature.title }}</v-card-title>
-          <v-card-subtitle class="mb-0 pl-0">{{ feature.description }}</v-card-subtitle>
+          <v-card-title class="text-h6 mb-1 pa-0">
+            {{ feature.title }}
+          </v-card-title>
+          <v-card-subtitle class="mb-0 pl-0">
+            {{ feature.description }}
+          </v-card-subtitle>
         </div>
       </div>
     </v-card>

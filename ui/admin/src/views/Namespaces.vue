@@ -3,15 +3,15 @@
     <h1>Namespaces</h1>
     <v-spacer />
     <v-text-field
+      v-model.trim="filter"
       label="Search by name"
       color="primary"
       class="w-50"
       single-line
       hide-details
-      v-model.trim="filter"
-      v-on:keyup="searchNamespaces"
       append-inner-icon="mdi-magnify"
       density="compact"
+      @keyup="searchNamespaces"
     />
     <v-spacer />
     <NamespaceExport />

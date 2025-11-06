@@ -66,6 +66,7 @@ describe("Billing Dialog", async () => {
     global: {
       plugins: [vuetify, router, SnackbarPlugin],
     },
+    props: { modelValue: true },
   });
   wrapper.vm.showCheckoutDialog = true;
   await flushPromises();

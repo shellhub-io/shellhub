@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "lib": ["es5", "es6", "es7", "esnext", "dom"],
+    "lib": ["esnext", "dom"],
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
@@ -22,8 +22,6 @@
     "noImplicitAny": false,
     "sourceRoot": "/",
     "inlineSources": true,
-    "types": ["vuetify", "node"],
-
   },
   "typeAcquisition": { "enable": true },
   "include": [

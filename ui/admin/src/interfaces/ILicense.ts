@@ -246,7 +246,7 @@ enum AllowedRegions {
   Yt = "YT",
   Za = "ZA",
   Zm = "ZM",
-  Zw = "ZW"
+  Zw = "ZW",
 }
 
 type Customer = {

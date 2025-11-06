@@ -1,20 +1,32 @@
 <template>
   <DataTable
-    v-model:itemsPerPage="itemsPerPage"
+    v-model:items-per-page="itemsPerPage"
     v-model:page="page"
     :headers
     :items="tags"
     :loading
-    :totalCount="numberTags"
-    :itemsPerPageOptions="[10, 20, 50, 100]"
+    :total-count="numberTags"
+    :items-per-page-options="[10, 20, 50, 100]"
     data-test="tag-list"
   >
-    <template v-slot:rows>
-      <tr v-for="(item, i) in tags" :key="i">
-        <td class="text-center" data-test="tag-name"> {{ item.name }}</td>
+    <template #rows>
+      <tr
+        v-for="(item, i) in tags"
+        :key="i"
+      >
+        <td
+          class="text-center"
+          data-test="tag-name"
+        >
+          {{ item.name }}
+        </td>
         <td class="text-center">
-          <v-menu location="bottom" scrim eager>
-            <template v-slot:activator="{ props }">
+          <v-menu
+            location="bottom"
+            scrim
+            eager
+          >
+            <template #activator="{ props }">
               <v-btn
                 v-bind="props"
                 variant="plain"
@@ -25,9 +37,17 @@
                 data-test="tag-list-actions"
               />
             </template>
-            <v-list class="bg-v-theme-surface" lines="two" density="compact">
-              <v-tooltip location="bottom" class="text-center" :disabled="canEditTag">
-                <template v-slot:activator="{ props }">
+            <v-list
+              class="bg-v-theme-surface"
+              lines="two"
+              density="compact"
+            >
+              <v-tooltip
+                location="bottom"
+                class="text-center"
+                :disabled="canEditTag"
+              >
+                <template #activator="{ props }">
                   <div v-bind="props">
                     <TagEdit
                       :tag-name="item.name"
@@ -39,8 +59,12 @@
                 <span> You don't have this kind of authorization. </span>
               </v-tooltip>
 
-              <v-tooltip location="bottom" class="text-center" :disabled="canRemoveTag">
-                <template v-slot:activator="{ props }">
+              <v-tooltip
+                location="bottom"
+                class="text-center"
+                :disabled="canRemoveTag"
+              >
+                <template #activator="{ props }">
                   <div v-bind="props">
                     <TagRemove
                       :tag-name="item.name"
@@ -119,8 +143,8 @@ const canEditTag = hasPermission("tag:edit");
 
 const canRemoveTag = hasPermission("tag:remove");
 
-onMounted(() => {
-  refresh();
+onMounted(async () => {
+  await getTags();
 });
 
 defineExpose({ refresh });

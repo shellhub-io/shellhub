@@ -1,13 +1,27 @@
 <template>
   <BaseDialog v-model="showDialog">
-    <v-card-title class="pb-0">Keyboard Shortcuts</v-card-title>
+    <v-card-title class="pb-0">
+      Keyboard Shortcuts
+    </v-card-title>
     <v-card-text class="pa-6">
-      <div class="shortcut"><v-kbd>space</v-kbd>: pause / resume</div>
-      <div class="shortcut"><v-kbd>f</v-kbd>: toggle fullscreen mode</div>
-      <div class="shortcut"><v-kbd>←</v-kbd> / <v-kbd>→</v-kbd>: rewind / fast-forward by 5 seconds</div>
-      <div class="shortcut"><v-kbd>Shift</v-kbd> + <v-kbd>←</v-kbd> / <v-kbd>→</v-kbd>: rewind / fast-forward by 10%</div>
-      <div class="shortcut"><v-kbd>0</v-kbd>, <v-kbd>1</v-kbd>, <v-kbd>2</v-kbd> ... <v-kbd>9</v-kbd>: jump to 0%, 10%, 20% ... 90%</div>
-      <div class="shortcut mb-0"><v-kbd>,</v-kbd>/<v-kbd>.</v-kbd>: step back / forward, a frame at a time (only when paused)</div>
+      <div class="shortcut">
+        <v-kbd>space</v-kbd>: pause / resume
+      </div>
+      <div class="shortcut">
+        <v-kbd>f</v-kbd>: toggle fullscreen mode
+      </div>
+      <div class="shortcut">
+        <v-kbd>←</v-kbd> / <v-kbd>→</v-kbd>: rewind / fast-forward by 5 seconds
+      </div>
+      <div class="shortcut">
+        <v-kbd>Shift</v-kbd> + <v-kbd>←</v-kbd> / <v-kbd>→</v-kbd>: rewind / fast-forward by 10%
+      </div>
+      <div class="shortcut">
+        <v-kbd>0</v-kbd>, <v-kbd>1</v-kbd>, <v-kbd>2</v-kbd> ... <v-kbd>9</v-kbd>: jump to 0%, 10%, 20% ... 90%
+      </div>
+      <div class="shortcut mb-0">
+        <v-kbd>,</v-kbd>/<v-kbd>.</v-kbd>: step back / forward, a frame at a time (only when paused)
+      </div>
     </v-card-text>
   </BaseDialog>
 </template>

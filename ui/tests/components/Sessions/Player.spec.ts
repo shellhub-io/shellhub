@@ -66,6 +66,7 @@ describe("Asciinema Player", () => {
 
   it("Creates player on mount", () => {
     expect(wrapper.vm.player).toBeDefined();
+    expect(wrapper.vm.player).not.toBeNull();
   });
 
   it("Initializes with correct default values", () => {
@@ -100,13 +101,13 @@ describe("Asciinema Player", () => {
     const pauseBtn = wrapper.find('[data-test="pause-btn"]');
     await pauseBtn.trigger("click");
 
-    expect(wrapper.vm.player.pause).toHaveBeenCalled();
+    expect(wrapper.vm.player?.pause).toHaveBeenCalled();
     expect(wrapper.vm.isPlaying).toBe(false);
 
     const playBtn = wrapper.find('[data-test="play-btn"]');
     await playBtn.trigger("click");
 
-    expect(wrapper.vm.player.play).toHaveBeenCalled();
+    expect(wrapper.vm.player?.play).toHaveBeenCalled();
     expect(wrapper.vm.isPlaying).toBe(true);
   });
 
@@ -115,7 +116,7 @@ describe("Asciinema Player", () => {
     await dialogBtn.trigger("click");
 
     expect(wrapper.vm.showShortcutsDialog).toBe(true);
-    expect(wrapper.vm.player.pause).toHaveBeenCalled();
+    expect(wrapper.vm.player?.pause).toHaveBeenCalled();
   });
 
   it("Changes playback speed when speed selector is changed", async () => {
@@ -141,25 +142,25 @@ describe("Asciinema Player", () => {
 
     await slider.vm.$emit("update:modelValue", newTime);
 
-    expect(wrapper.vm.player.seek).toHaveBeenCalledWith(newTime);
+    expect(wrapper.vm.player?.seek).toHaveBeenCalledWith(newTime);
   });
 
   it("Pauses playback when slider interaction starts", async () => {
     const slider = wrapper.find('[data-test="time-slider"]');
     await slider.trigger("mousedown");
 
-    expect(wrapper.vm.player.pause).toHaveBeenCalled();
+    expect(wrapper.vm.player?.pause).toHaveBeenCalled();
   });
 
   it("Resumes playback when slider interaction ends", async () => {
     const slider = wrapper.find('[data-test="time-slider"]');
     await slider.trigger("mouseup");
 
-    expect(wrapper.vm.player.play).toHaveBeenCalled();
+    expect(wrapper.vm.player?.play).toHaveBeenCalled();
   });
 
   it("Disposes player when component is unmounted", () => {
     wrapper.unmount();
-    expect(wrapper.vm.player.dispose).toHaveBeenCalled();
+    expect(wrapper.vm.player?.dispose).toHaveBeenCalled();
   });
 });

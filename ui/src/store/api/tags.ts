@@ -17,7 +17,7 @@ export const pushTagToDevice = async (tenant: string, uid: string, name: string)
 
 export const getTags = async (
   tenant: string,
-  filter : string | undefined,
-  page : number,
+  filter: string | undefined,
+  page: number,
   perPage: number,
 ) => tagsApi.getTags(tenant, filter, page, perPage);

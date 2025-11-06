@@ -1,16 +1,21 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <WindowDialog
     v-model="showDialog"
-    @close="close"
     scrollable
     persistent
     :title="announcement.title"
     icon="mdi-bullhorn"
     icon-color="primary"
     show-footer
+    @close="close"
   >
     <v-card-text style="max-height: 70vh">
-      <div class="content-announcement" v-html="markdownContent" data-test="announcement-title" />
+      <div
+        class="content-announcement"
+        data-test="announcement-title"
+        v-html="markdownContent"
+      />
       <div class="text-right">
         <span
           class="text-caption text-medium-emphasis"
@@ -24,10 +29,10 @@
     <template #footer>
       <v-spacer />
       <v-btn
-        @click="close"
         tabindex="0"
         variant="text"
         data-test="announcement-close"
+        @click="close"
       >
         Dismiss
       </v-btn>

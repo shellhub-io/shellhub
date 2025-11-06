@@ -19,7 +19,7 @@ const Component = {
 
 vi.mock("vuetify", async () => {
   const actual = await vi.importActual<typeof import("vuetify")>("vuetify");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
   return {
     ...actual,
     useDisplay: () => ({
@@ -139,24 +139,24 @@ describe("Device Management Dropdown", () => {
     .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending").reply(200, mockPendingDevices);
   mockDevicesApi
     .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, mockRecentDevices);
-  
+
   beforeEach(async () => {
     wrapper = mount(Component, {
       global: {
         plugins: [vuetify, router],
-        provide: {[SnackbarInjectionKey]: mockSnackbar },
+        provide: { [SnackbarInjectionKey]: mockSnackbar },
         components: {
           "v-layout": VLayout,
           DevicesDropdown,
         },
-        stubs: { teleport: true }
+        stubs: { teleport: true },
       },
     });
     await wrapper.find('[data-test="devices-icon"]').trigger("click");
     drawer = wrapper.findComponent(DevicesDropdown);
   });
 
-  afterEach(() => { if (wrapper) wrapper.unmount() });
+  afterEach(() => { if (wrapper) wrapper.unmount(); });
 
   it("Fetches all required data on mount", async () => {
     const fetchStatsSpy = vi.spyOn(statsStore, "fetchStats");
@@ -167,7 +167,7 @@ describe("Device Management Dropdown", () => {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
       },
-      provide: {[SnackbarInjectionKey]: mockSnackbar },
+      provide: { [SnackbarInjectionKey]: mockSnackbar },
       components: {
         "v-layout": VLayout,
         DevicesDropdown,
@@ -254,7 +254,7 @@ describe("Device Management Dropdown", () => {
       .reply(200);
 
     const acceptSpy = vi.spyOn(devicesStore, "acceptDevice");
-    
+
     drawer.vm.pendingDevicesList = mockPendingDevices;
     drawer.vm.isDrawerOpen = true;
     await flushPromises();
@@ -308,7 +308,7 @@ describe("Device Management Dropdown", () => {
       .reply(200);
 
     const rejectSpy = vi.spyOn(devicesStore, "rejectDevice");
-    
+
     drawer.vm.pendingDevicesList = mockPendingDevices;
     drawer.vm.isDrawerOpen = true;
     await flushPromises();
@@ -343,7 +343,7 @@ describe("Device Management Dropdown", () => {
 
   it("Displays recent devices sorted by last_seen descending", async () => {
     drawer.vm.recentDevicesList = [...mockRecentDevices].sort(
-      (a, b) => new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime()
+      (a, b) => new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime(),
     );
     drawer.vm.isDrawerOpen = true;
     drawer.vm.activeTab = "recent";
@@ -365,7 +365,7 @@ describe("Device Management Dropdown", () => {
   it("Formats time ago correctly for valid dates", () => {
     const pastDate = new Date(Date.now() - 3600000); // 1 hour ago
     const result = drawer.vm.formatTimeAgo(pastDate);
-    
+
     expect(result).toBe("an hour ago");
   });
 

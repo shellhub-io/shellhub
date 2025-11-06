@@ -79,7 +79,7 @@ describe("Device Pending List", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the component data table",  () => {
+  it("Renders the component data table", () => {
     expect(wrapper.findComponent('[data-test="device-table"]').exists()).toBe(true);
   });
 });

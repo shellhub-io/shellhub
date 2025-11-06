@@ -2,25 +2,38 @@
   <div>
     <DataTable
       v-model:page="page"
-      v-model:itemsPerPage="itemsPerPage"
+      v-model:items-per-page="itemsPerPage"
       :headers
       :items="publicKeys"
-      :totalCount="publicKeyCount"
+      :total-count="publicKeyCount"
       :loading
-      :itemsPerPageOptions="[10, 20, 50, 100]"
+      :items-per-page-options="[10, 20, 50, 100]"
       data-test="public-keys-list"
     >
-      <template v-slot:rows>
-        <tr v-for="(item, i) in publicKeys" :key="i" data-test="public-key-item">
-          <td class="text-center" data-test="public-key-name">
+      <template #rows>
+        <tr
+          v-for="(item, i) in publicKeys"
+          :key="i"
+          data-test="public-key-item"
+        >
+          <td
+            class="text-center"
+            data-test="public-key-name"
+          >
             {{ item.name }}
           </td>
 
-          <td class="text-center" data-test="public-key-fingerprint">
+          <td
+            class="text-center"
+            data-test="public-key-fingerprint"
+          >
             {{ item.fingerprint }}
           </td>
 
-          <td class="text-center" data-test="public-key-filter">
+          <td
+            class="text-center"
+            data-test="public-key-filter"
+          >
             <div v-if="isHostname(item.filter)">
               {{ formatHostnameFilter(item.filter) }}
             </div>
@@ -49,17 +62,30 @@
             </div>
           </td>
 
-          <td class="text-center" data-test="public-key-username">
+          <td
+            class="text-center"
+            data-test="public-key-username"
+          >
             {{ formatUsername(item.username) }}
           </td>
 
-          <td class="text-center" data-test="public-key-created-at">
+          <td
+            class="text-center"
+            data-test="public-key-created-at"
+          >
             {{ formatAbbreviatedDateTime(item.created_at) }}
           </td>
 
-          <td class="text-center" data-test="public-key-actions">
-            <v-menu location="bottom" scrim eager>
-              <template v-slot:activator="{ props }">
+          <td
+            class="text-center"
+            data-test="public-key-actions"
+          >
+            <v-menu
+              location="bottom"
+              scrim
+              eager
+            >
+              <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
                   variant="plain"
@@ -70,17 +96,21 @@
                   data-test="public-key-actions"
                 />
               </template>
-              <v-list class="bg-v-theme-surface" lines="two" density="compact">
+              <v-list
+                class="bg-v-theme-surface"
+                lines="two"
+                density="compact"
+              >
                 <v-tooltip
                   location="bottom"
                   class="text-center"
                   :disabled="canEditPublicKey"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div v-bind="props">
                       <PublicKeyEdit
-                        :publicKey="item"
-                        :hasAuthorization="canEditPublicKey"
+                        :public-key="item"
+                        :has-authorization="canEditPublicKey"
                         @update="refreshPublicKeys"
                       />
                     </div>
@@ -93,11 +123,11 @@
                   class="text-center"
                   :disabled="canRemovePublicKey"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div v-bind="props">
                       <PublicKeyDelete
                         :fingerprint="item.fingerprint"
-                        :hasAuthorization="canRemovePublicKey"
+                        :has-authorization="canRemovePublicKey"
                         @update="refreshPublicKeys"
                       />
                     </div>

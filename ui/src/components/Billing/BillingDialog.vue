@@ -1,7 +1,6 @@
 <template>
   <WindowDialog
     v-model="showCheckoutDialog"
-    @close="resetDialog"
     transition="dialog-bottom-transition"
     data-test="checkout-dialog"
     title="Billing & Subscription"
@@ -9,6 +8,7 @@
     icon="mdi-credit-card"
     icon-color="primary"
     :show-footer="true"
+    @close="resetDialog"
   >
     <v-card-text class="pa-6">
       <v-window v-model="el">
@@ -16,7 +16,13 @@
           <BillingLetter />
         </v-window-item>
         <v-window-item :value="2">
-          <v-card-title align="center" class="pt-0 pb-4" data-test="billing-payment-details">Payment Details</v-card-title>
+          <v-card-title
+            align="center"
+            class="pt-0 pb-4"
+            data-test="billing-payment-details"
+          >
+            Payment Details
+          </v-card-title>
           <BillingPayment
             @no-payment-methods="existingDefaultCard = false"
             @has-default-payment="existingDefaultCard = true"
@@ -34,7 +40,11 @@
           />
         </v-window-item>
         <v-window-item :value="4">
-          <div class="content pa-4 pb-0 px-0" @click:outside="emit('reload')" data-test="card-fourth-page">
+          <div
+            class="content pa-4 pb-0 px-0"
+            data-test="card-fourth-page"
+            @click:outside="emit('reload')"
+          >
             <v-container>
               <BillingSuccessful />
             </v-container>
@@ -46,35 +56,61 @@
     <template #footer>
       <v-spacer />
       <template v-if="el === 1">
-        <v-btn @click="resetDialog" data-test="payment-letter-close-button">Close</v-btn>
+        <v-btn
+          data-test="payment-letter-close-button"
+          @click="resetDialog"
+        >
+          Close
+        </v-btn>
         <v-btn
           color="primary"
-          @click="goToNextStep"
           data-test="payment-letter-next-button"
+          @click="goToNextStep"
         >
           Next
         </v-btn>
       </template>
 
       <template v-if="el === 2">
-        <v-btn @click="goToPreviousStep" data-test="payment-details-back-button">Back</v-btn>
+        <v-btn
+          data-test="payment-details-back-button"
+          @click="goToPreviousStep"
+        >
+          Back
+        </v-btn>
         <v-btn
           :disabled="!existingDefaultCard"
           color="primary"
-          @click="goToNextStep"
           data-test="payment-details-next-button"
+          @click="goToNextStep"
         >
           Next
         </v-btn>
       </template>
 
       <template v-if="el === 3">
-        <v-btn @click="goToPreviousStep" data-test="checkout-back-button">Back</v-btn>
-        <v-btn @click="subscribe" color="primary" data-test="checkout-button">Subscribe now</v-btn>
+        <v-btn
+          data-test="checkout-back-button"
+          @click="goToPreviousStep"
+        >
+          Back
+        </v-btn>
+        <v-btn
+          color="primary"
+          data-test="checkout-button"
+          @click="subscribe"
+        >
+          Subscribe now
+        </v-btn>
       </template>
 
       <template v-if="el === 4">
-        <v-btn @click="emit('reload')" data-test="successful-close-button">Close</v-btn>
+        <v-btn
+          data-test="successful-close-button"
+          @click="emit('reload')"
+        >
+          Close
+        </v-btn>
       </template>
     </template>
   </WindowDialog>
@@ -92,7 +128,7 @@ import useCustomerStore from "@/store/modules/customer";
 import { AxiosError } from "axios";
 
 const customerStore = useCustomerStore();
-const showCheckoutDialog = defineModel({ default: false });
+const showCheckoutDialog = defineModel<boolean>({ required: true });
 const el = ref(1);
 const existingDefaultCard = ref(true);
 const alertRender = ref(false);
@@ -125,12 +161,13 @@ const subscribe = async () => {
     switch (status) {
       case 402:
         alertRender.value = true;
-        // eslint-disable-next-line vue/max-len
-        errorMessage.value = "Before attempting to subscribe again, please ensure that all your invoices have been paid or closed by checking the billing portal.";
+        errorMessage.value = `Before attempting to subscribe again, 
+      please ensure that all your invoices have been paid or closed by checking the billing portal.`;
         break;
       default:
         alertRender.value = true;
-        errorMessage.value = "An error occurred during the payment process. Please try again later or contact the ShellHub team";
+        errorMessage.value
+          = "An error occurred during the payment process. Please try again later or contact the ShellHub team";
     }
     handleError(status);
   }

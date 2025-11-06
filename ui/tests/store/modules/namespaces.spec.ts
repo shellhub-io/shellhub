@@ -129,7 +129,7 @@ describe("Namespaces Store", () => {
     const statusResponse = { status: "invited" };
 
     const url = `http://localhost:3000/api/namespaces/${lookupData.tenant}/members/${lookupData.id}/accept-invite`
-        + `?sig=${lookupData.sig}`;
+      + `?sig=${lookupData.sig}`;
 
     mockNamespacesApi.onGet(url).reply(200, statusResponse);
 

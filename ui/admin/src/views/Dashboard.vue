@@ -1,13 +1,27 @@
 <template>
   <div v-if="!hasStatus">
-    <v-card class="bg-transparent mb-12" elevation="0">
+    <v-card
+      class="bg-transparent mb-12"
+      elevation="0"
+    >
       <div class="d-flex align-start">
-        <v-avatar color="primary" size="48" class="mr-4">
-          <v-icon size="32" icon="mdi-view-dashboard" />
+        <v-avatar
+          color="primary"
+          size="48"
+          class="mr-4"
+        >
+          <v-icon
+            size="32"
+            icon="mdi-view-dashboard"
+          />
         </v-avatar>
         <div>
-          <h1 class="text-overline text-medium-emphasis mb-1">Admin Dashboard</h1>
-          <h2 class="text-h5 font-weight-bold mb-2">System Overview</h2>
+          <h1 class="text-overline text-medium-emphasis mb-1">
+            Admin Dashboard
+          </h1>
+          <h2 class="text-h5 font-weight-bold mb-2">
+            System Overview
+          </h2>
           <p class="text-body-2 text-medium-emphasis">
             Monitor and manage your ShellHub instance metrics and statistics
           </p>
@@ -16,11 +30,19 @@
     </v-card>
 
     <v-row class="d-flex align-center mb-2 pa-3">
-      <v-icon class="mr-2" icon="mdi-chart-box-outline" />
-      <h2 class="text-h6">Stats</h2>
+      <v-icon
+        class="mr-2"
+        icon="mdi-chart-box-outline"
+      />
+      <h2 class="text-h6">
+        Stats
+      </h2>
     </v-row>
     <v-row>
-      <v-col cols="12" md="4">
+      <v-col
+        cols="12"
+        md="4"
+      >
         <StatCard
           title="Registered Users"
           :stat="stats.registered_users ?? 0"
@@ -30,7 +52,10 @@
         />
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col
+        cols="12"
+        md="4"
+      >
         <StatCard
           title="Registered Devices"
           :stat="stats.registered_devices ?? 0"
@@ -40,7 +65,10 @@
         />
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col
+        cols="12"
+        md="4"
+      >
         <StatCard
           title="Online Devices"
           :stat="stats.online_devices ?? 0"
@@ -50,7 +78,10 @@
         />
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col
+        cols="12"
+        md="4"
+      >
         <StatCard
           title="Pending Devices"
           :stat="stats.pending_devices ?? 0"
@@ -60,7 +91,10 @@
         />
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col
+        cols="12"
+        md="4"
+      >
         <StatCard
           title="Rejected Devices"
           :stat="stats.rejected_devices ?? 0"
@@ -70,7 +104,10 @@
         />
       </v-col>
 
-      <v-col cols="12" md="4">
+      <v-col
+        cols="12"
+        md="4"
+      >
         <StatCard
           title="Active Sessions"
           :stat="stats.active_sessions ?? 0"
@@ -82,8 +119,14 @@
     </v-row>
   </div>
 
-  <v-card data-test="dashboard-failed" class="mt-2 pa-4 bg-v-theme-surface" v-else>
-    <p class="text-center">Something is wrong, try again!</p>
+  <v-card
+    v-else
+    data-test="dashboard-failed"
+    class="mt-2 pa-4 bg-v-theme-surface"
+  >
+    <p class="text-center">
+      Something is wrong, try again!
+    </p>
   </v-card>
 </template>
 

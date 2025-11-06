@@ -1,9 +1,9 @@
 <template>
   <BaseDialog
-    :transition="false"
-    :forceFullscreen="true"
-    :scrollable="false"
     v-model="showDialog"
+    :transition="false"
+    :force-fullscreen="true"
+    :scrollable="false"
   >
     <div class="bg-v-theme-surface position-relative w-100 fill-height overflow-hidden">
       <v-btn
@@ -14,7 +14,10 @@
         @click="showDialog = false"
       />
 
-      <Player :logs @close="showDialog = false" />
+      <Player
+        :logs
+        @close="showDialog = false"
+      />
     </div>
   </BaseDialog>
 </template>

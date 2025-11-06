@@ -2,18 +2,18 @@
   <div>
     <DataTable
       v-model:page="page"
-      v-model:itemsPerPage="itemsPerPage"
+      v-model:items-per-page="itemsPerPage"
       :headers="computedHeaders"
       :items
-      :totalCount="deviceCount"
+      :total-count="deviceCount"
       :loading
-      :itemsPerPageOptions="[10, 20, 50, 100]"
-      @update:sort="sortByItem"
+      :items-per-page-options="[10, 20, 50, 100]"
       data-test="items-list"
+      @update:sort="sortByItem"
     >
       <template
         v-if="status === 'accepted'"
-        v-slot:rows
+        #rows
       >
         <tr
           v-for="(item, i) in items"
@@ -28,7 +28,9 @@
               data-test="terminal-connect-btn"
             />
           </td>
-          <td class="text-center">{{ item.name }}</td>
+          <td class="text-center">
+            {{ item.name }}
+          </td>
           <td class="text-center">
             <DeviceIcon
               :icon="item.info.id"
@@ -45,17 +47,21 @@
               <template #default="{ copyText }">
                 <v-chip data-test="sshid-chip">
                   <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
+                    <template #activator="{ props }">
                       <span
                         v-bind="props"
+                        class="hover-text"
                         @click="handleSshidClick(item, copyText)"
                         @keypress.enter="handleSshidClick(item, copyText)"
-                        class="hover-text"
                       >
                         {{ getSshid(item) }}
                       </span>
                     </template>
-                    <span>{{ shouldOpenTerminalHelper() ? "Show connection instructions" : "Copy ID" }}</span>
+                    <span>{{
+                      shouldOpenTerminalHelper()
+                        ? "Show connection instructions"
+                        : "Copy ID"
+                    }}</span>
                   </v-tooltip>
                 </v-chip>
               </template>
@@ -87,7 +93,9 @@
             </div>
 
             <div v-else>
-              <v-chip size="small"> No tags </v-chip>
+              <v-chip size="small">
+                No tags
+              </v-chip>
             </div>
           </td>
 
@@ -98,7 +106,7 @@
               eager
               data-test="v-menu"
             >
-              <template v-slot:activator="{ props }">
+              <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
                   variant="plain"
@@ -114,8 +122,8 @@
                 density="compact"
               >
                 <v-list-item
-                  @click="redirectToDevice(item.uid)"
                   data-test="mdi-information-list-item"
+                  @click="redirectToDevice(item.uid)"
                 >
                   <div class="d-flex align-center">
                     <div class="mr-2">
@@ -133,7 +141,7 @@
                   class="text-center"
                   :disabled="canUpdateDeviceTag"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div v-bind="props">
                       <TagFormUpdate
                         :device-uid="item.uid"
@@ -151,12 +159,12 @@
                   class="text-center"
                   :disabled="canRemoveDevice"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div v-bind="props">
                       <DeviceDelete
                         :variant
                         :uid="item.uid"
-                        :hasAuthorization="canRemoveDevice"
+                        :has-authorization="canRemoveDevice"
                         @update="getDevices"
                       />
                     </div>
@@ -170,7 +178,7 @@
       </template>
       <template
         v-else
-        v-slot:rows
+        #rows
       >
         <tr
           v-for="(item, i) in items"
@@ -202,7 +210,7 @@
               scrim
               eager
             >
-              <template v-slot:activator="{ props }">
+              <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
                   variant="plain"
@@ -222,20 +230,20 @@
                   :uid="item.uid"
                   :name="item.name"
                   :variant
-                  :isInNotification="false"
+                  :is-in-notification="false"
                   action="accept"
                   :show="showDeviceAcceptButton"
-                  @update="getDevices"
                   data-test="DeviceActionButtonAccept-component"
+                  @update="getDevices"
                 />
                 <DeviceActionButton
                   :uid="item.uid"
                   :variant
                   :action="status === 'pending' ? 'reject' : 'remove'"
-                  :isInNotification="false"
+                  :is-in-notification="false"
                   :show="showDeviceRejectButton"
-                  @update="getDevices"
                   data-test="deviceActionButtonReject-component"
+                  @update="getDevices"
                 />
               </v-list>
             </v-menu>
@@ -292,8 +300,8 @@ const showDeviceRejectButton = ref(false);
 const itemsPerPage = ref(10);
 const page = ref(1);
 const filter = computed(() => getFilter());
-const sortField = ref();
-const sortOrder = ref();
+const sortField = ref<string>();
+const sortOrder = ref<"asc" | "desc">();
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
 const userId = authStore.id;
@@ -347,7 +355,9 @@ const headersSecondary = [
   },
 ];
 
-const computedHeaders = computed(() => props.header === "primary" ? headers : headersSecondary);
+const computedHeaders = computed(() =>
+  props.header === "primary" ? headers : headersSecondary,
+);
 
 const getDevices = async () => {
   try {
@@ -365,11 +375,15 @@ const getDevices = async () => {
   loading.value = false;
 };
 
-const redirectToDevice = (deviceId: string) => {
-  router.push({ name: "DeviceDetails", params: { identifier: deviceId } });
+const redirectToDevice = async (deviceId: string) => {
+  await router.push({
+    name: "DeviceDetails",
+    params: { identifier: deviceId },
+  });
 };
 
-const getSshid = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+const getSshid = (item: IDevice) =>
+  `${item.namespace}.${item.name}@${window.location.hostname}`;
 
 const openTerminalHelper = (item: IDevice) => {
   selectedSshid.value = getSshid(item);
@@ -378,7 +392,9 @@ const openTerminalHelper = (item: IDevice) => {
 
 const shouldOpenTerminalHelper = () => {
   try {
-    const dispensedUsers = JSON.parse(localStorage.getItem("dispenseTerminalHelper") || "[]");
+    const dispensedUsers = JSON.parse(
+      localStorage.getItem("dispenseTerminalHelper") || "[]",
+    ) as string[];
     return !dispensedUsers.includes(userId);
   } catch {
     return true;
@@ -414,9 +430,13 @@ watch(filter, async () => {
   await getDevices();
 });
 
-watch([page, itemsPerPage], async () => { await getDevices(); });
+watch([page, itemsPerPage], async () => {
+  await getDevices();
+});
 
-onMounted(async () => { await getDevices(); });
+onMounted(async () => {
+  await getDevices();
+});
 
 defineExpose({ page, showTerminalHelper, openTerminalHelper });
 </script>

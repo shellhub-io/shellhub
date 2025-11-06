@@ -9,13 +9,18 @@
     >
       Please create your account before accepting the namespace invitation.
     </v-alert>
-    <form @submit.prevent="createAccount" v-if="!showMessage">
-      <v-card-title class="text-center">Create Account</v-card-title>
+    <form
+      v-if="!showMessage"
+      @submit.prevent="createAccount"
+    >
+      <v-card-title class="text-center">
+        Create Account
+      </v-card-title>
       <v-container>
         <v-text-field
+          v-model="name"
           color="primary"
           prepend-inner-icon="mdi-account"
-          v-model="name"
           :error-messages="nameError"
           required
           label="Name"
@@ -24,9 +29,9 @@
         />
 
         <v-text-field
+          v-model="username"
           color="primary"
           prepend-inner-icon="mdi-account"
-          v-model="username"
           :error-messages="usernameError"
           required
           label="Username"
@@ -35,9 +40,9 @@
         />
 
         <v-text-field
+          v-model="email"
           color="primary"
           prepend-inner-icon="mdi-email"
-          v-model="email"
           :disabled="isEmailLocked"
           :error-messages="emailError"
           required
@@ -47,10 +52,10 @@
         />
 
         <v-text-field
+          v-model="password"
           color="primary"
           prepend-inner-icon="mdi-lock"
           :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-          v-model="password"
           :error-messages="passwordError"
           label="Password"
           required
@@ -61,10 +66,10 @@
         />
 
         <v-text-field
+          v-model="passwordConfirm"
           color="primary"
           prepend-inner-icon="mdi-lock"
           :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-          v-model="passwordConfirm"
           :error-messages="passwordConfirmError"
           label="Confirm Password"
           required
@@ -120,7 +125,6 @@
         >
           SignUp
         </v-btn>
-
       </v-card-actions>
 
       <v-card-subtitle

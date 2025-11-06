@@ -4,7 +4,7 @@ exports[`Sign Up > Renders the component 1`] = `
 "<div class="v-container v-locale--is-ltr pb-0 mb-0">
   <!--v-if-->
   <form>
-    <div class="v-card-title text-center">Create Account</div>
+    <div class="v-card-title text-center"> Create Account </div>
     <div class="v-container v-locale--is-ltr">
       <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-text-field v-input--plain-underlined" data-test="name-text">
         <!---->

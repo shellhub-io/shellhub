@@ -1,27 +1,48 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
   <h1>Announcement Details</h1>
   <v-card class="mt-2 pa-4 bg-background border">
     <v-card-text>
       <div>
-        <h3 class="text-overline">Uuid:</h3>
-        <p :data-test="announcement.uuid">{{ announcement.uuid }}</p>
+        <h3 class="text-overline">
+          Uuid:
+        </h3>
+        <p :data-test="announcement.uuid">
+          {{ announcement.uuid }}
+        </p>
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Title:</h3>
-        <p :data-test="announcement.title">{{ announcement.title }}</p>
+        <h3 class="text-overline mt-3">
+          Title:
+        </h3>
+        <p :data-test="announcement.title">
+          {{ announcement.title }}
+        </p>
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Content:</h3>
-        <div class="pa-2" :data-test="announcement.content">
-          <div class="content-announcement" v-html="contentToHtml" />
+        <h3 class="text-overline mt-3">
+          Content:
+        </h3>
+        <div
+          class="pa-2"
+          :data-test="announcement.content"
+        >
+          <div
+            class="content-announcement"
+            v-html="contentToHtml"
+          />
         </div>
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Date:</h3>
-        <p :data-test="announcement.date">{{ date }}</p>
+        <h3 class="text-overline mt-3">
+          Date:
+        </h3>
+        <p :data-test="announcement.date">
+          {{ date }}
+        </p>
       </div>
     </v-card-text>
   </v-card>

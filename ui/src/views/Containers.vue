@@ -7,26 +7,35 @@
     <v-col md="6">
       <v-text-field
         v-if="showContainers"
+        v-model.trim="filter"
         label="Search by hostname"
         variant="outlined"
         color="primary"
         single-line
         hide-details
-        v-model.trim="filter"
-        v-on:keyup="searchContainers"
         prepend-inner-icon="mdi-magnify"
         density="compact"
         data-test="search-text"
+        @keyup="searchContainers"
       />
     </v-col>
 
-    <div class="d-flex" data-test="device-header-component-group">
-      <TagSelector variant="container" v-if="isContainerList" />
+    <div
+      class="d-flex"
+      data-test="device-header-component-group"
+    >
+      <TagSelector
+        v-if="isContainerList"
+        variant="container"
+      />
       <ContainerAdd />
     </div>
-
   </div>
-  <div class="mt-2" v-if="showContainers" data-test="device-table-component">
+  <div
+    v-if="showContainers"
+    class="mt-2"
+    data-test="device-table-component"
+  >
     <Containers />
   </div>
 
@@ -39,8 +48,10 @@
   >
     <template #content>
       <p>In order to register a container on ShellHub, you need to configure a Docker Connector.</p>
-      <p>To view and connect to your containers in ShellHub, please add a Docker Engine connector.
-        This will allow you to connect to your Docker Engine and see all your containers here.</p>
+      <p>
+        To view and connect to your containers in ShellHub, please add a Docker Engine connector.
+        This will allow you to connect to your Docker Engine and see all your containers here.
+      </p>
     </template>
     <template #action>
       <ContainerAdd />

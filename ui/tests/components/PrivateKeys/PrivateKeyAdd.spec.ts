@@ -21,6 +21,7 @@ describe("Setting Private Keys", () => {
           "v-file-upload-item": true,
         },
       },
+      props: { modelValue: true },
     });
   });
 

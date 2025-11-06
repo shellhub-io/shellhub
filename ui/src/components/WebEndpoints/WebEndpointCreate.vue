@@ -1,9 +1,6 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
-    @confirm="addWebEndpoint"
     title="Create Device Web Endpoint"
     icon="mdi-lan"
     confirm-text="Create Web Endpoint"
@@ -13,15 +10,24 @@
     confirm-data-test="create-tunnel-btn"
     cancel-data-test="close-btn"
     data-test="tunnel-create-dialog"
+    @close="close"
+    @cancel="close"
+    @confirm="addWebEndpoint"
   >
     <v-container>
       <v-card-text class="pa-0">
-        <p class="mb-2" data-test="tunnel-create-text">
+        <p
+          class="mb-2"
+          data-test="tunnel-create-text"
+        >
           Configure the host and port to create a tunnel to your device.
         </p>
 
         <v-row>
-          <v-col sm="8" class="pb-0">
+          <v-col
+            sm="8"
+            class="pb-0"
+          >
             <v-text-field
               v-model="host"
               class="mt-1"
@@ -33,7 +39,9 @@
             />
           </v-col>
 
-          <p class="mt-7 pa-0"> : </p>
+          <p class="mt-7 pa-0">
+            :
+          </p>
 
           <v-col class="pb-0">
             <v-text-field
@@ -47,7 +55,10 @@
           </v-col>
         </v-row>
 
-        <v-row class="mt-1" v-if="props.useDevicesList">
+        <v-row
+          v-if="props.useDevicesList"
+          class="mt-1"
+        >
           <v-col>
             <v-autocomplete
               v-model="selectedDevice"
@@ -61,13 +72,16 @@
               return-object
               hide-details
               :no-filter="true"
-              @update:search="onSearchUpdate"
               data-test="web-endpoint-autocomplete"
+              @update:search="onSearchUpdate"
             >
               <template #item="{ item, props }">
                 <v-list-item v-bind="props">
                   <div>
-                    <DeviceIcon :icon="item.raw.info.id" class="mr-2" />
+                    <DeviceIcon
+                      :icon="item.raw.info.id"
+                      class="mr-2"
+                    />
                     <span class="text-body-1">{{ item.raw.name }}</span>
                   </div>
                 </v-list-item>
@@ -75,7 +89,10 @@
 
               <template #selection="{ item }">
                 <div class="d-flex align-center">
-                  <DeviceIcon :icon="item.raw.info.id" class="mr-2" />
+                  <DeviceIcon
+                    :icon="item.raw.info.id"
+                    class="mr-2"
+                  />
                   <span class="text-body-1">{{ item.raw.name }}</span>
                 </div>
               </template>
@@ -138,11 +155,11 @@ const emit = defineEmits(["update"]);
 const devicesStore = useDevicesStore();
 const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const alertText = ref("");
 
-// eslint-disable-next-line vue/max-len
-const ipv4Regex = /^(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})$/;
+const ipv4Regex
+  = /^(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})$/;
 
 // eslint-disable-next-line vue/max-len
 const ipv6Regex = /^((?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,7}:|(?:[0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,5}(?::[0-9A-Fa-f]{1,4}){1,2}|(?:[0-9A-Fa-f]{1,4}:){1,4}(?::[0-9A-Fa-f]{1,4}){1,3}|(?:[0-9A-Fa-f]{1,4}:){1,3}(?::[0-9A-Fa-f]{1,4}){1,4}|(?:[0-9A-Fa-f]{1,4}:){1,2}(?::[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:(?::[0-9A-Fa-f]{1,4}){1,6}|:(?::[0-9A-Fa-f]{1,4}){1,7}|fe80:(?::[0-9A-Fa-f]{0,4}){0,4}%[0-9A-Za-z]{1,}|::(?:ffff(?::0{1,4})?:)?(?:25[0-5]|2[0-4]\d|1?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|1?\d{1,2})){3}|(?:[0-9A-Fa-f]{1,4}:){1,4}:(?:25[0-5]|2[0-4]\d|1?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|1?\d{1,2})){3})$/;
@@ -164,7 +181,11 @@ const predefinedTimeouts = ref([
   { value: "custom", text: "Custom Expiration" },
 ]);
 
-const { value: host, errorMessage: hostError, resetField: resetHost } = useField<string>(
+const {
+  value: host,
+  errorMessage: hostError,
+  resetField: resetHost,
+} = useField<string>(
   "host",
   yup
     .string()
@@ -176,9 +197,17 @@ const { value: host, errorMessage: hostError, resetField: resetHost } = useField
   { initialValue: "127.0.0.1" },
 );
 
-const { value: port, errorMessage: portError, resetField: resetPort } = useField<number>(
+const {
+  value: port,
+  errorMessage: portError,
+  resetField: resetPort,
+} = useField<number>(
   "port",
-  yup.number().typeError("Port is a number between 1 and 65535").integer().min(1)
+  yup
+    .number()
+    .typeError("Port is a number between 1 and 65535")
+    .integer()
+    .min(1)
     .max(65535)
     .required(),
   { initialValue: undefined },
@@ -190,23 +219,27 @@ const {
   resetField: resetCustomTimeout,
 } = useField<number>(
   "customTimeout",
-  yup.number().integer().min(1).max(9223372036)
-    .required(),
+  yup.number().integer().min(1).max(9223372036).required(),
   { initialValue: 60 },
 );
 
 const selectedTimeout = ref<number | "custom">(-1);
-const timeout = computed(() => selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value);
+const timeout = computed(() =>
+  selectedTimeout.value === "custom"
+    ? customTimeout.value
+    : selectedTimeout.value,
+);
 
 const hasErrors = computed(() => {
   const needsCustom = selectedTimeout.value === "custom";
-  const formInvalid = !!portError.value
-    || !!hostError.value
-    || (needsCustom && !!customTimeoutError.value)
-    || !port.value
-    || !host.value
-    || timeout.value === undefined
-    || timeout.value === null;
+  const formInvalid
+    = !!portError.value
+      || !!hostError.value
+      || (needsCustom && !!customTimeoutError.value)
+      || !port.value
+      || !host.value
+      || timeout.value === undefined
+      || timeout.value === null;
 
   if (props.useDevicesList) return formInvalid || !selectedDevice.value;
   return formInvalid;
@@ -235,9 +268,9 @@ const close = async () => {
   await clearFilterAndRefetch();
 };
 
-const update = () => {
+const update = async () => {
   emit("update");
-  close();
+  await close();
 };
 
 const fetchDevices = async (searchQuery?: string) => {
@@ -247,7 +280,10 @@ const fetchDevices = async (searchQuery?: string) => {
   const filter = query
     ? Buffer.from(
       JSON.stringify([
-        { type: "property", params: { name: "name", operator: "contains", value: query } },
+        {
+          type: "property",
+          params: { name: "name", operator: "contains", value: query },
+        },
       ]),
     ).toString("base64")
     : undefined;
@@ -276,7 +312,9 @@ const onSearchUpdate = async (val: string) => {
 const addWebEndpoint = async () => {
   if (hasErrors.value) return;
 
-  const deviceUid = props.useDevicesList ? selectedDevice.value?.uid : props.uid;
+  const deviceUid = props.useDevicesList
+    ? selectedDevice.value?.uid
+    : props.uid;
 
   try {
     await webEndpointsStore.createWebEndpoint({
@@ -287,11 +325,12 @@ const addWebEndpoint = async () => {
     });
 
     snackbar.showSuccess("Web Endpoint created successfully.");
-    update();
+    await update();
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       if ((error as AxiosError).response?.status === 403) {
-        alertText.value = "This device has reached the maximum allowed number of Web Endpoints";
+        alertText.value
+          = "This device has reached the maximum allowed number of Web Endpoints";
         return;
       }
     }

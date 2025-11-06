@@ -4,7 +4,7 @@
       variant="container"
       header="secondary"
       status="pending"
-      :storeMethods="getContainerStoreMethods()"
+      :store-methods="getContainerStoreMethods()"
       data-test="container-table"
     />
   </div>

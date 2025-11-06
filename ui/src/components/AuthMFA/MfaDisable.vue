@@ -1,14 +1,17 @@
 <template>
   <WindowDialog
     v-model="showDialog"
-    @close="close"
     :title="currentStepConfig.title"
     :description="currentStepConfig.description"
     :icon="currentStepConfig.icon"
     icon-color="warning"
     data-test="dialog"
+    @close="close"
   >
-    <v-window v-model="el" class="pa-6">
+    <v-window
+      v-model="el"
+      class="pa-6"
+    >
       <v-slide-y-reverse-transition>
         <v-alert
           v-model="showAlert"
@@ -22,22 +25,22 @@
       </v-slide-y-reverse-transition>
       <v-window-item :value="1">
         <v-otp-input
+          v-model="verificationCode"
           data-test="verification-code"
           required
-          v-model="verificationCode"
-          @keyup.enter="verificationCode ? disableMfa() : false"
           label="Verification Code"
           class="mb-4"
+          @keyup.enter="verificationCode ? disableMfa() : false"
         />
 
         <p class="text-subtitle-2 text-center">
           If you lost your MFA TOTP Provider and want to use your recovery code,
           <span
             tag="button"
-            @click="goToNextStep"
-            @keyup.enter="goToNextStep"
             class="text-primary cursor-pointer text-decoration-underline"
             data-test="use-recovery-code-btn"
+            @click="goToNextStep"
+            @keyup.enter="goToNextStep"
           >
             click here
           </span>
@@ -50,20 +53,21 @@
           color="primary"
           class="mx-auto mt-2"
           required
-          @keyup.enter="recoveryCode ? disableMfa() : false"
           label="Recovery Code"
           data-test="recovery-code"
           width="400"
+          @keyup.enter="recoveryCode ? disableMfa() : false"
         />
 
         <p class="text-subtitle-2 text-center">
-          If you lost your recovery codes, we'll send you an e-mail to continue the MFA disable.
+          If you lost your recovery codes, we'll send you an e-mail to continue
+          the MFA disable.
           <span
             tag="button"
-            @click="requestMail"
-            @keyup.enter="requestMail"
             class="text-primary cursor-pointer text-decoration-underline"
             data-test="recover-email-btn"
+            @click="requestMail"
+            @keyup.enter="requestMail"
           >
             Click here</span>.
         </p>
@@ -79,9 +83,12 @@
           />
         </div>
 
-        <p data-test="sub-title" class="mb-4 text-center text-body-1 font-weight-bold">
-          An email has been sent to {{ userMail }}.
-          Please check your inbox and click the link we've provided to disable MFA.
+        <p
+          data-test="sub-title"
+          class="mb-4 text-center text-body-1 font-weight-bold"
+        >
+          An email has been sent to {{ userMail }}. Please check your inbox and
+          click the link we've provided to disable MFA.
         </p>
       </v-window-item>
     </v-window>
@@ -89,7 +96,12 @@
     <template #footer>
       <v-spacer />
       <v-card-actions>
-        <v-btn data-test="close-btn" @click="close">Close</v-btn>
+        <v-btn
+          data-test="close-btn"
+          @click="close"
+        >
+          Close
+        </v-btn>
         <v-btn
           v-if="el === 1"
           :disabled="!verificationCode"
@@ -128,7 +140,7 @@ const recoveryCode = ref("");
 const el = ref<1 | 2 | 3>(1);
 const showAlert = ref(false);
 const alertMessage = ref("");
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const userMail = computed(() => localStorage.getItem("email"));
 
 const stepConfig = {
@@ -149,7 +161,7 @@ const stepConfig = {
   },
 };
 
-const currentStepConfig = computed(() => stepConfig[el.value as keyof typeof stepConfig]);
+const currentStepConfig = computed(() => stepConfig[el.value]);
 
 const disableMfa = async () => {
   try {
@@ -167,10 +179,12 @@ const disableMfa = async () => {
       showAlert.value = true;
       switch (axiosError.response?.status) {
         case 403:
-          alertMessage.value = "The verification code sent in your MFA verification is invalid, please try again.";
+          alertMessage.value
+            = "The verification code sent in your MFA verification is invalid, please try again.";
           break;
         default:
-          alertMessage.value = "An error occurred during your MFA verification, try again later.";
+          alertMessage.value
+            = "An error occurred during your MFA verification, try again later.";
           handleError(error);
       }
       return;
@@ -192,7 +206,8 @@ const requestMail = async () => {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       showAlert.value = true;
-      alertMessage.value = "An error occurred sending your recovery mail, please try again later.";
+      alertMessage.value
+        = "An error occurred sending your recovery mail, please try again later.";
     }
     handleError(error);
   }

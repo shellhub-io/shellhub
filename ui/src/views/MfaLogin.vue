@@ -13,21 +13,26 @@
     </v-slide-y-reverse-transition>
     <v-row>
       <v-col align="center">
-        <h3 data-test="title">Multi-factor Authentication</h3>
+        <h3 data-test="title">
+          Multi-factor Authentication
+        </h3>
       </v-col>
     </v-row>
     <v-row class="mb-2">
       <v-col align="center">
-        <h4 data-test="sub-title">Verify your identity by signing in using the code from your OTP Provider</h4>
+        <h4 data-test="sub-title">
+          Verify your identity by signing in using the code from your OTP Provider
+        </h4>
       </v-col>
     </v-row>
     <v-otp-input
+      v-model="verificationCode"
       data-test="verification-code"
       required
-      v-model="verificationCode"
-      @keyup.enter="verificationCode ? loginMfa() : false"
       label="Verification Code"
-      variant="underlined" />
+      variant="underlined"
+      @keyup.enter="verificationCode ? loginMfa() : false"
+    />
     <v-card-actions class="justify-center pa-0">
       <v-btn
         :disabled="!verificationCode"
@@ -44,13 +49,12 @@
       Did you
       <v-btn
         class="pl-1 text-caption"
-        @click="goToRecoveryCodes"
         variant="plain"
         color="primary"
         density="compact"
         data-test="redirect-recover"
+        @click="goToRecoveryCodes"
       >
-
         Lost your TOTP password?
       </v-btn>
     </v-col>
@@ -73,7 +77,7 @@ const alertMessage = ref("");
 const loginMfa = async () => {
   try {
     await authStore.validateMfa(verificationCode.value);
-    router.push("/");
+    await router.push("/");
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -92,8 +96,8 @@ const loginMfa = async () => {
   }
 };
 
-const goToRecoveryCodes = () => {
-  router.push({ name: "RecoverMfa" });
+const goToRecoveryCodes = async () => {
+  await router.push({ name: "RecoverMfa" });
 };
 
 defineExpose({

@@ -1,38 +1,59 @@
 <template>
   <DataTable
     v-model:page="page"
-    v-model:itemsPerPage="itemsPerPage"
+    v-model:items-per-page="itemsPerPage"
     :headers
     :items="firewallRules"
-    :totalCount="firewallRuleCount"
+    :total-count="firewallRuleCount"
     :loading
-    :itemsPerPageOptions="[10, 20, 50, 100]"
+    :items-per-page-options="[10, 20, 50, 100]"
     data-test="firewallRules-list"
   >
-    <template v-slot:rows>
-      <tr v-for="(item, i) in firewallRules" :key="i">
+    <template #rows>
+      <tr
+        v-for="(item, i) in firewallRules"
+        :key="i"
+      >
         <td class="text-center">
           <v-icon
             data-test="firewall-rules-active"
             :color="item.active ? 'success' : ''"
-            icon="mdi-check-circle" />
+            icon="mdi-check-circle"
+          />
         </td>
 
-        <td class="text-center" data-test="firewall-rules-priority">{{ item.priority }}</td>
+        <td
+          class="text-center"
+          data-test="firewall-rules-priority"
+        >
+          {{ item.priority }}
+        </td>
 
-        <td class="text-center" data-test="firewall-rules-action">
+        <td
+          class="text-center"
+          data-test="firewall-rules-action"
+        >
           {{ capitalizeText(item.action) }}
         </td>
 
-        <td class="text-center" data-test="firewall-rules-source-ip">
+        <td
+          class="text-center"
+          data-test="firewall-rules-source-ip"
+        >
           {{ formatSourceIP(item.source_ip) }}
         </td>
 
-        <td class="text-center" data-test="firewall-rules-username">
+        <td
+          class="text-center"
+          data-test="firewall-rules-username"
+        >
           {{ formatUsername(item.username) }}
         </td>
 
-        <td class="text-center" data-test="firewall-rules-filter">
+        <td
+          class="text-center"
+          data-test="firewall-rules-filter"
+        >
           <div v-if="isHostname(item.filter)">
             {{ formatHostnameFilter(item.filter) }}
           </div>
@@ -62,8 +83,12 @@
         </td>
 
         <td class="text-center">
-          <v-menu location="bottom" scrim eager>
-            <template v-slot:activator="{ props }">
+          <v-menu
+            location="bottom"
+            scrim
+            eager
+          >
+            <template #activator="{ props }">
               <v-btn
                 v-bind="props"
                 variant="plain"
@@ -74,17 +99,21 @@
                 data-test="firewall-rules-actions"
               />
             </template>
-            <v-list class="bg-v-theme-surface" lines="two" density="compact">
+            <v-list
+              class="bg-v-theme-surface"
+              lines="two"
+              density="compact"
+            >
               <v-tooltip
                 location="bottom"
                 class="text-center"
                 :disabled="canEditFirewallRule"
               >
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <div v-bind="props">
                     <FirewallRuleEdit
-                      :firewallRule="item"
-                      :hasAuthorization="canEditFirewallRule"
+                      :firewall-rule="item"
+                      :has-authorization="canEditFirewallRule"
                       @update="refreshFirewallRules"
                     />
                   </div>
@@ -97,13 +126,13 @@
                 class="text-center"
                 :disabled="canRemoveFirewallRule"
               >
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <div v-bind="props">
                     <FirewallRuleDelete
                       v-if="item.id"
                       :id="item.id"
+                      :has-authorization="canEditFirewallRule"
                       @update="refreshFirewallRules"
-                      :hasAuthorization="canEditFirewallRule"
                     />
                   </div>
                 </template>

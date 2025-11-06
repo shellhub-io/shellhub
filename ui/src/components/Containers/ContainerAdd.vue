@@ -1,12 +1,12 @@
 <template>
   <v-btn
-    @click="showDialog = true"
     color="primary"
     tabindex="0"
     variant="elevated"
-    @keypress.enter="showDialog = true"
     data-test="container-add-btn"
     text="Add Docker Host"
+    @click="showDialog = true"
+    @keypress.enter="showDialog = true"
   />
 
   <WindowDialog
@@ -20,7 +20,10 @@
     show-footer
     @close="showDialog = false"
   >
-    <v-card-text class="mt-4 mb-0 pb-1 text-justify" data-test="dialog-text">
+    <v-card-text
+      class="mt-4 mb-0 pb-1 text-justify"
+      data-test="dialog-text"
+    >
       <p class="text-body-2 mb-2">
         In order to add Docker containers to ShellHub, you need to install the
         ShellHub Connector on the Docker host.
@@ -35,12 +38,20 @@
       <p class="text-body-2 font-weight-bold mt-3">
         Run the following command on your Docker host:
       </p>
-      <CopyCommandField :command="command" class="mt-1 mb-3" />
+      <CopyCommandField
+        :command="command"
+        class="mt-1 mb-3"
+      />
     </v-card-text>
 
     <template #footer>
       <v-spacer />
-      <v-btn variant="text" data-test="close-btn" @click="showDialog = false" text="Close" />
+      <v-btn
+        variant="text"
+        data-test="close-btn"
+        text="Close"
+        @click="showDialog = false"
+      />
     </template>
   </WindowDialog>
 </template>

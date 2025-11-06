@@ -1,37 +1,58 @@
 <template>
-  <ConfigureSSO v-model="showSSODialog" data-test="configure-sso-dialog" />
+  <ConfigureSSO
+    v-model="showSSODialog"
+    data-test="configure-sso-dialog"
+  />
 
   <div class="pb-2">
-    <h1 data-test="auth-header">Authentication</h1>
+    <h1 data-test="auth-header">
+      Authentication
+    </h1>
   </div>
-  <v-card class="w-100 pa-4 bg-background border" data-test="auth-card">
+  <v-card
+    class="w-100 pa-4 bg-background border"
+    data-test="auth-card"
+  >
     <v-card-item class="pa-0">
-      <v-card-title class="text-center" data-test="auth-status-header">Authentication Status</v-card-title>
+      <v-card-title
+        class="text-center"
+        data-test="auth-status-header"
+      >
+        Authentication Status
+      </v-card-title>
       <v-row class="my-0">
         <span data-test="local-auth-label">Local Authentication</span>
         <v-switch
           v-model="isLocalAuthEnabled"
-          @click.prevent="changeLocalAuthStatus"
           :color="isLocalAuthEnabled ? 'primary' : 'gray'"
           data-test="local-auth-switch"
           hide-details
+          @click.prevent="changeLocalAuthStatus"
         />
       </v-row>
       <v-row class="my-0">
         <span data-test="saml-auth-label">SAML Authentication</span>
         <v-switch
           v-model="isSamlEnabled"
-          @click.prevent="changeSamlAuthStatus"
           :color="isSamlEnabled ? 'primary' : 'gray'"
           data-test="saml-auth-switch"
           hide-details
+          @click.prevent="changeSamlAuthStatus"
         />
       </v-row>
     </v-card-item>
 
-    <v-card-item v-if="isSamlEnabled" class="pa-0">
+    <v-card-item
+      v-if="isSamlEnabled"
+      class="pa-0"
+    >
       <v-divider class="mt-4 mb-4" />
-      <v-card-title class="text-center" data-test="sso-header">Single Sign-on (SSO)</v-card-title>
+      <v-card-title
+        class="text-center"
+        data-test="sso-header"
+      >
+        Single Sign-on (SSO)
+      </v-card-title>
       <v-card-subtitle
         class="text-center"
         data-test="sso-subtitle"
@@ -43,7 +64,10 @@
       <v-row>
         <div class="d-flex flex-column w-75">
           <span>Assertion URL</span>
-          <span v-if="smAndUp" class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular">
+          <span
+            v-if="smAndUp"
+            class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular"
+          >
             The Assertion URL is the endpoint where the IdP will redirect users after
             successful authentication. Many IdPs require this URL to be registered in
             their list of allowed callback URLs.
@@ -55,9 +79,9 @@
               color="primary"
               prepend-icon="mdi-content-copy"
               variant="text"
-              @click="copyText(ssoSettings.saml?.assertion_url || '')"
               data-test="copy-assertion-btn"
               text="Copy"
+              @click="copyText(ssoSettings.saml?.assertion_url || '')"
             />
           </template>
         </CopyWarning>
@@ -86,9 +110,11 @@
 
       <v-row v-if="certificate">
         <div class="d-flex flex-column w-75">
-
           <span data-test="certificate-label">SP Certificate</span>
-          <span v-if="smAndUp" class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular">
+          <span
+            v-if="smAndUp"
+            class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular"
+          >
             The SP Certificate is an X.509 certificate that IdPs use to verify requests
             from ShellHub. Upload it to your IdP to validate the authenticity of authentication
             requests.
@@ -96,31 +122,34 @@
         </div>
         <v-btn
           class="align-content-lg-center text-none text-uppercase"
-          @click="downloadSSOCertificate"
           data-test="download-certificate-btn"
-        >Download SP Certificate</v-btn>
+          @click="downloadSSOCertificate"
+        >
+          Download SP Certificate
+        </v-btn>
       </v-row>
 
       <v-card-actions class="justify-end pa-0 mt-4">
         <v-tooltip location="top">
-          <template v-slot:activator="{ props }">
+          <template #activator="{ props }">
             <v-btn
               v-bind="props"
               color="primary"
               append-icon="mdi-open-in-new"
-              @click="redirectToAuthURL(ssoSettings.saml?.auth_url)"
               data-test="redirect-auth-btn"
               text="Test Auth Integration"
+              @click="redirectToAuthURL(ssoSettings.saml?.auth_url)"
             />
           </template>
           <span>Opens a new window directly calling the Authentication URL</span>
         </v-tooltip>
         <v-btn
-          @click="showSSODialog = true"
           data-test="sso-config-btn"
           color="primary"
           variant="elevated"
-          :text="ssoSettings.saml?.enabled ? 'Edit' : 'Configure'" />
+          :text="ssoSettings.saml?.enabled ? 'Edit' : 'Configure'"
+          @click="showSSODialog = true"
+        />
       </v-card-actions>
     </v-card-item>
   </v-card>

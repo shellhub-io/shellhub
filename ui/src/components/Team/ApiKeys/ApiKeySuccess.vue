@@ -1,7 +1,6 @@
 <template>
   <MessageDialog
     v-model="showDialog"
-    @close="close"
     title="API Key created successfully!"
     description="Make sure to copy your key now as you will not be able to see it again."
     icon="mdi-check-circle"
@@ -10,12 +9,16 @@
     cancel-text="Close"
     cancel-data-test="close-btn"
     confirm-data-test="copy-btn"
+    data-test="api-key-success-dialog"
+    @close="close"
     @confirm="copyKey"
     @cancel="close"
-    data-test="api-key-success-dialog"
   >
     <div class="px-4">
-      <CopyWarning ref="copyWarningRef" :copied-item="'API Key'">
+      <CopyWarning
+        ref="copyWarningRef"
+        :copied-item="'API Key'"
+      >
         <template #default="{ copyText }">
           <v-text-field
             :value="apiKey"
@@ -30,8 +33,8 @@
                 color="primary"
                 variant="text"
                 size="small"
-                @click="copyText(apiKey)"
                 data-test="copy-key-icon-btn"
+                @click="copyText(apiKey)"
               />
             </template>
           </v-text-field>

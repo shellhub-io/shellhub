@@ -1,10 +1,10 @@
 <template>
   <div>
     <v-list-item
-      @click="open"
       v-bind="$attrs"
       :disabled="!hasAuthorization"
       data-test="firewall-edit-rule-btn"
+      @click="open"
     >
       <div class="d-flex align-center">
         <div class="mr-2">
@@ -18,9 +18,6 @@
 
     <FormDialog
       v-model="showDialog"
-      @close="close"
-      @cancel="close"
-      @confirm="editFirewallRule"
       title="Edit Firewall Rule"
       icon="mdi-shield-check"
       confirm-text="Edit"
@@ -29,6 +26,9 @@
       confirm-data-test="firewall-rule-edit-btn"
       cancel-data-test="firewall-rule-cancel"
       data-test="firewall-rule-edit-dialog"
+      @close="close"
+      @cancel="close"
+      @confirm="editFirewallRule"
     >
       <v-card-text class="pa-6">
         <v-row>
@@ -64,11 +64,11 @@
         <v-row class="mt-1 mb-3 px-3">
           <v-select
             v-model="selectedIPOption"
-            @update:model-value="handleSourceIpUpdate"
             label="Source IP access restriction"
             :items="sourceIPSelectOptions"
             hide-details
             data-test="firewall-rule-source-ip-select"
+            @update:model-value="handleSourceIpUpdate"
           />
         </v-row>
 
@@ -84,11 +84,11 @@
         <v-row class="mt-5 mb-3 px-3">
           <v-select
             v-model="selectedUsernameOption"
-            @update:model-value="handleUsernameUpdate"
             label="Device username access restriction"
             :items="usernameSelectOptions"
             hide-details
             data-test="username-field"
+            @update:model-value="handleUsernameUpdate"
           />
         </v-row>
 
@@ -105,11 +105,11 @@
         <v-row class="mt-5 mb-3 px-3">
           <v-select
             v-model="selectedFilterOption"
-            @update:model-value="handleFilterUpdate"
             label="Device access restriction"
             :items="filterSelectOptions"
             hide-details
             data-test="filter-select"
+            @update:model-value="handleFilterUpdate"
           />
         </v-row>
 
@@ -123,7 +123,10 @@
           data-test="firewall-rule-hostname-restriction"
         />
 
-        <v-row v-else-if="selectedFilterOption === FormFilterOptions.Tags" class="px-3 mt-3">
+        <v-row
+          v-else-if="selectedFilterOption === FormFilterOptions.Tags"
+          class="px-3 mt-3"
+        >
           <v-autocomplete
             v-model="selectedTags"
             v-model:menu="acMenuOpen"
@@ -145,7 +148,11 @@
             @update:search="onSearch"
           >
             <template #append-item>
-              <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+              <div
+                ref="sentinel"
+                data-test="tags-sentinel"
+                style="height: 1px;"
+              />
             </template>
           </v-autocomplete>
         </v-row>
@@ -165,8 +172,9 @@ import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 import useTagsStore from "@/store/modules/tags";
+import { ITag } from "@/interfaces/ITags";
 
-type LocalTag = { name: string };
+type TagName = Pick<ITag, "name">;
 
 const { firewallRule, hasAuthorization } = defineProps<{
   firewallRule: IFirewallRule;
@@ -251,13 +259,13 @@ const filterSelectOptions = [
   { value: "tags", title: "Restrict rule by device tags" },
 ];
 
-const setSelectedTagsError = () => {
+const setSelectedTagsError = async () => {
   if (selectedFilterOption.value !== FormFilterOptions.Tags) {
     selectedTagsError.value = "";
     return;
   }
   if (selectedTags.value.length > 3) {
-    nextTick(() => selectedTags.value.pop());
+    await nextTick(() => selectedTags.value.pop());
     selectedTagsError.value = "You can select up to 3 tags only.";
   } else if (selectedTags.value.length === 0) {
     selectedTagsError.value = "You must choose at least one tag";
@@ -275,7 +283,7 @@ const resetSelectedTags = () => {
 const acMenuOpen = ref(false);
 const menuContentClass = computed(() => "fw-edit-tags-ac-content");
 
-const fetchedTags = ref<LocalTag[]>([]);
+const fetchedTags = ref<TagName[]>([]);
 const tags = computed(() => fetchedTags.value);
 
 const sentinel = ref<HTMLElement | null>(null);
@@ -296,12 +304,12 @@ const encodeFilter = (search: string) => {
   return btoa(JSON.stringify(filterToEncodeBase64));
 };
 
-const normalizeStoreItems = (arr): LocalTag[] => (arr ?? [])
+const normalizeStoreItems = (arr: ITag[]): TagName[] => (arr ?? [])
   .map((tag) => {
     const name = typeof tag === "string" ? tag : tag?.name;
-    return name ? ({ name } as LocalTag) : null;
+    return name ? ({ name } as TagName) : null;
   })
-  .filter((tag: LocalTag | null): tag is LocalTag => !!tag);
+  .filter((tag: TagName | null): tag is TagName => !!tag);
 
 const resetPagination = () => {
   page.value = 1;
@@ -340,7 +348,7 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`) as HTMLElement | null;
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`);
 
 const cleanupObserver = () => {
   if (observer) {
@@ -357,7 +365,7 @@ const setupObserver = () => {
   observer = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
-      if (entry?.isIntersecting) bumpPerPageAndLoad();
+      if (entry?.isIntersecting) void bumpPerPageAndLoad();
     },
     { root, threshold: 1.0 },
   );
@@ -392,7 +400,7 @@ const handleFilterUpdate = async () => {
   if (selectedFilterOption.value === FormFilterOptions.Tags) {
     resetPagination();
     await loadTags();
-    setSelectedTagsError();
+    await setSelectedTagsError();
   } else {
     selectedTagsError.value = "";
   }
@@ -424,7 +432,7 @@ const resetForm = () => {
   cleanupObserver();
 };
 
-const toTagNames = (arr): string[] => {
+const toTagNames = (arr: TagName[]): string[] => {
   if (!arr) return [];
   return Array.from(arr)
     .map((tags) => {
@@ -447,7 +455,7 @@ const setFilterData = async () => {
       resetPagination();
       await loadTags();
       selectedTags.value = toTagNames(firewallRule.filter.tags);
-      setSelectedTagsError();
+      await setSelectedTagsError();
     } else {
       selectedFilterOption.value = FormFilterOptions.All;
     }

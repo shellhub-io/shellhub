@@ -1,9 +1,9 @@
 <template>
   <v-list-item
-    @click="open"
     v-bind="$attrs"
     :disabled="!hasAuthorization"
     data-test="open-tag-edit"
+    @click="open"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
@@ -18,9 +18,6 @@
 
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
-    @confirm="edit"
     title="Update Tag"
     icon="mdi-tag"
     confirm-text="Edit"
@@ -29,6 +26,9 @@
     confirm-data-test="edit-btn"
     cancel-data-test="close-btn"
     data-test="tag-edit-dialog"
+    @close="close"
+    @cancel="close"
+    @confirm="edit"
   >
     <div class="px-6 pt-4">
       <v-text-field

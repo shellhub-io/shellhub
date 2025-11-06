@@ -2,14 +2,13 @@
   <div class="d-flex flex-column align-center pa-4">
     <v-select
       v-model="currentFontFamily"
-      @update:model-value="updateFontSettings"
       :items="availableFonts"
       class="w-100"
       label="Font Family"
+      @update:model-value="updateFontSettings"
     />
     <v-number-input
       v-model="currentFontSize"
-      @update:model-value="updateFontSettings"
       control-variant="split"
       variant="outlined"
       density="compact"
@@ -19,6 +18,7 @@
       inset
       class="w-100"
       label="Font Size"
+      @update:model-value="updateFontSettings"
     />
   </div>
 </template>

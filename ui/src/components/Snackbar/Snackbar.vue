@@ -11,7 +11,9 @@
       },
     }"
   >
-    <p class="w-100 text-center">{{ message }}</p>
+    <p class="w-100 text-center">
+      {{ message }}
+    </p>
   </v-snackbar>
 </template>
 

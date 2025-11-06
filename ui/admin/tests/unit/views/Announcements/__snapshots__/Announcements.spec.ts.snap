@@ -2,7 +2,7 @@
 
 exports[`Announcement Details > Renders the component 1`] = `
 "<div class="d-flex flex-column justify-space-between align-center flex-md-row mb-2">
-  <h1 data-test="announcement-title">Announcements</h1>
+  <h1 data-test="announcement-title"> Announcements </h1>
   <div class="v-spacer"></div><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="new-announcement-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
     <!----><span class="v-btn__content" data-no-activator="">New</span><span class="v-btn__append"><i class="mdi-plus mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
     <!---->

@@ -18,8 +18,8 @@
       <v-card-title>Content</v-card-title>
 
       <Editor
-        :api-key="tinyMceKey"
         v-model="announcement"
+        :api-key="tinyMceKey"
         output-format="html"
         :init="{
           plugins: 'lists link image code help wordcount',
@@ -52,12 +52,12 @@
     <v-card-actions class="pa-4">
       <v-spacer />
       <v-btn
-        @click="postAnnouncement"
         color="primary"
         variant="elevated"
         tabindex="0"
         data-test="announcement-btn-post"
         text="Post"
+        @click="postAnnouncement"
       />
     </v-card-actions>
   </v-card>
@@ -80,20 +80,21 @@ const snackbar = useSnackbar();
 const announcementStore = useAnnouncementStore();
 const { value: title, errorMessage: titleError, setErrors: setTitleError } = useField<
       string | undefined
-    >("title", yup.string().required(), {
-      initialValue: "",
-    });
+>("title", yup.string().required(), {
+  initialValue: "",
+});
 const tinyMceKey = computed(() => envVariables.tinyMceKey);
 const tinyMceKeyIsEmpty = computed(() => tinyMceKey.value === "");
 const announcement = ref("");
 const announcementError = ref(false);
-const turndownService = new TurndownService();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+const { turndown } = new TurndownService() as { turndown: (input: string) => string };
 
 watch(announcement, (val) => {
   if (val) announcementError.value = false;
 });
 
-const postAnnouncement = () => {
+const postAnnouncement = async () => {
   if (!title.value) {
     setTitleError("Title cannot be empty!");
     return;
@@ -106,13 +107,13 @@ const postAnnouncement = () => {
   }
 
   try {
-    const contentInHtml = turndownService.turndown(announcement.value);
-    announcementStore.createAnnouncement({
+    const contentInHtml = turndown(announcement.value);
+    await announcementStore.createAnnouncement({
       title: title.value,
       content: contentInHtml,
     });
     snackbar.showSuccess("Successfully created announcement.");
-    router.push({ name: "announcements" });
+    await router.push({ name: "announcements" });
   } catch (error) {
     handleError(error);
     snackbar.showError("Failed to create announcement.");

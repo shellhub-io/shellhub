@@ -7,24 +7,47 @@
     icon-color="primary"
     @close="closeDialog"
   >
-    <v-window v-model="currentStep" class="overflow-y-auto" data-test="welcome-window">
-      <v-window-item :value="1" data-test="welcome-first-screen">
+    <v-window
+      v-model="currentStep"
+      class="overflow-y-auto"
+      data-test="welcome-window"
+    >
+      <v-window-item
+        :value="1"
+        data-test="welcome-first-screen"
+      >
         <WelcomeFirstScreen />
       </v-window-item>
-      <v-window-item :value="2" data-test="welcome-second-screen">
+      <v-window-item
+        :value="2"
+        data-test="welcome-second-screen"
+      >
         <WelcomeSecondScreen />
       </v-window-item>
-      <v-window-item :value="3" data-test="welcome-third-screen">
-        <WelcomeThirdScreen v-if="hasDeviceDetected" v-model:first-pending-device="firstPendingDevice" />
+      <v-window-item
+        :value="3"
+        data-test="welcome-third-screen"
+      >
+        <WelcomeThirdScreen
+          v-if="hasDeviceDetected"
+          v-model:first-pending-device="firstPendingDevice"
+        />
       </v-window-item>
-      <v-window-item :value="4" data-test="welcome-fourth-screen">
+      <v-window-item
+        :value="4"
+        data-test="welcome-fourth-screen"
+      >
         <WelcomeFourthScreen />
       </v-window-item>
     </v-window>
 
     <template #footer>
       <div class="d-flex align-center w-100">
-        <p v-if="currentStep === 2" class="text-caption text-truncate" data-test="second-screen-helper-link">
+        <p
+          v-if="currentStep === 2"
+          class="text-caption text-truncate"
+          data-test="second-screen-helper-link"
+        >
           Check our
           <a
             href="https://docs.shellhub.io/user-guides/devices/adding"
@@ -33,24 +56,27 @@
             class="text-primary font-weight-medium"
           >
             documentation
-            <v-icon size="12" icon="mdi-open-in-new" />
+            <v-icon
+              size="12"
+              icon="mdi-open-in-new"
+            />
           </a>
           for alternative installation methods.
         </p>
         <v-spacer />
         <v-btn
           v-if="currentStep !== 4"
-          @click="closeDialog"
           data-test="cancel-btn"
           class="mr-2"
           text="Close"
+          @click="closeDialog"
         />
         <v-btn
           color="primary"
-          @click="handleConfirm"
           :disabled="currentStep === 2 && !hasDeviceDetected"
           data-test="confirm-btn"
           :text="currentStepConfig.buttonText"
+          @click="handleConfirm"
         />
       </div>
     </template>
@@ -95,6 +121,7 @@ const stopDevicePolling = () => {
 
 const startDevicePolling = () => {
   currentStep.value = 2;
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   pollingTimer.value = setInterval(async () => {
     try {
       await statsStore.fetchStats();
@@ -105,7 +132,7 @@ const startDevicePolling = () => {
         currentStep.value = 3;
         stopDevicePolling();
       }
-    } catch (error: unknown) {
+    } catch {
       snackbar.showError("Failed to fetch devices.");
     }
   }, 3000);

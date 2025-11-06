@@ -1,20 +1,22 @@
 <template>
-  <TagCreate v-model="createDialog" @update="refreshTagList()" />
+  <TagCreate
+    v-model="createDialog"
+    @update="refreshTagList()"
+  />
   <v-container fluid>
     <v-card
       variant="flat"
       class="bg-transparent"
       data-test="tags-settings-card"
     >
-
       <v-row cols="12">
         <v-col cols="3">
           <v-card-item class="pa-0 ma-0 mb-2">
             <v-list-item data-test="profile-header">
-              <template v-slot:title>
+              <template #title>
                 <h1>Tags</h1>
               </template>
-              <template v-slot:subtitle>
+              <template #subtitle>
                 <span data-test="profile-subtitle">Manage your device and connector tags</span>
               </template>
             </v-list-item>
@@ -22,30 +24,32 @@
         </v-col>
         <v-col cols="6">
           <v-text-field
+            v-model.trim="filter"
             label="Search by Tag Name"
             variant="outlined"
             color="primary"
             single-line
             hide-details
-            v-model.trim="filter"
-            v-on:keyup="searchTags"
             prepend-inner-icon="mdi-magnify"
             density="compact"
             data-test="search-text"
+            @keyup="searchTags"
           />
         </v-col>
-        <v-col cols="3" class="d-flex justify-end">
+        <v-col
+          cols="3"
+          class="d-flex justify-end"
+        >
           <v-btn
-            @click="openCreate"
             color="primary"
             variant="text"
             class="bg-secondary border"
             data-test="tag-create-button"
+            @click="openCreate"
           >
             Create Tag
           </v-btn>
         </v-col>
-
       </v-row>
       <TagList ref="tagListRef" />
     </v-card>
@@ -66,7 +70,7 @@ const createDialog = ref(false);
 const filter = ref("");
 const tenant = computed(() => localStorage.getItem("tenant") || "");
 
-const searchTags = () => {
+const searchTags = async () => {
   let encodedFilter = "";
 
   if (filter.value) {
@@ -80,7 +84,7 @@ const searchTags = () => {
   }
 
   try {
-    tagsStore.search({
+    await tagsStore.search({
       tenant: tenant.value,
       filter: encodedFilter,
     });

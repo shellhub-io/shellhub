@@ -1,13 +1,13 @@
 <template>
   <v-btn
-    @click="showDialog = true"
     color="primary"
     tabindex="0"
     variant="elevated"
-    @keypress.enter="showDialog = true"
     data-test="device-add-btn"
     :size
     text="Add Device"
+    @click="showDialog = true"
+    @keypress.enter="showDialog = true"
   />
 
   <WindowDialog
@@ -21,8 +21,10 @@
     icon-color="primary"
     @close="showDialog = false"
   >
-    <v-card-text class="mt-2 mb-4" data-test="dialog-text">
-
+    <v-card-text
+      class="mt-2 mb-4"
+      data-test="dialog-text"
+    >
       <v-expansion-panels
         v-model="selectedPanel"
         variant="accordion"
@@ -37,10 +39,19 @@
         >
           <v-expansion-panel-title>
             <div class="d-flex align-center w-100">
-              <v-icon :icon="method.icon" size="large" class="mr-3" :color="method.color" />
+              <v-icon
+                :icon="method.icon"
+                size="large"
+                class="mr-3"
+                :color="method.color"
+              />
               <div class="flex-grow-1">
-                <div class="text-h6">{{ method.name }}</div>
-                <div class="text-body-2 text-medium-emphasis">{{ method.description }}</div>
+                <div class="text-h6">
+                  {{ method.name }}
+                </div>
+                <div class="text-body-2 text-medium-emphasis">
+                  {{ method.description }}
+                </div>
               </div>
               <v-chip
                 v-if="method.recommended"
@@ -49,7 +60,12 @@
                 color="success"
                 class="ml-2"
               >
-                <v-icon size="small" class="mr-1">mdi-star</v-icon>
+                <v-icon
+                  size="small"
+                  class="mr-1"
+                >
+                  mdi-star
+                </v-icon>
                 recommended
               </v-chip>
             </div>
@@ -57,9 +73,15 @@
 
           <v-expansion-panel-text>
             <div class="pa-4">
-              <h6 class="text-subtitle-2 mb-3">Requirements:</h6>
+              <h6 class="text-subtitle-2 mb-3">
+                Requirements:
+              </h6>
               <div class="requirements mb-4">
-                <div v-for="req in method.requirements" :key="req.text" class="d-flex align-center mb-2">
+                <div
+                  v-for="req in method.requirements"
+                  :key="req.text"
+                  class="d-flex align-center mb-2"
+                >
                   <v-icon
                     size="small"
                     color="success"
@@ -81,7 +103,10 @@
                 icon="mdi-package-down"
               >
                 Ready to install? Copy the command below and run it on your target device:
-                <CopyCommandField :command="getCommand(method.value)" class="mt-3" />
+                <CopyCommandField
+                  :command="getCommand(method.value)"
+                  class="mt-3"
+                />
 
                 <!-- Advanced Options inside the alert -->
                 <v-expansion-panels
@@ -96,10 +121,18 @@
                   >
                     <v-expansion-panel-title class="py-2">
                       <div class="d-flex align-center w-100">
-                        <v-icon icon="mdi-tune" size="small" class="mr-2" />
+                        <v-icon
+                          icon="mdi-tune"
+                          size="small"
+                          class="mr-2"
+                        />
                         <div class="flex-grow-1">
-                          <div class="text-subtitle-2">Advanced Options</div>
-                          <div class="text-caption">Configure additional environment variables</div>
+                          <div class="text-subtitle-2">
+                            Advanced Options
+                          </div>
+                          <div class="text-caption">
+                            Configure additional environment variables
+                          </div>
                         </div>
                       </div>
                     </v-expansion-panel-title>
@@ -107,7 +140,10 @@
                     <v-expansion-panel-text>
                       <div class="pa-2">
                         <v-row>
-                          <v-col cols="12" sm="6">
+                          <v-col
+                            cols="12"
+                            sm="6"
+                          >
                             <v-text-field
                               v-model="advancedOptions.preferredHostname"
                               label="Preferred Hostname"
@@ -118,7 +154,10 @@
                               persistent-hint
                             />
                           </v-col>
-                          <v-col cols="12" sm="6">
+                          <v-col
+                            cols="12"
+                            sm="6"
+                          >
                             <v-text-field
                               v-model="advancedOptions.preferredIdentity"
                               label="Preferred Identity"
@@ -199,7 +238,7 @@ enum InstallMethod {
   WSL = "wsl",
   YOCTO = "yocto",
   BUILDROOT = "buildroot",
-  FREEBSD = "freebsd"
+  FREEBSD = "freebsd",
 }
 
 interface InstallRequirement {
@@ -360,7 +399,7 @@ const isManualInstall = (method: string) => MANUAL_INSTALL_METHODS.includes(meth
 
 const getDocumentationUrl = (method: string) => DOCUMENTATION_URLS[method as InstallMethod] || DOCUMENTATION_URLS[InstallMethod.AUTO];
 
-const getCommand = (method: string) => {
+const getCommand = (method: InstallMethod) => {
   const { origin } = window.location;
 
   const envVars = [

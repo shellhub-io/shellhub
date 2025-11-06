@@ -20,8 +20,8 @@
     <v-card-text>
       <div class="d-flex align-center ga-2">
         <v-text-field
-          width="60%"
           v-model="address"
+          width="60%"
           label="Address"
           :error-messages="addressError"
           required
@@ -45,26 +45,29 @@
         persistent-hint
         :color="isSecure ? 'primary' : ''"
       />
-      <div v-if="isSecure" class="mt-2 py-2">
+      <div
+        v-if="isSecure"
+        class="mt-2 py-2"
+      >
         <v-file-input
-          label="TLS Ca Certificate"
           v-model="caCertificate"
-          @change="handleCertificateChange('ca')"
+          label="TLS Ca Certificate"
           :error-messages="caCertificateError"
+          @change="handleCertificateChange('ca')"
         />
         <v-file-input
-          label="TLS Certificate"
           v-model="certificate"
-          @change="handleCertificateChange('cert')"
+          label="TLS Certificate"
           :error-messages="certificateError"
+          @change="handleCertificateChange('cert')"
         />
         <v-file-input
-          label="TLS Key"
           v-model="key"
-          @change="handleCertificateChange('key')"
+          label="TLS Key"
           :error-messages="keyError"
           hint="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
           persistent-hint
+          @change="handleCertificateChange('key')"
         />
       </div>
     </v-card-text>
@@ -86,7 +89,7 @@ import useUsersStore from "@/store/modules/users";
 
 const props = defineProps<{
   isEditing: boolean;
-  storeMethod:(payload: IConnectorPayload) => Promise<void>;
+  storeMethod: (payload: IConnectorPayload) => Promise<void>;
   initialAddress?: string;
   initialPort?: number;
   uid?: string;
@@ -156,7 +159,7 @@ const keyError = ref<string>("");
 // eslint-disable-next-line vue/max-len
 const hasError = computed(() => !!addressError.value || !!portError.value || !!keyError.value || !!certificateError.value || !!caCertificateError.value || !canAddConnector || (isSecure.value && (!caCertificate.value || !certificate.value || !key.value)));
 
-const readFile = async (file) => new Promise<string>((resolve, reject) => {
+const readFile = async (file: File) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
 
   reader.onload = () => {
@@ -164,13 +167,13 @@ const readFile = async (file) => new Promise<string>((resolve, reject) => {
   };
 
   reader.onerror = () => {
-    reject(reader.error);
+    reject(new Error(reader.error?.message || "Failed to read file"));
   };
 
   reader.readAsText(file);
 });
 
-const validateFile = async (certificate, type) => {
+const validateFile = async (certificate: File, type: "key" | "ca" | "cert") => {
   try {
     const content = await readFile(certificate);
     switch (type) {
@@ -208,18 +211,18 @@ const validateFile = async (certificate, type) => {
   }
 };
 
-const handleCertificateChange = async (type) => {
-  let file;
+const handleCertificateChange = async (type: "key" | "ca" | "cert") => {
+  let file: File;
 
   switch (type) {
     case "ca":
-      file = caCertificate.value;
+      file = caCertificate.value as File;
       break;
     case "cert":
-      file = certificate.value;
+      file = certificate.value as File;
       break;
     case "key":
-      file = key.value;
+      file = key.value as File;
       break;
     default:
       return;
@@ -255,9 +258,9 @@ const saveConnector = async () => {
 
   if (isSecure.value) {
     payload.tls = {
-      ca: await readFile(caCertificate.value),
-      cert: await readFile(certificate.value),
-      key: await readFile(key.value),
+      ca: await readFile(caCertificate.value as File),
+      cert: await readFile(certificate.value as File),
+      key: await readFile(key.value as File),
     };
   }
 

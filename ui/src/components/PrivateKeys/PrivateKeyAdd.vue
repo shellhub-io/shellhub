@@ -1,9 +1,6 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
-    @confirm="create"
     title="New Private Key"
     icon="mdi-key"
     confirm-text="Save"
@@ -12,6 +9,9 @@
     confirm-data-test="private-key-save-btn"
     cancel-data-test="private-key-cancel-btn"
     data-test="private-key-dialog"
+    @close="close"
+    @cancel="close"
+    @confirm="create"
   >
     <div class="px-6 pt-4">
       <v-alert
@@ -70,10 +70,7 @@ import { ref, computed, watch } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
-import {
-  convertToFingerprint,
-  parsePrivateKey,
-} from "@/utils/sshKeys";
+import { convertToFingerprint, parsePrivateKey } from "@/utils/sshKeys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
@@ -82,7 +79,7 @@ import usePrivateKeysStore from "@/store/modules/private_keys";
 const emit = defineEmits(["update"]);
 const privateKeysStore = usePrivateKeysStore();
 const snackbar = useSnackbar();
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 
 const hasPassphrase = ref(false);
 const encryptedDetected = ref(false);
@@ -123,7 +120,7 @@ const encryptionAwareValidator = (text: string): boolean => {
     ftcInvalidMessage.value = "Invalid private key data";
     return true;
   } catch (err) {
-    const { name } = (err as { name?: string });
+    const { name } = err as { name?: string };
     if (name === "KeyEncryptedError") {
       encryptedDetected.value = true;
       hasPassphrase.value = true;
@@ -200,7 +197,9 @@ watch(privateKeyData, (val) => {
 const confirmDisabled = computed(() => {
   const nameReady = Boolean(name.value && name.value.trim());
   const keyReady = Boolean(privateKeyData.value && privateKeyData.value.trim());
-  const passReady = hasPassphrase.value ? Boolean(passphrase.value && passphrase.value.trim()) : true;
+  const passReady = hasPassphrase.value
+    ? Boolean(passphrase.value && passphrase.value.trim())
+    : true;
   const anyError = Boolean(
     nameError.value
     || privateKeyDataError.value
@@ -248,7 +247,7 @@ const handleCreationError = (error: Error) => {
   }
 };
 
-const create = async () => {
+const create = () => {
   let hasError = false;
 
   if (!name.value || !name.value.trim()) {

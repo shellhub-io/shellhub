@@ -1,12 +1,14 @@
 <template>
   <div>
     <v-list-item
-      @click="showDialog = true"
       :disabled="!hasAuthorization"
       data-test="member-edit-btn"
+      @click="showDialog = true"
     >
       <div class="d-flex align-center">
-        <div class="mr-2"><v-icon icon="mdi-pencil" /></div>
+        <div class="mr-2">
+          <v-icon icon="mdi-pencil" />
+        </div>
         <v-list-item-title data-test="member-edit-title">
           Edit
         </v-list-item-title>
@@ -15,9 +17,6 @@
 
     <FormDialog
       v-model="showDialog"
-      @close="close"
-      @confirm="editMember"
-      @cancel="close"
       title="Update member role"
       icon="mdi-account-edit"
       confirm-text="Edit"
@@ -26,6 +25,9 @@
       confirm-data-test="edit-btn"
       cancel-data-test="close-btn"
       data-test="member-edit-dialog"
+      @close="close"
+      @confirm="editMember"
+      @cancel="close"
     >
       <v-card-text class="pa-6">
         <RoleSelect v-model="newRole" />

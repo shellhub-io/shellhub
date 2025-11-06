@@ -14,8 +14,8 @@
     v-model="showDialog"
     :is-editing="false"
     :store-method="addConnector"
-    @update="$emit('update')"
     data-test="connector-form-component"
+    @update="$emit('update')"
   />
 </template>
 

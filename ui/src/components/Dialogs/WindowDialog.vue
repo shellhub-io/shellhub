@@ -1,9 +1,9 @@
 <template>
   <BaseDialog
     v-model="showDialog"
-    @close="$emit('close')"
     :threshold="threshold"
     :force-fullscreen="forceFullscreen"
+    @close="$emit('close')"
   >
     <template #content>
       <!-- Titlebar -->
@@ -19,11 +19,23 @@
           variant="tonal"
           class="border border-primary border-opacity-100 mr-3"
         >
-          <v-icon size="24">{{ icon }}</v-icon>
+          <v-icon size="24">
+            {{ icon }}
+          </v-icon>
         </v-avatar>
         <div v-if="title || description">
-          <v-toolbar-title v-if="title" class="text-h6">{{ title }}</v-toolbar-title>
-          <div v-if="description" class="text-caption text-medium-emphasis">{{ description }}</div>
+          <v-toolbar-title
+            v-if="title"
+            class="text-h6"
+          >
+            {{ title }}
+          </v-toolbar-title>
+          <div
+            v-if="description"
+            class="text-caption text-medium-emphasis"
+          >
+            {{ description }}
+          </div>
         </div>
         <slot name="titlebar-content" />
         <v-spacer />
@@ -32,8 +44,8 @@
           v-if="showCloseButton"
           icon="mdi-close"
           variant="text"
-          @click="$emit('close')"
           data-test="close-btn-toolbar"
+          @click="$emit('close')"
         />
       </v-toolbar>
 

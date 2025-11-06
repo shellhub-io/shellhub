@@ -1,13 +1,16 @@
 <template>
-  <v-tooltip bottom anchor="bottom">
-    <template v-slot:activator="{ props }">
+  <v-tooltip
+    bottom
+    anchor="bottom"
+  >
+    <template #activator="{ props }">
       <v-icon
-        @click="open"
         tag="button"
         v-bind="props"
         tabindex="0"
         data-test="edit-button"
         icon="mdi-pencil"
+        @click="open"
       />
     </template>
     <span>Edit</span>
@@ -33,8 +36,8 @@
         color="primary"
       />
       <Editor
-        :api-key="tinyMceKey"
         v-model="contentInHtml"
+        :api-key="tinyMceKey"
         :init="{
           plugins: 'lists link image code help wordcount',
           menubar: 'file edit insert view tools help',
@@ -82,23 +85,27 @@ const announcementStore = useAnnouncementStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 const md = new MarkdownIt();
-const turndownService = new TurndownService();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+const { turndown } = new TurndownService() as {
+  turndown: (input: string) => string;
+};
 const tinyMceKey = computed(() => envVariables.tinyMceKey);
 const isTinyMceKeyEmpty = computed(() => tinyMceKey.value === "");
 const announcement = computed(() => announcementStore.announcement);
 const contentInHtml = ref("");
 const contentError = ref(false);
 
-const {
-  value: title,
-  errorMessage: titleError,
-} = useField<string | undefined>("title", yup.string().required(), {
-  initialValue: props.announcementItem.title,
-});
+const { value: title, errorMessage: titleError } = useField<string | undefined>(
+  "title",
+  yup.string().required(),
+  {
+    initialValue: props.announcementItem.title,
+  },
+);
 
 const getAnnouncement = async () => {
   await announcementStore.fetchAnnouncement(props.announcementItem.uuid);
-  contentInHtml.value = md.render(announcement.value.content as string);
+  contentInHtml.value = md.render(announcement.value.content);
 };
 
 const open = async () => {
@@ -120,8 +127,11 @@ const onSubmit = async () => {
   }
 
   try {
-    const contentInMarkdown = turndownService.turndown(contentInHtml.value);
-    await announcementStore.updateAnnouncement(announcement.value.uuid as string, { title: title.value ?? "", content: contentInMarkdown });
+    const contentInMarkdown = turndown(contentInHtml.value);
+    await announcementStore.updateAnnouncement(announcement.value.uuid, {
+      title: title.value ?? "",
+      content: contentInMarkdown,
+    });
     snackbar.showSuccess("Announcement updated successfully.");
     showDialog.value = false;
     emit("update");
@@ -135,7 +145,8 @@ defineExpose({ showDialog, announcement, contentInHtml, contentError, title });
 </script>
 
 <style lang="scss">
-.tox .tox-notification--warn, .tox .tox-notification--warning {
+.tox .tox-notification--warn,
+.tox .tox-notification--warning {
   display: none !important;
 }
 </style>

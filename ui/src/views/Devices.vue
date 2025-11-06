@@ -7,25 +7,35 @@
     <v-col md="6">
       <v-text-field
         v-if="showDevices"
+        v-model.trim="filter"
         label="Search by hostname"
         variant="outlined"
         color="primary"
         single-line
         hide-details
-        v-model.trim="filter"
-        @update:model-value="updateDeviceListFilter"
         prepend-inner-icon="mdi-magnify"
         density="compact"
         data-test="search-text"
+        @update:model-value="updateDeviceListFilter"
       />
     </v-col>
 
-    <div class="d-flex" data-test="device-header-component-group">
-      <TagSelector variant="device" v-if="isDeviceList" />
+    <div
+      class="d-flex"
+      data-test="device-header-component-group"
+    >
+      <TagSelector
+        v-if="isDeviceList"
+        variant="device"
+      />
       <DeviceAdd />
     </div>
   </div>
-  <div class="mt-2" v-if="showDevices" data-test="device-table-component">
+  <div
+    v-if="showDevices"
+    class="mt-2"
+    data-test="device-table-component"
+  >
     <Device />
   </div>
 
@@ -38,7 +48,8 @@
   >
     <template #content>
       <p>In order to register a device on ShellHub, you need to install ShellHub agent onto it.</p>
-      <p>The easiest way to install ShellHub agent is with our automatic one-line installation script,
+      <p>
+        The easiest way to install ShellHub agent is with our automatic one-line installation script,
         which works with all Linux distributions that have Docker installed and properly set up.
         <a
           rel="noopener noreferrer"

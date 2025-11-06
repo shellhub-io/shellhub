@@ -1,11 +1,19 @@
 <template>
-  <v-list-item @click="showDialog = true" :disabled="!hasAuthorization">
+  <v-list-item
+    :disabled="!hasAuthorization"
+    @click="showDialog = true"
+  >
     <div class="d-flex align-center">
       <div class="d-flex align-center">
-        <div class="mr-2" data-test="delete-icon">
+        <div
+          class="mr-2"
+          data-test="delete-icon"
+        >
           <v-icon icon="mdi-delete" />
         </div>
-        <v-list-item-title data-test="delete-main-btn-title"> Delete </v-list-item-title>
+        <v-list-item-title data-test="delete-main-btn-title">
+          Delete
+        </v-list-item-title>
       </div>
     </div>
   </v-list-item>

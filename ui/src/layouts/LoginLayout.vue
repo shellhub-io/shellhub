@@ -1,6 +1,9 @@
 <template>
   <Snackbar />
-  <v-main class="d-flex justify-center align-center" v-bind="$attrs">
+  <v-main
+    class="d-flex justify-center align-center"
+    v-bind="$attrs"
+  >
     <v-container
       class="full-height d-flex justify-center align-center"
       fluid
@@ -29,7 +32,8 @@
             <p
               v-if="!envVariables.isEnterprise && !envVariables.isCloud"
               class="text-caption text-center text-md font-weight-bolad"
-            >Community Edition
+            >
+              Community Edition
             </p>
             <router-view :key="currentRoute.value.path" />
           </v-card>

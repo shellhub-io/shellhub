@@ -65,6 +65,7 @@ describe("Namespace Leave", () => {
         plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
+      props: { modelValue: true },
     });
   });
 

@@ -6,7 +6,7 @@ import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 
 vi.mock("vuetify", async () => {
   const actual = await vi.importActual<typeof import("vuetify")>("vuetify");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
   return {
     ...actual,
     useDisplay: () => ({

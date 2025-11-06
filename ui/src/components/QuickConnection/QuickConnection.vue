@@ -1,7 +1,6 @@
 <template>
   <div>
     <v-btn
-      @click="showDialog = true"
       color="primary"
       variant="flat"
       tabindex="0"
@@ -9,13 +8,23 @@
       data-test="quick-connection-open-btn"
       prepend-icon="mdi-console"
       block
+      @click="showDialog = true"
     >
       Quick Connect
     </v-btn>
 
     <div>
-      <p class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1" data-test="quick-connect-instructions">
-        Press <v-chip density="compact" size="small" label>Ctrl+K</v-chip> to Quick Connect!
+      <p
+        class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1"
+        data-test="quick-connect-instructions"
+      >
+        Press <v-chip
+          density="compact"
+          size="small"
+          label
+        >
+          Ctrl+K
+        </v-chip> to Quick Connect!
       </p>
     </div>
 
@@ -32,13 +41,13 @@
     >
       <v-card-text class="pa-6">
         <v-text-field
+          v-model.trim="filter"
           label="Search your online devices!"
           variant="outlined"
           bg-color="bg-v-theme-surface"
           color="primary"
           single-line
           hide-details
-          v-model.trim="filter"
           prepend-inner-icon="mdi-magnify"
           density="comfortable"
           data-test="search-text"
@@ -47,9 +56,9 @@
         />
         <v-row class="mt-4 mb-0 px-5">
           <v-col
-            class="px-0"
             v-for="header in headers"
             :key="header.label"
+            class="px-0"
           >
             <p
               class="text-body-2 font-weight-bold text-center"
@@ -60,26 +69,55 @@
           </v-col>
         </v-row>
 
-        <QuickConnectionList ref="listRef" :filter />
+        <QuickConnectionList
+          ref="listRef"
+          :filter
+        />
       </v-card-text>
 
       <template #footer>
-        <v-row class="ml-2 justify-space-between font-weight-bold text-grey text-body-2" v-if="!smAndDown">
+        <v-row
+          v-if="!smAndDown"
+          class="ml-2 justify-space-between font-weight-bold text-grey text-body-2"
+        >
           <p>
-            <v-icon color="primary" data-test="connect-icon" icon="mdi-arrow-u-left-bottom" /> To connect
+            <v-icon
+              color="primary"
+              data-test="connect-icon"
+              icon="mdi-arrow-u-left-bottom"
+            /> To connect
           </p>
           <p>
-            <v-icon color="primary" data-test="navigate-up-icon" icon="mdi-arrow-up" />
-            <v-icon color="primary" data-test="navigate-down-icon" icon="mdi-arrow-down" /> To navigate
+            <v-icon
+              color="primary"
+              data-test="navigate-up-icon"
+              icon="mdi-arrow-up"
+            />
+            <v-icon
+              color="primary"
+              data-test="navigate-down-icon"
+              icon="mdi-arrow-down"
+            /> To navigate
           </p>
           <p data-test="copy-sshid-instructions">
-            <v-kbd class="code text-primary" elevation="0">Ctrl + C</v-kbd>
+            <v-kbd
+              class="code text-primary"
+              elevation="0"
+            >
+              Ctrl + C
+            </v-kbd>
             To copy SSHID
           </p>
         </v-row>
 
         <v-spacer />
-        <v-btn variant="text" data-test="close-btn" @click="showDialog = false">Close</v-btn>
+        <v-btn
+          variant="text"
+          data-test="close-btn"
+          @click="showDialog = false"
+        >
+          Close
+        </v-btn>
       </template>
     </WindowDialog>
   </div>
@@ -94,7 +132,7 @@ import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 
 const showDialog = ref(false);
 const filter = ref("");
-const listRef = ref<InstanceType<typeof QuickConnectionList> | null>(null);
+const listRef = ref<InstanceType<typeof QuickConnectionList> & { rootEl?: HTMLElement }>();
 const { smAndDown } = useDisplay();
 const headers = computed(() => [
   { label: "Hostname" },
@@ -113,7 +151,7 @@ useMagicKeys({
       showDialog.value = !showDialog.value;
     } else if ((event.key === "ArrowDown" || event.key === "ArrowUp") && event.type === "keydown") {
       event.preventDefault();
-      listRef.value?.rootEl?.focus?.();
+      listRef.value?.rootEl?.focus();
     }
   },
 });

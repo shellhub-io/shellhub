@@ -2,7 +2,6 @@
   <WindowDialog
     v-model="showDialog"
     :force-fullscreen="true"
-    @close="close"
     title="Terminal"
     :description="`Connected to ${deviceName}`"
     icon="mdi-console"
@@ -10,25 +9,30 @@
     :show-footer="false"
     :scrollable="false"
     class="bg-terminal h-100"
+    @close="close"
   >
     <template #titlebar-actions>
       <v-btn
         :icon="showThemeDrawer ? 'mdi-palette' : 'mdi-palette-outline'"
         variant="text"
-        @click="showThemeDrawer = !showThemeDrawer"
         data-test="theme-toggle-btn"
+        @click="showThemeDrawer = !showThemeDrawer"
       />
     </template>
 
     <div class="ma-0 pa-0 w-100 fill-height position-relative">
-      <div ref="terminal" class="terminal" data-test="terminal-container" />
+      <div
+        ref="terminal"
+        class="terminal"
+        data-test="terminal-container"
+      />
 
       <TerminalThemeDrawer
         v-model="selectedThemeName"
-        v-model:showDrawer="showThemeDrawer"
+        v-model:show-drawer="showThemeDrawer"
+        data-test="theme-picker"
         @update:selected-theme="applyTheme"
         @update:font-settings="applyFontSettings"
-        data-test="theme-picker"
       />
     </div>
   </WindowDialog>
@@ -160,7 +164,7 @@ const setupTerminalEvents = () => {
 };
 
 // Handles signing a challenge received from the backend.
-const signWebSocketChallenge = async (
+const signWebSocketChallenge = (
   key: string,
   base64Challenge: Base64URLString,
 ) => {
@@ -171,9 +175,9 @@ const signWebSocketChallenge = async (
 // Parses and handles JSON-structured WebSocket messages (e.g., challenge-response).
 type IncomingMessage = SignatureMessage | ErrorMessage;
 
-const handleJsonMessage = async (message: string): Promise<void> => {
+const handleJsonMessage = (message: string) => {
   try {
-    const parsed: IncomingMessage = JSON.parse(message);
+    const parsed = JSON.parse(message) as IncomingMessage;
 
     switch (parsed.kind) {
       case MessageKind.Error: {
@@ -184,7 +188,7 @@ const handleJsonMessage = async (message: string): Promise<void> => {
       case MessageKind.Signature: {
         if (!privateKey) return;
 
-        const signature = await signWebSocketChallenge(privateKey, parsed.data);
+        const signature = signWebSocketChallenge(privateKey, parsed.data);
         ws.value.send(
           JSON.stringify({ kind: MessageKind.Signature, data: signature }),
         );
@@ -210,13 +214,13 @@ const handleWebSocketMessage = async (rawData: Blob | string): Promise<void> => 
     xterm.value.write(await rawData.text());
     registerResizeHandler();
   } else {
-    await handleJsonMessage(rawData);
+    handleJsonMessage(rawData);
   }
 };
 
 // Sets up WebSocket event handlers: message and close.
 const setupWebSocketEvents = () => {
-  ws.value.onmessage = async (event) => { await handleWebSocketMessage(event.data); };
+  ws.value.onmessage = async (event) => { await handleWebSocketMessage(event.data as string); };
   ws.value.onclose = () => {
     xterm.value.write("\r\nConnection ended\r\n");
   };

@@ -128,7 +128,7 @@ exports[`MfaSettings > Renders the component (Recovery email window) 1`] = `
                 <!---->
                 <div data-v-491349b1="" class="v-spacer"></div>
                 <div data-v-491349b1="" class="v-card-actions"><button data-v-491349b1="" type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                    <!----><span class="v-btn__content" data-no-activator="">Close</span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Close </span>
                     <!---->
                     <!---->
                   </button><button data-v-491349b1="" type="button" class="v-btn v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" disabled="" data-test="disable-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
@@ -341,7 +341,7 @@ exports[`MfaSettings > Renders the components (Recovery codes window) 1`] = `
                 <!---->
                 <div data-v-491349b1="" class="v-spacer"></div>
                 <div data-v-491349b1="" class="v-card-actions"><button data-v-491349b1="" type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                    <!----><span class="v-btn__content" data-no-activator="">Close</span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Close </span>
                     <!---->
                     <!---->
                   </button><button data-v-491349b1="" type="button" class="v-btn v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" disabled="" data-test="next-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
@@ -587,8 +587,8 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                       </div>
                     </div>
                     <div data-v-491349b1="" class="text-left">
-                      <p data-v-491349b1="" class="mb-2"><strong data-v-491349b1="">Step 1:</strong> Scan the QR code above or manually enter the Secret Key provided into your preferred TOTP (Time-Based One-Time Password) provider.</p>
-                      <p data-v-491349b1="" class="my-2"><strong data-v-491349b1="">Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in.</p>
+                      <p data-v-491349b1="" class="mb-2"><strong data-v-491349b1="">Step 1:</strong> Scan the QR code above or manually enter the Secret Key provided into your preferred TOTP (Time-Based One-Time Password) provider. </p>
+                      <p data-v-491349b1="" class="my-2"><strong data-v-491349b1="">Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in. </p>
                     </div>
                     <!--v-if-->
                     <div data-v-491349b1="" class="v-otp-input" data-test="verification-code" required="">
@@ -802,7 +802,7 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                 <!---->
                 <div data-v-491349b1="" class="v-spacer"></div>
                 <div data-v-491349b1="" class="v-card-actions"><button data-v-491349b1="" type="button" class="v-btn v-btn--slim v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="back-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                    <!----><span class="v-btn__content" data-no-activator="">Back</span>
+                    <!----><span class="v-btn__content" data-no-activator=""> Back </span>
                     <!---->
                     <!---->
                   </button><button data-v-491349b1="" type="button" class="v-btn v-btn--disabled v-btn--slim v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" disabled="" data-test="verify-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>

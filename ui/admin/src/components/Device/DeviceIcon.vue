@@ -1,5 +1,8 @@
 <template>
-  <i :class="iconName" style="font-size: 20px" />
+  <i
+    :class="iconName"
+    style="font-size: 20px"
+  />
 </template>
 
 <script setup lang="ts">

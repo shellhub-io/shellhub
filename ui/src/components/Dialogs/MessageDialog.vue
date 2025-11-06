@@ -1,9 +1,9 @@
 <template>
   <BaseDialog
     v-model="showDialog"
-    @close="$emit('close')"
     :threshold="threshold"
     :force-fullscreen="forceFullscreen"
+    @close="$emit('close')"
   >
     <template #content>
       <!-- Titlebar -->
@@ -20,11 +20,23 @@
           variant="tonal"
           class="border border-primary border-opacity-100 mr-3"
         >
-          <v-icon size="24">{{ icon }}</v-icon>
+          <v-icon size="24">
+            {{ icon }}
+          </v-icon>
         </v-avatar>
         <div v-if="title || description">
-          <v-toolbar-title v-if="title" class="text-h6">{{ title }}</v-toolbar-title>
-          <div v-if="description" class="text-caption text-medium-emphasis">{{ description }}</div>
+          <v-toolbar-title
+            v-if="title"
+            class="text-h6"
+          >
+            {{ title }}
+          </v-toolbar-title>
+          <div
+            v-if="description"
+            class="text-caption text-medium-emphasis"
+          >
+            {{ description }}
+          </div>
         </div>
         <slot name="titlebar-content" />
         <v-spacer />
@@ -33,8 +45,8 @@
           v-if="showCloseButton"
           icon="mdi-close"
           variant="text"
-          @click="$emit('close')"
           data-test="close-btn-toolbar"
+          @click="$emit('close')"
         />
       </v-toolbar>
 
@@ -49,11 +61,17 @@
           {{ icon }}
         </v-icon>
 
-        <div v-if="title && !showTitlebar" class="text-h5 mb-4">
+        <div
+          v-if="title && !showTitlebar"
+          class="text-h5 mb-4"
+        >
           {{ title }}
         </div>
 
-        <div v-if="description && !showTitlebar" class="text-body-2 text-medium-emphasis mb-6">
+        <div
+          v-if="description && !showTitlebar"
+          class="text-body-2 text-medium-emphasis mb-6"
+        >
           {{ description }}
         </div>
 
@@ -68,25 +86,31 @@
       >
         <!-- Block Layout: Full width buttons -->
         <v-row class="ma-0 ga-3">
-          <v-col v-if="cancelText" class="pa-0">
+          <v-col
+            v-if="cancelText"
+            class="pa-0"
+          >
             <v-btn
-              @click="$emit('cancel')"
               variant="tonal"
               :data-test="cancelDataTest || 'cancel-btn'"
               block
+              @click="$emit('cancel')"
             >
               {{ cancelText }}
             </v-btn>
           </v-col>
-          <v-col v-if="confirmText" class="pa-0">
+          <v-col
+            v-if="confirmText"
+            class="pa-0"
+          >
             <v-btn
               :color="confirmColor || 'primary'"
               :variant="confirmDisabled ? 'outlined' : 'flat'"
-              @click="$emit('confirm')"
               :disabled="confirmDisabled"
               :loading="confirmLoading"
               :data-test="confirmDataTest || 'confirm-btn'"
               block
+              @click="$emit('confirm')"
             >
               {{ confirmText }}
             </v-btn>

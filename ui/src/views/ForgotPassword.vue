@@ -8,15 +8,20 @@
     </v-slide-y-reverse-transition>
 
     <div v-else>
-      <v-card-title data-test="title-text">Forgot your password</v-card-title>
+      <v-card-title data-test="title-text">
+        Forgot your password
+      </v-card-title>
       <v-card-text data-test="body-text">
         Please insert the email associated with the account you'd like to request a password reset for
       </v-card-text>
-      <v-form v-model="isFormValid" @submit.prevent="sendEmail">
+      <v-form
+        v-model="isFormValid"
+        @submit.prevent="sendEmail"
+      >
         <v-text-field
+          v-model="account"
           color="primary"
           prepend-inner-icon="mdi-account"
-          v-model="account"
           :error-messages="accountError"
           required
           label="Username or email address"
@@ -43,7 +48,12 @@
       data-test="back-to-login"
     >
       Back to
-      <router-link class="text-decoration-none" :to="{ name: 'Login' }"><strong>Login</strong></router-link>
+      <router-link
+        class="text-decoration-none"
+        :to="{ name: 'Login' }"
+      >
+        <strong>Login</strong>
+      </router-link>
     </v-card-text>
   </v-container>
 </template>

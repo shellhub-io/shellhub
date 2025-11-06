@@ -1,11 +1,11 @@
 <template>
   <v-icon
-    @click="toggleDrawer"
     color="primary"
     aria-label="Open devices menu"
     icon="mdi-developer-board"
     data-test="devices-icon"
     class="ml-3 mr-2"
+    @click="toggleDrawer"
   />
 
   <Teleport to="body">
@@ -13,7 +13,7 @@
       v-model="isDrawerOpen"
       location="right"
       temporary
-      :width="drawerWidth"
+      :width="thresholds.sm"
       class="bg-v-theme-surface"
       data-test="devices-drawer"
     >
@@ -26,8 +26,14 @@
           Device Management
         </v-card-title>
         <v-card-text class="pa-4 pt-0">
-          <v-row dense class="mb-4">
-            <v-col cols="6" sm="3">
+          <v-row
+            dense
+            class="mb-4"
+          >
+            <v-col
+              cols="6"
+              sm="3"
+            >
               <v-card
                 class="pa-3 text-center"
                 variant="tonal"
@@ -41,7 +47,10 @@
                 </div>
               </v-card>
             </v-col>
-            <v-col cols="6" sm="3">
+            <v-col
+              cols="6"
+              sm="3"
+            >
               <v-card
                 class="pa-3 text-center"
                 variant="tonal"
@@ -55,7 +64,10 @@
                 </div>
               </v-card>
             </v-col>
-            <v-col cols="6" sm="3">
+            <v-col
+              cols="6"
+              sm="3"
+            >
               <v-card
                 class="pa-3 text-center"
                 variant="tonal"
@@ -69,7 +81,10 @@
                 </div>
               </v-card>
             </v-col>
-            <v-col cols="6" sm="3">
+            <v-col
+              cols="6"
+              sm="3"
+            >
               <v-card
                 class="pa-3 text-center"
                 variant="tonal"
@@ -93,8 +108,16 @@
             class="mb-3 w-100"
             data-test="tab-toggle"
           >
-            <v-btn value="pending" data-test="pending-tab" class="w-50">
-              <v-icon icon="mdi-clock-alert" :size="smAndUp ? 'small' : 'large'" class="mr-2" />
+            <v-btn
+              value="pending"
+              data-test="pending-tab"
+              class="w-50"
+            >
+              <v-icon
+                icon="mdi-clock-alert"
+                :size="smAndUp ? 'small' : 'large'"
+                class="mr-2"
+              />
               <span v-if="smAndUp">Pending Approval</span>
               <v-chip
                 v-if="stats.pending_devices > 0"
@@ -105,12 +128,23 @@
                 {{ stats.pending_devices }}
               </v-chip>
             </v-btn>
-            <v-btn value="recent" data-test="recent-tab" class="w-50">
-              <v-icon icon="mdi-history" :size="smAndUp ? 'small' : 'large'" class="mr-2" />
+            <v-btn
+              value="recent"
+              data-test="recent-tab"
+              class="w-50"
+            >
+              <v-icon
+                icon="mdi-history"
+                :size="smAndUp ? 'small' : 'large'"
+                class="mr-2"
+              />
               <span v-if="smAndUp">Recent Activity</span>
             </v-btn>
           </v-btn-toggle>
-          <v-window v-model="activeTab" class="overflow-visible">
+          <v-window
+            v-model="activeTab"
+            class="overflow-visible"
+          >
             <v-window-item value="pending">
               <v-card
                 variant="text"
@@ -126,7 +160,10 @@
                     :key="device.uid"
                   >
                     <v-divider v-if="index > 0" />
-                    <v-list-item class="px-3 py-3" data-test="pending-device-item">
+                    <v-list-item
+                      class="px-3 py-3"
+                      data-test="pending-device-item"
+                    >
                       <template #prepend>
                         <v-icon
                           icon="mdi-devices"
@@ -157,8 +194,8 @@
                           variant="flat"
                           size="small"
                           prepend-icon="mdi-check-circle"
-                          @click="handleAccept(device.uid)"
                           :data-test="`accept-${device.uid}`"
+                          @click="handleAccept(device.uid)"
                         >
                           Accept
                         </v-btn>
@@ -167,8 +204,8 @@
                           variant="tonal"
                           size="small"
                           prepend-icon="mdi-cancel"
-                          @click="handleReject(device.uid)"
                           :data-test="`reject-${device.uid}`"
+                          @click="handleReject(device.uid)"
                         >
                           Reject
                         </v-btn>
@@ -183,10 +220,22 @@
                     </v-list-item>
                   </template>
                 </v-list>
-                <div class="pa-8 text-center" v-else>
-                  <v-icon icon="mdi-check-circle" size="64" color="success" class="opacity-50 mb-3" />
-                  <p class="text-body-2 text-medium-emphasis">No pending devices</p>
-                  <p class="text-caption text-disabled mt-1">All devices have been approved</p>
+                <div
+                  v-else
+                  class="pa-8 text-center"
+                >
+                  <v-icon
+                    icon="mdi-check-circle"
+                    size="64"
+                    color="success"
+                    class="opacity-50 mb-3"
+                  />
+                  <p class="text-body-2 text-medium-emphasis">
+                    No pending devices
+                  </p>
+                  <p class="text-caption text-disabled mt-1">
+                    All devices have been approved
+                  </p>
                 </div>
               </v-card>
             </v-window-item>
@@ -195,11 +244,21 @@
                 variant="text"
                 class="overflow-y-auto border"
               >
-                <v-list density="compact" class="pa-0" v-if="recentDevicesList.length > 0">
-                  <template v-for="(device, index) in recentDevicesList" :key="device.uid">
+                <v-list
+                  v-if="recentDevicesList.length > 0"
+                  density="compact"
+                  class="pa-0"
+                >
+                  <template
+                    v-for="(device, index) in recentDevicesList"
+                    :key="device.uid"
+                  >
                     <v-divider v-if="index > 0" />
-                    <v-list-item class="px-3 py-2" :to="`/devices/${device.uid}`">
-                      <template v-slot:prepend>
+                    <v-list-item
+                      class="px-3 py-2"
+                      :to="`/devices/${device.uid}`"
+                    >
+                      <template #prepend>
                         <v-badge
                           :color="device.online ? 'success' : 'grey'"
                           dot
@@ -221,9 +280,19 @@
                     </v-list-item>
                   </template>
                 </v-list>
-                <div class="pa-8 text-center" v-else>
-                  <v-icon icon="mdi-history" size="64" color="primary" class="opacity-50 mb-3" />
-                  <p class="text-body-2 text-medium-emphasis">No recent activity</p>
+                <div
+                  v-else
+                  class="pa-8 text-center"
+                >
+                  <v-icon
+                    icon="mdi-history"
+                    size="64"
+                    color="primary"
+                    class="opacity-50 mb-3"
+                  />
+                  <p class="text-body-2 text-medium-emphasis">
+                    No recent activity
+                  </p>
                 </div>
               </v-card>
             </v-window-item>
@@ -263,17 +332,16 @@ const statsStore = useStatsStore();
 const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 
-const drawerWidth = computed(() => thresholds.value.sm);
 const isDrawerOpen = ref(false);
 const activeTab = ref<"pending" | "recent">("pending");
 const pendingDevicesList = ref<IDevice[]>([]);
 const recentDevicesList = ref<IDevice[]>([]);
 const stats = computed(() => statsStore.stats);
 const offlineDevices = computed(() => stats.value.registered_devices - stats.value.online_devices);
-const toggleDrawer = () => { isDrawerOpen.value = !isDrawerOpen.value };
+const toggleDrawer = () => { isDrawerOpen.value = !isDrawerOpen.value; };
 
 const formatTimeAgo = (date: string | Date) => {
-  if (!date) return "Unknown";  
+  if (!date) return "Unknown";
   return moment(date).fromNow();
 };
 
@@ -335,5 +403,16 @@ onBeforeMount(async () => {
   await fetchRecentDevices();
 });
 
-defineExpose({ toggleDrawer, formatTimeAgo, isDrawerOpen, handleAccept, handleReject, activeTab, pendingDevicesList, recentDevicesList, stats, offlineDevices });
+defineExpose({
+  toggleDrawer,
+  formatTimeAgo,
+  isDrawerOpen,
+  handleAccept,
+  handleReject,
+  activeTab,
+  pendingDevicesList,
+  recentDevicesList,
+  stats,
+  offlineDevices,
+});
 </script>

@@ -15,7 +15,7 @@
         {{ online ? "Connect" : "Offline" }}
       </v-btn>
       <v-menu>
-        <template v-slot:activator="{ props }">
+        <template #activator="{ props }">
           <v-btn
             :disabled="!online"
             icon="mdi-triangle-small-down"
@@ -31,7 +31,10 @@
             @click="item.method()"
           >
             <div class="d-flex align-center">
-              <v-icon :icon="item.icon" class="mr-2" />
+              <v-icon
+                :icon="item.icon"
+                class="mr-2"
+              />
               <v-list-item-title>
                 {{ item.title }}
               </v-list-item-title>

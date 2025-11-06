@@ -7,6 +7,7 @@ import vuePlugin from "eslint-plugin-vue";
 import prettierPlugin from "eslint-plugin-prettier";
 import vueParser from "vue-eslint-parser";
 import typeScriptParser from "@typescript-eslint/parser";
+import stylisticPlugin from '@stylistic/eslint-plugin'
 import globals from "globals";
 
 export default defineConfig([
@@ -18,7 +19,9 @@ export default defineConfig([
   typescriptEslint.configs.eslintRecommended,
   typescriptEslint.configs.recommended,
   typescriptEslint.configs.recommendedTypeChecked,
-
+  ...vuePlugin.configs["flat/recommended"],
+  stylisticPlugin.configs.recommended,
+  
   {
     languageOptions: {
       parser: vueParser,
@@ -32,6 +35,7 @@ export default defineConfig([
       },
       globals: {
         ...globals.node,
+        ...globals.browser,
         ...globals.jest,
       },
     },
@@ -40,14 +44,13 @@ export default defineConfig([
       import: importPlugin,
       vue: vuePlugin,
       prettier: prettierPlugin,
+      "@stylistic": stylisticPlugin,
     },
 
     rules: {
-      quotes: ["error", "double", { avoidEscape: true }],
       "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
       "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
       "global-require": "off",
-      indent: ["error", 2],
       "no-cond-assign": ["error"],
       "no-constant-condition": ["error"],
       "no-empty-pattern": ["error"],
@@ -67,6 +70,9 @@ export default defineConfig([
 
       "vue/max-len": ["error", { code: 140, template: 140 }],
       "vue/multi-word-component-names": "off",
+      "vue/no-v-html": "off",
+      "vue/no-template-shadow": "off",
+      "vue/singleline-html-element-content-newline": "off",
 
       "spaced-comment": [
         "error",
@@ -88,6 +94,15 @@ export default defineConfig([
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+
+      "@stylistic/quotes": ["error", "double", { avoidEscape: true }],
+      "@stylistic/indent": ["error", 2],
+      "@stylistic/semi": ["error", "always"],
+      "@stylistic/brace-style": ["error", "1tbs", { allowSingleLine: true }],
+      "@stylistic/max-statements-per-line": "off",
+      "@stylistic/member-delimiter-style": "off",
+      "@stylistic/arrow-parens": ["error", "always"],
+      "@stylistic/quote-props": ["error", "as-needed"],
     },
   },
 

@@ -8,20 +8,32 @@
   >
     <v-app-bar-nav-icon
       class="hidden-lg-and-up"
-      @click.stop="showNavigationDrawer = !showNavigationDrawer"
       aria-label="Toggle Menu"
       data-test="menu-toggle"
+      @click.stop="showNavigationDrawer = !showNavigationDrawer"
     />
 
     <div class="d-flex align-center hidden-md-and-down">
       <Namespace data-test="namespace-selector" />
 
-      <v-breadcrumbs :items="breadcrumbItems" class="pa-0 mx-4" data-test="breadcrumbs">
-        <template v-slot:prepend>
-          <v-icon v-if="breadcrumbItems[0]?.icon" :icon="breadcrumbItems[0].icon" size="small" class="mr-2" />
+      <v-breadcrumbs
+        :items="breadcrumbItems"
+        class="pa-0 mx-4"
+        data-test="breadcrumbs"
+      >
+        <template #prepend>
+          <v-icon
+            v-if="breadcrumbItems[0]?.icon"
+            :icon="breadcrumbItems[0].icon"
+            size="small"
+            class="mr-2"
+          />
         </template>
-        <template v-slot:divider>
-          <v-icon icon="mdi-chevron-right" size="small" />
+        <template #divider>
+          <v-icon
+            icon="mdi-chevron-right"
+            size="small"
+          />
         </template>
       </v-breadcrumbs>
     </div>
@@ -32,15 +44,15 @@
       location="bottom"
       class="text-center"
     >
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <v-btn
           v-bind="props"
           size="medium"
           color="primary"
           aria-label="community-help-icon"
           icon="mdi-help-circle"
-          @click="openShellhubHelp()"
           data-test="support-btn"
+          @click="openShellhubHelp()"
         />
       </template>
       <span>Need assistance? Click here for support.</span>
@@ -49,7 +61,7 @@
     <DevicesDropdown />
 
     <v-menu>
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <v-btn
           color="primary"
           v-bind="props"
@@ -57,7 +69,11 @@
           class="pl-2 pr-2 mr-4"
           data-test="user-menu-btn"
         >
-          <UserIcon size="1.5rem" :email="userEmail" data-test="user-icon" />
+          <UserIcon
+            size="1.5rem"
+            :email="userEmail"
+            data-test="user-icon"
+          />
         </v-btn>
       </template>
       <v-list class="bg-v-theme-surface">
@@ -161,10 +177,10 @@ const isDarkMode = ref(theme.value === "dark");
 const chatSupportPaywall = ref(false);
 const showNavigationDrawer = defineModel<boolean>();
 
-const triggerClick = (item: MenuItem): void => {
+const triggerClick = async (item: MenuItem) => {
   switch (item.type) {
     case "path":
-      router.push(item.path);
+      await router.push(item.path);
       break;
     case "method":
       item.method();
@@ -264,7 +280,7 @@ const menu = [
     type: "path",
     path: "/Settings",
     icon: "mdi-cog",
-    // eslint-disable-next-line no-void
+
     method: () => void 0,
   },
   {

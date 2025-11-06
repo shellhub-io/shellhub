@@ -30,9 +30,9 @@ describe("WebEndpointDelete.vue", () => {
       },
       props: {
         address: "fake-address",
-        modelValue: true,
       },
     });
+    wrapper.vm.showDialog = true;
   });
 
   it("is a Vue instance", () => {

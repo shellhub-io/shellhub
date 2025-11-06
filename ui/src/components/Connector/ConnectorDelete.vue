@@ -1,10 +1,20 @@
 <template>
-  <v-list-item v-bind="$attrs" @click="showDialog = true" :disabled="!hasAuthorization" data-test="connector-remove-btn">
+  <v-list-item
+    v-bind="$attrs"
+    :disabled="!hasAuthorization"
+    data-test="connector-remove-btn"
+    @click="showDialog = true"
+  >
     <div class="d-flex align-center">
       <div class="mr-2">
-        <v-icon data-test="remove-icon" icon="mdi-delete" />
+        <v-icon
+          data-test="remove-icon"
+          icon="mdi-delete"
+        />
       </div>
-      <v-list-item-title data-test="remove-title">Remove</v-list-item-title>
+      <v-list-item-title data-test="remove-title">
+        Remove
+      </v-list-item-title>
     </div>
   </v-list-item>
 

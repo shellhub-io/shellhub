@@ -1,16 +1,22 @@
 <template>
-  <v-card class="bg-v-theme-surface" data-test="devices-list-chooser">
+  <v-card
+    class="bg-v-theme-surface"
+    data-test="devices-list-chooser"
+  >
     <DataTable
       v-model:page="page"
-      v-model:itemsPerPage="itemsPerPage"
+      v-model:items-per-page="itemsPerPage"
       :headers
       :items="devices"
-      :totalCount="devices.length"
+      :total-count="devices.length"
       :loading
       data-test="devices-dataTable"
     >
-      <template v-slot:rows>
-        <tr v-for="(item, i) in devices" :key="i">
+      <template #rows>
+        <tr
+          v-for="(item, i) in devices"
+          :key="i"
+        >
           <td class="pa-0 text-center">
             <v-checkbox
               v-if="props.isSelectable"
@@ -28,7 +34,10 @@
             </router-link>
           </td>
 
-          <td class="text-center" v-if="item.info">
+          <td
+            v-if="item.info"
+            class="text-center"
+          >
             <DeviceIcon
               :icon="item.info.id"
               data-test="deviceIcon-component"
@@ -61,7 +70,7 @@ import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
 import useDevicesStore from "@/store/modules/devices";
 
-const props = defineProps(["isSelectable"]);
+const props = defineProps<{ isSelectable: boolean }>();
 const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
 

@@ -1,21 +1,34 @@
 <template>
   <div>
     <DataTable
+      v-model:items-per-page="itemsPerPage"
+      v-model:page="page"
       :headers
       :items="devices"
-      v-model:itemsPerPage="itemsPerPage"
       :loading
-      :totalCount="devicesCount"
-      v-model:page="page"
-      :itemsPerPageOptions="[10, 20, 50, 100]"
-      @update:sort="sortByItem"
+      :total-count="devicesCount"
+      :items-per-page-options="[10, 20, 50, 100]"
       data-test="devices-list"
+      @update:sort="sortByItem"
     >
-      <template v-slot:rows>
-        <tr v-for="(item, i) in devices" :key="i">
+      <template #rows>
+        <tr
+          v-for="(item, i) in devices"
+          :key="i"
+        >
           <td>
-            <v-icon v-if="item.online" color="success" data-test="success-icon" icon="mdi-check-circle" />
-            <v-icon v-else color="#E53935" data-test="error-icon" icon="mdi-close-circle" />
+            <v-icon
+              v-if="item.online"
+              color="success"
+              data-test="success-icon"
+              icon="mdi-check-circle"
+            />
+            <v-icon
+              v-else
+              color="#E53935"
+              data-test="error-icon"
+              icon="mdi-close-circle"
+            />
           </td>
           <td>{{ item.name }}</td>
           <td>
@@ -26,10 +39,10 @@
           </td>
           <td>
             <span
-              @click="goToNamespace(item.tenant_id)"
-              @keypress.enter="goToNamespace(item.tenant_id)"
               tabindex="0"
               class="hover"
+              @click="goToNamespace(item.tenant_id)"
+              @keypress.enter="goToNamespace(item.tenant_id)"
             >
               {{ item.namespace }}
             </span>
@@ -43,7 +56,10 @@
                 :disabled="!showTag(tag.name)"
               >
                 <template #activator="{ props }">
-                  <v-chip size="small" v-bind="props">
+                  <v-chip
+                    size="small"
+                    v-bind="props"
+                  >
                     {{ displayOnlyTenCharacters(tag.name) }}
                   </v-chip>
                 </template>
@@ -63,16 +79,19 @@
             </v-chip>
           </td>
           <td>
-            <v-tooltip bottom anchor="bottom">
-              <template v-slot:activator="{ props }">
+            <v-tooltip
+              bottom
+              anchor="bottom"
+            >
+              <template #activator="{ props }">
                 <v-icon
                   tag="a"
                   dark
                   v-bind="props"
-                  @click="redirectToDevice(item.uid)"
-                  @keypress.enter="redirectToDevice(item.uid)"
                   tabindex="0"
                   icon="mdi-information"
+                  @click="redirectToDevice(item.uid)"
+                  @keypress.enter="redirectToDevice(item.uid)"
                 />
               </template>
               <span>Info</span>
@@ -104,7 +123,7 @@ const itemsPerPage = ref(10);
 const loading = ref(false);
 const devices = computed(() => devicesStore.devices);
 const devicesCount = computed(() => devicesStore.deviceCount);
-const sortField = ref();
+const sortField = ref<string>();
 const sortOrder = ref<"asc" | "desc" | undefined>(undefined);
 
 const headers = ref([
@@ -173,12 +192,12 @@ const sortByItem = async (field: string) => {
   await fetchDevices();
 };
 
-const goToNamespace = (namespace: string) => {
-  router.push({ name: "namespaceDetails", params: { id: namespace } });
+const goToNamespace = async (namespace: string) => {
+  await router.push({ name: "namespaceDetails", params: { id: namespace } });
 };
 
-const redirectToDevice = (deviceId: string) => {
-  router.push({ name: "deviceDetails", params: { id: deviceId } });
+const redirectToDevice = async (deviceId: string) => {
+  await router.push({ name: "deviceDetails", params: { id: deviceId } });
 };
 
 watch([itemsPerPage, page], async () => {

@@ -3,8 +3,16 @@
     fluid
     data-test="account-profile-container"
   >
-    <UserDeleteWarning v-if="showUserDeleteWarning" v-model="showDeleteAccountDialog" data-test="delete-user-community-dialog" />
-    <UserDelete v-else v-model="showDeleteAccountDialog" data-test="delete-user-dialog" />
+    <UserDeleteWarning
+      v-if="showUserDeleteWarning"
+      v-model="showDeleteAccountDialog"
+      data-test="delete-user-community-dialog"
+    />
+    <UserDelete
+      v-else
+      v-model="showDeleteAccountDialog"
+      data-test="delete-user-dialog"
+    />
     <v-card
       variant="flat"
       class="bg-transparent"
@@ -15,39 +23,50 @@
           class="pa-0"
           data-test="profile-header"
         >
-          <template v-slot:prepend>
-            <UserIcon size="4rem" data-test="user-icon" />
+          <template #prepend>
+            <UserIcon
+              size="4rem"
+              data-test="user-icon"
+            />
           </template>
-          <template v-slot:title>
-            <h1 data-test="profile-title">Account Profile</h1>
+          <template #title>
+            <h1 data-test="profile-title">
+              Account Profile
+            </h1>
           </template>
-          <template v-slot:subtitle>
+          <template #subtitle>
             <span data-test="profile-subtitle">Manage your account profile</span>
           </template>
-          <template v-slot:append>
+          <template #append>
             <div class="mr-4">
               <v-btn
                 v-if="!editDataStatus"
-                @click="editDataStatus = !editDataStatus"
                 color="primary"
                 variant="text"
                 class="bg-secondary border"
                 data-test="edit-profile-button"
-              >Edit Profile</v-btn>
+                @click="editDataStatus = !editDataStatus"
+              >
+                Edit Profile
+              </v-btn>
               <template v-else>
                 <v-btn
-                  @click="cancel('data')"
                   color="primary"
                   variant="text"
                   class="mr-2"
                   data-test="cancel-edit-button"
-                >Cancel</v-btn>
+                  @click="cancel('data')"
+                >
+                  Cancel
+                </v-btn>
                 <v-btn
-                  @click="updateUserData"
                   color="primary"
                   variant="flat"
                   data-test="save-changes-button"
-                >Save Changes</v-btn>
+                  @click="updateUserData"
+                >
+                  Save Changes
+                </v-btn>
               </template>
             </div>
           </template>
@@ -66,7 +85,10 @@
               <v-icon>mdi-badge-account</v-icon>
             </template>
             <template #title>
-              <span class="text-subtitle-1" data-test="name-field">Name</span>
+              <span
+                class="text-subtitle-1"
+                data-test="name-field"
+              >Name</span>
             </template>
             <template #append>
               <v-text-field
@@ -89,7 +111,10 @@
                 <v-icon>mdi-account</v-icon>
               </template>
               <template #title>
-                <span class="text-subtitle-1" data-test="username-field">Username</span>
+                <span
+                  class="text-subtitle-1"
+                  data-test="username-field"
+                >Username</span>
               </template>
               <template #append>
                 <v-text-field
@@ -112,7 +137,10 @@
               <v-icon>mdi-email</v-icon>
             </template>
             <template #title>
-              <span class="text-subtitle-1" data-test="email-field">Email</span>
+              <span
+                class="text-subtitle-1"
+                data-test="email-field"
+              >Email</span>
             </template>
             <template #append>
               <v-text-field
@@ -136,7 +164,10 @@
                 <v-icon>mdi-email-lock</v-icon>
               </template>
               <template #title>
-                <span class="text-subtitle-1" data-test="recovery-email-field">Recovery Email</span>
+                <span
+                  class="text-subtitle-1"
+                  data-test="recovery-email-field"
+                >Recovery Email</span>
               </template>
               <template #append>
                 <v-text-field
@@ -153,7 +184,10 @@
               </template>
             </v-card-item>
             <v-divider />
-            <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" v-if="isLocalAuth || isCloud">
+            <v-card-item
+              v-if="isLocalAuth || isCloud"
+              style="grid-template-columns: max-content 1.5fr 2fr"
+            >
               <template #prepend>
                 <v-icon>mdi-key</v-icon>
               </template>
@@ -161,7 +195,13 @@
                 <span class="text-subtitle-1">Password</span>
               </template>
               <template #append>
-                <v-btn variant="text" color="primary" @click="showChangePassword = true">Change Password</v-btn>
+                <v-btn
+                  variant="text"
+                  color="primary"
+                  @click="showChangePassword = true"
+                >
+                  Change Password
+                </v-btn>
                 <ChangePassword v-model="showChangePassword" />
               </template>
             </v-card-item>
@@ -180,24 +220,35 @@
                 </template>
                 <div class="d-flex flex-no-wrap justify-space-between">
                   <div>
-                    <v-card-text class="pt-0 text-justify" data-test="mfa-text">
+                    <v-card-text
+                      class="pt-0 text-justify"
+                      data-test="mfa-text"
+                    >
                       Enable multi-factor authentication (MFA) to add an extra layer of security to your account.
                       You'll need to enter a one-time verification code from your preferred TOTP provider to log in.
                     </v-card-text>
                   </div>
                 </div>
               </v-card>
-              <v-tooltip location="top" text="Only available for Cloud or Enterprise accounts!" :disabled="!isCommunity">
-                <template v-slot:activator="{ props }">
-                  <div v-bind="props" class="d-flex align-center bg-background" style="height: fit-content;">
+              <v-tooltip
+                location="top"
+                text="Only available for Cloud or Enterprise accounts!"
+                :disabled="!isCommunity"
+              >
+                <template #activator="{ props }">
+                  <div
+                    v-bind="props"
+                    class="d-flex align-center bg-background"
+                    style="height: fit-content;"
+                  >
                     <v-switch
+                      v-model="isMfaEnabled"
                       hide-details
                       inset
                       color="primary"
-                      v-model="isMfaEnabled"
-                      @click.prevent="toggleMfa()"
                       :disabled="isCommunity"
                       data-test="switch-mfa"
+                      @click.prevent="toggleMfa()"
                     />
                     <MfaSettings v-model="showMfaSettingsDialog" />
                     <MfaDisable v-model="showMfaDisableDialog" />
@@ -205,7 +256,6 @@
                 </template>
               </v-tooltip>
             </div>
-
           </div>
           <v-divider />
           <v-card-item style="grid-template-columns: max-content 1.5fr 2fr">
@@ -213,10 +263,20 @@
               <v-icon>mdi-delete</v-icon>
             </template>
             <template #title>
-              <span class="text-subtitle-1" data-test="delete-account">Delete Account</span>
+              <span
+                class="text-subtitle-1"
+                data-test="delete-account"
+              >Delete Account</span>
             </template>
             <template #append>
-              <v-btn variant="text" color="error" @click="showDeleteAccountDialog = true" data-test="delete-account-btn">Delete</v-btn>
+              <v-btn
+                variant="text"
+                color="error"
+                data-test="delete-account-btn"
+                @click="showDeleteAccountDialog = true"
+              >
+                Delete
+              </v-btn>
             </template>
           </v-card-item>
         </v-list>
@@ -351,7 +411,7 @@ const handleUpdateUserDataError = (
       const errorMessages = axiosError.response?.data;
       if (Array.isArray(errorMessages)) {
         errorMessages.forEach((field) => {
-          const setError = setFieldError[field];
+          const setError = setFieldError[field as string] as ((msg: string) => void);
           if (setError) {
             setError(
               responseStatus === 409
@@ -383,7 +443,7 @@ const updateUserData = async () => {
     };
 
     try {
-      usersStore.patchData(data);
+      await usersStore.patchData(data);
       authStore.updateUserData(data);
       snackbar.showSuccess("Profile data updated successfully.");
       enableEdit("data");

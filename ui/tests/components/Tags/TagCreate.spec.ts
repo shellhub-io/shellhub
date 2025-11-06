@@ -28,6 +28,7 @@ describe("Tag Form Create", () => {
         plugins: [vuetify, router],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
+      props: { modelValue: true },
     });
   });
 

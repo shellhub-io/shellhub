@@ -1,9 +1,6 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
-    @confirm="create"
     title="Create Tag"
     icon="mdi-tag"
     confirm-text="Create"
@@ -12,6 +9,9 @@
     confirm-data-test="create-btn"
     cancel-data-test="close-btn"
     data-test="tag-create-dialog"
+    @close="close"
+    @cancel="close"
+    @confirm="create"
   >
     <div class="px-6 pt-4">
       <v-text-field
@@ -35,7 +35,7 @@ import useTagsStore from "@/store/modules/tags";
 const emit = defineEmits(["update"]);
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 
 const inputTags = ref<string>("");
 const tagsError = ref("");

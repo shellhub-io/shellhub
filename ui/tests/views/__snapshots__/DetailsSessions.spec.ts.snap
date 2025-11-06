@@ -42,29 +42,29 @@ exports[`Details Sessions > Renders the component 1`] = `
     <div data-v-727a3051="" class="v-row py-3">
       <div data-v-727a3051="" class="v-col-md-6 v-col-12 my-0 py-0">
         <div data-v-727a3051="" data-test="session-uid-field">
-          <div data-v-727a3051="" class="item-title">UID:</div>
+          <div data-v-727a3051="" class="item-title"> UID: </div>
           <p data-v-727a3051="" class="text-truncate">1</p>
         </div>
         <div data-v-727a3051="" data-test="session-user-field">
-          <div data-v-727a3051="" class="item-title">User:</div>
+          <div data-v-727a3051="" class="item-title"> User: </div>
           <p data-v-727a3051="">test</p>
         </div>
         <div data-v-727a3051="" data-test="session-authenticated-field">
-          <div data-v-727a3051="" class="item-title">Authenticated:</div><i data-v-727a3051="" class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-7"></i>
+          <div data-v-727a3051="" class="item-title"> Authenticated: </div><i data-v-727a3051="" class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-7"></i>
           <!--teleport start-->
           <!--teleport end-->
         </div>
       </div>
       <div data-v-727a3051="" class="v-col-md-6 v-col-12 my-0 py-0">
         <div data-v-727a3051="" data-test="session-ip-address-field">
-          <div data-v-727a3051="" class="item-title">IP address:</div><code data-v-727a3051="" class="bg-tabs pa-1">192.168.0.1</code>
+          <div data-v-727a3051="" class="item-title"> IP address: </div><code data-v-727a3051="" class="bg-tabs pa-1">192.168.0.1</code>
         </div>
         <div data-v-727a3051="" data-test="session-started-at-field">
-          <div data-v-727a3051="" class="item-title">Started:</div>
+          <div data-v-727a3051="" class="item-title"> Started: </div>
           <p data-v-727a3051="">Thursday, January 2nd 2025, 12:00:00 am</p>
         </div>
         <div data-v-727a3051="" data-test="session-last-seen-field">
-          <div data-v-727a3051="" class="item-title">Last seen:</div>
+          <div data-v-727a3051="" class="item-title"> Last seen: </div>
           <p data-v-727a3051="">Thursday, January 2nd 2025, 12:00:00 am</p>
         </div>
       </div>

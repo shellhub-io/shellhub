@@ -6,12 +6,12 @@
   >
     <v-btn
       v-for="state in states"
+      :key="state.to"
       :to="state.to"
       variant="flat"
       :active="isActive(state.to)"
       active-color="secondary"
       class="bg-background"
-      v-bind:key="state.to"
     >
       {{ state.title }}
     </v-btn>

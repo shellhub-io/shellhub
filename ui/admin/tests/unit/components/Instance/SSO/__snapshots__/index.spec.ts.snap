@@ -267,7 +267,7 @@ exports[`Configure SSO > Renders the component 1`] = `
                   <div class="v-expansion-panel bg-background border">
                     <div class="v-expansion-panel__shadow elevation-0"></div>
                     <!---->
-                    <!----><button class="v-expansion-panel-title" type="button" aria-expanded="false" data-test="advanced-settings-title"><span class="v-expansion-panel-title__overlay"></span>Advanced Settings<span class="v-expansion-panel-title__icon"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span></button>
+                    <!----><button class="v-expansion-panel-title" type="button" aria-expanded="false" data-test="advanced-settings-title"><span class="v-expansion-panel-title__overlay"></span> Advanced Settings <span class="v-expansion-panel-title__icon"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span></button>
                     <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
                       <div class="v-expansion-panel-text" style="display: none;">
                         <!---->

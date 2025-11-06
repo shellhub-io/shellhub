@@ -1,10 +1,10 @@
 <template>
   <v-dialog
     v-model="showDialog"
-    @update:model-value="handleModelValueChange"
     :fullscreen
     :max-width
     scrollable
+    @update:model-value="handleModelValueChange"
   >
     <v-card class="bg-v-theme-surface border">
       <!-- Content -->

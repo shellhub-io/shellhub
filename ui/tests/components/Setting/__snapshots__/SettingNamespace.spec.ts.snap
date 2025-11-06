@@ -36,14 +36,14 @@ exports[`Setting Namespace > Renders the component 1`] = `
           <!---->
           <div class="v-list-item__content" data-no-activator="">
             <div class="v-list-item-title">
-              <h1 data-v-80a16399="" data-test="card-title">Namespace</h1>
+              <h1 data-v-80a16399="" data-test="card-title"> Namespace </h1>
             </div>
             <div class="v-list-item-subtitle"><span data-v-80a16399="" data-test="card-subtitle">Manage the namespace settings</span></div>
             <!---->
           </div>
           <div class="v-list-item__append">
             <div data-v-80a16399="" class="mr-4"><button data-v-80a16399="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border" data-test="edit-namespace-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                <!----><span class="v-btn__content" data-no-activator="">Edit Namespace</span>
+                <!----><span class="v-btn__content" data-no-activator=""> Edit Namespace </span>
                 <!---->
                 <!---->
               </button></div>
@@ -136,7 +136,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <div data-v-80a16399="" class="v-card-text pt-1 pl-0"><span data-v-80a16399="" data-test="announcement-subtitle">A connection announcement is a custom message written during a session when a connection is established on a device within the namespace.</span></div>
           </div>
           <div class="v-card-item__append"><button data-v-80a16399="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text ml-4" data-test="edit-announcement-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-              <!----><span class="v-btn__content" data-no-activator="">Edit Announcement </span>
+              <!----><span class="v-btn__content" data-no-activator=""> Edit Announcement </span>
               <!---->
               <!---->
             </button></div>
@@ -210,7 +210,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <div data-v-80a16399="" class="v-card-text pt-1 pl-0"><span data-v-80a16399="" data-test="leave-description">After leaving a namespace, you will need to be invited again to access it.</span></div>
           </div>
           <div class="v-card-item__append"><button data-v-80a16399="" type="button" class="v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="leave-namespace-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-              <!----><span class="v-btn__content" data-no-activator="">Leave</span>
+              <!----><span class="v-btn__content" data-no-activator=""> Leave </span>
               <!---->
               <!---->
             </button></div>

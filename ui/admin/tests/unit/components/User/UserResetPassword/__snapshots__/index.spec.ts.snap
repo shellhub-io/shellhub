@@ -94,11 +94,11 @@ exports[`User Reset Password > renders correctly 2`] = `
                 <!---->
                 <!---->
                 <div class="v-spacer"></div><button type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="cancel-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                  <!----><span class="v-btn__content" data-no-activator="">Cancel</span>
+                  <!----><span class="v-btn__content" data-no-activator=""> Cancel </span>
                   <!---->
                   <!---->
                 </button><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="enable-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-                  <!----><span class="v-btn__content" data-no-activator="">Enable</span>
+                  <!----><span class="v-btn__content" data-no-activator=""> Enable </span>
                   <!---->
                   <!---->
                 </button>

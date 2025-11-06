@@ -1,7 +1,16 @@
 <template>
-  <SettingOwnerInfo v-if="!canSubscribeToBilling" data-test="settings-owner-info-component" />
-  <v-container fluid v-else>
-    <BillingDialog v-model="dialogCheckout" @reload="reload" />
+  <SettingOwnerInfo
+    v-if="!canSubscribeToBilling"
+    data-test="settings-owner-info-component"
+  />
+  <v-container
+    v-else
+    fluid
+  >
+    <BillingDialog
+      v-model="dialogCheckout"
+      @reload="reload"
+    />
     <v-card
       variant="flat"
       class="bg-transparent"
@@ -12,20 +21,22 @@
           class="pa-0"
           data-test="billing-header"
         >
-          <template v-slot:title>
-            <h1 data-test="billing-title">Billing</h1>
+          <template #title>
+            <h1 data-test="billing-title">
+              Billing
+            </h1>
           </template>
-          <template v-slot:subtitle>
+          <template #subtitle>
             <span data-test="billing-subtitle">Manage your subscription info</span>
           </template>
-          <template v-slot:append>
+          <template #append>
             <v-btn
               color="primary"
               variant="text"
               class="bg-secondary align-content-lg-center text-none text-uppercase"
               :disabled="billingStatus === ''"
-              @click="dialogCheckout = true"
               data-test="subscribe-button"
+              @click="dialogCheckout = true"
             >
               Subscribe
             </v-btn>
@@ -40,15 +51,20 @@
           data-test="billing-details-list"
         >
           <v-card-item
-            style="grid-template-columns: max-content 1.5fr 2fr"
             v-if="canSubscribeToBilling"
+            style="grid-template-columns: max-content 1.5fr 2fr"
             data-test="billing-portal-section"
           >
             <template #prepend>
-              <v-icon data-test="billing-portal-icon">mdi-account</v-icon>
+              <v-icon data-test="billing-portal-icon">
+                mdi-account
+              </v-icon>
             </template>
             <template #title>
-              <span class="text-subtitle-1" data-test="billing-portal-title">Billing Portal</span>
+              <span
+                class="text-subtitle-1"
+                data-test="billing-portal-title"
+              >Billing Portal</span>
             </template>
             <div data-test="billing-portal-description">
               Update your ShellHub payment method or download invoices.
@@ -58,8 +74,8 @@
                 :disabled="noCustomer.value"
                 color="primary"
                 class="mt-2 text-none text-uppercase"
-                @click="openBillingPortal"
                 data-test="billing-portal-button"
+                @click="openBillingPortal"
               >
                 Open Billing Portal
               </v-btn>
@@ -71,41 +87,71 @@
             data-test="billing-plan-section"
           >
             <template #prepend>
-              <v-icon data-test="billing-plan-icon">mdi-credit-card</v-icon>
+              <v-icon data-test="billing-plan-icon">
+                mdi-credit-card
+              </v-icon>
             </template>
             <template #title>
-              <span class="text-subtitle-1" data-test="billing-plan-title">Plan</span>
+              <span
+                class="text-subtitle-1"
+                data-test="billing-plan-title"
+              >Plan</span>
             </template>
-            <div v-if="!isBillingActive" data-test="billing-plan-description-free">
+            <div
+              v-if="!isBillingActive"
+              data-test="billing-plan-description-free"
+            >
               You can add up to 3 devices while using the 'Free' plan.
             </div>
-            <div v-else data-test="billing-plan-description-premium">
+            <div
+              v-else
+              data-test="billing-plan-description-premium"
+            >
               In this plan, the amount is charged according to the number of devices used.
             </div>
             <template #append>
-              <h3 v-if="!isBillingActive" data-test="billing-plan-free">
+              <h3
+                v-if="!isBillingActive"
+                data-test="billing-plan-free"
+              >
                 Free
               </h3>
-              <h3 v-else data-test="billing-plan-premium">
+              <h3
+                v-else
+                data-test="billing-plan-premium"
+              >
                 Premium usage
               </h3>
             </template>
           </v-card-item>
           <v-divider data-test="billing-divider" />
-          <div v-if="canSubscribeToBilling && isBillingActive" data-test="billing-active-section">
+          <div
+            v-if="canSubscribeToBilling && isBillingActive"
+            data-test="billing-active-section"
+          >
             <v-card-item
-              style="grid-template-columns: max-content 1.5fr 2fr"
               v-if="message"
+              style="grid-template-columns: max-content 1.5fr 2fr"
               data-test="billing-status-section"
             >
               <template #prepend>
-                <v-icon data-test="billing-status-icon">mdi-invoice-text-remove</v-icon>
+                <v-icon data-test="billing-status-icon">
+                  mdi-invoice-text-remove
+                </v-icon>
               </template>
               <template #title>
-                <span class="text-subtitle-1" data-test="billing-status-title">Billing Status</span>
+                <span
+                  class="text-subtitle-1"
+                  data-test="billing-status-title"
+                >Billing Status</span>
               </template>
               <template #append>
-                <h3 :class="`text-${messageType}`" data-test="billing-status-message">{{ message }}</h3>
+                <h3
+                  :class="`text-${messageType}`"
+                  data-test="billing-status-message"
+                >
+                  {{ message }}
+                </h3>
               </template>
             </v-card-item>
             <v-divider data-test="billing-divider" />
@@ -114,13 +160,20 @@
               data-test="billing-total-section"
             >
               <template #prepend>
-                <v-icon data-test="billing-total-icon">mdi-invoice-text</v-icon>
+                <v-icon data-test="billing-total-icon">
+                  mdi-invoice-text
+                </v-icon>
               </template>
               <template #title>
-                <span class="text-subtitle-1" data-test="billing-total-title">Billing estimated total</span>
+                <span
+                  class="text-subtitle-1"
+                  data-test="billing-total-title"
+                >Billing estimated total</span>
               </template>
               <template #append>
-                <h3 data-test="billing-total-amount">{{ formattedCurrency }}</h3>
+                <h3 data-test="billing-total-amount">
+                  {{ formattedCurrency }}
+                </h3>
               </template>
             </v-card-item>
             <v-divider data-test="billing-divider" />
@@ -129,13 +182,20 @@
               data-test="billing-end-date-section"
             >
               <template #prepend>
-                <v-icon data-test="billing-end-date-icon">mdi-invoice-text-clock</v-icon>
+                <v-icon data-test="billing-end-date-icon">
+                  mdi-invoice-text-clock
+                </v-icon>
               </template>
               <template #title>
-                <span class="text-subtitle-1" data-test="billing-end-date-title">Current billing ends at</span>
+                <span
+                  class="text-subtitle-1"
+                  data-test="billing-end-date-title"
+                >Current billing ends at</span>
               </template>
               <template #append>
-                <h3 data-test="billing-end-date">{{ formattedDate }}</h3>
+                <h3 data-test="billing-end-date">
+                  {{ formattedDate }}
+                </h3>
               </template>
             </v-card-item>
             <v-divider data-test="billing-divider" />
@@ -180,14 +240,14 @@ const canSubscribeToBilling = hasPermission("billing:subscribe");
 
 useEventListener("pageshow", (event) => {
   const historyPage = event.persisted
-  || (typeof window.performance !== "undefined"
-  && (window.performance.getEntries()[0] as PerformanceNavigationTiming).type === "back_forward");
+    || (typeof window.performance !== "undefined"
+      && (window.performance.getEntries()[0] as PerformanceNavigationTiming).type === "back_forward");
   if (historyPage) {
     window.location.reload();
   }
 });
 
-const handleErrors = async () => {
+const handleErrors = () => {
   switch (billingStatus.value) {
     case "to_cancel_at_end_of_period":
       message.value = `Your subscription will be canceled at ${formattedDate.value
@@ -199,7 +259,7 @@ const handleErrors = async () => {
       messageType.value = "warning";
       break;
     case "unpaid":
-      // eslint-disable-next-line vue/max-len
+    // eslint-disable-next-line vue/max-len
       message.value = "You have unpaid invoices which made your subscription to be canceled. Please, solve this issue opening the billing portal.";
       messageType.value = "error";
       break;
@@ -232,7 +292,7 @@ onMounted(async () => {
     noCustomer.value = true;
   }
   await getSubscriptionInfo();
-  await handleErrors();
+  handleErrors();
 });
 
 const openBillingPortal = async () => {

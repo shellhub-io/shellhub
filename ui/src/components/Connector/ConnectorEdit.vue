@@ -1,7 +1,15 @@
 <template>
-  <v-list-item v-bind="$attrs" @click="showDialog = true" :disabled="!hasAuthorization" data-test="connector-edit-btn">
+  <v-list-item
+    v-bind="$attrs"
+    :disabled="!hasAuthorization"
+    data-test="connector-edit-btn"
+    @click="showDialog = true"
+  >
     <div class="d-flex align-center">
-      <div data-test="connector-edit-icon" class="mr-2">
+      <div
+        data-test="connector-edit-icon"
+        class="mr-2"
+      >
         <v-icon> mdi-pencil </v-icon>
       </div>
 
@@ -14,9 +22,9 @@
   <ConnectorForm
     v-model="showDialog"
     :is-editing="true"
-    :initialAddress="props.ipAddress"
-    :initialPort="props.portAddress"
-    :initialSecure="props.secure"
+    :initial-address="props.ipAddress"
+    :initial-port="props.portAddress"
+    :initial-secure="props.secure"
     :uid="props.uid"
     :store-method="editConnector"
     @update="$emit('update')"
@@ -27,6 +35,7 @@
 import { ref } from "vue";
 import ConnectorForm from "./ConnectorForm.vue";
 import useConnectorStore from "@/store/modules/connectors";
+import { IConnectorPayload } from "@/interfaces/IConnector";
 
 const props = defineProps<{
   secure: boolean;
@@ -40,7 +49,7 @@ defineEmits(["update"]);
 const showDialog = ref(false);
 const { updateConnector } = useConnectorStore();
 
-const editConnector = async (payload) => {
+const editConnector = async (payload: IConnectorPayload) => {
   await updateConnector(payload);
 };
 </script>

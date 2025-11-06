@@ -1,6 +1,9 @@
 <template>
   <v-container fluid>
-    <PrivateKeyAdd v-model="privateKeyAdd" @update="getPrivateKeys" />
+    <PrivateKeyAdd
+      v-model="privateKeyAdd"
+      @update="getPrivateKeys"
+    />
     <v-card
       variant="flat"
       class="bg-transparent"
@@ -11,30 +14,32 @@
           class="pa-0 ma-0 mb-2"
           data-test="card-header"
         >
-          <template v-slot:title>
-            <h1 data-test="card-title">Private Keys</h1>
+          <template #title>
+            <h1 data-test="card-title">
+              Private Keys
+            </h1>
           </template>
-          <template v-slot:subtitle>
+          <template #subtitle>
             <span data-test="card-subtitle">
               Manage your private keys securely with ShellHub
             </span>
           </template>
-          <template v-slot:append>
+          <template #append>
             <v-btn
-              @click="privateKeyAdd = true"
               color="primary"
               variant="text"
               class="bg-secondary border"
               data-test="card-button"
-            >Add Private Key</v-btn>
+              @click="privateKeyAdd = true"
+            >
+              Add Private Key
+            </v-btn>
           </template>
         </v-list-item>
-
       </v-card-item>
 
       <PrivateKeyList data-test="private-key-list" />
     </v-card>
-
   </v-container>
 </template>
 

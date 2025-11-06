@@ -2,7 +2,8 @@
   <v-app :theme>
     <component
       :is="layout"
-      :data-test="`${layout}-component`" />
+      :data-test="`${layout}-component`"
+    />
   </v-app>
 </template>
 

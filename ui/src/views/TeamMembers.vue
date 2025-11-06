@@ -1,15 +1,24 @@
 <template>
-  <div class="d-flex pa-0 align-center" data-test="title">
+  <div
+    class="d-flex pa-0 align-center"
+    data-test="title"
+  >
     <h1>Members</h1>
 
     <v-spacer />
 
-    <div class="d-flex" data-test="member-invite">
+    <div
+      class="d-flex"
+      data-test="member-invite"
+    >
       <MemberInvite @update="getNamespace" />
     </div>
   </div>
 
-  <div class="mt-2" data-test="member-list">
+  <div
+    class="mt-2"
+    data-test="member-list"
+  >
     <MemberList />
   </div>
 </template>

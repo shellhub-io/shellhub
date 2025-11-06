@@ -1,6 +1,15 @@
 <template>
-  <v-card-title align="center" class="mb-1 pt-0" data-test="title">ShellHub Cloud Premium Subscription</v-card-title>
-  <div data-test="text" class="text-justify">
+  <v-card-title
+    align="center"
+    class="mb-1 pt-0"
+    data-test="title"
+  >
+    ShellHub Cloud Premium Subscription
+  </v-card-title>
+  <div
+    data-test="text"
+    class="text-justify"
+  >
     <p>
       Our hosted service helps you manage your devices,
       with costs based on your device count. It's perfect for easy, secure, and remote control, whatever your fleet size.

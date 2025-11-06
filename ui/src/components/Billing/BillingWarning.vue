@@ -27,15 +27,15 @@ import hasPermission from "@/utils/permission";
 import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 
 const router = useRouter();
-const showWarningDialog = defineModel({ default: false });
+const showWarningDialog = defineModel<boolean>({ required: true });
 const canSubscribeToBilling = hasPermission("billing:subscribe");
 
 const close = () => {
   showWarningDialog.value = false;
 };
 
-const goToBilling = () => {
-  router.push("/settings/billing");
+const goToBilling = async () => {
+  await router.push("/settings/billing");
   close();
 };
 </script>

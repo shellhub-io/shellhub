@@ -2,9 +2,6 @@
   <FormDialog
     v-if="canChooseDevices"
     v-model="showDialog"
-    @close="close"
-    @confirm="accept"
-    @cancel="close"
     title="Update account or select three devices"
     icon="mdi-devices"
     confirm-text="Accept"
@@ -14,28 +11,41 @@
     cancel-data-test="close-btn"
     threshold="md"
     data-test="device-chooser-dialog"
+    @close="close"
+    @confirm="accept"
+    @cancel="close"
   >
     <div class="px-6 pt-4">
-      <p class="text-body-2 mb-4" data-test="subtext">
+      <p
+        class="text-body-2 mb-4"
+        data-test="subtext"
+      >
         You currently have no subscription to the
-        <router-link :to="billingUrl">premium plan</router-link> and the free version is limited to
+        <router-link :to="billingUrl">
+          premium plan
+        </router-link> and the free version is limited to
         3 devices. To unlock access to all devices, you can subscribe to the
-        <router-link :to="billingUrl">premium plan</router-link>. If you want to continue on
+        <router-link :to="billingUrl">
+          premium plan
+        </router-link>. If you want to continue on
         the free plan, you need to select three devices.
       </p>
 
-      <div v-if="isAllDevicesTab && hasDevices" class="mb-4">
+      <div
+        v-if="isAllDevicesTab && hasDevices"
+        class="mb-4"
+      >
         <v-text-field
+          v-model.trim="filter"
           label="Search by hostname"
           variant="outlined"
           color="primary"
           single-line
           hide-details
-          v-model.trim="filter"
-          v-on:keyup="searchDevices"
           append-inner-icon="mdi-magnify"
           density="comfortable"
           data-test="search-text"
+          @keyup="searchDevices"
         />
       </div>
 
@@ -57,14 +67,17 @@
         </v-tab>
       </v-tabs>
 
-      <v-window v-model="tab" @update:model-value="handleTabChange">
+      <v-window
+        v-model="tab"
+        @update:model-value="handleTabChange"
+      >
         <v-window-item
           v-for="(item, id) in tabItems"
           :key="id"
           :value="id"
         >
           <DeviceListChooser
-            :isSelectable="item.selectable"
+            :is-selectable="item.selectable"
             data-test="device-list-chooser-component"
           />
         </v-window-item>
@@ -97,7 +110,7 @@ const hasDevices = computed(() => devicesStore.devices.length > 0);
 const disableButton = computed(() => (
   (devicesStore.selectedDevices.length <= 0
     || devicesStore.selectedDevices.length > 3)
-    && tab.value === "all"
+  && tab.value === "all"
 ));
 
 const canChooseDevices = hasPermission("device:choose");

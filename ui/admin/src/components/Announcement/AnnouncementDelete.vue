@@ -1,12 +1,15 @@
 <template>
-  <v-tooltip bottom anchor="bottom">
-    <template v-slot:activator="{ props }">
+  <v-tooltip
+    bottom
+    anchor="bottom"
+  >
+    <template #activator="{ props }">
       <v-icon
         tag="button"
         v-bind="props"
         data-test="delete-button"
-        @click="showDialog = true"
         icon="mdi-delete"
+        @click="showDialog = true"
       />
     </template>
     <span>Remove</span>

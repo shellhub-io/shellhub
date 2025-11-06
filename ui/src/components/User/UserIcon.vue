@@ -1,12 +1,22 @@
 <template>
-  <v-avatar :size="size" color="primary" class="border">
+  <v-avatar
+    :size="size"
+    color="primary"
+    class="border"
+  >
     <v-img
       v-if="!avatarLoadingFailed"
       :src="avatarUrl"
-      @error="onImageError"
       data-test="gravatar-image"
+      @error="onImageError"
     />
-    <v-icon v-else color="surface" data-test="gravatar-placeholder">mdi-account</v-icon>
+    <v-icon
+      v-else
+      color="surface"
+      data-test="gravatar-placeholder"
+    >
+      mdi-account
+    </v-icon>
   </v-avatar>
 </template>
 
@@ -39,9 +49,9 @@ const generateGravatarUrl = async (email: string | null) => {
 
 watch(
   userEmail,
-  (newEmail) => {
+  async (newEmail) => {
     avatarLoadingFailed.value = false;
-    generateGravatarUrl(newEmail);
+    await generateGravatarUrl(newEmail);
   },
   { immediate: true },
 );
@@ -50,8 +60,8 @@ const onImageError = () => {
   avatarLoadingFailed.value = true;
 };
 
-onMounted(() => {
-  generateGravatarUrl(userEmail.value);
+onMounted(async () => {
+  await generateGravatarUrl(userEmail.value);
 });
 </script>
 
