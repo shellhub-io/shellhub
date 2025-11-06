@@ -40,9 +40,9 @@ describe("Not Found Page", () => {
     expect(pushSpy).toHaveBeenCalledWith({ name: "Home" });
   });
 
-  it("navigates to the correct route", () => {
+  it("navigates to the correct route", async () => {
     const pushSpy = vi.spyOn(router, "push");
-    wrapper.vm.goToHome();
+    await wrapper.vm.goToHome();
     expect(pushSpy).toHaveBeenCalledWith({ name: "Home" });
     pushSpy.mockRestore();
   });

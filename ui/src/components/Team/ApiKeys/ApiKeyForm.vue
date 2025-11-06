@@ -1,8 +1,8 @@
 <template>
   <v-card-text data-test="api-key-form-content">
     <v-text-field
-      class="mt-6"
       v-model="keyName"
+      class="mt-6"
       :error-messages="keyNameError"
       label="Key Name"
       persistent-placeholder
@@ -14,7 +14,10 @@
       persistent-hint
     />
 
-    <v-row v-if="mode === 'create'" class="mt-6">
+    <v-row
+      v-if="mode === 'create'"
+      class="mt-6"
+    >
       <v-col>
         <v-select
           v-model="selectedDate"
@@ -35,7 +38,10 @@
       </v-col>
     </v-row>
 
-    <div v-else-if="mode === 'edit'" class="mt-6">
+    <div
+      v-else-if="mode === 'edit'"
+      class="mt-6"
+    >
       <RoleSelect
         v-if="canManageRoles"
         v-model="selectedRole"

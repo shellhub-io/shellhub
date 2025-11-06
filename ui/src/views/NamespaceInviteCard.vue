@@ -7,17 +7,25 @@
   >
     {{ errorAlert }}
   </v-alert>
-  <v-card-title class="d-flex justify-center mb-1 text-h6" data-test="title">
+  <v-card-title
+    class="d-flex justify-center mb-1 text-h6"
+    data-test="title"
+  >
     {{ title }}
   </v-card-title>
-  <div class="text-subtitle-1 ml-3" data-test="message">{{ message }}</div>
+  <div
+    class="text-subtitle-1 ml-3"
+    data-test="message"
+  >
+    {{ message }}
+  </div>
   <v-card-actions data-test="actions">
     <v-btn
       variant="text"
       color="error"
       data-test="decline-btn"
-      @click="close()"
       :text="isUserValid ? 'Decline Invitation' : 'Back to Home Page'"
+      @click="close()"
     />
     <v-spacer data-test="spacer" />
     <v-btn
@@ -62,7 +70,8 @@ const errorToMessage = (status?: number): string => {
     500: "Our servers encountered an issue while processing your invitation acceptance. Please try again later.",
   };
 
-  return status ? errorMessages[status] ?? "An unexpected error occurred. Please try again later."
+  return status
+    ? errorMessages[status] ?? "An unexpected error occurred. Please try again later."
     : "An unexpected error occurred. Please try again later.";
 };
 
@@ -87,8 +96,7 @@ const acceptInvite = async () => {
 
     await authStore.enterInvitedNamespace(tenant);
     await namespacesStore.fetchNamespaceList();
-    await router.push({ name: "Home" });
-    close();
+    await close();
   } catch (error) {
     handleInviteError(error);
   }

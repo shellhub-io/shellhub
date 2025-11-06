@@ -1,8 +1,8 @@
 <template>
   <v-switch
+    v-model="isSessionRecordingEnabled"
     hide-details
     inset
-    v-model="isSessionRecordingEnabled"
     :disabled="!canUpdateSessionRecording"
     color="primary"
     data-test="session-recording-switch"
@@ -37,9 +37,8 @@ const updateSessionRecordingStatus = async (isEnabled: boolean) => {
 
 const isSessionRecordingEnabled = computed({
   get: () => sessionRecordingStore.isEnabled,
-  set: async (isEnabled: boolean) => {
-    await updateSessionRecordingStatus(isEnabled);
-    return isEnabled;
+  set: (isEnabled: boolean) => {
+    void updateSessionRecordingStatus(isEnabled);
   },
 });
 

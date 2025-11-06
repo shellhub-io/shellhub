@@ -9,15 +9,15 @@
       <template #activator="{ props }">
         <div v-bind="props">
           <v-btn
-            @click="showDialog = true"
             color="primary"
             tabindex="0"
             variant="elevated"
             aria-label="Add Public Key"
             :disabled="!canCreatePublicKey"
-            @keypress.enter="showDialog = true"
             :size="size"
             data-test="public-key-add-btn"
+            @click="showDialog = true"
+            @keypress.enter="showDialog = true"
           >
             Add Public Key
           </v-btn>
@@ -28,9 +28,6 @@
 
     <FormDialog
       v-model="showDialog"
-      @close="close"
-      @cancel="close"
-      @confirm="create"
       title="New Public Key"
       icon="mdi-key-outline"
       confirm-text="Save"
@@ -39,6 +36,9 @@
       confirm-data-test="pk-add-save-btn"
       cancel-data-test="pk-add-cancel-btn"
       data-test="public-key-add-dialog"
+      @close="close"
+      @cancel="close"
+      @confirm="create"
     >
       <div class="px-6 pt-4">
         <v-row class="mt-1 px-3">
@@ -106,7 +106,11 @@
             @update:search="onSearch"
           >
             <template #append-item>
-              <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+              <div
+                ref="sentinel"
+                data-test="tags-sentinel"
+                style="height: 1px;"
+              />
             </template>
           </v-autocomplete>
 
@@ -131,7 +135,6 @@
           invalid-message="This is not a valid public key."
           @file-name="suggestNameFromFile"
         />
-
       </div>
     </FormDialog>
   </div>
@@ -228,7 +231,7 @@ const suggestNameFromFile = (filename: string) => {
   name.value = base || "Imported Public Key";
 };
 
-watch([tagChoices, choiceFilter], ([list, currentFilter]) => {
+watch([tagChoices, choiceFilter], async ([list, currentFilter]) => {
   if (currentFilter !== "tags") {
     validateLength.value = true;
     errMsg.value = "";
@@ -236,7 +239,7 @@ watch([tagChoices, choiceFilter], ([list, currentFilter]) => {
   }
   if (list.length > 3) {
     validateLength.value = false;
-    nextTick(() => tagChoices.value.pop());
+    await nextTick(() => tagChoices.value.pop());
     errMsg.value = "The maximum capacity has reached";
   } else if (list.length === 0) {
     validateLength.value = false;
@@ -326,7 +329,7 @@ const create = async () => {
     chooseUsername();
     const keySend = {
       ...keyLocal.value,
-      data: Buffer.from(publicKeyData.value as string, "utf-8").toString("base64"),
+      data: Buffer.from(publicKeyData.value, "utf-8").toString("base64"),
       name: name.value,
     };
     await publicKeysStore.createPublicKey(keySend as IPublicKeyCreate);
@@ -418,7 +421,7 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`) as HTMLElement | null;
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`);
 
 const cleanupObserver = () => {
   if (observer) {
@@ -435,7 +438,7 @@ const setupObserver = () => {
   observer = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
-      if (entry?.isIntersecting) bumpPerPageAndLoad();
+      if (entry?.isIntersecting) void bumpPerPageAndLoad();
     },
     { root, threshold: 1.0 },
   );

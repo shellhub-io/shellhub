@@ -19,11 +19,17 @@
           data-test="docs-link"
         >
           administration documentation
-          <v-icon size="16" class="ml-1" icon="mdi-open-in-new" />
+          <v-icon
+            size="16"
+            class="ml-1"
+            icon="mdi-open-in-new"
+          />
         </a>.
 
         <div>
-          <p class="text-subtitle-2 mt-4 mb-2">Run this command to delete your account:</p>
+          <p class="text-subtitle-2 mt-4 mb-2">
+            Run this command to delete your account:
+          </p>
           <CopyCommandField :command="deleteCommand" />
         </div>
       </div>
@@ -47,8 +53,8 @@
       <v-spacer />
       <v-btn
         variant="text"
-        @click="showDialog = false"
         data-test="close-btn"
+        @click="showDialog = false"
       >
         Close
       </v-btn>

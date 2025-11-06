@@ -2,11 +2,11 @@ import { ITag } from "./ITags";
 
 export type HostnameFilter = {
   hostname: string;
-}
+};
 
 export type TagsFilter = {
   tags: ITag[];
-}
+};
 
 export type Filter = HostnameFilter | TagsFilter;
 

@@ -1,6 +1,9 @@
 <template>
   <v-container>
-    <v-card-title class="d-flex justify-center" data-test="title">
+    <v-card-title
+      class="d-flex justify-center"
+      data-test="title"
+    >
       Reset your password
     </v-card-title>
 
@@ -13,10 +16,10 @@
     <v-card-text>
       <v-text-field
         id="password"
+        v-model="password"
         color="primary"
         prepend-icon="mdi-lock"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-        v-model="password"
         :error-messages="passwordError"
         label="Password"
         required
@@ -28,10 +31,10 @@
 
       <v-text-field
         id="password-confirm"
+        v-model="passwordConfirm"
         color="primary"
         prepend-icon="mdi-lock"
         :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-        v-model="passwordConfirm"
         :error-messages="passwordConfirmError"
         label="Confirm Password"
         required

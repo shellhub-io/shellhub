@@ -10,7 +10,7 @@ describe("User Status Chip", () => {
   const vuetify = createVuetify();
 
   const createWrapper = (status: UserStatus) => mount(UserStatusChip, {
-    global: { plugins: [vuetify, SnackbarPlugin], },
+    global: { plugins: [vuetify, SnackbarPlugin] },
     props: { status },
   });
 

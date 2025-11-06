@@ -4,7 +4,7 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import "vuetify/styles";
 import { VFileUpload, VFileUploadItem } from "vuetify/labs/VFileUpload";
 import "../styles/_variables.scss";
-import { aliases as faAliases, fa } from "vuetify/iconsets/fa";
+import { aliases, fa } from "vuetify/iconsets/fa";
 
 // Vuetify
 import { createVuetify } from "vuetify";
@@ -41,7 +41,6 @@ const dark = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 export default createVuetify({
   components: {
     VFileUpload,
@@ -71,7 +70,7 @@ export default createVuetify({
     },
   },
   icons: {
-    faAliases,
+    aliases,
     sets: {
       fa,
     },

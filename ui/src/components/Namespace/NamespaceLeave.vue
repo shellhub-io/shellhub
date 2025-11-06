@@ -1,9 +1,6 @@
 <template>
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @confirm="leave"
-    @cancel="showDialog = false"
     title="Namespace Leave"
     description="Are you sure you want to leave this namespace? If you leave, you will need an invitation to rejoin."
     icon="mdi-exit-to-app"
@@ -15,6 +12,9 @@
     confirm-data-test="leave-btn"
     cancel-data-test="close-btn"
     data-test="namespace-leave-dialog"
+    @close="showDialog = false"
+    @confirm="leave"
+    @cancel="showDialog = false"
   />
 </template>
 
@@ -29,7 +29,7 @@ import useNamespacesStore from "@/store/modules/namespaces";
 const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const snackbar = useSnackbar();
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const isLoading = ref(false);
 const tenant = computed(() => localStorage.getItem("tenant") as string);
 

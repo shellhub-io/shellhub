@@ -25,6 +25,7 @@ describe("MfaDisable", () => {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
       },
+      props: { modelValue: true },
     });
     wrapper.vm.showDialog = true;
     await nextTick();

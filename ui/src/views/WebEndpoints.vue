@@ -1,34 +1,40 @@
 <template>
   <v-row class="align-center justify-space-between flex-column flex-sm-row mb-2 ga-4">
-    <h1 class="text-center text-sm-left">Web Endpoints</h1>
+    <h1 class="text-center text-sm-left">
+      Web Endpoints
+    </h1>
 
     <v-text-field
       v-if="showList"
+      v-model.trim="filter"
       class="w-75 w-sm-auto"
       label="Search by Address"
       variant="outlined"
       color="primary"
       single-line
       hide-details
-      v-model.trim="filter"
-      @keyup="searchWebEndpoints"
       prepend-inner-icon="mdi-magnify"
       density="compact"
       data-test="search-text"
+      @keyup="searchWebEndpoints"
     />
     <v-btn
-      @click="showWebEndpointCreate = true"
       color="primary"
       variant="elevated"
-      @keypress.enter="showWebEndpointCreate = true"
       data-test="tunnel-create-dialog-btn"
       :disabled="!canCreateWebEndpoint"
+      @click="showWebEndpointCreate = true"
+      @keypress.enter="showWebEndpointCreate = true"
     >
       Create Web Endpoint
     </v-btn>
   </v-row>
 
-  <WebEndpointList v-if="showList" class="mt-2" data-test="web-endpoints-table-component" />
+  <WebEndpointList
+    v-if="showList"
+    class="mt-2"
+    data-test="web-endpoints-table-component"
+  />
 
   <NoItemsMessage
     v-else
@@ -38,27 +44,33 @@
     data-test="no-items-message-component"
   >
     <template #content>
-      <p>Web Endpoints enable secure, direct access to HTTP services on devices with the ShellHub Agent,
-        eliminating the need for SSH local port forwarding.</p>
+      <p>
+        Web Endpoints enable secure, direct access to HTTP services on devices with the ShellHub Agent,
+        eliminating the need for SSH local port forwarding.
+      </p>
       <p>This simplifies connectivity, allowing users to access web-based interfaces seamlessly from their browser.</p>
     </template>
     <template #action>
       <v-btn
-        @click="showWebEndpointCreate = true"
         color="primary"
         tabindex="0"
         variant="elevated"
         aria-label="Tunnel Create Dialog"
-        @keypress.enter="showWebEndpointCreate = true"
         data-test="tunnel-create-dialog-btn"
         :disabled="!canCreateWebEndpoint"
+        @click="showWebEndpointCreate = true"
+        @keypress.enter="showWebEndpointCreate = true"
       >
         Create Web Endpoint
       </v-btn>
     </template>
   </NoItemsMessage>
 
-  <WebEndpointCreate v-model="showWebEndpointCreate" @update="searchWebEndpoints" :useDevicesList="true" />
+  <WebEndpointCreate
+    v-model="showWebEndpointCreate"
+    :use-devices-list="true"
+    @update="searchWebEndpoints"
+  />
 </template>
 
 <script setup lang="ts">
@@ -69,6 +81,7 @@ import useSnackbar from "@/helpers/snackbar";
 import hasPermission from "@/utils/permission";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
+import handleError from "@/utils/handleError";
 
 const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
@@ -90,6 +103,7 @@ const searchWebEndpoints = async () => {
     await webEndpointsStore.fetchWebEndpointsList({ filter: encodedFilter });
   } catch (error) {
     snackbar.showError("Failed to load web endpoints.");
+    handleError(error);
   }
 };
 

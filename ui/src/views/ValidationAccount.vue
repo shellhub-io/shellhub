@@ -1,6 +1,9 @@
 <template>
   <v-container>
-    <v-card-title class="d-flex justify-center" data-test="verification-title">
+    <v-card-title
+      class="d-flex justify-center"
+      data-test="verification-title"
+    >
       Verification Account
     </v-card-title>
 
@@ -82,7 +85,7 @@ const validateAccount = async () => {
     snackbar.showSuccess("Your account has been activated successfully.");
     // Only set to "success" if validation is successful
     activationProcessingStatus.value = "success";
-    setTimeout(() => router.push({ path: "/login" }), 4000);
+    setTimeout(() => void router.push({ path: "/login" }), 4000);
   } catch (error: unknown) {
     snackbar.showError("There was a problem activating your account.");
     if (error && axios.isAxiosError(error) && error.response) {
@@ -104,8 +107,8 @@ const validateAccount = async () => {
   }
 };
 
-onMounted(() => {
-  validateAccount();
+onMounted(async () => {
+  await validateAccount();
 });
 
 defineExpose({ activationProcessingStatus });

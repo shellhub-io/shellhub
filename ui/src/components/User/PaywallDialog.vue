@@ -1,8 +1,6 @@
 <template>
   <MessageDialog
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
     title="Upgrade to have access to all features!"
     description="To use this feature, upgrade from the ShellHub Community Edition to one of our premium editions.
     Each edition of ShellHub offers its own set of features and benefits, making it easy to find the right solution for your needs."
@@ -11,8 +9,13 @@
     cancel-text="Close"
     cancel-data-test="close-btn"
     data-test="paywall-features-dialog"
+    @close="close"
+    @cancel="close"
   >
-    <div v-if="premiumFeatures.length === 0" class="d-flex justify-center mt-6">
+    <div
+      v-if="premiumFeatures.length === 0"
+      class="d-flex justify-center mt-6"
+    >
       <v-btn
         href="https://www.shellhub.io"
         color="primary"
@@ -24,7 +27,11 @@
       </v-btn>
     </div>
 
-    <v-row v-else class="mt-6" data-test="items-row">
+    <v-row
+      v-else
+      class="mt-6"
+      data-test="items-row"
+    >
       <v-col
         v-for="(item, i) in premiumFeatures"
         :key="i"
@@ -42,7 +49,10 @@
             <b>{{ item.title }}</b>
           </v-card-title>
 
-          <v-card-text class="flex-grow-1" :data-test="'item-content-' + i">
+          <v-card-text
+            class="flex-grow-1"
+            :data-test="'item-content-' + i"
+          >
             <v-row
               v-for="(feature, j) in item.features"
               :key="j"
@@ -50,7 +60,9 @@
             >
               <v-col class="d-flex align-center pb-2">
                 <v-icon>mdi-check-circle</v-icon>
-                <p class="ml-2 text-left">{{ feature }}</p>
+                <p class="ml-2 text-left">
+                  {{ feature }}
+                </p>
               </v-col>
             </v-row>
           </v-card-text>

@@ -19,16 +19,15 @@
         recovery email.
       </p>
       <v-text-field
+        v-model="recoveryEmail"
         width="400"
         class="mx-auto"
-        v-model="recoveryEmail"
         label="Recovery Email"
         :error-messages="recoveryEmailError"
         hide-details="auto"
         required
         data-test="recovery-email-text"
       />
-
     </div>
 
     <template #footer>

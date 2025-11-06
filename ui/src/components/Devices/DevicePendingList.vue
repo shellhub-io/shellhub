@@ -4,7 +4,7 @@
       variant="device"
       header="secondary"
       status="pending"
-      :storeMethods="getDeviceStoreMethods()"
+      :store-methods="getDeviceStoreMethods()"
       data-test="device-table"
     />
   </div>

@@ -25,8 +25,8 @@ exports[`Dashboard > Renders the component 1`] = `
         <!----><span class="v-avatar__underlay"></span>
       </div>
       <div>
-        <h1 class="text-overline text-medium-emphasis mb-1">Admin Dashboard</h1>
-        <h2 class="text-h5 font-weight-bold mb-2">System Overview</h2>
+        <h1 class="text-overline text-medium-emphasis mb-1"> Admin Dashboard </h1>
+        <h2 class="text-h5 font-weight-bold mb-2"> System Overview </h2>
         <p class="text-body-2 text-medium-emphasis"> Monitor and manage your ShellHub instance metrics and statistics </p>
       </div>
     </div>
@@ -34,7 +34,7 @@ exports[`Dashboard > Renders the component 1`] = `
     <!----><span class="v-card__underlay"></span>
   </div>
   <div class="v-row d-flex align-center mb-2 pa-3"><i class="mdi-chart-box-outline mdi v-icon notranslate v-theme--light v-icon--size-default mr-2" aria-hidden="true"></i>
-    <h2 class="text-h6">Stats</h2>
+    <h2 class="text-h6"> Stats </h2>
   </div>
   <div class="v-row">
     <div class="v-col-md-4 v-col-12">

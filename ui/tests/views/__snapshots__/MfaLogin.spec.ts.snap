@@ -5,12 +5,12 @@ exports[`MfaLogin > Renders the component 1`] = `
   <!--v-if-->
   <div class="v-row">
     <div class="v-col" align="center">
-      <h3 data-test="title">Multi-factor Authentication</h3>
+      <h3 data-test="title"> Multi-factor Authentication </h3>
     </div>
   </div>
   <div class="v-row mb-2">
     <div class="v-col" align="center">
-      <h4 data-test="sub-title">Verify your identity by signing in using the code from your OTP Provider</h4>
+      <h4 data-test="sub-title"> Verify your identity by signing in using the code from your OTP Provider </h4>
     </div>
   </div>
   <div class="v-otp-input" data-test="verification-code" required="">

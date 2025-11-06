@@ -6,8 +6,13 @@
     :type="licenseAlert.type"
     :text="licenseAlert.message"
   />
-  <h1 class="pb-2">License Details</h1>
-  <v-card class="w-100 pa-4 bg-background border" data-test="license-card">
+  <h1 class="pb-2">
+    License Details
+  </h1>
+  <v-card
+    class="w-100 pa-4 bg-background border"
+    data-test="license-card"
+  >
     <div v-if="isLicenseInstalled">
       <v-card-item class="pa-0">
         <v-row>
@@ -31,30 +36,46 @@
         <v-row>
           <span>Allowed at</span>
           <v-chip v-if="isLicenseGlobal">
-            <v-icon left class="mr-2" icon="mdi-earth" />
+            <v-icon
+              left
+              class="mr-2"
+              icon="mdi-earth"
+            />
             Global
           </v-chip>
           <v-chip v-else>
-            <v-icon left icon="mdi-flag" />
+            <v-icon
+              left
+              icon="mdi-flag"
+            />
             Limited ({{ license.allowed_regions.join(", ") }})
           </v-chip>
         </v-row>
       </v-card-item>
       <v-divider class="my-4" />
       <v-card-item class="pa-0">
-        <v-card-title class="text-h6 text-center">License Owner</v-card-title>
-        <v-row v-for="(value, name) in license.customer" :key="name" :data-test="name">
+        <v-card-title class="text-h6 text-center">
+          License Owner
+        </v-card-title>
+        <v-row
+          v-for="(value, name) in license.customer"
+          :key="name"
+          :data-test="name"
+        >
           <span>{{ formatName(name) }}</span>
-          <CopyWarning v-if="name === 'id'" copied-item="Tenant ID">
+          <CopyWarning
+            v-if="name === 'id'"
+            copied-item="Tenant ID"
+          >
             <template #default="{ copyText }">
               <v-chip>
                 <v-tooltip anchor="top">
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <span
                       v-bind="props"
+                      class="hover-text"
                       @click="copyText(value as string)"
                       @keypress.enter="copyText(value as string)"
-                      class="hover-text"
                     >
                       {{ value }}
                     </span>
@@ -69,7 +90,9 @@
       </v-card-item>
       <v-divider class="my-4" />
       <v-card-item class="pa-0">
-        <v-card-title class="text-h6 text-center">Features</v-card-title>
+        <v-card-title class="text-h6 text-center">
+          Features
+        </v-card-title>
         <v-row
           v-for="(value, name) in getFeatures(license.features)"
           :key="name"
@@ -77,28 +100,47 @@
         >
           <span>{{ formatName(`${name}`) }}</span>
           <div v-if="typeof value === 'boolean'">
-            <v-icon v-if="value" color="success" data-test="included-icon" icon="mdi-check-circle" />
-            <v-icon v-else color="#E53935" data-test="not-included-icon" icon="mdi-close-circle" />
+            <v-icon
+              v-if="value"
+              color="success"
+              data-test="included-icon"
+              icon="mdi-check-circle"
+            />
+            <v-icon
+              v-else
+              color="#E53935"
+              data-test="not-included-icon"
+              icon="mdi-close-circle"
+            />
           </div>
-          <v-chip v-else>{{ formatFeatureValue(value) }}</v-chip>
+          <v-chip v-else>
+            {{ formatFeatureValue(value) }}
+          </v-chip>
         </v-row>
       </v-card-item>
       <v-divider class="my-4" />
     </div>
     <v-card-item>
-      <v-card-title class="text-h6 text-center">License Field</v-card-title>
+      <v-card-title class="text-h6 text-center">
+        License Field
+      </v-card-title>
       <v-file-input
+        v-model="currentFile"
         class="mt-4 mb-2"
         accept=".dat"
         show-size
         variant="outlined"
         label="Select license file"
         counter
-        v-model="currentFile"
-        @update:model-value="disableUploadButton = !currentFile"
         :rules="[validateLicenseFile]"
+        @update:model-value="disableUploadButton = !currentFile"
       />
-      <v-btn variant="outlined" @click="uploadLicense" :disabled="disableUploadButton" text="Upload" />
+      <v-btn
+        variant="outlined"
+        :disabled="disableUploadButton"
+        text="Upload"
+        @click="uploadLicense"
+      />
     </v-card-item>
   </v-card>
 </template>

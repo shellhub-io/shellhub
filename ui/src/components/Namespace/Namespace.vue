@@ -19,12 +19,17 @@
         <div class="d-flex align-center ga-2">
           <NamespaceChip :name="currentNamespace.name" />
           <span class="text-body-1">{{ currentNamespace.name || 'No Namespace' }}</span>
-          <v-icon size="x-small">mdi-chevron-down</v-icon>
+          <v-icon size="x-small">
+            mdi-chevron-down
+          </v-icon>
         </div>
       </v-btn>
     </template>
 
-    <v-card :width="$vuetify.display.thresholds.sm / 2" border>
+    <v-card
+      :width="$vuetify.display.thresholds.sm / 2"
+      border
+    >
       <v-list class="bg-v-theme-surface">
         <v-list-subheader>Active Namespace</v-list-subheader>
 
@@ -36,16 +41,21 @@
           @select="handleNamespaceSwitch"
         />
 
-        <div v-if="currentNamespace.tenant_id" class="px-4 pb-2 pt-3">
-          <div class="text-caption text-grey mb-1">Tenant ID</div>
+        <div
+          v-if="currentNamespace.tenant_id"
+          class="px-4 pb-2 pt-3"
+        >
+          <div class="text-caption text-grey mb-1">
+            Tenant ID
+          </div>
           <div class="d-flex align-center ga-2 pa-2 border-thin rounded text-caption">
             <span class="flex-1-1 text-truncate">{{ currentNamespace.tenant_id }}</span>
             <CopyWarning :copied-item="'Tenant ID'">
               <template #default="{ copyText }">
                 <v-icon
-                  @click="copyText(currentNamespace.tenant_id)"
                   size="small"
                   class="cursor-pointer"
+                  @click="copyText(currentNamespace.tenant_id)"
                 >
                   mdi-content-copy
                 </v-icon>
@@ -58,7 +68,10 @@
           <v-divider class="my-2" />
           <v-list-subheader>Switch Namespace</v-list-subheader>
 
-          <template v-for="ns in otherNamespaces" :key="ns.tenant_id">
+          <template
+            v-for="ns in otherNamespaces"
+            :key="ns.tenant_id"
+          >
             <NamespaceListItem
               :namespace="ns"
               :active="false"
@@ -70,8 +83,8 @@
 
           <v-list-item
             v-if="hasNamespaces && showAdminPanel"
-            @click="navigateToAdminPanel"
             lines="two"
+            @click="navigateToAdminPanel"
           >
             <template #prepend>
               <v-avatar
@@ -88,11 +101,15 @@
             <v-list-item-subtitle>
               <div class="d-flex align-center text-caption text-capitalize">
                 <div class="d-flex align-center ga-1 flex-1-0">
-                  <v-icon size="x-small">mdi-shield-crown</v-icon>
+                  <v-icon size="x-small">
+                    mdi-shield-crown
+                  </v-icon>
                   <span>super admin</span>
                 </div>
                 <div class="d-flex align-center ga-1 flex-1-0">
-                  <v-icon size="x-small">mdi-server</v-icon>
+                  <v-icon size="x-small">
+                    mdi-server
+                  </v-icon>
                   <span>instance</span>
                 </div>
               </div>
@@ -104,11 +121,11 @@
 
         <div class="px-4 pt-4 pb-2">
           <v-btn
-            @click="showAddDialog = true"
             variant="flat"
             color="primary"
             prepend-icon="mdi-plus-circle"
             block
+            @click="showAddDialog = true"
           >
             Create Namespace
           </v-btn>

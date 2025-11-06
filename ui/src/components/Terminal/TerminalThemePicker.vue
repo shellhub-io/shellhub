@@ -1,17 +1,24 @@
 <template>
-  <v-list-item v-if="terminalThemes.length === 0" class="text-center py-4" title="No themes available" />
   <v-list-item
-    v-else
+    v-if="terminalThemes.length === 0"
+    class="text-center py-4"
+    title="No themes available"
+  />
+  <v-list-item
     v-for="theme in terminalThemes"
+    v-else
     :key="theme.name"
-    @click="selectTheme(theme)"
     :active="isThemeSelected(theme.name)"
     class="py-3 border-b"
     data-test="theme-item"
     hover
+    @click="selectTheme(theme)"
   >
     <template #prepend>
-      <div class="theme-preview overflow-hidden rounded pa-1 mr-2" :style="getThemePreviewStyle(theme)">
+      <div
+        class="theme-preview overflow-hidden rounded pa-1 mr-2"
+        :style="getThemePreviewStyle(theme)"
+      >
         <code class="w-100 d-block">$ ls</code>
         <code class="w-100 d-block opacity-80">file.txt</code>
         <code class="w-100 d-block opacity-60">home</code>

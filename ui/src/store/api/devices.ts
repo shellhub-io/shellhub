@@ -25,4 +25,4 @@ export const acceptDevice = async (uid: string) => devicesApi.updateDeviceStatus
 
 export const rejectDevice = async (uid: string) => devicesApi.updateDeviceStatus(uid, "reject");
 
-export const removeDevice = async (uid : string) => devicesApi.deleteDevice(uid);
+export const removeDevice = async (uid: string) => devicesApi.deleteDevice(uid);

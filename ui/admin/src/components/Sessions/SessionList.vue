@@ -1,22 +1,35 @@
 <template>
   <div>
     <DataTable
+      v-model:items-per-page="itemsPerPage"
+      v-model:page="page"
       :headers
       :items="sessions"
-      v-model:itemsPerPage="itemsPerPage"
-      v-model:page="page"
-      :itemsPerPageOptions="[10, 20, 50, 100]"
+      :items-per-page-options="[10, 20, 50, 100]"
       :loading
-      :totalCount="sessionCount"
+      :total-count="sessionCount"
       data-test="session-list"
     >
-      <template v-slot:rows>
-        <tr v-for="(session, index) in sessions" :key="index">
+      <template #rows>
+        <tr
+          v-for="(session, index) in sessions"
+          :key="index"
+        >
           <td>
-            <v-icon v-if="session.active" color="success" icon="mdi-check-circle" />
-            <v-tooltip anchor="bottom" v-else>
-              <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" icon="mdi-check-circle" />
+            <v-icon
+              v-if="session.active"
+              color="success"
+              icon="mdi-check-circle"
+            />
+            <v-tooltip
+              v-else
+              anchor="bottom"
+            >
+              <template #activator="{ props }">
+                <v-icon
+                  v-bind="props"
+                  icon="mdi-check-circle"
+                />
               </template>
               <span>{{ getTimeFromNow(session.last_seen) }}</span>
             </v-tooltip>
@@ -24,17 +37,22 @@
           <td>
             <v-chip>
               {{ session.uid ? displayOnlyTenCharacters(session.uid) : "—" }}
-              <v-tooltip activator="parent" anchor="bottom">{{
-                session.uid
-              }}</v-tooltip>
+              <v-tooltip
+                activator="parent"
+                anchor="bottom"
+              >
+                {{
+                  session.uid
+                }}
+              </v-tooltip>
             </v-chip>
           </td>
           <td>
             <span
-              @click="session.device?.uid && redirectToDevice(session.device.uid)"
-              @keypress.enter="session.device?.uid && redirectToDevice(session.device.uid)"
               tabindex="0"
               class="hover"
+              @click="session.device?.uid && redirectToDevice(session.device.uid)"
+              @keypress.enter="session.device?.uid && redirectToDevice(session.device.uid)"
             >
               {{ session.device?.name || "Unknown device" }}
             </span>
@@ -43,21 +61,39 @@
             {{ session.username }}
           </td>
           <td>
-            <v-tooltip anchor="bottom" v-if="session.authenticated">
-              <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" icon="mdi-shield-check" />
+            <v-tooltip
+              v-if="session.authenticated"
+              anchor="bottom"
+            >
+              <template #activator="{ props }">
+                <v-icon
+                  v-bind="props"
+                  icon="mdi-shield-check"
+                />
               </template>
               <span>User has been authenticated</span>
             </v-tooltip>
-            <v-tooltip anchor="bottom" v-else>
-              <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" color="error" icon="mdi-shield-alert" />
+            <v-tooltip
+              v-else
+              anchor="bottom"
+            >
+              <template #activator="{ props }">
+                <v-icon
+                  v-bind="props"
+                  color="error"
+                  icon="mdi-shield-alert"
+                />
               </template>
               <span>User has not been authenticated</span>
             </v-tooltip>
           </td>
           <td>
-            <v-chip density="compact" label>{{ session.ip_address }}</v-chip>
+            <v-chip
+              density="compact"
+              label
+            >
+              {{ session.ip_address }}
+            </v-chip>
           </td>
           <td>
             <span>{{ formatFullDateTime(session.started_at) }}</span>
@@ -66,16 +102,19 @@
             {{ formatFullDateTime(session.last_seen) }}
           </td>
           <td>
-            <v-tooltip bottom anchor="bottom">
-              <template v-slot:activator="{ props }">
+            <v-tooltip
+              bottom
+              anchor="bottom"
+            >
+              <template #activator="{ props }">
                 <v-icon
                   tag="a"
                   dark
                   v-bind="props"
-                  @click="session.uid && goToSession(session.uid)"
-                  @keypress.enter="session.tenant_id && goToSession(session.tenant_id)"
                   tabindex="0"
                   icon="mdi-information"
+                  @click="session.uid && goToSession(session.uid)"
+                  @keypress.enter="session.tenant_id && goToSession(session.tenant_id)"
                 />
               </template>
               <span>Details</span>
@@ -158,12 +197,12 @@ const fetchSessions = async () => {
   loading.value = false;
 };
 
-const redirectToDevice = (deviceId: string) => {
-  router.push({ name: "deviceDetails", params: { id: deviceId } });
+const redirectToDevice = async (deviceId: string) => {
+  await router.push({ name: "deviceDetails", params: { id: deviceId } });
 };
 
-const goToSession = (sessionId: string) => {
-  router.push({ name: "sessionDetails", params: { id: sessionId } });
+const goToSession = async (sessionId: string) => {
+  await router.push({ name: "sessionDetails", params: { id: sessionId } });
 };
 
 watch([itemsPerPage, page], async () => {

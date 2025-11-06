@@ -96,7 +96,7 @@ exports[`Billing Payment > Renders the component 1`] = `
   </div>
 </div>
 <div data-v-ec12e293="" class="v-col ma-0 pa-0">
-  <h4 data-v-ec12e293="" data-test="credit-card-text">Your credit cards</h4>
+  <h4 data-v-ec12e293="" data-test="credit-card-text"> Your credit cards </h4>
 </div>
 <div data-v-ec12e293="" class="v-list v-list--nav v-theme--light bg-transparent v-list--density-default v-list--one-line w-100 pa-0 pt-2 content-card" tabindex="0" role="list" data-test="payment-methods-list">
   <div data-v-ec12e293="" class="v-col pa-0 mt-2 mb-2">
@@ -124,7 +124,7 @@ exports[`Billing Payment > Renders the component 1`] = `
           <!---->
           <!---->
           <div data-v-ec12e293="" class="v-row align-center" cols="12">
-            <div data-v-ec12e293="" class="v-col v-col-1"><i data-v-ec12e293="" class="fa:fab fa-cc-visa mdi v-icon notranslate v-theme--light v-icon--size-default" style="font-size: 1.5rem;" aria-hidden="true" data-test="type-icon"></i></div>
+            <div data-v-ec12e293="" class="v-col v-col-1"><i data-v-ec12e293="" class="fa:fab fa-cc-visa mdi v-icon notranslate v-theme--light" style="font-size: 1.5rem; height: 1.5rem; width: 1.5rem;" aria-hidden="true" data-test="type-icon"></i></div>
             <div data-v-ec12e293="" class="v-col v-col-4"><b data-v-ec12e293="">1234 1234 1234 1234</b></div>
             <div data-v-ec12e293="" class="v-col v-col-2">12/2999</div>
             <div data-v-ec12e293="" class="v-col v-col-2">123</div>
@@ -166,7 +166,7 @@ exports[`Billing Payment > Renders the component 1`] = `
           <!---->
           <!---->
           <div data-v-ec12e293="" class="v-row align-center" cols="12">
-            <div data-v-ec12e293="" class="v-col v-col-1"><i data-v-ec12e293="" class="fa:fab fa-cc-mastercard mdi v-icon notranslate v-theme--light v-icon--size-default" style="font-size: 1.5rem;" aria-hidden="true" data-test="type-icon"></i></div>
+            <div data-v-ec12e293="" class="v-col v-col-1"><i data-v-ec12e293="" class="fa:fab fa-cc-mastercard mdi v-icon notranslate v-theme--light" style="font-size: 1.5rem; height: 1.5rem; width: 1.5rem;" aria-hidden="true" data-test="type-icon"></i></div>
             <div data-v-ec12e293="" class="v-col v-col-4"><b data-v-ec12e293="">1234 1234 1234 5678</b></div>
             <div data-v-ec12e293="" class="v-col v-col-2">12/2999</div>
             <div data-v-ec12e293="" class="v-col v-col-2">123</div>
@@ -194,7 +194,7 @@ exports[`Billing Payment > Renders the component 1`] = `
   <div data-v-ec12e293="" class="v-col v-col-8 pr-0">
     <!--v-if-->
   </div>
-  <div data-v-ec12e293="" class="v-col v-col-4 d-flex flex-lg-column align-center justify-center pt-0"><button data-v-ec12e293="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="add-card-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-credit-card-plus mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator="">Add new card </span>
+  <div data-v-ec12e293="" class="v-col v-col-4 d-flex flex-lg-column align-center justify-center pt-0"><button data-v-ec12e293="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="add-card-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-credit-card-plus mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator="">Add new card</span>
       <!---->
       <!---->
     </button></div>

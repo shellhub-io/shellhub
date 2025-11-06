@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Billing Letter > renders the correct text 1`] = `
-"<div class="v-card-title mb-1 pt-0" align="center" data-test="title">ShellHub Cloud Premium Subscription</div>
+"<div class="v-card-title mb-1 pt-0" align="center" data-test="title"> ShellHub Cloud Premium Subscription </div>
 <div data-test="text" class="text-justify">
   <p> Our hosted service helps you manage your devices, with costs based on your device count. It's perfect for easy, secure, and remote control, whatever your fleet size. </p>
   <p>As your device number grows, our pricing adapts, guaranteeing value.</p>

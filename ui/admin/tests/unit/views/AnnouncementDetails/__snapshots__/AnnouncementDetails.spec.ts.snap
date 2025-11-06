@@ -22,15 +22,15 @@ exports[`Announcement Details > Renders the component 1`] = `
   <!---->
   <div class="v-card-text">
     <div>
-      <h3 class="text-overline">Uuid:</h3>
+      <h3 class="text-overline"> Uuid: </h3>
       <p data-test="eac7e18d-7127-41ca-b68b-8242dfdbaf4c">eac7e18d-7127-41ca-b68b-8242dfdbaf4c</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Title:</h3>
+      <h3 class="text-overline mt-3"> Title: </h3>
       <p data-test="Announcement 1">Announcement 1</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Content:</h3>
+      <h3 class="text-overline mt-3"> Content: </h3>
       <div class="pa-2" data-test="## ShellHub new features 
  - New feature 1 
  - New feature 2 
@@ -46,7 +46,7 @@ exports[`Announcement Details > Renders the component 1`] = `
       </div>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Date:</h3>
+      <h3 class="text-overline mt-3"> Date: </h3>
       <p data-test="2022-12-15T19:45:45.618Z">December 15, 2022</p>
     </div>
   </div>

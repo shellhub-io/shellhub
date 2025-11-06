@@ -1,7 +1,12 @@
 <template>
-  <v-list-item @click="showDialog = true" :disabled="!hasAuthorization">
+  <v-list-item
+    :disabled="!hasAuthorization"
+    @click="showDialog = true"
+  >
     <div class="d-flex align-center">
-      <div class="mr-2"><v-icon icon="mdi-delete" /></div>
+      <div class="mr-2">
+        <v-icon icon="mdi-delete" />
+      </div>
       <v-list-item-title data-test="member-delete-dialog-btn">
         Remove
       </v-list-item-title>
@@ -10,9 +15,6 @@
 
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @confirm="remove"
-    @cancel="showDialog = false"
     title="Are you sure?"
     description="You are about to remove this user from the namespace. If needed, you can re-invite this user to the namespace at any time."
     icon="mdi-account-minus"
@@ -24,6 +26,9 @@
     confirm-data-test="member-delete-remove-btn"
     cancel-data-test="member-delete-close-btn"
     data-test="member-delete-card"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
   />
 </template>
 

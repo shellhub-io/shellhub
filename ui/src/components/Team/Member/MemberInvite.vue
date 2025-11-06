@@ -5,13 +5,13 @@
       class="text-center"
       :disabled="canAddMember"
     >
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <div v-bind="props">
           <v-btn
             :disabled="!canAddMember"
             color="primary"
-            @click="showDialog = true"
             data-test="invite-dialog-btn"
+            @click="showDialog = true"
           >
             Invite Member
           </v-btn>
@@ -22,9 +22,6 @@
 
     <FormDialog
       v-model="showDialog"
-      @close="close"
-      @confirm="getInvitationCheckbox ? generateLinkInvite() : sendEmailInvite()"
-      @cancel="close"
       title="Invite Member"
       icon="mdi-account-plus"
       :confirm-text="formWindow === 'form-1' ? 'Invite' : ''"
@@ -33,13 +30,16 @@
       cancel-text="Close"
       :confirm-data-test="'invite-btn'"
       :cancel-data-test="'close-btn'"
+      @close="close"
+      @confirm="getInvitationCheckbox ? generateLinkInvite() : sendEmailInvite()"
+      @cancel="close"
     >
       <v-card-text class="pa-6 text-justify">
         <v-window v-model="formWindow">
           <v-window-item value="form-1">
             <p
-              class="mb-4"
               v-if="envVariables.isCloud"
+              class="mb-4"
             >
               If this email isn't associated with an existing account, we'll send an email to sign-up.
             </p>
@@ -71,20 +71,21 @@
               <p class="mb-4">
                 Share this link with the person you want to invite. They can use it to join your namespace.
               </p>
-              <p class="mb-4"><strong>Note:</strong> This link is only valid for the email address you entered earlier.
+              <p class="mb-4">
+                <strong>Note:</strong> This link is only valid for the email address you entered earlier.
               </p>
               <CopyWarning :copied-item="'Invitation link'">
                 <template #default="{ copyText }">
                   <v-text-field
                     v-model="invitationLink"
-                    @click="copyText(invitationLink)"
-                    @keypress="copyText(invitationLink)"
                     readonly
                     active
                     density="compact"
                     append-icon="mdi-content-copy"
                     label="Invitation Link"
                     data-test="invitation-link"
+                    @click="copyText(invitationLink)"
+                    @keypress="copyText(invitationLink)"
                   />
                 </template>
               </CopyWarning>

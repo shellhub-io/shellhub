@@ -2,17 +2,20 @@
   <div class="d-flex pa-0 align-center">
     <h1>Connector Details</h1>
   </div>
-  <v-card class="mt-2 bg-v-theme-surface" v-if="connector.uid">
+  <v-card
+    v-if="connector.uid"
+    class="mt-2 bg-v-theme-surface"
+  >
     <v-card-title class="pa-4 d-flex align-center justify-space-between">
       <div>
         <v-row>
           <v-col class="pr-0">
             <v-switch
-              @click="toggleConnectorState"
               v-model="connector.enable"
               inset
               hide-details
               :color="connector.enable ? 'primary' : 'grey-darken-2'"
+              @click="toggleConnectorState"
             />
           </v-col>
           <v-col class="mt-3">
@@ -24,7 +27,7 @@
                 variant="outlined"
               >
                 <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <span
                       v-bind="props"
                       class="hover-text"
@@ -38,8 +41,12 @@
           </v-col>
         </v-row>
       </div>
-      <v-menu location="bottom" scrim eager>
-        <template v-slot:activator="{ props }">
+      <v-menu
+        location="bottom"
+        scrim
+        eager
+      >
+        <template #activator="{ props }">
           <v-btn
             v-bind="props"
             variant="plain"
@@ -49,21 +56,25 @@
             icon="mdi-format-list-bulleted"
           />
         </template>
-        <v-list class="bg-v-theme-surface" lines="two" density="compact">
+        <v-list
+          class="bg-v-theme-surface"
+          lines="two"
+          density="compact"
+        >
           <v-tooltip
             location="bottom"
             class="text-center"
             :disabled="canEditConnector"
           >
-            <template v-slot:activator="{ props }">
+            <template #activator="{ props }">
               <div v-bind="props">
                 <ConnectorEdit
-                  :ipAddress="connector.address"
+                  :ip-address="connector.address"
                   :secure="connector.secure"
-                  :portAddress="connector.port"
+                  :port-address="connector.port"
                   :uid="connector.uid"
-                  :hasAuthorization="canEditConnector"
-                  @update="refresh"
+                  :has-authorization="canEditConnector"
+                  @update="getConnector"
                 />
               </div>
             </template>
@@ -75,11 +86,11 @@
             class="text-center"
             :disabled="canRemoveConnector"
           >
-            <template v-slot:activator="{ props }">
+            <template #activator="{ props }">
               <div v-bind="props">
                 <ConnectorDelete
                   :uid="connector.uid"
-                  :hasAuthorization="canRemoveConnector"
+                  :has-authorization="canRemoveConnector"
                   @update="redirectContainers"
                 />
               </div>
@@ -93,7 +104,10 @@
     <v-divider />
 
     <div class="pa-4 pt-0">
-      <div class="text-overline mt-3" v-if="connector.status?.message">
+      <div
+        v-if="connector.status?.message"
+        class="text-overline mt-3"
+      >
         <v-alert
           variant="tonal"
           type="error"
@@ -107,7 +121,7 @@
         variant="tonal"
         title="Your connector is vulnerable to security risks"
       >
-        <template v-slot:text>
+        <template #text>
           <div>
             It is highly recommended to use TLS certificates to secure your Docker Connector.
             Without TLS, your connection is vulnerable to various security risks.
@@ -142,14 +156,26 @@
             :key="i"
           >
             <td>{{ item.name }}</td>
-            <td><v-chip density="compact" v-if="connectorInfo[item.value] === ''">unknown</v-chip>{{ connectorInfo[item.value] }}</td>
+            <td>
+              <v-chip
+                v-if="connectorInfo[item.value] === ''"
+                density="compact"
+              >
+                unknown
+              </v-chip>{{ connectorInfo[item.value] }}
+            </td>
           </tr>
         </tbody>
       </v-table>
     </v-card-text>
   </v-card>
-  <v-card class="mt-2 pa-4 bg-v-theme-surface" v-else>
-    <p class="text-center">Something went wrong, try again !</p>
+  <v-card
+    v-else
+    class="mt-2 pa-4 bg-v-theme-surface"
+  >
+    <p class="text-center">
+      Something went wrong, try again!
+    </p>
   </v-card>
 </template>
 
@@ -223,15 +249,6 @@ const canEditConnector = hasPermission("connector:edit");
 
 const canRemoveConnector = hasPermission("connector:remove");
 
-const getConnector = async () => {
-  try {
-    await connectorStore.fetchConnectorById(connectorUid.value);
-  } catch (error: unknown) {
-    snackbar.showError("Error loading the connector.");
-    handleError(error);
-  }
-};
-
 const getConnectorInfo = async () => {
   try {
     await connectorStore.getConnectorInfo(connectorUid.value);
@@ -241,9 +258,14 @@ const getConnectorInfo = async () => {
   }
 };
 
-const refresh = async () => {
-  await getConnector();
-  await getConnectorInfo();
+const getConnector = async () => {
+  try {
+    await connectorStore.fetchConnectorById(connectorUid.value);
+    await getConnectorInfo();
+  } catch (error: unknown) {
+    snackbar.showError("Error loading the connector.");
+    handleError(error);
+  }
 };
 
 const toggleConnectorState = async () => {
@@ -254,18 +276,14 @@ const toggleConnectorState = async () => {
     };
     await connectorStore.updateConnector(payload as IConnectorPayload);
     snackbar.showSuccess("The connector has been updated.");
-    refresh();
+    await getConnector();
   } catch (error) {
     snackbar.showError("Failed to update the connector.");
     handleError(error);
   }
 };
 
-onMounted(async () => {
-  await getConnector();
-  await getConnectorInfo();
-});
-
+onMounted(async () => { await getConnector(); });
 </script>
 
 <style scoped>

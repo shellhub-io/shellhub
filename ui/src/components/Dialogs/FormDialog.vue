@@ -1,7 +1,6 @@
 <template>
   <WindowDialog
     v-model="showDialog"
-    @close="$emit('close')"
     :threshold="threshold"
     :force-fullscreen="forceFullscreen"
     :title="title"
@@ -10,6 +9,7 @@
     :icon-color="iconColor"
     :show-close-button="showCloseButton"
     :show-footer="showFooter"
+    @close="$emit('close')"
   >
     <!-- Content -->
     <v-form @submit.prevent="handleConfirm">
@@ -26,7 +26,10 @@
         direction="vertical"
       >
         <!-- Default buttons window -->
-        <v-window-item :value="0" class="w-100">
+        <v-window-item
+          :value="0"
+          class="w-100"
+        >
           <div class="d-flex align-center w-100">
             <!-- Helper text on the left -->
             <div
@@ -42,7 +45,10 @@
                 rel="noopener noreferrer"
               >
                 {{ footerHelperLinkText }}
-                <v-icon size="12" class="ml-1">mdi-open-in-new</v-icon>
+                <v-icon
+                  size="12"
+                  class="ml-1"
+                >mdi-open-in-new</v-icon>
               </a>
             </div>
             <v-spacer />
@@ -51,10 +57,10 @@
               <slot name="footer-right">
                 <v-btn
                   v-if="cancelText"
-                  @click="$emit('cancel')"
                   variant="tonal"
                   :data-test="cancelDataTest || 'cancel-btn'"
                   class="mr-2"
+                  @click="$emit('cancel')"
                 >
                   {{ cancelText }}
                 </v-btn>
@@ -62,10 +68,10 @@
                   v-if="confirmText"
                   :color="confirmColor || 'primary'"
                   :variant="confirmDisabled || showAlert ? 'outlined' : 'flat'"
-                  @click="handleConfirm"
                   :disabled="confirmDisabled || showAlert"
                   :loading="confirmLoading"
                   :data-test="confirmDataTest || 'confirm-btn'"
+                  @click="handleConfirm"
                 >
                   {{ confirmText }}
                 </v-btn>
@@ -75,7 +81,10 @@
         </v-window-item>
 
         <!-- Alert window -->
-        <v-window-item :value="1" class="w-100">
+        <v-window-item
+          :value="1"
+          class="w-100"
+        >
           <v-alert
             v-if="alertMessage"
             :text="alertMessage"
@@ -89,8 +98,8 @@
                 variant="tonal"
                 :color="alertType || 'error'"
                 size="small"
-                @click="hideAlert"
                 data-test="alert-got-it-btn"
+                @click="hideAlert"
               >
                 {{ alertButtonText }}
               </v-btn>
@@ -113,7 +122,10 @@
           rel="noopener noreferrer"
         >
           {{ footerHelperLinkText }}
-          <v-icon size="12" class="ml-1">mdi-open-in-new</v-icon>
+          <v-icon
+            size="12"
+            class="ml-1"
+          >mdi-open-in-new</v-icon>
         </a>
       </div>
     </template>

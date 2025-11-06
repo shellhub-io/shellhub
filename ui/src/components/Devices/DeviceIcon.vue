@@ -9,14 +9,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps({
-  icon: {
-    type: String,
-    required: true,
-  },
-});
+const { icon } = defineProps<{ icon: string }>();
 
-const deviceIcon = {
+const deviceIcon: Record<string, string> = {
   alpine: "fl-alpine",
   arch: "fl-archlinux",
   centos: "fl-centos",
@@ -44,5 +39,5 @@ const deviceIcon = {
   docker: "fl-docker",
 };
 
-const iconName = computed(() => deviceIcon[props.icon] || "fl-tux");
+const iconName = computed(() => deviceIcon[icon] || "fl-tux");
 </script>

@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Firewall Rules > Renders the component 1`] = `
-"<h1 class="mb-2">Firewall Rules</h1>
+"<h1 class="mb-2"> Firewall Rules </h1>
 <div data-test="firewall-rules-list">
   <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
     <!---->

@@ -4,7 +4,7 @@
       variant="device"
       header="primary"
       status="accepted"
-      :storeMethods="getDeviceStoreMethods()"
+      :store-methods="getDeviceStoreMethods()"
       data-test="device-table"
     />
   </div>

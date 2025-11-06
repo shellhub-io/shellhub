@@ -1,7 +1,13 @@
 <template>
-  <v-list-item @click="showDialog = true" data-test="privatekey-delete-btn">
+  <v-list-item
+    data-test="privatekey-delete-btn"
+    @click="showDialog = true"
+  >
     <div class="d-flex align-center">
-      <div data-test="privatekey-delete-icon" class="mr-2">
+      <div
+        data-test="privatekey-delete-icon"
+        class="mr-2"
+      >
         <v-icon> mdi-delete </v-icon>
       </div>
 
@@ -13,9 +19,6 @@
 
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @confirm="remove"
-    @cancel="showDialog = false"
     title="Are you sure?"
     description="You are about to delete this private key"
     icon="mdi-alert"
@@ -26,6 +29,9 @@
     confirm-data-test="confirm-btn"
     cancel-data-test="close-btn"
     data-test="private-key-delete-dialog"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
   />
 </template>
 
@@ -42,9 +48,9 @@ const snackbar = useSnackbar();
 const showDialog = ref(false);
 const privateKeysStore = usePrivateKeysStore();
 
-const remove = async () => {
+const remove = () => {
   try {
-    await privateKeysStore.deletePrivateKey(props.id);
+    privateKeysStore.deletePrivateKey(props.id);
     snackbar.showSuccess("The private key was removed successfully");
     emit("update");
   } finally {

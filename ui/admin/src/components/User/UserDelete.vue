@@ -1,7 +1,16 @@
 <template>
-  <v-tooltip bottom anchor="bottom">
-    <template v-slot:activator="{ props }">
-      <v-icon tag="a" dark v-bind="props" @click="showDialog = true" icon="mdi-delete" />
+  <v-tooltip
+    bottom
+    anchor="bottom"
+  >
+    <template #activator="{ props }">
+      <v-icon
+        tag="a"
+        dark
+        v-bind="props"
+        icon="mdi-delete"
+        @click="showDialog = true"
+      />
     </template>
     <span>Remove</span>
   </v-tooltip>
@@ -44,7 +53,7 @@ const remove = async () => {
   try {
     await usersStore.deleteUser(props.id);
     snackbar.showSuccess("User removed successfully.");
-    if (props.redirect) router.push("/users");
+    if (props.redirect) await router.push("/users");
     await usersStore.fetchUsersList();
     showDialog.value = false;
     emit("update");

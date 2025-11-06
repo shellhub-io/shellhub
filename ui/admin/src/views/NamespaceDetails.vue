@@ -5,54 +5,78 @@
   <v-card class="mt-2 pa-4">
     <v-card-text>
       <div>
-        <h3 class="text-overline">Name:</h3>
-        <p :data-test="namespace.name">{{ namespace.name }}</p>
+        <h3 class="text-overline">
+          Name:
+        </h3>
+        <p :data-test="namespace.name">
+          {{ namespace.name }}
+        </p>
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Devices:</h3>
-        <p data-test="namespace-devices-count">{{ sumDevicesCount(namespace) }}</p>
+        <h3 class="text-overline mt-3">
+          Devices:
+        </h3>
+        <p data-test="namespace-devices-count">
+          {{ sumDevicesCount(namespace) }}
+        </p>
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Owner:</h3>
+        <h3 class="text-overline mt-3">
+          Owner:
+        </h3>
         <p
           :data-test="namespace.owner"
-          @click="goToUser(namespace.owner)"
-          @keyup="goToUser(namespace.owner)"
           tabindex="0"
           class="text-decoration-underline cursor-pointer"
+          @click="goToUser(namespace.owner)"
+          @keyup="goToUser(namespace.owner)"
         >
           {{ namespace.owner }}
         </p>
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Tenant Id:</h3>
-        <p :data-test="namespace.tenant_id">{{ namespace.tenant_id }}</p>
+        <h3 class="text-overline mt-3">
+          Tenant Id:
+        </h3>
+        <p :data-test="namespace.tenant_id">
+          {{ namespace.tenant_id }}
+        </p>
       </div>
 
       <div>
-        <h3 class="text-overline mt-3">Members:</h3>
-        <ul v-for="(member, index) in namespace.members" :key="index">
+        <h3 class="text-overline mt-3">
+          Members:
+        </h3>
+        <ul
+          v-for="(member, index) in namespace.members"
+          :key="index"
+        >
           <li
+            v-for="(value, name) in member"
+            :key="name"
             class="ml-8"
-            v-for="(value, name, index) in member"
-            :key="index"
           >
             <div v-if="name === 'id'">
-              <span class="font-weight-bold mr-1" :data-test="`${name}-item`">{{ name }}:</span>
               <span
-                @click="goToUser(namespace.owner)"
-                @keyup="goToUser(namespace.owner)"
+                class="font-weight-bold mr-1"
+                :data-test="`${name}-item`"
+              >{{ name }}:</span>
+              <span
                 tabindex="0"
                 class="text-decoration-underline cursor-pointer"
                 :data-test="`${name}-value`"
-              >{{ value }}</span
-              >
+                @click="goToUser(namespace.owner)"
+                @keyup="goToUser(namespace.owner)"
+              >{{ value }}</span>
             </div>
             <div v-else>
-              <span class="font-weight-bold mr-1" :data-test="`${name}-item`">{{ name }}:</span>
+              <span
+                class="font-weight-bold mr-1"
+                :data-test="`${name}-item`"
+              >{{ name }}:</span>
               <span :data-test="`${name}-value`">{{ value }}</span>
             </div>
           </li>
@@ -60,8 +84,12 @@
       </div>
 
       <div v-if="namespace.settings">
-        <h3 class="text-overline mt-3">Session Record:</h3>
-        <p :data-test="namespace.settings.session_record">{{ namespace.settings.session_record }}</p>
+        <h3 class="text-overline mt-3">
+          Session Record:
+        </h3>
+        <p :data-test="namespace.settings.session_record">
+          {{ namespace.settings.session_record }}
+        </p>
       </div>
     </v-card-text>
   </v-card>
@@ -95,8 +123,8 @@ onMounted(async () => {
   loading.value = false;
 });
 
-const goToUser = (userId: string) => {
-  router.push({ name: "userDetails", params: { id: userId } });
+const goToUser = async (userId: string) => {
+  await router.push({ name: "userDetails", params: { id: userId } });
 };
 
 const sumDevicesCount = (namespace: IAdminNamespace) => {

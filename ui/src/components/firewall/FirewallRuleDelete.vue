@@ -1,24 +1,25 @@
 <template>
   <v-list-item
-    @click="showDialog = true"
     v-bind="$attrs"
     :disabled="!hasAuthorization"
     data-test="firewall-delete-dialog-btn"
+    @click="showDialog = true"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
-        <v-icon data-test="remove-icon"> mdi-delete </v-icon>
+        <v-icon data-test="remove-icon">
+          mdi-delete
+        </v-icon>
       </div>
 
-      <v-list-item-title data-test="remove-title"> Remove </v-list-item-title>
+      <v-list-item-title data-test="remove-title">
+        Remove
+      </v-list-item-title>
     </div>
   </v-list-item>
 
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @confirm="remove"
-    @cancel="showDialog = false"
     title="Are you sure?"
     description="You are about to delete this firewall rule"
     icon="mdi-alert"
@@ -29,6 +30,9 @@
     confirm-data-test="confirm-btn"
     cancel-data-test="close-btn"
     data-test="delete-firewall-rule-dialog"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
   />
 </template>
 

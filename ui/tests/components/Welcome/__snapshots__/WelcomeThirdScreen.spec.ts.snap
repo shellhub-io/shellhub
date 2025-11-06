@@ -6,8 +6,8 @@ exports[`Welcome Third Screen > Renders the component 1`] = `
     <div data-v-9fa0b2b1="" class="v-avatar v-theme--light bg-success v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i data-v-9fa0b2b1="" class="mdi-check-circle mdi v-icon notranslate v-theme--light text-white" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
       <!----><span class="v-avatar__underlay"></span>
     </div>
-    <h2 data-v-9fa0b2b1="" class="text-h4 mb-2">Device Detected!</h2>
-    <p data-v-9fa0b2b1="" class="text-subtitle-1 text-medium-emphasis">Confirm this device to add it to your account</p>
+    <h2 data-v-9fa0b2b1="" class="text-h4 mb-2"> Device Detected! </h2>
+    <p data-v-9fa0b2b1="" class="text-subtitle-1 text-medium-emphasis"> Confirm this device to add it to your account </p>
   </div>
   <div data-v-9fa0b2b1="" class="v-alert v-theme--light text-success v-alert--density-default v-alert--variant-tonal mb-4" role="alert" data-test="welcome-third-screen-name">
     <!----><span class="v-alert__underlay"></span>

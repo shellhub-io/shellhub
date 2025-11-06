@@ -1,6 +1,5 @@
 <template>
   <v-btn
-    @click="showDialog = true"
     variant="plain"
     class="border rounded bg-v-theme-background"
     density="comfortable"
@@ -8,13 +7,11 @@
     icon="mdi-delete"
     :disabled="!canDeleteWebEndpoint"
     data-test="web-endpoint-delete-dialog-btn"
+    @click="showDialog = true"
   />
 
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @cancel="showDialog = false"
-    @confirm="remove"
     title="Are you sure?"
     description="You are about to remove this Web Endpoint."
     icon="mdi-alert"
@@ -25,10 +22,14 @@
     confirm-data-test="delete-btn"
     cancel-data-test="close-btn"
     data-test="web-endpoint-delete-dialog"
+    @close="showDialog = false"
+    @cancel="showDialog = false"
+    @confirm="remove"
   />
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
@@ -39,7 +40,7 @@ defineOptions({ inheritAttrs: false });
 
 const props = defineProps<{ address: string }>();
 const emit = defineEmits(["update"]);
-const showDialog = defineModel({ default: false });
+const showDialog = ref(false);
 
 const webEndpointsStore = useWebEndpointsStore();
 const snackbar = useSnackbar();
@@ -61,4 +62,6 @@ const remove = async () => {
     handleError(error);
   }
 };
+
+defineExpose({ showDialog });
 </script>

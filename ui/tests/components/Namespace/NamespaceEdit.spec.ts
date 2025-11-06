@@ -62,6 +62,7 @@ describe("Namespace Edit", () => {
         plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
+      props: { modelValue: true },
     });
   });
 

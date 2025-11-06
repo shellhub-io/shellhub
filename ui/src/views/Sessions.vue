@@ -6,7 +6,10 @@
     <h1>Sessions</h1>
   </div>
   <div>
-    <SessionList v-if="hasSession" data-test="sessions-list" />
+    <SessionList
+      v-if="hasSession"
+      data-test="sessions-list"
+    />
 
     <NoItemsMessage
       v-else
@@ -16,7 +19,8 @@
     >
       <template #content>
         <p>An SSH session is created when a connection is made to any registered device.</p>
-        <p>Please follow our guide on
+        <p>
+          Please follow our guide on
           <a
             rel="noopener noreferrer"
             target="_blank"

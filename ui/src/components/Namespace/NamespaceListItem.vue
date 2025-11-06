@@ -12,12 +12,19 @@
     <v-list-item-title>{{ namespace.name }}</v-list-item-title>
     <v-list-item-subtitle>
       <div class="d-flex align-center text-caption text-capitalize">
-        <div v-if="userRole" class="d-flex align-center ga-1 flex-1-0">
-          <v-icon size="x-small">{{ roleIcon }}</v-icon>
+        <div
+          v-if="userRole"
+          class="d-flex align-center ga-1 flex-1-0"
+        >
+          <v-icon size="x-small">
+            {{ roleIcon }}
+          </v-icon>
           <span>{{ roleLabel }}</span>
         </div>
         <div class="d-flex align-center ga-1 flex-1-0">
-          <v-icon size="x-small">{{ namespaceTypeIcon }}</v-icon>
+          <v-icon size="x-small">
+            {{ namespaceTypeIcon }}
+          </v-icon>
           <span>{{ namespaceType }}</span>
         </div>
       </div>

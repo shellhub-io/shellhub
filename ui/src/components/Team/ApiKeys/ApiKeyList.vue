@@ -2,30 +2,54 @@
   <div>
     <DataTable
       v-model:page="page"
-      v-model:itemsPerPage="itemsPerPage"
+      v-model:items-per-page="itemsPerPage"
       :headers
       :items="apiKeys"
-      :totalCount="apiKeysCount"
+      :total-count="apiKeysCount"
       :loading
-      :itemsPerPageOptions="[10, 20, 50, 100]"
-      @update:sort="sortByItem"
+      :items-per-page-options="[10, 20, 50, 100]"
       data-test="api-key-list"
+      @update:sort="sortByItem"
     >
-      <template v-slot:rows>
-        <tr v-for="item in apiKeys" :key="item.id">
-          <td :class="{ 'text-warning': hasKeyExpired(item.expires_in) }" class="text-center">
-            <v-icon class="mr-1" :icon="hasKeyExpired(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'" />
+      <template #rows>
+        <tr
+          v-for="item in apiKeys"
+          :key="item.id"
+        >
+          <td
+            :class="{ 'text-warning': hasKeyExpired(item.expires_in) }"
+            class="text-center"
+          >
+            <v-icon
+              class="mr-1"
+              :icon="hasKeyExpired(item.expires_in) ? 'mdi-clock-alert-outline' : 'mdi-key-outline'"
+            />
             {{ item.name }}
           </td>
-          <td :class="{ 'text-warning': hasKeyExpired(item.expires_in) }" class="text-center text-capitalize" data-test="key-name">
+          <td
+            :class="{ 'text-warning': hasKeyExpired(item.expires_in) }"
+            class="text-center text-capitalize"
+            data-test="key-name"
+          >
             {{ item.role }}
           </td>
-          <td :class="{ 'text-warning': hasKeyExpired(item.expires_in) }" class="text-center" data-test="key-expiry-date">
+          <td
+            :class="{ 'text-warning': hasKeyExpired(item.expires_in) }"
+            class="text-center"
+            data-test="key-expiry-date"
+          >
             {{ formatDate(item.expires_in) }}
           </td>
-          <td class="text-center" data-test="menu-key-component">
-            <v-menu location="bottom" scrim eager>
-              <template v-slot:activator="{ props }">
+          <td
+            class="text-center"
+            data-test="menu-key-component"
+          >
+            <v-menu
+              location="bottom"
+              scrim
+              eager
+            >
+              <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
                   variant="plain"
@@ -35,13 +59,17 @@
                   icon="mdi-format-list-bulleted"
                 />
               </template>
-              <v-list class="bg-v-theme-surface" lines="two" density="compact">
+              <v-list
+                class="bg-v-theme-surface"
+                lines="two"
+                density="compact"
+              >
                 <v-tooltip
                   location="bottom"
                   class="text-center"
                   :disabled="canDeleteApiKey"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div v-bind="props">
                       <ApiKeyEdit
                         :key-name="item.name"
@@ -61,10 +89,10 @@
                   class="text-center"
                   :disabled="canDeleteApiKey"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div v-bind="props">
                       <ApiKeyDelete
-                        :keyId="item.name"
+                        :key-id="item.name"
                         :has-authorization="canDeleteApiKey"
                         @update="refresh()"
                       />

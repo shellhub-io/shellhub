@@ -7,12 +7,12 @@ exports[`RecoverMFA > Renders the component 1`] = `
   </transition-stub>
   <div class="v-row">
     <div class="v-col" align="center">
-      <h3 data-test="title">Multi-factor Authentication</h3>
+      <h3 data-test="title"> Multi-factor Authentication </h3>
     </div>
   </div>
   <div class="v-row mb-2">
     <div class="v-col" align="center">
-      <h4 data-test="sub-title">If you lost your access to your MFA TOTP provider, please paste one of your recovery codes below</h4>
+      <h4 data-test="sub-title"> If you lost your access to your MFA TOTP provider, please paste one of your recovery codes below </h4>
     </div>
   </div>
   <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field" data-test="recovery-code">

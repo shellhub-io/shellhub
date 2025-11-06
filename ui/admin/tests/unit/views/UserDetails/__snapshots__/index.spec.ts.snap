@@ -31,7 +31,7 @@ exports[`User Details > Renders the component 1`] = `
   <!---->
   <div class="v-card-text">
     <div>
-      <h3 class="text-overline">Status:</h3><span class="v-chip v-theme--light text-success v-chip--density-default v-chip--size-default v-chip--variant-text ma-2" draggable="false"><!----><span class="v-chip__underlay"></span>
+      <h3 class="text-overline"> Status: </h3><span class="v-chip v-theme--light text-success v-chip--density-default v-chip--size-default v-chip--variant-text ma-2" draggable="false"><!----><span class="v-chip__underlay"></span>
       <!---->
       <div class="v-chip__prepend"><i class="mdi-checkbox-marked-circle mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--start" aria-hidden="true"></i>
         <!---->
@@ -41,19 +41,19 @@ exports[`User Details > Renders the component 1`] = `
       <!----></span>
     </div>
     <div>
-      <h3 class="text-overline mt-3">UID:</h3>
+      <h3 class="text-overline mt-3"> UID: </h3>
       <p data-test="6256b739302b50b6cc5eafcc">6256b739302b50b6cc5eafcc</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Email:</h3>
+      <h3 class="text-overline mt-3"> Email: </h3>
       <p data-test="antony@gmail.com">antony@gmail.com</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Username:</h3>
+      <h3 class="text-overline mt-3"> Username: </h3>
       <p data-test="antony">antony</p>
     </div>
     <div>
-      <h3 class="text-overline mt-3">Owned namespaces:</h3>
+      <h3 class="text-overline mt-3"> Owned namespaces: </h3>
       <p data-test="2">2</p>
     </div>
   </div>

@@ -32,7 +32,7 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
           <!---->
           <div class="v-list-item__content" data-no-activator="">
             <div class="v-list-item-title">
-              <h1 data-v-d7a09f69="" data-test="billing-title">Billing</h1>
+              <h1 data-v-d7a09f69="" data-test="billing-title"> Billing </h1>
             </div>
             <div class="v-list-item-subtitle"><span data-v-d7a09f69="" data-test="billing-subtitle">Manage your subscription info</span></div>
             <!---->

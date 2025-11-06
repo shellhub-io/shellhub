@@ -1,8 +1,8 @@
 <template>
   <v-list-item
     v-bind="$attrs"
-    @click="showDialog = true"
     :disabled="!hasAuthorization"
+    @click="showDialog = true"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
@@ -17,9 +17,6 @@
 
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @cancel="showDialog = false"
-    @confirm="closeSession"
     title="Are you sure?"
     description="You are going to close connection for this device. After confirming this action cannot be undone."
     icon="mdi-close-circle"
@@ -30,6 +27,9 @@
     data-test="close-session-dialog"
     confirm-data-test="close-session-btn"
     cancel-data-test="cancel-close-session-btn"
+    @close="showDialog = false"
+    @cancel="showDialog = false"
+    @confirm="closeSession"
   />
 </template>
 

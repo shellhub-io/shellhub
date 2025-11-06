@@ -1,8 +1,8 @@
 <template>
   <div
+    ref="rootEl"
     class="file-text-capture"
     :class="{ 'is-disabled': disabled }"
-    ref="rootEl"
     @paste.capture="onPaste"
   >
     <v-file-upload
@@ -17,20 +17,29 @@
       density="comfortable"
       :border="errorMessage && 'opacity-100 error'"
       :class="errorMessage ? 'text-error bg-v-theme-surface' : 'py-3 bg-v-theme-surface'"
-      @update:model-value="onFiles"
       data-test="file-text-capture"
+      @update:model-value="onFiles"
     >
       <template #icon>
         <slot name="icon">
-          <v-col cols="12" sm="12" class="py-0">
-            <v-icon :size="smAndDown ? 40 : 50">mdi-file-upload-outline</v-icon>
+          <v-col
+            cols="12"
+            sm="12"
+            class="py-0"
+          >
+            <v-icon :size="smAndDown ? 40 : 50">
+              mdi-file-upload-outline
+            </v-icon>
           </v-col>
         </slot>
       </template>
 
       <template #title>
         <slot name="title">
-          <v-row no-gutters class="d-flex justify-start">
+          <v-row
+            no-gutters
+            class="d-flex justify-start"
+          >
             <v-col cols="12">
               <div class="ftc-title text-subtitle-1 font-weight-medium">
                 Paste, drop a file or <span class="text-primary">click to browse</span>
@@ -43,7 +52,6 @@
               </div>
             </v-col>
           </v-row>
-
         </slot>
       </template>
 
@@ -55,7 +63,10 @@
           nav
         >
           <template #prepend>
-            <v-avatar size="32" rounded>
+            <v-avatar
+              size="32"
+              rounded
+            >
               <v-icon>mdi-file-document-outline</v-icon>
             </v-avatar>
           </template>
@@ -67,15 +78,18 @@
               icon="mdi-close"
               size="small"
               variant="text"
-              @click.stop="onClearClick(clearProps)"
               title="Remove file"
+              @click.stop="onClearClick(clearProps)"
             />
           </template>
         </v-file-upload-item>
       </template>
     </v-file-upload>
 
-    <div v-else class="mt-2">
+    <div
+      v-else
+      class="mt-2"
+    >
       <v-textarea
         ref="textareaRef"
         v-model="textModel"
@@ -95,16 +109,23 @@
             variant="text"
             size="small"
             :disabled="disabled"
-            @click="switchToFileMode"
             title="Return to file drop zone"
+            @click="switchToFileMode"
           />
         </template>
       </v-textarea>
     </div>
 
-    <v-row v-if="mode === 'file' && errorMessage" no-gutters class="mt-1">
+    <v-row
+      v-if="mode === 'file' && errorMessage"
+      no-gutters
+      class="mt-1"
+    >
       <v-col cols="12">
-        <div class="text-error text-caption" data-test="ftc-file-error">
+        <div
+          class="text-error text-caption"
+          data-test="ftc-file-error"
+        >
           {{ errorMessage }}
         </div>
       </v-col>
@@ -140,7 +161,7 @@ const props = withDefaults(defineProps<{
    */
   accept?: string;
 
-   /**
+  /**
    * Accepted file without extension
    * Example: Files created from ssh-keygen
    */
@@ -172,7 +193,7 @@ const props = withDefaults(defineProps<{
    * Optional validation function to check if the read text is valid.
    * Example: `(t) => isKeyValid('public', t)`
    */
-  validator?:((text: string) => boolean) | null;
+  validator?: ((text: string) => boolean) | null;
 
   /**
    * Error message to show when the validator fails.
@@ -280,7 +301,7 @@ const clearSelection = async () => {
 const readFileAsText = (file: File) => new Promise<string>((resolve, reject) => {
   const reader = new FileReader();
   reader.onerror = () => reject(new Error("Failed to read file"));
-  reader.onload = () => resolve(String(reader.result ?? ""));
+  reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
   reader.readAsText(file);
 });
 
@@ -332,7 +353,7 @@ const isTypeAccepted = (file: File) => {
 // Focuses the textarea element programmatically
 const focusTextarea = async () => {
   await nextTick();
-  const host = textareaRef.value?.$el as HTMLElement | undefined;
+  const host = textareaRef.value?.$el;
   const el = host?.querySelector("textarea") as HTMLTextAreaElement | null;
   el?.focus?.();
 };
@@ -458,7 +479,7 @@ const onPaste = async (e: ClipboardEvent) => {
 // Global paste listener — allows pasting even when not focused
 const globalPasteListener = (e: ClipboardEvent) => {
   if (!rootEl.value) return;
-  onPaste(e);
+  void onPaste(e);
 };
 
 // Lifecycle hooks

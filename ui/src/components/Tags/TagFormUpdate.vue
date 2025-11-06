@@ -1,9 +1,9 @@
 <template>
   <v-list-item
     v-bind="$attrs"
-    @click="open"
     :disabled="!hasAuthorization"
     data-test="open-tags-btn"
+    @click="open"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
@@ -18,9 +18,6 @@
 
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
-    @confirm="close"
     :title="hasTags ? 'Edit tags' : 'Add Tags'"
     icon="mdi-tag"
     confirm-text=""
@@ -28,6 +25,9 @@
     cancel-text="Close"
     cancel-data-test="close-btn"
     data-test="tags-form-dialog"
+    @close="close"
+    @cancel="close"
+    @confirm="close"
   >
     <div class="px-6 pt-4">
       <v-autocomplete
@@ -42,7 +42,7 @@
         variant="outlined"
         data-test="deviceTag-autocomplete"
         @update:search="onSearch"
-        @update:modelValue="onTagSelectionChanged"
+        @update:model-value="onTagSelectionChanged"
       >
         <template #item="{ item, props }">
           <v-list-item
@@ -52,7 +52,11 @@
             data-test="tag-item"
           >
             <template #prepend>
-              <v-checkbox :model-value="selectedTags.includes(item.value)" color="primary" hide-details />
+              <v-checkbox
+                :model-value="selectedTags.includes(item.value)"
+                color="primary"
+                hide-details
+              />
             </template>
             <template #title>
               <v-chip>{{ item.value }}</v-chip>
@@ -66,10 +70,10 @@
           <div class="d-flex justify-center">
             <v-btn
               v-if="validNewTag"
-              @click="createTag"
               color="primary"
               variant="text"
               data-test="create-new-tag-btn"
+              @click="createTag"
             >
               Create New Tag
             </v-btn>
@@ -80,15 +84,19 @@
           <v-chip
             :key="item.value"
             closable
-            @click:close="removeTag(item.value)"
             data-test="selected-tags"
+            @click:close="removeTag(item.value)"
           >
             {{ item.value }}
           </v-chip>
         </template>
 
         <template #append-item>
-          <div ref="sentinel" data-test="tags-sentinel" style="height: 1px;" />
+          <div
+            ref="sentinel"
+            data-test="tags-sentinel"
+            style="height: 1px"
+          />
         </template>
       </v-autocomplete>
     </div>
@@ -165,7 +173,8 @@ const encodeFilter = (search: string) => {
 };
 
 const validNewTag = computed(
-  () => filter.value.length >= 3
+  () =>
+    filter.value.length >= 3
     && filter.value.length <= 255
     && !tags.value.some((t) => t.name === filter.value)
     && !selectedTags.value.includes(filter.value),
@@ -177,12 +186,13 @@ const resetPagination = (): void => {
   fetchedTags.value = [];
 };
 
-const normalizeStoreItems = (arr: StoreTags[]): LocalTag[] => (arr ?? [])
-  .map((t) => {
-    const name = typeof t === "string" ? t : t?.name;
-    return name ? ({ name } as LocalTag) : null;
-  })
-  .filter((t: LocalTag | null): t is LocalTag => !!t);
+const normalizeStoreItems = (arr: StoreTags[]): LocalTag[] =>
+  (arr ?? [])
+    .map((t) => {
+      const name = typeof t === "string" ? t : t?.name;
+      return name ? ({ name } as LocalTag) : null;
+    })
+    .filter((t: LocalTag | null): t is LocalTag => !!t);
 
 const loadTags = async () => {
   if (isLoading.value) return;
@@ -198,7 +208,9 @@ const loadTags = async () => {
       perPage: perPage.value,
     });
 
-    const newTags = normalizeStoreItems(tagsStore.list as unknown as StoreTags[]);
+    const newTags = normalizeStoreItems(
+      tagsStore.list as unknown as StoreTags[],
+    );
     fetchedTags.value = newTags;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -248,19 +260,23 @@ const onTagSelectionChanged = async (newTags: string[]) => {
 
   try {
     await Promise.all(
-      added.map((tag) => tagsStore.pushTagToDevice({
-        tenant: tenant.value,
-        uid: props.deviceUid,
-        name: tag,
-      })),
+      added.map((tag) =>
+        tagsStore.pushTagToDevice({
+          tenant: tenant.value,
+          uid: props.deviceUid,
+          name: tag,
+        }),
+      ),
     );
 
     await Promise.all(
-      removed.map((tag) => tagsStore.removeTagFromDevice({
-        tenant: tenant.value,
-        uid: props.deviceUid,
-        name: tag,
-      })),
+      removed.map((tag) =>
+        tagsStore.removeTagFromDevice({
+          tenant: tenant.value,
+          uid: props.deviceUid,
+          name: tag,
+        }),
+      ),
     );
 
     previousTags.value = [...newTags];
@@ -291,7 +307,10 @@ const createTag = async () => {
     });
 
     const name = filter.value;
-    fetchedTags.value = [{ name }, ...fetchedTags.value.filter((t) => t.name !== name)];
+    fetchedTags.value = [
+      { name },
+      ...fetchedTags.value.filter((t) => t.name !== name),
+    ];
 
     const newTags = Array.from(new Set([...selectedTags.value, name]));
     selectedTags.value = newTags;
@@ -317,7 +336,8 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`) as HTMLElement | null;
+const getMenuRootEl = (): HTMLElement | null =>
+  document.querySelector(`.${menuContentClass.value}`);
 
 const setupObserver = () => {
   cleanupObserver();
@@ -328,7 +348,7 @@ const setupObserver = () => {
   observer = new IntersectionObserver(
     (entries) => {
       const entry = entries[0];
-      if (entry?.isIntersecting) bumpPerPageAndLoad();
+      if (entry?.isIntersecting) void bumpPerPageAndLoad();
     },
     { root, threshold: 1.0 },
   );
@@ -370,5 +390,12 @@ onUnmounted(() => {
   cleanupObserver();
 });
 
-defineExpose({ loadTags, createTag, removeTag, updateTags, selectedTags, tags });
+defineExpose({
+  loadTags,
+  createTag,
+  removeTag,
+  updateTags,
+  selectedTags,
+  tags,
+});
 </script>

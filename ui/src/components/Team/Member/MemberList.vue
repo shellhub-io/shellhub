@@ -1,5 +1,8 @@
 <template>
-  <v-table class="bg-background border rounded" data-test="member-table">
+  <v-table
+    class="bg-background border rounded"
+    data-test="member-table"
+  >
     <thead class="bg-v-theme-background">
       <tr>
         <th
@@ -10,25 +13,31 @@
         >
           <span
             v-if="head.sortable"
-            @click="$emit('clickSortableIcon', head.value)"
-            @keypress.enter="$emit('clickSortableIcon', head.value)"
             tabindex="0"
             class="hover"
+            @click="emit('clickSortableIcon', head.value)"
+            @keypress.enter="emit('clickSortableIcon', head.value)"
           >
             {{ head.text }}
             <v-tooltip
               activator="parent"
               anchor="top"
-            >Sort by {{ head.text }}</v-tooltip
-            >
+            >Sort by {{ head.text }}</v-tooltip>
           </span>
           <span v-else> {{ head.text }}</span>
         </th>
       </tr>
     </thead>
-    <tbody v-if="members" data-test="member-table-rows">
+    <tbody
+      v-if="members"
+      data-test="member-table-rows"
+    >
       <slot name="rows">
-        <tr v-for="member in members" :key="member.id" class="text-center">
+        <tr
+          v-for="member in members"
+          :key="member.id"
+          class="text-center"
+        >
           <td>
             <v-icon> mdi-account </v-icon>
             {{ member.email }}
@@ -44,17 +53,19 @@
               v-if="member.added_at !== '0001-01-01T00:00:00Z'"
               activator="parent"
               location="bottom"
-            >This member was added on {{ formatFullDateTime(member.added_at) }}</v-tooltip>
+            >
+              This member was added on {{ formatFullDateTime(member.added_at) }}
+            </v-tooltip>
           </td>
 
           <td class="text-center">
             <v-menu
+              v-if="!isNamespaceOwner(member.role)"
               location="bottom"
               scrim
               eager
-              v-if="!isNamespaceOwner(member.role)"
             >
-              <template v-slot:activator="{ props }">
+              <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
                   variant="plain"
@@ -65,18 +76,22 @@
                   data-test="namespace-member-actions"
                 />
               </template>
-              <v-list class="bg-v-theme-surface" lines="two" density="compact">
+              <v-list
+                class="bg-v-theme-surface"
+                lines="two"
+                density="compact"
+              >
                 <v-tooltip
                   location="bottom"
                   class="text-center"
                   :disabled="canEditMember"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div :v-bind="props">
                       <MemberEdit
                         :member="member"
+                        :has-authorization="canEditMember"
                         @update="refresh"
-                        :hasAuthorization="canEditMember"
                       />
                     </div>
                   </template>
@@ -88,12 +103,12 @@
                   class="text-center"
                   :disabled="canRemoveMember"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div :v-bind="props">
                       <MemberDelete
                         :member="member"
+                        :has-authorization="canRemoveMember"
                         @update="refresh"
-                        :hasAuthorization="canRemoveMember"
                       />
                     </div>
                   </template>
@@ -105,12 +120,17 @@
               v-else
               activator="parent"
               location="top"
-            >No one can modify the owner of this namespace.</v-tooltip>
+            >
+              No one can modify the owner of this namespace.
+            </v-tooltip>
           </td>
         </tr>
       </slot>
     </tbody>
-    <div v-else class="pa-4 text-subtitle-2">
+    <div
+      v-else
+      class="pa-4 text-subtitle-2"
+    >
       <p>No data available</p>
     </div>
   </v-table>
@@ -150,7 +170,9 @@ const headers = [
     sortable: false,
   },
 ];
-
+const emit = defineEmits<{
+  (e: "clickSortableIcon", value: string): void;
+}>();
 const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();

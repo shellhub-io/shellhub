@@ -1,13 +1,17 @@
 <template>
   <div>
-    <v-tooltip location="bottom" class="text-center" :disabled="canGenerateApiKey">
-      <template v-slot:activator="{ props }">
+    <v-tooltip
+      location="bottom"
+      class="text-center"
+      :disabled="canGenerateApiKey"
+    >
+      <template #activator="{ props }">
         <div v-bind="props">
           <v-btn
             :disabled="!canGenerateApiKey"
             color="primary"
-            @click="showDialog = true"
             data-test="api-key-generate-main-btn"
+            @click="showDialog = true"
           >
             Generate key
           </v-btn>
@@ -18,10 +22,6 @@
 
     <FormDialog
       v-model="showDialog"
-      @close="close"
-      @confirm="handleSubmit"
-      @cancel="close"
-      @alert-dismissed="errorMessage = ''"
       title="New API Key"
       description="Generate API key for this namespace"
       icon="mdi-key-outline"
@@ -35,6 +35,10 @@
       footer-helper-text="Learn more about"
       footer-helper-link-text="API Keys"
       footer-helper-link="https://docs.shellhub.io/user-guides/settings/namespace/api-keys/"
+      @close="close"
+      @confirm="handleSubmit"
+      @cancel="close"
+      @alert-dismissed="errorMessage = ''"
     >
       <ApiKeyForm
         ref="formRef"
@@ -73,7 +77,7 @@ const showSuccessDialog = ref(false);
 const errorMessage = ref("");
 const generatedApiKey = ref("");
 const isFormValid = ref(false);
-const formRef = ref();
+const formRef = ref<InstanceType<typeof ApiKeyForm>>();
 const canGenerateApiKey = hasPermission("apiKey:create");
 
 const handleGenerateKeyError = (error: unknown) => {

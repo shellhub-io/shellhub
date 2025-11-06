@@ -2,46 +2,59 @@
   <div>
     <DataTable
       v-model:page="page"
-      v-model:itemsPerPage="itemsPerPage"
+      v-model:items-per-page="itemsPerPage"
       :headers
       :items="sessions"
-      :totalCount="sessionCount"
+      :total-count="sessionCount"
       :loading
-      :itemsPerPageOptions="[10, 20, 50, 100]"
+      :items-per-page-options="[10, 20, 50, 100]"
       data-test="sessions-list"
     >
-      <template v-slot:rows>
-        <tr v-for="(session, index) in sessions" :key="index">
+      <template #rows>
+        <tr
+          v-for="(session, index) in sessions"
+          :key="index"
+        >
           <td class="text-center">
             <SessionPlay
+              v-slot="{ loading: sessionLoading, disabled, openDialog }"
               :authenticated="session.authenticated"
               :uid="session.uid"
               :recorded="session.recorded"
-              v-slot="{ loading, disabled, openDialog }"
               data-test="session-play-component"
             >
               <v-btn
                 color="primary"
                 prepend-icon="mdi-play"
                 variant="outlined"
-                :loading
+                :loading="sessionLoading"
                 density="comfortable"
                 data-test="connect-btn"
-                @click="openDialog"
                 :disabled
+                @click="openDialog"
               >
                 Play
               </v-btn>
             </SessionPlay>
           </td>
 
-          <td class="text-center" v-if="session.device">
-            <DeviceLink variant="plain" :device-uid="session.device.uid" :device-name="session.device.name" />
+          <td
+            v-if="session.device"
+            class="text-center"
+          >
+            <DeviceLink
+              variant="plain"
+              :device-uid="session.device.uid"
+              :device-name="session.device.name"
+            />
           </td>
 
           <td class="text-center">
-            <v-tooltip location="bottom" v-if="!session.authenticated">
-              <template v-slot:activator="{ props }">
+            <v-tooltip
+              v-if="!session.authenticated"
+              location="bottom"
+            >
+              <template #activator="{ props }">
                 <span v-bind="props">{{ session.username }}</span>
               </template>
               <span v-if="!session.authenticated">Unauthorized</span>
@@ -50,17 +63,31 @@
           </td>
 
           <td class="text-center">
-            <v-tooltip location="bottom" v-if="session.authenticated">
-              <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" color="success">
+            <v-tooltip
+              v-if="session.authenticated"
+              location="bottom"
+            >
+              <template #activator="{ props }">
+                <v-icon
+                  v-bind="props"
+                  color="success"
+                >
                   mdi-shield-check
                 </v-icon>
               </template>
               <span>User has been authenticated</span>
             </v-tooltip>
-            <v-tooltip bottom v-else>
-              <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" color="error"> mdi-shield-alert </v-icon>
+            <v-tooltip
+              v-else
+              bottom
+            >
+              <template #activator="{ props }">
+                <v-icon
+                  v-bind="props"
+                  color="error"
+                >
+                  mdi-shield-alert
+                </v-icon>
               </template>
               <span>User has not been authenticated</span>
             </v-tooltip>
@@ -80,8 +107,12 @@
           </td>
 
           <td class="text-center">
-            <v-menu location="bottom" scrim eager>
-              <template v-slot:activator="{ props }">
+            <v-menu
+              location="bottom"
+              scrim
+              eager
+            >
+              <template #activator="{ props }">
                 <v-btn
                   v-bind="props"
                   variant="plain"
@@ -92,7 +123,11 @@
                   data-test="session-list-actions"
                 />
               </template>
-              <v-list class="bg-v-theme-surface" lines="two" density="compact">
+              <v-list
+                class="bg-v-theme-surface"
+                lines="two"
+                density="compact"
+              >
                 <v-list-item @click="redirectToSession(session.uid)">
                   <div class="d-flex align-center">
                     <div class="mr-2">
@@ -110,15 +145,15 @@
                   class="text-center"
                   :disabled="canRemoveSessionRecord"
                 >
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <div v-bind="props">
                       <SessionClose
                         v-if="session.active"
                         :uid="session.uid"
                         :device="session.device"
-                        :hasAuthorization="canRemoveSessionRecord"
-                        @update="refreshSessions"
+                        :has-authorization="canRemoveSessionRecord"
                         data-test="session-close-component"
+                        @update="refreshSessions"
                       />
                     </div>
                   </template>
@@ -220,8 +255,8 @@ watch([page, itemsPerPage], async () => {
   await getSessions();
 });
 
-const redirectToSession = (sessionUid: string) => {
-  router.push({ name: "SessionDetails", params: { id: sessionUid } });
+const redirectToSession = async (sessionUid: string) => {
+  await router.push({ name: "SessionDetails", params: { id: sessionUid } });
 };
 
 const refreshSessions = async () => {

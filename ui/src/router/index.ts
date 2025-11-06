@@ -21,30 +21,30 @@ export const handleAcceptInvite = async (to: RouteLocationNormalized, from: Rout
     const { isLoggedIn } = useAuthStore();
 
     switch (userStatus) {
-    case "invited":
-      next({
-        path: "/sign-up",
-        query: { redirect: to.path, ...to.query },
-      });
-      return;
-    case "not-confirmed":
-      next({
-        path: "/login",
-        query: { redirect: "/accept-invite", ...to.query },
-      });
-      return;
-    case "confirmed":
-      if (!isLoggedIn) {
+      case "invited":
+        next({
+          path: "/sign-up",
+          query: { redirect: to.path, ...to.query },
+        });
+        return;
+      case "not-confirmed":
         next({
           path: "/login",
           query: { redirect: "/accept-invite", ...to.query },
         });
         return;
-      }
-      next();
-      break;
-    default:
-      break;
+      case "confirmed":
+        if (!isLoggedIn) {
+          next({
+            path: "/login",
+            query: { redirect: "/accept-invite", ...to.query },
+          });
+          return;
+        }
+        next();
+        break;
+      default:
+        break;
     }
     next();
   } catch {

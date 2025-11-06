@@ -9,18 +9,26 @@
       data-test="user-status-alert"
     />
     <form @submit.prevent="setupAccount">
-      <v-card-title class="text-center" data-test="welcome-title">Welcome to ShellHub!</v-card-title>
+      <v-card-title
+        class="text-center"
+        data-test="welcome-title"
+      >
+        Welcome to ShellHub!
+      </v-card-title>
       <v-window v-model="el">
         <v-window-item :value="1">
-          <v-card-subtitle style="white-space: normal;" data-test="subtitle-1">
+          <v-card-subtitle
+            style="white-space: normal;"
+            data-test="subtitle-1"
+          >
             To set up your account, please run <code>/bin/setup</code> in your terminal to generate a signature.
             Use the generated signature in the "Sign" field below to proceed.
           </v-card-subtitle>
           <v-container>
             <v-text-field
+              v-model="sign"
               color="primary"
               prepend-inner-icon="mdi-key"
-              v-model="sign"
               :disabled="!!hasQuery"
               :error-messages="signError"
               required
@@ -33,23 +41,27 @@
               type="submit"
               data-test="sign-btn"
               color="primary"
-              @click="el = 2"
               variant="tonal"
               block
+              @click="el = 2"
             >
               Setup
             </v-btn>
           </v-container>
         </v-window-item>
         <v-window-item :value="2">
-          <v-card-subtitle class="d-inline-block text-center" style="white-space: normal;" data-test="subtitle-2">
+          <v-card-subtitle
+            class="d-inline-block text-center"
+            style="white-space: normal;"
+            data-test="subtitle-2"
+          >
             Please complete the following form to set up your account with your personal information.
           </v-card-subtitle>
           <v-container>
             <v-text-field
+              v-model="name"
               color="primary"
               prepend-inner-icon="mdi-account"
-              v-model="name"
               :error-messages="nameError"
               required
               label="Name"
@@ -58,9 +70,9 @@
             />
 
             <v-text-field
+              v-model="username"
               color="primary"
               prepend-inner-icon="mdi-account"
-              v-model="username"
               :error-messages="usernameError"
               required
               label="Username"
@@ -69,9 +81,9 @@
             />
 
             <v-text-field
+              v-model="email"
               color="primary"
               prepend-inner-icon="mdi-email"
-              v-model="email"
               :error-messages="emailError"
               required
               label="Email"
@@ -80,10 +92,10 @@
             />
 
             <v-text-field
+              v-model="password"
               color="primary"
               prepend-inner-icon="mdi-lock"
               :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              v-model="password"
               :error-messages="passwordError"
               label="Password"
               required
@@ -94,10 +106,10 @@
             />
 
             <v-text-field
+              v-model="passwordConfirm"
               color="primary"
               prepend-inner-icon="mdi-lock"
               :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              v-model="passwordConfirm"
               :error-messages="passwordConfirmError"
               label="Confirm Password"
               required
@@ -119,7 +131,6 @@
             >
               Create Account
             </v-btn>
-
           </v-card-actions>
         </v-window-item>
       </v-window>
@@ -199,15 +210,15 @@ const hasSign = computed(() => !!sign.value);
 
 const isFormValid = computed(() => (
   name.value
-    && username.value
-    && email.value
-    && password.value
-    && passwordConfirm.value
-    && !nameError.value
-    && !usernameError.value
-    && !emailError.value
-    && !passwordError.value
-    && !passwordConfirmError.value
+  && username.value
+  && email.value
+  && password.value
+  && passwordConfirm.value
+  && !nameError.value
+  && !usernameError.value
+  && !emailError.value
+  && !passwordError.value
+  && !passwordConfirmError.value
 ));
 
 onMounted(() => {
@@ -231,8 +242,8 @@ const setupAccount = async () => {
 
       alertType.value = "success";
       alertMessage.value = "Successfully created your account. Redirecting to login...";
-      setTimeout(() => router.push({ name: "Login" }), 3000);
-    } catch (error) {
+      setTimeout(() => { void router.push({ name: "Login" }); }, 3000);
+    } catch {
       alertType.value = "error";
       alertMessage.value = "An error occurred. please check if the sign matches the same in ./bin/setup and try again.";
     }

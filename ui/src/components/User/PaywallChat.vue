@@ -8,15 +8,21 @@
     cancel-data-test="close-btn"
     confirm-text="Upgrade"
     confirm-data-test="upgrade-btn"
+    data-test="paywall-chat-dialog"
     @confirm="redirectToPricing"
     @cancel="showDialog = false"
-    data-test="paywall-chat-dialog"
   >
-    <p class="text-center mb-4" data-test="upgrade-description-1">
+    <p
+      class="text-center mb-4"
+      data-test="upgrade-description-1"
+    >
       Get real-time assistance from our team with priority responses.
       Skip the hassle of documentation — upgrade now and unlock direct chat support.
     </p>
-    <p class="text-center text-grey" data-test="upgrade-description-2">
+    <p
+      class="text-center text-grey"
+      data-test="upgrade-description-2"
+    >
       However, you can still use
       <a
         href="https://docs.shellhub.io/"
@@ -34,7 +40,7 @@
 <script setup lang="ts">
 import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 
 const redirectToPricing = () => {
   window.open("https://www.shellhub.io/pricing", "_blank", "noopener,noreferrer");

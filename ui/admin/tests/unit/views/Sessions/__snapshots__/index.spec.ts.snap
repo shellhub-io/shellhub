@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Sessions > Renders the component 1`] = `
-"<h1 class="mb-2">Sessions</h1>
+"<h1 class="mb-2"> Sessions </h1>
 <div data-v-d900b695="">
   <div data-v-d900b695="" data-test="session-list">
     <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">

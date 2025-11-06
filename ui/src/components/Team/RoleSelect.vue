@@ -7,7 +7,7 @@
     hide-details
     data-test="role-select"
   >
-    <template v-slot:item="{ props, item }">
+    <template #item="{ props, item }">
       <v-list-item v-bind="props">
         <v-list-item-subtitle class="description-text">
           {{ item.raw.description }}

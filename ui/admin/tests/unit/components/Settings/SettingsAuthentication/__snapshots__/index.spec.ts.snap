@@ -2,7 +2,7 @@
 
 exports[`Authentication > renders correctly 1`] = `
 "<div data-v-e055768f="" class="pb-2">
-  <h1 data-v-e055768f="" data-test="auth-header">Authentication</h1>
+  <h1 data-v-e055768f="" data-test="auth-header"> Authentication </h1>
 </div>
 <div data-v-e055768f="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated w-100 pa-4 bg-background border" data-test="auth-card">
   <!---->
@@ -27,7 +27,7 @@ exports[`Authentication > renders correctly 1`] = `
     <div class="v-card-item__content">
       <!---->
       <!---->
-      <div data-v-e055768f="" class="v-card-title text-center" data-test="auth-status-header">Authentication Status</div>
+      <div data-v-e055768f="" class="v-card-title text-center" data-test="auth-status-header"> Authentication Status </div>
       <div data-v-e055768f="" class="v-row my-0"><span data-v-e055768f="" data-test="local-auth-label">Local Authentication</span>
         <div data-v-e055768f="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch" data-test="local-auth-switch">
           <!---->
@@ -87,7 +87,7 @@ exports[`Authentication > renders correctly 1`] = `
       <!---->
       <!---->
       <hr data-v-e055768f="" class="v-divider v-theme--light mt-4 mb-4" aria-orientation="horizontal" role="separator">
-      <div data-v-e055768f="" class="v-card-title text-center" data-test="sso-header">Single Sign-on (SSO)</div>
+      <div data-v-e055768f="" class="v-card-title text-center" data-test="sso-header"> Single Sign-on (SSO) </div>
       <div data-v-e055768f="" class="v-card-subtitle text-center" data-test="sso-subtitle"> Single Sign-On (SSO) simplifies access by enabling users to authenticate once and securely access multiple applications. </div>
       <div data-v-e055768f="" class="v-row">
         <div data-v-e055768f="" class="d-flex flex-column w-75"><span data-v-e055768f="">Assertion URL</span><span data-v-e055768f="" class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular"> The Assertion URL is the endpoint where the IdP will redirect users after successful authentication. Many IdPs require this URL to be registered in their list of allowed callback URLs. </span></div>
@@ -104,7 +104,7 @@ exports[`Authentication > renders correctly 1`] = `
       <div data-v-e055768f="" class="v-row"><span data-v-e055768f="" data-test="idp-entity-label">IdP Entity ID</span><span data-v-e055768f="" data-test="idp-entity-value">entity-id-example</span></div>
       <div data-v-e055768f="" class="v-row">
         <div data-v-e055768f="" class="d-flex flex-column w-75"><span data-v-e055768f="" data-test="certificate-label">SP Certificate</span><span data-v-e055768f="" class="text-subtitle-2 text-medium-emphasis text-truncate font-weight-regular"> The SP Certificate is an X.509 certificate that IdPs use to verify requests from ShellHub. Upload it to your IdP to validate the authenticity of authentication requests. </span></div><button data-v-e055768f="" type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="download-certificate-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-          <!----><span class="v-btn__content" data-no-activator="">Download SP Certificate</span>
+          <!----><span class="v-btn__content" data-no-activator=""> Download SP Certificate </span>
           <!---->
           <!---->
         </button>

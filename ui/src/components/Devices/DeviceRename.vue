@@ -1,19 +1,23 @@
 <template>
-  <v-list-item v-bind="$attrs" @click="open()">
+  <v-list-item
+    v-bind="$attrs"
+    @click="open()"
+  >
     <div class="d-flex align-center">
       <div class="mr-2">
-        <v-icon data-test="rename-icon"> mdi-pencil </v-icon>
+        <v-icon data-test="rename-icon">
+          mdi-pencil
+        </v-icon>
       </div>
 
-      <v-list-item-title data-test="rename-title"> Rename </v-list-item-title>
+      <v-list-item-title data-test="rename-title">
+        Rename
+      </v-list-item-title>
     </div>
   </v-list-item>
 
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @confirm="rename"
-    @cancel="close"
     title="Rename Device"
     icon="mdi-pencil"
     confirm-text="Rename"
@@ -21,6 +25,9 @@
     confirm-data-test="rename-btn"
     cancel-data-test="close-btn"
     data-test="device-rename-dialog"
+    @close="close"
+    @confirm="rename"
+    @cancel="close"
   >
     <div class="px-6 pt-6 pb-4">
       <v-text-field

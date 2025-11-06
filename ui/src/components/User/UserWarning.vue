@@ -110,19 +110,15 @@ const setShowDeviceChooser = async () => {
 };
 
 const namespaceHasBeenShown = (tenant: string) => (
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  JSON.parse(localStorage.getItem("namespacesWelcome"))[tenant]
-        !== undefined
-);
+  (JSON.parse(localStorage.getItem("namespacesWelcome") ?? "{}") as Record<string, boolean>)[tenant] !== undefined);
 
 const hasDevices = computed(() => (
   stats.value.registered_devices !== 0
-        || stats.value.pending_devices !== 0
-        || stats.value.rejected_devices !== 0
+  || stats.value.pending_devices !== 0
+  || stats.value.rejected_devices !== 0
 ));
 
-const showScreenWelcome = async () => {
+const showScreenWelcome = () => {
   let status = false;
 
   const tenantID = namespacesStore.currentNamespace.tenant_id;
@@ -177,6 +173,6 @@ onMounted(async () => {
   await showDialogs();
   await checkForNewAnnouncements();
 
-  if (showRecoverHelper.value === true) router.push("/settings");
+  if (showRecoverHelper.value === true) await router.push("/settings");
 });
 </script>

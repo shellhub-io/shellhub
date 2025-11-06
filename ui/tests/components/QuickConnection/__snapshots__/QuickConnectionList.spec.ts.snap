@@ -65,7 +65,7 @@ exports[`Quick Connection List > Renders the component 1`] = `
           <div data-v-7c65953f=""><span data-v-7c65953f="" class="v-chip v-theme--light text-grey-darken-2 v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" data-test="no-tags-chip"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
-            <div class="v-chip__content" data-no-activator="">No tags</div>
+            <div class="v-chip__content" data-no-activator=""> No tags </div>
             <!---->
             <!----></span>
           </div>

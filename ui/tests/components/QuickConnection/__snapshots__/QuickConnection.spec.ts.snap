@@ -9,7 +9,7 @@ exports[`Quick Connection > Renders the component 1`] = `
     <p data-v-136d2a2f="" class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1" data-test="quick-connect-instructions"> Press <span data-v-136d2a2f="" class="v-chip v-chip--label v-theme--light v-chip--density-compact v-chip--size-small v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
       <!---->
       <!---->
-    <div class="v-chip__content" data-no-activator="">Ctrl+K</div>
+    <div class="v-chip__content" data-no-activator=""> Ctrl+K </div>
     <!---->
     <!----></span> to Quick Connect! </p>
   </div>

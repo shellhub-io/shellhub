@@ -39,7 +39,7 @@ Sentry.init({
 });
 Sentry.setTag("project", "shellhub-ui");
 
-loadFonts()
+loadFonts();
 app.use(vuetify as Plugin);
 app.use(router);
 app.use(pinia);

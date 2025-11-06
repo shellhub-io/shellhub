@@ -11,9 +11,9 @@
     confirm-color="error"
     confirm-data-test="delete-user-btn"
     :confirm-disabled="hasNamespaces"
+    data-test="user-delete-dialog"
     @cancel="showDialog = false"
     @confirm="deleteAccount"
-    data-test="user-delete-dialog"
   >
     <v-alert
       v-if="hasNamespaces"
@@ -55,7 +55,7 @@ const deleteAccount = async () => {
   try {
     await authStore.deleteUser();
     snackbar.showSuccess("Account deleted successfully.");
-    router.push({ name: "Login" });
+    await router.push({ name: "Login" });
   } catch (error: unknown) {
     if (error instanceof AxiosError && error.response?.status === 403) {
       snackbar.showError("You cannot delete your account while you have active namespaces.");

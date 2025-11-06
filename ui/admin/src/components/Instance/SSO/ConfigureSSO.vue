@@ -19,9 +19,9 @@
         hide-details
       />
       <v-text-field
+        v-if="useMetadataUrl"
         v-model="IdPMetadataURL"
         density="compact"
-        v-if="useMetadataUrl"
         :error-messages="IdPMetadataURLError"
         class="mb-4 pt-0"
         label="IDP Metadata URL"
@@ -31,12 +31,15 @@
         required
         data-test="idp-metadata-url"
       />
-      <div v-else data-test="idp-manual-section">
+      <div
+        v-else
+        data-test="idp-manual-section"
+      >
         <v-alert
+          v-if="!isAtLeastOneUrlValid()"
           type="warning"
           class="mb-4"
           data-test="manual-config-info"
-          v-if="!isAtLeastOneUrlValid()"
         >
           You need to provide at least one of the following URLs: POST URL or Redirect URL.
         </v-alert>
@@ -71,7 +74,6 @@
         />
         <v-textarea
           :model-value="x509Certificate"
-          @update:model-value="handleCertificateChange"
           label="IdP X.509 Certificate"
           hint="Public certificate used by IdP to sign SAML responses. Found in IdP console or metadata"
           class="mb-3"
@@ -79,11 +81,14 @@
           required
           data-test="idp-x509-certificate"
           :error-messages="x509CertificateErrorMessage"
+          @update:model-value="handleCertificateChange"
         />
       </div>
       <v-expansion-panels elevation="0">
         <v-expansion-panel class="bg-background border">
-          <v-expansion-panel-title data-test="advanced-settings-title">Advanced Settings</v-expansion-panel-title>
+          <v-expansion-panel-title data-test="advanced-settings-title">
+            Advanced Settings
+          </v-expansion-panel-title>
           <v-expansion-panel-text>
             <v-data-table
               class="bg-background"
@@ -94,47 +99,53 @@
               hide-default-footer
               data-test="saml-mappings-table"
             >
-              <template v-slot:top>
+              <template #top>
                 <v-row class="justify-space-between align-center mb-3">
                   <h3>SAML Mappings</h3>
                   <v-btn
                     color="primary"
                     :disabled="mappings.length >= 2"
-                    @click="addMapping"
                     data-test="add-mapping-btn"
+                    @click="addMapping"
                   >
                     Add Mapping
                   </v-btn>
                 </v-row>
-                <p class="mb-3">Maps SAML attributes to user fields.</p>
+                <p class="mb-3">
+                  Maps SAML attributes to user fields.
+                </p>
               </template>
-              <template v-slot:headers>
+              <template #headers>
                 <tr>
-                  <th v-for="(header, i) in tableHeaders" :key="i" :class="`text-${header.align}`">
+                  <th
+                    v-for="(header, i) in tableHeaders"
+                    :key="i"
+                    :class="`text-${header.align}`"
+                  >
                     <span>{{ header.text }}</span>
                   </th>
                 </tr>
               </template>
-              <template v-slot:item="{ item, index }">
+              <template #item="{ item, index }">
                 <tr>
                   <td>
                     <v-select
                       :items="getSelectableKeys(index)"
                       hide-details
                       :model-value="item.key"
-                      @update:model-value="(newKey) => handleKeyChange(index, newKey)"
                       variant="outlined"
                       density="compact"
                       placeholder="Select Key"
                       :menu-props="{ closeOnContentClick: false }"
                       data-test="saml-mapping-key"
+                      @update:model-value="(newKey) => handleKeyChange(index, newKey)"
                     />
                   </td>
                   <td>
                     <v-text-field
+                      v-model="item.value"
                       class="py-4"
                       hide-details
-                      v-model="item.value"
                       placeholder="Value"
                       density="compact"
                       variant="outlined"
@@ -147,19 +158,23 @@
                       icon="mdi-delete"
                       size="small"
                       elevation="0"
-                      @click="removeMapping(index)"
                       data-test="remove-mapping-btn"
+                      @click="removeMapping(index)"
                     />
                   </td>
                 </tr>
               </template>
             </v-data-table>
-            <v-tooltip location="bottom" contained offset="-10">
-              <template v-slot:activator="{ props }">
+            <v-tooltip
+              location="bottom"
+              contained
+              offset="-10"
+            >
+              <template #activator="{ props }">
                 <v-checkbox
                   v-bind="props"
-                  class="mt-4"
                   v-model="signRequest"
+                  class="mt-4"
                   label="Sign authorization requests"
                   hide-details
                   data-test="sign-request-checkbox"
@@ -214,7 +229,7 @@ const tableHeaders = ref([
   { text: "Actions", align: "center" },
 ]);
 
-const mappingFields = {
+const mappingFields: Record<string, string> = {
   Email: "emailAddress",
   Name: "displayName",
 };
@@ -325,7 +340,7 @@ const hasErrors = computed((): boolean => {
 
 const normalizeCertificate = (c: string) => c.replace(
   /(-----BEGIN CERTIFICATE-----)[\s\S]*?(-----END CERTIFICATE-----)/,
-  (match, beginHeader, endHeader) => {
+  (match, beginHeader: string, endHeader: string) => {
     const content = match.slice(beginHeader.length, -endHeader.length);
     const normalizedContent = content.replace(/\s+/g, "\n").replace(/\n+/g, "\n").trim();
     return `${beginHeader}\n${normalizedContent}\n${endHeader}`;

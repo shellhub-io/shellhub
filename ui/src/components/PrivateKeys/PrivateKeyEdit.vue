@@ -1,19 +1,24 @@
 <template>
   <div>
-    <v-list-item @click="open" data-test="privatekey-edit-btn">
+    <v-list-item
+      data-test="privatekey-edit-btn"
+      @click="open"
+    >
       <div class="d-flex align-center">
-        <div data-test="privatekey-icon" class="mr-2">
+        <div
+          data-test="privatekey-icon"
+          class="mr-2"
+        >
           <v-icon>mdi-pencil</v-icon>
         </div>
-        <v-list-item-title data-test="privatekey-title">Edit</v-list-item-title>
+        <v-list-item-title data-test="privatekey-title">
+          Edit
+        </v-list-item-title>
       </div>
     </v-list-item>
 
     <FormDialog
       v-model="showDialog"
-      @close="close"
-      @cancel="close"
-      @confirm="edit"
       title="Edit Private Key"
       icon="mdi-key"
       confirm-text="Save"
@@ -22,6 +27,9 @@
       confirm-data-test="pk-edit-save-btn"
       cancel-data-test="pk-edit-cancel-btn"
       data-test="private-key-edit-dialog"
+      @close="close"
+      @cancel="close"
+      @confirm="edit"
     >
       <div class="px-6 pt-4">
         <v-text-field
@@ -125,7 +133,7 @@ const encryptionAwareValidator = (text: string): boolean => {
     ftcInvalidMessage.value = "Invalid private key data";
     return true;
   } catch (err) {
-    const { name } = (err as { name?: string });
+    const { name } = err as { name?: string };
     if (name === "KeyEncryptedError") {
       encryptedDetected.value = true;
       hasPassphrase.value = true;
@@ -238,7 +246,7 @@ const close = () => {
   showDialog.value = false;
 };
 
-const edit = async () => {
+const edit = () => {
   let hasError = false;
 
   if (!name.value || !name.value.trim()) {

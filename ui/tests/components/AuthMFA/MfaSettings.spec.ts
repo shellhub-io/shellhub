@@ -39,6 +39,7 @@ describe("MfaSettings", () => {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
       },
+      props: { modelValue: true },
     });
   });
 

@@ -1,11 +1,9 @@
 <template>
   <div>
-    <slot :copyText="handleCopy" />
+    <slot :copy-text="handleCopy" />
 
     <MessageDialog
       v-model="showDialog"
-      @close="showDialog = false"
-      @cancel="showDialog = false"
       title="Copying is not allowed"
       description="Clipboard access is only permitted on secure (HTTPS) or localhost origins.
        Please ensure your instance is secure to enable clipboard features."
@@ -15,6 +13,8 @@
       confirm-color="primary"
       confirm-data-test="copy-warning-ok-btn"
       data-test="copy-warning-dialog"
+      @close="showDialog = false"
+      @cancel="showDialog = false"
     />
   </div>
 </template>
@@ -67,7 +67,7 @@ onMounted(() => {
 
       if (!executed && e.ctrlKey && e.key === "c" && e.type === "keydown") {
         executed = true;
-        handleCopy(props.macro as string);
+        void handleCopy(props.macro as string);
         e.preventDefault();
         setTimeout(() => {
           executed = false;

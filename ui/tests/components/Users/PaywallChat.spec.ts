@@ -15,6 +15,7 @@ describe("PaywallChat", () => {
       global: {
         plugins: [vuetify, SnackbarPlugin],
       },
+      props: { modelValue: false },
       attachTo: document.body,
     });
   });

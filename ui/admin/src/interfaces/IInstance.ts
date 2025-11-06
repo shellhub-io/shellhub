@@ -8,7 +8,7 @@ type SAMLBinding = ({
   redirect: string,
 }) & {
   preferred?: "post" | "redirect",
-}
+};
 
 export interface IAdminUpdateSAML {
   enable: boolean;

@@ -13,22 +13,26 @@
     </v-slide-y-reverse-transition>
     <v-row>
       <v-col align="center">
-        <h3 data-test="title">Multi-factor Authentication</h3>
+        <h3 data-test="title">
+          Multi-factor Authentication
+        </h3>
       </v-col>
     </v-row>
     <v-row class="mb-2">
       <v-col align="center">
-        <h4 data-test="sub-title">If you lost your access to your MFA TOTP provider, please paste one of your recovery codes below</h4>
+        <h4 data-test="sub-title">
+          If you lost your access to your MFA TOTP provider, please paste one of your recovery codes below
+        </h4>
       </v-col>
     </v-row>
     <v-text-field
       v-model="recoveryCode"
       color="primary"
       required
-      @keyup.enter="recoveryCode ? recoverMfa() : false"
       label="Recovery Code"
       variant="outlined"
       data-test="recovery-code"
+      @keyup.enter="recoveryCode ? recoverMfa() : false"
     />
     <v-card-actions class="justify-center pa-0">
       <v-btn
@@ -47,10 +51,10 @@
         If you lost your recovery codes, we'll send you an e-mail to disable this account MFA,
         <v-btn
           class="text-caption pl-0 pb-1"
-          @click="requestMail()"
           variant="plain"
           color="primary"
           density="compact"
+          @click="requestMail()"
         >
           click here
         </v-btn>
@@ -75,7 +79,7 @@ const alertMessage = ref("");
 const recoverMfa = async () => {
   try {
     await authStore.recoverMfa(recoveryCode.value);
-    router.push("/");
+    await router.push("/");
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -97,7 +101,7 @@ const recoverMfa = async () => {
 const requestMail = async () => {
   try {
     await authStore.requestMfaReset();
-    router.push("/recover-mfa/mail-sucessful");
+    await router.push("/recover-mfa/mail-sucessful");
   } catch (error) {
     showAlert.value = true;
     if (axios.isAxiosError(error)) {

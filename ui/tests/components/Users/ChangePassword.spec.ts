@@ -49,6 +49,7 @@ describe("Change Password", () => {
         plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
       },
+      props: { modelValue: true },
     });
   });
 

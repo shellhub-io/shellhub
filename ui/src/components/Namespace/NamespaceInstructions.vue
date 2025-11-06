@@ -12,7 +12,10 @@
         with your account or join an existing one.
       </p>
 
-      <div v-if="isCommunity" id="cli-instructions">
+      <div
+        v-if="isCommunity"
+        id="cli-instructions"
+      >
         <p class="mt-3">
           The easiest way to configure a namespace is by using the <strong>CLI script</strong>.
           Once you add a namespace via CLI script, this dialog will be
@@ -21,7 +24,10 @@
       </div>
     </div>
     <template #footer>
-      <div v-if="isCommunity" class="d-flex align-center w-100 px-6">
+      <div
+        v-if="isCommunity"
+        class="d-flex align-center w-100 px-6"
+      >
         <span class="text-caption text-center">
           For more information, check out the
           <a
@@ -32,16 +38,22 @@
             data-test="openContentSecond-text"
           >
             ShellHub Administration Guide
-            <v-icon size="12" class="ml-1">mdi-open-in-new</v-icon>
+            <v-icon
+              size="12"
+              class="ml-1"
+            >mdi-open-in-new</v-icon>
           </a>
         </span>
       </div>
 
-      <v-card-actions v-else class="d-flex justify-end w-100">
+      <v-card-actions
+        v-else
+        class="d-flex justify-end w-100"
+      >
         <v-btn
           color="primary"
-          @click="showNamespaceAdd = true"
           data-test="save-btn"
+          @click="showNamespaceAdd = true"
         >
           Add Namespace
         </v-btn>
@@ -50,7 +62,7 @@
 
     <NamespaceAdd
       v-model="showNamespaceAdd"
-      enableSwitchIn
+      enable-switch-in
       data-test="namespace-add-component"
     />
   </WindowDialog>

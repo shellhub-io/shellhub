@@ -1,13 +1,16 @@
 <template>
-  <v-tooltip bottom anchor="bottom">
-    <template v-slot:activator="{ props }">
+  <v-tooltip
+    bottom
+    anchor="bottom"
+  >
+    <template #activator="{ props }">
       <v-icon
         tag="button"
         v-bind="props"
-        @click="showDialog = true"
         tabindex="0"
         data-test="open-dialog-icon"
         icon="mdi-account-lock-open"
+        @click="showDialog = true"
       />
     </template>
     <span>Enable Local Authentication</span>
@@ -23,8 +26,8 @@
       <v-window v-model="step">
         <v-window-item :value="1">
           <p>
-            This action will enable local authentication to this user and generate a new password.
-            Do you want to enable?
+            This action will enable local authentication to this user and
+            generate a new password. Do you want to enable?
           </p>
         </v-window-item>
         <v-window-item :value="2">
@@ -35,18 +38,24 @@
             text="Users are strongly encouraged to change this password after their first successful authentication"
             data-test="password-warning"
           />
-          <p class="text-justify">A new password has been generated for this user. Please copy and share it securely:</p>
-          <CopyWarning :macro="generatedPassword" copied-item="Password">
+          <p class="text-justify">
+            A new password has been generated for this user. Please copy and
+            share it securely:
+          </p>
+          <CopyWarning
+            :macro="generatedPassword"
+            copied-item="Password"
+          >
             <template #default="{ copyText }">
               <v-text-field
-                class="mt-2"
                 v-model="generatedPassword"
+                class="mt-2"
                 readonly
-                @click="copyText(generatedPassword)"
-                @keypress.enter="copyText(generatedPassword)"
                 prepend-inner-icon="mdi-key"
                 append-inner-icon="mdi-content-copy"
                 data-test="generated-password-field"
+                @click="copyText(generatedPassword)"
+                @keypress.enter="copyText(generatedPassword)"
               />
             </template>
           </CopyWarning>
@@ -56,9 +65,28 @@
 
     <template #footer>
       <v-spacer />
-      <v-btn v-if="step === 1" @click="close" data-test="cancel-btn">Cancel</v-btn>
-      <v-btn v-if="step === 1" color="primary" @click="proceedToSecondStep" data-test="enable-btn">Enable</v-btn>
-      <v-btn v-if="step === 2" @click="close" data-test="close-btn">Close</v-btn>
+      <v-btn
+        v-if="step === 1"
+        data-test="cancel-btn"
+        @click="close"
+      >
+        Cancel
+      </v-btn>
+      <v-btn
+        v-if="step === 1"
+        color="primary"
+        data-test="enable-btn"
+        @click="proceedToSecondStep"
+      >
+        Enable
+      </v-btn>
+      <v-btn
+        v-if="step === 2"
+        data-test="close-btn"
+        @click="close"
+      >
+        Close
+      </v-btn>
     </template>
   </WindowDialog>
 </template>
@@ -90,7 +118,9 @@ const proceedToSecondStep = async () => {
   try {
     generatedPassword.value = await usersStore.resetUserPassword(props.userId);
     step.value = 2;
-  } catch (error) { snackbar.showError("Failed to reset user password. Please try again."); }
+  } catch {
+    snackbar.showError("Failed to reset user password. Please try again.");
+  }
 };
 
 defineExpose({ showDialog, step });

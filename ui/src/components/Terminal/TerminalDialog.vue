@@ -9,8 +9,8 @@
 
   <Terminal
     v-else
-    v-model="showTerminalDialog"
     :key="terminalKey"
+    v-model="showTerminalDialog"
     :token="token"
     :private-key="privateKey ?? null"
     :passphrase="passphrase"
@@ -71,7 +71,7 @@ const connect = async (params: IConnectToTerminal) => {
       ...params,
     });
 
-    token.value = response.data.token;
+    token.value = (response.data as { token: string }).token;
     showLoginForm.value = false;
   } finally {
     isConnecting.value = false;

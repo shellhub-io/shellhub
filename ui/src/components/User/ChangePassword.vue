@@ -1,9 +1,6 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
-    @confirm="updatePassword"
     title="Change Password"
     icon="mdi-lock"
     confirm-text="Save Password"
@@ -12,6 +9,9 @@
     confirm-data-test="change-password-btn"
     cancel-data-test="close-btn"
     data-test="password-change-dialog"
+    @close="close"
+    @cancel="close"
+    @confirm="updatePassword"
   >
     <div class="px-6 pt-4">
       <v-text-field
@@ -28,7 +28,6 @@
 
       <v-text-field
         v-model="newPassword"
-        @update:model-value="handleNewPasswordChange"
         label="New password"
         :append-icon="showNewPassword ? 'mdi-eye' : 'mdi-eye-off'"
         :type="showNewPassword ? 'text' : 'password'"
@@ -36,12 +35,12 @@
         :error-messages="newPasswordError"
         required
         data-test="new-password-input"
+        @update:model-value="handleNewPasswordChange"
         @click:append="showNewPassword = !showNewPassword"
       />
 
       <v-text-field
         v-model="newPasswordConfirm"
-        @update:model-value="handleNewPasswordChange"
         label="Confirm new password"
         :append-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
         :type="showConfirmPassword ? 'text' : 'password'"
@@ -49,6 +48,7 @@
         :error-messages="newPasswordConfirmError"
         required
         data-test="confirm-new-password-input"
+        @update:model-value="handleNewPasswordChange"
         @click:append="showConfirmPassword = !showConfirmPassword"
       />
     </div>
@@ -69,7 +69,7 @@ import useUsersStore from "@/store/modules/users";
 const authStore = useAuthStore();
 const usersStore = useUsersStore();
 const snackbar = useSnackbar();
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 
 const {
   value: currentPassword,

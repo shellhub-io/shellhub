@@ -1,10 +1,10 @@
 <template>
   <v-btn
     class="text-none border rounded bg-v-theme-background"
-    @click="redirectToDeviceDetails()"
     prepend-icon="mdi-developer-board"
     density="default"
     size="default"
+    @click="redirectToDeviceDetails()"
   >
     {{ deviceName }}
   </v-btn>
@@ -20,7 +20,7 @@ const { deviceUid, deviceName } = defineProps<{
 
 const router = useRouter();
 
-const redirectToDeviceDetails = () => {
-  router.push({ name: "DeviceDetails", params: { identifier: deviceUid } });
+const redirectToDeviceDetails = async () => {
+  await router.push({ name: "DeviceDetails", params: { identifier: deviceUid } });
 };
 </script>

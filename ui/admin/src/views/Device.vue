@@ -3,15 +3,15 @@
     <h1>Devices</h1>
     <v-spacer />
     <v-text-field
+      v-model.trim="filter"
       class="w-50"
       label="Search by hostname"
       color="primary"
       single-line
       hide-details
-      v-model.trim="filter"
-      v-on:keyup="searchDevices"
       append-inner-icon="mdi-magnify"
       density="compact"
+      @keyup="searchDevices"
     />
     <v-spacer />
   </div>
@@ -29,7 +29,7 @@ const devicesStore = useDevicesStore();
 
 const filter = ref("");
 
-const searchDevices = () => {
+const searchDevices = async () => {
   let encodedFilter = "";
 
   if (filter.value) {
@@ -42,7 +42,7 @@ const searchDevices = () => {
   devicesStore.setFilter(encodedFilter);
 
   try {
-    devicesStore.fetchDeviceList({ filter: encodedFilter, page: 1 });
+    await devicesStore.fetchDeviceList({ filter: encodedFilter, page: 1 });
   } catch {
     snackbar.showError("Failed to fetch the devices.");
   }

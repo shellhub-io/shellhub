@@ -1,18 +1,24 @@
 <template>
   <DataTable
     v-model:page="page"
-    v-model:itemsPerPage="itemsPerPage"
+    v-model:items-per-page="itemsPerPage"
     :headers
     :items="connectors"
-    :totalCount="connectorCount"
+    :total-count="connectorCount"
     :loading
-    :itemsPerPageOptions="[10, 20, 50, 100]"
+    :items-per-page-options="[10, 20, 50, 100]"
     data-test="connector-list"
   >
-    <template v-slot:rows>
-      <tr v-for="(item, i) in connectors" :key="i">
+    <template #rows>
+      <tr
+        v-for="(item, i) in connectors"
+        :key="i"
+      >
         <td class="text-center">
-          <div data-test="status-connector" :class="(item.status.state === 'connected' ? 'enabled' : 'disabled') + ' text-center'" />
+          <div
+            data-test="status-connector"
+            :class="(item.status.state === 'connected' ? 'enabled' : 'disabled') + ' text-center'"
+          />
         </td>
         <td class="text-center">
           <div
@@ -21,10 +27,10 @@
           >
             <v-switch
               v-model="item.enable"
-              @click="toggleConnectorState(item)"
               inset
               hide-details
               :color="item.enable ? 'primary' : 'grey-darken-2'"
+              @click="toggleConnectorState(item)"
             />
           </div>
         </td>
@@ -33,12 +39,12 @@
             <template #default="{ copyText }">
               <v-chip data-test="ip-chip">
                 <v-tooltip location="bottom">
-                  <template v-slot:activator="{ props }">
+                  <template #activator="{ props }">
                     <span
                       v-bind="props"
-                      @click='copyText(`${item.address}:${item.port}`)'
-                      @keypress='copyText(`${item.address}:${item.port}`)'
                       class="hover-text"
+                      @click="copyText(`${item.address}:${item.port}`)"
+                      @keypress="copyText(`${item.address}:${item.port}`)"
                     >
                       {{ `${item.address}:${item.port}` }}
                     </span>
@@ -58,9 +64,16 @@
             :icon="item.secure ? 'mdi-lock-check' : 'mdi-lock-open-alert'"
           />
         </td>
-        <td class="text-center" data-test="menu-key-component">
-          <v-menu location="bottom" scrim eager>
-            <template v-slot:activator="{ props }">
+        <td
+          class="text-center"
+          data-test="menu-key-component"
+        >
+          <v-menu
+            location="bottom"
+            scrim
+            eager
+          >
+            <template #activator="{ props }">
               <v-btn
                 v-bind="props"
                 variant="plain"
@@ -71,7 +84,11 @@
                 data-test="connector-list-actions"
               />
             </template>
-            <v-list class="bg-v-theme-surface" lines="two" density="compact">
+            <v-list
+              class="bg-v-theme-surface"
+              lines="two"
+              density="compact"
+            >
               <v-list-item @click="redirectToDetails(item.uid)">
                 <div class="d-flex align-center">
                   <div class="mr-2">
@@ -88,15 +105,15 @@
                 class="text-center"
                 :disabled="canEditConnector"
               >
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <div v-bind="props">
                     <ConnectorEdit
-                      :ipAddress="item.address"
+                      :ip-address="item.address"
                       :secure="item.secure"
-                      :portAddress="item.port"
+                      :port-address="item.port"
                       :uid="item.uid"
-                      :hasAuthorization="canEditConnector"
-                      @update="refresh()"
+                      :has-authorization="canEditConnector"
+                      @update="getConnectors"
                     />
                   </div>
                 </template>
@@ -108,12 +125,12 @@
                 class="text-center"
                 :disabled="canRemoveConnector"
               >
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <div v-bind="props">
                     <ConnectorDelete
                       :uid="item.uid"
-                      :hasAuthorization="canRemoveConnector"
-                      @update="refresh()"
+                      :has-authorization="canRemoveConnector"
+                      @update="getConnectors"
                     />
                   </div>
                 </template>
@@ -197,16 +214,10 @@ onMounted(async () => {
   await getConnectors();
 });
 
-const refresh = async () => {
-  await getConnectors();
-};
+watch([page, itemsPerPage], async () => { await getConnectors(); });
 
-watch([page, itemsPerPage], async () => {
-  await getConnectors();
-});
-
-const redirectToDetails = (uid: string) => {
-  router.push({ name: "ConnectorDetails", params: { id: uid } });
+const redirectToDetails = async (uid: string) => {
+  await router.push({ name: "ConnectorDetails", params: { id: uid } });
 };
 
 const toggleConnectorState = async (item: IConnector) => {
@@ -217,14 +228,14 @@ const toggleConnectorState = async (item: IConnector) => {
     };
     await connectorStore.updateConnector(payload);
     snackbar.showSuccess("Connector updated successfully.");
-    refresh();
+    await getConnectors();
   } catch (error) {
     snackbar.showError("An error occurred while updating the connector.");
     handleError(error);
   }
 };
 
-defineExpose({ refresh, getConnectors, itemsPerPage });
+defineExpose({ getConnectors, itemsPerPage });
 </script>
 
 <style scoped>

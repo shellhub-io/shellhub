@@ -1,8 +1,8 @@
 <template>
   <v-list-item
     v-bind="$attrs"
-    @click="showDialog = true"
     :disabled="!hasAuthorization"
+    @click="showDialog = true"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
@@ -17,9 +17,6 @@
 
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @cancel="showDialog = false"
-    @confirm="deleteRecord"
     title="Are you sure?"
     description="You are going to delete the logs recorded for this session. After confirming this action cannot be undone."
     icon="mdi-playlist-remove"
@@ -30,6 +27,9 @@
     data-test="delete-session-dialog"
     confirm-data-test="delete-session-btn"
     cancel-data-test="cancel-delete-session-btn"
+    @close="showDialog = false"
+    @cancel="showDialog = false"
+    @confirm="deleteRecord"
   />
 </template>
 

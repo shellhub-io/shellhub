@@ -6,8 +6,8 @@ exports[`Welcome Fourth Screen > Renders the component 1`] = `
     <div class="v-avatar v-theme--light bg-success v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i class="mdi-check-circle mdi v-icon notranslate v-theme--light text-white" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
       <!----><span class="v-avatar__underlay"></span>
     </div>
-    <h2 class="text-h4 mb-2">All Set!</h2>
-    <p class="text-subtitle-1 text-medium-emphasis mb-2">Your device has been successfully added</p>
+    <h2 class="text-h4 mb-2"> All Set! </h2>
+    <p class="text-subtitle-1 text-medium-emphasis mb-2"> Your device has been successfully added </p>
   </div>
   <div class="v-card v-theme--light text-primary v-card--density-default v-card--variant-tonal pa-4 mb-6">
     <!---->
@@ -29,7 +29,7 @@ exports[`Welcome Fourth Screen > Renders the component 1`] = `
     <!---->
     <div class="d-flex align-start"><i class="mdi-party-popper mdi v-icon notranslate v-theme--light text-primary mr-3 mt-1" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
       <div>
-        <h4 class="text-h6 mb-2">Welcome to ShellHub!</h4>
+        <h4 class="text-h6 mb-2"> Welcome to ShellHub! </h4>
         <p class="text-body-1 mb-0"> You're now ready to take advantage of all the powerful tools ShellHub provides. Connect to your devices, monitor sessions, manage access, and much more! </p>
       </div>
     </div>
@@ -68,8 +68,8 @@ exports[`Welcome Fourth Screen > Renders the component 1`] = `
     <!----><span class="v-card__underlay"></span>
   </div>
   <div class="pa-5 text-center">
-    <h5 class="text-h5 mb-2 font-weight-bold" data-test="welcome-fourth-thanks">Thank you for choosing ShellHub!</h5>
-    <p class="text-body-1 mb-0">We're excited to have you on board. Happy connecting!</p>
+    <h5 class="text-h5 mb-2 font-weight-bold" data-test="welcome-fourth-thanks"> Thank you for choosing ShellHub! </h5>
+    <p class="text-body-1 mb-0"> We're excited to have you on board. Happy connecting! </p>
   </div>
 </div>"
 `;

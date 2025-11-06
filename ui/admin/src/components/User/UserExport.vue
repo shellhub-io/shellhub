@@ -1,11 +1,11 @@
 <template>
   <v-btn
     class="mr-6"
-    @click="showDialog = true"
     v-bind="$attrs"
     color="primary"
     variant="outlined"
     text="Export CSV"
+    @click="showDialog = true"
   />
 
   <FormDialog
@@ -22,9 +22,20 @@
     @close="closeDialog"
   >
     <v-card-text class="pa-6">
-      <v-radio-group v-model="selectedFilter" hide-details>
-        <v-radio class="mb-1" label="Users with more than:" :value="FilterOptions.MoreThan" />
-        <v-radio class="mb-3" label="Users with exactly:" :value="FilterOptions.Exactly" />
+      <v-radio-group
+        v-model="selectedFilter"
+        hide-details
+      >
+        <v-radio
+          class="mb-1"
+          label="Users with more than:"
+          :value="FilterOptions.MoreThan"
+        />
+        <v-radio
+          class="mb-3"
+          label="Users with exactly:"
+          :value="FilterOptions.Exactly"
+        />
       </v-radio-group>
       <v-text-field
         v-model.number="numberOfNamespaces"

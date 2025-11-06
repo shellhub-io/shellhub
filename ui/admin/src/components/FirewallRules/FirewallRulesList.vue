@@ -1,16 +1,19 @@
 <template>
   <DataTable
+    v-model:items-per-page="itemsPerPage"
+    v-model:page="page"
     :headers
     :items="firewallRules"
-    v-model:itemsPerPage="itemsPerPage"
-    v-model:page="page"
     :loading
-    :totalCount="firewallRulesCount"
-    :itemsPerPageOptions="[10, 20, 50, 100]"
+    :total-count="firewallRulesCount"
+    :items-per-page-options="[10, 20, 50, 100]"
     data-test="firewall-rules-list"
   >
-    <template v-slot:rows>
-      <tr v-for="(firewallRule, index) in firewallRules" :key="index">
+    <template #rows>
+      <tr
+        v-for="firewallRule in firewallRules"
+        :key="firewallRule.id"
+      >
         <td>
           {{ firewallRule.tenant_id }}
         </td>
@@ -55,16 +58,19 @@
           </div>
         </td>
         <td>
-          <v-tooltip bottom anchor="bottom">
-            <template v-slot:activator="{ props }">
+          <v-tooltip
+            bottom
+            anchor="bottom"
+          >
+            <template #activator="{ props }">
               <v-icon
                 tag="a"
                 dark
                 v-bind="props"
-                @click="goToFirewallRule(firewallRule.id)"
-                @keypress.enter="goToFirewallRule(firewallRule.id)"
                 tabindex="0"
                 icon="mdi-information"
+                @click="goToFirewallRule(firewallRule.id)"
+                @keypress.enter="goToFirewallRule(firewallRule.id)"
               />
             </template>
             <span>Details</span>

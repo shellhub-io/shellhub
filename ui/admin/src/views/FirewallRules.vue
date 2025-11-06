@@ -1,5 +1,7 @@
 <template>
-  <h1 class="mb-2">Firewall Rules</h1>
+  <h1 class="mb-2">
+    Firewall Rules
+  </h1>
   <FirewallRulesList />
 </template>
 

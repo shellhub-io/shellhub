@@ -18,6 +18,7 @@ describe("Device Chooser List", () => {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
       },
+      props: { isSelectable: false },
     });
   });
 

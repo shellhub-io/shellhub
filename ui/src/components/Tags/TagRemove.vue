@@ -1,9 +1,9 @@
 <template>
   <v-list-item
     v-bind="$attrs"
-    @click="showDialog = true"
     :disabled="!hasAuthorization"
     data-test="open-tag-remove"
+    @click="showDialog = true"
   >
     <div class="d-flex align-center">
       <div class="mr-2">
@@ -18,9 +18,6 @@
 
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @cancel="showDialog = false"
-    @confirm="remove"
     title="Are you sure?"
     description="You are about to remove this tag. After confirming this action cannot be redone."
     icon="mdi-alert"
@@ -31,6 +28,9 @@
     confirm-data-test="confirm-btn"
     cancel-data-test="close-btn"
     data-test="delete-tag-dialog"
+    @close="showDialog = false"
+    @cancel="showDialog = false"
+    @confirm="remove"
   />
 </template>
 

@@ -1,9 +1,6 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    @close="close"
-    @confirm="updateAnnouncement"
-    @cancel="close"
     title="Change Connection Announcement"
     icon="mdi-bullhorn"
     confirm-text="Save Announcement"
@@ -12,6 +9,9 @@
     cancel-text="Cancel"
     confirm-data-test="change-connection-btn"
     cancel-data-test="close-btn"
+    @close="close"
+    @confirm="updateAnnouncement"
+    @cancel="close"
   >
     <v-card-text class="pa-6">
       <v-textarea
@@ -46,7 +46,7 @@ const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const namespace = computed(() => namespacesStore.currentNamespace);
 const { tenantId } = authStore;
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const emit = defineEmits(["update"]);
 const isLoading = ref(false);
 
@@ -56,16 +56,15 @@ const {
   setErrors: setConnectionAnnouncementError,
 } = useField<string>(
   "Connection Announcement",
-  yup
-    .string()
-    .max(4096, "Your message should be 1-4096 characters long"),
+  yup.string().max(4096, "Your message should be 1-4096 characters long"),
   {
     initialValue: "",
   },
 );
 
 const close = () => {
-  connectionAnnouncement.value = namespace.value.settings.connection_announcement || "";
+  connectionAnnouncement.value
+    = namespace.value.settings.connection_announcement || "";
   showDialog.value = false;
 };
 
@@ -73,7 +72,8 @@ onMounted(async () => {
   if (!authStore.isLoggedIn) return;
   try {
     await namespacesStore.fetchNamespace(tenantId);
-    connectionAnnouncement.value = namespace.value.settings.connection_announcement || "";
+    connectionAnnouncement.value
+      = namespace.value.settings.connection_announcement || "";
   } catch (error) {
     handleError(error);
   }
@@ -86,12 +86,16 @@ const handleUpdateAnnouncementError = (error: unknown): void => {
         setConnectionAnnouncementError("This message is not valid");
         break;
       default:
-        snackbar.showError("An error occurred while updating the connection announcement.");
+        snackbar.showError(
+          "An error occurred while updating the connection announcement.",
+        );
         handleError(error);
     }
   }
 
-  snackbar.showError("An error occurred while updating the connection announcement.");
+  snackbar.showError(
+    "An error occurred while updating the connection announcement.",
+  );
   handleError(error);
 };
 

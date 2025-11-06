@@ -1,9 +1,6 @@
 <template>
   <MessageDialog
     v-model="showDialog"
-    @close="showDialog = false"
-    @confirm="remove"
-    @cancel="showDialog = false"
     title="Namespace Deletion"
     icon="mdi-delete-alert"
     icon-color="error"
@@ -14,23 +11,33 @@
     cancel-text="Close"
     confirm-data-test="remove-btn"
     cancel-data-test="close-btn"
+    @close="showDialog = false"
+    @confirm="remove"
+    @cancel="showDialog = false"
   >
     <div
       v-if="isBillingActive"
       data-test="content-subscription-text"
     >
       <p class="mb-2">
-        To ensure the integrity of your namespace,
-        we have implemented a restriction that prevents its deletion while you have an active subscription or an unpaid invoice.
+        To ensure the integrity of your namespace, we have implemented a
+        restriction that prevents its deletion while you have an active
+        subscription or an unpaid invoice.
       </p>
       <p class="mb-2">
-        Kindly note that in order to proceed with the deletion of your namespace,
-        please ensure that there are no active subscriptions associated with it, and all outstanding invoices are settled.
+        Kindly note that in order to proceed with the deletion of your
+        namespace, please ensure that there are no active subscriptions
+        associated with it, and all outstanding invoices are settled.
       </p>
     </div>
 
-    <p data-test="content-text" v-else>
-      This action cannot be undone. This will permanently delete <strong>{{ displayOnlyTenCharacters(name) }}</strong> and its related data.
+    <p
+      v-else
+      data-test="content-text"
+    >
+      This action cannot be undone. This will permanently delete
+      <strong>{{ displayOnlyTenCharacters(name) }}</strong> and its related
+      data.
     </p>
   </MessageDialog>
 </template>
@@ -57,7 +64,7 @@ const billingStore = useBillingStore();
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const router = useRouter();
-const showDialog = defineModel({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 const isLoading = ref(false);
 const { name } = namespacesStore.currentNamespace;
 const tenant = computed(() => props.tenant);

@@ -2,7 +2,11 @@
   <div class="d-flex pa-0 align-center">
     <h1>Device Details</h1>
   </div>
-  <v-card class="mt-2 border rounded bg-background" elevation="0" v-if="device.uid">
+  <v-card
+    v-if="device.uid"
+    class="mt-2 border rounded bg-background"
+    elevation="0"
+  >
     <v-card-title class="pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
       <div class="d-flex align-center ml-2">
         <TerminalConnectButton
@@ -10,14 +14,18 @@
           :device-uid="device.uid"
           :device-name="device.name"
           :online="device.online"
-          :sshid="sshidAddress(device)"
+          :sshid="getSSHID(device)"
           data-test="connect-btn"
         />
         <span class="ml-6">{{ device.name }}</span>
       </div>
 
-      <v-menu location="bottom" scrim eager>
-        <template v-slot:activator="{ props }">
+      <v-menu
+        location="bottom"
+        scrim
+        eager
+      >
+        <template #activator="{ props }">
           <v-btn
             v-bind="props"
             variant="plain"
@@ -27,7 +35,11 @@
             icon="mdi-format-list-bulleted"
           />
         </template>
-        <v-list class="bg-v-theme-surface" lines="two" density="compact">
+        <v-list
+          class="bg-v-theme-surface"
+          lines="two"
+          density="compact"
+        >
           <DeviceRename
             :uid="device.uid"
             :name="device.name"
@@ -37,12 +49,15 @@
           <div v-if="envVariables.hasWebEndpoints && envVariables.isEnterprise">
             <v-list-item
               v-bind="$attrs"
-              @click="showWebEndpointCreate = true"
               data-test="tunnel-create-dialog-btn"
               :disabled="!canCreateWebEndpoint"
+              @click="showWebEndpointCreate = true"
             >
               <div class="d-flex align-center">
-                <div class="mr-2" data-test="create-icon">
+                <div
+                  class="mr-2"
+                  data-test="create-icon"
+                >
                   <v-icon>mdi-web-plus</v-icon>
                 </div>
                 <v-list-item-title> Create Web Endpoint </v-list-item-title>
@@ -54,8 +69,8 @@
             :device-uid="device.uid"
             :tags-list="device.tags"
             :has-authorization="canUpdateDeviceTag"
-            @update="refreshDevices"
             data-test="tag-form-update-component"
+            @update="refreshDevices"
           />
 
           <DeviceDelete
@@ -63,8 +78,8 @@
             :has-authorization="true"
             :redirect="true"
             :uid="device.uid"
-            @update="refreshDevices"
             data-test="device-delete-component"
+            @update="refreshDevices"
           />
         </v-list>
       </v-menu>
@@ -74,34 +89,69 @@
 
     <v-card-text class="pa-4 pt-0">
       <v-row class="py-3">
-        <v-col cols="12" md="6" class="my-0 py-0">
+        <v-col
+          cols="12"
+          md="6"
+          class="my-0 py-0"
+        >
           <div data-test="device-uid-field">
-            <div class="item-title">UID:</div>
-            <p class="text-truncate">{{ device.uid }}</p>
+            <div class="item-title">
+              UID:
+            </div>
+            <p class="text-truncate">
+              {{ device.uid }}
+            </p>
           </div>
 
-          <div v-if="device.identity" data-test="device-mac-field">
-            <div class="item-title">MAC:</div>
+          <div
+            v-if="device.identity"
+            data-test="device-mac-field"
+          >
+            <div class="item-title">
+              MAC:
+            </div>
             <code>{{ device.identity.mac }}</code>
           </div>
 
-          <div v-if="device.info" data-test="device-pretty-name-field">
-            <div class="item-title">Operating System:</div>
+          <div
+            v-if="device.info"
+            data-test="device-pretty-name-field"
+          >
+            <div class="item-title">
+              Operating System:
+            </div>
             <div>
-              <DeviceIcon :icon="device.info.id" class="mr-2" />
+              <DeviceIcon
+                :icon="device.info.id"
+                class="mr-2"
+              />
               <span>{{ device.info.pretty_name }}</span>
             </div>
           </div>
         </v-col>
 
-        <v-col cols="12" md="6" class="my-0 py-0">
-          <div v-if="device.info" data-test="device-version-field">
-            <div class="item-title">Agent Version:</div>
+        <v-col
+          cols="12"
+          md="6"
+          class="my-0 py-0"
+        >
+          <div
+            v-if="device.info"
+            data-test="device-version-field"
+          >
+            <div class="item-title">
+              Agent Version:
+            </div>
             <p>{{ device.info.version }}</p>
           </div>
 
-          <div v-if="device.tags?.length" data-test="device-tags-field">
-            <div class="item-title">Tags:</div>
+          <div
+            v-if="device.tags?.length"
+            data-test="device-tags-field"
+          >
+            <div class="item-title">
+              Tags:
+            </div>
             <div v-if="device.tags">
               <v-tooltip
                 v-for="(tag, index) in device.tags"
@@ -110,7 +160,11 @@
                 :disabled="!showTag(tag.name)"
               >
                 <template #activator="{ props }">
-                  <v-chip size="small" v-bind="props" class="mr-2">
+                  <v-chip
+                    size="small"
+                    v-bind="props"
+                    class="mr-2"
+                  >
                     {{ displayOnlyTenCharacters(tag.name) }}
                   </v-chip>
                 </template>
@@ -123,21 +177,28 @@
           </div>
 
           <div data-test="device-last-seen-field">
-            <div class="item-title">Last Seen:</div>
+            <div class="item-title">
+              Last Seen:
+            </div>
             <p>{{ formatFullDateTime(device.last_seen) }}</p>
           </div>
         </v-col>
       </v-row>
     </v-card-text>
   </v-card>
-  <v-card class="mt-2 pa-4 bg-v-theme-surface" v-else>
-    <p class="text-center">Something is wrong, try again !</p>
+  <v-card
+    v-else
+    class="mt-2 pa-4 bg-v-theme-surface"
+  >
+    <p class="text-center">
+      Something is wrong, try again !
+    </p>
   </v-card>
 
   <WebEndpointCreate
     v-model="showWebEndpointCreate"
     :uid="device.uid"
-    :useDevicesList="false"
+    :use-devices-list="false"
   />
 </template>
 
@@ -158,6 +219,7 @@ import { envVariables } from "@/envVariables";
 import useSnackbar from "@/helpers/snackbar";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
 import useDevicesStore from "@/store/modules/devices";
+import { IDevice } from "@/interfaces/IDevice";
 
 type DeviceResolver = "uid" | "hostname";
 
@@ -170,7 +232,7 @@ const device = computed(() => devicesStore.device);
 const deviceUid = computed(() => device.value.uid);
 const showWebEndpointCreate = ref(false);
 
-const sshidAddress = (item) => `${item.namespace}.${item.name}@${window.location.hostname}`;
+const getSSHID = (item: IDevice) => `${item.namespace}.${item.name}@${window.location.hostname}`;
 
 onMounted(async () => {
   try {

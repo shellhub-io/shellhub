@@ -1,8 +1,18 @@
 <template>
   <v-container fluid>
-    <NamespaceDelete :tenant="tenantId" @billing-in-debt="billingInDebt = true" v-model="namespaceDelete" />
-    <NamespaceLeave :tenant="tenantId" v-model="namespaceLeave" />
-    <NamespaceEdit v-model="editAnnouncement" @update="getNamespace" />
+    <NamespaceDelete
+      v-model="namespaceDelete"
+      :tenant="tenantId"
+      @billing-in-debt="billingInDebt = true"
+    />
+    <NamespaceLeave
+      v-model="namespaceLeave"
+      :tenant="tenantId"
+    />
+    <NamespaceEdit
+      v-model="editAnnouncement"
+      @update="getNamespace"
+    />
     <v-card
       variant="flat"
       class="bg-transparent"
@@ -13,38 +23,46 @@
           class="pa-0"
           data-test="card-header"
         >
-          <template v-slot:title>
-            <h1 data-test="card-title">Namespace</h1>
+          <template #title>
+            <h1 data-test="card-title">
+              Namespace
+            </h1>
           </template>
-          <template v-slot:subtitle>
+          <template #subtitle>
             <span data-test="card-subtitle">Manage the namespace settings</span>
           </template>
-          <template v-slot:append>
+          <template #append>
             <div class="mr-4">
               <v-btn
                 v-if="!editDataStatus"
-                @click="editDataStatus = true"
                 :disabled="!canRenameNamespace"
                 color="primary"
                 variant="text"
                 class="bg-secondary border"
                 data-test="edit-namespace-btn"
-              >Edit Namespace</v-btn>
+                @click="editDataStatus = true"
+              >
+                Edit Namespace
+              </v-btn>
               <template v-else>
                 <v-btn
-                  @click="cancel"
                   color="primary"
                   variant="text"
                   class="mr-2"
                   data-test="cancel-edit-btn"
-                >Cancel</v-btn>
+                  @click="cancel"
+                >
+                  Cancel
+                </v-btn>
                 <v-btn
-                  @click="updateName"
                   color="primary"
                   variant="flat"
                   data-test="save-changes-btn"
                   :disabled="!!nameError"
-                >Save Changes</v-btn>
+                  @click="updateName"
+                >
+                  Save Changes
+                </v-btn>
               </template>
             </div>
           </template>
@@ -57,12 +75,20 @@
           class="bg-background pa-0"
           data-test="profile-details-list"
         >
-          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" data-test="profile-details-item">
+          <v-card-item
+            style="grid-template-columns: max-content 1.5fr 2fr"
+            data-test="profile-details-item"
+          >
             <template #prepend>
-              <v-icon data-test="name-icon">mdi-cloud-braces</v-icon>
+              <v-icon data-test="name-icon">
+                mdi-cloud-braces
+              </v-icon>
             </template>
             <template #title>
-              <span class="text-subtitle-1" data-test="name-title">Name</span>
+              <span
+                class="text-subtitle-1"
+                data-test="name-title"
+              >Name</span>
             </template>
             <template #append>
               <v-text-field
@@ -79,12 +105,20 @@
             </template>
           </v-card-item>
           <v-divider />
-          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" data-test="tenant-details-item">
+          <v-card-item
+            style="grid-template-columns: max-content 1.5fr 2fr"
+            data-test="tenant-details-item"
+          >
             <template #prepend>
-              <v-icon data-test="tenant-icon">mdi-identifier</v-icon>
+              <v-icon data-test="tenant-icon">
+                mdi-identifier
+              </v-icon>
             </template>
             <template #title>
-              <span class="text-subtitle-1" data-test="tenant-title">Tenant ID</span>
+              <span
+                class="text-subtitle-1"
+                data-test="tenant-title"
+              >Tenant ID</span>
             </template>
             <template #append>
               <v-chip class="ml-1">
@@ -94,10 +128,10 @@
                       <template #default="{ copyText }">
                         <span
                           v-bind="props"
-                          @click="copyText(tenantId)"
-                          @keypress="copyText(tenantId)"
                           class="hover-text"
                           data-test="tenant-copy-btn"
+                          @click="copyText(tenantId)"
+                          @keypress="copyText(tenantId)"
                         >
                           {{ tenantId }}
                           <v-icon icon="mdi-content-copy" />
@@ -111,10 +145,22 @@
             </template>
           </v-card-item>
           <v-divider />
-          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" data-test="announcement-item">
+          <v-card-item
+            style="grid-template-columns: max-content 1.5fr 2fr"
+            data-test="announcement-item"
+          >
             <template #title>
-              <v-icon data-test="announcement-icon" size="18" class="pl-1 mr-3">mdi-bullhorn-variant-outline</v-icon>
-              <span class="text-subtitle-1" data-test="announcement-title">Connection Announcement</span>
+              <v-icon
+                data-test="announcement-icon"
+                size="18"
+                class="pl-1 mr-3"
+              >
+                mdi-bullhorn-variant-outline
+              </v-icon>
+              <span
+                class="text-subtitle-1"
+                data-test="announcement-title"
+              >Connection Announcement</span>
             </template>
             <v-card-text class="pt-1 pl-0">
               <span data-test="announcement-subtitle">A connection announcement is a custom message written
@@ -126,9 +172,10 @@
                 class="ml-4"
                 variant="text"
                 color="primary"
-                @click="editAnnouncement = true"
                 data-test="edit-announcement-btn"
-              >Edit Announcement
+                @click="editAnnouncement = true"
+              >
+                Edit Announcement
               </v-btn>
             </template>
           </v-card-item>
@@ -140,9 +187,21 @@
               data-test="record-item"
             >
               <template #title>
-                <v-icon data-test="record-icon" size="18" class="pl-1 mr-3">mdi-play-box-outline</v-icon>
-                <span class="text-subtitle-1" data-test="record-title">Session Record</span>
-                <v-card-text class="pl-0 pt-1" data-test="record-description">
+                <v-icon
+                  data-test="record-icon"
+                  size="18"
+                  class="pl-1 mr-3"
+                >
+                  mdi-play-box-outline
+                </v-icon>
+                <span
+                  class="text-subtitle-1"
+                  data-test="record-title"
+                >Session Record</span>
+                <v-card-text
+                  class="pl-0 pt-1"
+                  data-test="record-description"
+                >
                   Session record is a feature that allows you to check logged activity
                   when connecting to a device.
                 </v-card-text>
@@ -150,21 +209,44 @@
             </v-card>
             <v-col class="d-flex align-center justify-end bg-background">
               <SettingSessionRecording
-                :tenantId
+                :tenant-id
                 data-test="session-recording-setting-component"
               />
             </v-col>
           </v-row>
           <v-divider />
-          <v-card-item style="grid-template-columns: max-content 1.5fr 2fr" data-test="delete-leave-item">
+          <v-card-item
+            style="grid-template-columns: max-content 1.5fr 2fr"
+            data-test="delete-leave-item"
+          >
             <template #title>
-              <v-icon data-test="delete-leave-icon" size="18" class="pl-1 mr-3">mdi-delete</v-icon>
-              <span class="text-subtitle-1" data-test="delete-leave-title" v-if="isOwner">Delete Namespace</span>
-              <span class="text-subtitle-1" data-test="delete-leave-title" v-else>Leave Namespace</span>
+              <v-icon
+                data-test="delete-leave-icon"
+                size="18"
+                class="pl-1 mr-3"
+              >
+                mdi-delete
+              </v-icon>
+              <span
+                v-if="isOwner"
+                class="text-subtitle-1"
+                data-test="delete-leave-title"
+              >Delete Namespace</span>
+              <span
+                v-else
+                class="text-subtitle-1"
+                data-test="delete-leave-title"
+              >Leave Namespace</span>
             </template>
             <v-card-text class="pt-1 pl-0">
-              <span v-if="isOwner" data-test="delete-description">After deleting a namespace, there is no going back. Be sure. </span>
-              <span v-else data-test="leave-description">After leaving a namespace, you will need to be invited again to access it.</span>
+              <span
+                v-if="isOwner"
+                data-test="delete-description"
+              >After deleting a namespace, there is no going back. Be sure. </span>
+              <span
+                v-else
+                data-test="leave-description"
+              >After leaving a namespace, you will need to be invited again to access it.</span>
             </v-card-text>
             <template #append>
               <v-btn
@@ -172,12 +254,21 @@
                 class="ml-4"
                 variant="text"
                 color="error"
-                @click="namespaceDelete = true"
                 :disabled="billingInDebt"
                 data-test="delete-namespace-btn"
-              >Delete
+                @click="namespaceDelete = true"
+              >
+                Delete
               </v-btn>
-              <v-btn v-else variant="text" color="error" @click="namespaceLeave = true" data-test="leave-namespace-btn">Leave</v-btn>
+              <v-btn
+                v-else
+                variant="text"
+                color="error"
+                data-test="leave-namespace-btn"
+                @click="namespaceLeave = true"
+              >
+                Leave
+              </v-btn>
             </template>
           </v-card-item>
         </v-list>

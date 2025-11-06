@@ -1,8 +1,10 @@
 <template>
-  <v-tooltip bottom anchor="bottom">
-    <template v-slot:activator="{ props }">
+  <v-tooltip
+    bottom
+    anchor="bottom"
+  >
+    <template #activator="{ props }">
       <v-icon
-        @click="showDialog = true"
         tag="button"
         dark
         v-bind="props"
@@ -10,6 +12,7 @@
         aria-label="Edit Namespace"
         data-test="dialog-btn"
         icon="mdi-pencil"
+        @click="showDialog = true"
       />
     </template>
     <span>Edit</span>
@@ -42,7 +45,7 @@
         variant="outlined"
         density="comfortable"
         inset
-        controlVariant="hidden"
+        control-variant="hidden"
         :error-messages="maxDevicesError"
         data-test="maxDevices-text"
       />
@@ -72,25 +75,39 @@ const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
 const showDialog = ref(false);
 
-const { value: name, errorMessage: nameError, resetField: resetName } = useField<string | undefined>(
-  "name",
-  yup.string().required(),
-  { initialValue: props.namespace.name },
-);
+const {
+  value: name,
+  errorMessage: nameError,
+  resetField: resetName,
+} = useField<string | undefined>("name", yup.string().required(), {
+  initialValue: props.namespace.name,
+});
 
-const { value: maxDevices, errorMessage: maxDevicesError, resetField: resetMaxDevices } = useField<number | undefined>(
+const {
+  value: maxDevices,
+  errorMessage: maxDevicesError,
+  resetField: resetMaxDevices,
+} = useField<number | undefined>(
   "maxDevices",
-  yup.number().integer().required().min(-1, "Maximum devices must be -1 (unlimited) or greater"),
+  yup
+    .number()
+    .integer()
+    .required()
+    .min(-1, "Maximum devices must be -1 (unlimited) or greater"),
   { initialValue: props.namespace.max_devices },
 );
 
-const { value: sessionRecord, errorMessage: sessionRecordError, resetField: resetSessionRecord } = useField<boolean>(
-  "sessionRecord",
-  yup.boolean(),
-  { initialValue: props.namespace.settings.session_record || false },
-);
+const {
+  value: sessionRecord,
+  errorMessage: sessionRecordError,
+  resetField: resetSessionRecord,
+} = useField<boolean>("sessionRecord", yup.boolean(), {
+  initialValue: props.namespace.settings.session_record || false,
+});
 
-const hasErrors = computed(() => nameError.value || maxDevicesError.value || sessionRecordError.value);
+const hasErrors = computed(
+  () => nameError.value || maxDevicesError.value || sessionRecordError.value,
+);
 
 const closeDialog = () => {
   showDialog.value = false;
@@ -103,7 +120,7 @@ const submitForm = async () => {
   if (hasErrors.value) return;
   try {
     await namespacesStore.updateNamespace({
-      ...props.namespace as IAdminNamespace,
+      ...props.namespace,
       name: name.value as string,
       max_devices: Number(maxDevices.value),
       settings: { session_record: sessionRecord.value },
@@ -111,7 +128,7 @@ const submitForm = async () => {
     await namespacesStore.fetchNamespaceList();
     snackbar.showSuccess("Namespace updated successfully.");
     showDialog.value = false;
-  } catch (error) {
+  } catch {
     snackbar.showError("Failed to update namespace.");
   }
 };

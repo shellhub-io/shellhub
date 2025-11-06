@@ -2,8 +2,6 @@
   <MessageDialog
     v-if="canSubscribeToBilling"
     v-model="showDialog"
-    @close="close"
-    @cancel="close"
     title="You already have a device using the same name"
     :description="`${duplicatedDeviceName} name is already taken by another accepted device, please choose another name.`"
     icon="mdi-alert"
@@ -12,6 +10,8 @@
     cancel-data-test="close-btn"
     :show-footer="true"
     data-test="device-accept-warning-dialog"
+    @close="close"
+    @cancel="close"
   />
 </template>
 

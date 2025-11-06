@@ -3,36 +3,64 @@
     <!-- Namespace Info Card -->
     <v-row>
       <v-col cols="12">
-        <v-card class="bg-transparent mb-6" elevation="0" rounded="0">
+        <v-card
+          class="bg-transparent mb-6"
+          elevation="0"
+          rounded="0"
+        >
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="d-flex align-start">
-                <v-avatar color="primary" size="48" class="mr-4">
-                  <v-icon size="32">mdi-home</v-icon>
+                <v-avatar
+                  color="primary"
+                  size="48"
+                  class="mr-4"
+                >
+                  <v-icon size="32">
+                    mdi-home
+                  </v-icon>
                 </v-avatar>
                 <div>
-                  <div class="text-overline text-medium-emphasis mb-1">Home</div>
-                  <div class="text-h5 font-weight-bold mb-2">{{ namespace.name }}</div>
+                  <div class="text-overline text-medium-emphasis mb-1">
+                    Home
+                  </div>
+                  <div class="text-h5 font-weight-bold mb-2">
+                    {{ namespace.name }}
+                  </div>
                   <div class="text-body-2 text-medium-emphasis">
                     This is your active namespace. All devices, sessions and configurations are isolated within this namespace.
                   </div>
                 </div>
               </div>
             </v-col>
-            <v-col cols="12" md="6">
-              <v-card class="pa-4" variant="tonal">
-                <div class="text-overline text-medium-emphasis mb-2">TENANT ID</div>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-card
+                class="pa-4"
+                variant="tonal"
+              >
+                <div class="text-overline text-medium-emphasis mb-2">
+                  TENANT ID
+                </div>
                 <div class="d-flex align-center justify-space-between">
-                  <code class="text-primary" data-test="tenant-info-text">{{ namespace.tenant_id }}</code>
+                  <code
+                    class="text-primary"
+                    data-test="tenant-info-text"
+                  >{{ namespace.tenant_id }}</code>
                   <CopyWarning :copied-item="'Tenant ID'">
                     <template #default="{ copyText }">
                       <v-btn
                         data-test="copy-tenant-btn"
-                        @click="copyText(namespace.tenant_id)"
                         color="primary"
                         variant="elevated"
                         size="small"
                         prepend-icon="mdi-content-copy"
+                        @click="copyText(namespace.tenant_id)"
                       >
                         Copy
                       </v-btn>
@@ -51,14 +79,24 @@
 
     <!-- Devices Section -->
     <v-row>
-      <v-col cols="12" class="d-flex align-center mb-2">
-        <v-icon class="mr-2">mdi-devices</v-icon>
-        <h2 class="text-h6">Devices</h2>
+      <v-col
+        cols="12"
+        class="d-flex align-center mb-2"
+      >
+        <v-icon class="mr-2">
+          mdi-devices
+        </v-icon>
+        <h2 class="text-h6">
+          Devices
+        </h2>
       </v-col>
     </v-row>
 
     <v-row>
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <StatCard
           title="Accepted Devices"
           :stat="stats.registered_devices || 0"
@@ -68,7 +106,10 @@
         />
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <StatCard
           title="Online Devices"
           :stat="stats.online_devices || 0"
@@ -78,7 +119,10 @@
         />
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <StatCard
           title="Pending Devices"
           :stat="stats.pending_devices || 0"
@@ -88,12 +132,26 @@
         />
       </v-col>
 
-      <v-col cols="12" md="3">
+      <v-col
+        cols="12"
+        md="3"
+      >
         <v-card class="pa-6 bg-transparent text-center h-100 border border-dashed">
-          <v-avatar color="surface-variant" size="64" class="mb-4" theme="dark">
-            <v-icon size="40" color="primary" icon="mdi-developer-board" />
+          <v-avatar
+            color="surface-variant"
+            size="64"
+            class="mb-4"
+            theme="dark"
+          >
+            <v-icon
+              size="40"
+              color="primary"
+              icon="mdi-developer-board"
+            />
           </v-avatar>
-          <v-card-title class="text-h6 font-weight-bold mb-2">Add a new device</v-card-title>
+          <v-card-title class="text-h6 font-weight-bold mb-2">
+            Add a new device
+          </v-card-title>
           <v-card-subtitle class="text-body-2 text-medium-emphasis mb-4 text-wrap">
             Register new devices to this namespace and start managing remote connections
           </v-card-subtitle>
@@ -101,10 +159,15 @@
         </v-card>
       </v-col>
     </v-row>
-
   </div>
-  <v-card data-test="home-failed" class="mt-2 pa-4 bg-v-theme-surface" v-else>
-    <p class="text-center">Something is wrong, try again!</p>
+  <v-card
+    v-else
+    data-test="home-failed"
+    class="mt-2 pa-4 bg-v-theme-surface"
+  >
+    <p class="text-center">
+      Something is wrong, try again!
+    </p>
   </v-card>
 </template>
 
@@ -155,11 +218,7 @@ onMounted(async () => {
   await fetchStats();
 });
 
-watch(hasNamespace, (newValue) => {
-  if (newValue) {
-    fetchStats();
-  }
-});
+watch(hasNamespace, async (newValue) => { if (newValue) await fetchStats(); });
 
 defineExpose({ hasStatus });
 </script>

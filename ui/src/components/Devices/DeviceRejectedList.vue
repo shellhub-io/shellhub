@@ -4,7 +4,7 @@
       variant="device"
       header="secondary"
       status="rejected"
-      :storeMethods="getDeviceStoreMethods()"
+      :store-methods="getDeviceStoreMethods()"
       data-test="device-table"
     />
   </div>

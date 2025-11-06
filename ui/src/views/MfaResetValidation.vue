@@ -1,6 +1,9 @@
 <template>
   <v-container>
-    <v-card-title class="d-flex justify-center" data-test="verification-title">
+    <v-card-title
+      class="d-flex justify-center"
+      data-test="verification-title"
+    >
       MFA Disabling
     </v-card-title>
     <v-row>
@@ -32,8 +35,8 @@
     </v-row>
 
     <v-text-field
-      class="mt-1"
       v-model="primaryEmail"
+      class="mt-1"
       label="Primary Email Code"
       :error-messages="emailError"
       required
@@ -42,8 +45,8 @@
     />
 
     <v-text-field
-      class="mt-1"
       v-model="recoveryEmail"
+      class="mt-1"
       label="Recovery Email Code"
       :error-messages="recoveryEmailError"
       required
@@ -123,7 +126,7 @@ const validationAccount = async () => {
     snackbar.showSuccess("Successfully disabled multi-factor authentication");
 
     disableProcessingStatus.value = "success";
-    setTimeout(() => router.push({ path: "/" }), 5000);
+    setTimeout(() => void router.push({ path: "/" }), 5000);
   } catch (error: unknown) {
     disableProcessingStatus.value = "failed";
     if (axios.isAxiosError(error)) {

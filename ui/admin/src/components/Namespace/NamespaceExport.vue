@@ -1,11 +1,11 @@
 <template>
   <v-btn
-    @click="showDialog = true"
     class="mr-2 mt-2 mt-md-0"
     color="primary"
     variant="outlined"
     data-test="namespaces-export-btn"
     text="Export CSV"
+    @click="showDialog = true"
   />
 
   <FormDialog
@@ -22,11 +22,17 @@
     @close="closeDialog"
   >
     <v-card-text class="pa-6">
-      <v-radio-group v-model="selectedFilter" @update:model-value="handleSelectedFilterUpdate">
-        <v-radio label="Namespaces with more than:" :value="AdminNamespaceFilterOptions.MoreThan" />
+      <v-radio-group
+        v-model="selectedFilter"
+        @update:model-value="handleSelectedFilterUpdate"
+      >
+        <v-radio
+          label="Namespaces with more than:"
+          :value="AdminNamespaceFilterOptions.MoreThan"
+        />
         <v-text-field
-          class="mt-2 mx-2"
           v-model="numberOfDevices"
+          class="mt-2 mx-2"
           suffix="devices"
           :disabled="selectedFilter !== AdminNamespaceFilterOptions.MoreThan"
           label="Number of devices"
@@ -35,8 +41,14 @@
           :hide-details="hideNumberOfDevicesInputDetails"
           :error-messages="numberOfDevicesError"
         />
-        <v-radio label="Namespaces with no devices" :value="AdminNamespaceFilterOptions.NoDevices" />
-        <v-radio label="Namespace with devices, but no sessions" :value="AdminNamespaceFilterOptions.NoSessions" />
+        <v-radio
+          label="Namespaces with no devices"
+          :value="AdminNamespaceFilterOptions.NoDevices"
+        />
+        <v-radio
+          label="Namespace with devices, but no sessions"
+          :value="AdminNamespaceFilterOptions.NoSessions"
+        />
       </v-radio-group>
     </v-card-text>
   </FormDialog>

@@ -1,9 +1,22 @@
 <template>
-  <v-app-bar theme="dark" class="bg-v-theme-surface border-b-thin" data-test="app-bar" flat floating>
-    <v-app-bar-nav-icon class="hidden-lg-and-up" @click.stop="drawer = !drawer" aria-label="Toggle Menu" />
+  <v-app-bar
+    theme="dark"
+    class="bg-v-theme-surface border-b-thin"
+    data-test="app-bar"
+    flat
+    floating
+  >
+    <v-app-bar-nav-icon
+      class="hidden-lg-and-up"
+      aria-label="Toggle Menu"
+      @click.stop="drawer = !drawer"
+    />
 
     <v-app-bar-title>
-      <router-link :to="{ name: 'dashboard' }" class="text-white text-decoration-none">
+      <router-link
+        :to="{ name: 'dashboard' }"
+        class="text-white text-decoration-none"
+      >
         <div class="d-flex">
           <v-img
             :src="Logo"
@@ -18,11 +31,22 @@
     <v-spacer />
 
     <v-menu anchor="bottom">
-      <template v-slot:activator="{ props }">
-        <v-chip color="primary" v-bind="props" class="mr-8">
-          <v-icon left class="mr-2"> mdi-account </v-icon>
+      <template #activator="{ props }">
+        <v-chip
+          color="primary"
+          v-bind="props"
+          class="mr-8"
+        >
+          <v-icon
+            left
+            class="mr-2"
+          >
+            mdi-account
+          </v-icon>
           {{ currentUser || "ADMIN DF" }}
-          <v-icon right> mdi-chevron-down </v-icon>
+          <v-icon right>
+            mdi-chevron-down
+          </v-icon>
         </v-chip>
       </template>
       <v-list class="bg-v-theme-surface">
@@ -50,27 +74,38 @@
           <v-switch
             label="Dark Mode"
             :model-value="isDarkMode"
-            @change="toggleDarkMode"
             data-test="dark-mode-switch"
             color="primary"
             inset
             hide-details
+            @change="toggleDarkMode"
           />
         </v-list-item>
       </v-list>
     </v-menu>
   </v-app-bar>
 
-  <v-navigation-drawer v-if="isLoggedIn" class="bg-v-theme-surface" v-model="drawer" expand-on-hover>
-    <v-list density="compact" data-test="list">
-      <template v-for="item in visibleItems" :key="item.title">
+  <v-navigation-drawer
+    v-if="isLoggedIn"
+    v-model="drawer"
+    class="bg-v-theme-surface"
+    expand-on-hover
+  >
+    <v-list
+      density="compact"
+      data-test="list"
+    >
+      <template
+        v-for="item in visibleItems"
+        :key="item.title"
+      >
         <v-list-group
           v-if="item.children"
-          prepend-icon="mdi-chevron-down"
           v-model="subMenuState[item.title]"
+          prepend-icon="mdi-chevron-down"
           data-test="list-group"
         >
-          <template v-slot:activator="{ props }">
+          <template #activator="{ props }">
             <v-list-item
               lines="two"
               v-bind="props"
@@ -122,13 +157,21 @@
 
   <v-main>
     <slot>
-      <v-container class="pa-8 container" fluid>
+      <v-container
+        class="pa-8 container"
+        fluid
+      >
         <router-view :key="currentRoute.value.path" />
       </v-container>
     </slot>
   </v-main>
 
-  <v-overlay v-model="hasSpinner" :scrim="false" contained class="align-center justify-center w-100 h-100">
+  <v-overlay
+    v-model="hasSpinner"
+    :scrim="false"
+    contained
+    class="align-center justify-center w-100 h-100"
+  >
     <v-progress-circular
       indeterminate
       size="64"
@@ -198,10 +241,10 @@ const logout = async () => {
   layoutStore.layout = "SimpleLayout";
 };
 
-const triggerClick = (item: MenuItem): void => {
+const triggerClick = async (item: MenuItem) => {
   switch (item.type) {
     case "path":
-      router.push(item.path);
+      await router.push(item.path);
       break;
     case "method":
       item.method();
@@ -276,7 +319,6 @@ const menu = reactive([
     title: "License",
     type: "path",
     path: "/settings/license",
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     method: () => {},
   },
   {
@@ -284,7 +326,7 @@ const menu = reactive([
     title: "Logout",
     type: "method",
     path: "",
-    method: logout,
+    method: () => logout,
   },
 ]);
 
