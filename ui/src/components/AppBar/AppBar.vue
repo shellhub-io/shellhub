@@ -40,78 +40,121 @@
 
     <v-spacer />
 
-    <v-tooltip
-      location="bottom"
-      class="text-center"
-    >
-      <template #activator="{ props }">
-        <v-btn
-          v-bind="props"
-          size="medium"
-          color="primary"
-          aria-label="community-help-icon"
-          icon="mdi-help-circle"
-          data-test="support-btn"
-          @click="openShellhubHelp()"
-        />
-      </template>
-      <span>Need assistance? Click here for support.</span>
-    </v-tooltip>
-
-    <DevicesDropdown />
-
-    <v-menu>
-      <template #activator="{ props }">
-        <v-btn
-          color="primary"
-          v-bind="props"
-          append-icon="mdi-menu-down"
-          class="pl-2 pr-2 mr-4"
-          data-test="user-menu-btn"
-        >
-          <UserIcon
-            size="1.5rem"
-            :email="userEmail"
-            data-test="user-icon"
-          />
-        </v-btn>
-      </template>
-      <v-list class="bg-v-theme-surface">
-        <v-list-item
-          v-for="item in menu"
-          :key="item.title"
-          :value="item"
-          :data-test="item.title"
-          @click="triggerClick(item)"
-        >
-          <div class="d-flex align-center">
-            <v-icon
-              :icon="item.icon"
-              class="mr-2"
-            />
-
-            <v-list-item-title>
-              {{ item.title }}
-            </v-list-item-title>
-          </div>
-        </v-list-item>
-
-        <v-divider />
-
-        <v-list-item density="compact">
-          <v-switch
-            label="Dark Mode"
-            :model-value="isDarkMode"
-            :onchange="toggleDarkMode"
-            data-test="dark-mode-switch"
-            density="comfortable"
+    <div class="d-flex align-center ga-4 mr-4">
+      <v-tooltip
+        location="bottom"
+        class="text-center"
+      >
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            size="medium"
             color="primary"
-            inset
-            hide-details
+            aria-label="community-help-icon"
+            icon="mdi-help-circle"
+            data-test="support-btn"
+            @click="openShellhubHelp()"
           />
-        </v-list-item>
-      </v-list>
-    </v-menu>
+        </template>
+        <span>Need assistance? Click here for support.</span>
+      </v-tooltip>
+
+      <DevicesDropdown />
+
+      <v-menu
+        scrim
+        location="bottom end"
+        :offset="4"
+      >
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            size="medium"
+            color="primary"
+            icon
+            data-test="user-menu-btn"
+          >
+            <UserIcon
+              size="1.5rem"
+              :email="userEmail"
+              data-test="user-icon"
+            />
+          </v-btn>
+        </template>
+
+        <v-card
+          :width="$vuetify.display.thresholds.sm / 2"
+          border
+        >
+          <v-list class="bg-v-theme-surface pa-0">
+            <!-- User Profile Header -->
+            <div class="pa-6 text-center">
+              <UserIcon
+                size="4rem"
+                :email="userEmail"
+                class="mb-4"
+                data-test="user-icon-large"
+              />
+              <div class="text-h6 font-weight-medium mb-1">
+                {{ currentUser || userEmail }}
+              </div>
+              <div
+                v-if="currentUser"
+                class="text-body-2 text-medium-emphasis"
+              >
+                {{ userEmail }}
+              </div>
+            </div>
+
+            <v-divider />
+
+            <!-- Menu Items -->
+            <div>
+              <v-list-item
+                v-for="item in menu"
+                :key="item.title"
+                :value="item"
+                :data-test="item.title"
+                :prepend-icon="item.icon"
+                @click="triggerClick(item)"
+              >
+                <v-list-item-title class="font-weight-medium">
+                  {{ item.title }}
+                </v-list-item-title>
+              </v-list-item>
+            </div>
+
+            <v-divider />
+
+            <!-- Dark Mode Toggle -->
+            <v-list-item
+              density="compact"
+              @click="toggleDarkMode"
+            >
+              <template #prepend>
+                <v-icon
+                  :icon="isDarkMode ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+                  size="small"
+                />
+              </template>
+              <v-list-item-title class="text-body-2 font-weight-medium">
+                {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
+              </v-list-item-title>
+              <template #append>
+                <v-switch
+                  :model-value="isDarkMode"
+                  data-test="dark-mode-switch"
+                  density="compact"
+                  color="primary"
+                  hide-details
+                  readonly
+                />
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </div>
   </v-app-bar>
 </template>
 
