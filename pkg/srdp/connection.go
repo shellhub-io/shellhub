@@ -373,6 +373,8 @@ func (c *Connection) loop() error {
 				return nil // Client disconnected
 			}
 
+			c.logger.Errorf("read message type error: %v", err)
+
 			return err
 		}
 
@@ -381,12 +383,16 @@ func (c *Connection) loop() error {
 			c.logger.Trace("Received key event from client")
 
 			if err := c.handleKeyEvent(); err != nil {
+				c.logger.Errorf("handle key event error: %v", err)
+
 				return err
 			}
 		case ClientPointerEvent:
 			c.logger.Trace("Received pointer event from client")
 
 			if err := c.handlePointerEvent(); err != nil {
+				c.logger.Errorf("handle pointer event error: %v", err)
+
 				return err
 			}
 		default:
