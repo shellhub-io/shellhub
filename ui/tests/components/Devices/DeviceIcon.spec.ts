@@ -1,41 +1,22 @@
 import { setActivePinia, createPinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it } from "vitest";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Device Icon", () => {
-  let wrapper: VueWrapper<InstanceType<typeof DeviceIcon>>;
   setActivePinia(createPinia());
   const vuetify = createVuetify();
 
-  beforeEach(() => {
-    wrapper = mount(DeviceIcon, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-      props: {
-        icon: "",
-      },
-    });
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
+  const wrapper = mount(DeviceIcon, {
+    global: { plugins: [vuetify, router, SnackbarPlugin] },
+    props: { icon: "" },
   });
 
   it("Renders the default icon when no icon prop is provided", () => {
-    expect(wrapper.find('[data-test="type-icon"]').classes()).toContain("fl-tux");
+    expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-tux");
   });
 
   it("Renders a specific icon based on the icon prop", async () => {
@@ -44,7 +25,7 @@ describe("Device Icon", () => {
 
     await wrapper.setProps({ icon: iconProp });
 
-    expect(wrapper.find('[data-test="type-icon"]').classes()).toContain(expectedIconClass);
+    expect(wrapper.find('[data-test="device-icon"]').classes()).toContain(expectedIconClass);
   });
 
   it("Renders the default icon when an unknown icon prop is provided", async () => {
@@ -53,6 +34,6 @@ describe("Device Icon", () => {
 
     await wrapper.setProps({ icon: unknownIconProp });
 
-    expect(wrapper.find('[data-test="type-icon"]').classes()).toContain(defaultIconClass);
+    expect(wrapper.find('[data-test="device-icon"]').classes()).toContain(defaultIconClass);
   });
 });

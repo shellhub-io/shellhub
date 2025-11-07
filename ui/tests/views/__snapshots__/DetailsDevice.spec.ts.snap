@@ -62,7 +62,7 @@ exports[`Details Device > Renders the component 1`] = `
         </div>
         <div data-v-46133275="" data-test="device-pretty-name-field">
           <div data-v-46133275="" class="item-title"> Operating System: </div>
-          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="device-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
         </div>
       </div>
       <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
@@ -156,7 +156,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
         </div>
         <div data-v-46133275="" data-test="device-pretty-name-field">
           <div data-v-46133275="" class="item-title"> Operating System: </div>
-          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="device-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
         </div>
       </div>
       <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
@@ -250,7 +250,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
         </div>
         <div data-v-46133275="" data-test="device-pretty-name-field">
           <div data-v-46133275="" class="item-title"> Operating System: </div>
-          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="device-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
         </div>
       </div>
       <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
@@ -333,7 +333,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
         </div>
         <div data-v-46133275="" data-test="device-pretty-name-field">
           <div data-v-46133275="" class="item-title"> Operating System: </div>
-          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="device-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
         </div>
       </div>
       <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">
@@ -411,7 +411,7 @@ exports[`Details Device > Renders the component when device status is not accept
         </div>
         <div data-v-46133275="" data-test="device-pretty-name-field">
           <div data-v-46133275="" class="item-title"> Operating System: </div>
-          <div data-v-46133275=""><i data-v-46133275="" data-test="type-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
+          <div data-v-46133275=""><i data-v-46133275="" data-test="device-icon" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-46133275="">Linux Mint 19.3</span></div>
         </div>
       </div>
       <div data-v-46133275="" class="v-col-md-6 v-col-12 my-0 py-0">

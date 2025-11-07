@@ -1,7 +1,8 @@
 <template>
   <i
-    data-test="type-icon"
-    :class="iconName + ' mr-1'"
+    data-test="device-icon"
+    :class="iconName"
+    class="mr-1"
     style="font-size: 20px"
   />
 </template>
@@ -11,7 +12,7 @@ import { computed } from "vue";
 
 const { icon } = defineProps<{ icon: string }>();
 
-const deviceIcon: Record<string, string> = {
+const deviceIconMap: Record<string, string> = {
   alpine: "fl-alpine",
   arch: "fl-archlinux",
   centos: "fl-centos",
@@ -39,5 +40,5 @@ const deviceIcon: Record<string, string> = {
   docker: "fl-docker",
 };
 
-const iconName = computed(() => deviceIcon[icon] || "fl-tux");
+const iconName = computed(() => deviceIconMap[icon] || "fl-tux");
 </script>
