@@ -25,7 +25,7 @@ exports[`Welcome Third Screen > Renders the component 1`] = `
     <div data-v-9fa0b2b1="" class="v-expansion-panel border bg-background rounded">
       <div class="v-expansion-panel__shadow"></div>
       <!---->
-      <!----><button data-v-9fa0b2b1="" class="v-expansion-panel-title text-white bg-v-theme-surface border-b d-flex align-center" type="button" aria-expanded="false"><span class="v-expansion-panel-title__overlay"></span><i data-v-9fa0b2b1="" data-test="type-icon" class="fl-linuxmint mr-1 mr-3" style="font-size: 20px;" size="32"></i>
+      <!----><button data-v-9fa0b2b1="" class="v-expansion-panel-title text-white bg-v-theme-surface border-b d-flex align-center" type="button" aria-expanded="false"><span class="v-expansion-panel-title__overlay"></span><i data-v-9fa0b2b1="" data-test="device-icon" class="fl-linuxmint mr-1 mr-3" style="font-size: 20px;" size="32"></i>
         <div data-v-9fa0b2b1="">
           <div data-v-9fa0b2b1="" class="text-h6" data-test="device-field">39-5e-2a</div>
           <div data-v-9fa0b2b1="" class="text-body-2 text-white" data-test="device-pretty-name-field">Linux Mint 19.3</div>

@@ -9,7 +9,7 @@ exports[`Quick Connection List > Renders the component 1`] = `
       <!---->
       <div data-v-7c65953f="" class="v-row v-row--no-gutters align-center">
         <div data-v-7c65953f="" class="v-col-md-3 v-col text-center" data-test="device-name">39-5e-2a</div>
-        <div data-v-7c65953f="" class="v-col-md-3 v-col text-center text-truncate" data-test="device-info"><i data-v-7c65953f="" data-test="type-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i><span data-v-7c65953f="">Linux Mint 19.3</span></div>
+        <div data-v-7c65953f="" class="v-col-md-3 v-col text-center text-truncate" data-test="device-info"><i data-v-7c65953f="" data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i><span data-v-7c65953f="">Linux Mint 19.3</span></div>
         <div data-v-7c65953f="" class="v-col-md-3 v-col text-truncate text-center" data-test="device-ssh-id"><span data-v-7c65953f="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal bg-grey-darken-4" draggable="false"><!----><span class="v-chip__underlay"></span>
           <!---->
           <!---->
@@ -46,7 +46,7 @@ exports[`Quick Connection List > Renders the component 1`] = `
       <!---->
       <div data-v-7c65953f="" class="v-row v-row--no-gutters align-center">
         <div data-v-7c65953f="" class="v-col-md-3 v-col text-center" data-test="device-name">39-5e-2b</div>
-        <div data-v-7c65953f="" class="v-col-md-3 v-col text-center text-truncate" data-test="device-info"><i data-v-7c65953f="" data-test="type-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i><span data-v-7c65953f="">Linux Mint 19.3</span></div>
+        <div data-v-7c65953f="" class="v-col-md-3 v-col text-center text-truncate" data-test="device-info"><i data-v-7c65953f="" data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i><span data-v-7c65953f="">Linux Mint 19.3</span></div>
         <div data-v-7c65953f="" class="v-col-md-3 v-col text-truncate text-center" data-test="device-ssh-id"><span data-v-7c65953f="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal bg-grey-darken-4" draggable="false"><!----><span class="v-chip__underlay"></span>
           <!---->
           <!---->

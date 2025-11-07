@@ -109,7 +109,7 @@ import { useRouter } from "vue-router";
 import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
 import DataTable from "@/components/Tables/DataTable.vue";
-import DeviceIcon from "./DeviceIcon.vue";
+import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
 import { formatFullDateTime } from "@/utils/date";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";

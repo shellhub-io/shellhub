@@ -68,7 +68,7 @@ exports[`Device > Renders the component 1`] = `
             <tr data-v-aca44803="">
               <td data-v-aca44803=""><i data-v-aca44803="" class="mdi-close-circle mdi v-icon notranslate v-theme--light v-icon--size-default" style="color: rgb(229, 57, 53); caret-color: #E53935;" aria-hidden="true" data-test="error-icon"></i></td>
               <td data-v-aca44803="">39-5e-2a</td>
-              <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-linuxmint" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
+              <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
               <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
               <td data-v-aca44803="">
                 <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-16"><!----><span class="v-chip__underlay"></span>
@@ -97,7 +97,7 @@ exports[`Device > Renders the component 1`] = `
             <tr data-v-aca44803="">
               <td data-v-aca44803=""><i data-v-aca44803="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" data-test="success-icon"></i></td>
               <td data-v-aca44803="">39-5e-2b</td>
-              <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" class="fl-linuxmint" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
+              <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
               <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
               <td data-v-aca44803="">
                 <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-22"><!----><span class="v-chip__underlay"></span>
