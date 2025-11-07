@@ -1,11 +1,22 @@
 <template>
-  <v-icon
-    color="primary"
-    aria-label="Open devices menu"
-    icon="mdi-developer-board"
-    data-test="devices-icon"
-    @click="toggleDrawer"
-  />
+  <v-badge
+    :model-value="pendingDevicesCount > 0"
+    :content="pendingDevicesCount"
+    offset-y="-5"
+    location="top right"
+    color="success"
+    size="x-small"
+    data-test="device-dropdown-badge"
+    :class="{ 'mr-1': pendingDevicesCount > 0 }"
+  >
+    <v-icon
+      color="primary"
+      aria-label="Open devices menu"
+      icon="mdi-developer-board"
+      data-test="devices-icon"
+      @click="toggleDrawer"
+    />
+  </v-badge>
 
   <Teleport to="body">
     <v-navigation-drawer
@@ -140,7 +151,7 @@
                 class="overflow-y-auto border"
               >
                 <v-list
-                  v-if="pendingDevicesList.length > 0"
+                  v-if="pendingDevicesCount > 0"
                   density="compact"
                   class="bg-v-theme-surface pa-0"
                 >
@@ -327,6 +338,7 @@ const snackbar = useSnackbar();
 const isDrawerOpen = ref(false);
 const activeTab = ref<"pending" | "recent">("pending");
 const pendingDevicesList = ref<IDevice[]>([]);
+const pendingDevicesCount = computed(() => pendingDevicesList.value.length);
 const recentDevicesList = ref<IDevice[]>([]);
 const stats = computed(() => statsStore.stats);
 const offlineDevices = computed(

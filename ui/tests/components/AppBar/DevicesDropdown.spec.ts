@@ -15,6 +15,7 @@ import useDevicesStore from "@/store/modules/devices";
 import { IDevice } from "@/interfaces/IDevice";
 import { IStats } from "@/interfaces/IStats";
 import useAuthStore from "@/store/modules/auth";
+import { nextTick } from "vue";
 
 const Component = {
   template: "<v-layout><DevicesDropdown /></v-layout>",
@@ -282,6 +283,17 @@ describe("Device Management Dropdown", () => {
 
     expect(fetchStatsSpy).toHaveBeenCalled();
     expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "pending", perPage: 100 });
+  });
+
+  it("Shows correct pending devices count in badge", async () => {
+    const badge = wrapper.find('[data-test="device-dropdown-badge"]');
+    drawer.vm.pendingDevicesList = mockPendingDevices;
+    await nextTick();
+    expect(badge.text()).toBe("2");
+
+    drawer.vm.pendingDevicesList = [];
+    await nextTick();
+    expect(badge.text()).toBe("0");
   });
 
   it("Shows error snackbar when accept fails", async () => {
