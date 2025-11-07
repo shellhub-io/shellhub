@@ -11,7 +11,7 @@ COPY ./go.mod ./
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/openapi
 
-COPY ./openapi/go.mod ./openapi/go.sum ./
+COPY ./openapi/go.mod ./
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/api
 
