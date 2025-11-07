@@ -22,9 +22,7 @@
         flat
         data-test="devices-card"
       >
-        <v-card-title class="text-h6 py-3">
-          Device Management
-        </v-card-title>
+        <v-card-title class="text-h6 py-3">Device Management</v-card-title>
         <v-card-text class="pa-4 pt-0">
           <v-row
             dense
@@ -42,9 +40,7 @@
                 <div class="text-h4 font-weight-bold">
                   {{ stats.registered_devices }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
-                  Total
-                </div>
+                <div class="text-caption text-medium-emphasis">Total</div>
               </v-card>
             </v-col>
             <v-col
@@ -59,9 +55,7 @@
                 <div class="text-h4 font-weight-bold">
                   {{ stats.online_devices }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
-                  Online
-                </div>
+                <div class="text-caption text-medium-emphasis">Online</div>
               </v-card>
             </v-col>
             <v-col
@@ -76,9 +70,7 @@
                 <div class="text-h4 font-weight-bold">
                   {{ stats.pending_devices }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
-                  Pending
-                </div>
+                <div class="text-caption text-medium-emphasis">Pending</div>
               </v-card>
             </v-col>
             <v-col
@@ -93,9 +85,7 @@
                 <div class="text-h4 font-weight-bold">
                   {{ offlineDevices }}
                 </div>
-                <div class="text-caption text-medium-emphasis">
-                  Offline
-                </div>
+                <div class="text-caption text-medium-emphasis">Offline</div>
               </v-card>
             </v-col>
           </v-row>
@@ -189,26 +179,28 @@
                         </span>
                       </template>
                       <div class="d-flex align-center ga-2 mt-1">
-                        <v-btn
+                        <DeviceActionButton
+                          :uid="device.uid"
+                          :name="device.name"
+                          action="accept"
+                          variant="device"
+                          is-in-devices-dropdown
                           color="success"
-                          variant="flat"
-                          size="small"
                           prepend-icon="mdi-check-circle"
                           :data-test="`accept-${device.uid}`"
-                          @click="handleAccept(device.uid)"
-                        >
-                          Accept
-                        </v-btn>
-                        <v-btn
+                          @update="handleUpdate"
+                        />
+                        <DeviceActionButton
+                          :uid="device.uid"
+                          :name="device.name"
+                          action="reject"
+                          variant="device"
+                          is-in-devices-dropdown
                           color="error"
-                          variant="tonal"
-                          size="small"
                           prepend-icon="mdi-cancel"
                           :data-test="`reject-${device.uid}`"
-                          @click="handleReject(device.uid)"
-                        >
-                          Reject
-                        </v-btn>
+                          @update="handleUpdate"
+                        />
                         <v-btn
                           icon="mdi-dots-vertical"
                           variant="text"
@@ -274,7 +266,7 @@
                       </v-list-item-subtitle>
                       <template #append>
                         <span class="text-caption text-medium-emphasis">
-                          {{ device.online ? 'Active now' : formatTimeAgo(device.last_seen) }}
+                          {{ device.online ? "Active now" : formatTimeAgo(device.last_seen) }}
                         </span>
                       </template>
                     </v-list-item>
@@ -326,6 +318,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import moment from "moment";
 import { IDevice } from "@/interfaces/IDevice";
+import DeviceActionButton from "@/components/Devices/DeviceActionButton.vue";
 
 const { smAndUp, thresholds } = useDisplay();
 const statsStore = useStatsStore();
@@ -337,36 +330,22 @@ const activeTab = ref<"pending" | "recent">("pending");
 const pendingDevicesList = ref<IDevice[]>([]);
 const recentDevicesList = ref<IDevice[]>([]);
 const stats = computed(() => statsStore.stats);
-const offlineDevices = computed(() => stats.value.registered_devices - stats.value.online_devices);
-const toggleDrawer = () => { isDrawerOpen.value = !isDrawerOpen.value; };
+const offlineDevices = computed(
+  () => stats.value.registered_devices - stats.value.online_devices,
+);
+const toggleDrawer = () => {
+  isDrawerOpen.value = !isDrawerOpen.value;
+};
 
 const formatTimeAgo = (date: string | Date) => {
   if (!date) return "Unknown";
   return moment(date).fromNow();
 };
 
-const handleAccept = async (uid: string) => {
-  try {
-    await devicesStore.acceptDevice(uid);
-    await fetchStats();
-    await fetchPendingDevices();
-    snackbar.showSuccess("Device accepted successfully");
-  } catch (error: unknown) {
-    snackbar.showError("Failed to accept device");
-    handleError(error);
-  }
-};
-
-const handleReject = async (uid: string) => {
-  try {
-    await devicesStore.rejectDevice(uid);
-    await fetchStats();
-    await fetchPendingDevices();
-    snackbar.showSuccess("Device rejected successfully");
-  } catch (error: unknown) {
-    snackbar.showError("Failed to reject device");
-    handleError(error);
-  }
+const handleUpdate = async () => {
+  await fetchStats();
+  await fetchPendingDevices();
+  await fetchRecentDevices();
 };
 
 const fetchStats = async () => {
@@ -390,8 +369,10 @@ const fetchPendingDevices = async () => {
 const fetchRecentDevices = async () => {
   try {
     await devicesStore.fetchDeviceList({ status: "accepted" });
-    recentDevicesList.value = [...devicesStore.devices]
-      .sort((a, b) => new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime());
+    recentDevicesList.value = [...devicesStore.devices].sort(
+      (a, b) =>
+        new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime(),
+    );
   } catch (error: unknown) {
     handleError(error);
   }
@@ -407,8 +388,7 @@ defineExpose({
   toggleDrawer,
   formatTimeAgo,
   isDrawerOpen,
-  handleAccept,
-  handleReject,
+  handleUpdate,
   activeTab,
   pendingDevicesList,
   recentDevicesList,

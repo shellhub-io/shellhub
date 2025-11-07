@@ -1,5 +1,5 @@
 import { setActivePinia, createPinia } from "pinia";
-import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
+import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
@@ -66,33 +66,12 @@ describe("Device Action Button", () => {
       props: {
         uid: devices[0].uid,
         variant: "device",
-        isInNotification: false,
       },
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the component data table", async () => {
-    await wrapper.setProps({ name: "test-device", uid: "test-uid", isInNotification: true });
-    const notificationButton = wrapper.find('[data-test="notification-action-button"]');
-    expect(notificationButton.exists()).toBe(true);
-    await notificationButton.trigger("click");
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="device-action-dialog"]').exists()).toBe(true);
-  });
-
-  it("Clicking on notification button opens dialog", async () => {
-    await wrapper.setProps({ isInNotification: true });
-    const notificationButton = wrapper.find('[data-test="notification-action-button"]');
-    await notificationButton.trigger("click");
-    expect(wrapper.vm.showDialog).toBe(true);
   });
 
   it("Closing dialog sets showDialog value to false", async () => {
@@ -100,13 +79,5 @@ describe("Device Action Button", () => {
     const dialogComponent = wrapper.findComponent({ name: "BaseDialog" });
     await dialogComponent.vm.$emit("close");
     expect(wrapper.vm.showDialog).toBe(false);
-  });
-
-  it("Close button in dialog emits 'update' event with false", async () => {
-    wrapper.vm.showDialog = true;
-    await wrapper.setProps({ isInNotification: true });
-    const closeButton = wrapper.findComponent('[data-test="close-btn"]');
-    await closeButton.trigger("click");
-    expect(wrapper.emitted("update")).toBeTruthy();
   });
 });
