@@ -128,24 +128,25 @@
 
             <!-- Dark Mode Toggle -->
             <v-list-item
-              density="compact"
               @click="toggleDarkMode"
             >
               <template #prepend>
                 <v-icon
-                  :icon="isDarkMode ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+                  :icon="isDarkMode ? 'mdi-brightness-6' : 'mdi-brightness-6'"
                   size="small"
                 />
               </template>
-              <v-list-item-title class="text-body-2 font-weight-medium">
-                {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
+              <v-list-item-title class="font-weight-medium">
+                {{ isDarkMode ? 'Dark Mode' : 'Light Mode' }}
               </v-list-item-title>
               <template #append>
                 <v-switch
                   :model-value="isDarkMode"
                   data-test="dark-mode-switch"
-                  density="compact"
                   color="primary"
+                  density="comfortable"
+                  false-icon="mdi-weather-sunny"
+                  true-icon="mdi-weather-night"
                   hide-details
                   readonly
                 />
