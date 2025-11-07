@@ -4,7 +4,7 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import "vuetify/styles";
 import { VFileUpload, VFileUploadItem } from "vuetify/labs/VFileUpload";
 import "../styles/_variables.scss";
-import { aliases, fa } from "vuetify/iconsets/fa";
+import { fa } from "vuetify/iconsets/fa";
 
 // Vuetify
 import { createVuetify } from "vuetify";
@@ -70,7 +70,6 @@ export default createVuetify({
     },
   },
   icons: {
-    aliases,
     sets: {
       fa,
     },
