@@ -1,16 +1,13 @@
 <template>
   <div>
     <v-btn
-      v-if="isInNotification"
+      v-if="isInDevicesDropdown"
       v-bind="$attrs"
-      size="x-small"
-      color="primary"
-      data-test="notification-action-button"
+      size="small"
+      variant="flat"
+      :text="capitalizeText(action)"
       @click="showDialog = true"
-    >
-      <v-icon>{{ icon }}</v-icon>
-      Accept
-    </v-btn>
+    />
     <v-list-item
       v-else
       data-test="list-item"
@@ -87,14 +84,14 @@ import useStatsStore from "@/store/modules/stats";
 interface DeviceActionButtonProps {
   name?: string;
   uid: string;
-  isInNotification?: boolean;
+  isInDevicesDropdown?: boolean;
   action?: "accept" | "reject" | "remove";
   variant: string;
 }
 
 const props = withDefaults(defineProps<DeviceActionButtonProps>(), {
   name: "Device",
-  isInNotification: false,
+  isInDevicesDropdown: false,
   action: "accept",
 });
 
@@ -192,7 +189,7 @@ const handleClick = async () => {
   }
 };
 
-defineExpose({ showDialog, canPerformDeviceAction });
+defineExpose({ showDialog, canPerformDeviceAction, handleClick });
 </script>
 
 <style scoped>

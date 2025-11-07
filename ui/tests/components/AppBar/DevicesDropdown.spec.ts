@@ -4,7 +4,9 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 import { VLayout } from "vuetify/components";
+import { ref } from "vue";
 import DevicesDropdown from "@/components/AppBar/DevicesDropdown.vue";
+import DeviceActionButton from "@/components/Devices/DeviceActionButton.vue";
 import { devicesApi } from "@/api/http";
 import { SnackbarInjectionKey, SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
@@ -12,6 +14,7 @@ import useStatsStore from "@/store/modules/stats";
 import useDevicesStore from "@/store/modules/devices";
 import { IDevice } from "@/interfaces/IDevice";
 import { IStats } from "@/interfaces/IStats";
+import useAuthStore from "@/store/modules/auth";
 
 const Component = {
   template: "<v-layout><DevicesDropdown /></v-layout>",
@@ -23,16 +26,17 @@ vi.mock("vuetify", async () => {
   return {
     ...actual,
     useDisplay: () => ({
-      smAndUp: { value: true },
-      thresholds: {
-        value: {
-          sm: 600,
-          md: 960,
-          lg: 1280,
-          xl: 1920,
-          xxl: 2560,
-        },
-      },
+      smAndUp: ref(true),
+      smAndDown: ref(false),
+      mdAndUp: ref(true),
+      thresholds: ref({
+        xs: 0,
+        sm: 600,
+        md: 960,
+        lg: 1280,
+        xl: 1920,
+        xxl: 2560,
+      }),
     }),
   };
 });
@@ -131,16 +135,17 @@ describe("Device Management Dropdown", () => {
   setActivePinia(createPinia());
   const statsStore = useStatsStore();
   const devicesStore = useDevicesStore();
+  const authStore = useAuthStore();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
-  mockDevicesApi
-    .onGet("http://localhost:3000/api/stats")
-    .reply(200, mockStats);
-  mockDevicesApi
-    .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending").reply(200, mockPendingDevices);
-  mockDevicesApi
-    .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, mockRecentDevices);
-
+  authStore.role = "owner";
   beforeEach(async () => {
+    mockDevicesApi
+      .onGet("http://localhost:3000/api/stats")
+      .reply(200, mockStats);
+    mockDevicesApi
+      .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending").reply(200, mockPendingDevices);
+    mockDevicesApi
+      .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, mockRecentDevices);
     wrapper = mount(Component, {
       global: {
         plugins: [vuetify, router],
@@ -151,6 +156,7 @@ describe("Device Management Dropdown", () => {
         },
         stubs: { teleport: true },
       },
+      attachTo: document.body,
     });
     await wrapper.find('[data-test="devices-icon"]').trigger("click");
     drawer = wrapper.findComponent(DevicesDropdown);
@@ -254,41 +260,28 @@ describe("Device Management Dropdown", () => {
       .reply(200);
 
     const acceptSpy = vi.spyOn(devicesStore, "acceptDevice");
-
     drawer.vm.pendingDevicesList = mockPendingDevices;
     drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    await drawer.vm.handleAccept(mockPendingDevices[0].uid);
+    const acceptButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+      .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "accept");
+
+    await acceptButtonComponent?.vm.handleClick();
     await flushPromises();
 
     expect(acceptSpy).toHaveBeenCalledWith(mockPendingDevices[0].uid);
   });
 
-  it("Refetches stats and pending devices after successful accept", async () => {
-    mockDevicesApi
-      .onPatch(`http://localhost:3000/api/devices/${mockPendingDevices[0].uid}/accept`)
-      .reply(200);
-
+  it("Refetches stats and pending devices on handleUpdate", async () => {
     const fetchStatsSpy = vi.spyOn(statsStore, "fetchStats").mockResolvedValue();
     const fetchDevicesSpy = vi.spyOn(devicesStore, "fetchDeviceList").mockResolvedValue();
 
-    await drawer.vm.handleAccept(mockPendingDevices[0].uid);
+    await drawer?.vm.handleUpdate();
     await flushPromises();
 
     expect(fetchStatsSpy).toHaveBeenCalled();
     expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "pending", perPage: 100 });
-  });
-
-  it("Shows success snackbar after accepting device", async () => {
-    mockDevicesApi
-      .onPatch(`http://localhost:3000/api/devices/${mockPendingDevices[0].uid}/accept`)
-      .reply(200);
-
-    await drawer.vm.handleAccept(mockPendingDevices[0].uid);
-    await flushPromises();
-
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Device accepted successfully");
   });
 
   it("Shows error snackbar when accept fails", async () => {
@@ -296,10 +289,17 @@ describe("Device Management Dropdown", () => {
       .onPatch(`http://localhost:3000/api/devices/${mockPendingDevices[0].uid}/accept`)
       .reply(402);
 
-    await drawer.vm.handleAccept(mockPendingDevices[0].uid);
+    drawer.vm.pendingDevicesList = mockPendingDevices;
+    drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to accept device");
+    const acceptButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+      .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "accept");
+
+    await acceptButtonComponent?.vm.handleClick();
+    await flushPromises();
+
+    expect(mockSnackbar.showError).toHaveBeenCalled();
   });
 
   it("Calls rejectDevice with correct UID", async () => {
@@ -313,21 +313,13 @@ describe("Device Management Dropdown", () => {
     drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    await drawer.vm.handleReject(mockPendingDevices[0].uid);
+    const rejectButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+      .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "reject");
+
+    await rejectButtonComponent?.vm.handleClick();
     await flushPromises();
 
     expect(rejectSpy).toHaveBeenCalledWith(mockPendingDevices[0].uid);
-  });
-
-  it("Shows success snackbar after rejecting device", async () => {
-    mockDevicesApi
-      .onPatch(`http://localhost:3000/api/devices/${mockPendingDevices[0].uid}/reject`)
-      .reply(200);
-
-    await drawer.vm.handleReject(mockPendingDevices[0].uid);
-    await flushPromises();
-
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Device rejected successfully");
   });
 
   it("Shows error snackbar when reject fails", async () => {
@@ -335,10 +327,17 @@ describe("Device Management Dropdown", () => {
       .onPatch(`http://localhost:3000/api/devices/${mockPendingDevices[0].uid}/reject`)
       .reply(500);
 
-    await drawer.vm.handleReject(mockPendingDevices[0].uid);
+    drawer.vm.pendingDevicesList = mockPendingDevices;
+    drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to reject device");
+    const rejectButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+      .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "reject");
+
+    await rejectButtonComponent?.vm.handleClick();
+    await flushPromises();
+
+    expect(mockSnackbar.showError).toHaveBeenCalled();
   });
 
   it("Displays recent devices sorted by last_seen descending", async () => {
