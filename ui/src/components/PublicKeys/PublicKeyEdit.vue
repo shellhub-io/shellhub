@@ -81,7 +81,7 @@
           <v-autocomplete
             v-if="choiceFilter === 'tags'"
             v-model="tagChoices"
-            v-model:menu="acMenuOpen"
+            v-model:menu="isAutocompleteMenuOpen"
             :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
             :items="tags"
             item-title="name"
@@ -133,7 +133,8 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref, watch, onMounted, computed, nextTick, onUnmounted } from "vue";
+import { ref, watch, onMounted, computed, nextTick } from "vue";
+import { useIntersectionObserver } from "@vueuse/core";
 import * as yup from "yup";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import { IPublicKey } from "@/interfaces/IPublicKey";
@@ -214,16 +215,13 @@ const hasTags = computed(() => {
   return Reflect.ownKeys(publicKey.filter)[0] === "tags";
 });
 
-const acMenuOpen = ref(false);
-const menuContentClass = computed(
-  () => `pk-edit-tags-ac-${(props.publicKey?.name || "key").replace(/\W/g, "-")}`,
-);
+const isAutocompleteMenuOpen = ref(false);
+const menuContentClass = "pk-edit-tags-ac-content";
 
 const fetchedTags = ref<TagName[]>([]);
 const tags = computed(() => fetchedTags.value);
 
 const sentinel = ref<HTMLElement | null>(null);
-let observer: IntersectionObserver | null = null;
 
 const page = ref(1);
 const perPage = ref(10);
@@ -284,46 +282,20 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`);
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass}`);
 
-const cleanupObserver = () => {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-};
-
-const setupObserver = () => {
-  cleanupObserver();
-  const root = getMenuRootEl();
-  if (!root || !sentinel.value) return;
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0];
-      if (entry?.isIntersecting) void bumpPerPageAndLoad();
-    },
-    { root, threshold: 1.0 },
-  );
-
-  observer.observe(sentinel.value);
-};
-
-watch(acMenuOpen, async (open) => {
-  if (open && choiceFilter.value === "tags") {
-    await nextTick();
-    setupObserver();
-  } else {
-    cleanupObserver();
-  }
-});
+useIntersectionObserver(
+  sentinel,
+  ([{ isIntersecting }]) => { if (isIntersecting) void bumpPerPageAndLoad(); },
+  { root: getMenuRootEl, threshold: 1.0 },
+);
 
 watch(choiceFilter, async (val) => {
   if (val === "tags") {
     resetPagination();
     await loadTags();
   } else {
-    acMenuOpen.value = false;
+    isAutocompleteMenuOpen.value = false;
   }
 });
 
@@ -393,18 +365,13 @@ onMounted(async () => {
   await loadTags();
 });
 
-onUnmounted(() => {
-  cleanupObserver();
-});
-
 const resetPublicKey = () => {
   hostname.value = "";
   username.value = "";
   tagChoices.value = [];
   validateLength.value = true;
   errMsg.value = "";
-  acMenuOpen.value = false;
-  cleanupObserver();
+  isAutocompleteMenuOpen.value = false;
   page.value = 1;
   perPage.value = 10;
   filter.value = "";

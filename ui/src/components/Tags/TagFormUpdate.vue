@@ -32,7 +32,7 @@
     <div class="px-6 pt-4">
       <v-autocomplete
         v-model="selectedTags"
-        v-model:menu="acMenuOpen"
+        v-model:menu="isAutocompleteMenuOpen"
         :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
         :items="tags"
         item-title="name"
@@ -104,7 +104,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
+import { computed, ref, onMounted } from "vue";
+import { useIntersectionObserver } from "@vueuse/core";
 import axios, { AxiosError } from "axios";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
@@ -128,8 +129,8 @@ const tenant = computed(() => localStorage.getItem("tenant") || "");
 
 const showDialog = ref(false);
 
-const acMenuOpen = ref(false);
-const menuContentClass = computed(() => `tags-ac-content-${props.deviceUid}`);
+const isAutocompleteMenuOpen = ref(false);
+const menuContentClass = "tags-ac-content";
 
 const isLoading = ref(false);
 const filter = ref("");
@@ -152,14 +153,6 @@ const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
 const hasTags = computed(() => selectedTags.value.length > 0);
 
 const sentinel = ref<HTMLElement | null>(null);
-let observer: IntersectionObserver | null = null;
-
-const cleanupObserver = () => {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-};
 
 const encodeFilter = (search: string) => {
   if (!search) return "";
@@ -336,58 +329,25 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null =>
-  document.querySelector(`.${menuContentClass.value}`);
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass}`);
 
-const setupObserver = () => {
-  cleanupObserver();
-
-  const root = getMenuRootEl();
-  if (!root || !sentinel.value) return;
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0];
-      if (entry?.isIntersecting) void bumpPerPageAndLoad();
-    },
-    { root, threshold: 1.0 },
-  );
-
-  observer.observe(sentinel.value);
-};
+useIntersectionObserver(
+  sentinel,
+  ([{ isIntersecting }]) => { if (isIntersecting) void bumpPerPageAndLoad(); },
+  { root: getMenuRootEl, threshold: 1.0 },
+);
 
 const close = () => {
   showDialog.value = false;
-  acMenuOpen.value = false;
-  cleanupObserver();
+  isAutocompleteMenuOpen.value = false;
   resetPagination();
   filter.value = "";
   tagsError.value = "";
 };
 
-watch(acMenuOpen, async (openVal) => {
-  if (openVal) {
-    await nextTick();
-    setupObserver();
-  } else {
-    cleanupObserver();
-  }
-});
-
-watch(showDialog, (openVal) => {
-  if (!openVal) {
-    acMenuOpen.value = false;
-    cleanupObserver();
-  }
-});
-
 onMounted(async () => {
   await loadTags();
   previousTags.value = [...selectedTags.value];
-});
-
-onUnmounted(() => {
-  cleanupObserver();
 });
 
 defineExpose({

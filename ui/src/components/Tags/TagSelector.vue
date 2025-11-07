@@ -86,7 +86,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
+import { computed, onMounted, ref, watch, nextTick } from "vue";
+import { useIntersectionObserver } from "@vueuse/core";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useContainersStore from "@/store/modules/containers";
@@ -116,7 +117,6 @@ const isLoading = ref(false);
 
 const scrollArea = ref<HTMLElement | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
-let observer: IntersectionObserver | null = null;
 
 const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
 
@@ -201,30 +201,11 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const setupObserver = () => {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-  if (!scrollArea.value || !sentinel.value) return;
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0];
-      if (entry?.isIntersecting) void bumpPerPageAndLoad();
-    },
-    { root: scrollArea.value, threshold: 1.0 },
-  );
-
-  observer.observe(sentinel.value);
-};
-
-const cleanupObserver = () => {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-};
+useIntersectionObserver(
+  sentinel,
+  ([{ isIntersecting }]) => { if (isIntersecting) void bumpPerPageAndLoad(); },
+  { root: scrollArea, threshold: 1.0 },
+);
 
 watch(menuOpen, async (open) => {
   if (open) {
@@ -232,19 +213,12 @@ watch(menuOpen, async (open) => {
       await loadInitialTags();
     }
     await nextTick();
-    setupObserver();
-  } else {
-    cleanupObserver();
   }
 });
 
 onMounted(async () => {
   tagsStore.clearSelected(props.variant);
   await loadTags();
-});
-
-onUnmounted(() => {
-  cleanupObserver();
 });
 
 defineExpose({ menuOpen, loadTags, fetchedTags });
