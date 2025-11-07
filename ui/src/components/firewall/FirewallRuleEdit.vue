@@ -129,7 +129,7 @@
         >
           <v-autocomplete
             v-model="selectedTags"
-            v-model:menu="acMenuOpen"
+            v-model:menu="isAutocompleteMenuOpen"
             :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
             :items="tags"
             item-title="name"
@@ -162,7 +162,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick, watch, onUnmounted } from "vue";
+import { computed, ref, nextTick, watch } from "vue";
+import { useIntersectionObserver } from "@vueuse/core";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
@@ -280,14 +281,13 @@ const resetSelectedTags = () => {
   selectedTagsError.value = "";
 };
 
-const acMenuOpen = ref(false);
-const menuContentClass = computed(() => "fw-edit-tags-ac-content");
+const isAutocompleteMenuOpen = ref(false);
+const menuContentClass = "fw-edit-tags-ac-content";
 
 const fetchedTags = ref<TagName[]>([]);
 const tags = computed(() => fetchedTags.value);
 
 const sentinel = ref<HTMLElement | null>(null);
-let observer: IntersectionObserver | null = null;
 
 const page = ref(1);
 const perPage = ref(10);
@@ -348,39 +348,13 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`);
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass}`);
 
-const cleanupObserver = () => {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-};
-
-const setupObserver = () => {
-  cleanupObserver();
-  const root = getMenuRootEl();
-  if (!root || !sentinel.value) return;
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0];
-      if (entry?.isIntersecting) void bumpPerPageAndLoad();
-    },
-    { root, threshold: 1.0 },
-  );
-
-  observer.observe(sentinel.value);
-};
-
-watch(acMenuOpen, async (open) => {
-  if (open && selectedFilterOption.value === FormFilterOptions.Tags) {
-    await nextTick();
-    setupObserver();
-  } else {
-    cleanupObserver();
-  }
-});
+useIntersectionObserver(
+  sentinel,
+  ([{ isIntersecting }]) => { if (isIntersecting) void bumpPerPageAndLoad(); },
+  { root: getMenuRootEl, threshold: 1.0 },
+);
 
 const handleSourceIpUpdate = () => {
   resetSourceIp();
@@ -429,7 +403,6 @@ const resetForm = () => {
   resetUsername();
   resetHostname();
   resetSelectedTags();
-  cleanupObserver();
 };
 
 const toTagNames = (arr: TagName[]): string[] => {
@@ -524,10 +497,6 @@ const editFirewallRule = async () => {
     handleError(error);
   }
 };
-
-onUnmounted(() => {
-  cleanupObserver();
-});
 
 defineExpose({ selectedIPOption, selectedFilterOption, selectedUsernameOption });
 </script>

@@ -89,7 +89,7 @@
           <v-autocomplete
             v-if="choiceFilter === 'tags'"
             v-model="tagChoices"
-            v-model:menu="acMenuOpen"
+            v-model:menu="isAutocompleteMenuOpen"
             :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
             :items="tags"
             variant="outlined"
@@ -142,7 +142,8 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, nextTick, ref, watch, onMounted, onUnmounted } from "vue";
+import { computed, nextTick, ref, watch, onMounted } from "vue";
+import { useIntersectionObserver } from "@vueuse/core";
 import * as yup from "yup";
 import axios, { AxiosError } from "axios";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
@@ -190,15 +191,14 @@ const tagChoices = ref<string[]>([]);
 const errMsg = ref("");
 const keyLocal = ref<Record<string, unknown>>({});
 
-const acMenuOpen = ref(false);
-const menuContentClass = computed(() => "pk-tags-ac-content");
+const isAutocompleteMenuOpen = ref(false);
+const menuContentClass = "pk-tags-ac-content";
 
 const fetchedTags = ref<LocalTag[]>([]);
 const tags = computed(() => fetchedTags.value);
 
 const sentinel = ref<HTMLElement | null>(null);
 const pastedFile = ref<File | null>(null);
-let observer: IntersectionObserver | null = null;
 
 const {
   value: name,
@@ -421,46 +421,18 @@ const bumpPerPageAndLoad = async () => {
   await loadTags();
 };
 
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass.value}`);
+const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass}`);
 
-const cleanupObserver = () => {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
-};
-
-const setupObserver = () => {
-  cleanupObserver();
-  const root = getMenuRootEl();
-  if (!root || !sentinel.value) return;
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[0];
-      if (entry?.isIntersecting) void bumpPerPageAndLoad();
-    },
-    { root, threshold: 1.0 },
-  );
-
-  observer.observe(sentinel.value);
-};
-
-watch(acMenuOpen, async (open) => {
-  if (open && choiceFilter.value === "tags") {
-    await nextTick();
-    setupObserver();
-  } else {
-    cleanupObserver();
-  }
-});
+useIntersectionObserver(
+  sentinel,
+  ([{ isIntersecting }]) => { if (isIntersecting) void bumpPerPageAndLoad(); },
+  { root: getMenuRootEl, threshold: 1.0 },
+);
 
 onMounted(async () => {
   resetPagination();
   await loadTags();
 });
-
-onUnmounted(cleanupObserver);
 
 const confirmDisabled = computed(() => {
   if (!name.value || !publicKeyData.value) return true;
