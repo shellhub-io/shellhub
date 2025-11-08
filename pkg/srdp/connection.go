@@ -327,6 +327,10 @@ func (c *Connection) sendVideoFrame() error {
 		return fmt.Errorf("H.264 encoding failed: %v", err)
 	}
 
+	if len(encoded) == 0 {
+		return nil // No frame to send
+	}
+
 	c.writer.WriteByte(ServerFrameUpdate) // Message type
 
 	header := make([]byte, 8)
