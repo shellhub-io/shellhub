@@ -895,9 +895,9 @@ func (_m *Service) GetSessionRecord(ctx context.Context, tenantID string) (bool,
 	return r0, r1
 }
 
-// GetStats provides a mock function with given fields: ctx
-func (_m *Service) GetStats(ctx context.Context) (*models.Stats, error) {
-	ret := _m.Called(ctx)
+// GetStats provides a mock function with given fields: ctx, req
+func (_m *Service) GetStats(ctx context.Context, req *requests.GetStats) (*models.Stats, error) {
+	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetStats")
@@ -905,19 +905,19 @@ func (_m *Service) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	var r0 *models.Stats
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*models.Stats, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.GetStats) (*models.Stats, error)); ok {
+		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *models.Stats); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.GetStats) *models.Stats); ok {
+		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Stats)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.GetStats) error); ok {
+		r1 = rf(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}
