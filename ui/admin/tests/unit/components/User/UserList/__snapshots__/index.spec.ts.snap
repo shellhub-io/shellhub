@@ -41,11 +41,11 @@ exports[`UserList > Renders the component 1`] = `
               <!--teleport start-->
               <!--teleport end-->
               <!---->
+              <!---->
+              <!---->
               <!----><a class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-6"></a>
               <!--teleport start-->
               <!--teleport end-->
-              <!---->
-              <!---->
             </td>
           </tr>
         </tbody>

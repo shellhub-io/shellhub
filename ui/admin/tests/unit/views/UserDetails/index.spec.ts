@@ -1,6 +1,6 @@
 import { createVuetify } from "vuetify";
-import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { describe, expect, it, vi, beforeAll } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { createMemoryHistory, createRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
@@ -8,23 +8,31 @@ import useAuthStore from "@admin/store/modules/auth";
 import UserDetails from "@admin/views/UserDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const user = {
+vi.mock("@/utils/date", () => ({
+  formatFullDateTime: (iso: string) => `formatted(${iso})`,
+}));
+
+const mockUser = {
+  id: "6256b739302b50b6cc5eafcc",
   status: "confirmed",
   created_at: "2022-04-13T11:42:49.578Z",
-  email: "antony@gmail.com",
-  id: "6256b739302b50b6cc5eafcc",
   last_login: "0001-01-01T00:00:00Z",
+  email: "antony@gmail.com",
   name: "antony",
   username: "antony",
   namespacesOwned: 2,
+  max_namespaces: 0,
+  mfa: { enabled: false },
+  email_marketing: null,
+  preferences: { auth_methods: ["local"] },
 };
 
-describe("User Details", async () => {
+describe("UserDetails.vue", async () => {
   const pinia = createPinia();
   setActivePinia(pinia);
 
   const usersStore = useUsersStore();
-  usersStore.fetchUserById = vi.fn().mockResolvedValue(user);
+  usersStore.fetchUserById = vi.fn().mockResolvedValue(mockUser);
 
   const authStore = useAuthStore();
   authStore.getLoginToken = vi.fn().mockResolvedValue("mock-token");
@@ -42,39 +50,82 @@ describe("User Details", async () => {
     ],
   });
 
-  await router.push({ name: "userDetails", params: { id: user.id } });
+  await router.push({ name: "userDetails", params: { id: mockUser.id } });
   await router.isReady();
 
   const wrapper = mount(UserDetails, {
     global: {
       plugins: [pinia, vuetify, router, SnackbarPlugin],
+      stubs: { Teleport: true },
     },
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+  beforeAll(async () => {
+    await flushPromises();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  it("is a Vue instance", () => {
+    expect(wrapper.exists()).toBe(true);
   });
 
-  it("Has the correct data", () => {
-    expect(wrapper.vm.currentUser).toEqual(user);
+  it("loads and exposes the user data", () => {
+    expect((wrapper.vm).user).toEqual(mockUser);
   });
 
-  it("Render the correct title", () => {
-    expect(wrapper.find("h1").text()).toEqual("User Details");
+  it("renders the title", () => {
+    expect(wrapper.find("h1").text()).toBe("User Details");
   });
 
-  it("Should render the props of the user in the screen", () => {
-    expect(wrapper.find(`[data-test='${user.id}']`).text()).toContain(user.id);
-    expect(wrapper.find(`[data-test='${user.email}']`).text()).toContain(user.email);
-    expect(wrapper.find(`[data-test='${user.username}']`).text()).toContain(user.username);
+  it("renders main user fields in their data-test blocks", () => {
+    const uid = wrapper.find("[data-test='user-uid-field']");
+    expect(uid.exists()).toBe(true);
+    expect(uid.text()).toContain(mockUser.id);
+
+    const email = wrapper.find("[data-test='user-email-field']");
+    expect(email.exists()).toBe(true);
+    expect(email.text()).toContain(mockUser.email);
+
+    const username = wrapper.find("[data-test='user-username-field']");
+    expect(username.exists()).toBe(true);
+    expect(username.text()).toContain(mockUser.username);
+
+    const status = wrapper.find("[data-test='user-status-field']");
+    expect(status.exists()).toBe(true);
+    expect(status.text().toLowerCase()).toContain("confirmed");
   });
 
-  it("Should render the correct buttons", () => {
-    expect(wrapper.find("a.v-icon.mdi-login").exists()).toBe(true);
-    expect(wrapper.find("a.v-icon.mdi-delete").exists()).toBe(true);
+  it("renders created_at using the formatter", () => {
+    const created = wrapper.find("[data-test='user-created-field']");
+    expect(created.exists()).toBe(true);
+    expect(created.text()).toContain(`formatted(${mockUser.created_at})`);
+  });
+
+  it("renders 'never logged in' state for the zero-date sentinel", () => {
+    const lastLogin = wrapper.find("[data-test='user-last-login-field']");
+    expect(lastLogin.exists()).toBe(true);
+    expect(lastLogin.text()).toContain("User never logged in");
+  });
+
+  it("renders MFA and Marketing blocks", () => {
+    const row = wrapper.find("[data-test='user-mfa-marketing-row']");
+    expect(row.exists()).toBe(true);
+
+    expect(row.text()).toContain("Disabled");
+
+    expect(row.text()).not.toContain("Opted in");
+    expect(row.text()).not.toContain("Opted out");
+  });
+
+  it("renders auth methods chips", () => {
+    const auth = wrapper.find("[data-test='user-auth-methods-field']");
+    expect(auth.exists()).toBe(true);
+    expect(auth.text()).toContain("local");
+  });
+
+  it("renders namespace counters", () => {
+    const row = wrapper.find("[data-test='user-max-namespace-row']");
+    expect(row.exists()).toBe(true);
+    expect(row.text()).toContain(String(mockUser.max_namespaces));
+    expect(row.text()).toContain(String(mockUser.namespacesOwned));
   });
 });
