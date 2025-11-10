@@ -591,6 +591,7 @@ func TestActiveSessionResolve(t *testing.T) {
 				activeSession: &models.ActiveSession{
 					UID:      "a3b0431f5df6a7827945d2e34872a5c781452bc36de42f8b1297fd9ecb012f68",
 					LastSeen: time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC),
+					TenantID: "00000000-0000-4000-0000-000000000000",
 				},
 				err: nil,
 			},
