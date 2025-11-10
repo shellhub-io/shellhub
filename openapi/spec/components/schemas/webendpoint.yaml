@@ -18,6 +18,8 @@ properties:
     $ref: webendpointPort.yaml
   ttl:
     $ref: webendpointTTL.yaml
+  tls:
+    $ref: webendpointTLS.yaml
   expires_in:
     description: Web endpoint's expiration date
     type: string

@@ -3,6 +3,8 @@ package tunnel
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -247,12 +249,52 @@ func NewTunnel(connection string, dial string, config Config) (*Tunnel, error) {
 			}
 
 			req = c.Request()
-			req.Host = strings.Join([]string{address, config.TunnelsDomain}, ".")
-			req.URL, err = url.Parse(path)
+			req.URL, err = url.Parse(fmt.Sprintf("http://%s:%d%s", endpoint.Host, endpoint.Port, path))
 			if err != nil {
 				logger.WithError(err).Error("failed to parse the path")
 
-				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelReadResponse))
+				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelParsePath))
+			}
+
+			req.Host = strings.Join([]string{address, config.TunnelsDomain}, ".")
+
+			if endpoint.TLS.Enabled {
+				cfg := &tls.Config{
+					RootCAs:            x509.NewCertPool(),
+					InsecureSkipVerify: false,
+					MinVersion:         tls.VersionTLS13,
+					ServerName:         endpoint.TLS.Domain,
+				}
+
+				if endpoint.TLS.Verify {
+					// TODO: We don't need to create a new cert pool every time. We can optimize this by creating it
+					// once and reusing it.
+					systemRoots, err := x509.SystemCertPool()
+					if err != nil {
+						logger.WithError(err).Error("failed to load system root CA certificates")
+
+						return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
+					}
+
+					cfg.RootCAs = systemRoots
+				} else {
+					cfg.InsecureSkipVerify = true
+				}
+
+				// NOTE: If web endpoint is TLS, we need to wrap the connection with TLS.
+				conn := tls.Client(in, cfg)
+				defer conn.Close()
+
+				req.Host = endpoint.TLS.Domain
+
+				if err := conn.Handshake(); err != nil {
+					logger.WithError(err).Error("tls handshake failed")
+
+					return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
+				}
+
+				// NOTE: After the TLS handshake is done, we can use the connection as before.
+				in = conn
 			}
 
 			if err := req.Write(in); err != nil {
