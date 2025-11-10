@@ -11,129 +11,98 @@ import (
 )
 
 func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
-	query := []bson.M{
-		{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
-		{"$group": bson.M{"_id": bson.M{"uid": "$uid"}, "count": bson.M{"$sum": 1}}},
-	}
-
-	// Only match for the respective tenant if requested
+	var tenantID string
 	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append([]bson.M{{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		}}, query...)
+		tenantID = tenant.ID
 	}
 
-	query = append([]bson.M{
-		{
-			"$match": bson.M{
-				"disconnected_at": nil,
-				"last_seen":       bson.M{"$gt": primitive.NewDateTimeFromTime(time.Now().Add(-2 * time.Minute))},
-				"status":          "accepted",
-			},
-		},
-	}, query...)
-
-	onlineDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), query)
+	onlineDevicesQuery := buildOnlineDevicesQuery(tenantID)
+	onlineDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), onlineDevicesQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	query = []bson.M{}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append([]bson.M{{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		}}, query...)
-	}
-	query = append([]bson.M{{
-		"$match": bson.M{
-			"status": "accepted",
-		},
-	}}, query...)
-
-	registeredDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), query)
+	registeredDevicesQuery := buildRegisteredDevicesQuery(tenantID)
+	registeredDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), registeredDevicesQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	query = []bson.M{
-		{"$count": "count"},
-	}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append([]bson.M{{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		}}, query...)
-	}
-
-	query = append([]bson.M{{
-		"$match": bson.M{
-			"status": "pending",
-		},
-	}}, query...)
-
-	pendingDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), query)
+	pendingDevicesQuery := buildPendingDevicesQuery(tenantID)
+	pendingDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), pendingDevicesQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	query = []bson.M{
-		{"$count": "count"},
-	}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append([]bson.M{{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		}}, query...)
-	}
-
-	query = append([]bson.M{{
-		"$match": bson.M{
-			"status": "rejected",
-		},
-	}}, query...)
-
-	rejectedDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), query)
+	rejectedDevicesQuery := buildRejectedDevicesQuery(tenantID)
+	rejectedDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), rejectedDevicesQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	query = []bson.M{}
-
-	// Only match for the respective tenant if requested
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"tenant_id": tenant.ID,
-			},
-		})
-	}
-
-	query = append(query, bson.M{
-		"$count": "count",
-	})
-
-	activeSessions, err := CountAllMatchingDocuments(ctx, s.db.Collection("active_sessions"), query)
+	activeSessionsQuery := buildActiveSessionsQuery(tenantID)
+	activeSessions, err := CountAllMatchingDocuments(ctx, s.db.Collection("active_sessions"), activeSessionsQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.Stats{
+	stats := &models.Stats{
 		RegisteredDevices: registeredDevices,
 		OnlineDevices:     onlineDevices,
 		PendingDevices:    pendingDevices,
 		RejectedDevices:   rejectedDevices,
 		ActiveSessions:    activeSessions,
-	}, nil
+	}
+
+	return stats, nil
+}
+
+func buildOnlineDevicesQuery(tenantID string) []bson.M {
+	match := bson.M{
+		"disconnected_at": nil,
+		"last_seen":       bson.M{"$gt": primitive.NewDateTimeFromTime(time.Now().Add(-2 * time.Minute))},
+		"status":          models.DeviceStatusAccepted,
+	}
+
+	if tenantID != "" {
+		match["tenant_id"] = tenantID
+	}
+
+	return []bson.M{{"$match": match}}
+}
+
+func buildRegisteredDevicesQuery(tenantID string) []bson.M {
+	match := bson.M{"status": models.DeviceStatusAccepted}
+	if tenantID != "" {
+		match["tenant_id"] = tenantID
+	}
+
+	return []bson.M{{"$match": match}}
+}
+
+func buildPendingDevicesQuery(tenantID string) []bson.M {
+	match := bson.M{"status": models.DeviceStatusPending}
+	if tenantID != "" {
+		match["tenant_id"] = tenantID
+	}
+
+	return []bson.M{{"$match": match}}
+}
+
+func buildRejectedDevicesQuery(tenantID string) []bson.M {
+	match := bson.M{"status": models.DeviceStatusRejected}
+	if tenantID != "" {
+		match["tenant_id"] = tenantID
+	}
+
+	return []bson.M{{"$match": match}}
+}
+
+func buildActiveSessionsQuery(tenantID string) []bson.M {
+	match := bson.M{}
+	if tenantID != "" {
+		match["tenant_id"] = tenantID
+	}
+
+	return []bson.M{{"$match": match}}
 }
