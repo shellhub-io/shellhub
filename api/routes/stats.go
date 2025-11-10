@@ -14,7 +14,16 @@ const (
 )
 
 func (h *Handler) GetStats(c gateway.Context) error {
-	stats, err := h.service.GetStats(c.Ctx())
+	req := new(requests.GetStats)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	stats, err := h.service.GetStats(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

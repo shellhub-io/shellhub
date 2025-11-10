@@ -75,11 +75,12 @@ func TestGetStats(t *testing.T) {
 	cases := []struct {
 		title          string
 		reqStats       *models.Stats
+		headers        map[string]string
 		expectedStatus int
 		requiredMocks  func()
 	}{
 		{
-			title: "success when try to get an stats",
+			title: "success when try to get stats without tenantID",
 			reqStats: &models.Stats{
 				RegisteredDevices: 10,
 				OnlineDevices:     5,
@@ -87,8 +88,31 @@ func TestGetStats(t *testing.T) {
 				PendingDevices:    3,
 				RejectedDevices:   2,
 			},
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Role":       authorizer.RoleOwner.String(),
+			},
 			requiredMocks: func() {
-				mock.On("GetStats", gomock.Anything).Return(&models.Stats{}, nil)
+				mock.On("GetStats", gomock.Anything, &requests.GetStats{TenantID: ""}).Return(&models.Stats{}, nil)
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			title: "success when try to get stats with tenantID",
+			reqStats: &models.Stats{
+				RegisteredDevices: 5,
+				OnlineDevices:     2,
+				ActiveSessions:    10,
+				PendingDevices:    1,
+				RejectedDevices:   0,
+			},
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Role":       authorizer.RoleOwner.String(),
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				mock.On("GetStats", gomock.Anything, &requests.GetStats{TenantID: "00000000-0000-4000-0000-000000000000"}).Return(&models.Stats{}, nil)
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -100,8 +124,10 @@ func TestGetStats(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/api/stats", nil)
 
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			for key, value := range tc.headers {
+				req.Header.Set(key, value)
+			}
+
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)

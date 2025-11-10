@@ -522,9 +522,9 @@ func (_m *Store) DeviceUpdate(ctx context.Context, device *models.Device) error 
 	return r0
 }
 
-// GetStats provides a mock function with given fields: ctx
-func (_m *Store) GetStats(ctx context.Context) (*models.Stats, error) {
-	ret := _m.Called(ctx)
+// GetStats provides a mock function with given fields: ctx, tenantID
+func (_m *Store) GetStats(ctx context.Context, tenantID string) (*models.Stats, error) {
+	ret := _m.Called(ctx, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetStats")
@@ -532,19 +532,19 @@ func (_m *Store) GetStats(ctx context.Context) (*models.Stats, error) {
 
 	var r0 *models.Stats
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*models.Stats, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.Stats, error)); ok {
+		return rf(ctx, tenantID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *models.Stats); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.Stats); ok {
+		r0 = rf(ctx, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Stats)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}

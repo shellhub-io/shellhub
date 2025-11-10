@@ -4,18 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Store) GetStats(ctx context.Context) (*models.Stats, error) {
-	var tenantID string
-	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-		tenantID = tenant.ID
-	}
-
+func (s *Store) GetStats(ctx context.Context, tenantID string) (*models.Stats, error) {
 	onlineDevicesQuery := buildOnlineDevicesQuery(tenantID)
 	onlineDevices, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), onlineDevicesQuery)
 	if err != nil {
