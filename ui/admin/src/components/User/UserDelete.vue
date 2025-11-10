@@ -1,20 +1,4 @@
 <template>
-  <v-tooltip
-    bottom
-    anchor="bottom"
-  >
-    <template #activator="{ props }">
-      <v-icon
-        tag="a"
-        dark
-        v-bind="props"
-        icon="mdi-delete"
-        @click="showDialog = true"
-      />
-    </template>
-    <span>Remove</span>
-  </v-tooltip>
-
   <MessageDialog
     v-model="showDialog"
     title="Are you sure?"
@@ -31,7 +15,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
@@ -44,7 +27,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["update"]);
-const showDialog = ref(false);
+const showDialog = defineModel<boolean>({ required: true });
 const router = useRouter();
 const snackbar = useSnackbar();
 const usersStore = useUsersStore();

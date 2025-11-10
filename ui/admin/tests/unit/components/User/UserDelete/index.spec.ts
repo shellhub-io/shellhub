@@ -17,6 +17,7 @@ describe("User Delete", () => {
     props: {
       id: "6256d9e3ea6f26bc595130fa",
       redirect: false,
+      modelValue: true,
     },
     global: { plugins: [createVuetify(), routes, SnackbarPlugin] },
   });

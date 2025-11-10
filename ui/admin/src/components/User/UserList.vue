@@ -67,12 +67,30 @@
           </v-tooltip>
 
           <UserResetPassword
-            v-if="userPrefersSAMLAuthentication(item.preferences.auth_methods)"
+            v-if="userPrefersSAMLAuthentication(item.preferences?.auth_methods)"
             :user-id="item.id"
             @update="fetchUsers"
           />
 
-          <UserDelete :id="item.id" />
+          <UserDelete
+            :id="item.id"
+            v-model="deleteDialog"
+          />
+          <v-tooltip
+            bottom
+            anchor="bottom"
+          >
+            <template #activator="{ props }">
+              <v-icon
+                tag="a"
+                dark
+                v-bind="props"
+                icon="mdi-delete"
+                @click="deleteDialog = true"
+              />
+            </template>
+            <span>Remove</span>
+          </v-tooltip>
         </td>
       </tr>
     </template>
@@ -102,6 +120,7 @@ const itemsPerPage = ref(10);
 const loading = ref(false);
 const users = computed(() => usersStore.users as IAdminUser[]);
 const userCount = computed(() => usersStore.usersCount);
+const deleteDialog = ref(false);
 const headers = [
   {
     text: "Name",
@@ -125,9 +144,8 @@ const headers = [
   },
 ];
 
-const userPrefersSAMLAuthentication = (authMethods: UserAuthMethods) => (
-  authMethods && authMethods.length === 1 && authMethods[0] === "saml"
-);
+const userPrefersSAMLAuthentication = (authMethods?: UserAuthMethods): boolean =>
+  Array.isArray(authMethods) && authMethods.length === 1 && authMethods[0] === "saml";
 
 const fetchUsers = async () => {
   try {

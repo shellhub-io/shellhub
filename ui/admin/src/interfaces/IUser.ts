@@ -4,21 +4,20 @@ export type UserAuthMethods = Array<"saml" | "local">;
 
 export interface IAdminUser {
   id: string;
-  namespacesOwned: number;
-  max_namespaces: number;
   status: UserStatus;
+  max_namespaces: number;
   created_at: string;
   last_login: string;
   name: string;
   username: string;
   email: string;
-  recovery_email: string;
-  mfa: {
-    enabled: boolean;
-  }
-  preferences: {
+  recovery_email?: string | null;
+  mfa?: { enabled?: boolean } | null;
+  namespacesOwned: number;
+  preferences?: {
     auth_methods: UserAuthMethods;
-  }
+  };
+  email_marketing?: boolean | null;
 }
 
 export interface IAdminUserFormData {
