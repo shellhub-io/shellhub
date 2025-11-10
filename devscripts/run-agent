@@ -4,7 +4,7 @@ set -e
 
 usage() {
     cat <<EOF
-Runs a native agent with the provided git tag. Optionally, it can receive -t <tenant_id>, -s <server_address>, and -o "<KEY=VALUE>" parameters, which are used during agent initialization. Leave these parameters blank for default values.
+Runs a native agent with the provided git tag. Optionally, it can receive -t <tenant_id>, -s <server_address>, and -o "<KEY=VALUE>" parameters, which are used during agent initialization. If PRIVATE_KEY is not specified via -o, defaults to /tmp/shellhub-agent. Leave other parameters blank for default values.
 
 When <tag> is '.', the agent will be built in the current Git state and named 'latest'.
 
@@ -29,6 +29,7 @@ shift
 
 tenant_id="00000000-0000-4000-0000-000000000000"
 server_address="http://127.0.0.1"
+private_key="/tmp/shellhub-agent"
 additional_env=""
 
 # Processa as flags usando getopts
@@ -58,6 +59,12 @@ done
 
 if [ "$tag" = "." ]; then
     tag="latest"
+fi
+
+if [ -z "$(echo "$additional_env" | grep PRIVATE_KEY)" ]; then
+    if [ -n "$private_key" ]; then
+        additional_env="PRIVATE_KEY=$private_key $additional_env"
+    fi
 fi
 
 echo "Tenant ID: $tenant_id"
@@ -90,4 +97,4 @@ elif [ ! -f ./bin/agent/$tag ]; then
     )
 fi
 
-sudo -E TENANT_ID=$tenant_id SERVER_ADDRESS=$server_address $additional_env PRIVATE_KEY=/tmp/test.pk ./bin/agent/$tag
+sudo -E TENANT_ID=$tenant_id SERVER_ADDRESS=$server_address $additional_env ./bin/agent/$tag
