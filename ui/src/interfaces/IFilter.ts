@@ -15,3 +15,8 @@ export enum FormFilterOptions {
   Hostname = "hostname",
   Tags = "tags",
 }
+
+export enum FormUsernameOptions {
+  All = "all",
+  Username = "username",
+}
