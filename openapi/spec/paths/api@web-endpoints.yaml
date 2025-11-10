@@ -72,6 +72,8 @@ post:
               $ref: ../components/schemas/webendpointPort.yaml
             ttl:
               $ref: ../components/schemas/webendpointTTL.yaml
+            tls:
+              $ref: ../components/schemas/webendpointTLS.yaml
           required:
             - uid
             - host

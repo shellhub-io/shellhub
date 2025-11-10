@@ -110,6 +110,12 @@ func (c *client) GetDevice(ctx context.Context, uid string) (*models.Device, err
 	return device, nil
 }
 
+type WebEndpointTLS struct {
+	Enabled bool   `json:"enabled"`
+	Verify  bool   `json:"verify"`
+	Domain  string `json:"domain"`
+}
+
 type WebEndpoint struct {
 	Address    string         `json:"address"`
 	Namespace  string         `json:"namespace"`
@@ -118,6 +124,7 @@ type WebEndpoint struct {
 	Host       string         `json:"host"`
 	Port       int            `json:"port"`
 	TimeToLive int            `json:"ttl"`
+	TLS        WebEndpointTLS `json:"tls"`
 	ExpiresIn  time.Time      `json:"expires_in"`
 	CreatedAt  time.Time      `json:"time" bson:"time"`
 }

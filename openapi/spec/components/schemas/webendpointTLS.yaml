@@ -1,0 +1,19 @@
+type: object
+description: Web endpoint TLS configuration
+properties:
+  enabled:
+    type: boolean
+    description: Whether TLS is enabled for this web endpoint
+    example: false
+  verify:
+    type: boolean
+    description: Whether to verify the TLS certificate
+    example: false
+  domain:
+    type: string
+    description: Domain for TLS verification
+    example: "example.com"
+required:
+  - enabled
+  - verify
+  - domain
