@@ -55,18 +55,16 @@
 
         <v-row class="mt-2 px-3">
           <v-select
-            v-model="choiceUsername"
+            v-model="selectedUsernameOption"
             label="Device username access restriction"
-            :items="usernameList"
-            item-title="filterText"
-            item-value="filterName"
+            :items="usernameSelectOptions"
             data-test="username-restriction-field"
           />
         </v-row>
 
         <v-row class="mt-2 px-3">
           <v-text-field
-            v-if="choiceUsername === 'username'"
+            v-if="selectedUsernameOption === FormUsernameOptions.Username"
             v-model="username"
             label="Rule username"
             :error-messages="usernameError"
@@ -76,19 +74,18 @@
 
         <v-row class="mt-4 px-3">
           <v-select
-            v-model="choiceFilter"
+            v-model="selectedFilterOption"
             label="Device access restriction"
-            :items="filterList"
-            item-title="filterText"
-            item-value="filterName"
+            :items="filterSelectOptions"
             data-test="filter-restriction-field"
+            @update:model-value="handleFilterChange"
           />
         </v-row>
 
         <v-row class="mt-1 px-3">
           <v-autocomplete
-            v-if="choiceFilter === 'tags'"
-            v-model="tagChoices"
+            v-if="selectedFilterOption === FormFilterOptions.Tags"
+            v-model="selectedTags"
             v-model:menu="isAutocompleteMenuOpen"
             :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
             :items="tags"
@@ -97,25 +94,27 @@
             item-value="name"
             attach
             chips
+            class="mb-4"
+            hide-details="auto"
             label="Tags"
             density="comfortable"
-            :rules="[validateLength]"
-            :error-messages="errMsg"
+            :error-messages="tagSelectorErrorMessage"
             multiple
             data-test="tags-selector"
-            @update:search="onSearch"
+            @update:model-value="validateSelectedTags"
+            @update:search="handleSearch"
           >
             <template #append-item>
               <div
                 ref="sentinel"
                 data-test="tags-sentinel"
-                style="height: 1px;"
+                style="height: 1px"
               />
             </template>
           </v-autocomplete>
 
           <v-text-field
-            v-if="choiceFilter === 'hostname'"
+            v-if="selectedFilterOption === FormFilterOptions.Hostname"
             v-model="hostname"
             label="Hostname"
             :error-messages="hostnameError"
@@ -131,9 +130,10 @@
           :pasted-file
           textarea-label="Public key data"
           description-text="Supports RSA, DSA, ECDSA (NIST P-*) and ED25519 key types, in PEM (PKCS#1, PKCS#8) and OpenSSH formats."
-          :validator="(t) => isKeyValid('public', t)"
+          :validator="(key: string) => isKeyValid('public', key)"
           invalid-message="This is not a valid public key."
           @file-name="suggestNameFromFile"
+          @update:model-value="handlePublicKeyDataChange"
         />
       </div>
     </FormDialog>
@@ -142,10 +142,10 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, nextTick, ref, watch, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useIntersectionObserver } from "@vueuse/core";
 import * as yup from "yup";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import hasPermission from "@/utils/permission";
 import { isKeyValid } from "@/utils/sshKeys";
@@ -155,16 +155,10 @@ import usePublicKeysStore from "@/store/modules/public_keys";
 import { IPublicKeyCreate } from "@/interfaces/IPublicKey";
 import useTagsStore from "@/store/modules/tags";
 import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
+import { FormFilterOptions, FormUsernameOptions } from "@/interfaces/IFilter";
+import { ITag } from "@/interfaces/ITags";
 
 const { size } = defineProps<{ size?: string }>();
-
-type LocalTag = { name: string };
-type NameFilterName = "all" | "username";
-type DeviceFilterName = "all" | "hostname" | "tags";
-interface SelectOption<TName extends string> {
-  filterName: TName;
-  filterText: string;
-}
 
 const emit = defineEmits(["update"]);
 const publicKeysStore = usePublicKeysStore();
@@ -172,58 +166,72 @@ const tagsStore = useTagsStore();
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 
-const validateLength = ref(true);
-const choiceUsername = ref<NameFilterName>("all");
-const choiceFilter = ref<DeviceFilterName>("all");
+const selectedUsernameOption = ref(FormUsernameOptions.All);
+const selectedFilterOption = ref(FormFilterOptions.All);
 
-const filterList = ref<SelectOption<DeviceFilterName>[]>([
-  { filterName: "all", filterText: "Allow the key to connect to all available devices" },
-  { filterName: "hostname", filterText: "Restrict access using a regexp for hostname" },
-  { filterName: "tags", filterText: "Restrict access by tags" },
-]);
+const filterSelectOptions = [
+  { value: "all", title: "Allow the key to connect to all available devices" },
+  { value: "hostname", title: "Restrict access using a regexp for hostname" },
+  { value: "tags", title: "Restrict access by tags" },
+];
 
-const usernameList = ref<SelectOption<NameFilterName>[]>([
-  { filterName: "all", filterText: "Allow any user" },
-  { filterName: "username", filterText: "Restrict access using a regexp for username" },
-]);
-
-const tagChoices = ref<string[]>([]);
-const errMsg = ref("");
-const keyLocal = ref<Record<string, unknown>>({});
+const usernameSelectOptions = [
+  { value: "all", title: "Allow any user" },
+  { value: "username", title: "Restrict access using a regexp for username" },
+];
 
 const isAutocompleteMenuOpen = ref(false);
 const menuContentClass = "pk-tags-ac-content";
 
-const fetchedTags = ref<LocalTag[]>([]);
-const tags = computed(() => fetchedTags.value);
+const tags = ref<ITag[]>([]);
+const hasMoreTagsToLoad = computed(() => tagsStore.numberTags > tags.value.length);
+const selectedTags = ref<string[]>([]);
+const tagSelectorErrorMessage = ref("");
 
 const sentinel = ref<HTMLElement | null>(null);
 const pastedFile = ref<File | null>(null);
+
+const page = ref(1);
+const perPage = ref(10);
+const filter = ref("");
+const isLoading = ref(false);
 
 const {
   value: name,
   errorMessage: nameError,
   resetField: resetName,
-} = useField<string | undefined>("name", yup.string().required(), { initialValue: "" });
+} = useField<string>("name", yup.string().required(), { initialValue: "" });
 
 const {
   value: username,
   errorMessage: usernameError,
-  setErrors: setUsernameError,
   resetField: resetUsername,
-} = useField<string | undefined>("username", yup.string().required(), { initialValue: "" });
+} = useField<string>("username", yup.string().required(), { initialValue: "" });
 
 const {
   value: hostname,
   errorMessage: hostnameError,
-  setErrors: setHostnameError,
   resetField: resetHostname,
-} = useField<string | undefined>("hostname", yup.string().required(), { initialValue: "" });
+} = useField<string>("hostname", yup.string().required(), { initialValue: "" });
 
 const publicKeyData = ref("");
 const publicKeyDataError = ref("");
-
 const inputMode = ref<"file" | "text">("file");
+
+const confirmDisabled = computed(() => {
+  if (!name.value || !publicKeyData.value) return true;
+  if (selectedFilterOption.value === FormFilterOptions.Tags && selectedTags.value.length === 0) return true;
+
+  return Boolean(
+    (!name.value || nameError.value)
+    || (!publicKeyData.value || publicKeyDataError.value)
+    || (selectedUsernameOption.value === FormUsernameOptions.Username && (!username.value || usernameError.value))
+    || (selectedFilterOption.value === FormFilterOptions.Hostname && (!hostname.value || hostnameError.value))
+    || (selectedFilterOption.value === FormFilterOptions.Tags && !!tagSelectorErrorMessage.value),
+  );
+});
+
+const canCreatePublicKey = hasPermission("publicKey:create");
 
 const suggestNameFromFile = (filename: string) => {
   if (name.value) return;
@@ -231,56 +239,29 @@ const suggestNameFromFile = (filename: string) => {
   name.value = base || "Imported Public Key";
 };
 
-watch([tagChoices, choiceFilter], async ([list, currentFilter]) => {
-  if (currentFilter !== "tags") {
-    validateLength.value = true;
-    errMsg.value = "";
+const validateSelectedTags = () => {
+  const list = selectedTags.value;
+  if (selectedFilterOption.value !== FormFilterOptions.Tags) {
+    tagSelectorErrorMessage.value = "";
     return;
   }
-  if (list.length > 3) {
-    validateLength.value = false;
-    await nextTick(() => tagChoices.value.pop());
-    errMsg.value = "The maximum capacity has reached";
-  } else if (list.length === 0) {
-    validateLength.value = false;
-    errMsg.value = "You must choose at least one tag";
-  } else if (list.length <= 2) {
-    validateLength.value = true;
-    errMsg.value = "";
-  }
-});
+  if (list.length > 3) tagSelectorErrorMessage.value = "You can select up to three tags only";
+  else if (list.length === 0) tagSelectorErrorMessage.value = "You must choose at least one tag";
+  else if (list.length <= 3) tagSelectorErrorMessage.value = "";
+};
 
-watch(publicKeyData, () => {
-  if (!showDialog.value) return;
+const handleFilterChange = async () => {
+  if (selectedFilterOption.value === FormFilterOptions.Tags) await loadTags();
+  else tagSelectorErrorMessage.value = "";
+};
+
+const handlePublicKeyDataChange = () => {
   if (!publicKeyData.value) {
     publicKeyDataError.value = "Field is required";
     return;
   }
-  if (!isKeyValid("public", publicKeyData.value)) publicKeyDataError.value = "This is not valid key";
+  if (!isKeyValid("public", publicKeyData.value)) publicKeyDataError.value = "This is not a valid key";
   else publicKeyDataError.value = "";
-});
-
-const chooseUsername = () => {
-  switch (choiceUsername.value) {
-    case "all": keyLocal.value = { ...keyLocal.value, username: ".*" }; break;
-    case "username": keyLocal.value = { ...keyLocal.value, username: username.value }; break;
-    default: break;
-  }
-};
-
-const chooseFilter = () => {
-  switch (choiceFilter.value) {
-    case "all":
-      keyLocal.value = { ...keyLocal.value, filter: { hostname: ".*" } };
-      break;
-    case "hostname":
-      keyLocal.value = { ...keyLocal.value, filter: { hostname: hostname.value } };
-      break;
-    case "tags":
-      keyLocal.value = { ...keyLocal.value, filter: { tags: tagChoices.value } };
-      break;
-    default: break;
-  }
 };
 
 const resetFields = () => {
@@ -289,96 +270,58 @@ const resetFields = () => {
   resetHostname();
   publicKeyData.value = "";
   publicKeyDataError.value = "";
+  selectedFilterOption.value = FormFilterOptions.All;
+  selectedUsernameOption.value = FormUsernameOptions.All;
+  selectedTags.value = [];
+  inputMode.value = "file";
   pastedFile.value = null;
 };
 
-const setLocalVariable = () => {
-  keyLocal.value = {};
-  hostname.value = "";
-  tagChoices.value = [];
-  choiceFilter.value = "all";
-  choiceUsername.value = "all";
-  inputMode.value = "file";
-  resetFields();
+const close = () => {
+  showDialog.value = false;
 };
 
-watch(showDialog, (open) => {
-  if (open) {
-    inputMode.value = "file";
-  } else {
-    setLocalVariable();
-  }
-});
+const constructNewPublicKey = () => {
+  const filterMap = {
+    [FormFilterOptions.Hostname]: { hostname: hostname.value.trim() },
+    [FormFilterOptions.Tags]: { tags: selectedTags.value },
+    [FormFilterOptions.All]: { hostname: ".*" },
+  };
 
-const close = () => { showDialog.value = false; setLocalVariable(); };
-
-const update = () => { emit("update"); close(); };
-
-const hasErrors = () => {
-  if (choiceUsername.value === "username" && !username.value) { setUsernameError("This Field is required!"); return true; }
-  if (choiceFilter.value === "hostname" && !hostname.value) { setHostnameError("This Field is required!"); return true; }
-  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) return true;
-  return false;
+  return {
+    data: Buffer.from(publicKeyData.value, "utf-8").toString("base64"),
+    name: name.value,
+    username: selectedUsernameOption.value === FormUsernameOptions.All ? ".*" : username.value?.trim(),
+    filter: filterMap[selectedFilterOption.value],
+  };
 };
 
 const create = async () => {
-  if (hasErrors()) return;
-
   try {
-    chooseFilter();
-    chooseUsername();
-    const keySend = {
-      ...keyLocal.value,
-      data: Buffer.from(publicKeyData.value, "utf-8").toString("base64"),
-      name: name.value,
-    };
-    await publicKeysStore.createPublicKey(keySend as IPublicKeyCreate);
+    await publicKeysStore.createPublicKey(constructNewPublicKey() as IPublicKeyCreate);
     snackbar.showSuccess("Public key created successfully.");
-    update();
+    emit("update");
+    close();
     resetFields();
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 409) {
-        publicKeyDataError.value = "Public Key data already exists";
-        return;
-      }
-      snackbar.showError("Failed to create the public key.");
-      handleError(error);
-    } else {
-      snackbar.showError("Failed to create the public key.");
-      handleError(error);
+    if (axios.isAxiosError(error) && error.response?.status === 409) {
+      publicKeyDataError.value = "Public Key data already exists";
+      return;
     }
+    snackbar.showError("Failed to create the public key.");
+    handleError(error);
   }
 };
 
-const page = ref(1);
-const perPage = ref(10);
-const filter = ref("");
-const isLoading = ref(false);
-
-const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
-const canCreatePublicKey = hasPermission("publicKey:create");
-
-const encodeFilter = (search: string) => {
-  if (!search) return "";
-  const filterToEncodeBase64 = [
-    { type: "property", params: { name: "name", operator: "contains", value: search } },
-  ];
+const encodeFilter = (filterQuery: string) => {
+  if (!filterQuery) return "";
+  const filterToEncodeBase64 = [{ type: "property", params: { name: "name", operator: "contains", value: filterQuery } }];
   return btoa(JSON.stringify(filterToEncodeBase64));
 };
-
-const normalizeStoreItems = (arr: unknown[]): LocalTag[] => (arr ?? [])
-  .map((tag: unknown) => {
-    const name = typeof tag === "string" ? tag : (tag as LocalTag | undefined)?.name;
-    return name ? ({ name } as LocalTag) : null;
-  })
-  .filter((tag: LocalTag | null): tag is LocalTag => !!tag);
 
 const resetPagination = () => {
   page.value = 1;
   perPage.value = 10;
-  fetchedTags.value = [];
 };
 
 const loadTags = async () => {
@@ -392,8 +335,7 @@ const loadTags = async () => {
       page: page.value,
       perPage: perPage.value,
     });
-
-    fetchedTags.value = normalizeStoreItems(tagsStore.list as unknown[]);
+    tags.value = tagsStore.list;
   } catch (error) {
     snackbar.showError("Failed to load tags.");
     handleError(error);
@@ -402,21 +344,14 @@ const loadTags = async () => {
   }
 };
 
-const onSearch = async (search: string) => {
-  filter.value = search || "";
+const handleSearch = async (filterQuery = "") => {
+  filter.value = filterQuery;
   resetPagination();
   await loadTags();
 };
 
-watch(choiceFilter, async (val) => {
-  if (val === "tags") {
-    resetPagination();
-    await loadTags();
-  }
-});
-
 const bumpPerPageAndLoad = async () => {
-  if (!hasMore.value || isLoading.value) return;
+  if (!hasMoreTagsToLoad.value || isLoading.value) return;
   perPage.value += 10;
   await loadTags();
 };
@@ -434,23 +369,5 @@ onMounted(async () => {
   await loadTags();
 });
 
-const confirmDisabled = computed(() => {
-  if (!name.value || !publicKeyData.value) return true;
-
-  if (choiceUsername.value === "username" && !username.value) return true;
-  if (choiceFilter.value === "hostname" && !hostname.value) return true;
-  if (choiceFilter.value === "tags" && tagChoices.value.length === 0) return true;
-
-  const tagRuleBlocking = choiceFilter.value === "tags" && !validateLength.value;
-
-  return Boolean(
-    nameError.value
-    || publicKeyDataError.value
-    || (choiceUsername.value === "username" && usernameError.value)
-    || (choiceFilter.value === "hostname" && hostnameError.value)
-    || tagRuleBlocking,
-  );
-});
-
-defineExpose({ publicKeyDataError, nameError, usernameError, hostnameError, errMsg });
+defineExpose({ nameError, usernameError, hostnameError });
 </script>
