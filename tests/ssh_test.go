@@ -1324,7 +1324,7 @@ func TestSSH(t *testing.T) {
 
 	ctx := context.Background()
 
-	databases := []string{"mongo"}
+	databases := []string{"mongo", "postgres"}
 	for _, db := range databases {
 		compose := environment.New(t).WithEnv("SHELLHUB_DATABASE", db).Up(ctx)
 		compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)

@@ -13,9 +13,10 @@ const (
 )
 
 var (
-	ErrDuplicate   = errors.New("document duplicate", ErrLayer, ErrCodeDuplicated)
-	ErrNoDocuments = errors.New("no documents", ErrLayer, ErrCodeNoDocument)
-	ErrInvalidHex  = errors.New("the provided hex string is not a valid ObjectID", ErrLayer, ErrCodeInvalid)
+	ErrDuplicate        = errors.New("document duplicate", ErrLayer, ErrCodeDuplicated)
+	ErrNoDocuments      = errors.New("no documents", ErrLayer, ErrCodeNoDocument)
+	ErrInvalidHex       = errors.New("the provided hex string is not a valid ObjectID", ErrLayer, ErrCodeInvalid)
+	ErrResolverNotFound = errors.New("resolver not found", ErrLayer, ErrCodeInvalid)
 )
 
 // Errors used by Cloud.
