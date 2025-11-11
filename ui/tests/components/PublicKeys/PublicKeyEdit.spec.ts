@@ -54,7 +54,7 @@ describe("Public Key Edit", () => {
           "v-file-upload-item": true,
         },
       },
-      props: { publicKey: { ...mockPublicKey } },
+      props: { publicKey: mockPublicKey },
     });
   });
 
@@ -216,7 +216,7 @@ describe("Public Key Edit", () => {
     await wrapper.findComponent('[data-test="tags-selector"]').setValue(["1", "2", "3", "4"]);
     await flushPromises();
 
-    expect(wrapper.vm.errMsg).toBe("The maximum capacity has reached");
+    expect(wrapper.vm.tagSelectorErrorMessage).toBe("You can select up to three tags only");
 
     const formDialog = wrapper.findComponent({ name: "FormDialog" });
     expect(formDialog.props("confirmDisabled")).toBe(true);
