@@ -183,7 +183,7 @@
 import { watch, ref, computed, reactive } from "vue";
 import { RouteLocationRaw, useRouter } from "vue-router";
 import useLicenseStore from "@admin/store/modules/license";
-import useLayoutStore from "@admin/store/modules/layout";
+import useLayoutStore from "@/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
 import useSpinnerStore from "@/store/modules/spinner";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
@@ -234,11 +234,11 @@ watch(drawer, () => {
   }
 });
 
-const logout = async () => {
+const logout = () => {
   authStore.logout();
-  await router.push("/login");
+  window.location.href = "/login";
   createNewAdminClient();
-  layoutStore.layout = "SimpleLayout";
+  layoutStore.layout = "LoginLayout";
 };
 
 const triggerClick = async (item: MenuItem) => {
@@ -326,7 +326,7 @@ const menu = reactive([
     title: "Logout",
     type: "method",
     path: "",
-    method: () => logout,
+    method: logout,
   },
 ]);
 

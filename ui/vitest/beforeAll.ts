@@ -27,6 +27,14 @@ vi.mock("vue-router", async (importOriginal) => {
   };
 });
 
+Object.defineProperty(window, "location", {
+  value: {
+    ...window.location,
+    assign: vi.fn(),
+  },
+  writable: true,
+});
+
 vi.stubGlobal("visualViewport", new EventTarget());
 
 global.CSS = { supports: () => false } as never;

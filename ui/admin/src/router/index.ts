@@ -137,10 +137,8 @@ router.beforeEach(
     layoutStore.layout = to.meta.layout as Layout || "AppLayout";
 
     if (!authStore.isLoggedIn && requiresAuth) {
-      return next({
-        name: "login",
-        query: { redirect: to.fullPath },
-      });
+      window.location.href = `/login?redirect=${encodeURIComponent(to.fullPath)}`;
+      return;
     }
 
     if (authStore.isLoggedIn && !to.meta.requiresAuth) {
