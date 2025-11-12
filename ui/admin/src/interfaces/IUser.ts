@@ -18,6 +18,7 @@ export interface IAdminUser {
     auth_methods: UserAuthMethods;
   };
   email_marketing?: boolean | null;
+  admin?: boolean;
 }
 
 export interface IAdminUserFormData {
