@@ -367,6 +367,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		Role:          role,
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
+		Admin:         user.Admin,
 	}
 
 	return res, 0, "", nil
