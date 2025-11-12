@@ -7,7 +7,7 @@ const uploadLicense = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const token = localStorage.getItem("cloud_token");
+  const token = localStorage.getItem("token");
 
   const response = await axios.post(
     `${window.location.origin}/admin/api/license`,
