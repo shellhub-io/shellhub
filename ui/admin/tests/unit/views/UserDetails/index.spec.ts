@@ -24,6 +24,7 @@ const mockUser = {
   max_namespaces: 0,
   mfa: { enabled: false },
   email_marketing: null,
+  admin: true,
   preferences: { auth_methods: ["local"] },
 };
 
@@ -74,6 +75,24 @@ describe("UserDetails.vue", async () => {
 
   it("renders the title", () => {
     expect(wrapper.find("h1").text()).toBe("User Details");
+  });
+
+  it("renders admin chip only when user is admin", async () => {
+    const chip = wrapper.find("[data-test='user-admin-chip']");
+    expect(chip.exists()).toBe(true);
+    expect(chip.text()).toContain("Admin");
+
+    wrapper.unmount();
+
+    // Re-mount with non-admin user
+    const nonAdminUser = { ...mockUser, admin: false };
+    usersStore.fetchUserById = vi.fn().mockResolvedValue(nonAdminUser);
+    await router.push({ name: "userDetails", params: { id: mockUser.id } });
+    await router.isReady();
+    const wrapperNonAdmin = mount(UserDetails, {
+      global: { plugins: [pinia, vuetify, router, SnackbarPlugin] },
+    });
+    expect(wrapperNonAdmin.find("[data-test='user-admin-chip']").exists()).toBe(false);
   });
 
   it("renders main user fields in their data-test blocks", () => {

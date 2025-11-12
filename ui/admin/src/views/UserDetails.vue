@@ -10,8 +10,19 @@
     <v-card-title
       class="pa-4 d-flex align-center justify-space-between bg-v-theme-surface"
     >
-      <span class="text-h6 ml-2">
+      <span class="text-h6 ml-2 d-flex align-center ga-2">
         {{ user.username || user.name || user.email || 'User' }}
+        <v-chip
+          v-if="user.admin"
+          color="warning"
+          data-test="user-admin-chip"
+        >
+          <v-icon
+            icon="mdi-crown"
+            class="mt-n1 mr-1"
+          />
+          Admin
+        </v-chip>
       </span>
 
       <v-menu
