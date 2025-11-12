@@ -23,6 +23,7 @@ interface IAuthData {
   recovery_email?: string;
   mfa?: boolean;
   auth_methods?: string[];
+  admin?: boolean;
 }
 
 const useAuthStore = defineStore("auth", () => {
@@ -33,6 +34,7 @@ const useAuthStore = defineStore("auth", () => {
   const email = ref(localStorage.getItem("email") || "");
   const id = ref(localStorage.getItem("id") || "");
   const role = ref(localStorage.getItem("role") || "");
+  const isAdmin = ref(localStorage.getItem("admin") === "true");
   const recoveryEmail = ref("");
   const isMfaEnabled = ref(false);
   const recoveryCode = ref("");
@@ -54,6 +56,7 @@ const useAuthStore = defineStore("auth", () => {
     email.value = data.email || "";
     id.value = data.id || "";
     role.value = data.role || "";
+    isAdmin.value = data.admin || false;
     recoveryEmail.value = data.recovery_email || "";
     isMfaEnabled.value = data.mfa || false;
     authMethods.value = data.auth_methods || ["local"];
@@ -65,6 +68,7 @@ const useAuthStore = defineStore("auth", () => {
     localStorage.setItem("email", email.value);
     localStorage.setItem("id", id.value);
     localStorage.setItem("role", role.value);
+    localStorage.setItem("admin", String(isAdmin.value));
     localStorage.setItem("recovery_email", recoveryEmail.value);
     localStorage.setItem("mfa", String(isMfaEnabled.value));
     localStorage.setItem("namespacesWelcome", JSON.stringify({}));
