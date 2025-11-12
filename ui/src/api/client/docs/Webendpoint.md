@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **host** | **string** | Web endpoint\&#39;s agent host address | [optional] [default to undefined]
 **port** | **number** | Web endpoint\&#39;s agent port number | [optional] [default to undefined]
 **ttl** | **number** | Web endpoint\&#39;s time to live in seconds | [optional] [default to undefined]
+**tls** | [**WebendpointTLS**](WebendpointTLS.md) |  | [optional] [default to undefined]
 **expires_in** | **string** | Web endpoint\&#39;s expiration date | [optional] [default to undefined]
 **created_at** | **string** | Web endpoint\&#39;s creation date | [optional] [default to undefined]
 
@@ -30,6 +31,7 @@ const instance: Webendpoint = {
     host,
     port,
     ttl,
+    tls,
     expires_in,
     created_at,
 };

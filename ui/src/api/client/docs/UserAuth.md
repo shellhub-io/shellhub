@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **tenant** | **string** | Namespace\&#39;s tenant ID | [optional] [default to undefined]
 **role** | [**NamespaceMemberRole**](NamespaceMemberRole.md) |  | [optional] [default to undefined]
 **mfa** | **boolean** | Indicates whether the user has MFA enabled. | [optional] [default to undefined]
+**admin** | **boolean** | Indicates whether the user has admin status. | [optional] [default to undefined]
 **max_namespaces** | **number** | Indicates the maximum number of namespaces a user is allowed to create. If set to 0, the user is not permitted to create any namespaces. If set to -1, the user has no limit on the number of namespaces they can create. | [optional] [default to undefined]
 
 ## Example
@@ -33,6 +34,7 @@ const instance: UserAuth = {
     tenant,
     role,
     mfa,
+    admin,
     max_namespaces,
 };
 ```

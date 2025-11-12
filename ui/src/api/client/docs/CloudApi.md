@@ -2799,7 +2799,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new CloudApi(configuration);
 
-let userId: string; // (optional) (default to undefined)
+let userId: string; // (default to undefined)
 let mfaReset: MfaReset; // (optional)
 
 const { status, data } = await apiInstance.resetMFA(
@@ -2813,7 +2813,7 @@ const { status, data } = await apiInstance.resetMFA(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **mfaReset** | **MfaReset**|  | |
-| **userId** | [**string**] |  | (optional) defaults to undefined|
+| **userId** | [**string**] |  | defaults to undefined|
 
 
 ### Return type
