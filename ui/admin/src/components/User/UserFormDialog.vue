@@ -119,16 +119,36 @@
           </div>
         </template>
       </v-tooltip>
+      <v-tooltip
+        location="bottom start"
+        class="text-center"
+        :disabled="canChangeAdmin"
+        text="You cannot remove your own admin privileges"
+      >
+        <template #activator="{ props }">
+          <div v-bind="props">
+            <v-checkbox
+              v-model="isAdmin"
+              label="Admin user"
+              :disabled="!canChangeAdmin"
+              density="compact"
+              hide-details
+              color="primary"
+            />
+          </div>
+        </template>
+      </v-tooltip>
     </v-card-text>
   </FormDialog>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
 import useUsersStore from "@admin/store/modules/users";
+import useAuthStore from "@admin/store/modules/auth";
 import { IAdminUser, IAdminUserFormData } from "@admin/interfaces/IUser";
 import useSnackbar from "@/helpers/snackbar";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
@@ -146,10 +166,14 @@ const maxNamespaces = ref(props.user?.max_namespaces || 0);
 const canChangeStatus = props.user?.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
 const snackbar = useSnackbar();
 const usersStore = useUsersStore();
-const statusTooltipMessage
-  = props.user?.status === "invited"
-    ? "You cannot change the status of an invited user."
-    : "You cannot remove confirmation from an user.";
+const authStore = useAuthStore();
+
+const statusTooltipMessage = props.user?.status === "invited"
+  ? "You cannot change the status of an invited user."
+  : "You cannot remove confirmation from an user.";
+
+const isCurrentUser = computed(() => props.user?.username === authStore.currentUser);
+const canChangeAdmin = computed(() => !(isCurrentUser.value && props.user?.admin));
 
 const {
   value: name,
@@ -189,12 +213,19 @@ const { value: isConfirmed, resetField: resetIsConfirmed } = useField<
   initialValue: props.user?.status === "confirmed",
 });
 
+const { value: isAdmin, resetField: resetIsAdmin } = useField<
+  boolean | undefined
+>("isAdmin", undefined, {
+  initialValue: props.user?.admin || false,
+});
+
 const resetFormFields = () => {
   resetName();
   resetEmail();
   resetUsername();
   resetPassword();
   resetIsConfirmed();
+  resetIsAdmin();
 };
 
 const togglePasswordVisibility = () => {
@@ -274,9 +305,9 @@ const prepareUserData = () =>
     max_namespaces: changeNamespaceLimit.value
       ? maxNamespaces.value
       : undefined,
-    confirmed: !props.createUser ? isConfirmed.value : undefined,
     status: getStatus(),
     id: !props.createUser ? props.user?.id : undefined,
+    admin: isAdmin.value,
   }) as IAdminUserFormData;
 
 const validateErrors = (): boolean =>
@@ -303,5 +334,6 @@ defineExpose({
   email,
   username,
   isConfirmed,
+  isAdmin,
 });
 </script>

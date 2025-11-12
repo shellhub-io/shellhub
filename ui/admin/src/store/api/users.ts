@@ -18,6 +18,7 @@ export const addUser = (userData: IAdminUserFormData) => adminApi.createUserAdmi
   username: userData.username,
   password: userData.password,
   max_namespaces: userData.max_namespaces,
+  admin: userData.admin,
 });
 
 export const updateUser = async (id: string, userData: IAdminUserFormData) => adminApi.adminUpdateUser(id, {
@@ -27,6 +28,7 @@ export const updateUser = async (id: string, userData: IAdminUserFormData) => ad
   password: userData.password,
   status: userData.status,
   max_namespaces: userData.max_namespaces,
+  admin: userData.admin,
 } as UserAdminRequest);
 
 export const resetUserPassword = async (id: string) => adminApi.adminResetUserPassword(id);
