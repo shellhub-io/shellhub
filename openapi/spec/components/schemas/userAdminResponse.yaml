@@ -9,6 +9,9 @@ properties:
   confirmed:
     description: User's confirmation.
     type: boolean
+  admin:
+    description: User's admin status.
+    type: boolean
   created_at:
     description: User's creating date.
     type: string

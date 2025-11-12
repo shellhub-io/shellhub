@@ -13,6 +13,9 @@ properties:
     example: example
   confirmed:
     $ref: userConfirmedEmail.yaml
+  admin:
+    description: User's admin status.
+    type: boolean
   max_namespaces:
     $ref: maxNamespaces.yaml
 required:
