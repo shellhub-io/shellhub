@@ -109,6 +109,7 @@
             <v-list-item
               lines="two"
               v-bind="props"
+              :disabled="item.disabled"
             >
               <template #prepend>
                 <v-icon data-test="icon">
@@ -300,6 +301,7 @@ const items = reactive([
     icon: "mdi-cog",
     title: "Settings",
     path: "/settings",
+    disabled: !authStore.isAdmin,
     children: [
       {
         title: "Authentication",
