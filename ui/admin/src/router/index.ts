@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized } from "vue-router";
-import Login from "@admin/views/Login.vue";
 import Dashboard from "@admin/views/Dashboard.vue";
 import Users from "@admin/views/Users.vue";
 import SettingsLicense from "@admin/components/Settings/SettingsLicense.vue";
@@ -12,15 +11,6 @@ import useAuthStore from "@admin/store/modules/auth";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 
 const routes = [
-  {
-    path: "/login",
-    name: "login",
-    component: Login,
-    meta: {
-      layout: "SimpleLayout",
-      requiresAuth: false,
-    },
-  },
   {
     path: "/",
     name: "dashboard",
