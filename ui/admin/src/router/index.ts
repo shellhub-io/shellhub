@@ -6,7 +6,6 @@ import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentic
 import Namespaces from "@admin/views/Namespaces.vue";
 import Settings from "@admin/views/Settings.vue";
 import useLicenseStore from "@admin/store/modules/license";
-import useLayoutStore, { Layout } from "@admin/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 
@@ -119,16 +118,13 @@ const router = createRouter({
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     const licenseStore = useLicenseStore();
-    const layoutStore = useLayoutStore();
     const authStore = useAuthStore();
 
     const requiresAuth = to.meta.requiresAuth ?? true;
 
-    layoutStore.layout = to.meta.layout as Layout || "AppLayout";
-
     if (!authStore.isLoggedIn && requiresAuth) {
       window.location.href = `/login?redirect=${encodeURIComponent(to.fullPath)}`;
-      return;
+      return next();
     }
 
     if (authStore.isLoggedIn && !to.meta.requiresAuth) {
