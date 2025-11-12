@@ -326,6 +326,7 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		TenantID: tenantID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
+		Admin:    user.Admin,
 	}
 
 	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)
@@ -430,6 +431,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		TenantID: tenantID,
 		Username: user.Username,
 		MFA:      user.MFA.Enabled,
+		Admin:    user.Admin,
 	}
 
 	token, err := jwttoken.EncodeUserClaims(claims, s.privKey)

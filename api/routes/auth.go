@@ -89,6 +89,7 @@ func (h *Handler) AuthRequest(c gateway.Context) error {
 		c.Response().Header().Set("X-Username", claims.Username)
 		c.Response().Header().Set("X-Tenant-ID", claims.TenantID)
 		c.Response().Header().Set("X-Role", claims.Role.String())
+		c.Response().Header().Set("X-Admin", strconv.FormatBool(claims.Admin))
 	default:
 		return c.NoContent(http.StatusUnauthorized)
 	}

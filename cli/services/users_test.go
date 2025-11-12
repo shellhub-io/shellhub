@@ -147,6 +147,7 @@ func TestUserCreate(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: false,
 				}
 				mock.On("UserCreate", ctx, user).Return("", errors.New("error")).Once()
 			},
@@ -184,6 +185,7 @@ func TestUserCreate(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: false,
 				}
 
 				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
@@ -208,6 +210,7 @@ func TestUserCreate(t *testing.T) {
 				Preferences: models.UserPreferences{
 					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 				},
+				Admin: false,
 			}, nil},
 		},
 	}
