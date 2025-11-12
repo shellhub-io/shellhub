@@ -210,6 +210,7 @@ const useAuthStore = defineStore("auth", () => {
     email,
     id,
     role,
+    isAdmin,
     recoveryEmail,
     isMfaEnabled,
     authMethods,

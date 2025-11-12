@@ -101,15 +101,17 @@
             <v-list-item-subtitle>
               <div class="d-flex align-center text-caption text-capitalize">
                 <div class="d-flex align-center ga-1 flex-1-0">
-                  <v-icon size="x-small">
-                    mdi-shield-crown
-                  </v-icon>
+                  <v-icon
+                    size="x-small"
+                    icon="mdi-shield-crown"
+                  />
                   <span>super admin</span>
                 </div>
                 <div class="d-flex align-center ga-1 flex-1-0">
-                  <v-icon size="x-small">
-                    mdi-server
-                  </v-icon>
+                  <v-icon
+                    size="x-small"
+                    icon="mdi-server"
+                  />
                   <span>instance</span>
                 </div>
               </div>
@@ -161,7 +163,7 @@ const {
 const showAddDialog = ref(false);
 const userId = computed(() => authStore.id);
 
-const showAdminPanel = computed(() => envVariables.isEnterprise && !envVariables.isCloud);
+const showAdminPanel = computed(() => envVariables.isEnterprise && !envVariables.isCloud && authStore.isAdmin);
 
 const otherNamespaces = computed(() => namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id));
 
