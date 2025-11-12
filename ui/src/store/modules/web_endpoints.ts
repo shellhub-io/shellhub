@@ -31,8 +31,7 @@ const useWebEndpointsStore = defineStore("webEndpoints", () => {
   };
 
   const createWebEndpoint = async (data: IWebEndpointsCreate) => {
-    const { uid, host, port, ttl } = data;
-    const res = await webEndpointsApi.createWebEndpoint(uid, host, port, ttl);
+    const res = await webEndpointsApi.createWebEndpoint(data);
     return res;
   };
 

@@ -39,9 +39,7 @@
             />
           </v-col>
 
-          <p class="mt-7 pa-0">
-            :
-          </p>
+          <p class="mt-7 pa-0">:</p>
 
           <v-col class="pb-0">
             <v-text-field
@@ -119,7 +117,7 @@
           <v-col>
             <v-text-field
               v-model.number="customTimeout"
-              :error-messages="customTimeoutError"
+              :error-messages="customTimeoutErrorMsg"
               label="Custom Timeout (in seconds)"
               type="number"
               hide-details
@@ -128,6 +126,58 @@
             />
           </v-col>
         </v-row>
+
+        <v-divider class="my-4" />
+        <div class="text-subtitle-1">TLS</div>
+
+        <v-row>
+          <v-col
+            cols="12"
+            md="6"
+          >
+            <v-checkbox
+              v-model="tlsEnabled"
+              label="Enable TLS (HTTPS)"
+              hint="Use HTTPS when creating the web endpoint"
+              persistent-hint
+              data-test="tls-enabled-checkbox"
+              @update:model-value="onTlsEnabledChange(tlsEnabled)"
+            />
+          </v-col>
+
+          <v-expand-transition v-show="tlsEnabled">
+            <v-col>
+              <v-checkbox
+                v-model="tlsVerify"
+                label="Verify certificate"
+                hint="Validate the server certificate using the Domain below"
+                persistent-hint
+                data-test="tls-verify-checkbox"
+              />
+            </v-col>
+          </v-expand-transition>
+        </v-row>
+
+        <v-expand-transition>
+          <div
+            v-show="tlsEnabled"
+            data-test="tls-accordion"
+          >
+            <v-row>
+              <v-col>
+                <v-text-field
+                  v-model="tlsDomain"
+                  :error-messages="tlsDomainError"
+                  label="TLS Domain"
+                  hint="Example: example.com or device.local"
+                  persistent-hint
+                  variant="outlined"
+                  data-test="tls-domain-text"
+                />
+              </v-col>
+            </v-row>
+          </div>
+        </v-expand-transition>
       </v-card-text>
     </v-container>
   </FormDialog>
@@ -145,6 +195,7 @@ import useSnackbar from "@/helpers/snackbar";
 import useDevicesStore from "@/store/modules/devices";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 import type { IDevice } from "@/interfaces/IDevice";
+import { IWebEndpointsCreate } from "@/interfaces/IWebEndpoints";
 
 const props = defineProps<{
   uid?: string;
@@ -158,6 +209,7 @@ const snackbar = useSnackbar();
 const showDialog = defineModel<boolean>({ required: true });
 const alertText = ref("");
 
+// IPv4 / IPv6 regexes
 const ipv4Regex
   = /^(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})\.(25[0-5]|2[0-4]\d|1?\d{1,2})$/;
 
@@ -215,7 +267,7 @@ const {
 
 const {
   value: customTimeout,
-  errorMessage: customTimeoutError,
+  errorMessage: customTimeoutErrorMsg,
   resetField: resetCustomTimeout,
 } = useField<number>(
   "customTimeout",
@@ -225,24 +277,74 @@ const {
 
 const selectedTimeout = ref<number | "custom">(-1);
 const timeout = computed(() =>
-  selectedTimeout.value === "custom"
-    ? customTimeout.value
-    : selectedTimeout.value,
+  selectedTimeout.value === "custom" ? customTimeout.value : selectedTimeout.value,
 );
 
+const tlsEnabled = ref<boolean>(false);
+const tlsVerify = ref<boolean>(false);
+
+const isFQDN = (value: string): boolean => {
+  if (!value) return false;
+
+  const cleaned = value.trim();
+
+  const fqdnRegex = /^([a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})(\.[a-zA-Z0-9]{1}[a-zA-Z0-9-]{0,62})*?(\.[a-zA-Z]{1}[a-zA-Z0-9]{0,62})\.?$/;
+
+  return fqdnRegex.test(cleaned);
+};
+
+const {
+  value: tlsDomain,
+  errorMessage: tlsDomainError,
+  resetField: resetTlsDomain,
+} = useField<string>(
+  "tlsDomain",
+  yup
+    .string()
+    .trim()
+    .when([], {
+      is: () => tlsEnabled.value,
+      then: (schema) =>
+        schema
+          .required("Domain is required when TLS is enabled")
+          .test(
+            "valid-domain",
+            "Enter a valid FQDN (e.g., example.com or device.local)",
+            (value) => isFQDN(value || ""),
+          ),
+      otherwise: (schema) => schema,
+    }),
+  { initialValue: "" },
+);
+
+const tlsDomainNormalized = computed(() =>
+  tlsDomain.value.trim().replace(/^\[|\]$/g, ""),
+);
+
+const onTlsEnabledChange = (enabled: boolean) => {
+  if (!enabled) {
+    tlsVerify.value = false;
+    tlsDomain.value = "";
+  }
+};
+
 const hasErrors = computed(() => {
-  const needsCustom = selectedTimeout.value === "custom";
-  const formInvalid
+  const baseErrors
     = !!portError.value
       || !!hostError.value
-      || (needsCustom && !!customTimeoutError.value)
       || !port.value
       || !host.value
       || timeout.value === undefined
       || timeout.value === null;
 
-  if (props.useDevicesList) return formInvalid || !selectedDevice.value;
-  return formInvalid;
+  const customTimeoutInvalid
+    = selectedTimeout.value === "custom" && !!customTimeoutErrorMsg.value;
+
+  const tlsError = (tlsEnabled.value && !!tlsDomainError.value) || (tlsEnabled.value && !tlsDomain.value);
+
+  const deviceError = props.useDevicesList && !selectedDevice.value;
+
+  return baseErrors || customTimeoutInvalid || tlsError || deviceError;
 });
 
 const resetFields = () => {
@@ -254,6 +356,10 @@ const resetFields = () => {
   selectedDevice.value = null;
   deviceSearch.value = "";
   deviceOptions.value = [];
+
+  tlsEnabled.value = false;
+  tlsVerify.value = false;
+  resetTlsDomain();
 };
 
 const clearFilterAndRefetch = async () => {
@@ -312,17 +418,25 @@ const onSearchUpdate = async (val: string) => {
 const addWebEndpoint = async () => {
   if (hasErrors.value) return;
 
-  const deviceUid = props.useDevicesList
-    ? selectedDevice.value?.uid
-    : props.uid;
+  const deviceUid = props.useDevicesList ? selectedDevice.value?.uid : props.uid;
 
   try {
-    await webEndpointsStore.createWebEndpoint({
+    const payload: IWebEndpointsCreate = {
       uid: deviceUid as string,
       host: host.value,
       port: port.value,
       ttl: timeout.value,
-    });
+    };
+
+    if (tlsEnabled.value) {
+      payload.tls = {
+        enabled: true,
+        verify: tlsVerify.value,
+        domain: tlsDomainNormalized.value || "",
+      };
+    }
+
+    await webEndpointsStore.createWebEndpoint(payload);
 
     snackbar.showSuccess("Web Endpoint created successfully.");
     await update();
