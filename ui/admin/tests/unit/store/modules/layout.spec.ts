@@ -13,11 +13,6 @@ describe("Layout Pinia Store", () => {
     expect(layoutStore.theme).toEqual("dark");
   });
 
-  it("updates layout", () => {
-    layoutStore.layout = "SimpleLayout";
-    expect(layoutStore.layout).toEqual("SimpleLayout");
-  });
-
   it("updates theme ref and localStorage with setTheme", () => {
     layoutStore.setTheme("light");
     expect(layoutStore.theme).toEqual("light");

@@ -1,3 +1,0 @@
-// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
-
-exports[`Login > Renders the component 1`] = `"<v-app-stub overlaps=""></v-app-stub>"`;

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-export type Layout = "AppLayout" | "SimpleLayout";
+export type Layout = "AppLayout";
 type Theme = "dark" | "light";
 
 const useLayoutStore = defineStore("layout", () => {

@@ -9,12 +9,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import SimpleLayout from "./layouts/SimpleLayout.vue";
 import AppLayout from "./layouts/AppLayout.vue";
 import useLayoutStore from "./store/modules/layout";
 
 const components = {
-  SimpleLayout,
   AppLayout,
 };
 
