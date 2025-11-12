@@ -436,6 +436,7 @@ func TestStore_UserCreateInvited(t *testing.T) {
 					"password":        nil,
 					"preferences":     map[string]interface{}{"preferred_namespace": nil, "auth_methods": nil},
 					"mfa":             map[string]interface{}{"enabled": nil, "secret": nil, "recovery_codes": nil},
+					"admin":           nil,
 				},
 				tmpUser,
 			)

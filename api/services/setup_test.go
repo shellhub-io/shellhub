@@ -110,6 +110,7 @@ func TestSetup(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: true,
 				}
 				storeMock.On("UserCreate", ctx, user).Return("", errors.New("error", "", 0)).Once()
 			},
@@ -141,6 +142,7 @@ func TestSetup(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: true,
 				}
 				userWithID := &models.User{
 					ID:        "000000000000000000000000",
@@ -160,6 +162,7 @@ func TestSetup(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: true,
 				}
 
 				storeMock.On("SystemGet", ctx).Return(&models.System{
@@ -230,6 +233,7 @@ func TestSetup(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: true,
 				}
 				userWithID := &models.User{
 					ID:        "000000000000000000000000",
@@ -249,6 +253,7 @@ func TestSetup(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: true,
 				}
 
 				storeMock.On("SystemGet", ctx).Return(&models.System{
@@ -330,6 +335,7 @@ func TestSetup(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
+					Admin: true,
 				}
 
 				storeMock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()

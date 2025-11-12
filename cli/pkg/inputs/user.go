@@ -5,6 +5,7 @@ type UserCreate struct {
 	Username string `validate:"required,username"`
 	Password string `validate:"required,password"`
 	Email    string `validate:"required,email"`
+	Admin    bool
 }
 
 // UserUpdate defines the structure for inputs when updating a user.

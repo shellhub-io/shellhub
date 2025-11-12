@@ -90,3 +90,8 @@ func (c *Context) GetUsername() (string, bool) {
 
 	return "", false
 }
+
+// IsAdmin returns whether the user is an admin or not.
+func (c *Context) IsAdmin() bool {
+	return c.Request().Header.Get("X-Admin") == "true"
+}

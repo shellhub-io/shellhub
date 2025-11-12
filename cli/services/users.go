@@ -62,6 +62,7 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
+		Admin: input.Admin,
 	}
 
 	if _, err := s.store.UserCreate(ctx, user); err != nil {

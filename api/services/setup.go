@@ -62,6 +62,8 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
+		// NOTE: The first user is always an admin.
+		Admin: true,
 	}
 
 	insertedID, err := s.store.UserCreate(ctx, user)

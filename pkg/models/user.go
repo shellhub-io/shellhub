@@ -79,6 +79,8 @@ type User struct {
 	MFA         UserMFA         `json:"mfa" bson:"mfa"`
 	Preferences UserPreferences `json:"preferences" bson:"preferences"`
 	Password    UserPassword    `bson:",inline"`
+	// Admin indicates whether the user has administrative privileges.
+	Admin bool `json:"admin" bson:"admin"`
 }
 
 type UserData struct {

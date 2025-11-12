@@ -24,19 +24,24 @@ func UserCommands(service services.Services) *cobra.Command {
 }
 
 func userCreate(service services.Services) *cobra.Command {
-	return &cobra.Command{
+	var admin bool
+
+	cmd := &cobra.Command{
 		Use:   "create <username> <password> <email>",
 		Args:  cobra.ExactArgs(3),
 		Short: "Create a user.",
 		Long: `Creates a new user in the system using the provided username, password, and email.
 The username must be unique, and the password should meet the system's security requirements.`,
-		Example: `cli user create john_doe Secret123!- john.doe@test.com`,
+		Example: `cli user create john_doe Secret123!- john.doe@test.com
+cli user create john_doe Secret123!- john.doe@test.com --admin`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var input inputs.UserCreate
 
 			if err := bind(args, &input); err != nil {
 				return err
 			}
+
+			input.Admin = admin
 
 			user, err := service.UserCreate(cmd.Context(), &input)
 			if err != nil {
@@ -50,6 +55,10 @@ The username must be unique, and the password should meet the system's security 
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVar(&admin, "admin", false, "Create user with admin privileges")
+
+	return cmd
 }
 
 func userResetPassword(service services.Services) *cobra.Command {
