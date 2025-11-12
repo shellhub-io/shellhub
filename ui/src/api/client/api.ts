@@ -554,6 +554,7 @@ export interface CreateWebEndpointRequest {
      * Web endpoint\'s time to live in seconds
      */
     'ttl': number;
+    'tls'?: WebendpointTLS;
 }
 export interface Device {
     /**
@@ -1455,12 +1456,87 @@ export type GetSubscription200ResponseStatus = typeof GetSubscription200Response
 
 
 export interface GetUser200Response {
-    'user'?: UserAdminResponse;
     /**
-     * User\'s integer of owned namespaces
+     * User\'s ID.
      */
-    'namespacesOwned'?: number;
+    'id': string;
+    'status': GetUser200ResponseStatus;
+    /**
+     * Maximum number of namespaces the user can own
+     */
+    'max_namespaces': number;
+    /**
+     * User\'s creating date
+     */
+    'created_at': string;
+    /**
+     * User\'s last login date
+     */
+    'last_login': string;
+    /**
+     * User\'s name.
+     */
+    'name': string;
+    /**
+     * User\'s username.
+     */
+    'username': string;
+    /**
+     * User\'s E-mail.
+     */
+    'email': string;
+    /**
+     * User\'s recovery email address
+     */
+    'recovery_email'?: string;
+    'mfa': GetUser200ResponseMfa;
+    /**
+     * Number of namespaces owned by the user
+     */
+    'namespacesOwned': number;
+    'preferences': GetUser200ResponsePreferences;
 }
+
+
+/**
+ * Multi-factor authentication settings
+ */
+export interface GetUser200ResponseMfa {
+    /**
+     * Whether MFA is enabled for the user
+     */
+    'enabled': boolean;
+}
+/**
+ * User preferences
+ */
+export interface GetUser200ResponsePreferences {
+    /**
+     * Preferred authentication methods
+     */
+    'auth_methods': Array<GetUser200ResponsePreferencesAuthMethodsInner>;
+}
+
+export const GetUser200ResponsePreferencesAuthMethodsInner = {
+    Local: 'local',
+    Saml: 'saml'
+} as const;
+
+export type GetUser200ResponsePreferencesAuthMethodsInner = typeof GetUser200ResponsePreferencesAuthMethodsInner[keyof typeof GetUser200ResponsePreferencesAuthMethodsInner];
+
+
+/**
+ * User\'s status
+ */
+
+export const GetUser200ResponseStatus = {
+    Confirmed: 'confirmed',
+    Pending: 'pending'
+} as const;
+
+export type GetUser200ResponseStatus = typeof GetUser200ResponseStatus[keyof typeof GetUser200ResponseStatus];
+
+
 export interface GetUserInfo401Response {
     /**
      * Error message
@@ -2256,6 +2332,10 @@ export interface UserAdminRequest {
      */
     'confirmed'?: boolean;
     /**
+     * User\'s admin status.
+     */
+    'admin'?: boolean;
+    /**
      * Indicates the maximum number of namespaces a user is allowed to create. If set to 0, the user is not permitted to create any namespaces. If set to -1, the user has no limit on the number of namespaces they can create.
      */
     'max_namespaces'?: number;
@@ -2273,6 +2353,10 @@ export interface UserAdminResponse {
      * User\'s confirmation.
      */
     'confirmed'?: boolean;
+    /**
+     * User\'s admin status.
+     */
+    'admin'?: boolean;
     /**
      * User\'s creating date.
      */
@@ -2334,6 +2418,10 @@ export interface UserAuth {
      */
     'mfa'?: boolean;
     /**
+     * Indicates whether the user has admin status.
+     */
+    'admin'?: boolean;
+    /**
      * Indicates the maximum number of namespaces a user is allowed to create. If set to 0, the user is not permitted to create any namespaces. If set to -1, the user has no limit on the number of namespaces they can create.
      */
     'max_namespaces'?: number;
@@ -2381,6 +2469,7 @@ export interface Webendpoint {
      * Web endpoint\'s time to live in seconds
      */
     'ttl'?: number;
+    'tls'?: WebendpointTLS;
     /**
      * Web endpoint\'s expiration date
      */
@@ -2389,6 +2478,23 @@ export interface Webendpoint {
      * Web endpoint\'s creation date
      */
     'created_at'?: string;
+}
+/**
+ * Web endpoint TLS configuration
+ */
+export interface WebendpointTLS {
+    /**
+     * Whether TLS is enabled for this web endpoint
+     */
+    'enabled': boolean;
+    /**
+     * Whether to verify the TLS certificate
+     */
+    'verify': boolean;
+    /**
+     * Domain for TLS verification
+     */
+    'domain': string;
 }
 
 /**
@@ -9150,12 +9256,14 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetMFA: async (userId?: string, mfaReset?: MfaReset, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        resetMFA: async (userId: string, mfaReset?: MfaReset, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('resetMFA', 'userId', userId)
             const localVarPath = `/api/user/mfa/reset/{user-id}`
                 .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -10017,12 +10125,12 @@ export const CloudApiFp = function(configuration?: Configuration) {
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+        async resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.resetMFA(userId, mfaReset, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.resetMFA']?.[localVarOperationServerIndex]?.url;
@@ -10601,12 +10709,12 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): AxiosPromise<UserAuth> {
+        resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): AxiosPromise<UserAuth> {
             return localVarFp.resetMFA(userId, mfaReset, options).then((request) => request(axios, basePath));
         },
         /**
@@ -11217,12 +11325,12 @@ export class CloudApi extends BaseAPI {
     /**
      * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
      * @summary Reset MFA
-     * @param {string} [userId] 
+     * @param {string} userId 
      * @param {MfaReset} [mfaReset] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig) {
+    public resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).resetMFA(userId, mfaReset, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -22290,12 +22398,14 @@ export const MfaApiAxiosParamCreator = function (configuration?: Configuration) 
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetMFA: async (userId?: string, mfaReset?: MfaReset, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        resetMFA: async (userId: string, mfaReset?: MfaReset, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('resetMFA', 'userId', userId)
             const localVarPath = `/api/user/mfa/reset/{user-id}`
                 .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -22412,12 +22522,12 @@ export const MfaApiFp = function(configuration?: Configuration) {
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+        async resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.resetMFA(userId, mfaReset, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MfaApi.resetMFA']?.[localVarOperationServerIndex]?.url;
@@ -22494,12 +22604,12 @@ export const MfaApiFactory = function (configuration?: Configuration, basePath?:
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): AxiosPromise<UserAuth> {
+        resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): AxiosPromise<UserAuth> {
             return localVarFp.resetMFA(userId, mfaReset, options).then((request) => request(axios, basePath));
         },
     };
@@ -22577,12 +22687,12 @@ export class MfaApi extends BaseAPI {
     /**
      * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
      * @summary Reset MFA
-     * @param {string} [userId] 
+     * @param {string} userId 
      * @param {MfaReset} [mfaReset] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig) {
+    public resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig) {
         return MfaApiFp(this.configuration).resetMFA(userId, mfaReset, options).then((request) => request(this.axios, this.basePath));
     }
 }
@@ -29811,12 +29921,14 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetMFA: async (userId?: string, mfaReset?: MfaReset, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        resetMFA: async (userId: string, mfaReset?: MfaReset, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('resetMFA', 'userId', userId)
             const localVarPath = `/api/user/mfa/reset/{user-id}`
                 .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -30388,12 +30500,12 @@ export const UsersApiFp = function(configuration?: Configuration) {
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
+        async resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserAuth>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.resetMFA(userId, mfaReset, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.resetMFA']?.[localVarOperationServerIndex]?.url;
@@ -30735,12 +30847,12 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
         /**
          * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
          * @summary Reset MFA
-         * @param {string} [userId] 
+         * @param {string} userId 
          * @param {MfaReset} [mfaReset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): AxiosPromise<UserAuth> {
+        resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig): AxiosPromise<UserAuth> {
             return localVarFp.resetMFA(userId, mfaReset, options).then((request) => request(axios, basePath));
         },
         /**
@@ -31087,12 +31199,12 @@ export class UsersApi extends BaseAPI {
     /**
      * Similar to the `disableMFA` operation, this endpoint uses the two codes sent by `requestResetMFA` instead of a TOTP or recovery code. The user ID must be the same as the one used for `requestResetMFA`. 
      * @summary Reset MFA
-     * @param {string} [userId] 
+     * @param {string} userId 
      * @param {MfaReset} [mfaReset] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public resetMFA(userId?: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig) {
+    public resetMFA(userId: string, mfaReset?: MfaReset, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).resetMFA(userId, mfaReset, options).then((request) => request(this.axios, this.basePath));
     }
 

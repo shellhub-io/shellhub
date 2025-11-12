@@ -101,6 +101,10 @@ docs/GetSubscription200ResponseInvoicesInnerCurrency.md
 docs/GetSubscription200ResponseInvoicesInnerStatus.md
 docs/GetSubscription200ResponseStatus.md
 docs/GetUser200Response.md
+docs/GetUser200ResponseMfa.md
+docs/GetUser200ResponsePreferences.md
+docs/GetUser200ResponsePreferencesAuthMethodsInner.md
+docs/GetUser200ResponseStatus.md
 docs/GetUserInfo401Response.md
 docs/GetUserTokenAdmin200Response.md
 docs/Info.md
@@ -180,5 +184,6 @@ docs/UserOrigin.md
 docs/UsersApi.md
 docs/WebEndpointsApi.md
 docs/Webendpoint.md
+docs/WebendpointTLS.md
 git_push.sh
 index.ts

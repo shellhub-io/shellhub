@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **host** | **string** | Web endpoint\&#39;s agent host address | [default to undefined]
 **port** | **number** | Web endpoint\&#39;s agent port number | [default to undefined]
 **ttl** | **number** | Web endpoint\&#39;s time to live in seconds | [default to undefined]
+**tls** | [**WebendpointTLS**](WebendpointTLS.md) |  | [optional] [default to undefined]
 
 ## Example
 
@@ -20,6 +21,7 @@ const instance: CreateWebEndpointRequest = {
     host,
     port,
     ttl,
+    tls,
 };
 ```
 

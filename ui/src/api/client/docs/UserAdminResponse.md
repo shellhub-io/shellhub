@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **id** | **string** | User\&#39;s ID. | [optional] [default to undefined]
 **namespaces** | **number** | User\&#39;s integer of owned namespaces. | [optional] [default to undefined]
 **confirmed** | **boolean** | User\&#39;s confirmation. | [optional] [default to undefined]
+**admin** | **boolean** | User\&#39;s admin status. | [optional] [default to undefined]
 **created_at** | **string** | User\&#39;s creating date. | [optional] [default to undefined]
 **last_login** | **string** | User\&#39;s last login date. | [optional] [default to undefined]
 **name** | **string** | User\&#39;s name. | [optional] [default to undefined]
@@ -24,6 +25,7 @@ const instance: UserAdminResponse = {
     id,
     namespaces,
     confirmed,
+    admin,
     created_at,
     last_login,
     name,

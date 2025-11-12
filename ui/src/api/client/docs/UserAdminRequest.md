@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **username** | **string** | User\&#39;s username. | [default to undefined]
 **password** | **string** | User\&#39;s password. | [default to undefined]
 **confirmed** | **boolean** | User\&#39;s email confirmed. | [optional] [default to false]
+**admin** | **boolean** | User\&#39;s admin status. | [optional] [default to undefined]
 **max_namespaces** | **number** | Indicates the maximum number of namespaces a user is allowed to create. If set to 0, the user is not permitted to create any namespaces. If set to -1, the user has no limit on the number of namespaces they can create. | [optional] [default to undefined]
 
 ## Example
@@ -23,6 +24,7 @@ const instance: UserAdminRequest = {
     username,
     password,
     confirmed,
+    admin,
     max_namespaces,
 };
 ```
