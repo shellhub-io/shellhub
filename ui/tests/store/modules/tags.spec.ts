@@ -1,4 +1,3 @@
-// tests/store/modules/tags.spec.ts
 import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -80,10 +79,10 @@ describe("Tags Store", () => {
     mock.onGet(url1).reply(200, mockTags, { "x-total-count": "3" });
     await store.fetch({ tenant: TENANT, filter: "", page: 1, perPage: 10 });
 
-    const autoUrl = makeUrl(TENANT, "", 3, 50);
+    const autoUrl = makeUrl(TENANT, "", 1, 50);
     mock.onGet(autoUrl).reply(200, mockTags, { "x-total-count": "3" });
 
-    await store.autocomplete({ tenant: TENANT, filter: "", page: 3, perPage: 50 });
+    await store.autocomplete({ tenant: TENANT, filter: "", perPage: 50 });
 
     expect(store.list).toEqual(mockTags);
     expect(store.getNumberTags).toBe(3);
