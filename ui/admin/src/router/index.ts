@@ -5,11 +5,21 @@ import SettingsLicense from "@admin/components/Settings/SettingsLicense.vue";
 import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentication.vue";
 import Namespaces from "@admin/views/Namespaces.vue";
 import Settings from "@admin/views/Settings.vue";
+import Unauthorized from "@admin/views/Unauthorized.vue";
 import useLicenseStore from "@admin/store/modules/license";
 import useAuthStore from "@admin/store/modules/auth";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 
 const routes = [
+  {
+    path: "/unauthorized",
+    name: "Unauthorized",
+    component: Unauthorized,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+    },
+  },
   {
     path: "/",
     name: "dashboard",
@@ -121,13 +131,16 @@ router.beforeEach(
     const authStore = useAuthStore();
 
     const requiresAuth = to.meta.requiresAuth ?? true;
+    const requiresAdmin = to.meta.requiresAdmin ?? true;
 
     if (!authStore.isLoggedIn && requiresAuth) {
       window.location.href = `/login?redirect=${encodeURIComponent(to.fullPath)}`;
       return next();
     }
 
-    if (authStore.isLoggedIn && !to.meta.requiresAuth) {
+    if (authStore.isLoggedIn && requiresAdmin) {
+      if (!authStore.isAdmin && to.name !== "Unauthorized") return next({ name: "Unauthorized" });
+
       const { license, getLicense } = licenseStore;
 
       try {
