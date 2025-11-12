@@ -27,7 +27,7 @@ export interface IAdminUserFormData {
   username: string;
   password: string;
   max_namespaces?: number;
-  confirmed?: boolean;
   status: UserStatus;
   id?: string;
+  admin?: boolean;
 }
