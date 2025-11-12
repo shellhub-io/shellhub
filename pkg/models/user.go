@@ -166,6 +166,7 @@ type UserAuthResponse struct {
 	Role          string           `json:"role"`
 	MFA           bool             `json:"mfa"`
 	MaxNamespaces int              `json:"max_namespaces"`
+	Admin         bool             `json:"admin"`
 }
 
 // NOTE: This struct has been moved to the cloud repo as it is only used in a cloud context;

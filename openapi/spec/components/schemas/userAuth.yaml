@@ -26,5 +26,9 @@ properties:
     type: boolean
     description: Indicates whether the user has MFA enabled.
     example: false
+  admin:
+    type: boolean
+    description: Indicates whether the user has admin status.
+    example: false
   max_namespaces:
     $ref: maxNamespaces.yaml
