@@ -4,15 +4,10 @@ import { Configuration } from "./client";
 import { BaseAPI } from "./client/base";
 import { setupInterceptorsTo } from "./interceptors";
 
-// Default configuration for main UI's endpoints
+// Default endpoints' configuration
 const configuration = new Configuration();
 configuration.basePath = `${window.location.protocol}//${window.location.host}`;
 configuration.accessToken = localStorage.getItem("token") || "";
-
-// Admin configuration
-const adminConfiguration = new Configuration();
-adminConfiguration.basePath = `${window.location.protocol}//${window.location.host}`;
-adminConfiguration.accessToken = localStorage.getItem("cloud_token") || "";
 
 // Custom configuration for cloud endpoints
 const cloudApiConfiguration = new Configuration();
@@ -28,7 +23,7 @@ const newAxiosInstance = (setupInterceptor = true, isAdmin = false): AxiosInstan
 // Admin API instance
 
 let adminApi = new axiosTs.AdminApi(
-  adminConfiguration,
+  configuration,
   undefined,
   newAxiosInstance(true, true),
 );
@@ -157,16 +152,11 @@ const reloadConfiguration = () => {
 
 // Recreates the admin API client with fresh configuration (for admin auth persistence)
 const createNewAdminClient = () => {
-  const newConfiguration = new Configuration();
-  newConfiguration.basePath = `${window.location.protocol}//${window.location.host}`;
-  newConfiguration.accessToken = localStorage.getItem("cloud_token") || "";
-  adminApi = new axiosTs.AdminApi(newConfiguration, undefined, newAxiosInstance(true, true));
-  return { adminApi };
+  adminApi = new axiosTs.AdminApi(configuration, undefined, newAxiosInstance(true, true));
 };
 
 export {
   configuration,
-  adminConfiguration,
   reloadConfiguration,
   createNewAdminClient,
   adminApi,
