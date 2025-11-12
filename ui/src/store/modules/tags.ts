@@ -114,16 +114,14 @@ const useTagsStore = defineStore("tags", () => {
   const autocomplete = async ({
     tenant,
     filter,
-    page,
     perPage,
   }: {
     tenant: string;
     filter: string;
-    page: number;
     perPage: number;
   }) => {
     try {
-      const res = await tagsApi.getTags(tenant, filter, page, perPage);
+      const res = await tagsApi.getTags(tenant, filter, 1, perPage);
       setTags(res as unknown as TagsResponse);
       setFilter(filter);
     } catch (error) {

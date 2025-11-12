@@ -145,7 +145,6 @@ const previousTags = ref<string[]>([...selectedTags.value]);
 const fetchedTags = ref<LocalTag[]>([]);
 const tags = computed(() => fetchedTags.value);
 
-const page = ref(1);
 const perPage = ref(10);
 
 const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
@@ -174,7 +173,6 @@ const validNewTag = computed(
 );
 
 const resetPagination = (): void => {
-  page.value = 1;
   perPage.value = 10;
   fetchedTags.value = [];
 };
@@ -197,7 +195,6 @@ const loadTags = async () => {
     await tagsStore.autocomplete({
       tenant: tenant.value,
       filter: encodedFilter,
-      page: page.value,
       perPage: perPage.value,
     });
 

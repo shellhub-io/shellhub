@@ -105,7 +105,6 @@ const snackbar = useSnackbar();
 const tenant = computed(() => localStorage.getItem("tenant"));
 const menuOpen = ref(false);
 
-const currentPage = ref(1);
 const perPage = ref(10);
 
 const fetchedTags = ref<ITag[]>([]);
@@ -130,7 +129,6 @@ const tagIsSelected = (tag: ITag): boolean =>
   selectedTags.value.some((sel) => getTagName(sel) === getTagName(tag));
 
 const resetPagination = (): void => {
-  currentPage.value = 1;
   perPage.value = 10;
   fetchedTags.value = [];
 };
@@ -143,7 +141,6 @@ const loadTags = async (): Promise<void> => {
     await tagsStore.autocomplete({
       tenant: tenant.value || "",
       filter: "",
-      page: currentPage.value,
       perPage: perPage.value,
     });
 

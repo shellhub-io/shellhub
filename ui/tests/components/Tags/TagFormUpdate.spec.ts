@@ -170,7 +170,6 @@ describe("Tag Form Update", () => {
 
     expect(tagsSpy).toHaveBeenCalledWith({
       filter: "",
-      page: 1,
       perPage: 10,
       tenant: "fake-tenant-data",
     });
