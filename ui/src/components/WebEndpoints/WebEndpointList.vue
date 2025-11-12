@@ -50,6 +50,27 @@
         <td class="text-center">
           {{ endpoint.port }}
         </td>
+
+        <td
+          class="text-center"
+          data-test="web-endpoint-tls"
+        >
+          <v-chip
+            v-if="endpoint.tls?.enabled"
+            size="small"
+          >
+            {{ endpoint.tls?.domain }}
+          </v-chip>
+
+          <v-chip
+            v-else
+            size="small"
+            color="error"
+          >
+            Disabled
+          </v-chip>
+        </td>
+
         <td class="text-center">
           {{ formatDate(endpoint.expires_in) }}
         </td>
@@ -96,6 +117,7 @@ const headers = [
   { text: "Address", value: "address", sortable: true },
   { text: "Host", value: "host", sortable: true },
   { text: "Port", value: "port", sortable: true },
+  { text: "Domain", value: "tls", sortable: false },
   { text: "Expiration Date", value: "expires_in", sortable: true },
   { text: "Actions", value: "actions", sortable: false },
 ];

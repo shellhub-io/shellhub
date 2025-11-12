@@ -63,13 +63,14 @@ describe("WebEndpointList.vue", () => {
 
   it("renders table headers correctly", () => {
     const headers = wrapper.findAll('[data-test="web-endpoints-table"] thead th');
-    expect(headers.length).toBe(6);
+    expect(headers.length).toBe(7);
     expect(headers[0].text()).toContain("Device");
     expect(headers[1].text()).toContain("Address");
     expect(headers[2].text()).toContain("Host");
     expect(headers[3].text()).toContain("Port");
-    expect(headers[4].text()).toContain("Expiration Date");
-    expect(headers[5].text()).toContain("Actions");
+    expect(headers[4].text()).toContain("Domain");
+    expect(headers[5].text()).toContain("Expiration Date");
+    expect(headers[6].text()).toContain("Actions");
   });
 
   it("renders table rows with web endpoints", () => {

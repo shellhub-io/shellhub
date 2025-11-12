@@ -1,20 +1,28 @@
 import { IDevice } from "./IDevice";
 
+export interface IWebEndpointTLS {
+  enabled: boolean;
+  verify: boolean;
+  domain: string;
+}
+
 export interface IWebEndpoint {
-  address: string,
-  full_address: string,
-  device: IDevice
-  expires_in: string,
-  device_uid: string,
-  host: string,
-  port: number
+  address: string;
+  full_address: string;
+  device: IDevice;
+  expires_in: string;
+  device_uid: string;
+  host: string;
+  port: number;
+  tls?: IWebEndpointTLS;
 }
 
 export interface IWebEndpointsCreate {
-  uid: string,
-  host: string,
-  port: number,
-  ttl: number
+  uid: string;
+  host: string;
+  port: number;
+  ttl: number;
+  tls?: IWebEndpointTLS;
 }
 
 export interface FetchWebEndpointsParams {
