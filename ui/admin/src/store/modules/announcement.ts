@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { IAdminAnnouncement, IAdminAnnouncementRequestBody, IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncement";
 import * as announcementApi from "../api/announcement";
 
-const useAnnouncementStore = defineStore("announcement", () => {
+const useAnnouncementStore = defineStore("adminAnnouncement", () => {
   const announcements = ref<Array<IAdminAnnouncementShort>>([]);
   const announcement = ref<IAdminAnnouncement>({} as IAdminAnnouncement);
   const announcementCount = ref<number>(0);

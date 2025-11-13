@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { IAdminSession } from "@admin/interfaces/ISession";
 import * as sessionsApi from "../api/sessions";
 
-const useSessionsStore = defineStore("sessions", () => {
+const useSessionsStore = defineStore("adminSessions", () => {
   const sessions = ref<Array<IAdminSession>>([]);
   const sessionCount = ref<number>(0);
 

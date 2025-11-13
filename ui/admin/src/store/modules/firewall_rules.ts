@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { IAdminFirewallRule } from "@admin/interfaces/IFirewallRule";
 import * as firewallRulesApi from "../api/firewall_rules";
 
-const useFirewallRulesStore = defineStore("firewallRules", () => {
+const useFirewallRulesStore = defineStore("adminFirewallRules", () => {
   const firewallRules = ref<Array<IAdminFirewallRule>>([]);
   const firewallRulesCount = ref(0);
 
