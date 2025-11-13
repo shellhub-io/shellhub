@@ -11,127 +11,100 @@
       <v-btn
         v-bind="props"
         variant="text"
-        :class="['text-none p-2 border-e-thin', { 'border-s-thin': $vuetify.display.mdAndDown }]"
+        :class="['text-none p-2 border-e-thin', { 'border-s-thin': mdAndDown }]"
         density="comfortable"
         size="x-large"
         stacked
       >
         <div class="d-flex align-center ga-2">
-          <NamespaceChip :name="currentNamespace.name" />
-          <span class="text-body-1">{{ currentNamespace.name || 'No Namespace' }}</span>
-          <v-icon size="x-small">
-            mdi-chevron-down
-          </v-icon>
+          <AdminConsoleItem
+            v-if="isAdminContext"
+            compact
+          />
+          <template v-else>
+            <NamespaceChip :name="currentNamespace.name" />
+            <span class="text-body-1">{{ currentNamespace.name || 'No Namespace' }}</span>
+          </template>
+          <v-icon
+            size="x-small"
+            icon="mdi-chevron-down"
+          />
         </div>
       </v-btn>
     </template>
 
     <v-card
-      :width="$vuetify.display.thresholds.sm / 2"
-      border
+      :width="thresholds.sm / 2"
+      class="border"
     >
       <v-list class="bg-v-theme-surface">
-        <v-list-subheader>Active Namespace</v-list-subheader>
-
-        <NamespaceListItem
-          v-if="currentNamespace.tenant_id"
-          :namespace="currentNamespace"
-          :active="true"
-          :user-id="userId"
-          @select="handleNamespaceSwitch"
-        />
-
-        <div
-          v-if="currentNamespace.tenant_id"
-          class="px-4 pb-2 pt-3"
-        >
-          <div class="text-caption text-grey mb-1">
-            Tenant ID
+        <AdminConsoleItem v-if="isAdminContext" />
+        <template v-else>
+          <v-list-subheader> Active Namespace</v-list-subheader>
+          <NamespaceListItem
+            v-if="currentNamespace.tenant_id"
+            :namespace="currentNamespace"
+            :active="true"
+            :user-id="userId"
+            @select="handleNamespaceSwitch"
+          />
+          <div
+            v-if="currentNamespace.tenant_id"
+            class="px-4 pb-2 pt-3"
+          >
+            <div class="text-caption text-grey mb-1">Tenant ID</div>
+            <div class="d-flex align-center ga-2 pa-2 border-thin rounded text-caption">
+              <span class="flex-1-1 text-truncate">{{ currentNamespace.tenant_id }}</span>
+              <CopyWarning :copied-item="'Tenant ID'">
+                <template #default="{ copyText }">
+                  <v-icon
+                    size="small"
+                    class="cursor-pointer"
+                    icon="mdi-content-copy"
+                    @click="copyText(currentNamespace.tenant_id)"
+                  />
+                </template>
+              </CopyWarning>
+            </div>
           </div>
-          <div class="d-flex align-center ga-2 pa-2 border-thin rounded text-caption">
-            <span class="flex-1-1 text-truncate">{{ currentNamespace.tenant_id }}</span>
-            <CopyWarning :copied-item="'Tenant ID'">
-              <template #default="{ copyText }">
-                <v-icon
-                  size="small"
-                  class="cursor-pointer"
-                  @click="copyText(currentNamespace.tenant_id)"
-                >
-                  mdi-content-copy
-                </v-icon>
-              </template>
-            </CopyWarning>
-          </div>
-        </div>
+        </template>
 
-        <template v-if="otherNamespaces.length > 0 || (hasNamespaces && showAdminPanel)">
+        <template v-if="availableNamespaces.length > 0 || (hasNamespaces && showAdminButton)">
           <v-divider class="my-2" />
-          <v-list-subheader>Switch Namespace</v-list-subheader>
+          <v-list-subheader>{{ isAdminContext ? 'Available Namespaces' : 'Switch Namespace' }}</v-list-subheader>
 
           <template
-            v-for="ns in otherNamespaces"
-            :key="ns.tenant_id"
+            v-for="(namespace, index) in availableNamespaces"
+            :key="namespace.tenant_id"
           >
             <NamespaceListItem
-              :namespace="ns"
+              :namespace="namespace"
               :active="false"
               :user-id="userId"
               @select="handleNamespaceSwitch"
             />
-            <v-divider />
+            <v-divider v-if="index < availableNamespaces.length - 1 || (!isAdminContext && showAdminButton)" />
           </template>
 
-          <v-list-item
-            v-if="hasNamespaces && showAdminPanel"
-            lines="two"
+          <AdminConsoleItem
+            v-if="showAdminButton && !isAdminContext"
             @click="navigateToAdminPanel"
-          >
-            <template #prepend>
-              <v-avatar
-                size="48"
-                color="primary"
-                rounded="rounded"
-                variant="tonal"
-                class="border border-primary border-opacity-100"
-              >
-                <v-icon>mdi-shield-crown</v-icon>
-              </v-avatar>
-            </template>
-            <v-list-item-title>Admin Console</v-list-item-title>
-            <v-list-item-subtitle>
-              <div class="d-flex align-center text-caption text-capitalize">
-                <div class="d-flex align-center ga-1 flex-1-0">
-                  <v-icon
-                    size="x-small"
-                    icon="mdi-shield-crown"
-                  />
-                  <span>super admin</span>
-                </div>
-                <div class="d-flex align-center ga-1 flex-1-0">
-                  <v-icon
-                    size="x-small"
-                    icon="mdi-server"
-                  />
-                  <span>instance</span>
-                </div>
-              </div>
-            </v-list-item-subtitle>
-          </v-list-item>
+          />
         </template>
 
-        <v-divider />
-
-        <div class="px-4 pt-4 pb-2">
-          <v-btn
-            variant="flat"
-            color="primary"
-            prepend-icon="mdi-plus-circle"
-            block
-            @click="showAddDialog = true"
-          >
-            Create Namespace
-          </v-btn>
-        </div>
+        <template v-if="!isAdminContext">
+          <v-divider />
+          <div class="px-4 pt-4 pb-2">
+            <v-btn
+              variant="flat"
+              color="primary"
+              prepend-icon="mdi-plus-circle"
+              block
+              text="Create Namespace"
+              @click="showAddDialog = true"
+            />
+          </div>
+        </template>
       </v-list>
     </v-card>
   </v-menu>
@@ -142,14 +115,20 @@ import { ref, computed, onMounted } from "vue";
 import NamespaceAdd from "./NamespaceAdd.vue";
 import NamespaceChip from "./NamespaceChip.vue";
 import NamespaceListItem from "./NamespaceListItem.vue";
+import AdminConsoleItem from "./AdminConsoleItem.vue";
 import useNamespaceManager from "./composables/useNamespaceManager";
 import useAuthStore from "@/store/modules/auth";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import { envVariables } from "@/envVariables";
+import { useDisplay } from "vuetify";
 
 defineOptions({
   inheritAttrs: false,
 });
+
+const props = defineProps<{
+  isAdminContext?: boolean;
+}>();
 
 const authStore = useAuthStore();
 const {
@@ -159,19 +138,35 @@ const {
   switchNamespace,
   loadCurrentNamespace,
 } = useNamespaceManager();
+const { mdAndDown, thresholds } = useDisplay();
 
 const showAddDialog = ref(false);
-const userId = computed(() => authStore.id);
+const userId = computed(() => authStore.id || localStorage.getItem("id") || "");
 
-const showAdminPanel = computed(() => envVariables.isEnterprise && !envVariables.isCloud && authStore.isAdmin);
+const showAdminButton = computed(() => {
+  if (props.isAdminContext) return true;
+  return envVariables.isEnterprise && !envVariables.isCloud && Boolean(authStore.isAdmin);
+});
 
 const otherNamespaces = computed(() => namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id));
+const availableNamespaces = computed(() => {
+  const namespaces = otherNamespaces.value;
+  if (props.isAdminContext) { namespaces.push(currentNamespace.value); }
+  return namespaces;
+});
 
 const handleNamespaceSwitch = async (tenantId: string) => {
   await switchNamespace(tenantId);
+
+  // If in admin context and switching to a namespace, navigate to main UI
+  if (props.isAdminContext && tenantId) {
+    window.location.href = "/";
+  }
 };
 
-const navigateToAdminPanel = () => { window.location.href = "/admin"; };
+const navigateToAdminPanel = () => {
+  window.location.href = "/admin";
+};
 
 onMounted(async () => {
   await loadCurrentNamespace();
