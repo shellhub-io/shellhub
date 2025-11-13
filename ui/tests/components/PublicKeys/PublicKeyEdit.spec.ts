@@ -189,7 +189,7 @@ describe("Public Key Edit", () => {
     await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("tags");
     await flushPromises();
 
-    await wrapper.findComponent('[data-test="tags-selector"]').setValue(["1", "2"]);
+    await wrapper.findComponent({ name: "VAutocomplete" }).setValue(["1", "2"]);
     await flushPromises();
 
     await wrapper.findComponent('[data-test="pk-edit-save-btn"]').trigger("click");
@@ -213,7 +213,7 @@ describe("Public Key Edit", () => {
     await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("tags");
     await flushPromises();
 
-    await wrapper.findComponent('[data-test="tags-selector"]').setValue(["1", "2", "3", "4"]);
+    await wrapper.findComponent({ name: "VAutocomplete" }).setValue(["1", "2", "3", "4"]);
     await flushPromises();
 
     expect(wrapper.vm.tagSelectorErrorMessage).toBe("You can select up to three tags only");

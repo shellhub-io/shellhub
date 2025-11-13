@@ -157,7 +157,8 @@ describe("Public Key Add", () => {
 
     await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("tags");
     await flushPromises();
-    await wrapper.findComponent('[data-test="tags-selector"]').setValue(["tag1", "tag2"]);
+    await wrapper.findComponent({ name: "VAutocomplete" }).setValue(["tag1", "tag2"]);
+    await flushPromises();
 
     const dialog = new DOMWrapper(document.body);
     await dialog.find('[data-test="pk-add-save-btn"]').trigger("click");
