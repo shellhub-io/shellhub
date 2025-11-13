@@ -159,9 +159,10 @@ type Agent struct {
 	cli        client.Client
 	serverInfo *models.Info
 	server     *server.Server
-	listening  chan bool
-	closed     atomic.Bool
-	mode       Mode
+	// TODO: Listening channel could be removed in favor of a better approach.
+	listening chan bool
+	closed    atomic.Bool
+	mode      Mode
 	// listener is the current connection to the server.
 	listener atomic.Pointer[net.Listener]
 	// logger is the agent's logger instance.
@@ -408,6 +409,8 @@ func (a *Agent) Listen(ctx context.Context) error {
 }
 
 func (a *Agent) listenV1(ctx context.Context) error {
+	// NOTE: ListenV1 exists to separte the logic between tunnel versions. When tunnel v1 is deprecated, this function
+	// can be removed and its logic moved to [Listen].
 	tun := tunnel.NewTunnelV1()
 
 	tun.Handle(HandleSSHOpenV1, sshHandlerV1(a))
@@ -427,6 +430,7 @@ func (a *Agent) listenV1(ctx context.Context) error {
 				return
 			}
 
+			// TODO: As this path isn't meant to be changed, it could be moved to the [NewReverseListenerV1] function.
 			ShellHubConnectV1Path := "/ssh/connection"
 
 			a.logger.Debug("Using tunnel version 1")
@@ -463,6 +467,8 @@ func (a *Agent) listenV1(ctx context.Context) error {
 }
 
 func (a *Agent) listenV2(ctx context.Context) error {
+	// NOTE: ListenV2 exists to separte the logic between tunnel versions. When tunnel v1 is deprecated, this function
+	// can be removed and its logic moved to [Listen].
 	tun := tunnel.NewTunnelV2(a.cli)
 
 	tun.Handle(HandleSSHOpenV2, sshHandlerV2(a))
@@ -482,6 +488,7 @@ func (a *Agent) listenV2(ctx context.Context) error {
 				return
 			}
 
+			// TODO: As this path isn't meant to be changed, it could be moved to the [NewReverseListenerV2] function.
 			ShellHubConnectV2Path := "/agent/connection"
 
 			a.logger.Debug("Using tunnel version 2")
