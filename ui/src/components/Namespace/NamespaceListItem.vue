@@ -1,6 +1,7 @@
 <template>
   <v-list-item
     :active="active"
+    :title="namespace.name"
     @click="handleClick"
   >
     <template #prepend>
@@ -9,22 +10,23 @@
       </div>
     </template>
 
-    <v-list-item-title>{{ namespace.name }}</v-list-item-title>
     <v-list-item-subtitle>
       <div class="d-flex align-center text-caption text-capitalize">
         <div
           v-if="userRole"
-          class="d-flex align-center ga-1 flex-1-0"
+          class="d-flex align-center ga-1 w-50"
         >
-          <v-icon size="x-small">
-            {{ roleIcon }}
-          </v-icon>
+          <v-icon
+            size="x-small"
+            :icon="roleIcon"
+          />
           <span>{{ roleLabel }}</span>
         </div>
-        <div class="d-flex align-center ga-1 flex-1-0">
-          <v-icon size="x-small">
-            {{ namespaceTypeIcon }}
-          </v-icon>
+        <div class="d-flex align-center ga-1 w-50">
+          <v-icon
+            size="x-small"
+            :icon="namespaceTypeIcon"
+          />
           <span>{{ namespaceType }}</span>
         </div>
       </div>

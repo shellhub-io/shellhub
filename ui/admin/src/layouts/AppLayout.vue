@@ -1,96 +1,26 @@
 <template>
-  <v-app-bar
-    theme="dark"
-    class="bg-v-theme-surface border-b-thin"
-    data-test="app-bar"
-    flat
-    floating
-  >
-    <v-app-bar-nav-icon
-      class="hidden-lg-and-up"
-      aria-label="Toggle Menu"
-      @click.stop="drawer = !drawer"
-    />
-
-    <v-app-bar-title>
-      <router-link
-        :to="{ name: 'dashboard' }"
-        class="text-white text-decoration-none"
-      >
-        <div class="d-flex">
-          <v-img
-            :src="Logo"
-            max-width="180"
-            alt=""
-          />
-          <span class="mt-4 text-overline">admin</span>
-        </div>
-      </router-link>
-    </v-app-bar-title>
-
-    <v-spacer />
-
-    <v-menu anchor="bottom">
-      <template #activator="{ props }">
-        <v-chip
-          color="primary"
-          v-bind="props"
-          class="mr-8"
-        >
-          <v-icon
-            left
-            class="mr-2"
-          >
-            mdi-account
-          </v-icon>
-          {{ currentUser || "ADMIN DF" }}
-          <v-icon right>
-            mdi-chevron-down
-          </v-icon>
-        </v-chip>
-      </template>
-      <v-list class="bg-v-theme-surface">
-        <v-list-item
-          v-for="item in menu"
-          :key="item.title"
-          :value="item"
-          :data-test="item.title"
-          @click="triggerClick(item)"
-        >
-          <div class="d-flex align-center">
-            <div>
-              <v-icon :icon="item.icon" />
-            </div>
-
-            <v-list-item-title>
-              {{ item.title }}
-            </v-list-item-title>
-          </div>
-        </v-list-item>
-
-        <v-divider />
-
-        <v-list-item>
-          <v-switch
-            label="Dark Mode"
-            :model-value="isDarkMode"
-            data-test="dark-mode-switch"
-            color="primary"
-            inset
-            hide-details
-            @change="toggleDarkMode"
-          />
-        </v-list-item>
-      </v-list>
-    </v-menu>
-  </v-app-bar>
-
   <v-navigation-drawer
     v-if="isLoggedIn"
     v-model="drawer"
     class="bg-v-theme-surface"
     expand-on-hover
   >
+    <v-toolbar
+      class="bg-v-theme-surface border-b-thin"
+      data-test="drawer-toolbar"
+    >
+      <router-link
+        :to="{ name: 'dashboard' }"
+        class="text-white text-decoration-none w-100"
+      >
+        <v-img
+          :src="Logo"
+          width="160"
+          alt=""
+          class="mx-auto"
+        />
+      </router-link>
+    </v-toolbar>
     <v-list
       density="compact"
       data-test="list"
@@ -153,6 +83,72 @@
       </template>
     </v-list>
   </v-navigation-drawer>
+  <v-app-bar
+    :theme
+    class="bg-v-theme-surface border-b-thin"
+    data-test="app-bar"
+    flat
+    floating
+  >
+    <v-app-bar-nav-icon
+      class="hidden-lg-and-up"
+      aria-label="Toggle Menu"
+      @click.stop="drawer = !drawer"
+    />
+
+    <Namespace :is-admin-context="true" />
+
+    <v-spacer />
+
+    <v-menu anchor="bottom">
+      <template #activator="{ props }">
+        <v-chip
+          color="primary"
+          v-bind="props"
+          class="mr-8"
+        >
+          <v-icon
+            left
+            class="mr-2"
+            icon="mdi-account"
+          />
+          {{ currentUser || "ADMIN" }}
+          <v-icon
+            right
+            icon="mdi-chevron-down"
+          />
+        </v-chip>
+      </template>
+      <v-list class="bg-v-theme-surface">
+        <v-list-item
+          v-for="item in menu"
+          :key="item.title"
+          :value="item"
+          :data-test="item.title"
+          @click="triggerClick(item)"
+        >
+          <div class="d-flex align-center">
+            <div><v-icon :icon="item.icon" /></div>
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </div>
+        </v-list-item>
+
+        <v-divider />
+
+        <v-list-item>
+          <v-switch
+            label="Dark Mode"
+            :model-value="isDarkMode"
+            data-test="dark-mode-switch"
+            color="primary"
+            inset
+            hide-details
+            @change="toggleDarkMode"
+          />
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </v-app-bar>
 
   <Snackbar />
 
@@ -188,7 +184,8 @@ import useLayoutStore from "@/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
 import useSpinnerStore from "@/store/modules/spinner";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
-import Logo from "../assets/logo-inverted.svg";
+import Namespace from "@/components/Namespace/Namespace.vue";
+import Logo from "@/assets/logo-inverted.png";
 import { createNewAdminClient } from "@/api/http";
 import { envVariables } from "../envVariables";
 
