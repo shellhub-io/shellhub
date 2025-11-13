@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import * as authApi from "../api/auth";
 
-const useAuthStore = defineStore("auth", () => {
+const useAuthStore = defineStore("adminAuth", () => {
   const status = ref<string>("");
   const token = ref<string>(localStorage.getItem("token") || "");
   const currentUser = ref<string>(localStorage.getItem("user") || "");

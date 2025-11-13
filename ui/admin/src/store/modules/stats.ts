@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { IAdminStats } from "@admin/interfaces/IStats";
 import getAdminStats from "../api/stats";
 
-const useStatsStore = defineStore("stats", () => {
+const useStatsStore = defineStore("adminStats", () => {
   const getStats = async () => {
     const { data } = await getAdminStats();
     return data as IAdminStats;

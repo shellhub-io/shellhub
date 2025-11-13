@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { IAdminUser, IAdminUserFormData } from "@admin/interfaces/IUser";
 import * as usersApi from "../api/users";
 
-const useUsersStore = defineStore("users", () => {
+const useUsersStore = defineStore("adminUsers", () => {
   const users = ref<IAdminUser[]>([]);
   const usersCount = ref<number>(0);
 

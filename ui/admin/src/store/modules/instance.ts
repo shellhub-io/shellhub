@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { IAdminAuth, IAdminUpdateSAML } from "@admin/interfaces/IInstance";
 import * as instanceApi from "../api/instance";
 
-const useInstanceStore = defineStore("instance", () => {
+const useInstanceStore = defineStore("adminInstance", () => {
   const authenticationSettings = ref<IAdminAuth>({
     local: {
       enabled: false,

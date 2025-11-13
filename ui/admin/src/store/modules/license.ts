@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { IAdminLicense } from "@admin/interfaces/ILicense";
 import * as apiLicense from "../api/license";
 
-const useLicenseStore = defineStore("license", () => {
+const useLicenseStore = defineStore("adminLicense", () => {
   const license = ref({} as IAdminLicense);
   const isExpired = computed(() => (license.value && license.value.expired)
     || (license.value && license.value.expired === undefined));

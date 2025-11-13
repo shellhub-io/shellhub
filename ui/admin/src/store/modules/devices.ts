@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { IAdminDevice } from "@admin/interfaces/IDevice";
 import * as devicesApi from "../api/devices";
 
-const useDevicesStore = defineStore("devices", () => {
+const useDevicesStore = defineStore("adminDevices", () => {
   const devices = ref<IAdminDevice[]>([]);
   const deviceCount = ref(0);
 
