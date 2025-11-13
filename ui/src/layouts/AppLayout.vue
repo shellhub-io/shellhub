@@ -1,5 +1,6 @@
 <template>
-  <v-navigation-drawer
+  <div v-if="isLoggedIn">
+    <v-navigation-drawer
     v-model="showNavigationDrawer"
     :theme="theme"
     :permanent="permanent"
@@ -167,7 +168,17 @@
     />
   </v-overlay>
 
-  <UserWarning data-test="userWarning-component" />
+    <UserWarning data-test="userWarning-component" />
+  </div>
+
+  <div v-else class="d-flex justify-center align-center" style="min-height: 100vh;">
+    <v-progress-circular
+      indeterminate
+      size="64"
+      color="primary"
+      alt="Loading ShellHub"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -181,6 +192,7 @@ import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
+import useAuthStore from "@/store/modules/auth";
 import useLayoutStore from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
 import usePrivateKeysStore from "@/store/modules/private_keys";
@@ -201,10 +213,12 @@ type RouteMeta = {
 };
 
 const router = useRouter();
+const authStore = useAuthStore();
 const layoutStore = useLayoutStore();
 const namespacesStore = useNamespacesStore();
 const spinnerStore = useSpinnerStore();
 const { getPrivateKeyList } = usePrivateKeysStore();
+const isLoggedIn = computed(() => authStore.isLoggedIn);
 const currentRoute = computed(() => router.currentRoute);
 const showNamespaceAdd = ref(false);
 const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
