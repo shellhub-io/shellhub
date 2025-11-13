@@ -557,18 +557,13 @@ router.beforeEach(
     const { isLoggedIn } = useAuthStore();
     const requiresAuth = to.meta.requiresAuth ?? true;
 
+    if (!isLoggedIn && requiresAuth) return next({
+      name: "Login",
+      query: { redirect: to.fullPath },
+    });
+
     const layout = to.meta.layout || "AppLayout";
     useLayoutStore().layout = layout as Layout;
-
-    if (!isLoggedIn) {
-      if (requiresAuth) {
-        return next({
-          name: "Login",
-          query: { redirect: to.fullPath },
-        });
-      }
-    }
-
     return next();
   },
 );

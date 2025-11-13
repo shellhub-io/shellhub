@@ -19,6 +19,6 @@ const components = {
   LoginLayout,
 };
 const layoutStore = useLayoutStore();
-const layout = computed(() => components[layoutStore.layout as keyof typeof components] || AppLayout);
+const layout = computed(() => components[layoutStore.layout as keyof typeof components]);
 const theme = computed(() => layoutStore.theme);
 </script>
