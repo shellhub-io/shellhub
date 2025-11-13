@@ -70,44 +70,18 @@
             label="Device access restriction"
             :items="filterSelectOptions"
             data-test="filter-restriction-field"
-            @update:model-value="handleFilterChange"
           />
         </v-row>
 
         <v-row class="mt-1 px-3">
-          <v-autocomplete
+          <TagAutocompleteSelect
             v-if="selectedFilterOption === FormFilterOptions.Tags"
-            v-model="selectedTags"
-            v-model:menu="isAutocompleteMenuOpen"
-            :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
-            :items="tags"
-            item-title="name"
-            item-value="name"
-            attach
-            chips
-            class="mb-4"
-            hide-details="auto"
-            label="Tags"
-            :error-messages="tagSelectorErrorMessage"
-            placeholder="Select up to 3 tags"
-            variant="outlined"
-            density="comfortable"
-            multiple
-            data-test="tags-selector"
-            @update:model-value="validateSelectedTags"
-            @update:search="handleSearch"
-          >
-            <template #append-item>
-              <div
-                ref="sentinel"
-                data-test="tags-sentinel"
-                style="height: 1px;"
-              />
-            </template>
-          </v-autocomplete>
+            v-model:selected-tags="selectedTags"
+            v-model:tag-selector-error-message="tagSelectorErrorMessage"
+          />
 
           <v-text-field
-            v-if="selectedFilterOption === FormFilterOptions.Hostname"
+            v-else-if="selectedFilterOption === FormFilterOptions.Hostname"
             v-model="hostname"
             label="Hostname"
             :error-messages="hostnameError"
@@ -131,8 +105,7 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { ref, onMounted, computed } from "vue";
-import { useIntersectionObserver } from "@vueuse/core";
+import { ref, computed } from "vue";
 import * as yup from "yup";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import { IPublicKey } from "@/interfaces/IPublicKey";
@@ -140,9 +113,8 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions, FormUsernameOptions } from "@/interfaces/IFilter";
 import usePublicKeysStore from "@/store/modules/public_keys";
-import useTagsStore from "@/store/modules/tags";
 import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
-import { ITag } from "@/interfaces/ITags";
+import TagAutocompleteSelect from "@/components/Tags/TagAutocompleteSelect.vue";
 
 const props = defineProps<{
   publicKey: IPublicKey;
@@ -152,7 +124,6 @@ const props = defineProps<{
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
 const publicKeysStore = usePublicKeysStore();
-const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 
 const selectedUsernameOption = ref(FormUsernameOptions.All);
@@ -169,20 +140,8 @@ const usernameSelectOptions = [
   { value: FormUsernameOptions.Username, title: "Restrict access using a regexp for username" },
 ];
 
-const isAutocompleteMenuOpen = ref(false);
-const menuContentClass = "pk-edit-tags-ac-content";
-
-const tags = ref<ITag[]>([]);
-const hasMoreTagsToLoad = computed(() => tagsStore.numberTags > tags.value.length);
 const selectedTags = ref<string[]>([]);
 const tagSelectorErrorMessage = ref("");
-
-const sentinel = ref<HTMLElement | null>(null);
-
-const page = ref(1);
-const perPage = ref(10);
-const filter = ref("");
-const isLoading = ref(false);
 
 const {
   value: name,
@@ -212,73 +171,6 @@ const confirmDisabled = computed(() => {
     || (selectedFilterOption.value === FormFilterOptions.Tags && !!tagSelectorErrorMessage.value),
   );
 });
-
-const encodeFilter = (filterQuery: string) => {
-  if (!filterQuery) return "";
-  const filterToEncodeBase64 = [{ type: "property", params: { name: "name", operator: "contains", value: filterQuery } }];
-  return btoa(JSON.stringify(filterToEncodeBase64));
-};
-
-const validateSelectedTags = () => {
-  const list = selectedTags.value;
-  if (selectedFilterOption.value !== FormFilterOptions.Tags) {
-    tagSelectorErrorMessage.value = "";
-    return;
-  }
-  if (list.length > 3) tagSelectorErrorMessage.value = "You can select up to three tags only";
-  else if (list.length === 0) tagSelectorErrorMessage.value = "You must choose at least one tag";
-  else if (list.length <= 3) tagSelectorErrorMessage.value = "";
-};
-
-const handleFilterChange = async () => {
-  if (selectedFilterOption.value === FormFilterOptions.Tags) await loadTags();
-  else tagSelectorErrorMessage.value = "";
-};
-
-const resetPagination = () => {
-  page.value = 1;
-  perPage.value = 10;
-};
-
-const loadTags = async () => {
-  if (isLoading.value) return;
-  isLoading.value = true;
-
-  try {
-    await tagsStore.autocomplete({
-      tenant: localStorage.getItem("tenant") || "",
-      filter: encodeFilter(filter.value),
-      page: page.value,
-      perPage: perPage.value,
-    });
-    tags.value = tagsStore.list;
-  } catch (error) {
-    snackbar.showError("Failed to load tags.");
-    handleError(error);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const handleSearch = async (filterQuery = "") => {
-  filter.value = filterQuery;
-  resetPagination();
-  await loadTags();
-};
-
-const bumpPerPageAndLoad = async () => {
-  if (!hasMoreTagsToLoad.value || isLoading.value) return;
-  perPage.value += 10;
-  await loadTags();
-};
-
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass}`);
-
-useIntersectionObserver(
-  sentinel,
-  ([{ isIntersecting }]) => { if (isIntersecting) void bumpPerPageAndLoad(); },
-  { root: getMenuRootEl, threshold: 1.0 },
-);
 
 const populateFilterFields = () => {
   if (!showDialog.value) return;
@@ -312,13 +204,8 @@ const open = () => {
 const resetFields = () => {
   hostname.value = "";
   username.value = "";
-  tags.value = [];
   selectedTags.value = [];
   tagSelectorErrorMessage.value = "";
-  isAutocompleteMenuOpen.value = false;
-  page.value = 1;
-  perPage.value = 10;
-  filter.value = "";
 };
 
 const close = () => {
@@ -356,10 +243,5 @@ const edit = async () => {
   }
 };
 
-onMounted(async () => {
-  resetPagination();
-  await loadTags();
-});
-
-defineExpose({ nameError, usernameError, hostnameError, tagSelectorErrorMessage });
+defineExpose({ nameError, usernameError, hostnameError, selectedTags, tagSelectorErrorMessage });
 </script>
