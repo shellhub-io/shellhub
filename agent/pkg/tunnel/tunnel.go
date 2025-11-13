@@ -101,6 +101,7 @@ func NewTunnelV1() *TunnelV1 {
 		srv: &http.Server{ //nolint:gosec
 			Handler: e,
 			ConnContext: func(ctx context.Context, c net.Conn) context.Context {
+				// TODO: Create a constant for the key.
 				return context.WithValue(ctx, "http-conn", c) //nolint:revive
 			},
 		},
