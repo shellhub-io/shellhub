@@ -127,34 +127,10 @@
           v-else-if="selectedFilterOption === FormFilterOptions.Tags"
           class="px-3 mt-3"
         >
-          <v-autocomplete
-            v-model="selectedTags"
-            v-model:menu="isAutocompleteMenuOpen"
-            :menu-props="{ contentClass: menuContentClass, maxHeight: 320 }"
-            :items="tags"
-            item-title="name"
-            item-value="name"
-            :return-objects="false"
-            attach
-            chips
-            label="Tags"
-            :error-messages="selectedTagsError"
-            variant="outlined"
-            density="comfortable"
-            multiple
-            hide-details="auto"
-            data-test="tags-selector"
-            @update:model-value="setSelectedTagsError"
-            @update:search="onSearch"
-          >
-            <template #append-item>
-              <div
-                ref="sentinel"
-                data-test="tags-sentinel"
-                style="height: 1px;"
-              />
-            </template>
-          </v-autocomplete>
+          <TagAutocompleteSelect
+            v-model:selected-tags="selectedTags"
+            v-model:tag-selector-error-message="selectedTagsError"
+          />
         </v-row>
       </v-card-text>
     </FormDialog>
@@ -162,8 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick, watch } from "vue";
-import { useIntersectionObserver } from "@vueuse/core";
+import { computed, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
@@ -172,10 +147,7 @@ import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import { FormFilterOptions } from "@/interfaces/IFilter";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
-import useTagsStore from "@/store/modules/tags";
-import { ITag } from "@/interfaces/ITags";
-
-type TagName = Pick<ITag, "name">;
+import TagAutocompleteSelect from "@/components/Tags/TagAutocompleteSelect.vue";
 
 const { firewallRule, hasAuthorization } = defineProps<{
   firewallRule: IFirewallRule;
@@ -183,7 +155,6 @@ const { firewallRule, hasAuthorization } = defineProps<{
 }>();
 
 const firewallRulesStore = useFirewallRulesStore();
-const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const emit = defineEmits(["update"]);
 const showDialog = ref(false);
@@ -260,101 +231,10 @@ const filterSelectOptions = [
   { value: "tags", title: "Restrict rule by device tags" },
 ];
 
-const setSelectedTagsError = async () => {
-  if (selectedFilterOption.value !== FormFilterOptions.Tags) {
-    selectedTagsError.value = "";
-    return;
-  }
-  if (selectedTags.value.length > 3) {
-    await nextTick(() => selectedTags.value.pop());
-    selectedTagsError.value = "You can select up to 3 tags only.";
-  } else if (selectedTags.value.length === 0) {
-    selectedTagsError.value = "You must choose at least one tag";
-  } else {
-    selectedTagsError.value = "";
-  }
-};
-watch(selectedTags, setSelectedTagsError);
-
 const resetSelectedTags = () => {
   selectedTags.value = [];
   selectedTagsError.value = "";
 };
-
-const isAutocompleteMenuOpen = ref(false);
-const menuContentClass = "fw-edit-tags-ac-content";
-
-const fetchedTags = ref<TagName[]>([]);
-const tags = computed(() => fetchedTags.value);
-
-const sentinel = ref<HTMLElement | null>(null);
-
-const page = ref(1);
-const perPage = ref(10);
-const filter = ref("");
-const isLoading = ref(false);
-
-const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
-
-const encodeFilter = (search: string) => {
-  if (!search) return "";
-  const filterToEncodeBase64 = [
-    { type: "property", params: { name: "name", operator: "contains", value: search } },
-  ];
-  return btoa(JSON.stringify(filterToEncodeBase64));
-};
-
-const normalizeStoreItems = (arr: ITag[]): TagName[] => (arr ?? [])
-  .map((tag) => {
-    const name = typeof tag === "string" ? tag : tag?.name;
-    return name ? ({ name } as TagName) : null;
-  })
-  .filter((tag: TagName | null): tag is TagName => !!tag);
-
-const resetPagination = () => {
-  page.value = 1;
-  perPage.value = 10;
-  fetchedTags.value = [];
-};
-
-const loadTags = async () => {
-  if (isLoading.value) return;
-  isLoading.value = true;
-  try {
-    await tagsStore.autocomplete({
-      tenant: localStorage.getItem("tenant") || "",
-      filter: encodeFilter(filter.value),
-      page: page.value,
-      perPage: perPage.value,
-    });
-    fetchedTags.value = normalizeStoreItems(tagsStore.list);
-  } catch (error) {
-    snackbar.showError("Failed to load tags.");
-    handleError(error);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const onSearch = async (search: string) => {
-  filter.value = search || "";
-  resetPagination();
-  await loadTags();
-};
-
-const bumpPerPageAndLoad = async () => {
-  if (!hasMore.value || isLoading.value) return;
-  perPage.value += 10;
-  await loadTags();
-};
-
-const getMenuRootEl = (): HTMLElement | null => document.querySelector(`.${menuContentClass}`);
-
-useIntersectionObserver(
-  sentinel,
-  ([{ isIntersecting }]) => { if (isIntersecting) void bumpPerPageAndLoad(); },
-  { root: getMenuRootEl, threshold: 1.0 },
-);
 
 const handleSourceIpUpdate = () => {
   resetSourceIp();
@@ -366,18 +246,11 @@ const handleUsernameUpdate = () => {
   if (selectedUsernameOption.value === "username") setUsernameError("This field is required");
 };
 
-const handleFilterUpdate = async () => {
+const handleFilterUpdate = () => {
   resetHostname();
   resetSelectedTags();
 
   if (selectedFilterOption.value === FormFilterOptions.Hostname) setHostnameError("This field is required");
-  if (selectedFilterOption.value === FormFilterOptions.Tags) {
-    resetPagination();
-    await loadTags();
-    await setSelectedTagsError();
-  } else {
-    selectedTagsError.value = "";
-  }
 };
 
 const hasErrors = computed(() => {
@@ -405,30 +278,14 @@ const resetForm = () => {
   resetSelectedTags();
 };
 
-const toTagNames = (arr: TagName[]): string[] => {
-  if (!arr) return [];
-  return Array.from(arr)
-    .map((tags) => {
-      if (typeof tags === "string") return tags;
-      if (tags && typeof tags === "object" && "name" in tags && typeof tags.name === "string") {
-        return tags.name;
-      }
-      return null;
-    })
-    .filter((name): name is string => Boolean(name));
-};
-
-const setFilterData = async () => {
+const setFilterData = () => {
   if (firewallRule.filter) {
     if ("hostname" in firewallRule.filter && firewallRule.filter.hostname !== ".*") {
       selectedFilterOption.value = FormFilterOptions.Hostname;
       hostname.value = firewallRule.filter.hostname;
     } else if ("tags" in firewallRule.filter && firewallRule.filter.tags.length > 0) {
       selectedFilterOption.value = FormFilterOptions.Tags;
-      resetPagination();
-      await loadTags();
-      selectedTags.value = toTagNames(firewallRule.filter.tags);
-      await setSelectedTagsError();
+      selectedTags.value = firewallRule.filter.tags.map((tag) => tag.name);
     } else {
       selectedFilterOption.value = FormFilterOptions.All;
     }
@@ -451,10 +308,10 @@ const initializeFormData = () => {
   } else selectedUsernameOption.value = "all";
 };
 
-const open = async () => {
+const open = () => {
   showDialog.value = true;
   initializeFormData();
-  await setFilterData();
+  setFilterData();
 };
 
 const close = () => {
