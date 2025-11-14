@@ -9,6 +9,7 @@ import {
 } from "@/api/http";
 import { IMfaGenerate, IUserLogin, IMfaDisable, IMfaEnable, IMfaReset } from "@/interfaces/IUserLogin";
 import { IUser } from "@/interfaces/IUser";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 interface IAuthData {
   token?: string;
@@ -178,6 +179,8 @@ const useAuthStore = defineStore("auth", () => {
       "token", "user", "tenant", "namespacesWelcome", "noNamespace",
       "email", "id", "name", "role", "mfa", "recovery_email",
     ].forEach((key) => localStorage.removeItem(key));
+
+    useNamespacesStore().reset();
   };
 
   const deleteUser = async () => {
