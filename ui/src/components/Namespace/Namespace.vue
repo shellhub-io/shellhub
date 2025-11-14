@@ -39,19 +39,15 @@
     >
       <v-list class="bg-v-theme-surface">
         <AdminConsoleItem v-if="isAdminContext" />
-        <template v-else>
-          <v-list-subheader> Active Namespace</v-list-subheader>
+        <template v-else-if="currentNamespace.tenant_id">
+          <v-list-subheader>Active Namespace</v-list-subheader>
           <NamespaceListItem
-            v-if="currentNamespace.tenant_id"
             :namespace="currentNamespace"
             :active="true"
             :user-id="userId"
             @select="handleNamespaceSwitch"
           />
-          <div
-            v-if="currentNamespace.tenant_id"
-            class="px-4 pb-2 pt-3"
-          >
+          <div class="px-4 pb-2 pt-3">
             <div class="text-caption text-grey mb-1">Tenant ID</div>
             <div class="d-flex align-center ga-2 pa-2 border-thin rounded text-caption">
               <span class="flex-1-1 text-truncate">{{ currentNamespace.tenant_id }}</span>
@@ -85,12 +81,11 @@
             />
             <v-divider v-if="index < availableNamespaces.length - 1 || (!isAdminContext && showAdminButton)" />
           </template>
-
-          <AdminConsoleItem
-            v-if="showAdminButton && !isAdminContext"
-            @click="navigateToAdminPanel"
-          />
         </template>
+        <AdminConsoleItem
+          v-if="showAdminButton && !isAdminContext"
+          @click="navigateToAdminPanel"
+        />
 
         <template v-if="!isAdminContext">
           <v-divider />
