@@ -5,7 +5,7 @@
   />
 
   <Welcome
-    v-model="showWelcome"
+    :has-namespaces
     data-test="welcome-component"
   />
 
@@ -77,7 +77,6 @@ const namespacesStore = useNamespacesStore();
 const statsStore = useStatsStore();
 const usersStore = useUsersStore();
 const router = useRouter();
-const showWelcome = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
 const showDuplicationWarning = computed(() => !!devicesStore.duplicatedDeviceName);
 const showRecoverHelper = computed(() => authStore.showRecoveryModal);
@@ -85,7 +84,7 @@ const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
 const showPaywall = computed(() => usersStore.showPaywall);
 const stats = computed(() => statsStore.stats);
 const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
-const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
 const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
 const showBillingWarning = computed({
   get() {
@@ -100,27 +99,6 @@ const setShowDeviceChooser = async () => {
   await billingStore.getSubscriptionInfo();
   const showDeviceChooser = stats.value.registered_devices > 3 && !billingStore.isActive;
   devicesStore.showDeviceChooser = showDeviceChooser;
-};
-
-const namespaceHasBeenShown = (tenant: string) => (
-  (JSON.parse(localStorage.getItem("namespacesWelcome") ?? "{}") as Record<string, boolean>)[tenant] !== undefined);
-
-const hasDevices = computed(() => (
-  stats.value.registered_devices !== 0
-  || stats.value.pending_devices !== 0
-  || stats.value.rejected_devices !== 0
-));
-
-const showScreenWelcome = () => {
-  let status = false;
-
-  const tenantID = namespacesStore.currentNamespace.tenant_id;
-  if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
-    authStore.setShowWelcomeScreen(tenantID);
-    status = true;
-  }
-
-  showWelcome.value = status;
 };
 
 const checkForNewAnnouncements = async () => {
@@ -151,8 +129,6 @@ const showDialogs = async () => {
 
     if (hasNamespaces.value) {
       await statsStore.fetchStats();
-
-      showScreenWelcome();
 
       if (envVariables.isCloud && !billingStore.isActive) await setShowDeviceChooser();
     }

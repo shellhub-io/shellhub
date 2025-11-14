@@ -1,5 +1,6 @@
 <template>
   <WindowDialog
+    v-if="shouldShowWelcome"
     v-model="showDialog"
     title="Welcome to ShellHub!"
     :description="`Step ${currentStep} of 4`"
@@ -84,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
@@ -95,6 +96,8 @@ import useSnackbar from "@/helpers/snackbar";
 import { IDevice } from "@/interfaces/IDevice";
 import useDevicesStore from "@/store/modules/devices";
 import useStatsStore from "@/store/modules/stats";
+import useAuthStore from "@/store/modules/auth";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 type PollingTimer = ReturnType<typeof setInterval>;
 
@@ -103,7 +106,11 @@ interface StepConfig {
   action: () => void | Promise<void>;
 }
 
-const showDialog = defineModel<boolean>({ required: true });
+const props = defineProps<{ hasNamespaces: boolean }>();
+
+const showDialog = ref(false);
+const authStore = useAuthStore();
+const namespacesStore = useNamespacesStore();
 const devicesStore = useDevicesStore();
 const statsStore = useStatsStore();
 const snackbar = useSnackbar();
@@ -111,6 +118,24 @@ const currentStep = ref<number>(1);
 const firstPendingDevice = ref<IDevice>();
 const pollingTimer = ref<PollingTimer | undefined>(undefined);
 const hasDeviceDetected = ref(false);
+const tenantId = computed(() => namespacesStore.currentNamespace.tenant_id);
+
+const namespaceHasBeenShown = () => (
+  (JSON.parse(localStorage.getItem("namespacesWelcome") ?? "{}") as Record<string, boolean>)[tenantId.value] !== undefined);
+
+const hasDevices = computed(() => (
+  statsStore.stats.registered_devices !== 0
+  || statsStore.stats.pending_devices !== 0
+  || statsStore.stats.rejected_devices !== 0
+));
+
+const shouldShowWelcome = computed(() => props.hasNamespaces && !namespaceHasBeenShown() && !hasDevices.value);
+
+watch(shouldShowWelcome, (newValue) => {
+  if (!newValue) return;
+  authStore.setShowWelcomeScreen(tenantId.value);
+  showDialog.value = true;
+});
 
 const stopDevicePolling = () => {
   if (pollingTimer.value) {
@@ -178,5 +203,5 @@ const stepConfigs: Record<number, StepConfig> = {
 const currentStepConfig = computed(() => stepConfigs[currentStep.value]);
 const handleConfirm = async () => { await currentStepConfig.value.action(); };
 
-defineExpose({ currentStep, hasDeviceDetected });
+defineExpose({ currentStep, hasDeviceDetected, showDialog });
 </script>
