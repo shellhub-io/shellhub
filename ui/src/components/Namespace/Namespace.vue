@@ -148,10 +148,9 @@ const showAdminButton = computed(() => {
   return envVariables.isEnterprise && !envVariables.isCloud && Boolean(authStore.isAdmin);
 });
 
-const otherNamespaces = computed(() => namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id));
 const availableNamespaces = computed(() => {
-  const namespaces = otherNamespaces.value;
-  if (props.isAdminContext) { namespaces.push(currentNamespace.value); }
+  const namespaces = namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id);
+  if (props.isAdminContext && currentNamespace.value.tenant_id) namespaces.push(currentNamespace.value);
   return namespaces;
 });
 

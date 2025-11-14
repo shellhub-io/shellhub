@@ -56,7 +56,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>();
 
 const userRole = computed(() => {
-  const member = props.namespace.members.find((m) => m.id === props.userId);
+  const member = props.namespace.members?.find((m) => m.id === props.userId);
   return member?.role || null;
 });
 
