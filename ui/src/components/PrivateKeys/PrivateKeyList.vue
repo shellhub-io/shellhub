@@ -1,5 +1,5 @@
 <template>
-  <v-table class="bg-background border rounded mx-4">
+  <v-table class="bg-background border rounded">
     <thead
       class="bg-v-theme-background"
       data-test="privateKey-thead"

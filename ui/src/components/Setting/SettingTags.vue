@@ -42,8 +42,7 @@
         >
           <v-btn
             color="primary"
-            variant="text"
-            class="bg-secondary border"
+            variant="elevated"
             data-test="tag-create-button"
             @click="openCreate"
           >
