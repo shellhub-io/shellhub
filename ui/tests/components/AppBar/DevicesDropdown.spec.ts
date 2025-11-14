@@ -16,6 +16,8 @@ import { IDevice } from "@/interfaces/IDevice";
 import { IStats } from "@/interfaces/IStats";
 import useAuthStore from "@/store/modules/auth";
 import { nextTick } from "vue";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
 
 const Component = {
   template: "<v-layout><DevicesDropdown /></v-layout>",
@@ -129,16 +131,41 @@ const mockStats: IStats = {
   active_sessions: 0,
 };
 
+const mockNamespace: INamespace = {
+  name: "examplespace",
+  owner: "507f1f77bcf86cd799439011",
+  tenant_id: "3dd0d1f8-8246-4519-b11a-a3dd33717f65",
+  members: [
+    {
+      id: "507f1f77bcf86cd799439011",
+      role: "administrator",
+    },
+  ] as INamespaceMember[],
+  settings: {
+    session_record: true,
+    connection_announcement: "",
+  },
+  max_devices: 3,
+  devices_accepted_count: 0,
+  devices_pending_count: 0,
+  devices_rejected_count: 0,
+  created_at: "2025-05-01T00:00:00.000Z",
+  billing: null,
+  type: "team",
+};
+
 describe("Device Management Dropdown", () => {
   let wrapper: VueWrapper<unknown>;
   let drawer: VueWrapper<InstanceType<typeof DevicesDropdown>>;
   const vuetify = createVuetify();
   setActivePinia(createPinia());
   const statsStore = useStatsStore();
+  const namespacesStore = useNamespacesStore();
   const devicesStore = useDevicesStore();
   const authStore = useAuthStore();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
   authStore.role = "owner";
+  namespacesStore.namespaceList = [mockNamespace];
   beforeEach(async () => {
     mockDevicesApi
       .onGet("http://localhost:3000/api/stats")
