@@ -32,8 +32,8 @@
           <template #append>
             <v-btn
               color="primary"
-              variant="text"
-              class="bg-secondary align-content-lg-center text-none text-uppercase"
+              variant="elevated"
+              class="align-content-lg-center text-none text-uppercase"
               :disabled="billingStatus === ''"
               data-test="subscribe-button"
               @click="dialogCheckout = true"

@@ -42,8 +42,7 @@
               <v-btn
                 v-if="!editDataStatus"
                 color="primary"
-                variant="text"
-                class="bg-secondary border"
+                variant="elevated"
                 data-test="edit-profile-button"
                 @click="editDataStatus = !editDataStatus"
               >

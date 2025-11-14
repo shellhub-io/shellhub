@@ -37,8 +37,7 @@
                 v-if="!editDataStatus"
                 :disabled="!canRenameNamespace"
                 color="primary"
-                variant="text"
-                class="bg-secondary border"
+                variant="elevated"
                 data-test="edit-namespace-btn"
                 @click="editDataStatus = true"
               >

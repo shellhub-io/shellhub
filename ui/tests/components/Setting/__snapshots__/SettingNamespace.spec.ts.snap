@@ -42,7 +42,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <!---->
           </div>
           <div class="v-list-item__append">
-            <div data-v-80a16399="" class="mr-4"><button data-v-80a16399="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary border" data-test="edit-namespace-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+            <div data-v-80a16399="" class="mr-4"><button data-v-80a16399="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="edit-namespace-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                 <!----><span class="v-btn__content" data-no-activator=""> Edit Namespace </span>
                 <!---->
                 <!---->

@@ -37,7 +37,7 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
             <div class="v-list-item-subtitle"><span data-v-d7a09f69="" data-test="billing-subtitle">Manage your subscription info</span></div>
             <!---->
           </div>
-          <div class="v-list-item__append"><button data-v-d7a09f69="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text bg-secondary align-content-lg-center text-none text-uppercase" data-test="subscribe-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <div class="v-list-item__append"><button data-v-d7a09f69="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="subscribe-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
               <!----><span class="v-btn__content" data-no-activator=""> Subscribe </span>
               <!---->
               <!---->
