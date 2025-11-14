@@ -1,4 +1,4 @@
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import useNamespacesStore from "@/store/modules/namespaces";
 import useSnackbar from "@/helpers/snackbar";
@@ -7,6 +7,7 @@ import handleError from "@/utils/handleError";
 export default function useNamespaceManager() {
   const namespacesStore = useNamespacesStore();
   const snackbar = useSnackbar();
+  const namespacesLoaded = ref(false);
 
   const currentNamespace = computed(() => namespacesStore.currentNamespace);
   const namespaceList = computed(() => namespacesStore.namespaceList);
@@ -28,6 +29,7 @@ export default function useNamespaceManager() {
   const loadNamespaces = async () => {
     try {
       await namespacesStore.fetchNamespaceList({ perPage: 30 });
+      namespacesLoaded.value = true;
     } catch (error: unknown) {
       snackbar.showError("Failed to load namespaces");
       handleError(error);
@@ -68,6 +70,7 @@ export default function useNamespaceManager() {
     currentNamespace,
     namespaceList,
     hasNamespaces,
+    namespacesLoaded,
     switchNamespace,
     loadCurrentNamespace,
   };
