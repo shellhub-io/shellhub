@@ -10,7 +10,7 @@
   />
 
   <NamespaceInstructions
-    v-model="showInstructions"
+    v-model="showAddNamespaceInstructions"
     data-test="namespace-instructions-component"
   />
 
@@ -66,7 +66,7 @@ import useAnnouncementStore from "@/store/modules/announcement";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
-import useNamespacesStore from "@/store/modules/namespaces";
+import useNamespaceManager from "@/components/Namespace/composables/useNamespaceManager";
 import useStatsStore from "@/store/modules/stats";
 import useUsersStore from "@/store/modules/users";
 
@@ -79,11 +79,10 @@ const announcementStore = useAnnouncementStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
-const namespacesStore = useNamespacesStore();
+const { hasNamespaces, namespacesLoaded, currentNamespace } = useNamespaceManager();
 const statsStore = useStatsStore();
 const usersStore = useUsersStore();
 const router = useRouter();
-const showInstructions = ref(false);
 const showWelcome = ref<boolean>(false);
 const showAnnouncements = ref<boolean>(false);
 const showDuplicationWarning = computed(() => !!devicesStore.duplicatedDeviceName);
@@ -92,7 +91,7 @@ const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
 const showPaywall = computed(() => usersStore.showPaywall);
 const stats = computed(() => statsStore.stats);
 const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
-const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
+const showAddNamespaceInstructions = computed(() => namespacesLoaded.value && !hasNamespaces.value);
 const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
 const showBillingWarning = computed({
   get() {
@@ -121,7 +120,7 @@ const hasDevices = computed(() => (
 const showScreenWelcome = () => {
   let status = false;
 
-  const tenantID = namespacesStore.currentNamespace.tenant_id;
+  const tenantID = currentNamespace.value.tenant_id;
   if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
     authStore.setShowWelcomeScreen(tenantID);
     status = true;
@@ -162,7 +161,7 @@ const showDialogs = async () => {
       showScreenWelcome();
 
       if (envVariables.isCloud && !billingStore.isActive) await setShowDeviceChooser();
-    } else showInstructions.value = true;
+    }
   } catch (error: unknown) {
     snackbar.showError("An error occurred while fetching the namespaces.");
     handleError(error);
