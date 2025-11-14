@@ -89,6 +89,12 @@ const useNamespacesStore = defineStore("namespaces", () => {
     }
   };
 
+  const reset = () => {
+    currentNamespace.value = {} as INamespace;
+    namespaceList.value = [];
+    userStatus.value = undefined;
+  };
+
   return {
     currentNamespace,
     namespaceList,
@@ -107,6 +113,7 @@ const useNamespacesStore = defineStore("namespaces", () => {
     acceptInvite,
     lookupUserStatus,
     switchNamespace,
+    reset,
   };
 });
 

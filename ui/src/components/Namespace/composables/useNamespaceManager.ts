@@ -12,7 +12,6 @@ export default function useNamespaceManager() {
   const currentNamespace = computed(() => namespacesStore.currentNamespace);
   const namespaceList = computed(() => namespacesStore.namespaceList);
   const hasNamespaces = computed(() => namespaceList.value.length > 0);
-  const currentTenantId = computed(() => localStorage.getItem("tenant") || "");
 
   const switchNamespace = async (tenantId: string) => {
     if (tenantId === currentNamespace.value.tenant_id) return;
@@ -37,9 +36,11 @@ export default function useNamespaceManager() {
   };
 
   const loadCurrentNamespace = async () => {
+    const currentTenantId = localStorage.getItem("tenant") || "";
+
     try {
       await loadNamespaces();
-      await namespacesStore.fetchNamespace(currentTenantId.value);
+      await namespacesStore.fetchNamespace(currentTenantId);
     } catch (error: unknown) {
       if (!axios.isAxiosError(error)) {
         snackbar.showError("Failed to load namespace");
@@ -57,7 +58,7 @@ export default function useNamespaceManager() {
       }
 
       // Server error with no tenant - ignore
-      if (axiosError.response?.status === 500 && !currentTenantId.value) {
+      if (axiosError.response?.status === 500 && !currentTenantId) {
         return;
       }
 
