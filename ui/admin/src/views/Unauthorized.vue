@@ -5,7 +5,7 @@
   >
     <v-card
       :max-width="thresholds.md"
-      class="pa-3 pa-sm-6 border"
+      class="pa-3 pa-sm-6 border bg-v-theme-surface"
     >
       <v-card-text class="text-center">
         <v-avatar
@@ -30,7 +30,10 @@
 
         <div class="text-left mb-6">
           <h2 class="text-h6 font-weight-medium mb-3">What you can do:</h2>
-          <v-list density="compact">
+          <v-list
+            density="compact"
+            class="bg-v-theme-surface"
+          >
             <v-list-item
               v-for="(item, index) in actionItems"
               :key="index"
