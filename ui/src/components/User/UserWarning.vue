@@ -9,11 +9,6 @@
     data-test="welcome-component"
   />
 
-  <NamespaceInstructions
-    v-model="showAddNamespaceInstructions"
-    data-test="namespace-instructions-component"
-  />
-
   <BillingWarning
     v-model="showBillingWarning"
     data-test="billing-warning-component"
@@ -51,7 +46,6 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Welcome from "../Welcome/Welcome.vue";
-import NamespaceInstructions from "../Namespace/NamespaceInstructions.vue";
 import { envVariables } from "@/envVariables";
 import BillingWarning from "../Billing/BillingWarning.vue";
 import DeviceChooser from "../Devices/DeviceChooser.vue";
@@ -66,7 +60,7 @@ import useAnnouncementStore from "@/store/modules/announcement";
 import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
 import useDevicesStore from "@/store/modules/devices";
-import useNamespaceManager from "@/components/Namespace/composables/useNamespaceManager";
+import useNamespacesStore from "@/store/modules/namespaces";
 import useStatsStore from "@/store/modules/stats";
 import useUsersStore from "@/store/modules/users";
 
@@ -79,7 +73,7 @@ const announcementStore = useAnnouncementStore();
 const authStore = useAuthStore();
 const billingStore = useBillingStore();
 const devicesStore = useDevicesStore();
-const { hasNamespaces, namespacesLoaded, currentNamespace } = useNamespaceManager();
+const namespacesStore = useNamespacesStore();
 const statsStore = useStatsStore();
 const usersStore = useUsersStore();
 const router = useRouter();
@@ -91,7 +85,7 @@ const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
 const showPaywall = computed(() => usersStore.showPaywall);
 const stats = computed(() => statsStore.stats);
 const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
-const showAddNamespaceInstructions = computed(() => namespacesLoaded.value && !hasNamespaces.value);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
 const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
 const showBillingWarning = computed({
   get() {
@@ -120,7 +114,7 @@ const hasDevices = computed(() => (
 const showScreenWelcome = () => {
   let status = false;
 
-  const tenantID = currentNamespace.value.tenant_id;
+  const tenantID = namespacesStore.currentNamespace.tenant_id;
   if (!namespaceHasBeenShown(tenantID) && !hasDevices.value) {
     authStore.setShowWelcomeScreen(tenantID);
     status = true;

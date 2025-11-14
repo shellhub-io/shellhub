@@ -285,7 +285,10 @@ exports[`App Layout Component > Renders the component 1`] = `
         </button>
         <div class="d-flex align-center hidden-md-and-down">
           <!---->
-          <!----><button type="button" class="v-btn v-btn--stacked v-theme--light v-btn--density-comfortable v-btn--size-x-large v-btn--variant-text text-none p-2 border-e-thin border-s-thin" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9" aria-owns="v-menu-v-9"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!---->
+          <!---->
+          <!--teleport start-->
+          <!--teleport end--><button type="button" class="v-btn v-btn--stacked v-theme--light v-btn--density-comfortable v-btn--size-x-large v-btn--variant-text text-none p-2 border-e-thin border-s-thin" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9" aria-owns="v-menu-v-9"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><div class="d-flex align-center ga-2"><span class="v-chip v-chip--label v-theme--light text-primary v-chip--density-default v-chip--size-default v-chip--variant-tonal text-uppercase" draggable="false"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
@@ -339,7 +342,7 @@ exports[`App Layout Component > Renders the component 1`] = `
 </main>
 <!---->
 <!--teleport start-->
-<div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2000;" data-v-e7291ef4="" data-test="overlay">
+<div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2410;" data-v-e7291ef4="" data-test="overlay">
   <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
     <!---->
   </transition-stub>
@@ -356,8 +359,6 @@ exports[`App Layout Component > Renders the component 1`] = `
 </div>
 <!--teleport end-->
 <!--v-if-->
-<!---->
-<!---->
 <!---->
 <!---->
 <!--v-if-->

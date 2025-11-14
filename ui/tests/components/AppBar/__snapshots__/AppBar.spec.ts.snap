@@ -15,6 +15,8 @@ exports[`AppBar Component > Renders the component 1`] = `
       </button>
       <div class="d-flex align-center hidden-md-and-down">
         <!---->
+        <!---->
+        <!---->
         <!----><button type="button" class="v-btn v-btn--stacked v-theme--light v-btn--density-comfortable v-btn--size-x-large v-btn--variant-text text-none p-2 border-e-thin border-s-thin" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" aria-owns="v-menu-v-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><div class="d-flex align-center ga-2"><span class="v-chip v-chip--label v-theme--light text-primary v-chip--density-default v-chip--size-default v-chip--variant-tonal text-uppercase" draggable="false"><!----><span class="v-chip__underlay"></span>
           <!---->
