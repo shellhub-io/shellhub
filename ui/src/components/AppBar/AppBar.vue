@@ -236,6 +236,7 @@ const triggerClick = async (item: MenuItem) => {
 
 const logout = async () => {
   try {
+    await router.push({ name: "Login" });
     authStore.logout();
     namespacesStore.namespaceList = [];
     statsStore.stats = {} as IStats;
@@ -244,7 +245,6 @@ const logout = async () => {
       reset();
       supportStore.isChatCreated = false;
     }
-    await router.push({ name: "Login" });
   } catch (error: unknown) {
     handleError(error);
   }
