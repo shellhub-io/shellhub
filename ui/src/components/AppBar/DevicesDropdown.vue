@@ -329,10 +329,12 @@ import useSnackbar from "@/helpers/snackbar";
 import moment from "moment";
 import { IDevice } from "@/interfaces/IDevice";
 import DeviceActionButton from "@/components/Devices/DeviceActionButton.vue";
+import useNamespacesStore from "@/store/modules/namespaces";
 
 const { smAndUp, thresholds } = useDisplay();
 const statsStore = useStatsStore();
 const devicesStore = useDevicesStore();
+const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 
 const isDrawerOpen = ref(false);
@@ -390,6 +392,7 @@ const fetchRecentDevices = async () => {
 };
 
 onBeforeMount(async () => {
+  if (namespacesStore.namespaceList.length === 0) return;
   await fetchStats();
   await fetchPendingDevices();
   await fetchRecentDevices();
