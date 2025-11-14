@@ -1,5 +1,6 @@
 <template>
   <NamespaceAdd v-model="showAddDialog" />
+  <NamespaceInstructions v-model="showAddNamespaceInstructions" />
 
   <v-menu
     :close-on-content-click="false"
@@ -108,6 +109,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import NamespaceAdd from "./NamespaceAdd.vue";
+import NamespaceInstructions from "./NamespaceInstructions.vue";
 import NamespaceChip from "./NamespaceChip.vue";
 import NamespaceListItem from "./NamespaceListItem.vue";
 import AdminConsoleItem from "./AdminConsoleItem.vue";
@@ -130,12 +132,14 @@ const {
   currentNamespace,
   namespaceList,
   hasNamespaces,
+  namespacesLoaded,
   switchNamespace,
   loadCurrentNamespace,
 } = useNamespaceManager();
 const { mdAndDown, thresholds } = useDisplay();
 
 const showAddDialog = ref(false);
+const showAddNamespaceInstructions = computed(() => namespacesLoaded.value && !hasNamespaces.value);
 const userId = computed(() => authStore.id || localStorage.getItem("id") || "");
 
 const showAdminButton = computed(() => {
