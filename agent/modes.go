@@ -29,7 +29,7 @@ type Mode interface {
 	GetInfo() (*Info, error)
 }
 
-// ModeHost is the Agent execution mode for `Host`.
+// HostMode is the Agent execution mode for `Host`.
 //
 // The host mode is the default mode one, and turns the host machine into a ShellHub's Agent. The host is
 // responsible for the SSH server, authentication and authorization, `/etc/passwd`, `/etc/shadow`, and etc.
@@ -66,7 +66,7 @@ func (m *HostMode) GetInfo() (*Info, error) {
 	}, nil
 }
 
-// ModeConnector is the Agent execution mode for `Connector`.
+// ConnectorMode is the Agent execution mode for `Connector`.
 //
 // The `Connector` mode is used to turn a container inside a host into a single device ShellHub's Agent. The host is
 // responsible for the SSH server, but the authentication and authorization is made by either the conainer
@@ -86,7 +86,7 @@ func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
 var _ Mode = new(ConnectorMode)
 
 func (m *ConnectorMode) Serve(agent *Agent) {
-	// NOTICE: When the agent is running in `Connector` mode, we need to identify the container ID to maintain the
+	// NOTE: When the agent is running in `Connector` mode, we need to identify the container ID to maintain the
 	// communication between the server and the agent when the container name on the host changes.  This information is
 	// saved inside the device's identity, avoiding significant changes in the current state of the agent.
 	// TODO: Evaluate if we can use another field than "MAC" to store the container ID.
