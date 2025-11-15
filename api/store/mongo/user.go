@@ -68,7 +68,26 @@ func (s *Store) UserCreate(ctx context.Context, user *models.User) (string, erro
 	user.CreatedAt = time.Now()
 	user.LastLogin = time.Time{}
 
-	r, err := s.db.Collection("users").InsertOne(ctx, user)
+	// In Cloud environments, there is a flow for inserting a user with a forced ID value.
+	// Since the struct defines the ID type as string, inserting the struct directly
+	// would result in a type error in the database. We need to convert the struct to
+	// BSON and handle the potential string _id conversion to ObjectID.
+	bsonBytes, err := bson.Marshal(user)
+	if err != nil {
+		return "", FromMongoError(err)
+	}
+
+	doc := make(bson.M)
+	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
+		return "", FromMongoError(err)
+	}
+
+	if idStr, ok := doc["_id"].(string); ok && idStr != "" {
+		objID, _ := primitive.ObjectIDFromHex(idStr)
+		doc["_id"] = objID
+	}
+
+	r, err := s.db.Collection("users").InsertOne(ctx, doc)
 	if err != nil {
 		return "", FromMongoError(err)
 	}
