@@ -254,8 +254,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 	}
 
 	switch user.Status {
-	case models.UserStatusInvited:
-		return nil, 0, "", NewErrAuthUnathorized(nil)
 	case models.UserStatusNotConfirmed:
 		return nil, 0, "", NewErrUserNotConfirmed(nil)
 	default:

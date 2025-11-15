@@ -69,6 +69,14 @@ func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([
 			},
 		},
 		bson.M{
+			"$lookup": bson.M{
+				"from":         "user_invitations",
+				"localField":   "members.id",
+				"foreignField": "_id",
+				"as":           "invitationDetails",
+			},
+		},
+		bson.M{
 			"$addFields": bson.M{
 				"members": bson.M{
 					"$map": bson.M{
@@ -90,12 +98,30 @@ func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([
 											0,
 										},
 									},
+									"inviteDoc": bson.M{
+										"$arrayElemAt": bson.A{
+											bson.M{
+												"$filter": bson.M{
+													"input": "$invitationDetails",
+													"cond": bson.M{
+														"$eq": bson.A{"$$this._id", "$$member.id"},
+													},
+												},
+											},
+											0,
+										},
+									},
 								},
 								"in": bson.M{
 									"$mergeObjects": bson.A{
 										"$$member",
 										bson.M{
-											"email": "$$userDoc.email",
+											"email": bson.M{
+												"$ifNull": bson.A{
+													"$$userDoc.email",
+													"$$inviteDoc.email",
+												},
+											},
 										},
 									},
 								},
@@ -106,7 +132,7 @@ func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([
 			},
 		},
 		bson.M{
-			"$unset": "userDetails",
+			"$unset": bson.A{"userDetails", "invitationDetails"},
 		},
 	)
 
@@ -187,6 +213,14 @@ func (s *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceRe
 			},
 		},
 		{
+			"$lookup": bson.M{
+				"from":         "user_invitations",
+				"localField":   "members.id",
+				"foreignField": "_id",
+				"as":           "invitationDetails",
+			},
+		},
+		{
 			"$addFields": bson.M{
 				"members": bson.M{
 					"$map": bson.M{
@@ -208,12 +242,30 @@ func (s *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceRe
 											0,
 										},
 									},
+									"inviteDoc": bson.M{
+										"$arrayElemAt": bson.A{
+											bson.M{
+												"$filter": bson.M{
+													"input": "$invitationDetails",
+													"cond": bson.M{
+														"$eq": bson.A{"$$this._id", "$$member.id"},
+													},
+												},
+											},
+											0,
+										},
+									},
 								},
 								"in": bson.M{
 									"$mergeObjects": bson.A{
 										"$$member",
 										bson.M{
-											"email": "$$userDoc.email",
+											"email": bson.M{
+												"$ifNull": bson.A{
+													"$$userDoc.email",
+													"$$inviteDoc.email",
+												},
+											},
 										},
 									},
 								},
@@ -224,7 +276,7 @@ func (s *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceRe
 			},
 		},
 		{
-			"$unset": "userDetails",
+			"$unset": bson.A{"userDetails", "invitationDetails"},
 		},
 	}
 

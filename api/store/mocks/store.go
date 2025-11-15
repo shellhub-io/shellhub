@@ -1651,34 +1651,6 @@ func (_m *Store) UserCreate(ctx context.Context, user *models.User) (string, err
 	return r0, r1
 }
 
-// UserCreateInvited provides a mock function with given fields: ctx, email
-func (_m *Store) UserCreateInvited(ctx context.Context, email string) (string, error) {
-	ret := _m.Called(ctx, email)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserCreateInvited")
-	}
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
-		return rf(ctx, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = rf(ctx, email)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, email)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UserDelete provides a mock function with given fields: ctx, user
 func (_m *Store) UserDelete(ctx context.Context, user *models.User) error {
 	ret := _m.Called(ctx, user)
@@ -1720,6 +1692,34 @@ func (_m *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, 
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserInvitationsUpsert provides a mock function with given fields: ctx, email
+func (_m *Store) UserInvitationsUpsert(ctx context.Context, email string) (string, error) {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserInvitationsUpsert")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, email)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}
