@@ -548,7 +548,7 @@ func TestAddNamespaceMember(t *testing.T) {
 					Return("true").
 					Once()
 				storeMock.
-					On("UserCreateInvited", ctx, "john.doe@test.com").
+					On("UserInvitationsUpsert", ctx, "john.doe@test.com").
 					Return("000000000000000000000001", nil).
 					Once()
 				storeMock.

@@ -10,10 +10,6 @@ import (
 type UserStatus string
 
 const (
-	// UserStatusInvited applies to cloud-only instances. This status is assigned to a user who has been invited to a
-	// namespace but has not yet completed the registration process.
-	UserStatusInvited UserStatus = "invited"
-
 	// UserStatusNotConfirmed applies to cloud-only instances. This status is assigned to a user who has registered
 	// but has not yet confirmed their email address.
 	UserStatusNotConfirmed UserStatus = "not-confirmed"
