@@ -21,13 +21,6 @@ type UserStore interface {
 	// It returns the inserted ID or an error, if any.
 	UserCreate(ctx context.Context, user *models.User) (insertedID string, err error)
 
-	// UserCreateInvited creates a new user with the status `UserStatusInvited`. This kind of user  requires
-	// only an email, which must be unique. These users are not fully registered and must complete their
-	// registration process before they can proceed to access other parts of the application.
-	//
-	// It returns the inserted ID or an error, if any.
-	UserCreateInvited(ctx context.Context, email string) (insertedID string, err error)
-
 	// UserResolve fetches a device using a specific resolver within a given tenant ID.
 	//
 	// It returns the resolved user if found and an error, if any.

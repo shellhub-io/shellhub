@@ -6,6 +6,7 @@ type Store interface {
 	DeviceStore
 	SessionStore
 	UserStore
+	UserInvitationsStore
 	NamespaceStore
 	MemberStore
 	PublicKeyStore

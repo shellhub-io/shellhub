@@ -79,7 +79,7 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		}
 
 		passiveUser = &models.User{}
-		passiveUser.ID, err = s.store.UserCreateInvited(ctx, strings.ToLower(req.MemberEmail))
+		passiveUser.ID, err = s.store.UserInvitationsUpsert(ctx, strings.ToLower(req.MemberEmail))
 		if err != nil {
 			return nil, err
 		}
