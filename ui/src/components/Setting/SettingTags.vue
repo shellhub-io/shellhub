@@ -3,7 +3,11 @@
     v-model="createDialog"
     @update="refreshTagList()"
   />
-  <v-container fluid>
+  <v-container
+    fluid
+    class="mx-0 px-0"
+    max-width="60%"
+  >
     <v-card
       variant="flat"
       class="bg-transparent"
@@ -50,7 +54,10 @@
           </v-btn>
         </v-col>
       </v-row>
-      <TagList ref="tagListRef" />
+      <TagList
+        ref="tagListRef"
+        class="mx-4"
+      />
     </v-card>
   </v-container>
 </template>
