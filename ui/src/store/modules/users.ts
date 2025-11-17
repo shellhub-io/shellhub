@@ -14,8 +14,8 @@ const useUsersStore = defineStore("users", () => {
     const { data: user } = await usersApi.signUp(data) as unknown as { data: { token?: string } };
 
     if (!user.token) return false;
-
     useAuthStore().persistAuth(user);
+    signUpToken.value = user.token;
     return user.token;
   };
 
