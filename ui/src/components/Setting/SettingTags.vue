@@ -6,17 +6,23 @@
   <v-container
     fluid
     class="mx-0 px-0"
-    max-width="60%"
+    max-width="60rem"
   >
     <v-card
       variant="flat"
       class="bg-transparent"
       data-test="tags-settings-card"
     >
-      <v-row cols="12">
-        <v-col cols="3">
-          <v-card-item class="pa-0 ma-0 mb-2">
-            <v-list-item data-test="profile-header">
+      <v-card-item>
+        <v-row cols="12">
+          <v-col
+            cols="3"
+            class="pt-0"
+          >
+            <v-list-item
+              class="pa-0 ma-0 mb-2"
+              data-test="profile-header"
+            >
               <template #title>
                 <h1>Tags</h1>
               </template>
@@ -24,36 +30,36 @@
                 <span data-test="profile-subtitle">Manage your device and connector tags</span>
               </template>
             </v-list-item>
-          </v-card-item>
-        </v-col>
-        <v-col cols="6">
-          <v-text-field
-            v-model.trim="filter"
-            label="Search by Tag Name"
-            variant="outlined"
-            color="primary"
-            single-line
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-            density="compact"
-            data-test="search-text"
-            @keyup="searchTags"
-          />
-        </v-col>
-        <v-col
-          cols="3"
-          class="d-flex justify-end"
-        >
-          <v-btn
-            color="primary"
-            variant="elevated"
-            data-test="tag-create-button"
-            @click="openCreate"
+          </v-col>
+          <v-col cols="6">
+            <v-text-field
+              v-model.trim="filter"
+              label="Search by Tag Name"
+              variant="outlined"
+              color="primary"
+              single-line
+              hide-details
+              prepend-inner-icon="mdi-magnify"
+              density="compact"
+              data-test="search-text"
+              @keyup="searchTags"
+            />
+          </v-col>
+          <v-col
+            cols="3"
+            class="d-flex justify-end"
           >
-            Create Tag
-          </v-btn>
-        </v-col>
-      </v-row>
+            <v-btn
+              color="primary"
+              variant="elevated"
+              data-test="tag-create-button"
+              @click="openCreate"
+            >
+              Create Tag
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-item>
       <TagList
         ref="tagListRef"
         class="mx-4"

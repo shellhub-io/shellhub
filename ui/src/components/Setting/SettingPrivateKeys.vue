@@ -27,8 +27,7 @@
           <template #append>
             <v-btn
               color="primary"
-              variant="text"
-              class="bg-secondary border"
+              variant="elevated"
               data-test="card-button"
               @click="privateKeyAdd = true"
             >

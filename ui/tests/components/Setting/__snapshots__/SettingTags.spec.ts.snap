@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Setting Tags > Renders the component 1`] = `
-"<div class="v-container v-container--fluid v-locale--is-ltr mx-0 px-0" style="max-width: 60%;">
+"<div class="v-container v-container--fluid v-locale--is-ltr mx-0 px-0" style="max-width: 60rem;">
   <div class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="tags-settings-card">
     <!---->
     <div class="v-card__loader">
@@ -20,14 +20,14 @@ exports[`Setting Tags > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div class="v-row" cols="12">
-      <div class="v-col v-col-3">
-        <div class="v-card-item pa-0 ma-0 mb-2">
-          <!---->
-          <div class="v-card-item__content">
-            <!---->
-            <!---->
-            <div class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text" data-test="profile-header">
+    <div class="v-card-item">
+      <!---->
+      <div class="v-card-item__content">
+        <!---->
+        <!---->
+        <div class="v-row" cols="12">
+          <div class="v-col v-col-3 pt-0">
+            <div class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0 ma-0 mb-2" data-test="profile-header">
               <!----><span class="v-list-item__underlay"></span>
               <!---->
               <div class="v-list-item__content" data-no-activator="">
@@ -40,58 +40,58 @@ exports[`Setting Tags > Renders the component 1`] = `
               <!---->
             </div>
           </div>
-          <!---->
-        </div>
-      </div>
-      <div class="v-col v-col-6">
-        <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field" data-test="search-text">
-          <!---->
-          <div class="v-input__control">
-            <div class="v-field v-field--center-affix v-field--prepended v-field--single-line v-field--variant-outlined v-theme--light v-locale--is-ltr">
-              <div class="v-field__overlay"></div>
-              <div class="v-field__loader">
-                <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-                  <!---->
-                  <div class="v-progress-linear__background bg-primary"></div>
-                  <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
-                  <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                    <div class="v-progress-linear__indeterminate">
-                      <div class="v-progress-linear__indeterminate long bg-primary"></div>
-                      <div class="v-progress-linear__indeterminate short bg-primary"></div>
+          <div class="v-col v-col-6">
+            <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field" data-test="search-text">
+              <!---->
+              <div class="v-input__control">
+                <div class="v-field v-field--center-affix v-field--prepended v-field--single-line v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                  <div class="v-field__overlay"></div>
+                  <div class="v-field__loader">
+                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                      <!---->
+                      <div class="v-progress-linear__background bg-primary"></div>
+                      <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
+                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                        <div class="v-progress-linear__indeterminate">
+                          <div class="v-progress-linear__indeterminate long bg-primary"></div>
+                          <div class="v-progress-linear__indeterminate short bg-primary"></div>
+                        </div>
+                      </transition-stub>
+                      <!---->
                     </div>
-                  </transition-stub>
+                  </div>
+                  <div class="v-field__prepend-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
+                    <!---->
+                  </div>
+                  <div class="v-field__field" data-no-activator="">
+                    <!----><label class="v-label v-field-label" for="input-v-1">
+                      <!---->Search by Tag Name
+                    </label>
+                    <!----><input size="1" type="text" id="input-v-1" class="v-field__input" value="">
+                    <!---->
+                  </div>
                   <!---->
+                  <!---->
+                  <div class="v-field__outline">
+                    <div class="v-field__outline__start"></div>
+                    <!---->
+                    <div class="v-field__outline__end"></div>
+                    <!---->
+                  </div>
                 </div>
               </div>
-              <div class="v-field__prepend-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-                <!---->
-              </div>
-              <div class="v-field__field" data-no-activator="">
-                <!----><label class="v-label v-field-label" for="input-v-1">
-                  <!---->Search by Tag Name
-                </label>
-                <!----><input size="1" type="text" id="input-v-1" class="v-field__input" value="">
-                <!---->
-              </div>
               <!---->
               <!---->
-              <div class="v-field__outline">
-                <div class="v-field__outline__start"></div>
-                <!---->
-                <div class="v-field__outline__end"></div>
-                <!---->
-              </div>
             </div>
           </div>
-          <!---->
-          <!---->
+          <div class="v-col v-col-3 d-flex justify-end"><button type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="tag-create-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator=""> Create Tag </span>
+              <!---->
+              <!---->
+            </button></div>
         </div>
       </div>
-      <div class="v-col v-col-3 d-flex justify-end"><button type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="tag-create-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-          <!----><span class="v-btn__content" data-no-activator=""> Create Tag </span>
-          <!---->
-          <!---->
-        </button></div>
+      <!---->
     </div>
     <div data-test="tag-list" class="mx-4">
       <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
