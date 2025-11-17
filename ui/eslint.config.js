@@ -27,7 +27,6 @@ export default defineConfig([
       parser: vueParser,
       parserOptions: {
         parser: typeScriptParser,
-        project: "./tsconfig.json",
         extraFileExtensions: [".vue"],
         sourceType: "module",
         ecmaVersion: 2020,
