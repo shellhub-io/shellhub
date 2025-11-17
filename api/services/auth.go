@@ -455,6 +455,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		Role:          role,
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
+		Admin:         user.Admin,
 	}, nil
 }
 
