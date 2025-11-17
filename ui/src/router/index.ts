@@ -8,6 +8,7 @@ import useLayoutStore, { Layout } from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
 import useUsersStore from "@/store/modules/users";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
+import { computed } from "vue";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const namespacesStore = useNamespacesStore();
@@ -18,7 +19,7 @@ export const handleAcceptInvite = async (to: RouteLocationNormalized, from: Rout
       sig: (to.query.sig || from.query.sig) as string,
     });
     const { userStatus } = namespacesStore;
-    const { isLoggedIn } = useAuthStore();
+    const isLoggedIn = computed(() => useAuthStore().isLoggedIn);
 
     switch (userStatus) {
       case "invited":
@@ -34,7 +35,7 @@ export const handleAcceptInvite = async (to: RouteLocationNormalized, from: Rout
         });
         return;
       case "confirmed":
-        if (!isLoggedIn) {
+        if (!isLoggedIn.value) {
           next({
             path: "/login",
             query: { redirect: "/accept-invite", ...to.query },
@@ -554,10 +555,10 @@ export const router = createRouter({
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     await useUsersStore().fetchSystemInfo();
-    const { isLoggedIn } = useAuthStore();
+    const isLoggedIn = computed(() => useAuthStore().isLoggedIn);
     const requiresAuth = to.meta.requiresAuth ?? true;
 
-    if (!isLoggedIn && requiresAuth) return next({
+    if (!isLoggedIn.value && requiresAuth) return next({
       name: "Login",
       query: { redirect: to.fullPath },
     });

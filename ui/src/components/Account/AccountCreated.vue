@@ -109,9 +109,9 @@ const handleAction = async () => {
   else await redirect();
 };
 
-watch(showMessage, (newValue) => {
+watch(showMessage, async (newValue) => {
   if (newValue && props.messageKind === "sig") {
-    authStore.token = token.value as string;
+    await authStore.loginWithToken(token.value || "");
     setTimeout(() => { void redirect(); }, 5000);
   }
 });
