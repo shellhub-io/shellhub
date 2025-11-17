@@ -39,12 +39,14 @@ describe("MfaDisable", () => {
 
   it("Renders the component (Recovery Code window)", async () => {
     wrapper.vm.el = 2;
+    await nextTick();
     await flushPromises();
     expect(dialog.html()).toMatchSnapshot();
   });
 
   it("Renders the component (Email Sent window)", async () => {
     wrapper.vm.el = 3;
+    await nextTick();
     await flushPromises();
     expect(dialog.html()).toMatchSnapshot();
   });
@@ -71,6 +73,7 @@ describe("MfaDisable", () => {
 
   it("Disables MFA Authentication using Recovery Code", async () => {
     wrapper.vm.el = 2;
+    await nextTick();
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
     mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
@@ -82,6 +85,7 @@ describe("MfaDisable", () => {
 
   it("Disables MFA Authentication using Recovery Code (Fail)", async () => {
     wrapper.vm.el = 2;
+    await nextTick();
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "disableMfa");
     mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(403);
@@ -95,6 +99,7 @@ describe("MfaDisable", () => {
   it("Sends the disable codes on the users mail", async () => {
     localStorage.setItem("email", "test@test.com");
     wrapper.vm.el = 2;
+    await nextTick();
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "requestMfaReset");
     mockMfaApi.onPost("http://localhost:3000/api/user/mfa/reset").reply(200);
@@ -106,6 +111,7 @@ describe("MfaDisable", () => {
   it("Handles error when sending recovery email fails", async () => {
     localStorage.setItem("email", "test@test.com");
     wrapper.vm.el = 2;
+    await nextTick();
     await flushPromises();
     const mfaSpy = vi.spyOn(authStore, "requestMfaReset");
     mockMfaApi.onPost("http://localhost:3000/api/user/mfa/reset").reply(403);
