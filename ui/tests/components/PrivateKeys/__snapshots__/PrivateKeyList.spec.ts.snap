@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Private Key List > Renders the component 1`] = `
-"<div class="v-table v-theme--light v-table--density-default bg-background border rounded">
+"<div class="v-table v-theme--light v-table--density-default bg-background border rounded mx-4">
   <!---->
   <div class="v-table__wrapper">
     <table>
