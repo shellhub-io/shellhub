@@ -1,4 +1,19 @@
 <template>
+  <v-tooltip
+    location="bottom"
+    :disabled="!showTooltip"
+    text="Remove"
+  >
+    <template #activator="{ props: tooltipProps }">
+      <span
+        v-bind="tooltipProps"
+        role="button"
+      >
+        <slot :open-dialog="openDialog" />
+      </span>
+    </template>
+  </v-tooltip>
+
   <MessageDialog
     v-model="showDialog"
     title="Are you sure?"
@@ -15,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
 import useSnackbar from "@/helpers/snackbar";
@@ -24,13 +40,16 @@ import handleError from "@/utils/handleError";
 const props = defineProps<{
   id: string;
   redirect?: boolean;
+  showTooltip?: boolean;
 }>();
 
 const emit = defineEmits(["update"]);
-const showDialog = defineModel<boolean>({ required: true });
+const showDialog = ref(false);
 const router = useRouter();
 const snackbar = useSnackbar();
 const usersStore = useUsersStore();
+
+const openDialog = () => { showDialog.value = true; };
 
 const remove = async () => {
   try {
@@ -46,5 +65,5 @@ const remove = async () => {
   }
 };
 
-defineExpose({ showDialog });
+defineExpose({ showDialog, openDialog, remove });
 </script>

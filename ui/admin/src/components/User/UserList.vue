@@ -74,23 +74,15 @@
 
           <UserDelete
             :id="item.id"
-            v-model="deleteDialog"
-          />
-          <v-tooltip
-            bottom
-            anchor="bottom"
+            v-slot="{ openDialog }"
+            :show-tooltip="true"
           >
-            <template #activator="{ props }">
-              <v-icon
-                tag="a"
-                dark
-                v-bind="props"
-                icon="mdi-delete"
-                @click="deleteDialog = true"
-              />
-            </template>
-            <span>Remove</span>
-          </v-tooltip>
+            <v-icon
+              icon="mdi-delete"
+              tag="button"
+              @click="openDialog"
+            />
+          </UserDelete>
         </td>
       </tr>
     </template>
@@ -120,7 +112,6 @@ const itemsPerPage = ref(10);
 const loading = ref(false);
 const users = computed(() => usersStore.users as IAdminUser[]);
 const userCount = computed(() => usersStore.usersCount);
-const deleteDialog = ref(false);
 const headers = [
   {
     text: "Name",
