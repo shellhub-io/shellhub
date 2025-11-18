@@ -46,7 +46,10 @@
             <span>Info</span>
           </v-tooltip>
 
-          <UserFormDialog :user="item" />
+          <UserFormDialog
+            :key="item.id"
+            :user="item"
+          />
 
           <v-tooltip
             bottom
