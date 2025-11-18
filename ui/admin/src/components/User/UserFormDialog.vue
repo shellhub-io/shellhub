@@ -262,6 +262,11 @@ const handleErrors = (error: AxiosError) => {
   });
 };
 
+const close = () => {
+  showDialog.value = false;
+  resetFormFields();
+};
+
 const submitUser = async (
   isCreating: boolean,
   userData: IAdminUserFormData,
@@ -277,7 +282,7 @@ const submitUser = async (
     );
 
     await usersStore.fetchUsersList();
-    showDialog.value = false;
+    close();
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       handleErrors(error as AxiosError);
@@ -321,11 +326,6 @@ const submitForm = handleSubmit(async () => {
     snackbar.showError("Please fill in all required fields.");
   }
 });
-
-const close = () => {
-  showDialog.value = false;
-  resetFormFields();
-};
 
 defineExpose({
   showDialog,
