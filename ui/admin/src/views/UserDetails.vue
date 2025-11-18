@@ -3,7 +3,7 @@
     <h1>User Details</h1>
   </div>
   <v-card
-    v-if="user && userId"
+    v-if="user.id"
     class="mt-2 border rounded bg-background"
     elevation="0"
   >
@@ -57,15 +57,23 @@
             </div>
           </v-list-item>
 
-          <v-list-item
-            data-test="user-delete-btn"
-            @click="deleteDialog = true"
+          <UserDelete
+            :id="userId"
+            v-slot="{ openDialog }"
+            redirect
           >
-            <div class="d-flex align-center">
-              <v-icon class="mr-2">mdi-delete</v-icon>
-              <v-list-item-title>Delete this user</v-list-item-title>
+            <div>
+              <v-list-item
+                data-test="user-delete-btn"
+                @click="openDialog"
+              >
+                <div class="d-flex align-center">
+                  <v-icon class="mr-2">mdi-delete</v-icon>
+                  <v-list-item-title>Delete this user</v-list-item-title>
+                </div>
+              </v-list-item>
             </div>
-          </v-list-item>
+          </UserDelete>
 
           <div class="px-2 py-1" />
         </v-list>
@@ -229,12 +237,6 @@
   >
     <p class="text-center">Something is wrong, try again!</p>
   </v-card>
-
-  <UserDelete
-    :id="userId"
-    v-model="deleteDialog"
-    redirect
-  />
 </template>
 
 <script setup lang="ts">
@@ -255,7 +257,6 @@ const authStore = useAuthStore();
 
 const userId = computed(() => route.params.id as string);
 const user = ref({} as IAdminUser);
-const deleteDialog = ref(false);
 
 const lastLoginText = computed(() => {
   const value = user.value?.last_login;
