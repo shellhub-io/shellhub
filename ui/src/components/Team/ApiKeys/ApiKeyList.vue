@@ -110,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import axios, { AxiosError } from "axios";
 import moment from "moment";
 import DataTable from "@/components/Tables/DataTable.vue";
@@ -217,10 +217,6 @@ const sortByItem = async (field: string) => {
   sortOrder.value = toggleSortOrder();
   await fetchApiKeys();
 };
-
-onMounted(async () => {
-  await fetchApiKeys();
-});
 
 defineExpose({ refresh, hasKeyExpired, formatDate, itemsPerPage });
 </script>

@@ -10,6 +10,7 @@
           <v-btn
             :disabled="!canGenerateApiKey"
             color="primary"
+            variant="elevated"
             data-test="api-key-generate-main-btn"
             @click="showDialog = true"
           >
@@ -52,6 +53,7 @@
     <ApiKeySuccess
       v-model="showSuccessDialog"
       :api-key="generatedApiKey"
+      @update:model-value="handleSuccessDialogUpdate"
     />
   </div>
 </template>
@@ -72,6 +74,7 @@ import { IApiKeyCreate } from "@/interfaces/IApiKey";
 const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 const apiKeyStore = useApiKeysStore();
+
 const showDialog = ref(false);
 const showSuccessDialog = ref(false);
 const errorMessage = ref("");
@@ -79,6 +82,8 @@ const generatedApiKey = ref("");
 const isFormValid = ref(false);
 const formRef = ref<InstanceType<typeof ApiKeyForm>>();
 const canGenerateApiKey = hasPermission("apiKey:create");
+
+const wasSuccessful = ref(false);
 
 const handleGenerateKeyError = (error: unknown) => {
   snackbar.showError("Failed to generate API Key.");
@@ -111,8 +116,7 @@ const handleSubmit = () => {
 const generateKey = async (formData: { name: string; expires_in?: number; role: BasicRole }) => {
   try {
     generatedApiKey.value = await apiKeyStore.generateApiKey(formData as IApiKeyCreate);
-    emit("update");
-
+    wasSuccessful.value = true;
     showDialog.value = false;
     showSuccessDialog.value = true;
   } catch (error: unknown) {
@@ -120,12 +124,24 @@ const generateKey = async (formData: { name: string; expires_in?: number; role: 
   }
 };
 
+const handleSuccessDialogUpdate = (value: boolean) => {
+  showSuccessDialog.value = value;
+
+  if (!value && wasSuccessful.value) {
+    emit("update");
+    wasSuccessful.value = false;
+    generatedApiKey.value = "";
+  }
+};
+
 const close = () => {
   showDialog.value = false;
   showSuccessDialog.value = false;
-  generatedApiKey.value = "";
   errorMessage.value = "";
+  wasSuccessful.value = false;
+  generatedApiKey.value = "";
   formRef.value?.reset();
 };
+
 defineExpose({ generateKey, showDialog, errorMessage, close });
 </script>

@@ -47,18 +47,7 @@ exports[`Api Key List > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 4px; --v-progress-linear-height: 4px;" role="progressbar" aria-hidden="false" aria-valuemin="0" aria-valuemax="100" alt="Data table loading" data-test="loading">
-      <!---->
-      <div class="v-progress-linear__background"></div>
-      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-        <div class="v-progress-linear__indeterminate">
-          <div class="v-progress-linear__indeterminate long"></div>
-          <div class="v-progress-linear__indeterminate short"></div>
-        </div>
-      </transition-stub>
-      <!---->
-    </div>
+    <!--v-if-->
     <div class="d-flex w-100 justify-end align-center" data-test="pager"><span class="text-subtitle-2 mr-4" data-test="ipp-label">Items per page:</span>
       <div>
         <div class="v-input v-input--horizontal v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4" data-test="ipp-combo">
