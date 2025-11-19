@@ -139,7 +139,7 @@ const {
 const { mdAndDown, thresholds } = useDisplay();
 
 const showAddDialog = ref(false);
-const showAddNamespaceInstructions = computed(() => namespacesLoaded.value && !hasNamespaces.value);
+const showAddNamespaceInstructions = computed(() => namespacesLoaded.value && !hasNamespaces.value && !props.isAdminContext);
 const userId = computed(() => authStore.id || localStorage.getItem("id") || "");
 
 const showAdminButton = computed(() => {
