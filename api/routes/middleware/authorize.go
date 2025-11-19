@@ -15,7 +15,10 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 
 		id := gateway.IDFromContext(ctx)
 		tenant := gateway.TenantFromContext(ctx)
-		if id != nil && tenant == nil {
+		gCtx := c.(*gateway.Context)
+
+		// Allow admins to access resources without tenant scope (e.g., from /admin/api endpoints)
+		if id != nil && tenant == nil && !gCtx.IsAdmin() {
 			return c.NoContent(http.StatusForbidden)
 		}
 
