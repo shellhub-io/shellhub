@@ -127,7 +127,7 @@
       </template>
 
       <v-col class="d-flex align-end justify-center">
-        <QuickConnection />
+        <QuickConnection :disabled="!hasNamespaces" />
       </v-col>
     </v-list>
   </v-navigation-drawer>
