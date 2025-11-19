@@ -26,24 +26,6 @@
       </div>
     </v-toolbar>
 
-    <div
-      v-if="!hasNamespaces"
-      class="d-flex justify-center"
-    >
-      <v-btn
-        color="primary"
-        data-test="save-btn"
-        @click="showNamespaceAdd = true"
-      >
-        Add Namespace
-      </v-btn>
-      <NamespaceAdd
-        v-model="showNamespaceAdd"
-        enable-switch-in
-        data-test="namespace-add-component"
-      />
-    </div>
-
     <v-list
       density="compact"
       class="bg-v-theme-surface"
@@ -179,7 +161,6 @@ import { envVariables } from "../envVariables";
 import UserWarning from "../components/User/UserWarning.vue";
 import AppBar from "../components/AppBar/AppBar.vue";
 import QuickConnection from "../components/QuickConnection/QuickConnection.vue";
-import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import useLayoutStore from "@/store/modules/layout";
 import useNamespacesStore from "@/store/modules/namespaces";
@@ -206,7 +187,6 @@ const namespacesStore = useNamespacesStore();
 const spinnerStore = useSpinnerStore();
 const { getPrivateKeyList } = usePrivateKeysStore();
 const currentRoute = computed(() => router.currentRoute);
-const showNamespaceAdd = ref(false);
 const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
 const theme = computed(() => layoutStore.theme);
 
