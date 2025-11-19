@@ -92,6 +92,25 @@ describe("Home", () => {
       expect(wrapper.html()).toMatchSnapshot();
     });
 
+    it("renders the no namespace state correctly", async () => {
+      wrapper.unmount();
+      namespacesStore.$patch({
+        namespaceList: [],
+        currentNamespace: {},
+      });
+
+      wrapper = mount(Home, { global: { plugins: [vuetify, router, SnackbarPlugin] } });
+
+      await flushPromises();
+
+      expect(wrapper.exists()).toBe(true);
+      expect(wrapper.text()).toContain("No Active Namespace");
+      expect(wrapper.text()).toContain(
+        "A namespace is a logical grouping that isolates your devices, sessions, and configurations from others.",
+      );
+      expect(wrapper.text()).toContain("You need to create or join a namespace");
+    });
+
     it("displays namespace information", async () => {
       await flushPromises();
 
@@ -179,7 +198,7 @@ describe("Home", () => {
 
       await flushPromises();
 
-      expect(wrapper.vm.hasStatus).toBe(true);
+      expect(wrapper.vm.hasError).toBe(true);
       expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
       expect(wrapper.find('[data-test="home-failed"]').text()).toContain(
         "Something is wrong, try again!",
@@ -199,7 +218,7 @@ describe("Home", () => {
 
       await flushPromises();
 
-      expect(wrapper.vm.hasStatus).toBe(true);
+      expect(wrapper.vm.hasError).toBe(true);
       expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
     });
 
@@ -216,14 +235,14 @@ describe("Home", () => {
 
       await flushPromises();
 
-      expect(wrapper.vm.hasStatus).toBe(true);
+      expect(wrapper.vm.hasError).toBe(true);
       expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
     });
 
     it("can manually toggle error state", async () => {
       expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(false);
 
-      wrapper.vm.hasStatus = true;
+      wrapper.vm.hasError = true;
       await nextTick();
 
       expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);

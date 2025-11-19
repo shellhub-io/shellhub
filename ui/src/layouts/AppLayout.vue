@@ -200,8 +200,7 @@ const hasSpinner = computed({
   set(newStatus) { spinnerStore.status = newStatus; },
 });
 
-const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings";
-
+const disableItem = (item: string) => !hasNamespaces.value && item !== "Settings" && item !== "Home";
 const isItemHidden = (meta?: RouteMeta) => {
   if (!meta?.isHidden) return false;
   return meta.isHidden();
