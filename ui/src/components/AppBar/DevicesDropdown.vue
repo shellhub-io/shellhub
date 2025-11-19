@@ -1,5 +1,6 @@
 <template>
   <v-badge
+    v-if="hasNamespaces"
     :model-value="pendingDevicesCount > 0"
     :content="pendingDevicesCount"
     offset-y="-5"
@@ -346,6 +347,7 @@ const stats = computed(() => statsStore.stats);
 const offlineDevices = computed(
   () => stats.value.registered_devices - stats.value.online_devices,
 );
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
 const toggleDrawer = () => {
   isDrawerOpen.value = !isDrawerOpen.value;
 };
@@ -392,7 +394,7 @@ const fetchRecentDevices = async () => {
 };
 
 onBeforeMount(async () => {
-  if (namespacesStore.namespaceList.length === 0) return;
+  if (!hasNamespaces.value) return;
   await fetchStats();
   await fetchPendingDevices();
   await fetchRecentDevices();
