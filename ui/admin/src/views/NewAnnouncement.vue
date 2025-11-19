@@ -88,7 +88,7 @@ const tinyMceKeyIsEmpty = computed(() => tinyMceKey.value === "");
 const announcement = ref("");
 const announcementError = ref(false);
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-const { turndown } = new TurndownService() as { turndown: (input: string) => string };
+const turndownService = new TurndownService() as { turndown: (input: string) => string };
 
 watch(announcement, (val) => {
   if (val) announcementError.value = false;
@@ -107,7 +107,7 @@ const postAnnouncement = async () => {
   }
 
   try {
-    const contentInHtml = turndown(announcement.value);
+    const contentInHtml = turndownService.turndown(announcement.value);
     await announcementStore.createAnnouncement({
       title: title.value,
       content: contentInHtml,
