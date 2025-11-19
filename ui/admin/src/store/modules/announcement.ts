@@ -25,7 +25,7 @@ const useAnnouncementStore = defineStore("adminAnnouncement", () => {
 
   const fetchAnnouncementList = async (data: { page: number; perPage: number; orderBy: "asc" | "desc"; }) => {
     const res = await announcementApi.fetchAnnouncementList(data.page, data.perPage, data.orderBy);
-    announcements.value = res.data as IAdminAnnouncementShort[];
+    announcements.value = res.data as IAdminAnnouncementShort[] ?? [];
     announcementCount.value = parseInt(res.headers["x-total-count"] as string, 10);
   };
 
