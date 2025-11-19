@@ -102,7 +102,7 @@ const setShowDeviceChooser = async () => {
 };
 
 const checkForNewAnnouncements = async () => {
-  if (!envVariables.announcementsEnable) return;
+  if (!envVariables.isAnnouncementsEnabled) return;
 
   try {
     const announcements = await announcementStore.fetchAnnouncements();
