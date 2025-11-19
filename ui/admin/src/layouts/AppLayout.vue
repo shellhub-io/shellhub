@@ -187,7 +187,7 @@ import Snackbar from "@/components/Snackbar/Snackbar.vue";
 import Namespace from "@/components/Namespace/Namespace.vue";
 import Logo from "@/assets/logo-inverted.png";
 import { createNewAdminClient } from "@/api/http";
-import { envVariables } from "../envVariables";
+import { envVariables } from "@/envVariables";
 
 type MenuItem = {
   title: string;
@@ -292,7 +292,7 @@ const items = reactive([
     icon: "mdi-bullhorn",
     title: "Announcements",
     path: "/announcements",
-    hidden: !envVariables.announcementsEnable,
+    hidden: !envVariables.isAnnouncementsEnabled,
   },
   {
     icon: "mdi-cog",

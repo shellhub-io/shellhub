@@ -74,7 +74,7 @@ import * as yup from "yup";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import { IAdminAnnouncementShort } from "@admin/interfaces/IAnnouncement";
 import useSnackbar from "@/helpers/snackbar";
-import { envVariables } from "../../envVariables";
+import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 

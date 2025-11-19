@@ -72,7 +72,7 @@ import * as yup from "yup";
 import { useRouter } from "vue-router";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
-import { envVariables } from "../envVariables";
+import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
 
 const router = useRouter();
