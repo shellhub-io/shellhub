@@ -4,29 +4,27 @@
       color="primary"
       variant="flat"
       tabindex="0"
-      aria-label="Dialog Quick Connection"
       data-test="quick-connection-open-btn"
       prepend-icon="mdi-console"
       block
+      text="Quick Connect"
+      :disabled
       @click="showDialog = true"
-    >
-      Quick Connect
-    </v-btn>
+    />
 
-    <div>
-      <p
-        class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1"
-        data-test="quick-connect-instructions"
+    <p
+      v-if="!disabled"
+      class="text-caption text-md font-weight-bold text-grey-darken-1 ma-1"
+      data-test="quick-connect-instructions"
+    >
+      Press <v-chip
+        density="compact"
+        size="small"
+        label
       >
-        Press <v-chip
-          density="compact"
-          size="small"
-          label
-        >
-          Ctrl+K
-        </v-chip> to Quick Connect!
-      </p>
-    </div>
+        Ctrl+K
+      </v-chip> to Quick Connect!
+    </p>
 
     <WindowDialog
       v-model="showDialog"
@@ -130,6 +128,8 @@ import { useMagicKeys } from "@vueuse/core";
 import QuickConnectionList from "./QuickConnectionList.vue";
 import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
 
+const props = defineProps<{ disabled: boolean }>();
+
 const showDialog = ref(false);
 const filter = ref("");
 const listRef = ref<InstanceType<typeof QuickConnectionList> & { rootEl?: HTMLElement }>();
@@ -146,6 +146,7 @@ const normalizeLabel = (label: string) => label.toLowerCase().replace(/\s+/g, "-
 useMagicKeys({
   passive: false,
   onEventFired(event) {
+    if (props.disabled) return;
     if (event.ctrlKey && event.key.toLowerCase() === "k" && event.type === "keydown") {
       event.preventDefault();
       showDialog.value = !showDialog.value;
@@ -155,6 +156,8 @@ useMagicKeys({
     }
   },
 });
+
+defineExpose({ showDialog });
 </script>
 
 <style scoped lang="scss">

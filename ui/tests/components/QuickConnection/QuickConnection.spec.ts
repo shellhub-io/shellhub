@@ -69,9 +69,8 @@ describe("Quick Connection", () => {
       .reply(200, devices);
 
     wrapper = mount(QuickConnection, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+      global: { plugins: [vuetify, router, SnackbarPlugin] },
+      props: { disabled: false },
     });
   });
 
@@ -108,6 +107,20 @@ describe("Quick Connection", () => {
 
     dispatchEvent(event);
 
-    expect(wrapper.find('[data-test="quick-connection-open-btn"]').exists()).toBe(true);
+    expect(wrapper.vm.showDialog).toBe(true);
+  });
+
+  it("Disables the button when disabled prop is true", async () => {
+    await wrapper.setProps({ disabled: true });
+    expect(wrapper.find('[data-test="quick-connection-open-btn"]').attributes("disabled")).toBeDefined();
+  });
+
+  it("Ignores Ctrl + K keydown when disabled prop is true", async () => {
+    await wrapper.setProps({ disabled: true });
+    const event = new KeyboardEvent("keydown", { ctrlKey: true, key: "k" });
+
+    dispatchEvent(event);
+
+    expect(wrapper.vm.showDialog).toBe(false);
   });
 });
