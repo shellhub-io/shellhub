@@ -48,22 +48,7 @@ exports[`Setting Private Keys > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <div class="v-table v-theme--light v-table--density-default bg-background border rounded mx-4" data-test="private-key-list">
-      <!---->
-      <div class="v-table__wrapper">
-        <table>
-          <thead class="bg-v-theme-background" data-test="privateKey-thead">
-            <tr>
-              <th class="text-center"><span>Name</span></th>
-              <th class="text-center"><span>Fingerprint</span></th>
-              <th class="text-center"><span>Actions</span></th>
-            </tr>
-          </thead>
-          <div sm="12" class="text-start mt-2 mb-3" data-test="no-private-key-warning"><span class="ml-4">No data available</span></div>
-        </table>
-      </div>
-      <!---->
-    </div>
+    <div data-test="private-key-list"></div>
     <!---->
     <!----><span class="v-card__underlay"></span>
   </div>

@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import TeamApiKeys from "@/views/TeamApiKeys.vue";
@@ -31,10 +31,11 @@ describe("Team Api Keys", () => {
   ];
 
   beforeEach(() => {
-    mockApiKeysApi.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(
-      200,
-      { data: mockApiKeys, headers: { "x-total-count": "1" } },
-    );
+    mockApiKeysApi.reset();
+
+    mockApiKeysApi
+      .onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10")
+      .reply(200, mockApiKeys, { "x-total-count": "1" });
 
     apiKeysStore.$patch({
       apiKeys: mockApiKeys,
@@ -50,6 +51,7 @@ describe("Team Api Keys", () => {
 
   afterEach(() => {
     wrapper.unmount();
+    mockApiKeysApi.reset();
   });
 
   it("Is a Vue instance", () => {
@@ -60,7 +62,8 @@ describe("Team Api Keys", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Renders the template with data", () => {
+  it("Renders the template with data", async () => {
+    await flushPromises();
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="api-key-generate"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="api-key-list"]').exists()).toBe(true);
