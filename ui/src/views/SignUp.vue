@@ -63,6 +63,7 @@
           data-test="password-text"
           :type="showPassword ? 'text' : 'password'"
           @click:append-inner="showPassword = !showPassword"
+          @update:model-value="handlePasswordChange"
         />
 
         <v-text-field
@@ -77,6 +78,7 @@
           data-test="password-confirm-text"
           :type="showConfirmPassword ? 'text' : 'password'"
           @click:append-inner="showConfirmPassword = !showConfirmPassword"
+          @update:model-value="handlePasswordChange"
         />
       </v-container>
 
@@ -217,27 +219,29 @@ const {
   value: password,
   errorMessage: passwordError,
   setErrors: setPasswordError,
-} = useField<string>("password", yup.string().required().min(5).max(32), {
+} = useField<string>("password", yup.string().required("This field is required").min(5).max(32), {
   initialValue: "",
 });
 
 const {
   value: passwordConfirm,
   errorMessage: passwordConfirmError,
-} = useField<string>("passwordConfirm", yup.string().required()
+  setErrors: setPasswordConfirmError,
+} = useField<string>("passwordConfirm", yup.string().required("This field is required")
   .test("passwords-match", "Passwords do not match", (value) => password.value === value), {
   initialValue: "",
 });
 
-onMounted(() => {
-  const emailQuery = route.query.email as string;
-  sigValue.value = route.query.sig as string;
+const handlePasswordChange = () => {
+  if (!passwordConfirm.value || !password.value) return;
 
-  if (emailQuery && sigValue.value) {
-    email.value = emailQuery;
-    isEmailLocked.value = true;
+  if (password.value !== passwordConfirm.value) {
+    setPasswordConfirmError("Passwords do not match");
+    return;
   }
-});
+
+  setPasswordConfirmError("");
+};
 
 const hasErrors = () => !!(
   nameError.value
@@ -286,4 +290,13 @@ const createAccount = async () => {
   }
 };
 
+onMounted(() => {
+  const emailQuery = route.query.email as string;
+  sigValue.value = route.query.sig as string;
+
+  if (emailQuery && sigValue.value) {
+    email.value = emailQuery;
+    isEmailLocked.value = true;
+  }
+});
 </script>
