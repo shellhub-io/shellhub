@@ -1,6 +1,6 @@
 <template>
   <NamespaceAdd v-model="showAddDialog" />
-  <NamespaceInstructions v-model="showAddNamespaceInstructions" />
+  <NamespaceInstructions v-model="showInstructionsDialog" />
 
   <v-menu
     :close-on-content-click="false"
@@ -109,6 +109,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
+import { useDisplay } from "vuetify";
 import NamespaceAdd from "./NamespaceAdd.vue";
 import NamespaceInstructions from "./NamespaceInstructions.vue";
 import NamespaceChip from "./NamespaceChip.vue";
@@ -120,7 +121,6 @@ import useSnackbar from "@/helpers/snackbar";
 import handleError from "@/utils/handleError";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import { envVariables } from "@/envVariables";
-import { useDisplay } from "vuetify";
 
 defineOptions({
   inheritAttrs: false,
@@ -138,7 +138,7 @@ const showAddDialog = ref(false);
 const currentNamespace = computed(() => namespacesStore.currentNamespace);
 const namespaceList = computed(() => namespacesStore.namespaceList);
 const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
-const showAddNamespaceInstructions = computed(() => !hasNamespaces.value && !props.isAdminContext);
+const showInstructionsDialog = ref(false);
 const userId = computed(() => authStore.id || localStorage.getItem("id") || "");
 
 const showAdminButton = computed(() => {
@@ -196,5 +196,6 @@ const loadCurrentNamespace = async () => {
 
 onMounted(async () => {
   await loadCurrentNamespace();
+  showInstructionsDialog.value = !hasNamespaces.value && !props.isAdminContext;
 });
 </script>

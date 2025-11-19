@@ -342,7 +342,7 @@ exports[`App Layout Component > Renders the component 1`] = `
 </main>
 <!---->
 <!--teleport start-->
-<div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2410;" data-v-e7291ef4="" data-test="overlay">
+<div class="v-overlay v-overlay--absolute v-overlay--contained v-theme--light v-locale--is-ltr align-center justify-center w-100 h-100" style="z-index: 2000;" data-v-e7291ef4="" data-test="overlay">
   <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
     <!---->
   </transition-stub>
