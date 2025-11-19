@@ -86,9 +86,7 @@ const snackbar = useSnackbar();
 const showDialog = ref(false);
 const md = new MarkdownIt();
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-const { turndown } = new TurndownService() as {
-  turndown: (input: string) => string;
-};
+const turndownService = new TurndownService() as { turndown: (input: string) => string };
 const tinyMceKey = computed(() => envVariables.tinyMceKey);
 const isTinyMceKeyEmpty = computed(() => tinyMceKey.value === "");
 const announcement = computed(() => announcementStore.announcement);
@@ -127,7 +125,7 @@ const onSubmit = async () => {
   }
 
   try {
-    const contentInMarkdown = turndown(contentInHtml.value);
+    const contentInMarkdown = turndownService.turndown(contentInHtml.value);
     await announcementStore.updateAnnouncement(announcement.value.uuid, {
       title: title.value ?? "",
       content: contentInMarkdown,
