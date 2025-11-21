@@ -45,7 +45,8 @@
 import { useField } from "vee-validate";
 import { computed, defineModel } from "vue";
 import * as yup from "yup";
-import useNamespacesStore from "@admin/store/modules/namespaces";
+import useAdminNamespacesStore from "@admin/store/modules/namespaces";
+import useNamespacesStore from "@/store/modules/namespaces";
 import useSnackbar from "@/helpers/snackbar";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
@@ -55,6 +56,7 @@ const emit = defineEmits(["update"]);
 
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
+const adminNamespacesStore = useAdminNamespacesStore();
 const showDialog = defineModel<boolean>({ default: false });
 
 const {
@@ -104,7 +106,7 @@ const submitForm = async () => {
   if (hasErrors.value) return;
 
   try {
-    await namespacesStore.updateNamespace({
+    await adminNamespacesStore.updateNamespace({
       ...props.namespace,
       name: name.value,
       max_devices: Number(maxDevices.value),
@@ -113,6 +115,7 @@ const submitForm = async () => {
         session_record: sessionRecord.value,
       },
     });
+    await namespacesStore.fetchNamespaceList({ perPage: 30 });
     snackbar.showSuccess("Namespace updated successfully.");
     showDialog.value = false;
     emit("update");

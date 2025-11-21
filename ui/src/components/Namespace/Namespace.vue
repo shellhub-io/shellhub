@@ -147,9 +147,8 @@ const showAdminButton = computed(() => {
 });
 
 const availableNamespaces = computed(() => {
-  const namespaces = namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id);
-  if (props.isAdminContext && currentNamespace.value.tenant_id) namespaces.push(currentNamespace.value);
-  return namespaces;
+  if (props.isAdminContext) return namespaceList.value;
+  return namespaceList.value.filter((ns) => ns.tenant_id !== currentNamespace.value.tenant_id);
 });
 
 const navigateToAdminPanel = () => { window.location.href = "/admin"; };
