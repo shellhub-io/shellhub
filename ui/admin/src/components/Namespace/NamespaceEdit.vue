@@ -1,23 +1,4 @@
 <template>
-  <v-tooltip
-    bottom
-    anchor="bottom"
-  >
-    <template #activator="{ props }">
-      <v-icon
-        tag="button"
-        dark
-        v-bind="props"
-        tabindex="0"
-        aria-label="Edit Namespace"
-        data-test="dialog-btn"
-        icon="mdi-pencil"
-        @click="showDialog = true"
-      />
-    </template>
-    <span>Edit</span>
-  </v-tooltip>
-
   <FormDialog
     v-model="showDialog"
     title="Edit Namespace"
@@ -62,39 +43,42 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, ref } from "vue";
+import { computed, defineModel } from "vue";
 import * as yup from "yup";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import useSnackbar from "@/helpers/snackbar";
-import { IAdminNamespace } from "../../interfaces/INamespace";
+import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 
 const props = defineProps<{ namespace: IAdminNamespace }>();
+const emit = defineEmits(["update"]);
 
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
-const showDialog = ref(false);
+const showDialog = defineModel<boolean>({ default: false });
 
 const {
   value: name,
   errorMessage: nameError,
   resetField: resetName,
-} = useField<string | undefined>("name", yup.string().required(), {
-  initialValue: props.namespace.name,
+} = useField<string>("name", yup.string().required(), {
+  initialValue: props.namespace.name || "",
 });
 
 const {
   value: maxDevices,
   errorMessage: maxDevicesError,
   resetField: resetMaxDevices,
-} = useField<number | undefined>(
+} = useField<number>(
   "maxDevices",
   yup
     .number()
     .integer()
     .required()
     .min(-1, "Maximum devices must be -1 (unlimited) or greater"),
-  { initialValue: props.namespace.max_devices },
+  {
+    initialValue: props.namespace.max_devices ?? -1,
+  },
 );
 
 const {
@@ -102,7 +86,7 @@ const {
   errorMessage: sessionRecordError,
   resetField: resetSessionRecord,
 } = useField<boolean>("sessionRecord", yup.boolean(), {
-  initialValue: props.namespace.settings.session_record || false,
+  initialValue: props.namespace.settings?.session_record ?? true,
 });
 
 const hasErrors = computed(
@@ -118,16 +102,20 @@ const closeDialog = () => {
 
 const submitForm = async () => {
   if (hasErrors.value) return;
+
   try {
     await namespacesStore.updateNamespace({
       ...props.namespace,
-      name: name.value as string,
+      name: name.value,
       max_devices: Number(maxDevices.value),
-      settings: { session_record: sessionRecord.value },
+      settings: {
+        ...props.namespace.settings,
+        session_record: sessionRecord.value,
+      },
     });
-    await namespacesStore.fetchNamespaceList();
     snackbar.showSuccess("Namespace updated successfully.");
     showDialog.value = false;
+    emit("update");
   } catch {
     snackbar.showError("Failed to update namespace.");
   }

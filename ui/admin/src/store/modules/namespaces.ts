@@ -32,6 +32,10 @@ const useNamespacesStore = defineStore("adminNamespaces", () => {
     return data;
   };
 
+  const deleteNamespace = async (tenant: string) => {
+    await namespacesApi.deleteNamespace(tenant);
+  };
+
   const updateNamespace = async (data: IAdminNamespace) => {
     await namespacesApi.updateNamespace(data);
   };
@@ -44,6 +48,7 @@ const useNamespacesStore = defineStore("adminNamespaces", () => {
     fetchNamespaceList,
     fetchNamespaceById,
     exportNamespacesToCsv,
+    deleteNamespace,
     updateNamespace,
   };
 });

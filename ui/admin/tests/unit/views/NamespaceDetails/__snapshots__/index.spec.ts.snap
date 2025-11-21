@@ -1,10 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Namespace Details > Renders the component 1`] = `
-"<div class="d-flex pa-0 align-center">
-  <h1>Namespace Details</h1>
+"<div data-v-1bdec118="" class="d-flex pa-0 align-center">
+  <h1 data-v-1bdec118="">Namespace Details</h1>
 </div>
-<div class="v-card v-theme--light v-card--density-default v-card--variant-elevated mt-2 pa-4">
+<div data-v-1bdec118="" class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -22,45 +22,129 @@ exports[`Namespace Details > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div class="v-card-text">
-    <div>
-      <h3 class="text-overline"> Name: </h3>
-      <p data-test="dev">dev</p>
+  <div data-v-1bdec118="" class="v-card-title pa-4 d-flex align-center justify-space-between bg-v-theme-surface"><span data-v-1bdec118="" class="text-h6 ml-2 d-flex align-center ga-2">dev <span data-v-1bdec118="" class="v-chip v-theme--light text-primary v-chip--density-default v-chip--size-default v-chip--variant-tonal text-capitalize" draggable="false" data-test="namespace-type-chip"><!----><span class="v-chip__underlay"></span>
+    <!---->
+    <!---->
+    <div class="v-chip__content" data-no-activator="">team</div>
+    <!---->
+    <!----></span></span><button data-v-1bdec118="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" aria-owns="v-menu-v-2" data-test="namespace-actions-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+      <!---->
+      <!---->
+    </button>
+    <!--teleport start-->
+    <!--teleport end-->
+  </div>
+  <hr data-v-1bdec118="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div data-v-1bdec118="" class="v-card-text pa-4 pt-0">
+    <div data-v-1bdec118="" class="v-row py-3">
+      <div data-v-1bdec118="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-1bdec118="" data-test="namespace-name-field">
+          <div data-v-1bdec118="" class="item-title">Name:</div>
+          <p data-v-1bdec118="" class="text-truncate">dev</p>
+        </div>
+        <div data-v-1bdec118="" data-test="namespace-tenant-id-field">
+          <div data-v-1bdec118="" class="item-title">Tenant ID:</div>
+          <p data-v-1bdec118="" class="text-truncate"><code data-v-1bdec118="">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code></p>
+        </div>
+        <div data-v-1bdec118="" data-test="namespace-owner-field">
+          <div data-v-1bdec118="" class="item-title">Owner:</div><a data-v-1bdec118="" href="/admin/user/6256b739302b50b6cc5eafcc" class="unstyled-link text-decoration-underline cursor-pointer">owner@example.com</a>
+        </div>
+        <div data-v-1bdec118="" data-test="namespace-devices-field">
+          <div data-v-1bdec118="" class="item-title">Total Devices:</div>
+          <p data-v-1bdec118="">1</p>
+        </div>
+        <div data-v-1bdec118="" class="d-flex align-center flex-wrap mt-2" data-test="namespace-devices-breakdown">
+          <div data-v-1bdec118="" class="mr-6" data-test="namespace-devices-accepted">
+            <div data-v-1bdec118="" class="item-title">Accepted:</div>
+            <p data-v-1bdec118="">1</p>
+          </div>
+          <div data-v-1bdec118="" class="mr-6" data-test="namespace-devices-pending">
+            <div data-v-1bdec118="" class="item-title">Pending:</div>
+            <p data-v-1bdec118="">0</p>
+          </div>
+          <div data-v-1bdec118="" data-test="namespace-devices-rejected">
+            <div data-v-1bdec118="" class="item-title">Rejected:</div>
+            <p data-v-1bdec118="">0</p>
+          </div>
+        </div>
+      </div>
+      <div data-v-1bdec118="" class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-v-1bdec118="" data-test="namespace-created-field">
+          <div data-v-1bdec118="" class="item-title">Created:</div>
+          <p data-v-1bdec118="">Wednesday, April 13th 2022, 11:43:24 am</p>
+        </div>
+        <div data-v-1bdec118="" data-test="namespace-max-devices-field">
+          <div data-v-1bdec118="" class="item-title">Max Devices:</div>
+          <p data-v-1bdec118="">10</p>
+        </div>
+        <div data-v-1bdec118="" data-test="namespace-session-record-field">
+          <div data-v-1bdec118="" class="item-title">Session Record:</div><span data-v-1bdec118="" class="v-chip v-theme--light text-success v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
+          <!---->
+          <!---->
+          <div class="v-chip__content" data-no-activator="">Enabled</div>
+          <!---->
+          <!----></span>
+        </div>
+        <div data-v-1bdec118="" data-test="namespace-connection-announcement-field">
+          <div data-v-1bdec118="" class="item-title">Connection Announcement:</div>
+          <p data-v-1bdec118="">New connection</p>
+        </div>
+      </div>
     </div>
-    <div>
-      <h3 class="text-overline mt-3"> Devices: </h3>
-      <p data-test="namespace-devices-count">1</p>
-    </div>
-    <div>
-      <h3 class="text-overline mt-3"> Owner: </h3>
-      <p tabindex="0" class="text-decoration-underline cursor-pointer" data-test="6256b739302b50b6cc5eafcc">6256b739302b50b6cc5eafcc</p>
-    </div>
-    <div>
-      <h3 class="text-overline mt-3"> Tenant Id: </h3>
-      <p data-test="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</p>
-    </div>
-    <div>
-      <h3 class="text-overline mt-3"> Members: </h3>
-      <ul>
-        <li class="ml-8">
-          <div><span class="font-weight-bold mr-1" data-test="id-item">id:</span><span tabindex="0" class="text-decoration-underline cursor-pointer" data-test="id-value">6256b739302b50b6cc5eafcc</span></div>
-        </li>
-        <li class="ml-8">
-          <div><span class="font-weight-bold mr-1" data-test="role-item">role:</span><span data-test="role-value">owner</span></div>
-        </li>
-      </ul>
-      <ul>
-        <li class="ml-8">
-          <div><span class="font-weight-bold mr-1" data-test="id-item">id:</span><span tabindex="0" class="text-decoration-underline cursor-pointer" data-test="id-value">7326b239302b50b6cc5eafdd</span></div>
-        </li>
-        <li class="ml-8">
-          <div><span class="font-weight-bold mr-1" data-test="role-item">role:</span><span data-test="role-value">administrator</span></div>
-        </li>
-      </ul>
-    </div>
-    <div>
-      <h3 class="text-overline mt-3"> Session Record: </h3>
-      <p data-test="true">true</p>
+    <hr data-v-1bdec118="" class="v-divider v-theme--light my-4" aria-orientation="horizontal" role="separator">
+    <div data-v-1bdec118="" data-test="namespace-members-section">
+      <h3 data-v-1bdec118="" class="text-h6 mb-3"> Members (2) </h3>
+      <div data-v-1bdec118="" class="v-list v-theme--light v-list--density-default v-list--one-line bg-transparent" tabindex="0" role="list" data-test="namespace-members-list">
+        <div data-v-1bdec118="" class="v-list-item v-theme--light v-list-item--density-default v-list-item--one-line rounded-0 v-list-item--variant-text border rounded mb-2 bg-v-theme-surface" role="listitem" data-test="namespace-member-item">
+          <!----><span class="v-list-item__underlay"></span>
+          <!---->
+          <div class="v-list-item__content" data-no-activator="">
+            <!---->
+            <!---->
+            <div data-v-1bdec118="" class="v-list-item-title d-flex align-center mb-2"><a data-v-1bdec118="" href="/admin/user/6256b739302b50b6cc5eafcc" class="unstyled-link text-decoration-underline cursor-pointer">owner@example.com</a><span data-v-1bdec118="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal ml-2 text-capitalize" draggable="false" data-test="namespace-member-role"><!----><span class="v-chip__underlay"></span>
+              <!---->
+              <!---->
+              <div class="v-chip__content" data-no-activator=""><i data-v-1bdec118="" class="mdi-crown mdi v-icon notranslate v-theme--light v-icon--size-small mr-1" aria-hidden="true"></i> owner</div>
+              <!---->
+              <!----></span><span data-v-1bdec118="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal ml-2 text-capitalize" draggable="false" data-test="namespace-member-status"><!----><span class="v-chip__underlay"></span>
+              <!---->
+              <!---->
+              <div class="v-chip__content" data-no-activator="">active</div>
+              <!---->
+              <!----></span>
+            </div>
+            <div data-v-1bdec118="" class="v-list-item-subtitle d-flex flex-column"><span data-v-1bdec118="" class="text-caption" data-test="namespace-member-id"><strong data-v-1bdec118="">ID:</strong> <code data-v-1bdec118="">6256b739302b50b6cc5eafcc</code></span><span data-v-1bdec118="" class="text-caption" data-test="namespace-member-added"><strong data-v-1bdec118="">Added:</strong> Wednesday, April 13th 2022, 11:43:24 am</span>
+              <!--v-if-->
+            </div>
+          </div>
+          <!---->
+        </div>
+        <div data-v-1bdec118="" class="v-list-item v-theme--light v-list-item--density-default v-list-item--one-line rounded-0 v-list-item--variant-text border rounded mb-2 bg-v-theme-surface" role="listitem" data-test="namespace-member-item">
+          <!----><span class="v-list-item__underlay"></span>
+          <!---->
+          <div class="v-list-item__content" data-no-activator="">
+            <!---->
+            <!---->
+            <div data-v-1bdec118="" class="v-list-item-title d-flex align-center mb-2"><a data-v-1bdec118="" href="/admin/user/6256b739302b50b6cc5eafcc" class="unstyled-link text-decoration-underline cursor-pointer">owner@example.com</a><span data-v-1bdec118="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal ml-2 text-capitalize" draggable="false" data-test="namespace-member-role"><!----><span class="v-chip__underlay"></span>
+              <!---->
+              <!---->
+              <div class="v-chip__content" data-no-activator=""><i data-v-1bdec118="" class="mdi-shield-account mdi v-icon notranslate v-theme--light v-icon--size-small mr-1" aria-hidden="true"></i> admin</div>
+              <!---->
+              <!----></span><span data-v-1bdec118="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal ml-2 text-capitalize" draggable="false" data-test="namespace-member-status"><!----><span class="v-chip__underlay"></span>
+              <!---->
+              <!---->
+              <div class="v-chip__content" data-no-activator="">pending</div>
+              <!---->
+              <!----></span>
+            </div>
+            <div data-v-1bdec118="" class="v-list-item-subtitle d-flex flex-column"><span data-v-1bdec118="" class="text-caption" data-test="namespace-member-id"><strong data-v-1bdec118="">ID:</strong> <code data-v-1bdec118="">7326b239302b50b6cc5eafdd</code></span><span data-v-1bdec118="" class="text-caption" data-test="namespace-member-added"><strong data-v-1bdec118="">Added:</strong> Thursday, April 14th 2022, 11:43:24 am</span>
+              <!--v-if-->
+            </div>
+          </div>
+          <!---->
+        </div>
+      </div>
     </div>
   </div>
   <!---->
