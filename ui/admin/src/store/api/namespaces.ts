@@ -11,6 +11,8 @@ export const exportNamespaces = async (filter: string) => adminApi.exportNamespa
 
 export const getNamespace = async (id: string) => adminApi.getNamespaceAdmin(id);
 
+export const deleteNamespace = async (tenant: string) => adminApi.deleteNamespaceAdmin(tenant);
+
 export const updateNamespace = async (
   data: IAdminNamespace,
 ) => adminApi.editNamespaceAdmin(data.tenant_id, {

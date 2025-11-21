@@ -52,8 +52,8 @@ exports[`Namespaces > Renders the component 1`] = `
   <!---->
   <!---->
 </div>
-<div>
-  <div data-test="namespaces-list">
+<div data-v-ec7d46d0="">
+  <div data-v-ec7d46d0="" data-test="namespaces-list">
     <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
       <!---->
       <div class="v-table__wrapper">
@@ -64,13 +64,12 @@ exports[`Namespaces > Renders the component 1`] = `
               <th class="text-center" data-test="th-devices"><span data-test="th-label">Devices</span></th>
               <th class="text-center" data-test="th-tenant_id"><span data-test="th-label">Tenant ID</span></th>
               <th class="text-center" data-test="th-owner"><span data-test="th-label">Owner</span></th>
-              <th class="text-center" data-test="th-settings"><span data-test="th-label">Session Record</span></th>
               <th class="text-center" data-test="th-actions"><span data-test="th-label">Actions</span></th>
             </tr>
           </thead>
           <tbody class="pa-4 text-subtitle-2" data-test="tbody-empty">
             <tr>
-              <td colspan="6" class="pa-4 text-subtitle-2 text-center" data-test="empty-state"> No data available </td>
+              <td colspan="5" class="pa-4 text-subtitle-2 text-center" data-test="empty-state"> No data available </td>
             </tr>
           </tbody>
         </table>
@@ -137,5 +136,7 @@ exports[`Namespaces > Renders the component 1`] = `
         </button></div>
     </div>
   </div>
+  <!--v-if-->
+  <!--v-if-->
 </div>"
 `;

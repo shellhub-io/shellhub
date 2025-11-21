@@ -1,20 +1,231 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Namespace Edit > Renders the component 1`] = `
-"<button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-0" aria-label="Edit Namespace" data-test="dialog-btn"></button>
-<!--teleport start-->
+exports[`Namespace Edit > Renders the component and dialog 1`] = `
+"<!--teleport start-->
 <!--teleport end-->"
 `;
 
-exports[`Namespace Edit > Renders the component 2`] = `
+exports[`Namespace Edit > Renders the component and dialog 2`] = `
 "<body>
   <div class="v-overlay-container">
-    <div class="v-overlay v-overlay--absolute v-theme--light v-locale--is-ltr v-tooltip" style="z-index: 2000;" id="v-tooltip-v-0" role="tooltip" bottom="" anchor="bottom">
+    <div class="v-overlay v-overlay--active v-theme--light v-locale--is-ltr v-dialog v-dialog--scrollable" style="z-index: 2400;" aria-modal="true" role="dialog" data-v-0e9a08b3="">
       <transition-stub name="fade-transition" appear="true" persisted="false" css="true">
-        <!---->
+        <div class="v-overlay__scrim"></div>
       </transition-stub>
-      <transition-stub name="fade-transition" appear="true" persisted="true" css="true" target="[object HTMLButtonElement]">
-        <div class="v-overlay__content" style="min-width: 0px; display: none;"><span>Edit</span></div>
+      <transition-stub name="dialog-transition" appear="true" persisted="true" css="true">
+        <div class="v-overlay__content" style="max-width: 600px;" tabindex="-1">
+          <div data-v-0e9a08b3="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface border">
+            <!---->
+            <div class="v-card__loader">
+              <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                <!---->
+                <div class="v-progress-linear__background"></div>
+                <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                  <div class="v-progress-linear__indeterminate">
+                    <div class="v-progress-linear__indeterminate long"></div>
+                    <div class="v-progress-linear__indeterminate short"></div>
+                  </div>
+                </transition-stub>
+                <!---->
+              </div>
+            </div>
+            <!---->
+            <!---->
+            <!-- Content -->
+            <!-- Titlebar -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-folder-edit mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                  <!----><span class="v-avatar__underlay"></span>
+                </div>
+                <div>
+                  <div class="v-toolbar-title text-h6">
+                    <div class="v-toolbar-title__placeholder">
+                      <!---->Edit Namespace
+                    </div>
+                  </div>
+                  <!--v-if-->
+                </div>
+                <div class="v-spacer"></div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="close-btn-toolbar"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-close mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
+                  <!---->
+                  <!---->
+                </button>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header><!-- Content -->
+            <form class="v-form" novalidate="">
+              <div class="v-card-text pa-6">
+                <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field" data-test="name-text">
+                  <!---->
+                  <div class="v-input__control">
+                    <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr">
+                      <div class="v-field__overlay"></div>
+                      <div class="v-field__loader">
+                        <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                          <!---->
+                          <div class="v-progress-linear__background"></div>
+                          <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                          <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                            <div class="v-progress-linear__indeterminate">
+                              <div class="v-progress-linear__indeterminate long"></div>
+                              <div class="v-progress-linear__indeterminate short"></div>
+                            </div>
+                          </transition-stub>
+                          <!---->
+                        </div>
+                      </div>
+                      <!---->
+                      <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
+                          <!---->Name
+                        </label><label class="v-label v-field-label" for="input-v-2">
+                          <!---->Name
+                        </label>
+                        <!----><input size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" required="" class="v-field__input" value="ossystems">
+                        <!---->
+                      </div>
+                      <!---->
+                      <!---->
+                      <div class="v-field__outline">
+                        <!---->
+                        <!---->
+                      </div>
+                    </div>
+                  </div>
+                  <!---->
+                  <div id="input-v-2-messages" class="v-input__details" role="alert" aria-live="polite">
+                    <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
+                      <!---->
+                    </transition-group-stub>
+                    <!---->
+                  </div>
+                </div>
+                <div class="v-input v-input--horizontal v-input--center-affix v-input--density-comfortable v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-number-input v-number-input--inset" data-test="maxDevices-text">
+                  <!---->
+                  <div class="v-input__control">
+                    <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--variant-outlined v-theme--light v-locale--is-ltr">
+                      <div class="v-field__overlay"></div>
+                      <div class="v-field__loader">
+                        <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                          <!---->
+                          <div class="v-progress-linear__background"></div>
+                          <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                          <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                            <div class="v-progress-linear__indeterminate">
+                              <div class="v-progress-linear__indeterminate long"></div>
+                              <div class="v-progress-linear__indeterminate short"></div>
+                            </div>
+                          </transition-stub>
+                          <!---->
+                        </div>
+                      </div>
+                      <!---->
+                      <div class="v-field__field" data-no-activator="">
+                        <!----><label class="v-label v-field-label" for="input-v-5">
+                          <!---->Maximum Devices
+                        </label>
+                        <!----><input size="1" type="text" id="input-v-5" aria-describedby="input-v-5-messages" inputmode="decimal" required="" class="v-field__input" value="10">
+                        <!---->
+                      </div>
+                      <!---->
+                      <!---->
+                      <div class="v-field__outline">
+                        <div class="v-field__outline__start"></div>
+                        <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" for="input-v-5" aria-hidden="false">
+                            <!---->Maximum Devices
+                          </label></div>
+                        <div class="v-field__outline__end"></div>
+                        <!---->
+                      </div>
+                    </div>
+                  </div>
+                  <!---->
+                  <div id="input-v-5-messages" class="v-input__details" role="alert" aria-live="polite">
+                    <transition-group-stub name="slide-y-transition" tag="div" appear="false" persisted="false" css="true" class="v-messages">
+                      <!---->
+                    </transition-group-stub>
+                    <!---->
+                  </div>
+                </div>
+                <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-switch">
+                  <!---->
+                  <div class="v-input__control">
+                    <div class="v-selection-control v-selection-control--dirty v-selection-control--density-default">
+                      <div class="v-selection-control__wrapper text-primary">
+                        <div class="v-switch__track bg-primary">
+                          <!---->
+                          <!---->
+                        </div>
+                        <div class="v-selection-control__input"><input checked="" id="switch-v-7" aria-disabled="false" aria-label="Session Record" type="checkbox" value="true">
+                          <div class="v-switch__thumb bg-primary">
+                            <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
+                              <!---->
+                            </transition-stub>
+                          </div>
+                        </div>
+                      </div><label class="v-label v-label--clickable" for="switch-v-7">
+                        <!---->Session Record
+                      </label>
+                    </div>
+                  </div>
+                  <!---->
+                  <!---->
+                </div>
+              </div>
+            </form><!-- Footer -->
+            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+              <!---->
+              <div class="v-toolbar__content" style="height: 64px;">
+                <!---->
+                <!---->
+                <!-- Buttons with alert system -->
+                <div class="v-window v-theme--light w-100">
+                  <div class="v-window__container">
+                    <!-- Default buttons window -->
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item v-window-item--active w-100">
+                        <div class="d-flex align-center w-100">
+                          <!-- Helper text on the left -->
+                          <!--v-if-->
+                          <div class="v-spacer"></div><!-- Buttons on the right -->
+                          <div class="d-flex"><button type="button" class="v-btn v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-tonal mr-2" data-test="cancel-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                              <!----><span class="v-btn__content" data-no-activator="">Cancel</span>
+                              <!---->
+                              <!---->
+                            </button><button type="button" class="v-btn v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-flat" data-test="confirm-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                              <!----><span class="v-btn__content" data-no-activator="">Save</span>
+                              <!---->
+                              <!---->
+                            </button></div>
+                        </div>
+                      </div>
+                    </transition-stub><!-- Alert window -->
+                    <transition-stub name="" appear="false" persisted="false" css="true">
+                      <div class="v-window-item w-100" style="display: none;">
+                        <!---->
+                      </div>
+                    </transition-stub>
+                    <!---->
+                  </div>
+                  <!---->
+                </div>
+                <!---->
+              </div>
+              <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+                <!---->
+              </transition-stub>
+            </header>
+            <!---->
+            <!----><span class="v-card__underlay"></span>
+          </div>
+        </div>
       </transition-stub>
     </div>
   </div>
