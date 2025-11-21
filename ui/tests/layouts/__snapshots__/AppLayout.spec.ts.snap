@@ -288,7 +288,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           <!---->
           <!---->
           <!--teleport start-->
-          <!--teleport end--><button type="button" class="v-btn v-btn--stacked v-theme--light v-btn--density-comfortable v-btn--size-x-large v-btn--variant-text text-none p-2 border-e-thin border-s-thin" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9" aria-owns="v-menu-v-9"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!--teleport end--><button type="button" class="v-btn v-btn--stacked v-theme--light v-btn--density-comfortable v-btn--size-x-large v-btn--variant-text text-none p-2 border-e-thin border-s-thin" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-10" aria-owns="v-menu-v-10"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
             <!----><span class="v-btn__content" data-no-activator=""><div class="d-flex align-center ga-2"><span class="v-chip v-chip--label v-theme--light text-primary v-chip--density-default v-chip--size-default v-chip--variant-tonal text-uppercase" draggable="false"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
@@ -309,7 +309,7 @@ exports[`App Layout Component > Renders the component 1`] = `
         </ul>
       </div>
       <div class="v-spacer"></div>
-      <div class="d-flex align-center ga-4 mr-4"><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-v-13" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div class="d-flex align-center ga-4 mr-4"><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-describedby="v-tooltip-v-14" aria-label="community-help-icon" data-test="support-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-help-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
           <!---->
           <!---->
@@ -322,7 +322,7 @@ exports[`App Layout Component > Renders the component 1`] = `
           </div>
         </div>
         <!--teleport start-->
-        <!--teleport end--><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-21" aria-owns="v-menu-v-21" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!--teleport end--><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-22" aria-owns="v-menu-v-22" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><i data-v-09753bb1="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default text-surface" aria-hidden="true" data-test="gravatar-placeholder"></i><!----><span class="v-avatar__underlay"></span>
       </div></span>
       <!---->

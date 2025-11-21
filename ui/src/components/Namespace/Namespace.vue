@@ -108,13 +108,16 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import axios from "axios";
 import NamespaceAdd from "./NamespaceAdd.vue";
 import NamespaceInstructions from "./NamespaceInstructions.vue";
 import NamespaceChip from "./NamespaceChip.vue";
 import NamespaceListItem from "./NamespaceListItem.vue";
 import AdminConsoleItem from "./AdminConsoleItem.vue";
-import useNamespaceManager from "./composables/useNamespaceManager";
+import useNamespacesStore from "@/store/modules/namespaces";
 import useAuthStore from "@/store/modules/auth";
+import useSnackbar from "@/helpers/snackbar";
+import handleError from "@/utils/handleError";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import { envVariables } from "@/envVariables";
 import { useDisplay } from "vuetify";
@@ -123,23 +126,19 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps<{
-  isAdminContext?: boolean;
-}>();
+const props = defineProps<{ isAdminContext?: boolean }>();
 
 const authStore = useAuthStore();
-const {
-  currentNamespace,
-  namespaceList,
-  hasNamespaces,
-  namespacesLoaded,
-  switchNamespace,
-  loadCurrentNamespace,
-} = useNamespaceManager();
+const namespacesStore = useNamespacesStore();
+const snackbar = useSnackbar();
 const { mdAndDown, thresholds } = useDisplay();
 
 const showAddDialog = ref(false);
-const showAddNamespaceInstructions = computed(() => namespacesLoaded.value && !hasNamespaces.value && !props.isAdminContext);
+
+const currentNamespace = computed(() => namespacesStore.currentNamespace);
+const namespaceList = computed(() => namespacesStore.namespaceList);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
+const showAddNamespaceInstructions = computed(() => !hasNamespaces.value && !props.isAdminContext);
 const userId = computed(() => authStore.id || localStorage.getItem("id") || "");
 
 const showAdminButton = computed(() => {
@@ -153,17 +152,47 @@ const availableNamespaces = computed(() => {
   return namespaces;
 });
 
-const handleNamespaceSwitch = async (tenantId: string) => {
-  await switchNamespace(tenantId);
+const navigateToAdminPanel = () => { window.location.href = "/admin"; };
 
-  // If in admin context and switching to a namespace, navigate to main UI
-  if (props.isAdminContext && tenantId) {
-    window.location.href = "/";
+const handleNamespaceSwitch = async (tenantId: string) => {
+  try {
+    await namespacesStore.switchNamespace(tenantId);
+    if (props.isAdminContext && tenantId) window.location.href = "/";
+    else window.location.reload();
+  } catch (error: unknown) {
+    snackbar.showError("Failed to switch namespace");
+    handleError(error);
   }
 };
 
-const navigateToAdminPanel = () => {
-  window.location.href = "/admin";
+const loadCurrentNamespace = async () => {
+  const currentTenantId = localStorage.getItem("tenant") || "";
+
+  try {
+    await namespacesStore.fetchNamespaceList({ perPage: 30 });
+    await namespacesStore.fetchNamespace(currentTenantId);
+  } catch (error: unknown) {
+    if (!axios.isAxiosError(error)) {
+      snackbar.showError("Failed to load namespace");
+      handleError(error);
+      return;
+    }
+
+    // Namespace not found, try to switch to first available
+    if (error.response?.status === 404) {
+      const firstNamespace = namespaceList.value[0];
+      if (firstNamespace) await handleNamespaceSwitch(firstNamespace.tenant_id);
+      return;
+    }
+
+    // Server error with no tenant - ignore
+    if (error.response?.status === 500 && !currentTenantId) {
+      return;
+    }
+
+    snackbar.showError("Failed to load namespace");
+    handleError(error);
+  }
 };
 
 onMounted(async () => {
