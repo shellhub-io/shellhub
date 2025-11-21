@@ -1,3 +1,4 @@
+import MockAdapter from "axios-mock-adapter";
 import { createVuetify } from "vuetify";
 import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -7,6 +8,7 @@ import useNamespacesStore from "@admin/store/modules/namespaces";
 import NamespaceEdit from "@admin/components/Namespace/NamespaceEdit.vue";
 import { IAdminNamespace } from "@admin/interfaces/INamespace";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import { namespacesApi } from "@/api/http";
 
 const namespace: IAdminNamespace = {
   billing: {
@@ -47,6 +49,7 @@ const mockSnackbar = {
 describe("Namespace Edit", () => {
   let wrapper: VueWrapper<InstanceType<typeof NamespaceEdit>>;
   let namespacesStore: ReturnType<typeof useNamespacesStore>;
+  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -92,6 +95,7 @@ describe("Namespace Edit", () => {
   });
 
   it("Calls namespace store and snackbar on form submission with updated values", async () => {
+    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=30").reply(200, []);
     wrapper.vm.name = "updated-namespace";
     wrapper.vm.maxDevices = 42;
     wrapper.vm.sessionRecord = false;
