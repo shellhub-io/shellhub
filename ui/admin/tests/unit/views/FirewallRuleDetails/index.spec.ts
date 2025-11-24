@@ -1,15 +1,13 @@
 import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import routes from "@admin/router";
 import FirewallRulesDetails from "@admin/views/FirewallRulesDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type FirewallRulesDetailsWrapper = VueWrapper<InstanceType<typeof FirewallRulesDetails>>;
-
-const firewallRuleDetail = {
+const mockFirewallRule = {
   id: "6256b876e5c1d9bbdf954662",
   tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   priority: 1,
@@ -17,62 +15,128 @@ const firewallRuleDetail = {
   active: true,
   source_ip: ".*",
   username: "^[A-a]",
+  filter: { hostname: ".*" },
+};
+
+const mockFirewallRuleWithTags = {
+  id: "6256b876e5c1d9bbdf954663",
+  tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  priority: 2,
+  action: "deny" as const,
+  active: false,
+  source_ip: "192.168.1.0/24",
+  username: "admin",
   filter: {
-    hostname: ".*",
+    tags: [
+      { name: "production" },
+      { name: "web-server" },
+      { name: "critical-infrastructure" },
+    ],
   },
 };
 
-const mockRoute = {
-  params: {
-    id: firewallRuleDetail.id,
-  },
-};
+const mockRoute = { params: { id: mockFirewallRule.id } };
 
-describe("Firewall Rule Details", () => {
-  let wrapper: FirewallRulesDetailsWrapper;
+describe("Firewall Rule Details", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
 
-  beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
+  const firewallStore = useFirewallRulesStore();
+  firewallStore.fetchFirewallRuleById = vi.fn().mockResolvedValue(mockFirewallRule);
 
-    const firewallStore = useFirewallRulesStore();
-    firewallStore.fetchFirewallRuleById = vi.fn().mockResolvedValue(firewallRuleDetail);
+  const vuetify = createVuetify();
 
-    const vuetify = createVuetify();
+  const wrapper = mount(FirewallRulesDetails, {
+    global: {
+      plugins: [pinia, vuetify, routes, SnackbarPlugin],
+      mocks: { $route: mockRoute },
+    },
+  });
 
-    wrapper = mount(FirewallRulesDetails, {
+  await flushPromises();
+
+  it("Displays the rule priority in the card title", () => {
+    expect(wrapper.find(".text-h6").text()).toBe(`Rule #${mockFirewallRule.priority}`);
+  });
+
+  it("Shows active status icon with tooltip", () => {
+    const icon = wrapper.find('[data-test="active-icon"]');
+    expect(icon.classes()).toContain("text-success");
+  });
+
+  it("Shows action chip with correct color", () => {
+    const actionChip = wrapper.find('[data-test="firewall-action-chip"]');
+    expect(actionChip.text()).toBe(mockFirewallRule.action);
+  });
+
+  it("Displays firewall rule ID", () => {
+    const idField = wrapper.find('[data-test="firewall-id-field"]');
+    expect(idField.text()).toContain("ID:");
+    expect(idField.text()).toContain(mockFirewallRule.id);
+  });
+
+  it("Displays priority", () => {
+    const priorityField = wrapper.find('[data-test="firewall-priority-field"]');
+    expect(priorityField.text()).toContain("Priority:");
+    expect(priorityField.text()).toContain(String(mockFirewallRule.priority));
+  });
+
+  it("Displays namespace with router link", () => {
+    const tenantField = wrapper.find('[data-test="firewall-tenant-field"]');
+    expect(tenantField.text()).toContain("Namespace:");
+    expect(tenantField.find("a").exists()).toBe(true);
+  });
+
+  it("Displays formatted source IP", () => {
+    const sourceIpField = wrapper.find('[data-test="firewall-source-ip-field"]');
+    expect(sourceIpField.text()).toContain("Source IP:");
+    expect(sourceIpField.text()).toContain("Any IP");
+  });
+
+  it("Displays formatted username", () => {
+    const usernameField = wrapper.find('[data-test="firewall-username-field"]');
+    expect(usernameField.text()).toContain("Username:");
+    expect(usernameField.text()).toContain(mockFirewallRule.username);
+  });
+
+  it("Displays filter information", () => {
+    const filterField = wrapper.find('[data-test="firewall-filter-field"]');
+    expect(filterField.text()).toContain("Filter:");
+  });
+
+  it("Shows error message when firewall rule data is empty", async () => {
+    firewallStore.fetchFirewallRuleById = vi.fn().mockResolvedValue({});
+
+    const errorWrapper = mount(FirewallRulesDetails, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],
-        mocks: {
-          $route: mockRoute,
-        },
+        mocks: { $route: mockRoute },
       },
     });
+
+    await flushPromises();
+
+    expect(errorWrapper.text()).toContain("Something is wrong, try again!");
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBeTruthy();
-  });
+  it("Displays tags correctly when filter contains tags", async () => {
+    firewallStore.fetchFirewallRuleById = vi.fn().mockResolvedValue(mockFirewallRuleWithTags);
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    const tagsWrapper = mount(FirewallRulesDetails, {
+      global: {
+        plugins: [pinia, vuetify, routes, SnackbarPlugin],
+        mocks: { $route: { params: { id: mockFirewallRuleWithTags.id } } },
+      },
+    });
 
-  it("Has the correct data", () => {
-    expect(wrapper.vm.firewallRule).toEqual(firewallRuleDetail);
-  });
+    await flushPromises();
 
-  it("Render the correct title", () => {
-    expect(wrapper.find("h1").text()).toBe("Firewall Details");
-  });
+    const filterField = tagsWrapper.find('[data-test="firewall-filter-field"]');
 
-  it("Should render the props of the FirewallRule in the Screen", () => {
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.id}']`).text()).toContain(firewallRuleDetail.id);
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.tenant_id}']`).text()).toContain(firewallRuleDetail.tenant_id);
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.priority}']`).text()).toContain(String(firewallRuleDetail.priority));
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.action}']`).text()).toContain(firewallRuleDetail.action);
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.source_ip}']`).exists()).toBe(true);
-    expect(wrapper.find(`[data-test='${firewallRuleDetail.username}']`).exists()).toBe(true);
-    expect(wrapper.find("[data-test='firewall-rule-filter']").exists()).toBe(true);
+    const chips = filterField.findAll(".v-chip");
+    expect(chips).toHaveLength(3);
+    expect(chips[0].text()).toContain("production");
+    expect(chips[1].text()).toContain("web-server");
+    expect(chips[2].text()).toContain("critical-i");
   });
 });
