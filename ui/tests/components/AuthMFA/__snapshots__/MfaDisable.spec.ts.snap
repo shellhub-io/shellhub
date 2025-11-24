@@ -699,7 +699,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                 <transition-stub name="slide-y-reverse-transition" appear="false" persisted="false" css="true">
                   <!---->
                 </transition-stub>
-                <transition-stub name="v-window-x-reverse-transition" appear="false" persisted="false" css="true">
+                <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item" style="display: none;">
                     <div class="v-otp-input mb-4" data-test="verification-code" required="">
                       <div class="v-otp-input__content">
@@ -897,12 +897,12 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                     <p class="text-subtitle-2 text-center"> If you lost your MFA TOTP Provider and want to use your recovery code, <span tag="button" class="text-primary cursor-pointer text-decoration-underline" data-test="use-recovery-code-btn"> click here </span></p>
                   </div>
                 </transition-stub>
-                <transition-stub name="v-window-x-reverse-transition" appear="false" persisted="false" css="true">
+                <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item" style="display: none;">
                     <!---->
                   </div>
                 </transition-stub>
-                <transition-stub name="v-window-x-reverse-transition" appear="false" persisted="false" css="true">
+                <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item v-window-item--active" style="">
                     <div class="text-center"><i class="mdi-email-check-outline mdi v-icon notranslate v-theme--light text-success mb-4" style="font-size: 80px; height: 80px; width: 80px;" aria-hidden="true"></i></div>
                     <p data-test="sub-title" class="mb-4 text-center text-body-1 font-weight-bold"> An email has been sent to . Please check your inbox and click the link we've provided to disable MFA. </p>
