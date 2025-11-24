@@ -1,8 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Device List > Renders the component 1`] = `
-"<div data-v-aca44803="">
-  <div data-v-aca44803="" data-test="devices-list">
+"<div>
+  <div data-test="devices-list">
     <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
       <!---->
       <div class="v-table__wrapper">
@@ -20,13 +20,13 @@ exports[`Device List > Renders the component 1`] = `
             </tr>
           </thead>
           <tbody data-test="tbody-has-items">
-            <tr data-v-aca44803="">
-              <td data-v-aca44803=""><i data-v-aca44803="" class="mdi-close-circle mdi v-icon notranslate v-theme--light v-icon--size-default" style="color: rgb(229, 57, 53); caret-color: #E53935;" aria-hidden="true" data-test="error-icon"></i></td>
-              <td data-v-aca44803="">39-5e-2a</td>
-              <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
-              <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
-              <td data-v-aca44803="">
-                <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-6"><!----><span class="v-chip__underlay"></span>
+            <tr>
+              <td><i class="mdi-close-circle mdi v-icon notranslate v-theme--light v-icon--size-default" style="color: rgb(229, 57, 53); caret-color: #E53935;" aria-hidden="true" data-test="error-icon"></i></td>
+              <td>39-5e-2a</td>
+              <td><span class="d-inline-flex align-center ga-2"><i data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
+              <td><a href="/admin/namespace/fake-tenant-data" class="text-white">user</a></td>
+              <td>
+                <div><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-6"><!----><span class="v-chip__underlay"></span>
                   <!---->
                   <!---->
                   <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -36,26 +36,26 @@ exports[`Device List > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td data-v-aca44803="">Wednesday, May 20th 2020, 6:58:53 pm</td>
-              <td data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
+              <td>Wednesday, May 20th 2020, 6:58:53 pm</td>
+              <td><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal text-capitalize" draggable="false"><!----><span class="v-chip__underlay"></span>
                 <!---->
                 <!---->
                 <div class="v-chip__content" data-no-activator="">accepted</div>
                 <!---->
                 <!----></span>
               </td>
-              <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-11"></a>
+              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-11"></a>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>
             </tr>
-            <tr data-v-aca44803="">
-              <td data-v-aca44803=""><i data-v-aca44803="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" data-test="success-icon"></i></td>
-              <td data-v-aca44803="">39-5e-2b</td>
-              <td data-v-aca44803=""><span data-v-aca44803="" class="d-inline-flex align-center ga-2"><i data-v-aca44803="" data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
-              <td data-v-aca44803=""><span data-v-aca44803="" tabindex="0" class="hover">user</span></td>
-              <td data-v-aca44803="">
-                <div data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-12"><!----><span class="v-chip__underlay"></span>
+            <tr>
+              <td><i class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" data-test="success-icon"></i></td>
+              <td>39-5e-2b</td>
+              <td><span class="d-inline-flex align-center ga-2"><i data-test="device-icon" class="fl-linuxmint mr-1" style="font-size: 20px;"></i> Linux Mint 19.3</span></td>
+              <td><a href="/admin/namespace/fake-tenant-data" class="text-white">user</a></td>
+              <td>
+                <div><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-12"><!----><span class="v-chip__underlay"></span>
                   <!---->
                   <!---->
                   <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -65,15 +65,15 @@ exports[`Device List > Renders the component 1`] = `
                   <!--teleport end-->
                 </div>
               </td>
-              <td data-v-aca44803="">Wednesday, May 20th 2020, 7:58:53 pm</td>
-              <td data-v-aca44803=""><span data-v-aca44803="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false"><!----><span class="v-chip__underlay"></span>
+              <td>Wednesday, May 20th 2020, 7:58:53 pm</td>
+              <td><span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal text-capitalize" draggable="false"><!----><span class="v-chip__underlay"></span>
                 <!---->
                 <!---->
                 <div class="v-chip__content" data-no-activator="">accepted</div>
                 <!---->
                 <!----></span>
               </td>
-              <td data-v-aca44803=""><a data-v-aca44803="" class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-17"></a>
+              <td><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-17"></a>
                 <!--teleport start-->
                 <!--teleport end-->
               </td>

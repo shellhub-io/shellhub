@@ -38,14 +38,12 @@
             </span>
           </td>
           <td>
-            <span
-              tabindex="0"
-              class="hover"
-              @click="goToNamespace(item.tenant_id)"
-              @keypress.enter="goToNamespace(item.tenant_id)"
+            <router-link
+              :to="{ name: 'namespaceDetails', params: { id: item.tenant_id } }"
+              class="text-white"
             >
               {{ item.namespace }}
-            </span>
+            </router-link>
           </td>
           <td>
             <div v-if="item.tags[0]">
@@ -74,9 +72,11 @@
             {{ formatFullDateTime(item.last_seen) }}
           </td>
           <td>
-            <v-chip size="small">
-              {{ item.status }}
-            </v-chip>
+            <v-chip
+              size="small"
+              class="text-capitalize"
+              :text="item.status"
+            />
           </td>
           <td>
             <v-tooltip
@@ -192,29 +192,13 @@ const sortByItem = async (field: string) => {
   await fetchDevices();
 };
 
-const goToNamespace = async (namespace: string) => {
-  await router.push({ name: "namespaceDetails", params: { id: namespace } });
-};
-
 const redirectToDevice = async (deviceId: string) => {
   await router.push({ name: "deviceDetails", params: { id: deviceId } });
 };
 
-watch([itemsPerPage, page], async () => {
-  await fetchDevices();
-});
+watch([itemsPerPage, page], async () => { await fetchDevices(); });
 
-onMounted(async () => {
-  await fetchDevices();
-});
+onMounted(async () => { await fetchDevices(); });
 
 defineExpose({ headers, devices, loading, itemsPerPage });
 </script>
-
-<style scoped>
-.hover:hover,
-.hover:focus {
-  cursor: pointer;
-  text-decoration: underline;
-}
-</style>
