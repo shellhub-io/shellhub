@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: login to docker hub
         if: "github.event_name != 'pull_request'"
@@ -119,7 +119,7 @@ jobs:
             goarch: 386
     steps:
       - name: checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: setup go
         uses: actions/setup-go@v6
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: export agent tarball
         run: |
