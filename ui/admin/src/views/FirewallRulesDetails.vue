@@ -1,108 +1,115 @@
 <template>
-  <h1>Firewall Details</h1>
-  <v-card class="mt-2 pa-4 bg-background border">
-    <v-card-text v-if="!isFirewallRuleEmpty">
-      <div>
-        <h3 class="text-overline">
-          id:
-        </h3>
-        <p :data-test="firewallRule.id">
-          {{ firewallRule.id }}
-        </p>
-      </div>
-
-      <div>
-        <h3 class="text-overline mt-3">
-          Tenant Id:
-        </h3>
-        <p :data-test="firewallRule.tenant_id">
-          {{ firewallRule.tenant_id }}
-        </p>
-      </div>
-
-      <div>
-        <h3 class="text-overline mt-3">
-          Priority:
-        </h3>
-        <p :data-test="firewallRule.priority">
-          {{ firewallRule.priority }}
-        </p>
-      </div>
-
-      <div>
-        <h3 class="text-overline mt-3">
-          Action:
-        </h3>
-        <p
-          :data-test="firewallRule.action"
+  <div class="d-flex pa-0 align-center"><h1>Firewall Rule Details</h1></div>
+  <v-card
+    v-if="firewallRule.id"
+    class="mt-2 border rounded bg-background"
+  >
+    <v-card-title class="pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
+      <div class="d-flex align-center ml-2 ga-3">
+        <v-tooltip
+          location="bottom"
+          :text="firewallRule.active ? 'Active' : 'Inactive'"
+        >
+          <template #activator="{ props }">
+            <v-icon
+              v-bind="props"
+              :color="firewallRule.active ? 'success' : '#E53935'"
+              data-test="active-icon"
+              :icon="firewallRule.active ? 'mdi-shield-check' : 'mdi-shield-off'"
+            />
+          </template>
+        </v-tooltip>
+        <h2 class="text-h6">Rule #{{ firewallRule.priority }}</h2>
+        <v-chip
+          size="small"
+          data-test="firewall-action-chip"
           class="text-capitalize"
-        >
-          {{ firewallRule.action }}
-        </p>
+          :color="firewallRule.action === 'allow' ? 'success' : 'error'"
+          :text="firewallRule.action"
+        />
       </div>
+    </v-card-title>
 
-      <div>
-        <h3 class="text-overline mt-3">
-          Source Ip:
-        </h3>
-        <p :data-test="firewallRule.source_ip">
-          {{ formatSourceIP(firewallRule.source_ip) }}
-        </p>
-      </div>
+    <v-divider />
 
-      <div>
-        <h3 class="text-overline mt-3">
-          Username:
-        </h3>
-        <p :data-test="firewallRule.username">
-          {{ formatUsername(firewallRule.username) }}
-        </p>
-      </div>
-
-      <div v-if="firewallRule.filter">
-        <h3 class="text-overline mt-3">
-          Filter:
-        </h3>
-        <p
-          v-if="isHostname(firewallRule.filter)"
-          data-test="firewall-rule-filter"
+    <v-card-text class="pa-4 pt-0">
+      <v-row class="py-3">
+        <v-col
+          cols="12"
+          md="6"
+          class="my-0 py-0"
         >
-          {{ formatHostnameFilter(firewallRule.filter) }}
-        </p>
-        <div
-          v-else
-          :data-test="firewallRule.filter"
+          <div data-test="firewall-id-field">
+            <h3 class="item-title">ID:</h3>
+            <p class="text-truncate">{{ firewallRule.id }}</p>
+          </div>
+
+          <div data-test="firewall-tenant-field">
+            <h3 class="item-title">Namespace:</h3>
+            <router-link
+              :to="{ name: 'namespaceDetails', params: { id: firewallRule.tenant_id } }"
+              class="text-white"
+            >
+              {{ firewallRule.tenant_id }}
+            </router-link>
+          </div>
+
+          <div data-test="firewall-priority-field">
+            <h3 class="item-title">Priority:</h3>
+            <p>{{ firewallRule.priority }}</p>
+          </div>
+        </v-col>
+
+        <v-col
+          cols="12"
+          md="6"
+          class="my-0 py-0"
         >
-          <v-tooltip
-            v-for="(tag, index) in firewallRule.filter.tags"
-            :key="index"
-            bottom
-            :disabled="!showTag(tag.name)"
+          <div data-test="firewall-source-ip-field">
+            <h3 class="item-title">Source IP:</h3>
+            <code>{{ formatSourceIP(firewallRule.source_ip) }}</code>
+          </div>
+
+          <div data-test="firewall-username-field">
+            <h3 class="item-title">Username:</h3>
+            <p>{{ formatUsername(firewallRule.username) }}</p>
+          </div>
+
+          <div
+            v-if="firewallRule.filter"
+            data-test="firewall-filter-field"
           >
-            <template #activator="{ props }">
-              <v-chip
-                class="mr-1"
-                density="compact"
-                outlined
-                v-bind="props"
+            <h3 class="item-title">Filter:</h3>
+            <p v-if="isHostname(firewallRule.filter)">{{ formatHostnameFilter(firewallRule.filter) }}</p>
+            <div v-else>
+              <v-tooltip
+                v-for="(tag, index) in firewallRule.filter.tags"
+                :key="index"
+                bottom
+                :disabled="!showTag(tag.name)"
+                :text="tag.name"
               >
-                {{ displayOnlyTenCharacters(tag.name) }}
-              </v-chip>
-            </template>
-
-            <span>
-              {{ tag.name }}
-            </span>
-          </v-tooltip>
-        </div>
-      </div>
+                <template #activator="{ props }">
+                  <v-chip
+                    size="small"
+                    v-bind="props"
+                    class="mr-2"
+                  >
+                    {{ displayOnlyTenCharacters(tag.name) }}
+                  </v-chip>
+                </template>
+              </v-tooltip>
+            </div>
+          </div>
+        </v-col>
+      </v-row>
     </v-card-text>
-    <p
-      v-else
-      class="text-center"
-    >
-      Something is wrong, try again!
-    </p>
+  </v-card>
+  <v-card
+    v-else
+    class="mt-2 pa-4 bg-v-theme-surface"
+  >
+    <p class="text-center">Something is wrong, try again!</p>
   </v-card>
 </template>
 
@@ -130,8 +137,16 @@ onMounted(async () => {
     snackbar.showError("Failed to get firewall rule details.");
   }
 });
-
-const isFirewallRuleEmpty = computed(() => !firewallRule.value || !firewallRule.value.id);
-
-defineExpose({ firewallRule });
 </script>
+
+<style lang="scss" scoped>
+.item-title {
+  margin-top: 0.75rem;
+  // Vuetify's text-overline styles
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1666666667em;
+  line-height: 2.667;
+}
+</style>
