@@ -1,14 +1,12 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { IAdminSession } from "@admin/interfaces/ISession";
 import useSessionsStore from "@admin/store/modules/sessions";
 import routes from "@admin/router";
 import SessionDetails from "@admin/views/SessionDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
-
-type SessionDetailsWrapper = VueWrapper<InstanceType<typeof SessionDetails>>;
 
 const sessionDetail = {
   uid: "df33c82dcc7b401b0e4511fd9e0a86a48c5875da6091e89cf37cbbb38819e17e",
@@ -45,58 +43,113 @@ const sessionDetail = {
   recorded: true,
   type: "web",
   term: "xterm.js",
+  position: { latitude: 0, longitude: 0 },
 } as IAdminSession;
 
-const mockRoute = {
-  params: {
-    id: sessionDetail.uid,
-  },
-};
+const mockRoute = { params: { id: sessionDetail.uid } };
 
-describe("Session Details", () => {
-  let wrapper: SessionDetailsWrapper;
+describe("Session Details", async () => {
   const pinia = createPinia();
   setActivePinia(pinia);
+
   const sessionsStore = useSessionsStore();
   sessionsStore.fetchSessionById = vi.fn().mockResolvedValue(sessionDetail);
+
   const vuetify = createVuetify();
 
-  beforeEach(() => {
-    wrapper = mount(SessionDetails, {
+  const wrapper = mount(SessionDetails, {
+    global: {
+      plugins: [pinia, vuetify, routes, SnackbarPlugin],
+      mocks: {
+        $route: mockRoute,
+      },
+    },
+  });
+
+  await flushPromises();
+
+  it("Displays the session UID in the card title", () => {
+    expect(wrapper.find(".text-h6").text()).toBe(sessionDetail.uid);
+  });
+
+  it("Shows active status icon with tooltip", () => {
+    const icon = wrapper.find('[data-test="active-icon"]');
+    expect(icon.classes()).toContain("text-white");
+  });
+
+  it("Displays session UID", () => {
+    const uidField = wrapper.find('[data-test="session-uid-field"]');
+    expect(uidField.text()).toContain("UID:");
+    expect(uidField.text()).toContain(sessionDetail.uid);
+  });
+
+  it("Displays device with router link", () => {
+    const deviceField = wrapper.find('[data-test="session-device-field"]');
+    expect(deviceField.text()).toContain("Device:");
+    expect(deviceField.find("a").exists()).toBe(true);
+  });
+
+  it("Displays username", () => {
+    const usernameField = wrapper.find('[data-test="session-username-field"]');
+    expect(usernameField.text()).toContain("Username:");
+    expect(usernameField.text()).toContain(sessionDetail.username);
+  });
+
+  it("Displays IP address", () => {
+    const ipField = wrapper.find('[data-test="session-ip-field"]');
+    expect(ipField.text()).toContain("IP Address:");
+    expect(ipField.text()).toContain(sessionDetail.ip_address);
+  });
+
+  it("Displays session type", () => {
+    const typeField = wrapper.find('[data-test="session-type-field"]');
+    expect(typeField.text()).toContain("Type:");
+    expect(typeField.text()).toContain(sessionDetail.type);
+  });
+
+  it("Displays namespace with router link", () => {
+    const namespaceField = wrapper.find('[data-test="session-namespace-field"]');
+    expect(namespaceField.text()).toContain("Namespace:");
+    expect(namespaceField.find("a").exists()).toBe(true);
+  });
+
+  it("Displays authenticated status as Yes/No", () => {
+    const authField = wrapper.find('[data-test="session-authenticated-field"]');
+    expect(authField.text()).toContain("Authenticated:");
+    expect(authField.text()).toContain("Yes");
+  });
+
+  it("Displays recorded status as Yes/No", () => {
+    const recordedField = wrapper.find('[data-test="session-recorded-field"]');
+    expect(recordedField.text()).toContain("Recorded:");
+    expect(recordedField.text()).toContain("Yes");
+  });
+
+  it("Displays terminal", () => {
+    const termField = wrapper.find('[data-test="session-terminal-field"]');
+    expect(termField.text()).toContain("Terminal:");
+    expect(termField.text()).toContain(sessionDetail.term);
+  });
+
+  it("Displays started at date", () => {
+    const startedField = wrapper.find('[data-test="session-started-field"]');
+    expect(startedField.text()).toContain("Started At:");
+  });
+
+  it("Displays last seen date", () => {
+    const lastSeenField = wrapper.find('[data-test="session-last-seen-field"]');
+    expect(lastSeenField.text()).toContain("Last Seen:");
+  });
+
+  it("Shows error message when session data is empty", async () => {
+    sessionsStore.fetchSessionById = vi.fn().mockResolvedValue({});
+    const errorWrapper = mount(SessionDetails, {
       global: {
         plugins: [pinia, vuetify, routes, SnackbarPlugin],
-        mocks: {
-          $route: mockRoute,
-        },
+        mocks: { $route: mockRoute },
       },
     });
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Render the correct title", () => {
-    expect(wrapper.find("h1").text()).toEqual("Session Details");
-  });
-
-  it("Should render the props of the Session in the Screen", async () => {
-    wrapper.vm.session = sessionDetail;
-
     await flushPromises();
-
-    expect(wrapper.find(`[data-test='${sessionDetail.uid}']`).text()).toContain(sessionDetail.uid);
-    expect(wrapper.find(`[data-test='${sessionDetail.device_uid}']`).text()).toContain(sessionDetail.device_uid);
-    expect(wrapper.find(`[data-test='${sessionDetail.tenant_id}']`).text()).toContain(sessionDetail.tenant_id);
-    expect(wrapper.find(`[data-test='${sessionDetail.username}']`).text()).toContain(sessionDetail.username);
-    expect(wrapper.find(`[data-test='${sessionDetail.ip_address}']`).text()).toContain(sessionDetail.ip_address);
-    expect(wrapper.find(`[data-test='${sessionDetail.last_seen}']`).text()).toContain(sessionDetail.last_seen);
-    expect(wrapper.find(`[data-test='${sessionDetail.active}']`).text()).toContain(String(sessionDetail.active));
-    expect(wrapper.find(`[data-test='${sessionDetail.term}']`).text()).toContain(sessionDetail.term);
-    expect(wrapper.find(`[data-test='${sessionDetail.type}']`).text()).toContain(sessionDetail.type);
+    expect(errorWrapper.text()).toContain("Something is wrong, try again!");
   });
 });
