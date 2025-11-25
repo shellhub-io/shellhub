@@ -32,13 +32,13 @@ exports[`Announcement Details > Renders the component 1`] = `
             </td>
             <td data-test="announcement-title">Announcement 1</td>
             <td>December 15, 2022</td>
-            <td data-test="announcement-actions"><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" dark="" aria-describedby="v-tooltip-v-3"></a>
+            <td data-test="announcement-actions"><a class="mdi-information mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-3"></a>
               <!--teleport start-->
-              <!--teleport end--><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-4" data-test="edit-button"></button>
+              <!--teleport end--><span aria-describedby="v-tooltip-v-4" role="button"><button class="mdi-pencil mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" data-test="edit-button"></button></span>
               <!--teleport start-->
               <!--teleport end-->
               <!---->
-              <!----><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-5" data-test="delete-button"></button>
+              <!----><span aria-describedby="v-tooltip-v-5" role="button"><button class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" data-test="delete-button"></button></span>
               <!--teleport start-->
               <!--teleport end-->
               <!---->

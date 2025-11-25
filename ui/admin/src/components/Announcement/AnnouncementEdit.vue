@@ -1,19 +1,17 @@
 <template>
   <v-tooltip
-    bottom
-    anchor="bottom"
+    location="bottom"
+    :disabled="!showTooltip"
+    text="Edit"
   >
-    <template #activator="{ props }">
-      <v-icon
-        tag="button"
-        v-bind="props"
-        tabindex="0"
-        data-test="edit-button"
-        icon="mdi-pencil"
-        @click="open"
-      />
+    <template #activator="{ props: tooltipProps }">
+      <span
+        v-bind="tooltipProps"
+        role="button"
+      >
+        <slot :open-dialog="openDialog" />
+      </span>
     </template>
-    <span>Edit</span>
   </v-tooltip>
 
   <FormDialog
@@ -78,7 +76,10 @@ import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 
-const props = defineProps<{ announcementItem: IAdminAnnouncementShort }>();
+const props = defineProps<{
+  announcementItem: IAdminAnnouncementShort;
+  showTooltip?: boolean;
+}>();
 
 const emit = defineEmits(["update"]);
 const announcementStore = useAnnouncementStore();
@@ -106,7 +107,7 @@ const getAnnouncement = async () => {
   contentInHtml.value = md.render(announcement.value.content);
 };
 
-const open = async () => {
+const openDialog = async () => {
   await getAnnouncement();
   showDialog.value = true;
 };
@@ -139,7 +140,7 @@ const onSubmit = async () => {
   }
 };
 
-defineExpose({ showDialog, announcement, contentInHtml, contentError, title });
+defineExpose({ showDialog, announcement, contentInHtml, contentError, title, openDialog });
 </script>
 
 <style lang="scss">
