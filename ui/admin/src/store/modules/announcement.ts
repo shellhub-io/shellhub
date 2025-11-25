@@ -14,8 +14,7 @@ const useAnnouncementStore = defineStore("adminAnnouncement", () => {
   };
 
   const updateAnnouncement = async (uuid: string, announcementData: IAdminAnnouncementRequestBody) => {
-    const { data } = await announcementApi.updateAnnouncement(uuid, announcementData);
-    announcement.value = data as IAdminAnnouncement;
+    await announcementApi.updateAnnouncement(uuid, announcementData);
   };
 
   const fetchAnnouncement = async (uuid: string) => {

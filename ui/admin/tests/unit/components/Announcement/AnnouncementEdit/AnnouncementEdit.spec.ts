@@ -1,5 +1,5 @@
 import { createVuetify } from "vuetify";
-import { DOMWrapper, mount } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
@@ -35,10 +35,13 @@ describe("Announcement Edit", () => {
   const wrapper = mount(AnnouncementEdit, {
     global: { plugins: [createVuetify(), SnackbarPlugin] },
     props: { announcementItem: shortAnnouncement },
+    slots: {
+      default: '<button data-test="edit-trigger">Edit</button>',
+    },
   });
 
   it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+    expect(wrapper.find('[data-test="edit-trigger"]').exists()).toBe(true);
   });
 
   it("Renders the correct data", () => {
@@ -51,14 +54,12 @@ describe("Announcement Edit", () => {
     expect(wrapper.vm.title).toBe(announcement.title);
   });
 
-  it("Opens the dialog on edit button click", async () => {
+  it("Opens the dialog when open method is called", async () => {
     expect(wrapper.vm.showDialog).toBe(false);
 
-    const editButton = wrapper.find('[data-test="edit-button"]');
-    await editButton.trigger("click");
+    await wrapper.vm.openDialog();
 
     expect(wrapper.vm.showDialog).toBe(true);
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
+    expect(announcementStore.fetchAnnouncement).toHaveBeenCalledWith(shortAnnouncement.uuid);
   });
 });

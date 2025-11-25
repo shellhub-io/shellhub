@@ -14,26 +14,17 @@
         v-for="(announcement, index) in announcements"
         :key="index"
       >
-        <td data-test="announcement-uuid">
-          <v-chip>
-            {{ announcement.uuid }}
-          </v-chip>
-        </td>
-        <td data-test="announcement-title">
-          {{ announcement.title }}
-        </td>
-        <td>
-          {{ formatDate(announcement.date) }}
-        </td>
+        <td data-test="announcement-uuid"><v-chip>{{ announcement.uuid }}</v-chip></td>
+        <td data-test="announcement-title">{{ announcement.title }}</td>
+        <td>{{ formatDate(announcement.date) }}</td>
         <td data-test="announcement-actions">
           <v-tooltip
-            bottom
-            anchor="bottom"
+            location="bottom"
+            text="Info"
           >
             <template #activator="{ props }">
               <v-icon
                 tag="a"
-                dark
                 v-bind="props"
                 tabindex="0"
                 icon="mdi-information"
@@ -41,18 +32,35 @@
                 @keyup.enter="redirectToAnnouncement(announcement)"
               />
             </template>
-            <span>Info</span>
           </v-tooltip>
 
           <AnnouncementEdit
+            v-slot="{ openDialog }"
             :announcement-item="announcement"
+            show-tooltip
             @update="refreshAnnouncements"
-          />
+          >
+            <v-icon
+              tag="button"
+              data-test="edit-button"
+              icon="mdi-pencil"
+              @click="openDialog"
+            />
+          </AnnouncementEdit>
 
           <AnnouncementDelete
+            v-slot="{ openDialog }"
             :uuid="announcement.uuid"
+            show-tooltip
             @update="refreshAnnouncements"
-          />
+          >
+            <v-icon
+              tag="button"
+              data-test="delete-button"
+              icon="mdi-delete"
+              @click="openDialog"
+            />
+          </AnnouncementDelete>
         </td>
       </tr>
     </template>

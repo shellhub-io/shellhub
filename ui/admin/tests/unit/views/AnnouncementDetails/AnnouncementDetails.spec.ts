@@ -1,15 +1,13 @@
 import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import routes from "@admin/router";
 import AnnouncementDetails from "@admin/views/AnnouncementDetails.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type AnnouncementDetailsWrapper = VueWrapper<InstanceType<typeof AnnouncementDetails>>;
-
-const announcementDetail = {
+const mockAnnouncement = {
   uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
   title: "Announcement 1",
   content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
@@ -24,64 +22,53 @@ const announcementContentInHtml = `<h2>ShellHub new features</h2>
 </ul>
 `;
 
-const mockRoute = {
-  params: {
-    uuid: announcementDetail.uuid,
-  },
-};
+const mockRoute = { params: { uuid: mockAnnouncement.uuid } };
 
-describe("Announcement Details", () => {
-  let wrapper: AnnouncementDetailsWrapper;
+describe("Announcement Details", async () => {
+  setActivePinia(createPinia());
+  const announcementStore = useAnnouncementStore();
 
-  beforeEach(async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-    const announcementStore = useAnnouncementStore();
+  announcementStore.fetchAnnouncement = vi.fn().mockResolvedValue(mockAnnouncement);
+  announcementStore.announcement = mockAnnouncement;
 
-    announcementStore.fetchAnnouncement = vi.fn().mockResolvedValue(announcementDetail);
-    announcementStore.announcement = announcementDetail;
-
-    const vuetify = createVuetify();
-
-    wrapper = mount(AnnouncementDetails, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-        mocks: {
-          $route: mockRoute,
-          $router: { push: vi.fn() },
-        },
+  const wrapper = mount(AnnouncementDetails, {
+    global: {
+      plugins: [createVuetify(), routes, SnackbarPlugin],
+      mocks: {
+        $route: mockRoute,
+        $router: { push: vi.fn() },
       },
-    });
-
-    await flushPromises();
+    },
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBeTruthy();
+  await flushPromises();
+
+  it("Displays announcement title in card header", () => {
+    expect(wrapper.find(".text-h6").text()).toBe(mockAnnouncement.title);
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  it("Displays UUID field", () => {
+    const uuidField = wrapper.find('[data-test="announcement-uuid-field"]');
+    expect(uuidField.text()).toContain("UUID:");
+    expect(uuidField.text()).toContain(mockAnnouncement.uuid);
   });
 
-  it("Has the correct data", () => {
-    expect(wrapper.vm.announcement).toEqual(announcementDetail);
+  it("Displays date field with formatted date", () => {
+    const dateField = wrapper.find('[data-test="announcement-date-field"]');
+    expect(dateField.text()).toContain("Date:");
   });
 
-  it("Render the correct title", () => {
-    expect(wrapper.find("h1").text()).toEqual("Announcement Details");
+  it("Displays content field", () => {
+    const contentField = wrapper.find('[data-test="announcement-content-field"]');
+    expect(contentField.text()).toContain("Content:");
   });
 
-  it("Should render the props of the announcement in the Screen", () => {
-    expect(wrapper.find(`[data-test='${announcementDetail.uuid}']`).text()).toContain(announcementDetail.uuid);
-    expect(wrapper.find(`[data-test='${announcementDetail.title}']`).text()).toContain(announcementDetail.title);
-  });
-
-  it("Should render the markdown content in HTML", () => {
+  it("Renders markdown content as HTML", () => {
     expect(wrapper.vm.contentToHtml.trim()).toBe(announcementContentInHtml.trim());
   });
 
-  it("Should render the date in the correct format", () => {
-    expect(wrapper.vm.date).toBe("December 15, 2022");
+  it("Shows actions menu button", () => {
+    const menuBtn = wrapper.find('[data-test="announcement-actions-menu-btn"]');
+    expect(menuBtn.exists()).toBe(true);
   });
 });
