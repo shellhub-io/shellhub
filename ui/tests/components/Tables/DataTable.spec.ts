@@ -137,13 +137,16 @@ describe("DataTable", () => {
       combo.vm.$emit("update:modelValue", 25);
       await uiTick();
 
+      await combo.trigger("blur");
+      await uiTick();
+
       const pageEvents = wrapper.emitted("update:page");
       expect(pageEvents).toBeTruthy();
-      expect(pageEvents && pageEvents.some((e) => e[0] === 1)).toBe(true);
+      expect(pageEvents?.some((e) => e[0] === 1)).toBe(true);
 
       const ippEvents = wrapper.emitted("update:itemsPerPage");
       expect(ippEvents).toBeTruthy();
-      expect(ippEvents && ippEvents.at(-1)).toEqual([25]);
+      expect(ippEvents?.at(-1)).toEqual([25]);
     });
 
     it("increments/decrements page via chevrons and respects disabled states", async () => {
