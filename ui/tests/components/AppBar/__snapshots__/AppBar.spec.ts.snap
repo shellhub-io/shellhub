@@ -4,7 +4,7 @@ exports[`AppBar Component > Renders the component 1`] = `
 "<div class="v-layout">
   <!---->
   <!---->
-  <header class="v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-v-theme-surface border-b-thin" style="top: 0px; z-index: 1006; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
+  <header class="v-toolbar v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-v-theme-surface border-b-thin" style="top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; transition: none; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
     <!---->
     <div class="v-toolbar__content" style="height: 64px;">
       <!---->
@@ -43,9 +43,7 @@ exports[`AppBar Component > Renders the component 1`] = `
       </button>
       <!--teleport start-->
       <!--teleport end-->
-      <!--v-if-->
-      <!--teleport start-->
-      <!--teleport end--><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-14" aria-owns="v-menu-v-14" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <!--v-if--><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-8" aria-owns="v-menu-v-8" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="test@example.com" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
     </div></span>
     <!---->
