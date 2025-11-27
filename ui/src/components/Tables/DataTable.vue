@@ -65,58 +65,88 @@
       data-test="loading"
     />
 
-    <div
+    <v-row
       v-if="itemsPerPageOptions?.length"
-      class="d-flex w-100 justify-end align-center"
+      class="w-100 pt-3"
+      align="center"
+      justify="end"
       data-test="pager"
     >
-      <span
-        class="text-subtitle-2 mr-4"
-        data-test="ipp-label"
-      >Items per page:</span>
+      <v-col
+        cols="auto"
+        class="pa-0"
+      >
+        <span
+          class="text-subtitle-2 mr-4"
+          data-test="ipp-label"
+        >
+          Items per page:
+        </span>
+      </v-col>
 
-      <div>
+      <v-col
+        cols="auto"
+        class="pa-0"
+      >
         <v-combobox
-          v-model="itemsPerPage"
+          v-model="internalItemsPerPage"
           :items="itemsPerPageOptions"
           outlined
           variant="underlined"
-          hide-details
-          class="mb-4"
+          center-affix
+          type="number"
+          hide-spin-buttons
+          hide-details="auto"
+          hide-no-data
+          class="mb-4 mr-1 w-100"
+          filter-mode="every"
           data-test="ipp-combo"
-          @update:model-value="goToFirstPage"
+          :rules="[validateItemsPerPage]"
+          @blur="sanitizeItemsPerPage"
+          @keydown.enter="sanitizeItemsPerPage"
+          @keydown="blockNonNumeric"
+          @paste.prevent
         />
-      </div>
+      </v-col>
 
-      <div
-        class="d-flex align-center"
-        data-test="pager-controls"
+      <v-col
+        cols="auto"
+        class="pa-0"
       >
-        <v-btn
-          icon="mdi-chevron-left"
-          variant="plain"
-          :disabled="page <= 1"
-          data-test="pager-prev"
-          @click="page--"
-        />
-        <span
-          class="text-subtitle-2"
-          data-test="pager-text"
-        >{{ page }} of {{ pageQuantity }}</span>
-        <v-btn
-          icon="mdi-chevron-right"
-          variant="plain"
-          :disabled="pageQuantity <= 1 || page === pageQuantity"
-          data-test="pager-next"
-          @click="page++"
-        />
-      </div>
-    </div>
+        <div
+          class="d-flex align-center"
+          data-test="pager-controls"
+        >
+          <v-btn
+            icon="mdi-chevron-left"
+            variant="plain"
+            :disabled="page <= 1"
+            data-test="pager-prev"
+            @click="page--"
+          />
+
+          <span
+            class="text-subtitle-2"
+            data-test="pager-text"
+          >
+            {{ page }} of {{ pageQuantity }}
+          </span>
+
+          <v-btn
+            icon="mdi-chevron-right"
+            variant="plain"
+            :disabled="pageQuantity <= 1 || page === pageQuantity"
+            data-test="pager-next"
+            @click="page++"
+          />
+        </div>
+      </v-col>
+    </v-row>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 type Header = {
   text: string;
@@ -134,8 +164,61 @@ const props = defineProps<{
 
 defineEmits(["update:sort"]);
 
-const page = defineModel<number>("page", { required: true, type: Number });
-const itemsPerPage = defineModel("itemsPerPage", { required: true, type: Number });
-const pageQuantity = computed(() => Math.ceil(props.totalCount / itemsPerPage.value) || 1);
-const goToFirstPage = () => { page.value = 1; };
+const page = defineModel<number>("page", {
+  required: true,
+  type: Number,
+});
+
+const rawItemsPerPage = defineModel<number>("itemsPerPage", {
+  required: true,
+  type: Number,
+});
+
+const internalItemsPerPage = ref(rawItemsPerPage.value);
+
+const pageQuantity = computed(() => Math.ceil(props.totalCount / rawItemsPerPage.value) || 1);
+
+const goToFirstPage = () => {
+  page.value = 1;
+};
+
+const blockNonNumeric = (e: KeyboardEvent) => {
+  const allowedKeys = [
+    "Backspace",
+    "Delete",
+    "ArrowLeft",
+    "ArrowRight",
+    "Tab",
+    "Home",
+    "End",
+    "Enter",
+  ];
+
+  if (allowedKeys.includes(e.key)) return;
+
+  if (/^[0-9]$/.test(e.key)) return;
+
+  e.preventDefault();
+};
+
+const validateItemsPerPage = (value: unknown): true | string => {
+  const num = Number(value);
+
+  if (num < 1) return "Minimum is 1";
+  if (num > 100) return "Maximum is 100";
+
+  return true;
+};
+
+const sanitizeItemsPerPage = () => {
+  let num = Number(internalItemsPerPage.value);
+
+  if (isNaN(num) || num < 1) num = 1;
+  if (num > 100) num = 100;
+
+  rawItemsPerPage.value = num;
+  internalItemsPerPage.value = num;
+
+  goToFirstPage();
+};
 </script>
