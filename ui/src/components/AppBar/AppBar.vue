@@ -59,7 +59,7 @@
         <span>Need assistance? Click here for support.</span>
       </v-tooltip>
 
-      <DevicesDropdown />
+      <DevicesDropdown v-if="hasNamespaces" />
 
       <v-menu
         scrim
@@ -215,6 +215,7 @@ const userId = computed(() => authStore.id);
 const currentUser = computed(() => authStore.username);
 const isBillingActive = computed(() => billingStore.isActive);
 const theme = computed(() => layoutStore.theme);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
 const isChatCreated = computed(() => supportStore.isChatCreated);
 const identifier = computed(() => supportStore.identifier);
 const isDarkMode = ref(theme.value === "dark");
