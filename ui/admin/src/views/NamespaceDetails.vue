@@ -346,15 +346,6 @@ defineExpose({ namespace });
 </script>
 
 <style scoped>
-.item-title {
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1666666667em;
-  line-height: 2.667;
-}
-
 .unstyled-link {
   all: unset;
 }
