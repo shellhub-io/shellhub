@@ -10,6 +10,7 @@
 import { computed } from "vue";
 import AppLayout from "./layouts/AppLayout.vue";
 import useLayoutStore from "@/store/modules/layout";
+import "@/assets/global.css";
 
 const layoutStore = useLayoutStore();
 const theme = computed(() => layoutStore.theme);
