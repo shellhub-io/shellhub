@@ -75,19 +75,19 @@ jobs:
               armv6) platform="linux/arm/v6" ;;
               i386) platform="linux/386" ;;
             esac
-            
+
             # Build single architecture image for export
             docker buildx build \
               --platform $platform \
               --file agent/Dockerfile \
-              --tag shellhubio/agent:${{ env.IMAGE_TAG }}-$arch \
+              --tag shellhubio/agent:${{ env.RELEASE_VERSION }}-$arch \
               ${{ env.BUILD_ARGS }} \
               --load \
               --provenance=false \
               .
-            
+
             # Export rootfs
-            docker export $(docker create shellhubio/agent:${{ env.IMAGE_TAG }}-$arch) | gzip > rootfs/rootfs-$arch.tar.gz
+            docker export $(docker create shellhubio/agent:${{ env.RELEASE_VERSION }}-$arch) | gzip > rootfs/rootfs-$arch.tar.gz
           done
 
       - name: Upload rootfs artifacts
