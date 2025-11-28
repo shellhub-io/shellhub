@@ -138,15 +138,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style lang="scss" scoped>
-.item-title {
-  margin-top: 0.75rem;
-  // Vuetify's text-overline styles
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1666666667em;
-  line-height: 2.667;
-}
-</style>

@@ -1,10 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Details Sessions > Renders the component 1`] = `
-"<div data-v-727a3051="" class="d-flex pa-0 align-center">
-  <h1 data-v-727a3051="">Session Details</h1>
+"<div class="d-flex pa-0 align-center">
+  <h1>Session Details</h1>
 </div>
-<div data-v-727a3051="" class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background" data-test="session-details-card">
+<div class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated mt-2 border rounded bg-background" data-test="session-details-card">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -22,14 +22,14 @@ exports[`Details Sessions > Renders the component 1`] = `
   </div>
   <!---->
   <!---->
-  <div data-v-727a3051="" class="v-card-title bg-v-theme-surface pa-4 d-flex align-center justify-space-between">
-    <div data-v-727a3051="" class="d-flex align-center"><i data-v-727a3051="" class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-small text-white" aria-hidden="true" aria-describedby="v-tooltip-v-0" data-test="session-active-icon"></i>
+  <div class="v-card-title bg-v-theme-surface pa-4 d-flex align-center justify-space-between">
+    <div class="d-flex align-center"><i class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-small text-white" aria-hidden="true" aria-describedby="v-tooltip-v-0" data-test="session-active-icon"></i>
       <!--teleport start-->
-      <!--teleport end--><button data-v-727a3051="" type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated text-none border rounded bg-v-theme-background ml-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator="">00-00-00-00-00-01</span>
+      <!--teleport end--><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated text-none border rounded bg-v-theme-background ml-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator="">00-00-00-00-00-01</span>
         <!---->
         <!---->
       </button>
-    </div><button data-v-727a3051="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" aria-owns="v-menu-v-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" aria-owns="v-menu-v-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
@@ -37,35 +37,35 @@ exports[`Details Sessions > Renders the component 1`] = `
     <!--teleport start-->
     <!--teleport end-->
   </div>
-  <hr data-v-727a3051="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
-  <div data-v-727a3051="" class="v-card-text pa-4 pt-0">
-    <div data-v-727a3051="" class="v-row py-3">
-      <div data-v-727a3051="" class="v-col-md-6 v-col-12 my-0 py-0">
-        <div data-v-727a3051="" data-test="session-uid-field">
-          <div data-v-727a3051="" class="item-title"> UID: </div>
-          <p data-v-727a3051="" class="text-truncate">1</p>
+  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <div class="v-card-text pa-4 pt-0">
+    <div class="v-row py-3">
+      <div class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-test="session-uid-field">
+          <div class="item-title"> UID: </div>
+          <p class="text-truncate">1</p>
         </div>
-        <div data-v-727a3051="" data-test="session-user-field">
-          <div data-v-727a3051="" class="item-title"> User: </div>
-          <p data-v-727a3051="">test</p>
+        <div data-test="session-user-field">
+          <div class="item-title"> User: </div>
+          <p>test</p>
         </div>
-        <div data-v-727a3051="" data-test="session-authenticated-field">
-          <div data-v-727a3051="" class="item-title"> Authenticated: </div><i data-v-727a3051="" class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-7"></i>
+        <div data-test="session-authenticated-field">
+          <div class="item-title"> Authenticated: </div><i class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-7"></i>
           <!--teleport start-->
           <!--teleport end-->
         </div>
       </div>
-      <div data-v-727a3051="" class="v-col-md-6 v-col-12 my-0 py-0">
-        <div data-v-727a3051="" data-test="session-ip-address-field">
-          <div data-v-727a3051="" class="item-title"> IP address: </div><code data-v-727a3051="" class="bg-tabs pa-1">192.168.0.1</code>
+      <div class="v-col-md-6 v-col-12 my-0 py-0">
+        <div data-test="session-ip-address-field">
+          <div class="item-title"> IP address: </div><code class="bg-tabs pa-1">192.168.0.1</code>
         </div>
-        <div data-v-727a3051="" data-test="session-started-at-field">
-          <div data-v-727a3051="" class="item-title"> Started: </div>
-          <p data-v-727a3051="">Thursday, January 2nd 2025, 12:00:00 am</p>
+        <div data-test="session-started-at-field">
+          <div class="item-title"> Started: </div>
+          <p>Thursday, January 2nd 2025, 12:00:00 am</p>
         </div>
-        <div data-v-727a3051="" data-test="session-last-seen-field">
-          <div data-v-727a3051="" class="item-title"> Last seen: </div>
-          <p data-v-727a3051="">Thursday, January 2nd 2025, 12:00:00 am</p>
+        <div data-test="session-last-seen-field">
+          <div class="item-title"> Last seen: </div>
+          <p>Thursday, January 2nd 2025, 12:00:00 am</p>
         </div>
       </div>
     </div>

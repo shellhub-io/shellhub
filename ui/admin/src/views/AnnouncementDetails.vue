@@ -155,16 +155,6 @@ defineExpose({ announcement, contentToHtml });
 </script>
 
 <style lang="scss" scoped>
-.item-title {
-  margin-top: 0.75rem;
-  // Vuetify's text-overline styles
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.1666666667em;
-  line-height: 2.667;
-}
-
 :deep(.content-announcement) {
   p, span, div, h1, h2, h3, h4, h5, h6 {
     margin: .5rem;
