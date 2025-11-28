@@ -57,7 +57,7 @@ const emit = defineEmits(["update"]);
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
 const adminNamespacesStore = useAdminNamespacesStore();
-const showDialog = defineModel<boolean>({ default: false });
+const showDialog = defineModel<boolean>({ required: true });
 
 const {
   value: name,
