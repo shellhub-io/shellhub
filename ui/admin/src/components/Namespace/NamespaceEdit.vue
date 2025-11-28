@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { useField } from "vee-validate";
-import { computed, defineModel } from "vue";
+import { computed } from "vue";
 import * as yup from "yup";
 import useAdminNamespacesStore from "@admin/store/modules/namespaces";
 import useNamespacesStore from "@/store/modules/namespaces";
