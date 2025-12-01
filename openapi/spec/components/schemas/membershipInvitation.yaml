@@ -1,0 +1,65 @@
+type: object
+description: A membership invitation to a namespace
+properties:
+  namespace:
+    type: object
+    description: The namespace associated with this invitation
+    properties:
+      tenant_id:
+        description: The namespace tenant ID
+        type: string
+        example: "00000000-0000-4000-0000-000000000000"
+      name:
+        description: The namespace name
+        type: string
+        example: "my-namespace"
+    required:
+      - tenant_id
+      - name
+  user:
+    type: object
+    description: The invited user
+    properties:
+      id:
+        description: The ID of the invited user
+        type: string
+        example: "507f1f77bcf86cd799439011"
+      email:
+        description: The email of the invited user
+        type: string
+        example: "user@example.com"
+    required:
+      - id
+      - email
+  invited_by:
+    description: The ID of the user who sent the invitation
+    type: string
+    example: "507f1f77bcf86cd799439012"
+  created_at:
+    description: When the invitation was created
+    type: string
+    format: date-time
+  updated_at:
+    description: When the invitation was last updated
+    type: string
+    format: date-time
+  expires_at:
+    description: When the invitation expires
+    type: string
+    format: date-time
+    nullable: true
+  status:
+    description: The current status of the invitation
+    type: string
+    enum:
+      - pending
+      - accepted
+      - rejected
+      - cancelled
+    example: pending
+  status_updated_at:
+    description: When the status was last updated
+    type: string
+    format: date-time
+  role:
+    $ref: ./namespaceMemberRole.yaml
