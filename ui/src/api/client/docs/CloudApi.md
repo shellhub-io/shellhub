@@ -4,9 +4,10 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**acceptInvite**](#acceptinvite) | **PATCH** /api/namespaces/{tenant}/members/accept-invite | Accept a membership invite|
+|[**acceptInvite**](#acceptinvite) | **PATCH** /api/namespaces/{tenant}/invitations/accept | Accept a membership invite|
 |[**attachPaymentMethod**](#attachpaymentmethod) | **POST** /api/billing/paymentmethod/attach | Attach payment method|
 |[**authMFA**](#authmfa) | **POST** /api/user/mfa/auth | Auth MFA|
+|[**cancelMembershipInvitation**](#cancelmembershipinvitation) | **DELETE** /api/namespaces/{tenant}/invitations/{user-id} | Cancel a pending membership invitation|
 |[**choiceDevices**](#choicedevices) | **POST** /api/billing/device-choice | Choice devices|
 |[**clsoeSession**](#clsoesession) | **POST** /api/sessions/{uid}/close | Close session|
 |[**connectorCreate**](#connectorcreate) | **POST** /api/connector | Connector\&#39;s create|
@@ -21,6 +22,7 @@ All URIs are relative to *http://localhost*
 |[**createSubscription**](#createsubscription) | **POST** /api/billing/subscription | Create subscription|
 |[**createTunnel**](#createtunnel) | **POST** /api/devices/{uid}/tunnels | Create a tunnel|
 |[**createWebEndpoint**](#createwebendpoint) | **POST** /api/web-endpoints | Create a web-endpoint|
+|[**declineInvite**](#declineinvite) | **PATCH** /api/namespaces/{tenant}/invitations/decline | Decline a membership invite|
 |[**deleteAnnouncement**](#deleteannouncement) | **DELETE** /admin/api/announcements/{uuid} | Delete an announcement|
 |[**deleteFirewallRule**](#deletefirewallrule) | **DELETE** /api/firewall/rules/{id} | Delete firewall rule|
 |[**deleteSessionRecord**](#deletesessionrecord) | **DELETE** /api/sessions/{uid}/records/{seat} | Delete session record|
@@ -31,13 +33,15 @@ All URIs are relative to *http://localhost*
 |[**disableMFA**](#disablemfa) | **PUT** /api/user/mfa/disable | Disable MFA|
 |[**enableMFA**](#enablemfa) | **PUT** /api/user/mfa/enable | Enable MFA|
 |[**evaluate**](#evaluate) | **POST** /api/billing/evaluate | Evaluate|
-|[**generateInvitationLink**](#generateinvitationlink) | **POST** /api/namespaces/{tenant}/members/invites | Generate an invitation link for a namespace member|
+|[**generateInvitationLink**](#generateinvitationlink) | **POST** /api/namespaces/{tenant}/invitations/links | Generate an invitation link for a namespace member|
 |[**generateMFA**](#generatemfa) | **GET** /api/user/mfa/generate | Generate MFA Credentials|
 |[**getAnnouncementAdmin**](#getannouncementadmin) | **GET** /admin/api/announcements/{uuid} | Get a announcement|
 |[**getCustomer**](#getcustomer) | **GET** /api/billing/customer | Get Customer|
 |[**getDevicesMostUsed**](#getdevicesmostused) | **GET** /api/billing/devices-most-used | Get devices most used|
 |[**getFirewallRule**](#getfirewallrule) | **GET** /api/firewall/rules/{id} | Get firewall rule|
 |[**getFirewallRules**](#getfirewallrules) | **GET** /api/firewall/rules | Get firewall rules|
+|[**getMembershipInvitationList**](#getmembershipinvitationlist) | **GET** /api/users/invitations | Get membership invitations for the authenticated user|
+|[**getNamespaceMembershipInvitationList**](#getnamespacemembershipinvitationlist) | **GET** /api/namespaces/{tenant}/invitations | Get membership invitations for a namespace|
 |[**getNamespaceSupport**](#getnamespacesupport) | **GET** /api/namespaces/{tenant}/support | Get a namespace support identifier.|
 |[**getSamlAuthUrl**](#getsamlauthurl) | **GET** /api/user/saml/auth | Get SAML authentication URL|
 |[**getSessionRecord**](#getsessionrecord) | **GET** /api/sessions/{uid}/records/{seat} | Get session record|
@@ -57,31 +61,29 @@ All URIs are relative to *http://localhost*
 |[**setDefaultPaymentMethod**](#setdefaultpaymentmethod) | **POST** /api/billing/paymentmethod/default | Set default payment method|
 |[**updateAnnouncement**](#updateannouncement) | **PUT** /admin/api/announcements/{uuid} | Update an announcement|
 |[**updateFirewallRule**](#updatefirewallrule) | **PUT** /api/firewall/rules/{id} | Update firewall rule|
+|[**updateMembershipInvitation**](#updatemembershipinvitation) | **PATCH** /api/namespaces/{tenant}/invitations/{user-id} | Update a pending membership invitation|
 |[**updateRecoverPassword**](#updaterecoverpassword) | **POST** /api/user/{uid}/update_password | Update user password|
 
 # **acceptInvite**
 > acceptInvite()
 
-This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
 
 ### Example
 
 ```typescript
 import {
     CloudApi,
-    Configuration,
-    AcceptInviteRequest
+    Configuration
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new CloudApi(configuration);
 
 let tenant: string; //Namespace\'s tenant ID (default to undefined)
-let acceptInviteRequest: AcceptInviteRequest; // (optional)
 
 const { status, data } = await apiInstance.acceptInvite(
-    tenant,
-    acceptInviteRequest
+    tenant
 );
 ```
 
@@ -89,7 +91,6 @@ const { status, data } = await apiInstance.acceptInvite(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **acceptInviteRequest** | **AcceptInviteRequest**|  | |
 | **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
 
 
@@ -103,7 +104,7 @@ void (empty response body)
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 
@@ -226,6 +227,65 @@ No authorization required
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Success to authenticate. |  -  |
+|**400** | Bad request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **cancelMembershipInvitation**
+> cancelMembershipInvitation()
+
+Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+
+### Example
+
+```typescript
+import {
+    CloudApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CloudApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+let userId: string; //The ID of the invited user (default to undefined)
+
+const { status, data } = await apiInstance.cancelMembershipInvitation(
+    tenant,
+    userId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+| **userId** | [**string**] | The ID of the invited user | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Invitation successfully cancelled |  -  |
 |**400** | Bad request |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
@@ -1011,6 +1071,62 @@ const { status, data } = await apiInstance.createWebEndpoint(
 |-------------|-------------|------------------|
 |**200** | Web-endpoint created successfully. |  -  |
 |**400** | Bad request |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **declineInvite**
+> declineInvite()
+
+Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+
+### Example
+
+```typescript
+import {
+    CloudApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CloudApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+
+const { status, data } = await apiInstance.declineInvite(
+    tenant
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Invitation successfully declined |  -  |
+|**400** | Bad request |  -  |
+|**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
 |**500** | Internal error |  -  |
@@ -1927,6 +2043,129 @@ const { status, data } = await apiInstance.getFirewallRules(
 |**200** | Success to get firewall rules. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getMembershipInvitationList**
+> Array<MembershipInvitation> getMembershipInvitationList()
+
+Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+
+### Example
+
+```typescript
+import {
+    CloudApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CloudApi(configuration);
+
+let filter: string; //Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  (optional) (default to undefined)
+let page: number; //Page number (optional) (default to 1)
+let perPage: number; //Items per page (optional) (default to 10)
+
+const { status, data } = await apiInstance.getMembershipInvitationList(
+    filter,
+    page,
+    perPage
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **filter** | [**string**] | Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  | (optional) defaults to undefined|
+| **page** | [**number**] | Page number | (optional) defaults to 1|
+| **perPage** | [**number**] | Items per page | (optional) defaults to 10|
+
+
+### Return type
+
+**Array<MembershipInvitation>**
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successfully retrieved membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getNamespaceMembershipInvitationList**
+> Array<MembershipInvitation> getNamespaceMembershipInvitationList()
+
+Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+
+### Example
+
+```typescript
+import {
+    CloudApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CloudApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+let filter: string; //Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  (optional) (default to undefined)
+let page: number; //Page number (optional) (default to 1)
+let perPage: number; //Items per page (optional) (default to 10)
+
+const { status, data } = await apiInstance.getNamespaceMembershipInvitationList(
+    tenant,
+    filter,
+    page,
+    perPage
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+| **filter** | [**string**] | Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  | (optional) defaults to undefined|
+| **page** | [**number**] | Page number | (optional) defaults to 1|
+| **perPage** | [**number**] | Items per page | (optional) defaults to 10|
+
+
+### Return type
+
+**Array<MembershipInvitation>**
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successfully retrieved namespace membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
 |**500** | Internal error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -3009,6 +3248,69 @@ const { status, data } = await apiInstance.updateFirewallRule(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Success to update firewall rule. |  -  |
+|**400** | Bad request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updateMembershipInvitation**
+> updateMembershipInvitation()
+
+Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+
+### Example
+
+```typescript
+import {
+    CloudApi,
+    Configuration,
+    UpdateNamespaceMemberRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CloudApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+let userId: string; //The ID of the invited user (default to undefined)
+let updateNamespaceMemberRequest: UpdateNamespaceMemberRequest; // (optional)
+
+const { status, data } = await apiInstance.updateMembershipInvitation(
+    tenant,
+    userId,
+    updateNamespaceMemberRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **updateNamespaceMemberRequest** | **UpdateNamespaceMemberRequest**|  | |
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+| **userId** | [**string**] | The ID of the invited user | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Invitation successfully updated |  -  |
 |**400** | Bad request |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
