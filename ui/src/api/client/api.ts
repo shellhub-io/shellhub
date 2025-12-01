@@ -23,12 +23,6 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
-export interface AcceptInviteRequest {
-    /**
-     * The unique key included in the email link.
-     */
-    'sig': string;
-}
 export interface AddNamespaceMemberRequest {
     /**
      * The email of the member.
@@ -1651,6 +1645,77 @@ export interface LoginRequest {
 }
 export interface LookupUserStatus200Response {
     'status'?: string;
+}
+/**
+ * A membership invitation to a namespace
+ */
+export interface MembershipInvitation {
+    'namespace'?: MembershipInvitationNamespace;
+    'user'?: MembershipInvitationUser;
+    /**
+     * The ID of the user who sent the invitation
+     */
+    'invited_by'?: string;
+    /**
+     * When the invitation was created
+     */
+    'created_at'?: string;
+    /**
+     * When the invitation was last updated
+     */
+    'updated_at'?: string;
+    /**
+     * When the invitation expires
+     */
+    'expires_at'?: string | null;
+    'status'?: MembershipInvitationStatus;
+    /**
+     * When the status was last updated
+     */
+    'status_updated_at'?: string;
+    'role'?: NamespaceMemberRole;
+}
+
+
+/**
+ * The namespace associated with this invitation
+ */
+export interface MembershipInvitationNamespace {
+    /**
+     * The namespace tenant ID
+     */
+    'tenant_id': string;
+    /**
+     * The namespace name
+     */
+    'name': string;
+}
+/**
+ * The current status of the invitation
+ */
+
+export const MembershipInvitationStatus = {
+    Pending: 'pending',
+    Accepted: 'accepted',
+    Rejected: 'rejected',
+    Cancelled: 'cancelled'
+} as const;
+
+export type MembershipInvitationStatus = typeof MembershipInvitationStatus[keyof typeof MembershipInvitationStatus];
+
+
+/**
+ * The invited user
+ */
+export interface MembershipInvitationUser {
+    /**
+     * The ID of the invited user
+     */
+    'id': string;
+    /**
+     * The email of the invited user
+     */
+    'email': string;
 }
 export interface MfaAuth {
     /**
@@ -7232,17 +7297,16 @@ export class BillingApi extends BaseAPI {
 export const CloudApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite: async (tenant: string, acceptInviteRequest?: AcceptInviteRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        acceptInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('acceptInvite', 'tenant', tenant)
-            const localVarPath = `/api/namespaces/{tenant}/members/accept-invite`
+            const localVarPath = `/api/namespaces/{tenant}/invitations/accept`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -7261,12 +7325,9 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(acceptInviteRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -7342,6 +7403,48 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(mfaAuth, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancelMembershipInvitation: async (tenant: string, userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('cancelMembershipInvitation', 'tenant', tenant)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('cancelMembershipInvitation', 'userId', userId)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/{user-id}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -7947,6 +8050,44 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('declineInvite', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/decline`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Delete an announcement.
          * @summary Delete an announcement
          * @param {string} uuid 
@@ -8359,7 +8500,7 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
         generateInvitationLink: async (tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('generateInvitationLink', 'tenant', tenant)
-            const localVarPath = `/api/namespaces/{tenant}/members/invites`
+            const localVarPath = `/api/namespaces/{tenant}/invitations/links`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -8607,6 +8748,108 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             // authentication jwt required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMembershipInvitationList: async (filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/users/invitations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNamespaceMembershipInvitationList: async (tenant: string, filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('getNamespaceMembershipInvitationList', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/invitations`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
 
             if (page !== undefined) {
                 localVarQueryParameter['page'] = page;
@@ -9423,6 +9666,52 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateMembershipInvitation: async (tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('updateMembershipInvitation', 'tenant', tenant)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('updateMembershipInvitation', 'userId', userId)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/{user-id}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateNamespaceMemberRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Update user password from a recovery token got from email.
          * @summary Update user password
          * @param {string} uid User\&#39;s UID.
@@ -9470,15 +9759,14 @@ export const CloudApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = CloudApiAxiosParamCreator(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+        async acceptInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.acceptInvite']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -9507,6 +9795,20 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authMFA(mfaAuth, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.authMFA']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cancelMembershipInvitation(tenant, userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.cancelMembershipInvitation']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -9693,6 +9995,19 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createWebEndpoint(createWebEndpointRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.createWebEndpoint']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async declineInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.declineInvite(tenant, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.declineInvite']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -9914,6 +10229,37 @@ export const CloudApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFirewallRules(page, perPage, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CloudApi.getFirewallRules']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MembershipInvitation>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMembershipInvitationList(filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.getMembershipInvitationList']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MembershipInvitation>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.getNamespaceMembershipInvitationList']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -10178,6 +10524,21 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.updateMembershipInvitation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Update user password from a recovery token got from email.
          * @summary Update user password
          * @param {string} uid User\&#39;s UID.
@@ -10201,15 +10562,14 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = CloudApiFp(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
+        acceptInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.acceptInvite(tenant, options).then((request) => request(axios, basePath));
         },
         /**
          * Attachs a payment method to a customer.
@@ -10230,6 +10590,17 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         authMFA(mfaAuth?: MfaAuth, options?: RawAxiosRequestConfig): AxiosPromise<UserAuth> {
             return localVarFp.authMFA(mfaAuth, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.cancelMembershipInvitation(tenant, userId, options).then((request) => request(axios, basePath));
         },
         /**
          * Choice devices when device\'s limit is rechead.
@@ -10374,6 +10745,16 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         createWebEndpoint(createWebEndpointRequest: CreateWebEndpointRequest, options?: RawAxiosRequestConfig): AxiosPromise<Webendpoint> {
             return localVarFp.createWebEndpoint(createWebEndpointRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.declineInvite(tenant, options).then((request) => request(axios, basePath));
         },
         /**
          * Delete an announcement.
@@ -10544,6 +10925,31 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         getFirewallRules(page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<FirewallRulesResponse>> {
             return localVarFp.getFirewallRules(page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<MembershipInvitation>> {
+            return localVarFp.getMembershipInvitationList(filter, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<MembershipInvitation>> {
+            return localVarFp.getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
          * Get a namespace support identifier.
@@ -10750,6 +11156,18 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.updateFirewallRule(id, firewallRulesRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Update user password from a recovery token got from email.
          * @summary Update user password
          * @param {string} uid User\&#39;s UID.
@@ -10768,15 +11186,14 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
  */
 export class CloudApi extends BaseAPI {
     /**
-     * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+     * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
      * @summary Accept a membership invite
      * @param {string} tenant Namespace\&#39;s tenant ID
-     * @param {AcceptInviteRequest} [acceptInviteRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    public acceptInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).acceptInvite(tenant, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -10799,6 +11216,18 @@ export class CloudApi extends BaseAPI {
      */
     public authMFA(mfaAuth?: MfaAuth, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).authMFA(mfaAuth, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+     * @summary Cancel a pending membership invitation
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} userId The ID of the invited user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).cancelMembershipInvitation(tenant, userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -10957,6 +11386,17 @@ export class CloudApi extends BaseAPI {
      */
     public createWebEndpoint(createWebEndpointRequest: CreateWebEndpointRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).createWebEndpoint(createWebEndpointRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+     * @summary Decline a membership invite
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public declineInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).declineInvite(tenant, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -11144,6 +11584,33 @@ export class CloudApi extends BaseAPI {
      */
     public getFirewallRules(page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).getFirewallRules(page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+     * @summary Get membership invitations for the authenticated user
+     * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).getMembershipInvitationList(filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+     * @summary Get membership invitations for a namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -11367,6 +11834,19 @@ export class CloudApi extends BaseAPI {
      */
     public updateFirewallRule(id: string, firewallRulesRequest?: FirewallRulesRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).updateFirewallRule(id, firewallRulesRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+     * @summary Update a pending membership invitation
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} userId The ID of the invited user
+     * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -21754,17 +22234,16 @@ export class LicenseApi extends BaseAPI {
 export const MembersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite: async (tenant: string, acceptInviteRequest?: AcceptInviteRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        acceptInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('acceptInvite', 'tenant', tenant)
-            const localVarPath = `/api/namespaces/{tenant}/members/accept-invite`
+            const localVarPath = `/api/namespaces/{tenant}/invitations/accept`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -21783,12 +22262,9 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
 
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(acceptInviteRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -21838,6 +22314,86 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancelMembershipInvitation: async (tenant: string, userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('cancelMembershipInvitation', 'tenant', tenant)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('cancelMembershipInvitation', 'userId', userId)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/{user-id}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('declineInvite', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/decline`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
          * @summary Generate an invitation link for a namespace member
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -21848,7 +22404,7 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
         generateInvitationLink: async (tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('generateInvitationLink', 'tenant', tenant)
-            const localVarPath = `/api/namespaces/{tenant}/members/invites`
+            const localVarPath = `/api/namespaces/{tenant}/invitations/links`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -21873,6 +22429,108 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(addNamespaceMemberRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMembershipInvitationList: async (filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/users/invitations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNamespaceMembershipInvitationList: async (tenant: string, filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('getNamespaceMembershipInvitationList', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/invitations`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -21965,6 +22623,52 @@ export const MembersApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateMembershipInvitation: async (tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('updateMembershipInvitation', 'tenant', tenant)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('updateMembershipInvitation', 'userId', userId)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/{user-id}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateNamespaceMemberRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -21975,15 +22679,14 @@ export const MembersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = MembersApiAxiosParamCreator(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+        async acceptInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MembersApi.acceptInvite']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -22003,6 +22706,33 @@ export const MembersApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cancelMembershipInvitation(tenant, userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MembersApi.cancelMembershipInvitation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async declineInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.declineInvite(tenant, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MembersApi.declineInvite']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
          * @summary Generate an invitation link for a namespace member
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -22014,6 +22744,37 @@ export const MembersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.generateInvitationLink(tenant, addNamespaceMemberRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MembersApi.generateInvitationLink']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MembershipInvitation>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMembershipInvitationList(filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MembersApi.getMembershipInvitationList']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MembershipInvitation>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MembersApi.getNamespaceMembershipInvitationList']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -22044,6 +22805,21 @@ export const MembersApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['MembersApi.lookupUserStatus']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MembersApi.updateMembershipInvitation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -22054,15 +22830,14 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = MembersApiFp(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
+        acceptInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.acceptInvite(tenant, options).then((request) => request(axios, basePath));
         },
         /**
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
@@ -22076,6 +22851,27 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.addNamespaceMember(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.cancelMembershipInvitation(tenant, userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.declineInvite(tenant, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
          * @summary Generate an invitation link for a namespace member
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -22085,6 +22881,31 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
          */
         generateInvitationLink(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: RawAxiosRequestConfig): AxiosPromise<GenerateInvitationLink200Response> {
             return localVarFp.generateInvitationLink(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<MembershipInvitation>> {
+            return localVarFp.getMembershipInvitationList(filter, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<MembershipInvitation>> {
+            return localVarFp.getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
          * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
@@ -22108,6 +22929,18 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
         lookupUserStatus(tenant: string, id: string, sig: string, options?: RawAxiosRequestConfig): AxiosPromise<LookupUserStatus200Response> {
             return localVarFp.lookupUserStatus(tenant, id, sig, options).then((request) => request(axios, basePath));
         },
+        /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -22116,15 +22949,14 @@ export const MembersApiFactory = function (configuration?: Configuration, basePa
  */
 export class MembersApi extends BaseAPI {
     /**
-     * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+     * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
      * @summary Accept a membership invite
      * @param {string} tenant Namespace\&#39;s tenant ID
-     * @param {AcceptInviteRequest} [acceptInviteRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig) {
-        return MembersApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    public acceptInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return MembersApiFp(this.configuration).acceptInvite(tenant, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -22140,6 +22972,29 @@ export class MembersApi extends BaseAPI {
     }
 
     /**
+     * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+     * @summary Cancel a pending membership invitation
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} userId The ID of the invited user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig) {
+        return MembersApiFp(this.configuration).cancelMembershipInvitation(tenant, userId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+     * @summary Decline a membership invite
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public declineInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return MembersApiFp(this.configuration).declineInvite(tenant, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Generates a unique invitation link to invite a member to a namespace using their email. Each invitation link is unique and tied to the provided email. Upon accepting the invitation, the user\'s status will automatically be set to `accepted`. If the user associated with the email does not exist, the invitation link will redirect them to the signup page.  The invitation remains valid for **7 days**. 
      * @summary Generate an invitation link for a namespace member
      * @param {string} tenant Namespace\&#39;s tenant ID
@@ -22149,6 +23004,33 @@ export class MembersApi extends BaseAPI {
      */
     public generateInvitationLink(tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options?: RawAxiosRequestConfig) {
         return MembersApiFp(this.configuration).generateInvitationLink(tenant, addNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+     * @summary Get membership invitations for the authenticated user
+     * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return MembersApiFp(this.configuration).getMembershipInvitationList(filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+     * @summary Get membership invitations for a namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return MembersApiFp(this.configuration).getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -22173,6 +23055,19 @@ export class MembersApi extends BaseAPI {
      */
     public lookupUserStatus(tenant: string, id: string, sig: string, options?: RawAxiosRequestConfig) {
         return MembersApiFp(this.configuration).lookupUserStatus(tenant, id, sig, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+     * @summary Update a pending membership invitation
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} userId The ID of the invited user
+     * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig) {
+        return MembersApiFp(this.configuration).updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -22705,17 +23600,16 @@ export class MfaApi extends BaseAPI {
 export const NamespacesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite: async (tenant: string, acceptInviteRequest?: AcceptInviteRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        acceptInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('acceptInvite', 'tenant', tenant)
-            const localVarPath = `/api/namespaces/{tenant}/members/accept-invite`
+            const localVarPath = `/api/namespaces/{tenant}/invitations/accept`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -22734,12 +23628,9 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
 
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(acceptInviteRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -22957,6 +23848,48 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(apiKeyUpdate, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancelMembershipInvitation: async (tenant: string, userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('cancelMembershipInvitation', 'tenant', tenant)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('cancelMembershipInvitation', 'userId', userId)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/{user-id}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -23312,6 +24245,44 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('declineInvite', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/decline`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Delete a namespace.
          * @summary Delete namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -23544,7 +24515,7 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
         generateInvitationLink: async (tenant: string, addNamespaceMemberRequest?: AddNamespaceMemberRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('generateInvitationLink', 'tenant', tenant)
-            const localVarPath = `/api/namespaces/{tenant}/members/invites`
+            const localVarPath = `/api/namespaces/{tenant}/invitations/links`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -23569,6 +24540,55 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(addNamespaceMemberRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMembershipInvitationList: async (filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/users/invitations`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -23645,6 +24665,59 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             // authentication jwt required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNamespaceMembershipInvitationList: async (tenant: string, filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('getNamespaceMembershipInvitationList', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/invitations`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
 
 
     
@@ -24017,6 +25090,52 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateMembershipInvitation: async (tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('updateMembershipInvitation', 'tenant', tenant)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('updateMembershipInvitation', 'userId', userId)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/{user-id}`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
+                .replace(`{${"user-id"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateNamespaceMemberRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Update a member role from a namespace.
          * @summary Update a member from a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -24072,15 +25191,14 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = NamespacesApiAxiosParamCreator(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+        async acceptInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['NamespacesApi.acceptInvite']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -24153,6 +25271,20 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiKeyUpdate(key, apiKeyUpdate, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['NamespacesApi.apiKeyUpdate']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.cancelMembershipInvitation(tenant, userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.cancelMembershipInvitation']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -24264,6 +25396,19 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async declineInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.declineInvite(tenant, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.declineInvite']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Delete a namespace.
          * @summary Delete namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -24348,6 +25493,21 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MembershipInvitation>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMembershipInvitationList(filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.getMembershipInvitationList']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get a namespace.
          * @summary Get a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -24371,6 +25531,22 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getNamespaceAdmin(tenant, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['NamespacesApi.getNamespaceAdmin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MembershipInvitation>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.getNamespaceMembershipInvitationList']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -24487,6 +25663,21 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.updateMembershipInvitation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Update a member role from a namespace.
          * @summary Update a member from a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -24511,15 +25702,14 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
     const localVarFp = NamespacesApiFp(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
+        acceptInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.acceptInvite(tenant, options).then((request) => request(axios, basePath));
         },
         /**
          * Invites a member to a namespace.  In enterprise and community instances, the member will automatically accept the invite and will have an `accepted` status.  In cloud instances, the member will have a `pending` status until they accept the invite via an email sent to them. The invite is valid for **7 days**. If the member was previously invited and the invite is no longer valid, the same route will resend the invite. 
@@ -24575,6 +25765,17 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
          */
         apiKeyUpdate(key: string, apiKeyUpdate?: ApiKeyUpdate, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.apiKeyUpdate(key, apiKeyUpdate, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+         * @summary Cancel a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.cancelMembershipInvitation(tenant, userId, options).then((request) => request(axios, basePath));
         },
         /**
          * Create a new connector.
@@ -24661,6 +25862,16 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.createNamespaceAdmin(tenant, createNamespaceRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.declineInvite(tenant, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Delete a namespace.
          * @summary Delete namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -24727,6 +25938,18 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.generateInvitationLink(tenant, addNamespaceMemberRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+         * @summary Get membership invitations for the authenticated user
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<MembershipInvitation>> {
+            return localVarFp.getMembershipInvitationList(filter, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get a namespace.
          * @summary Get a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -24745,6 +25968,19 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
          */
         getNamespaceAdmin(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<Namespace> {
             return localVarFp.getNamespaceAdmin(tenant, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+         * @summary Get membership invitations for a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<MembershipInvitation>> {
+            return localVarFp.getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
          * Get a namespace support identifier.
@@ -24836,6 +26072,18 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.removeNamespaceMember(tenant, uid, options).then((request) => request(axios, basePath));
         },
         /**
+         * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+         * @summary Update a pending membership invitation
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} userId The ID of the invited user
+         * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Update a member role from a namespace.
          * @summary Update a member from a namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -24855,15 +26103,14 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
  */
 export class NamespacesApi extends BaseAPI {
     /**
-     * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+     * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
      * @summary Accept a membership invite
      * @param {string} tenant Namespace\&#39;s tenant ID
-     * @param {AcceptInviteRequest} [acceptInviteRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    public acceptInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).acceptInvite(tenant, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -24924,6 +26171,18 @@ export class NamespacesApi extends BaseAPI {
      */
     public apiKeyUpdate(key: string, apiKeyUpdate?: ApiKeyUpdate, options?: RawAxiosRequestConfig) {
         return NamespacesApiFp(this.configuration).apiKeyUpdate(key, apiKeyUpdate, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+     * @summary Cancel a pending membership invitation
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} userId The ID of the invited user
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).cancelMembershipInvitation(tenant, userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -25019,6 +26278,17 @@ export class NamespacesApi extends BaseAPI {
     }
 
     /**
+     * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+     * @summary Decline a membership invite
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public declineInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).declineInvite(tenant, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Delete a namespace.
      * @summary Delete namespace
      * @param {string} tenant Namespace\&#39;s tenant ID
@@ -25091,6 +26361,19 @@ export class NamespacesApi extends BaseAPI {
     }
 
     /**
+     * Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+     * @summary Get membership invitations for the authenticated user
+     * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMembershipInvitationList(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).getMembershipInvitationList(filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get a namespace.
      * @summary Get a namespace
      * @param {string} tenant Namespace\&#39;s tenant ID
@@ -25110,6 +26393,20 @@ export class NamespacesApi extends BaseAPI {
      */
     public getNamespaceAdmin(tenant: string, options?: RawAxiosRequestConfig) {
         return NamespacesApiFp(this.configuration).getNamespaceAdmin(tenant, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+     * @summary Get membership invitations for a namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} [filter] Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search. 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getNamespaceMembershipInvitationList(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).getNamespaceMembershipInvitationList(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -25207,6 +26504,19 @@ export class NamespacesApi extends BaseAPI {
      */
     public removeNamespaceMember(tenant: string, uid: string, options?: RawAxiosRequestConfig) {
         return NamespacesApiFp(this.configuration).removeNamespaceMember(tenant, uid, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+     * @summary Update a pending membership invitation
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} userId The ID of the invited user
+     * @param {UpdateNamespaceMemberRequest} [updateNamespaceMemberRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateMembershipInvitation(tenant: string, userId: string, updateNamespaceMemberRequest?: UpdateNamespaceMemberRequest, options?: RawAxiosRequestConfig) {
+        return NamespacesApiFp(this.configuration).updateMembershipInvitation(tenant, userId, updateNamespaceMemberRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -28961,17 +30271,16 @@ export class TunnelsApi extends BaseAPI {
 export const UsersApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite: async (tenant: string, acceptInviteRequest?: AcceptInviteRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        acceptInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
             assertParamExists('acceptInvite', 'tenant', tenant)
-            const localVarPath = `/api/namespaces/{tenant}/members/accept-invite`
+            const localVarPath = `/api/namespaces/{tenant}/invitations/accept`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -28990,12 +30299,9 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
 
 
     
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(acceptInviteRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -29266,6 +30572,44 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(userAdminRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite: async (tenant: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('declineInvite', 'tenant', tenant)
+            const localVarPath = `/api/namespaces/{tenant}/invitations/decline`
+                .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -30170,15 +31514,14 @@ export const UsersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = UsersApiAxiosParamCreator(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, acceptInviteRequest, options);
+        async acceptInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.acceptInvite(tenant, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.acceptInvite']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -30272,6 +31615,19 @@ export const UsersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createUserAdmin(userAdminRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UsersApi.createUserAdmin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async declineInvite(tenant: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.declineInvite(tenant, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.declineInvite']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -30592,15 +31948,14 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
     const localVarFp = UsersApiFp(configuration)
     return {
         /**
-         * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+         * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
          * @summary Accept a membership invite
          * @param {string} tenant Namespace\&#39;s tenant ID
-         * @param {AcceptInviteRequest} [acceptInviteRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(axios, basePath));
+        acceptInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.acceptInvite(tenant, options).then((request) => request(axios, basePath));
         },
         /**
          * Delete a user.
@@ -30671,6 +32026,16 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
          */
         createUserAdmin(userAdminRequest?: UserAdminRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.createUserAdmin(userAdminRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+         * @summary Decline a membership invite
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        declineInvite(tenant: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.declineInvite(tenant, options).then((request) => request(axios, basePath));
         },
         /**
          * Deletes the authenticated user. The user will be removed from any namespaces they are a member of. Users who are owners of namespaces cannot be deleted. In such cases, the user must delete the namespace(s) first.  > NOTE: This route is available only for **cloud** instances. Enterprise users must use the admin console, and community users must use the CLI. 
@@ -30919,15 +32284,14 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
  */
 export class UsersApi extends BaseAPI {
     /**
-     * This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+     * Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
      * @summary Accept a membership invite
      * @param {string} tenant Namespace\&#39;s tenant ID
-     * @param {AcceptInviteRequest} [acceptInviteRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public acceptInvite(tenant: string, acceptInviteRequest?: AcceptInviteRequest, options?: RawAxiosRequestConfig) {
-        return UsersApiFp(this.configuration).acceptInvite(tenant, acceptInviteRequest, options).then((request) => request(this.axios, this.basePath));
+    public acceptInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).acceptInvite(tenant, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -31005,6 +32369,17 @@ export class UsersApi extends BaseAPI {
      */
     public createUserAdmin(userAdminRequest?: UserAdminRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).createUserAdmin(userAdminRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+     * @summary Decline a membership invite
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public declineInvite(tenant: string, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).declineInvite(tenant, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

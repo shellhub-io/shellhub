@@ -4,7 +4,6 @@ api.ts
 base.ts
 common.ts
 configuration.ts
-docs/AcceptInviteRequest.md
 docs/AddNamespaceMemberRequest.md
 docs/AdminApi.md
 docs/AdminResetUserPassword200Response.md
@@ -120,6 +119,10 @@ docs/LoginAdminRequest.md
 docs/LoginRequest.md
 docs/LookupUserStatus200Response.md
 docs/MembersApi.md
+docs/MembershipInvitation.md
+docs/MembershipInvitationNamespace.md
+docs/MembershipInvitationStatus.md
+docs/MembershipInvitationUser.md
 docs/MfaApi.md
 docs/MfaAuth.md
 docs/MfaDisable.md

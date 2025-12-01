@@ -4,12 +4,13 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**acceptInvite**](#acceptinvite) | **PATCH** /api/namespaces/{tenant}/members/accept-invite | Accept a membership invite|
+|[**acceptInvite**](#acceptinvite) | **PATCH** /api/namespaces/{tenant}/invitations/accept | Accept a membership invite|
 |[**addNamespaceMember**](#addnamespacemember) | **POST** /api/namespaces/{tenant}/members | Invite member|
 |[**apiKeyCreate**](#apikeycreate) | **POST** /api/namespaces/api-key | Creates an API key.|
 |[**apiKeyDelete**](#apikeydelete) | **DELETE** /api/namespaces/api-key/{key} | Delete an API key|
 |[**apiKeyList**](#apikeylist) | **GET** /api/namespaces/api-key | List API Keys|
 |[**apiKeyUpdate**](#apikeyupdate) | **PATCH** /api/namespaces/api-key/{key} | Update an API key|
+|[**cancelMembershipInvitation**](#cancelmembershipinvitation) | **DELETE** /api/namespaces/{tenant}/invitations/{user-id} | Cancel a pending membership invitation|
 |[**connectorCreate**](#connectorcreate) | **POST** /api/connector | Connector\&#39;s create|
 |[**connectorDelete**](#connectordelete) | **DELETE** /api/connector/{uid} | Connector\&#39;s delete|
 |[**connectorGet**](#connectorget) | **GET** /api/connector/{uid} | Connector\&#39;s get|
@@ -18,14 +19,17 @@ All URIs are relative to *http://localhost*
 |[**connectorUpdate**](#connectorupdate) | **PATCH** /api/connector/{uid} | Connector\&#39;s setting update|
 |[**createNamespace**](#createnamespace) | **POST** /api/namespaces | Create namespace|
 |[**createNamespaceAdmin**](#createnamespaceadmin) | **POST** /admin/api/namespaces/{tenant} | Create namespace admin|
+|[**declineInvite**](#declineinvite) | **PATCH** /api/namespaces/{tenant}/invitations/decline | Decline a membership invite|
 |[**deleteNamespace**](#deletenamespace) | **DELETE** /api/namespaces/{tenant} | Delete namespace|
 |[**deleteNamespaceAdmin**](#deletenamespaceadmin) | **DELETE** /admin/api/namespaces/{tenant} | Delete namespace admin|
 |[**editNamespace**](#editnamespace) | **PUT** /api/namespaces/{tenant} | Edit namespace|
 |[**editNamespaceAdmin**](#editnamespaceadmin) | **PUT** /admin/api/namespaces-update/{tenantID} | Edit namespace admin|
 |[**exportNamespaces**](#exportnamespaces) | **GET** /admin/api/export/namespaces | export namespace|
-|[**generateInvitationLink**](#generateinvitationlink) | **POST** /api/namespaces/{tenant}/members/invites | Generate an invitation link for a namespace member|
+|[**generateInvitationLink**](#generateinvitationlink) | **POST** /api/namespaces/{tenant}/invitations/links | Generate an invitation link for a namespace member|
+|[**getMembershipInvitationList**](#getmembershipinvitationlist) | **GET** /api/users/invitations | Get membership invitations for the authenticated user|
 |[**getNamespace**](#getnamespace) | **GET** /api/namespaces/{tenant} | Get a namespace|
 |[**getNamespaceAdmin**](#getnamespaceadmin) | **GET** /admin/api/namespaces/{tenant} | Get namespace admin|
+|[**getNamespaceMembershipInvitationList**](#getnamespacemembershipinvitationlist) | **GET** /api/namespaces/{tenant}/invitations | Get membership invitations for a namespace|
 |[**getNamespaceSupport**](#getnamespacesupport) | **GET** /api/namespaces/{tenant}/support | Get a namespace support identifier.|
 |[**getNamespaceToken**](#getnamespacetoken) | **GET** /api/auth/token/{tenant} | Get a new namespace\&#39;s token|
 |[**getNamespaces**](#getnamespaces) | **GET** /api/namespaces | Get namespaces list|
@@ -34,31 +38,29 @@ All URIs are relative to *http://localhost*
 |[**lookupUserStatus**](#lookupuserstatus) | **GET** /api/namespaces/{tenant}/members/{id}/accept-invite | Lookup User\&#39;s Status|
 |[**lookupUserStatus_0**](#lookupuserstatus_0) | **GET** /api/namespaces/{tenant}/members/{id}/accept-invite | Lookup User\&#39;s Status|
 |[**removeNamespaceMember**](#removenamespacemember) | **DELETE** /api/namespaces/{tenant}/members/{uid} | Remove a member from a namespace|
+|[**updateMembershipInvitation**](#updatemembershipinvitation) | **PATCH** /api/namespaces/{tenant}/invitations/{user-id} | Update a pending membership invitation|
 |[**updateNamespaceMember**](#updatenamespacemember) | **PATCH** /api/namespaces/{tenant}/members/{uid} | Update a member from a namespace|
 
 # **acceptInvite**
 > acceptInvite()
 
-This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
 
 ### Example
 
 ```typescript
 import {
     NamespacesApi,
-    Configuration,
-    AcceptInviteRequest
+    Configuration
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new NamespacesApi(configuration);
 
 let tenant: string; //Namespace\'s tenant ID (default to undefined)
-let acceptInviteRequest: AcceptInviteRequest; // (optional)
 
 const { status, data } = await apiInstance.acceptInvite(
-    tenant,
-    acceptInviteRequest
+    tenant
 );
 ```
 
@@ -66,7 +68,6 @@ const { status, data } = await apiInstance.acceptInvite(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **acceptInviteRequest** | **AcceptInviteRequest**|  | |
 | **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
 
 
@@ -80,7 +81,7 @@ void (empty response body)
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 
@@ -386,6 +387,65 @@ void (empty response body)
 |**401** | Unauthorized |  -  |
 |**404** | Not found |  -  |
 |**409** | Conflict |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **cancelMembershipInvitation**
+> cancelMembershipInvitation()
+
+Allows namespace administrators to cancel a pending membership invitation. The invitation status will be updated to \"cancelled\". The active user must have authority over the role of the invitation being cancelled. 
+
+### Example
+
+```typescript
+import {
+    NamespacesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new NamespacesApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+let userId: string; //The ID of the invited user (default to undefined)
+
+const { status, data } = await apiInstance.cancelMembershipInvitation(
+    tenant,
+    userId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+| **userId** | [**string**] | The ID of the invited user | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Invitation successfully cancelled |  -  |
+|**400** | Bad request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
 |**500** | Internal error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -849,6 +909,62 @@ const { status, data } = await apiInstance.createNamespaceAdmin(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **declineInvite**
+> declineInvite()
+
+Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+
+### Example
+
+```typescript
+import {
+    NamespacesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new NamespacesApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+
+const { status, data } = await apiInstance.declineInvite(
+    tenant
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Invitation successfully declined |  -  |
+|**400** | Bad request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **deleteNamespace**
 > deleteNamespace()
 
@@ -1199,6 +1315,65 @@ const { status, data } = await apiInstance.generateInvitationLink(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getMembershipInvitationList**
+> Array<MembershipInvitation> getMembershipInvitationList()
+
+Returns a paginated list of membership invitations for the authenticated user. This endpoint allows users to view all namespace invitations they have received. 
+
+### Example
+
+```typescript
+import {
+    NamespacesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new NamespacesApi(configuration);
+
+let filter: string; //Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  (optional) (default to undefined)
+let page: number; //Page number (optional) (default to 1)
+let perPage: number; //Items per page (optional) (default to 10)
+
+const { status, data } = await apiInstance.getMembershipInvitationList(
+    filter,
+    page,
+    perPage
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **filter** | [**string**] | Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  | (optional) defaults to undefined|
+| **page** | [**number**] | Page number | (optional) defaults to 1|
+| **perPage** | [**number**] | Items per page | (optional) defaults to 10|
+
+
+### Return type
+
+**Array<MembershipInvitation>**
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successfully retrieved membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getNamespace**
 > Namespace getNamespace()
 
@@ -1302,6 +1477,70 @@ const { status, data } = await apiInstance.getNamespaceAdmin(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Success to get a namespace. |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getNamespaceMembershipInvitationList**
+> Array<MembershipInvitation> getNamespaceMembershipInvitationList()
+
+Returns a paginated list of membership invitations for the specified namespace. This endpoint allows namespace administrators to view all pending invitations. 
+
+### Example
+
+```typescript
+import {
+    NamespacesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new NamespacesApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+let filter: string; //Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  (optional) (default to undefined)
+let page: number; //Page number (optional) (default to 1)
+let perPage: number; //Items per page (optional) (default to 10)
+
+const { status, data } = await apiInstance.getNamespaceMembershipInvitationList(
+    tenant,
+    filter,
+    page,
+    perPage
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+| **filter** | [**string**] | Membership invitations filter.  Filter field receives a base64 encoded JSON object to limit the search.  | (optional) defaults to undefined|
+| **page** | [**number**] | Page number | (optional) defaults to 1|
+| **perPage** | [**number**] | Items per page | (optional) defaults to 10|
+
+
+### Return type
+
+**Array<MembershipInvitation>**
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successfully retrieved namespace membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
@@ -1764,6 +2003,69 @@ const { status, data } = await apiInstance.removeNamespaceMember(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** | Success to delete a member from namespace. |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updateMembershipInvitation**
+> updateMembershipInvitation()
+
+Allows namespace administrators to update a pending membership invitation. Currently supports updating the role assigned to the invitation. The active user must have authority over the role being assigned. 
+
+### Example
+
+```typescript
+import {
+    NamespacesApi,
+    Configuration,
+    UpdateNamespaceMemberRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new NamespacesApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+let userId: string; //The ID of the invited user (default to undefined)
+let updateNamespaceMemberRequest: UpdateNamespaceMemberRequest; // (optional)
+
+const { status, data } = await apiInstance.updateMembershipInvitation(
+    tenant,
+    userId,
+    updateNamespaceMemberRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **updateNamespaceMemberRequest** | **UpdateNamespaceMemberRequest**|  | |
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+| **userId** | [**string**] | The ID of the invited user | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Invitation successfully updated |  -  |
+|**400** | Bad request |  -  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
