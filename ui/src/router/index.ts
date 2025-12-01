@@ -185,7 +185,8 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/sign-up",
     name: "SignUp",
     beforeEnter: (to, from, next) => {
-      if (envVariables.isCommunity && !useUsersStore().systemInfo.setup) {
+      console.log(envVariables);
+      if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
       next();
@@ -204,7 +205,7 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     beforeEnter: (to, from, next) => {
-      if (!envVariables.isCommunity || useUsersStore().systemInfo.setup) {
+      if (envVariables.isCloud || useUsersStore().systemInfo.setup) {
         next({ name: "Login" });
       }
       next();
