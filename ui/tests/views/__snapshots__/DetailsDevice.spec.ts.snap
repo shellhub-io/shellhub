@@ -49,7 +49,7 @@ exports[`Details Device > Renders the component 1`] = `
     <!--teleport start-->
     <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <hr class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
   <div class="v-card-text pa-4 pt-0">
     <div class="v-row py-3">
       <div class="v-col-md-6 v-col-12 my-0 py-0">
@@ -143,7 +143,7 @@ exports[`Details Device > Renders the component when device has no last seen dat
     <!--teleport start-->
     <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <hr class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
   <div class="v-card-text pa-4 pt-0">
     <div class="v-row py-3">
       <div class="v-col-md-6 v-col-12 my-0 py-0">
@@ -237,7 +237,7 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
     <!--teleport start-->
     <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <hr class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
   <div class="v-card-text pa-4 pt-0">
     <div class="v-row py-3">
       <div class="v-col-md-6 v-col-12 my-0 py-0">
@@ -320,7 +320,7 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
     <!--teleport start-->
     <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <hr class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
   <div class="v-card-text pa-4 pt-0">
     <div class="v-row py-3">
       <div class="v-col-md-6 v-col-12 my-0 py-0">
@@ -398,7 +398,7 @@ exports[`Details Device > Renders the component when device status is not accept
     <!--teleport start-->
     <!--teleport end-->
   </div>
-  <hr class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <hr class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
   <div class="v-card-text pa-4 pt-0">
     <div class="v-row py-3">
       <div class="v-col-md-6 v-col-12 my-0 py-0">

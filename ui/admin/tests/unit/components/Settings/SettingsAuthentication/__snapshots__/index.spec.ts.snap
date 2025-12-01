@@ -86,7 +86,7 @@ exports[`Authentication > renders correctly 1`] = `
     <div class="v-card-item__content">
       <!---->
       <!---->
-      <hr data-v-e055768f="" class="v-divider v-theme--light mt-4 mb-4" aria-orientation="horizontal" role="separator">
+      <hr data-v-e055768f="" class="v-divider v-theme--light mt-4 mb-4" style="border-style: solid;" aria-orientation="horizontal" role="separator">
       <div data-v-e055768f="" class="v-card-title text-center" data-test="sso-header"> Single Sign-on (SSO) </div>
       <div data-v-e055768f="" class="v-card-subtitle text-center" data-test="sso-subtitle"> Single Sign-On (SSO) simplifies access by enabling users to authenticate once and securely access multiple applications. </div>
       <div data-v-e055768f="" class="v-row">

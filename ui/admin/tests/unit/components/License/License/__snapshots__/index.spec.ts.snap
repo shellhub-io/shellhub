@@ -58,7 +58,7 @@ exports[`License > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <hr data-v-75f26564="" class="v-divider v-theme--light my-4" aria-orientation="horizontal" role="separator">
+    <hr data-v-75f26564="" class="v-divider v-theme--light my-4" style="border-style: solid;" aria-orientation="horizontal" role="separator">
     <div data-v-75f26564="" class="v-card-item pa-0">
       <!---->
       <div class="v-card-item__content">
@@ -85,7 +85,7 @@ exports[`License > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <hr data-v-75f26564="" class="v-divider v-theme--light my-4" aria-orientation="horizontal" role="separator">
+    <hr data-v-75f26564="" class="v-divider v-theme--light my-4" style="border-style: solid;" aria-orientation="horizontal" role="separator">
     <div data-v-75f26564="" class="v-card-item pa-0">
       <!---->
       <div class="v-card-item__content">
@@ -111,7 +111,7 @@ exports[`License > Renders the component 1`] = `
       </div>
       <!---->
     </div>
-    <hr data-v-75f26564="" class="v-divider v-theme--light my-4" aria-orientation="horizontal" role="separator">
+    <hr data-v-75f26564="" class="v-divider v-theme--light my-4" style="border-style: solid;" aria-orientation="horizontal" role="separator">
   </div>
   <div data-v-75f26564="" class="v-card-item">
     <!---->

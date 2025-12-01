@@ -29,7 +29,7 @@ exports[`Recovery Helper > Renders the component 1`] = `
             <!---->
             <!-- Content -->
             <!-- Titlebar -->
-            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+            <header class="v-toolbar v-toolbar--collapse-start v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
@@ -93,7 +93,7 @@ exports[`Recovery Helper > Renders the component 1`] = `
                 </div>
               </div>
             </div><!-- Footer -->
-            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+            <header class="v-toolbar v-toolbar--collapse-start v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->

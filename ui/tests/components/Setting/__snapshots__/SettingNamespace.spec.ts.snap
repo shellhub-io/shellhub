@@ -102,7 +102,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <hr data-v-80a16399="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="tenant-details-item">
           <div class="v-card-item__prepend"><i data-v-80a16399="" class="mdi-identifier mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="tenant-icon"></i></div>
           <div class="v-card-item__content">
@@ -127,7 +127,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             <!----></span>
           </div>
         </div>
-        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <hr data-v-80a16399="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="announcement-item">
           <!---->
           <div class="v-card-item__content">
@@ -141,7 +141,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
               <!---->
             </button></div>
         </div>
-        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <hr data-v-80a16399="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-80a16399="" class="v-row ma-0">
           <div data-v-80a16399="" class="v-card v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background" data-test="record-item">
             <!---->
@@ -201,7 +201,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-80a16399="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <hr data-v-80a16399="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="delete-leave-item">
           <!---->
           <div class="v-card-item__content">
