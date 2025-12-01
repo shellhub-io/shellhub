@@ -4,7 +4,7 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**acceptInvite**](#acceptinvite) | **PATCH** /api/namespaces/{tenant}/members/accept-invite | Accept a membership invite|
+|[**acceptInvite**](#acceptinvite) | **PATCH** /api/namespaces/{tenant}/invitations/accept | Accept a membership invite|
 |[**adminDeleteUser**](#admindeleteuser) | **DELETE** /admin/api/users/{id} | Delete user|
 |[**adminResetUserPassword**](#adminresetuserpassword) | **PATCH** /admin/api/users/{id}/password/reset | Reset user password|
 |[**adminUpdateUser**](#adminupdateuser) | **PUT** /admin/api/users/{id} | Update user|
@@ -12,6 +12,7 @@ All URIs are relative to *http://localhost*
 |[**authUser**](#authuser) | **POST** /api/auth/user | Auth a user|
 |[**checkSessionRecord**](#checksessionrecord) | **GET** /api/users/security | Check session record status|
 |[**createUserAdmin**](#createuseradmin) | **POST** /admin/api/users | Create a User admin|
+|[**declineInvite**](#declineinvite) | **PATCH** /api/namespaces/{tenant}/invitations/decline | Decline a membership invite|
 |[**deleteUser**](#deleteuser) | **DELETE** /api/user | Delete user|
 |[**disableMFA**](#disablemfa) | **PUT** /api/user/mfa/disable | Disable MFA|
 |[**enableMFA**](#enablemfa) | **PUT** /api/user/mfa/enable | Enable MFA|
@@ -39,26 +40,23 @@ All URIs are relative to *http://localhost*
 # **acceptInvite**
 > acceptInvite()
 
-This route is intended to be accessed directly through the link sent in the invitation email. The user must be logged into the account that was invited. 
+Accepts a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. 
 
 ### Example
 
 ```typescript
 import {
     UsersApi,
-    Configuration,
-    AcceptInviteRequest
+    Configuration
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new UsersApi(configuration);
 
 let tenant: string; //Namespace\'s tenant ID (default to undefined)
-let acceptInviteRequest: AcceptInviteRequest; // (optional)
 
 const { status, data } = await apiInstance.acceptInvite(
-    tenant,
-    acceptInviteRequest
+    tenant
 );
 ```
 
@@ -66,7 +64,6 @@ const { status, data } = await apiInstance.acceptInvite(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **acceptInviteRequest** | **AcceptInviteRequest**|  | |
 | **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
 
 
@@ -80,7 +77,7 @@ void (empty response body)
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 
@@ -477,6 +474,62 @@ void (empty response body)
 |**400** | Invalid Fields |  -  |
 |**401** | Unauthorized |  -  |
 |**409** | Conflict Fields |  -  |
+|**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **declineInvite**
+> declineInvite()
+
+Declines a pending membership invitation for the authenticated user. The user must be logged into the account that was invited. The invitation status will be updated to \"rejected\". 
+
+### Example
+
+```typescript
+import {
+    UsersApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new UsersApi(configuration);
+
+let tenant: string; //Namespace\'s tenant ID (default to undefined)
+
+const { status, data } = await apiInstance.declineInvite(
+    tenant
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **tenant** | [**string**] | Namespace\&#39;s tenant ID | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[jwt](../README.md#jwt)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Invitation successfully declined |  -  |
+|**400** | Bad request |  -  |
+|**401** | Unauthorized |  -  |
+|**403** | Forbidden |  -  |
+|**404** | Not found |  -  |
 |**500** | Internal error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
