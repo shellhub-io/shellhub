@@ -1,0 +1,29 @@
+patch:
+  operationId: declineInvite
+  summary: Decline a membership invite
+  description: |
+    Declines a pending membership invitation for the authenticated user.
+    The user must be logged into the account that was invited.
+    The invitation status will be updated to "rejected".
+  tags:
+    - cloud
+    - members
+    - namespaces
+    - users
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  responses:
+    '200':
+      description: Invitation successfully declined
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
