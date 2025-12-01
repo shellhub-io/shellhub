@@ -1,5 +1,5 @@
 <template>
-  <v-container class="pb-0 mb-0">
+  <v-container class="pb-0 my-0">
     <v-alert
       v-if="alertMessage"
       :type="alertType"
@@ -8,119 +8,113 @@
       class="mb-4"
       data-test="user-status-alert"
     />
-    <form @submit.prevent="setupAccount">
+    <v-form @submit.prevent="setupAccount">
       <v-card-title
         class="text-center"
         data-test="welcome-title"
       >
         Welcome to ShellHub!
       </v-card-title>
-      <v-window v-model="el">
+      <v-window v-model="step">
         <v-window-item :value="1">
           <v-card-subtitle
-            style="white-space: normal;"
+            class="text-wrap text-justify px-0"
             data-test="subtitle-1"
           >
-            To set up your account, please run <code>/bin/setup</code> in your terminal to generate a signature.
+            To set up your account, please run the following command in your terminal to generate a signature.
             Use the generated signature in the "Sign" field below to proceed.
           </v-card-subtitle>
-          <v-container>
-            <v-text-field
-              v-model="sign"
-              color="primary"
-              prepend-inner-icon="mdi-key"
-              :disabled="!!hasQuery"
-              :error-messages="signError"
-              required
-              label="Sign"
-              variant="underlined"
-              data-test="sign-text"
-            />
-            <v-btn
-              :disabled="!hasSign"
-              type="submit"
-              data-test="sign-btn"
-              color="primary"
-              variant="tonal"
-              block
-              @click="el = 2"
-            >
-              Setup
-            </v-btn>
-          </v-container>
+          <CopyCommandField
+            command="./bin/setup"
+            label="Setup Command"
+            class="my-4"
+            data-test="setup-command-field"
+          />
+          <v-text-field
+            v-model="sign"
+            color="primary"
+            prepend-inner-icon="mdi-key"
+            :disabled="!!hasQuery"
+            :error-messages="signError"
+            required
+            label="Sign"
+            data-test="sign-text"
+          />
+          <v-btn
+            :disabled="!hasSign"
+            type="submit"
+            data-test="sign-btn"
+            color="primary"
+            variant="tonal"
+            block
+            text="Setup"
+            @click="step = 2"
+          />
         </v-window-item>
         <v-window-item :value="2">
           <v-card-subtitle
-            class="d-inline-block text-center"
-            style="white-space: normal;"
+            class="text-wrap text-center mb-3"
             data-test="subtitle-2"
           >
             Please complete the following form to set up your account with your personal information.
           </v-card-subtitle>
-          <v-container>
-            <v-text-field
-              v-model="name"
-              color="primary"
-              prepend-inner-icon="mdi-account"
-              :error-messages="nameError"
-              required
-              label="Name"
-              variant="underlined"
-              data-test="name-text"
-            />
+          <v-text-field
+            v-model="name"
+            color="primary"
+            prepend-inner-icon="mdi-account"
+            :error-messages="nameError"
+            required
+            label="Name"
+            data-test="name-text"
+          />
 
-            <v-text-field
-              v-model="username"
-              color="primary"
-              prepend-inner-icon="mdi-account"
-              :error-messages="usernameError"
-              required
-              label="Username"
-              variant="underlined"
-              data-test="username-text"
-            />
+          <v-text-field
+            v-model="username"
+            color="primary"
+            prepend-inner-icon="mdi-account"
+            :error-messages="usernameError"
+            required
+            label="Username"
+            data-test="username-text"
+          />
 
-            <v-text-field
-              v-model="email"
-              color="primary"
-              prepend-inner-icon="mdi-email"
-              :error-messages="emailError"
-              required
-              label="Email"
-              variant="underlined"
-              data-test="email-text"
-            />
+          <v-text-field
+            v-model="email"
+            color="primary"
+            prepend-inner-icon="mdi-email"
+            :error-messages="emailError"
+            required
+            label="Email"
+            data-test="email-text"
+          />
 
-            <v-text-field
-              v-model="password"
-              color="primary"
-              prepend-inner-icon="mdi-lock"
-              :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              :error-messages="passwordError"
-              label="Password"
-              required
-              variant="underlined"
-              data-test="password-text"
-              :type="showPassword ? 'text' : 'password'"
-              @click:append-inner="showPassword = !showPassword"
-            />
+          <v-text-field
+            v-model="password"
+            color="primary"
+            prepend-inner-icon="mdi-lock"
+            :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :error-messages="passwordError"
+            label="Password"
+            required
+            data-test="password-text"
+            :type="showPassword ? 'text' : 'password'"
+            @click:append-inner="showPassword = !showPassword"
+          />
 
-            <v-text-field
-              v-model="passwordConfirm"
-              color="primary"
-              prepend-inner-icon="mdi-lock"
-              :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              :error-messages="passwordConfirmError"
-              label="Confirm Password"
-              required
-              variant="underlined"
-              data-test="password-confirm-text"
-              :type="showConfirmPassword ? 'text' : 'password'"
-              @click:append-inner="showConfirmPassword = !showConfirmPassword"
-            />
-          </v-container>
+          <v-text-field
+            v-model="passwordConfirm"
+            color="primary"
+            prepend-inner-icon="mdi-lock"
+            :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :error-messages="passwordConfirmError"
+            label="Confirm Password"
+            required
+            data-test="password-confirm-text"
+            :type="showConfirmPassword ? 'text' : 'password'"
+            @click:append-inner="showConfirmPassword = !showConfirmPassword"
+          />
 
-          <v-card-actions class="justify-center">
+          <v-card-actions>
             <v-btn
               :disabled="!isFormValid"
               type="submit"
@@ -128,13 +122,12 @@
               color="primary"
               variant="tonal"
               block
-            >
-              Create Account
-            </v-btn>
+              text="Create Account"
+            />
           </v-card-actions>
         </v-window-item>
       </v-window>
-    </form>
+    </v-form>
   </v-container>
 </template>
 
@@ -144,6 +137,7 @@ import { useRouter, useRoute } from "vue-router";
 import { useField } from "vee-validate";
 import * as yup from "yup";
 import useUsersStore from "@/store/modules/users";
+import CopyCommandField from "@/components/CopyCommandField.vue";
 
 const usersStore = useUsersStore();
 const router = useRouter();
@@ -151,8 +145,8 @@ const route = useRoute();
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const alertMessage = ref("");
-const alertType = ref<"warning" | "success" | "info" | "error">("warning");
-const el = ref<number>(1);
+const alertType = ref<"success" | "error">("success");
+const step = ref<number>(1);
 const hasQuery = computed(() => route.query.sign as string);
 
 const {
@@ -221,11 +215,7 @@ const isFormValid = computed(() => (
   && !passwordConfirmError.value
 ));
 
-onMounted(() => {
-  if (hasQuery.value) {
-    el.value = 2;
-  }
-});
+onMounted(() => { if (hasQuery.value) step.value = 2; });
 
 const setupAccount = async () => {
   if (isFormValid.value) {
@@ -245,10 +235,10 @@ const setupAccount = async () => {
       setTimeout(() => { void router.push({ name: "Login" }); }, 3000);
     } catch {
       alertType.value = "error";
-      alertMessage.value = "An error occurred. please check if the sign matches the same in ./bin/setup and try again.";
+      alertMessage.value = "An error occurred. Please check if the sign matches the same generated by the command and try again.";
     }
   }
 };
 
-defineExpose({ el });
+defineExpose({ step });
 </script>

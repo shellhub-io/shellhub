@@ -45,7 +45,7 @@ describe("Setup Account", () => {
     expect(wrapper.find('[data-test="subtitle-1"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="sign-btn"]').exists()).toBe(true);
 
-    wrapper.vm.el = 2;
+    wrapper.vm.step = 2;
 
     await nextTick();
 
@@ -60,7 +60,7 @@ describe("Setup Account", () => {
   });
 
   it("disables submit button when the form is invalid", async () => {
-    wrapper.vm.el = 2;
+    wrapper.vm.step = 2;
 
     await nextTick();
 
@@ -82,7 +82,7 @@ describe("Setup Account", () => {
 
     await wrapper.findComponent('[data-test="sign-text"]').setValue("sign");
 
-    wrapper.vm.el = 2;
+    wrapper.vm.step = 2;
 
     await nextTick();
 
