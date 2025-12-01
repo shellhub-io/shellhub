@@ -63,7 +63,7 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
               <!---->
             </button></div>
         </div>
-        <hr data-v-d7a09f69="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator" data-test="billing-divider">
+        <hr data-v-d7a09f69="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator" data-test="billing-divider">
         <div data-v-d7a09f69="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="billing-plan-section">
           <div class="v-card-item__prepend"><i data-v-d7a09f69="" class="mdi-credit-card mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="billing-plan-icon"></i></div>
           <div class="v-card-item__content">
@@ -75,7 +75,7 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
             <h3 data-v-d7a09f69="" data-test="billing-plan-free"> Free </h3>
           </div>
         </div>
-        <hr data-v-d7a09f69="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator" data-test="billing-divider">
+        <hr data-v-d7a09f69="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator" data-test="billing-divider">
         <!--v-if-->
       </div>
     </div>

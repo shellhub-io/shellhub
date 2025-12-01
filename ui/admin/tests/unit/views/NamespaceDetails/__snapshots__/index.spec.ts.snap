@@ -35,7 +35,7 @@ exports[`Namespace Details > Renders the component 1`] = `
     <!--teleport start-->
     <!--teleport end-->
   </div>
-  <hr data-v-1bdec118="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+  <hr data-v-1bdec118="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
   <div data-v-1bdec118="" class="v-card-text pa-4 pt-0">
     <div data-v-1bdec118="" class="v-row py-3">
       <div data-v-1bdec118="" class="v-col-md-6 v-col-12 my-0 py-0">
@@ -92,7 +92,7 @@ exports[`Namespace Details > Renders the component 1`] = `
         </div>
       </div>
     </div>
-    <hr data-v-1bdec118="" class="v-divider v-theme--light my-4" aria-orientation="horizontal" role="separator">
+    <hr data-v-1bdec118="" class="v-divider v-theme--light my-4" style="border-style: solid;" aria-orientation="horizontal" role="separator">
     <div data-v-1bdec118="" data-test="namespace-members-section">
       <h3 data-v-1bdec118="" class="text-h6 mb-3"> Members (2) </h3>
       <div data-v-1bdec118="" class="v-list v-theme--light v-list--density-default v-list--one-line bg-transparent" tabindex="0" role="list" data-test="namespace-members-list">

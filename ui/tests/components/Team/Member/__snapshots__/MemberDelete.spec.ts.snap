@@ -35,7 +35,7 @@ exports[`Member Delete > Renders the component 1`] = `
               <div class="text-h5 mb-4">Are you sure?</div>
               <div class="text-body-2 text-medium-emphasis mb-6">You are about to remove this user from the namespace. If needed, you can re-invite this user to the namespace at any time.</div>
             </div><!-- Footer -->
-            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+            <header class="v-toolbar v-toolbar--collapse-start v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->

@@ -114,7 +114,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-b3fa301d="">
           <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
             <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
@@ -163,7 +163,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               </div>
             </div>
           </div>
-          <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+          <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         </div>
         <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
           <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
@@ -212,7 +212,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
             </div>
           </div>
         </div>
-        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-b3fa301d="">
           <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
             <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-email-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
@@ -261,7 +261,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               </div>
             </div>
           </div>
-          <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+          <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
           <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
             <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
             <div class="v-card-item__content">
@@ -278,7 +278,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
             </div>
           </div>
-          <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+          <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
           <div data-v-b3fa301d="" class="d-flex align-center justify-space-between pr-4">
             <div data-v-b3fa301d="" tabindex="-1" class="v-card v-card--disabled v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background w-75" data-test="mfa-card">
               <!---->
@@ -349,7 +349,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
             <!--teleport end-->
           </div>
         </div>
-        <hr data-v-b3fa301d="" class="v-divider v-theme--light" aria-orientation="horizontal" role="separator">
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
           <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
           <div class="v-card-item__content">

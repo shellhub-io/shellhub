@@ -45,7 +45,7 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
             <!---->
             <!-- Content -->
             <!-- Titlebar -->
-            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+            <header class="v-toolbar v-toolbar--collapse-start v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
@@ -312,13 +312,13 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__append-inner">
                         <!---->
-                        <hr class="v-divider v-divider--vertical v-theme--light" aria-orientation="vertical" role="separator">
+                        <hr class="v-divider v-divider--vertical v-theme--light" style="border-style: solid;" aria-orientation="vertical" role="separator">
                         <div class="v-number-input__control"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-small v-btn--variant-text" style="height: 100%;" tabindex="-1" aria-hidden="true" data-testid="decrement"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                             <!---->
                             <!---->
                           </button>
-                          <hr class="v-divider v-divider--vertical v-theme--light" aria-orientation="vertical" role="separator"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-small v-btn--variant-text" style="height: 100%;" tabindex="-1" aria-hidden="true" data-testid="increment"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                          <hr class="v-divider v-divider--vertical v-theme--light" style="border-style: solid;" aria-orientation="vertical" role="separator"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-small v-btn--variant-text" style="height: 100%;" tabindex="-1" aria-hidden="true" data-testid="increment"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-up mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                             <!---->
                             <!---->
@@ -384,7 +384,7 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                 <!--teleport end-->
               </div>
             </form><!-- Footer -->
-            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+            <header class="v-toolbar v-toolbar--collapse-start v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
@@ -497,7 +497,7 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
             <!---->
             <!-- Content -->
             <!-- Titlebar -->
-            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
+            <header class="v-toolbar v-toolbar--collapse-start v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-b px-4 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
@@ -764,13 +764,13 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__append-inner">
                         <!---->
-                        <hr class="v-divider v-divider--vertical v-theme--light" aria-orientation="vertical" role="separator">
+                        <hr class="v-divider v-divider--vertical v-theme--light" style="border-style: solid;" aria-orientation="vertical" role="separator">
                         <div class="v-number-input__control"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-small v-btn--variant-text" style="height: 100%;" tabindex="-1" aria-hidden="true" data-testid="decrement"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                             <!---->
                             <!---->
                           </button>
-                          <hr class="v-divider v-divider--vertical v-theme--light" aria-orientation="vertical" role="separator"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-small v-btn--variant-text" style="height: 100%;" tabindex="-1" aria-hidden="true" data-testid="increment"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                          <hr class="v-divider v-divider--vertical v-theme--light" style="border-style: solid;" aria-orientation="vertical" role="separator"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-small v-btn--variant-text" style="height: 100%;" tabindex="-1" aria-hidden="true" data-testid="increment"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                             <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-chevron-up mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                             <!---->
                             <!---->
@@ -836,7 +836,7 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                 <!--teleport end-->
               </div>
             </form><!-- Footer -->
-            <header class="v-toolbar v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
+            <header class="v-toolbar v-toolbar--collapse-start v-toolbar--density-default bg-primary v-theme--light v-locale--is-ltr bg-v-theme-surface border-t px-6 py-2">
               <!---->
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
