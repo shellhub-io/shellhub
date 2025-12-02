@@ -9,7 +9,7 @@ import { router } from "@/router";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
 import { envVariables } from "@/envVariables";
-import useNamespacesStore from "@/store/modules/namespaces";
+import useInvitationsStore from "@/store/modules/invitations";
 
 type MemberInviteWrapper = VueWrapper<InstanceType<typeof MemberInvite>>;
 
@@ -23,7 +23,7 @@ describe("Member Invite", () => {
   let wrapper: MemberInviteWrapper;
   setActivePinia(createPinia());
   const authStore = useAuthStore();
-  const namespacesStore = useNamespacesStore();
+  const invitationsStore = useInvitationsStore();
   const vuetify = createVuetify();
   const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
@@ -55,7 +55,7 @@ describe("Member Invite", () => {
   it("Invite Member Email - Error Validation", async () => {
     mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(409);
 
-    const storeSpy = vi.spyOn(namespacesStore, "sendEmailInvitation");
+    const storeSpy = vi.spyOn(invitationsStore, "sendInvitationEmail");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -79,7 +79,7 @@ describe("Member Invite", () => {
   it("Invite Member Email - Success Validation", async () => {
     mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members").reply(200);
 
-    const storeSpy = vi.spyOn(namespacesStore, "sendEmailInvitation");
+    const storeSpy = vi.spyOn(invitationsStore, "sendInvitationEmail");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -103,9 +103,9 @@ describe("Member Invite", () => {
   });
 
   it("Generates Invitation Link - Failure", async () => {
-    mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members/invites").reply(404);
+    mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/invitations/links").reply(404);
 
-    const storeSpy = vi.spyOn(namespacesStore, "generateInvitationLink");
+    const storeSpy = vi.spyOn(invitationsStore, "generateInvitationLink");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -129,11 +129,11 @@ describe("Member Invite", () => {
   });
 
   it("Generates Invitation Link - Success", async () => {
-    mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/members/invites").reply(200, {
+    mockNamespacesApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/invitations/links").reply(200, {
       link: "http://localhost/invite-link",
     });
 
-    const storeSpy = vi.spyOn(namespacesStore, "generateInvitationLink");
+    const storeSpy = vi.spyOn(invitationsStore, "generateInvitationLink");
 
     await wrapper.findComponent('[data-test="invite-dialog-btn"]').trigger("click");
 
@@ -152,9 +152,7 @@ describe("Member Invite", () => {
       tenant_id: "fake-tenant-data",
       role: "administrator",
     });
-
     expect(wrapper.vm.formWindow).toEqual("form-2");
-
     expect(wrapper.vm.invitationLink).toEqual("http://localhost/invite-link");
   });
 });

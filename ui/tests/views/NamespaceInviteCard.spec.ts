@@ -8,15 +8,17 @@ import NamespaceInviteCard from "@/views/NamespaceInviteCard.vue";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import { namespacesApi } from "@/api/http";
+import useInvitationsStore from "@/store/modules/invitations";
 
 type NamespaceInviteCardWrapper = VueWrapper<InstanceType<typeof NamespaceInviteCard>>;
 
 let wrapper: NamespaceInviteCardWrapper;
 setActivePinia(createPinia());
 const vuetify = createVuetify();
+const invitationsStore = useInvitationsStore();
 const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
-describe("Namespace Invite Dialog (Invalid User)", () => {
+describe("Namespace Invite Card (Invalid User)", () => {
   beforeEach(() => {
     wrapper = mount(NamespaceInviteCard, {
       global: {
@@ -35,7 +37,7 @@ describe("Namespace Invite Dialog (Invalid User)", () => {
   });
 });
 
-describe("Namespace Invite Dialog", () => {
+describe("Namespace Invite Card", () => {
   beforeEach(async () => {
     await router.push({ query: { "user-id": "507f1f77bcf86cd799439011", "tenant-id": "fake-tenant" } });
     localStorage.setItem("tenant", "fake-tenant");
@@ -71,21 +73,22 @@ describe("Namespace Invite Dialog", () => {
   });
 
   it("Calls close method when decline button is clicked", async () => {
-    const closeSpy = vi.spyOn(wrapper.vm, "close");
+    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant/invitations/decline").reply(200);
+    const declineInvitationSpy = vi.spyOn(invitationsStore, "declineInvitation").mockImplementation(vi.fn());
     await wrapper.findComponent('[data-test="decline-btn"]').trigger("click");
 
     await flushPromises();
-    expect(closeSpy).toHaveBeenCalled();
+    expect(declineInvitationSpy).toHaveBeenCalled();
   });
 
   it("Calls acceptInvite method when Accept Invitation button is clicked", async () => {
-    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant/members/accept-invite").reply(200);
-    const acceptSpy = vi.spyOn(wrapper.vm, "acceptInvite");
+    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant/invitations/accept").reply(200);
+    const acceptInvitationSpy = vi.spyOn(invitationsStore, "acceptInvitation").mockImplementation(vi.fn());
     await flushPromises();
     await wrapper.findComponent('[data-test="accept-btn"]').trigger("click");
 
     await flushPromises();
-    expect(acceptSpy).toHaveBeenCalled();
+    expect(acceptInvitationSpy).toHaveBeenCalled();
   });
 
   it("Handles error state correctly", async () => {

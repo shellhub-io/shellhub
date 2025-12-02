@@ -5,7 +5,6 @@ export interface INamespaceMember {
   id: string;
   role: Role;
   email: string;
-  status: string;
   added_at: string;
   expires_at: string;
 }
@@ -40,30 +39,19 @@ export interface INamespace {
   type: NamespaceType;
 }
 
-export interface INamespaceAcceptInvite {
-  tenant: string;
-  sig: string;
-}
-
-export interface INamespaceAddMember {
-  email: string;
-  role: Role;
+export interface INamespaceEdit {
   tenant_id: string;
+  name?: string;
+  settings?: Partial<INamespaceSettings>;
 }
 
 export interface INamespaceEditMember {
   user_id: string;
-  role: Role;
+  role: BasicRole;
   tenant_id: string;
 }
 
 export interface INamespaceRemoveMember {
   tenant_id: string;
   user_id: string;
-}
-
-export interface INamespaceEdit {
-  tenant_id: string;
-  name?: string;
-  settings?: Partial<INamespaceSettings>;
 }
