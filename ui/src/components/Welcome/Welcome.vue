@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import WelcomeFirstScreen from "./WelcomeFirstScreen.vue";
 import WelcomeSecondScreen from "./WelcomeSecondScreen.vue";
 import WelcomeThirdScreen from "./WelcomeThirdScreen.vue";
@@ -106,8 +106,6 @@ interface StepConfig {
   action: () => void | Promise<void>;
 }
 
-const props = defineProps<{ hasNamespaces: boolean }>();
-
 const showDialog = ref(false);
 const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
@@ -119,17 +117,14 @@ const firstPendingDevice = ref<IDevice>();
 const pollingTimer = ref<PollingTimer | undefined>(undefined);
 const hasDeviceDetected = ref(false);
 const tenantId = computed(() => namespacesStore.currentNamespace.tenant_id);
+const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
 
 const namespaceHasBeenShown = () => (
   (JSON.parse(localStorage.getItem("namespacesWelcome") ?? "{}") as Record<string, boolean>)[tenantId.value] !== undefined);
 
-const hasDevices = computed(() => (
-  statsStore.stats.registered_devices !== 0
-  || statsStore.stats.pending_devices !== 0
-  || statsStore.stats.rejected_devices !== 0
-));
+const hasDevices = ref(false);
 
-const shouldShowWelcome = computed(() => props.hasNamespaces && !namespaceHasBeenShown() && !hasDevices.value);
+const shouldShowWelcome = computed(() => hasNamespaces.value && !namespaceHasBeenShown() && !hasDevices.value);
 
 watch(shouldShowWelcome, (newValue) => {
   if (!newValue) return;
@@ -202,6 +197,14 @@ const stepConfigs: Record<number, StepConfig> = {
 
 const currentStepConfig = computed(() => stepConfigs[currentStep.value]);
 const handleConfirm = async () => { await currentStepConfig.value.action(); };
+
+onMounted(() => {
+  hasDevices.value = (
+    statsStore.stats.registered_devices > 0
+    || statsStore.stats.pending_devices > 0
+    || statsStore.stats.rejected_devices > 0
+  );
+});
 
 defineExpose({ currentStep, hasDeviceDetected, showDialog });
 </script>

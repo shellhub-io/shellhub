@@ -4,10 +4,7 @@
     data-test="device-chooser-component"
   />
 
-  <Welcome
-    :has-namespaces
-    data-test="welcome-component"
-  />
+  <Welcome data-test="welcome-component" />
 
   <BillingWarning
     v-model="showBillingWarning"
