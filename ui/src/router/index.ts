@@ -185,7 +185,6 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/sign-up",
     name: "SignUp",
     beforeEnter: (to, from, next) => {
-      console.log(envVariables);
       if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
