@@ -90,7 +90,7 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     beforeEnter: (to, from, next) => {
-      if (envVariables.isCommunity && !useUsersStore().systemInfo.setup) {
+      if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
       next();
