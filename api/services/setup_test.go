@@ -191,7 +191,6 @@ func TestSetup(t *testing.T) {
 						{
 							ID:      "000000000000000000000000",
 							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
 							AddedAt: now,
 						},
 					},
@@ -282,7 +281,6 @@ func TestSetup(t *testing.T) {
 						{
 							ID:      "000000000000000000000000",
 							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
 							AddedAt: now,
 						},
 					},
@@ -350,7 +348,6 @@ func TestSetup(t *testing.T) {
 						{
 							ID:      "000000000000000000000000",
 							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
 							AddedAt: now,
 						},
 					},

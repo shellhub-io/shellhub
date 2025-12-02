@@ -108,7 +108,6 @@ func TestNamespaceCreate(t *testing.T) {
 							ID:      "507f191e810c19729de860ea",
 							Role:    "owner",
 							AddedAt: now,
-							Status:  models.MemberStatusAccepted,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -152,7 +151,6 @@ func TestNamespaceCreate(t *testing.T) {
 							ID:      "507f191e810c19729de860ea",
 							Role:    "owner",
 							AddedAt: now,
-							Status:  models.MemberStatusAccepted,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -174,7 +172,6 @@ func TestNamespaceCreate(t *testing.T) {
 						ID:      "507f191e810c19729de860ea",
 						Role:    "owner",
 						AddedAt: now,
-						Status:  models.MemberStatusAccepted,
 					},
 				},
 				Settings: &models.NamespaceSettings{
@@ -215,7 +212,6 @@ func TestNamespaceCreate(t *testing.T) {
 							ID:      "507f191e810c19729de860ea",
 							Role:    "owner",
 							AddedAt: now,
-							Status:  models.MemberStatusAccepted,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -237,7 +233,6 @@ func TestNamespaceCreate(t *testing.T) {
 						ID:      "507f191e810c19729de860ea",
 						Role:    "owner",
 						AddedAt: now,
-						Status:  models.MemberStatusAccepted,
 					},
 				},
 				Settings: &models.NamespaceSettings{
@@ -278,7 +273,6 @@ func TestNamespaceCreate(t *testing.T) {
 							ID:      "507f191e810c19729de860ea",
 							Role:    "owner",
 							AddedAt: now,
-							Status:  models.MemberStatusAccepted,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -300,7 +294,6 @@ func TestNamespaceCreate(t *testing.T) {
 						ID:      "507f191e810c19729de860ea",
 						Role:    "owner",
 						AddedAt: now,
-						Status:  models.MemberStatusAccepted,
 					},
 				},
 				Settings: &models.NamespaceSettings{
@@ -341,7 +334,6 @@ func TestNamespaceCreate(t *testing.T) {
 							ID:      "507f191e810c19729de860ea",
 							Role:    "owner",
 							AddedAt: now,
-							Status:  models.MemberStatusAccepted,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -363,7 +355,6 @@ func TestNamespaceCreate(t *testing.T) {
 						ID:      "507f191e810c19729de860ea",
 						Role:    "owner",
 						AddedAt: now,
-						Status:  models.MemberStatusAccepted,
 					},
 				},
 				Settings: &models.NamespaceSettings{
@@ -404,7 +395,6 @@ func TestNamespaceCreate(t *testing.T) {
 							ID:      "507f191e810c19729de860ea",
 							Role:    "owner",
 							AddedAt: now,
-							Status:  models.MemberStatusAccepted,
 						},
 					},
 					Settings: &models.NamespaceSettings{
@@ -426,7 +416,6 @@ func TestNamespaceCreate(t *testing.T) {
 						ID:      "507f191e810c19729de860ea",
 						Role:    "owner",
 						AddedAt: now,
-						Status:  models.MemberStatusAccepted,
 					},
 				},
 				Settings: &models.NamespaceSettings{
@@ -533,7 +522,6 @@ func TestNamespaceAddMember(t *testing.T) {
 					ID:      "507f191e810c19729de860ea",
 					Role:    authorizer.RoleObserver,
 					AddedAt: now,
-					Status:  models.MemberStatusAccepted,
 				}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{
