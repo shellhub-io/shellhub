@@ -77,7 +77,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy required utilities
 COPY --from=builder /usr/bin/nsenter /usr/bin/
-COPY --from=builder /bin/setpriv /usr/bin/
+COPY --from=builder /bin/setpriv /bin/
 
 # Copy shared libraries
 COPY --from=builder /usr/lib/libcap-ng.so.* /usr/lib/
