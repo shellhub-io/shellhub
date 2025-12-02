@@ -30,9 +30,8 @@ func TestNamespaceCreateMembership(t *testing.T) {
 			description: "fails when tenant is not found",
 			tenantID:    "nonexistent",
 			member: &models.Member{
-				ID:     "6509de884238881ac1b2b289",
-				Role:   authorizer.RoleObserver,
-				Status: models.MemberStatusAccepted,
+				ID:   "6509de884238881ac1b2b289",
+				Role: authorizer.RoleObserver,
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: Expected{err: store.ErrNoDocuments},
@@ -41,9 +40,8 @@ func TestNamespaceCreateMembership(t *testing.T) {
 			description: "fails when member has already been added",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			member: &models.Member{
-				ID:     "6509e169ae6144b2f56bf288",
-				Role:   authorizer.RoleObserver,
-				Status: models.MemberStatusAccepted,
+				ID:   "6509e169ae6144b2f56bf288",
+				Role: authorizer.RoleObserver,
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: Expected{err: mongo.ErrNamespaceDuplicatedMember},
@@ -52,9 +50,8 @@ func TestNamespaceCreateMembership(t *testing.T) {
 			description: "succeeds when tenant is found",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			member: &models.Member{
-				ID:     "6509de884238881ac1b2b289",
-				Role:   authorizer.RoleObserver,
-				Status: models.MemberStatusAccepted,
+				ID:   "6509de884238881ac1b2b289",
+				Role: authorizer.RoleObserver,
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: Expected{err: nil},
@@ -97,9 +94,8 @@ func TestNamespaceUpdateMembership(t *testing.T) {
 			description: "fails when user is not found",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
 			member: &models.Member{
-				ID:     "000000000000000000000000",
-				Role:   authorizer.RoleObserver,
-				Status: models.MemberStatusPending,
+				ID:   "000000000000000000000000",
+				Role: authorizer.RoleObserver,
 			},
 			fixtures: []string{fixtureNamespaces},
 			expected: Expected{err: mongo.ErrUserNotFound},
@@ -110,7 +106,6 @@ func TestNamespaceUpdateMembership(t *testing.T) {
 			member: &models.Member{
 				ID:      "6509e169ae6144b2f56bf288",
 				Role:    authorizer.RoleAdministrator,
-				Status:  models.MemberStatusPending,
 				AddedAt: time.Now(),
 			},
 			fixtures: []string{fixtureNamespaces},
@@ -138,7 +133,6 @@ func TestNamespaceUpdateMembership(t *testing.T) {
 			require.Equal(t, 2, len(namespace.Members))
 			require.Equal(t, tc.member.ID, namespace.Members[1].ID)
 			require.Equal(t, tc.member.Role, namespace.Members[1].Role)
-			require.Equal(t, tc.member.Status, namespace.Members[1].Status)
 		})
 	}
 }
