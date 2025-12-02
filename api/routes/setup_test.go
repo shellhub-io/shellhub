@@ -21,7 +21,6 @@ func TestSetup(t *testing.T) {
 	envs.DefaultBackend = envMock
 
 	envMock.On("Get", "SHELLHUB_CLOUD").Return("false")
-	envMock.On("Get", "SHELLHUB_ENTERPRISE").Return("false")
 
 	servicesMock := new(serviceMocks.Service)
 

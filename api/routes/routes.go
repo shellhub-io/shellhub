@@ -177,7 +177,7 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	publicAPI.GET(GetSessionRecordURL, gateway.Handler(handler.GetSessionRecord))
 	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
 
-	if envs.IsCommunity() {
+	if !envs.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
 	}
 
