@@ -27,19 +27,17 @@ exports[`Team Members > Renders the component 1`] = `
           <tr>
             <th class="text-center" data-test="member-table-headers"><span>Email</span></th>
             <th class="text-center" data-test="member-table-headers"><span>Role</span></th>
-            <th class="text-center" data-test="member-table-headers"><span>Status</span></th>
             <th class="text-center" data-test="member-table-headers"><span>Actions</span></th>
           </tr>
         </thead>
         <tbody data-test="member-table-rows">
           <tr class="text-center">
-            <td><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i> </td>
-            <td class="text-center text-capitalize">owner</td>
-            <td class="text-center text-capitalize" aria-describedby="v-tooltip-v-2">
+            <td aria-describedby="v-tooltip-v-2"><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
               <!---->
               <!--teleport start-->
               <!--teleport end-->
             </td>
+            <td class="text-center text-capitalize">owner</td>
             <td class="text-center" aria-describedby="v-tooltip-v-3">
               <!---->
               <!--teleport start-->

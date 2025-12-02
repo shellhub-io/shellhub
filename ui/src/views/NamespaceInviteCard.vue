@@ -25,18 +25,17 @@
       color="error"
       data-test="decline-btn"
       :text="isUserValid ? 'Decline Invitation' : 'Back to Home Page'"
-      @click="close()"
+      @click="declineInvite()"
     />
     <v-spacer data-test="spacer" />
     <v-btn
       variant="text"
       color="primary"
       data-test="accept-btn"
+      text="Accept Invitation"
       :disabled="!isUserValid"
       @click="acceptInvite()"
-    >
-      Accept Invitation
-    </v-btn>
+    />
   </v-card-actions>
 </template>
 
@@ -45,10 +44,10 @@ import { computed, onMounted, ref } from "vue";
 import axios from "axios";
 import { useRouter, useRoute } from "vue-router";
 import useAuthStore from "@/store/modules/auth";
-import useNamespacesStore from "@/store/modules/namespaces";
+import useInvitationsStore from "@/store/modules/invitations";
 
 const authStore = useAuthStore();
-const namespacesStore = useNamespacesStore();
+const invitationsStore = useInvitationsStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -85,17 +84,29 @@ const handleInviteError = (error: unknown) => {
   }
 };
 
+const declineInvite = async () => {
+  try {
+    const tenant = (route.query["tenant-id"] || route.query.tenantid) as string;
+    const sig = route.query.sig as string;
+
+    await invitationsStore.declineInvitation({ tenant, sig });
+
+    await close();
+  } catch (error) {
+    handleInviteError(error);
+  }
+};
+
 const acceptInvite = async () => {
   try {
     const tenant = (route.query["tenant-id"] || route.query.tenantid) as string;
     const sig = route.query.sig as string;
 
-    await namespacesStore.acceptInvite({ tenant, sig });
+    await invitationsStore.acceptInvitation({ tenant, sig });
 
     message.value = "Your invitation has been successfully accepted! You are now a member of the namespace.";
 
     await authStore.enterInvitedNamespace(tenant);
-    await namespacesStore.fetchNamespaceList();
     await close();
   } catch (error) {
     handleInviteError(error);
@@ -103,9 +114,7 @@ const acceptInvite = async () => {
 };
 
 onMounted(() => {
-  if (isUserValid.value) {
-    return;
-  }
+  if (isUserValid.value) return;
   errorAlert.value = "You aren't logged in the account meant for this invitation.";
 });
 
