@@ -3,8 +3,6 @@ import { computed, ref } from "vue";
 import * as namespacesApi from "../api/namespaces";
 import {
   INamespace,
-  INamespaceAcceptInvite,
-  INamespaceAddMember,
   INamespaceEdit,
   INamespaceEditMember,
   INamespaceRemoveMember,
@@ -53,25 +51,12 @@ const useNamespacesStore = defineStore("namespaces", () => {
     }
   };
 
-  const sendEmailInvitation = async (data: INamespaceAddMember) => {
-    await namespacesApi.sendNamespaceLink(data);
-  };
-
-  const generateInvitationLink = async (data: INamespaceAddMember) => {
-    const res = await namespacesApi.generateNamespaceLink(data);
-    return res.data.link as string;
-  };
-
   const updateNamespaceMember = async (data: INamespaceEditMember) => {
     await namespacesApi.updateNamespaceMember(data);
   };
 
   const removeMemberFromNamespace = async (data: INamespaceRemoveMember) => {
     await namespacesApi.removeUserFromNamespace(data);
-  };
-
-  const acceptInvite = async (data: INamespaceAcceptInvite) => {
-    await namespacesApi.acceptNamespaceInvite(data);
   };
 
   const lookupUserStatus = async (data: { tenant: string; id: string; sig: string; }) => {
@@ -108,11 +93,8 @@ const useNamespacesStore = defineStore("namespaces", () => {
     editNamespace,
     deleteNamespace,
     leaveNamespace,
-    sendEmailInvitation,
-    generateInvitationLink,
     updateNamespaceMember,
     removeMemberFromNamespace,
-    acceptInvite,
     lookupUserStatus,
     switchNamespace,
     reset,

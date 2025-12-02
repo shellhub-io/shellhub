@@ -29,7 +29,6 @@ describe("Member List", () => {
         email: "test@test.com",
         role: "owner" as const,
         added_at: "2024-01-01T12:00:00Z",
-        status: "accepted" as const,
       },
     ],
     settings: {
