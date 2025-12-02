@@ -14,6 +14,8 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
+	"github.com/shellhub-io/shellhub/pkg/envs"
+	envmock "github.com/shellhub-io/shellhub/pkg/envs/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	uuidmocks "github.com/shellhub-io/shellhub/pkg/uuid/mocks"
@@ -344,8 +346,11 @@ func TestGetNamespace(t *testing.T) {
 }
 
 func TestCreateNamespace(t *testing.T) {
+	envMock := new(envmock.Backend)
 	storeMock := new(storemock.Store)
 	clockMock := new(clockmock.Clock)
+
+	envs.DefaultBackend = envMock
 	clock.DefaultBackend = clockMock
 
 	now := time.Now()
@@ -530,7 +535,6 @@ func TestCreateNamespace(t *testing.T) {
 								{
 									ID:      "000000000000000000000000",
 									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
 									AddedAt: now,
 								},
 							},
@@ -607,7 +611,6 @@ func TestCreateNamespace(t *testing.T) {
 								{
 									ID:      "000000000000000000000000",
 									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
 									AddedAt: now,
 								},
 							},
@@ -631,7 +634,6 @@ func TestCreateNamespace(t *testing.T) {
 						{
 							ID:      "000000000000000000000000",
 							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
 							AddedAt: now,
 						},
 					},
@@ -706,7 +708,6 @@ func TestCreateNamespace(t *testing.T) {
 								{
 									ID:      "000000000000000000000000",
 									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
 									AddedAt: now,
 								},
 							},
@@ -730,7 +731,6 @@ func TestCreateNamespace(t *testing.T) {
 						{
 							ID:      "000000000000000000000000",
 							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
 							AddedAt: now,
 						},
 					},
@@ -802,7 +802,6 @@ func TestCreateNamespace(t *testing.T) {
 								{
 									ID:      "000000000000000000000000",
 									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
 									AddedAt: now,
 								},
 							},
@@ -826,7 +825,6 @@ func TestCreateNamespace(t *testing.T) {
 						{
 							ID:      "000000000000000000000000",
 							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
 							AddedAt: now,
 						},
 					},
@@ -898,7 +896,6 @@ func TestCreateNamespace(t *testing.T) {
 								{
 									ID:      "000000000000000000000000",
 									Role:    authorizer.RoleOwner,
-									Status:  models.MemberStatusAccepted,
 									AddedAt: now,
 								},
 							},
@@ -922,7 +919,6 @@ func TestCreateNamespace(t *testing.T) {
 						{
 							ID:      "000000000000000000000000",
 							Role:    authorizer.RoleOwner,
-							Status:  models.MemberStatusAccepted,
 							AddedAt: now,
 						},
 					},

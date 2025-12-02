@@ -44,7 +44,6 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 				ID:      user.ID,
 				Role:    authorizer.RoleOwner,
 				AddedAt: clock.Now(),
-				Status:  models.MemberStatusAccepted,
 			},
 		},
 		Settings: &models.NamespaceSettings{
@@ -88,7 +87,6 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 		ID:      user.ID,
 		Role:    input.Role,
 		AddedAt: clock.Now(),
-		Status:  models.MemberStatusAccepted,
 	}); err != nil {
 		return nil, ErrFailedNamespaceAddMember
 	}

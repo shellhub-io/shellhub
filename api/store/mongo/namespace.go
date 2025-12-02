@@ -30,9 +30,6 @@ func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([
 				"members": bson.M{
 					"$elemMatch": bson.M{
 						"id": user.ID,
-						"status": bson.M{
-							"$ne": models.MemberStatusPending,
-						},
 					},
 				},
 			},
