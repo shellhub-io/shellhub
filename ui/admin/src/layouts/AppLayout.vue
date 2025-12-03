@@ -16,7 +16,6 @@
         <v-img
           :src="Logo"
           width="160"
-          alt=""
           class="mx-auto"
         />
       </router-link>
@@ -152,11 +151,13 @@
 
   <Snackbar />
 
-  <v-main>
+  <v-main data-test="main">
     <slot>
       <v-container
         class="pa-8 container"
+        :class="{ 'container-light-bg': theme === 'light' }"
         fluid
+        data-test="container"
       >
         <router-view :key="currentRoute.value.path" />
       </v-container>
@@ -168,10 +169,13 @@
     :scrim="false"
     contained
     class="align-center justify-center w-100 h-100"
+    data-test="overlay"
   >
     <v-progress-circular
       indeterminate
       size="64"
+      alt="Request loading"
+      data-test="progress-circular"
     />
   </v-overlay>
 </template>
@@ -356,7 +360,7 @@ const visibleItems = computed(() => {
 
 </script>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 .container {
   position: relative;
   min-height: calc(100vh - var(--v-layout-top));
