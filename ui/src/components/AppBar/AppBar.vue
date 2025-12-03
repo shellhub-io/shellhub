@@ -59,7 +59,17 @@
         <span>Need assistance? Click here for support.</span>
       </v-tooltip>
 
-      <DevicesDropdown v-if="hasNamespaces" />
+      <DevicesDropdown
+        v-if="hasNamespaces"
+        v-model="showDevicesDrawer"
+        @update:model-value="showInvitationsDrawer = false"
+      />
+
+      <InvitationsMenu
+        v-if="isCloud"
+        v-model="showInvitationsDrawer"
+        @update:model-value="showDevicesDrawer = false"
+      />
 
       <v-menu
         scrim
@@ -169,6 +179,7 @@ import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import handleError from "@/utils/handleError";
 import UserIcon from "../User/UserIcon.vue";
 import DevicesDropdown from "./DevicesDropdown.vue";
+import InvitationsMenu from "@/components/Invitations/InvitationsMenu.vue";
 import PaywallChat from "../User/PaywallChat.vue";
 import Namespace from "@/components/Namespace/Namespace.vue";
 import { envVariables } from "@/envVariables";
@@ -206,6 +217,7 @@ const layoutStore = useLayoutStore();
 const namespacesStore = useNamespacesStore();
 const statsStore = useStatsStore();
 const supportStore = useSupportStore();
+const { isCommunity, isCloud, isEnterprise } = envVariables;
 const router = useRouter();
 const route = useRoute();
 const snackbar = useSnackbar();
@@ -221,6 +233,8 @@ const identifier = computed(() => supportStore.identifier);
 const isDarkMode = ref(theme.value === "dark");
 const chatSupportPaywall = ref(false);
 const showNavigationDrawer = defineModel<boolean>();
+const showDevicesDrawer = ref(false);
+const showInvitationsDrawer = ref(false);
 
 const triggerClick = async (item: MenuItem) => {
   switch (item.type) {
@@ -301,15 +315,15 @@ const redirectToGitHub = (): void => {
 
 const openShellhubHelp = async (): Promise<void> => {
   switch (true) {
-    case envVariables.isCloud && isBillingActive.value:
+    case isCloud && isBillingActive.value:
       await openChatwoot();
       break;
 
-    case envVariables.isCommunity || (envVariables.isCloud && !isBillingActive.value):
+    case isCommunity || (isCloud && !isBillingActive.value):
       openPaywall();
       break;
 
-    case envVariables.isEnterprise:
+    case isEnterprise:
       redirectToGitHub();
       break;
 
