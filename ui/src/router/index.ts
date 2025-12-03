@@ -10,6 +10,7 @@ import useUsersStore from "@/store/modules/users";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 import { computed } from "vue";
 import useTagsStore from "@/store/modules/tags";
+import hasPermission from "@/utils/permission";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const namespacesStore = useNamespacesStore();
@@ -81,6 +82,7 @@ const SettingPrivateKeys = () => import("@/components/Setting/SettingPrivateKeys
 const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
 const TeamMembers = () => import("@/views/TeamMembers.vue");
 const TeamApiKeys = () => import("@/views/TeamApiKeys.vue");
+const TeamInvitations = () => import("@/views/TeamInvitations.vue");
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -477,6 +479,16 @@ export const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "Members",
           showInSidebar: true,
+        },
+      },
+      {
+        path: "invitations",
+        name: "Invitations",
+        component: TeamInvitations,
+        meta: {
+          title: "Invitations",
+          showInSidebar: true,
+          isHidden: () => !envVariables.isCloud || !hasPermission("namespace:editInvitation"),
         },
       },
     ],
