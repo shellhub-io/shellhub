@@ -12,7 +12,8 @@ ARG GOPROXY
 ARG TARGETARCH
 ARG TARGETOS=linux
 
-RUN apk add --no-cache ca-certificates util-linux setpriv
+# Install Go BUILD architecture dependencies
+RUN apk add --no-cache ca-certificates
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -44,13 +45,19 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 # Cross-compile for target architecture
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
+# Runtime utilities stage - CRITICAL: must use target platform
+FROM --platform=$TARGETPLATFORM alpine:${ALPINE_VERSION:-3.22} AS runtime-utils
+
+# Install runtime binaries for the TARGET architecture
+RUN apk add --no-cache util-linux setpriv ca-certificates
+
 # development stage
 FROM base AS development
 
 ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
 
-RUN apk add --update openssl openssh-client
+RUN apk add --update openssl openssh-client util-linux setpriv
 RUN go install github.com/air-verse/air@v1.62 && \
     go install github.com/go-delve/delve/cmd/dlv@v1.25 && \
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
@@ -72,18 +79,18 @@ FROM scratch
 
 ARG TARGETARCH
 
-# Copy CA certificates
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Copy CA certificates from runtime-utils
+COPY --from=runtime-utils /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Copy required utilities
-COPY --from=builder /usr/bin/nsenter /usr/bin/
-COPY --from=builder /bin/setpriv /bin/
+# Copy required utilities from runtime-utils - NOT from builder
+COPY --from=runtime-utils /usr/bin/nsenter /usr/bin/
+COPY --from=runtime-utils /bin/setpriv /bin/
 
-# Copy shared libraries
-COPY --from=builder /usr/lib/libcap-ng.so.* /usr/lib/
+# Copy shared libraries from runtime-utils
+COPY --from=runtime-utils /usr/lib/libcap-ng.so.* /usr/lib/
 
-# Copy musl loader (automatically matches target architecture)
-COPY --from=builder /lib/ld-musl-*.so.1 /lib/
+# Copy musl loader from runtime-utils
+COPY --from=runtime-utils /lib/ld-musl-*.so.1 /lib/
 
 # Copy the agent binary
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/agent/agent /bin/agent
