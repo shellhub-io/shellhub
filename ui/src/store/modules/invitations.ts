@@ -10,11 +10,11 @@ const useInvitationsStore = defineStore("invitations", () => {
   const pendingInvitesFilter = JSON.stringify([{ type: "property", params: { name: "status", operator: "eq", value: "pending" } }]);
   const encodedFilter = Buffer.from(pendingInvitesFilter).toString("base64");
 
-  const fetchUserPendingInvitationList = async (perPage: number) => {
+  const fetchUserPendingInvitationList = async () => {
     const res = await invitationsApi.fetchUserPendingInvitations({
       filter: encodedFilter,
       page: 1,
-      perPage,
+      perPage: 100,
     });
     pendingInvitations.value = res.data as IInvitation[];
   };
