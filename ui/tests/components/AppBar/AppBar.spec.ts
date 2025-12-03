@@ -66,7 +66,7 @@ const systemInfo = {
 };
 
 // eslint-disable-next-line vue/max-len
-const mockInvitationsUrl = "http://localhost:3000/api/users/invitations?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJzdGF0dXMiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOiJwZW5kaW5nIn19XQ%3D%3D&page=1&per_page=10";
+const mockInvitationsUrl = "http://localhost:3000/api/users/invitations?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJzdGF0dXMiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOiJwZW5kaW5nIn19XQ%3D%3D&page=1&per_page=100";
 
 describe("AppBar Component", () => {
   let wrapper: VueWrapper<unknown>;

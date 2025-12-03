@@ -23,7 +23,6 @@
     <InvitationDecline
       v-slot="{ openDialog }"
       :tenant="tenant"
-      :sig="sig"
       data-test="decline-dialog"
       :on-success="handleDeclineSuccess"
     >
@@ -38,7 +37,6 @@
     <InvitationAccept
       v-slot="{ openDialog }"
       :tenant="tenant"
-      :sig="sig"
       data-test="accept-dialog"
       :on-success="handleAcceptSuccess"
     >
@@ -66,7 +64,6 @@ const message = ref("Accepting this invitation will allow you to collaborate wit
 const errorAlert = ref("");
 const isUserValid = computed(() => localStorage.getItem("id") === route.query["user-id"]);
 const tenant = computed(() => (route.query["tenant-id"] || route.query.tenantid) as string);
-const sig = computed(() => route.query.sig as string);
 
 const redirectToHome = async () => {
   await router.replace({ query: {} });

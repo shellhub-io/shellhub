@@ -149,11 +149,6 @@ const close = () => {
   formWindow.value = "form-1";
 };
 
-const update = () => {
-  emit("update");
-  close();
-};
-
 const handleInviteError = (error: unknown) => {
   snackbar.showError("Failed to send invitation.");
 
@@ -185,6 +180,7 @@ const generateLinkInvite = async () => {
     invitationLink.value = await invitationsStore.generateInvitationLink(getInvitePayload());
     snackbar.showSuccess("Invitation link generated successfully.");
     formWindow.value = "form-2";
+    emit("update");
   } catch (error) {
     handleInviteError(error);
   } finally {
@@ -197,8 +193,8 @@ const sendEmailInvite = async () => {
   try {
     await invitationsStore.sendInvitationEmail(getInvitePayload());
     snackbar.showSuccess("Invitation email sent successfully.");
-    update();
-    resetFields();
+    emit("update");
+    close();
   } catch (error) {
     handleInviteError(error);
   } finally {
