@@ -65,6 +65,9 @@ const systemInfo = {
   },
 };
 
+// eslint-disable-next-line vue/max-len
+const mockInvitationsUrl = "http://localhost:3000/api/users/invitations?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJzdGF0dXMiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOiJwZW5kaW5nIn19XQ%3D%3D&page=1&per_page=10";
+
 describe("AppBar Component", () => {
   let wrapper: VueWrapper<unknown>;
   const vuetify = createVuetify();
@@ -93,6 +96,7 @@ describe("AppBar Component", () => {
     mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, []);
     mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, {});
     mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=30").reply(200, []);
+    mockNamespacesApi.onGet(mockInvitationsUrl).reply(200, []);
     authStore.$patch(authStoreData);
     billingStore.billing = billingData;
 
@@ -165,6 +169,18 @@ describe("AppBar Component", () => {
   it("Opens the paywall if instance is community", async () => {
     envVariables.isCloud = false;
     envVariables.isCommunity = true;
+    wrapper.unmount();
+    wrapper = mount(Component, {
+      global: {
+        plugins: [vuetify, router, SnackbarPlugin],
+        components: {
+          "v-layout": VLayout,
+          AppBar,
+        },
+      },
+    });
+
+    await flushPromises();
     const drawer = wrapper.findComponent(AppBar);
 
     await drawer.vm.openShellhubHelp();

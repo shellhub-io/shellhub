@@ -3,7 +3,7 @@
 exports[`App Layout Component > Renders the component 1`] = `
 "<div class="v-application v-theme--light v-layout v-layout--full-height v-locale--is-ltr">
   <div class="v-application__wrap">
-    <nav class="v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface" style="left: 0px; z-index: 1006; transform: translateX(-256px); position: absolute; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;" inert="true" data-v-e7291ef4="" app="" data-test="navigation-drawer">
+    <nav class="v-navigation-drawer v-navigation-drawer--left v-navigation-drawer--temporary v-theme--dark v-navigation-drawer--mobile bg-v-theme-surface" style="left: 0px; z-index: 1008; transform: translateX(-256px); position: absolute; height: calc(100% - 0px - 0px); top: 0px; bottom: 0px; width: 256px;" inert="true" data-v-e7291ef4="" app="" data-test="navigation-drawer">
       <!---->
       <!---->
       <div class="v-navigation-drawer__content">
@@ -247,10 +247,11 @@ exports[`App Layout Component > Renders the component 1`] = `
       <!---->
     </transition-stub>
     <!---->
+    <!--teleport start-->
+    <!--teleport end-->
     <!---->
     <!---->
-    <!---->
-    <header class="v-toolbar v-toolbar--collapse-start v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-v-theme-surface border-b-thin" style="top: 0px; z-index: 1004; transform: translateY(0px); position: fixed; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
+    <header class="v-toolbar v-toolbar--collapse-start v-toolbar--flat v-toolbar--floating v-toolbar--density-default v-theme--light v-locale--is-ltr v-app-bar bg-v-theme-surface border-b-thin" style="top: 0px; z-index: 1006; transform: translateY(0px); position: fixed; left: 0px; width: calc(100% - 0px - 0px);" data-test="app-bar">
       <!---->
       <div class="v-toolbar__content" style="height: 64px;">
         <!---->
@@ -292,7 +293,14 @@ exports[`App Layout Component > Renders the component 1`] = `
         </button>
         <!--teleport start-->
         <!--teleport end-->
-        <!--v-if--><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-12" aria-owns="v-menu-v-12" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!--v-if-->
+        <div class="v-badge" size="x-small" data-test="invitations-dropdown-badge">
+          <div class="v-badge__wrapper"><i class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Open pending invites menu" data-test="invites-icon"></i>
+            <transition-stub name="scale-rotate-transition" appear="false" persisted="false" css="true"><span class="v-badge__badge v-theme--light bg-success" style="bottom: calc(100% - 8px); left: calc(100% - 8px); display: none;" aria-atomic="true" aria-label="Badge" aria-live="polite" role="status">0</span></transition-stub>
+          </div>
+        </div>
+        <!--teleport start-->
+        <!--teleport end--><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-13" aria-owns="v-menu-v-13" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="" data-test="user-icon"><i data-v-09753bb1="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default text-surface" aria-hidden="true" data-test="gravatar-placeholder"></i><!----><span class="v-avatar__underlay"></span>
       </div></span>
       <!---->
