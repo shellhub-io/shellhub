@@ -1,7 +1,7 @@
 import { BasicRole } from "@/interfaces/INamespace";
 
 export interface IInvitation {
-  status: "pending" | "expired";
+  status: "pending" | "accepted" | "rejected" | "cancelled";
   role: BasicRole;
   invited_by: string;
   expires_at: string;

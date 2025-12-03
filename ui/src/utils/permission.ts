@@ -28,6 +28,8 @@ const permissions = {
   "namespace:addMember": Roles.ADMINISTRATOR,
   "namespace:editMember": Roles.ADMINISTRATOR,
   "namespace:removeMember": Roles.ADMINISTRATOR,
+  "namespace:editInvitation": Roles.ADMINISTRATOR,
+  "namespace:cancelInvitation": Roles.ADMINISTRATOR,
   "namespace:updateSessionRecording": Roles.ADMINISTRATOR,
   "namespace:delete": Roles.OWNER,
 
