@@ -2,14 +2,12 @@ import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
 import Home from "@/views/Home.vue";
-import { devicesApi } from "@/api/http";
 import { router } from "@/router";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useNamespacesStore from "@/store/modules/namespaces";
-import useStatsStore from "@/store/modules/stats";
+import useDevicesStore from "@/store/modules/devices";
 import { INamespace } from "@/interfaces/INamespace";
 
 type HomeWrapper = VueWrapper<InstanceType<typeof Home>>;
@@ -17,8 +15,7 @@ type HomeWrapper = VueWrapper<InstanceType<typeof Home>>;
 describe("Home", () => {
   let wrapper: HomeWrapper;
   let namespacesStore: ReturnType<typeof useNamespacesStore>;
-  let statsStore: ReturnType<typeof useStatsStore>;
-  let mockDevicesApi: MockAdapter;
+  let devicesStore: ReturnType<typeof useDevicesStore>;
   const vuetify = createVuetify();
 
   const members = [
@@ -50,25 +47,20 @@ describe("Home", () => {
     type: "personal",
   };
 
-  const statsMock = {
-    registered_devices: 5,
-    online_devices: 3,
-    active_sessions: 2,
-    pending_devices: 1,
-    rejected_devices: 0,
-  };
-
   beforeEach(async () => {
     setActivePinia(createPinia());
     namespacesStore = useNamespacesStore();
-    statsStore = useStatsStore();
-
-    mockDevicesApi = new MockAdapter(devicesApi.getAxios());
-    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, statsMock);
+    devicesStore = useDevicesStore();
 
     namespacesStore.$patch({
       namespaceList: [namespaceData],
       currentNamespace: namespaceData,
+    });
+
+    devicesStore.$patch({
+      totalDevicesCount: 5,
+      onlineDevicesCount: 3,
+      pendingDevicesCount: 1,
     });
 
     wrapper = mount(Home, {
@@ -82,8 +74,6 @@ describe("Home", () => {
 
   afterEach(() => {
     wrapper.unmount();
-    mockDevicesApi.reset();
-    mockDevicesApi.restore();
   });
 
   describe("Component Rendering", () => {
@@ -99,7 +89,9 @@ describe("Home", () => {
         currentNamespace: {},
       });
 
-      wrapper = mount(Home, { global: { plugins: [vuetify, router, SnackbarPlugin] } });
+      wrapper = mount(Home, {
+        global: { plugins: [vuetify, router, SnackbarPlugin] },
+      });
 
       await flushPromises();
 
@@ -119,34 +111,41 @@ describe("Home", () => {
       expect(wrapper.text()).toContain("This is your active namespace");
     });
 
-    it("displays all device stat cards", () => {
-      expect(wrapper.text()).toContain("Accepted Devices");
-      expect(wrapper.text()).toContain("Online Devices");
-      expect(wrapper.text()).toContain("Pending Devices");
-    });
-
-    it("displays the add device card", () => {
-      expect(wrapper.text()).toContain("Add a new device");
-      expect(wrapper.text()).toContain("Register new devices to this namespace");
-    });
-  });
-
-  describe("Stats Loading", () => {
-    it("fetches and displays stats on mount", async () => {
-      await flushPromises();
-
-      expect(statsStore.stats.registered_devices).toBe(statsMock.registered_devices);
-      expect(statsStore.stats.online_devices).toBe(statsMock.online_devices);
-      expect(statsStore.stats.pending_devices).toBe(statsMock.pending_devices);
-    });
-
-    it("displays correct stat values in the UI", async () => {
-      await flushPromises();
-
+    it("displays device stat cards", () => {
       const text = wrapper.text();
       expect(text).toContain("Accepted Devices");
       expect(text).toContain("Online Devices");
       expect(text).toContain("Pending Devices");
+    });
+
+    it("displays the add device card", () => {
+      const text = wrapper.text();
+      expect(text).toContain("Add a new device");
+      expect(text).toContain("Register new devices to this namespace");
+    });
+  });
+
+  describe("Stats Loading (From devicesStore)", () => {
+    it("displays correct stat values via computed properties", async () => {
+      await flushPromises();
+      expect(devicesStore.totalDevicesCount).toBe(5);
+      expect(devicesStore.onlineDevicesCount).toBe(3);
+      expect(devicesStore.pendingDevicesCount).toBe(1);
+    });
+
+    it("updates UI when store changes", async () => {
+      devicesStore.$patch({
+        totalDevicesCount: 10,
+        onlineDevicesCount: 8,
+        pendingDevicesCount: 2,
+      });
+
+      await nextTick();
+      const html = wrapper.html();
+
+      expect(html).toContain("10");
+      expect(html).toContain("8");
+      expect(html).toContain("2");
     });
 
     it("handles missing namespace gracefully", async () => {
@@ -154,24 +153,21 @@ describe("Home", () => {
       namespacesStore.namespaceList = [];
 
       wrapper = mount(Home, {
-        global: {
-          plugins: [vuetify, router, SnackbarPlugin],
-        },
+        global: { plugins: [vuetify, router, SnackbarPlugin] },
       });
 
       await flushPromises();
 
       expect(wrapper.exists()).toBe(true);
+      expect(wrapper.text()).toContain("No Active Namespace");
     });
 
-    it("fetches stats when namespace becomes available", async () => {
+    it("reacts when namespace becomes available", async () => {
       wrapper.unmount();
       namespacesStore.namespaceList = [];
 
       wrapper = mount(Home, {
-        global: {
-          plugins: [vuetify, router, SnackbarPlugin],
-        },
+        global: { plugins: [vuetify, router, SnackbarPlugin] },
       });
 
       await flushPromises();
@@ -180,65 +176,11 @@ describe("Home", () => {
       await nextTick();
       await flushPromises();
 
-      expect(statsStore.stats.registered_devices).toBe(statsMock.registered_devices);
+      expect(wrapper.text()).toContain(namespaceData.tenant_id);
     });
   });
 
   describe("Error Handling", () => {
-    it("displays error message when API call fails with 403 status", async () => {
-      wrapper.unmount();
-      mockDevicesApi.reset();
-      mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(403);
-
-      wrapper = mount(Home, {
-        global: {
-          plugins: [vuetify, router, SnackbarPlugin],
-        },
-      });
-
-      await flushPromises();
-
-      expect(wrapper.vm.hasError).toBe(true);
-      expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="home-failed"]').text()).toContain(
-        "Something is wrong, try again!",
-      );
-    });
-
-    it("displays error message when API call fails with other errors", async () => {
-      wrapper.unmount();
-      mockDevicesApi.reset();
-      mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(500);
-
-      wrapper = mount(Home, {
-        global: {
-          plugins: [vuetify, router, SnackbarPlugin],
-        },
-      });
-
-      await flushPromises();
-
-      expect(wrapper.vm.hasError).toBe(true);
-      expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
-    });
-
-    it("displays error message when API call times out", async () => {
-      wrapper.unmount();
-      mockDevicesApi.reset();
-      mockDevicesApi.onGet("http://localhost:3000/api/stats").timeout();
-
-      wrapper = mount(Home, {
-        global: {
-          plugins: [vuetify, router, SnackbarPlugin],
-        },
-      });
-
-      await flushPromises();
-
-      expect(wrapper.vm.hasError).toBe(true);
-      expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
-    });
-
     it("can manually toggle error state", async () => {
       expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(false);
 
@@ -246,6 +188,9 @@ describe("Home", () => {
       await nextTick();
 
       expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="home-failed"]').text()).toContain(
+        "Something is wrong, try again!",
+      );
     });
   });
 

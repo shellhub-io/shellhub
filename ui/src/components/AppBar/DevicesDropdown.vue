@@ -1,13 +1,13 @@
 <template>
   <v-badge
-    :model-value="pendingDevicesCount > 0"
-    :content="pendingDevicesCount"
+    :model-value="pendingDevices > 0"
+    :content="pendingDevices"
     offset-y="-5"
     location="top right"
     color="success"
     size="x-small"
     data-test="device-dropdown-badge"
-    :class="{ 'mr-1': pendingDevicesCount > 0 }"
+    :class="{ 'mr-1': pendingDevices > 0 }"
   >
     <v-icon
       color="primary"
@@ -47,12 +47,11 @@
                 variant="tonal"
                 data-test="total-devices-card"
               >
-                <div class="text-h4 font-weight-bold">
-                  {{ stats.registered_devices }}
-                </div>
+                <div class="text-h4 font-weight-bold">{{ totalDevices }}</div>
                 <div class="text-caption text-medium-emphasis">Total</div>
               </v-card>
             </v-col>
+
             <v-col
               cols="6"
               sm="3"
@@ -62,12 +61,11 @@
                 variant="tonal"
                 data-test="online-devices-card"
               >
-                <div class="text-h4 font-weight-bold">
-                  {{ stats.online_devices }}
-                </div>
+                <div class="text-h4 font-weight-bold">{{ onlineDevices }}</div>
                 <div class="text-caption text-medium-emphasis">Online</div>
               </v-card>
             </v-col>
+
             <v-col
               cols="6"
               sm="3"
@@ -77,12 +75,11 @@
                 variant="tonal"
                 data-test="pending-devices-card"
               >
-                <div class="text-h4 font-weight-bold">
-                  {{ stats.pending_devices }}
-                </div>
+                <div class="text-h4 font-weight-bold">{{ pendingDevices }}</div>
                 <div class="text-caption text-medium-emphasis">Pending</div>
               </v-card>
             </v-col>
+
             <v-col
               cols="6"
               sm="3"
@@ -92,13 +89,12 @@
                 variant="tonal"
                 data-test="offline-devices-card"
               >
-                <div class="text-h4 font-weight-bold">
-                  {{ offlineDevices }}
-                </div>
+                <div class="text-h4 font-weight-bold">{{ offlineDevices }}</div>
                 <div class="text-caption text-medium-emphasis">Offline</div>
               </v-card>
             </v-col>
           </v-row>
+
           <v-btn-toggle
             v-model="activeTab"
             mandatory
@@ -120,14 +116,15 @@
               />
               <span v-if="smAndUp">Pending Approval</span>
               <v-chip
-                v-if="stats.pending_devices > 0"
+                v-if="pendingDevices > 0"
                 color="warning"
                 size="x-small"
                 class="ml-2"
               >
-                {{ stats.pending_devices }}
+                {{ pendingDevices }}
               </v-chip>
             </v-btn>
+
             <v-btn
               value="recent"
               data-test="recent-tab"
@@ -141,6 +138,7 @@
               <span v-if="smAndUp">Recent Activity</span>
             </v-btn>
           </v-btn-toggle>
+
           <v-window
             v-model="activeTab"
             class="overflow-visible"
@@ -151,7 +149,7 @@
                 class="overflow-y-auto border"
               >
                 <v-list
-                  v-if="pendingDevicesCount > 0"
+                  v-if="pendingDevicesList.length > 0"
                   density="compact"
                   class="bg-v-theme-surface pa-0"
                 >
@@ -232,12 +230,8 @@
                     color="success"
                     class="opacity-50 mb-3"
                   />
-                  <p class="text-body-2 text-medium-emphasis">
-                    No pending devices
-                  </p>
-                  <p class="text-caption text-disabled mt-1">
-                    All devices have been approved
-                  </p>
+                  <p class="text-body-2 text-medium-emphasis">No pending devices</p>
+                  <p class="text-caption text-disabled mt-1">All devices have been approved</p>
                 </div>
               </v-card>
             </v-window-item>
@@ -292,9 +286,7 @@
                     color="primary"
                     class="opacity-50 mb-3"
                   />
-                  <p class="text-body-2 text-medium-emphasis">
-                    No recent activity
-                  </p>
+                  <p class="text-body-2 text-medium-emphasis">No recent activity</p>
                 </div>
               </v-card>
             </v-window-item>
@@ -322,77 +314,79 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, ref } from "vue";
 import { useDisplay } from "vuetify";
-import useStatsStore from "@/store/modules/stats";
 import useDevicesStore from "@/store/modules/devices";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import moment from "moment";
-import { IDevice } from "@/interfaces/IDevice";
+import type { IDevice } from "@/interfaces/IDevice";
 import DeviceActionButton from "@/components/Devices/DeviceActionButton.vue";
 
 const { smAndUp, thresholds } = useDisplay();
-const statsStore = useStatsStore();
 const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 
 const isDrawerOpen = ref(false);
 const activeTab = ref<"pending" | "recent">("pending");
+
+const totalDevices = computed(() => devicesStore.totalDevicesCount);
+const onlineDevices = computed(() => devicesStore.onlineDevicesCount);
+const offlineDevices = computed(() => devicesStore.offlineDevicesCount);
+const pendingDevices = computed(() => devicesStore.pendingDevicesCount);
+
 const pendingDevicesList = ref<IDevice[]>([]);
-const pendingDevicesCount = computed(() => pendingDevicesList.value.length);
 const recentDevicesList = ref<IDevice[]>([]);
-const stats = computed(() => statsStore.stats);
-const offlineDevices = computed(
-  () => stats.value.registered_devices - stats.value.online_devices,
-);
+
 const toggleDrawer = () => {
   isDrawerOpen.value = !isDrawerOpen.value;
 };
 
-const formatTimeAgo = (date: string | Date) => {
-  if (!date) return "Unknown";
-  return moment(date).fromNow();
-};
-
-const handleUpdate = async () => {
-  await fetchStats();
-  await fetchPendingDevices();
-  await fetchRecentDevices();
-};
-
-const fetchStats = async () => {
-  try {
-    await statsStore.fetchStats();
-  } catch (error: unknown) {
-    snackbar.showError("Failed to load device statistics");
-    handleError(error);
-  }
-};
+const formatTimeAgo = (date: string | Date) =>
+  date ? moment(date).fromNow() : "Unknown";
 
 const fetchPendingDevices = async () => {
   try {
-    await devicesStore.fetchDeviceList({ status: "pending", perPage: 100 });
+    await devicesStore.fetchDeviceList({
+      status: "pending",
+      perPage: 100,
+      filter: undefined,
+    });
     pendingDevicesList.value = [...devicesStore.devices];
-  } catch (error: unknown) {
-    handleError(error);
+  } catch (e) {
+    snackbar.showError("Failed to load pending devices");
+    handleError(e);
   }
 };
 
 const fetchRecentDevices = async () => {
   try {
-    await devicesStore.fetchDeviceList({ status: "accepted" });
+    await devicesStore.fetchDeviceList({
+      status: "accepted",
+      perPage: 100,
+      filter: undefined,
+    });
     recentDevicesList.value = [...devicesStore.devices].sort(
       (a, b) =>
         new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime(),
     );
-  } catch (error: unknown) {
-    handleError(error);
+  } catch (e) {
+    snackbar.showError("Failed to load recent devices");
+    handleError(e);
+  }
+};
+
+const handleUpdate = async () => {
+  try {
+    await devicesStore.fetchDeviceCounts();
+    await fetchPendingDevices();
+    await fetchRecentDevices();
+  } catch (e) {
+    snackbar.showError("Failed to update device data");
+    handleError(e);
   }
 };
 
 onBeforeMount(async () => {
-  await fetchStats();
-  await fetchPendingDevices();
-  await fetchRecentDevices();
+  await handleUpdate();
 });
 
 defineExpose({
@@ -403,7 +397,9 @@ defineExpose({
   activeTab,
   pendingDevicesList,
   recentDevicesList,
-  stats,
+  totalDevices,
+  onlineDevices,
   offlineDevices,
+  pendingDevices,
 });
 </script>
