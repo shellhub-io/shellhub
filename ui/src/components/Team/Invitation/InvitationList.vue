@@ -34,7 +34,10 @@
 
           <td class="text-center">{{ formatShortDateTime(invitation.created_at) }}</td>
 
-          <td class="text-center">
+          <td
+            class="text-center"
+            data-test="invitation-date-cell"
+          >
             <span
               v-if="isInvitationPending(invitation) && isInvitationExpired(invitation.expires_at)"
               class="text-error font-weight-medium"
