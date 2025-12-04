@@ -55,13 +55,31 @@ func (b *backend) LookupUser(username string) (*User, error) {
 }
 
 func (b *backend) ListGroups(username string) ([]uint32, error) {
-	file, err := os.Open(DefaultGroupFilename)
+	user, err := b.LookupUser(username)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
-	return ListGroupsFromFile(username, file)
+	groups := []uint32{user.GID}
+
+	groupFile, err := os.Open(DefaultGroupFilename)
+	if err != nil {
+		return nil, err
+	}
+	defer groupFile.Close()
+
+	secondaryGroups, err := ListGroupsFromFile(username, groupFile)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, gid := range secondaryGroups {
+		if gid != user.GID {
+			groups = append(groups, gid)
+		}
+	}
+
+	return groups, nil
 }
 
 func ListGroupsFromFile(username string, group io.Reader) ([]uint32, error) {
@@ -72,7 +90,7 @@ func ListGroupsFromFile(username string, group io.Reader) ([]uint32, error) {
 		return nil, err
 	}
 
-	userGroups := make([]uint32, 0, len(groups))
+	var userGroups []uint32
 	for _, g := range groups {
 		if slices.Contains(g.Members, username) {
 			userGroups = append(userGroups, g.GID)
