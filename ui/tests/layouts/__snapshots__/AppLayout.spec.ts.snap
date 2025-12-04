@@ -294,8 +294,8 @@ exports[`App Layout Component > Renders the component 1`] = `
         <!--teleport start-->
         <!--teleport end-->
         <!--v-if-->
-        <div class="v-badge" size="x-small" data-test="invitations-dropdown-badge">
-          <div class="v-badge__wrapper"><i class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Open pending invites menu" data-test="invites-icon"></i>
+        <div class="v-badge" size="x-small" data-test="invitations-menu-badge">
+          <div class="v-badge__wrapper"><i class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default text-primary v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Open pending invitations menu" data-test="invitations-menu-icon"></i>
             <transition-stub name="scale-rotate-transition" appear="false" persisted="false" css="true"><span class="v-badge__badge v-theme--light bg-success" style="bottom: calc(100% - 8px); left: calc(100% - 8px); display: none;" aria-atomic="true" aria-label="Badge" aria-live="polite" role="status">0</span></transition-stub>
           </div>
         </div>
