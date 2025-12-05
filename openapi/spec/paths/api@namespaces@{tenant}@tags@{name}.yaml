@@ -1,6 +1,8 @@
 patch:
-  operationId: updateTag
+  operationId: updateTagDeprecated
+  deprecated: true
   summary: Update a tag
+  description: '**Deprecated**: Use `PATCH /api/tags/{name}` instead.'
   tags:
     - community
     - tags
@@ -53,9 +55,10 @@ patch:
     '500':
       $ref: ../components/responses/500.yaml
 delete:
-  operationId: deleteTag
+  operationId: deleteTagDeprecated
+  deprecated: true
   summary: Delete a tag
-  description: Removes a tag and all its associations
+  description: '**Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.'
   tags:
     - community
     - tags

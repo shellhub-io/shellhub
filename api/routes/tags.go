@@ -10,12 +10,19 @@ import (
 )
 
 const (
-	URLGetTags           = "/namespaces/:tenant/tags"
-	URLCreateTag         = "/namespaces/:tenant/tags"
-	URLUpdateTag         = "/namespaces/:tenant/tags/:name"
-	URLDeleteTag         = "/namespaces/:tenant/tags/:name"
-	URLPushTagToDevice   = "/namespaces/:tenant/devices/:uid/tags/:name"
-	URLPullTagFromDevice = "/namespaces/:tenant/devices/:uid/tags/:name"
+	URLGetTags           = "/tags"
+	URLCreateTag         = "/tags"
+	URLUpdateTag         = "/tags/:name"
+	URLDeleteTag         = "/tags/:name"
+	URLPushTagToDevice   = "/devices/:uid/tags/:name"
+	URLPullTagFromDevice = "/devices/:uid/tags/:name"
+
+	URLOldGetTags           = "/namespaces/:tenant/tags"
+	URLOldCreateTag         = "/namespaces/:tenant/tags"
+	URLOldUpdateTag         = "/namespaces/:tenant/tags/:name"
+	URLOldDeleteTag         = "/namespaces/:tenant/tags/:name"
+	URLOldPushTagToDevice   = "/namespaces/:tenant/devices/:uid/tags/:name"
+	URLOldPullTagFromDevice = "/namespaces/:tenant/devices/:uid/tags/:name"
 )
 
 func (h *Handler) CreateTag(c gateway.Context) error {

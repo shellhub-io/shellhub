@@ -1,8 +1,7 @@
 get:
-  operationId: getTagsDeprecated
-  deprecated: true
-  summary: Retrieve all tags associated with a namespace
-  description: '**Deprecated**: Use `GET /api/tags` instead.'
+  operationId: getTags
+  summary: Retrieve all tags associated with the namespace
+  description: Retrieves all tags for the authenticated namespace.
   tags:
     - community
     - tags
@@ -10,7 +9,6 @@ get:
     - jwt: []
     - api-key: []
   parameters:
-    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
     - $ref: ../components/parameters/query/filterQuery.yaml
     - $ref: ../components/parameters/query/pageQuery.yaml
     - $ref: ../components/parameters/query/perPageQuery.yaml
@@ -38,18 +36,15 @@ get:
     '500':
       $ref: ../components/responses/500.yaml
 post:
-  operationId: createTagDeprecated
-  deprecated: true
+  operationId: createTag
   summary: Create a new tag in the namespace
-  description: '**Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.'
+  description: Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
   tags:
     - community
     - tags
   security:
     - jwt: []
     - api-key: []
-  parameters:
-    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
   requestBody:
     required: true
     content:

@@ -1,8 +1,7 @@
-post:
-  operationId: pushTagToDeviceDeprecated
-  deprecated: true
-  summary: Associate a tag with a device
-  description: '**Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.'
+patch:
+  operationId: updateTag
+  summary: Update a tag
+  description: Updates a tag in the authenticated namespace.
   tags:
     - community
     - tags
@@ -10,19 +9,37 @@ post:
     - jwt: []
     - api-key: []
   parameters:
-    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
-    - $ref: ../components/parameters/path/deviceUIDPath.yaml
     - name: name
-      description: Tag name to associate
+      description: Current tag name
       schema:
         type: string
         pattern: ^[a-zA-Z0-9-_]+$
         example: prod
       required: true
       in: path
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              minLength: 3
+              maxLength: 255
+              pattern: ^[a-zA-Z0-9-_]+$
+              example: dev
+              description: New tag name
   responses:
-    '204':
-      description: Tag successfully associated with device
+    '200':
+      description: Tag successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/tag.yaml
     '400':
       $ref: ../components/responses/400.yaml
     '401':
@@ -31,13 +48,14 @@ post:
       $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml
 delete:
-  operationId: pullTagFromDeviceDeprecated
-  deprecated: true
-  summary: Remove a tag from a device
-  description: '**Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.'
+  operationId: deleteTag
+  summary: Delete a tag
+  description: Removes a tag and all its associations from the authenticated namespace.
   tags:
     - community
     - tags
@@ -45,10 +63,8 @@ delete:
     - jwt: []
     - api-key: []
   parameters:
-    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
-    - $ref: ../components/parameters/path/deviceUIDPath.yaml
     - name: name
-      description: Tag name to remove
+      description: Tag name to delete
       schema:
         type: string
         pattern: ^[a-zA-Z0-9-_]+$
@@ -57,7 +73,7 @@ delete:
       in: path
   responses:
     '204':
-      description: Tag successfully removed from device
+      description: Tag successfully deleted
     '400':
       $ref: ../components/responses/400.yaml
     '401':
