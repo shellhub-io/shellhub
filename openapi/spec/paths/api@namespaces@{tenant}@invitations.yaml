@@ -1,0 +1,48 @@
+get:
+  operationId: getNamespaceMembershipInvitationList
+  summary: Get membership invitations for a namespace
+  description: |
+    Returns a paginated list of membership invitations for the specified namespace.
+    This endpoint allows namespace administrators to view all pending invitations.
+  tags:
+    - cloud
+    - members
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+    - name: filter
+      description: |
+        Membership invitations filter.
+
+        Filter field receives a base64 encoded JSON object to limit the search.
+      schema:
+        type: string
+      required: false
+      in: query
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Successfully retrieved namespace membership invitations list.
+      headers:
+        X-Total-Count:
+          description: Total number of membership invitations.
+          schema:
+            type: integer
+            minimum: 0
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/membershipInvitation.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

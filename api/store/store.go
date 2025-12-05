@@ -9,6 +9,7 @@ type Store interface {
 	UserInvitationsStore
 	NamespaceStore
 	MemberStore
+	MembershipInvitationsStore
 	PublicKeyStore
 	PrivateKeyStore
 	StatsStore

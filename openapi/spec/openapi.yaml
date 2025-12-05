@@ -237,12 +237,22 @@ paths:
     $ref: paths/api@connector@{uid}.yaml
   /api/connector/{uid}/info:
     $ref: paths/api@connector@{uid}@info.yaml
-  /api/namespaces/{tenant}/members/accept-invite:
-    $ref: paths/api@namespaces@{tenant}@members@accept-invite.yaml
-  /api/namespaces/{tenant}/members/invites:
-    $ref: paths/api@namespaces@{tenant}@members@invites.yaml
+  # Lookup user status
+  # TODO: rename this endpoint
   /api/namespaces/{tenant}/members/{id}/accept-invite:
     $ref: paths/api@namespaces@{tenant}@members@{id}@accept-invite.yaml
+  /api/namespaces/{tenant}/invitations/links:
+    $ref: paths/api@namespaces@{tenant}@invitations@links.yaml
+  /api/namespaces/{tenant}/invitations/accept:
+    $ref: paths/api@namespaces@{tenant}@invitations@accept.yaml
+  /api/namespaces/{tenant}/invitations/decline:
+    $ref: paths/api@namespaces@{tenant}@invitations@decline.yaml
+  /api/namespaces/{tenant}/invitations/{user-id}:
+    $ref: paths/api@namespaces@{tenant}@invitations@{user-id}.yaml
+  /api/namespaces/{tenant}/invitations:
+    $ref: paths/api@namespaces@{tenant}@invitations.yaml
+  /api/users/invitations:
+    $ref: paths/api@users@invitations.yaml
   /api/namespaces/{tenant}/support:
     $ref: paths/api@namespaces@{tenant}@support.yaml
   /api/web-endpoints:
