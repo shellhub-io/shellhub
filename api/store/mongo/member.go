@@ -22,11 +22,9 @@ func (s *Store) NamespaceCreateMembership(ctx context.Context, tenantID string, 
 	}
 
 	memberBson := bson.M{
-		"id":         member.ID,
-		"added_at":   member.AddedAt,
-		"expires_at": member.ExpiresAt,
-		"role":       member.Role,
-		"status":     member.Status,
+		"id":       member.ID,
+		"added_at": member.AddedAt,
+		"role":     member.Role,
 	}
 
 	res, err := s.db.
@@ -51,11 +49,9 @@ func (s *Store) NamespaceUpdateMembership(ctx context.Context, tenantID string, 
 	filter := bson.M{"tenant_id": tenantID, "members": bson.M{"$elemMatch": bson.M{"id": member.ID}}}
 
 	memberBson := bson.M{
-		"members.$.id":         member.ID,
-		"members.$.added_at":   member.AddedAt,
-		"members.$.expires_at": member.ExpiresAt,
-		"members.$.role":       member.Role,
-		"members.$.status":     member.Status,
+		"members.$.id":       member.ID,
+		"members.$.added_at": member.AddedAt,
+		"members.$.role":     member.Role,
 	}
 
 	ns, err := s.db.Collection("namespaces").UpdateOne(ctx, filter, bson.M{"$set": memberBson})

@@ -4,118 +4,88 @@
     type="error"
     variant="tonal"
     data-test="error-alert"
-  >
-    {{ errorAlert }}
-  </v-alert>
+    :text="errorAlert"
+  />
   <v-card-title
     class="d-flex justify-center mb-1 text-h6"
     data-test="title"
   >
-    {{ title }}
+    Namespace Invitation
   </v-card-title>
-  <div
-    class="text-subtitle-1 ml-3"
+  <v-card-text
+    class="text-subtitle-1 ml-3 text-justify"
     data-test="message"
   >
     {{ message }}
-  </div>
+  </v-card-text>
   <v-card-actions data-test="actions">
-    <v-btn
-      variant="text"
-      color="error"
-      data-test="decline-btn"
-      :text="isUserValid ? 'Decline Invitation' : 'Back to Home Page'"
-      @click="close()"
-    />
     <v-spacer data-test="spacer" />
-    <v-btn
-      variant="text"
-      color="primary"
-      data-test="accept-btn"
-      :disabled="!isUserValid"
-      @click="acceptInvite()"
+    <InvitationDecline
+      v-slot="{ openDialog }"
+      :tenant="tenant"
+      data-test="decline-dialog"
+      :on-success="handleDeclineSuccess"
     >
-      Accept Invitation
-    </v-btn>
+      <v-btn
+        variant="text"
+        color="error"
+        data-test="decline-btn"
+        :text="isUserValid ? 'Decline' : 'Back to Home Page'"
+        @click="isUserValid ? openDialog() : redirectToHome()"
+      />
+    </InvitationDecline>
+    <InvitationAccept
+      v-slot="{ openDialog }"
+      :tenant="tenant"
+      data-test="accept-dialog"
+      :on-success="handleAcceptSuccess"
+    >
+      <v-btn
+        variant="text"
+        color="primary"
+        data-test="accept-btn"
+        text="Accept"
+        :disabled="!isUserValid"
+        @click="openDialog"
+      />
+    </InvitationAccept>
   </v-card-actions>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import axios from "axios";
 import { useRouter, useRoute } from "vue-router";
-import useAuthStore from "@/store/modules/auth";
-import useNamespacesStore from "@/store/modules/namespaces";
+import InvitationAccept from "@/components/Invitations/InvitationAccept.vue";
+import InvitationDecline from "@/components/Invitations/InvitationDecline.vue";
 
-const authStore = useAuthStore();
-const namespacesStore = useNamespacesStore();
 const router = useRouter();
 const route = useRoute();
-
-const title = ref("Namespace Invitation");
 const message = ref("Accepting this invitation will allow you to collaborate with the Namespace collaborators.");
 const errorAlert = ref("");
-
 const isUserValid = computed(() => localStorage.getItem("id") === route.query["user-id"]);
+const tenant = computed(() => (route.query["tenant-id"] || route.query.tenantid) as string);
 
-const close = async () => {
+const redirectToHome = async () => {
   await router.replace({ query: {} });
   await router.push({ name: "Home" });
 };
 
-const errorToMessage = (status?: number): string => {
-  const errorMessages: Record<number, string> = {
-    400: "It seems like there was an issue with the request. Please check the invitation link and try again.",
-    404: "We couldn't find the namespace or member associated with this invitation. The invitation might have expired.",
-    500: "Our servers encountered an issue while processing your invitation acceptance. Please try again later.",
-  };
-
-  return status
-    ? errorMessages[status] ?? "An unexpected error occurred. Please try again later."
-    : "An unexpected error occurred. Please try again later.";
+const handleAcceptSuccess = async () => {
+  message.value = "Your invitation has been successfully accepted! You are now a member of the namespace.";
+  await redirectToHome();
 };
 
-const handleInviteError = (error: unknown) => {
-  title.value = "Invite Accept Error";
-
-  if (axios.isAxiosError(error)) {
-    errorAlert.value = errorToMessage(error.response?.status);
-  } else {
-    message.value = "An unexpected error occurred. Please try again later.";
-  }
-};
-
-const acceptInvite = async () => {
-  try {
-    const tenant = (route.query["tenant-id"] || route.query.tenantid) as string;
-    const sig = route.query.sig as string;
-
-    await namespacesStore.acceptInvite({ tenant, sig });
-
-    message.value = "Your invitation has been successfully accepted! You are now a member of the namespace.";
-
-    await authStore.enterInvitedNamespace(tenant);
-    await namespacesStore.fetchNamespaceList();
-    await close();
-  } catch (error) {
-    handleInviteError(error);
-  }
-};
+const handleDeclineSuccess = async () => { await redirectToHome(); };
 
 onMounted(() => {
-  if (isUserValid.value) {
-    return;
-  }
+  if (isUserValid.value) return;
   errorAlert.value = "You aren't logged in the account meant for this invitation.";
 });
 
 defineExpose({
-  title,
   message,
   errorAlert,
-  close,
-  acceptInvite,
+  redirectToHome,
   isUserValid,
-  handleInviteError,
 });
 </script>

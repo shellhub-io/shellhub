@@ -20,7 +20,11 @@ import useNamespacesStore from "@/store/modules/namespaces";
 import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
 
 const Component = {
-  template: "<v-layout><DevicesDropdown /></v-layout>",
+  template: "<v-layout><DevicesDropdown v-model=\"show\" /></v-layout>",
+  props: ["modelValue"],
+  data: () => ({
+    show: true,
+  }),
 };
 
 vi.mock("vuetify", async () => {
@@ -184,6 +188,9 @@ describe("Device Management Dropdown", () => {
         },
         stubs: { teleport: true },
       },
+      props: {
+        modelValue: true,
+      },
       attachTo: document.body,
     });
     await wrapper.find('[data-test="devices-icon"]').trigger("click");
@@ -205,6 +212,9 @@ describe("Device Management Dropdown", () => {
       components: {
         "v-layout": VLayout,
         DevicesDropdown,
+      },
+      props: {
+        modelValue: true,
       },
     });
     await flushPromises();

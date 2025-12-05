@@ -335,7 +335,7 @@ const statsStore = useStatsStore();
 const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 
-const isDrawerOpen = ref(false);
+const isDrawerOpen = defineModel<boolean>({ required: true });
 const activeTab = ref<"pending" | "recent">("pending");
 const pendingDevicesList = ref<IDevice[]>([]);
 const pendingDevicesCount = computed(() => pendingDevicesList.value.length);
