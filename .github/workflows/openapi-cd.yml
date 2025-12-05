@@ -54,8 +54,8 @@ jobs:
       - name: Delivery OpenAPI to Space
         uses: BetaHuhn/do-spaces-action@v2
         with:
-          access_key: ${{ secrets.ACCESS_KEY }}
-          secret_key: ${{ secrets.SECRET_KEY }}
+          access_key: ${{ secrets.SPACE_ACCESS_KEY }}
+          secret_key: ${{ secrets.SPACE_SECRET_KEY }}
           space_name: ${{ secrets.SPACE_NAME }}
           space_region: ${{ secrets.SPACE_REGION }}
           source: bundled/
