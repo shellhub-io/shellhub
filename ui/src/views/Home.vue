@@ -104,7 +104,7 @@
         >
           <StatCard
             title="Accepted Devices"
-            :stat="stats.registered_devices || 0"
+            :stat="totalDevices"
             icon="mdi-check"
             button-label="View all devices"
             path="/devices"
@@ -116,7 +116,7 @@
         >
           <StatCard
             title="Online Devices"
-            :stat="stats.online_devices || 0"
+            :stat="onlineDevices"
             icon="mdi-lan-connect"
             button-label="View Online Devices"
             path="/devices"
@@ -128,7 +128,7 @@
         >
           <StatCard
             title="Pending Devices"
-            :stat="stats.pending_devices || 0"
+            :stat="pendingDevices"
             icon="mdi-clock-outline"
             button-label="Approve Devices"
             path="/devices/pending"
@@ -175,21 +175,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import handleError from "@/utils/handleError";
-import useSnackbar from "@/helpers/snackbar";
+import { computed, ref } from "vue";
 import useNamespacesStore from "@/store/modules/namespaces";
-import useStatsStore from "@/store/modules/stats";
+import useDevicesStore from "@/store/modules/devices";
 import DeviceAdd from "@/components/Devices/DeviceAdd.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import StatCard from "@/components/StatCard.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
 
 const namespacesStore = useNamespacesStore();
-const statsStore = useStatsStore();
-const snackbar = useSnackbar();
+const devicesStore = useDevicesStore();
 const hasError = ref(false);
-const stats = computed(() => statsStore.stats);
+
+const totalDevices = computed(() => devicesStore.totalDevicesCount);
+const onlineDevices = computed(() => devicesStore.onlineDevicesCount);
+const pendingDevices = computed(() => devicesStore.pendingDevicesCount);
+
 const namespace = computed(() => namespacesStore.currentNamespace);
 const hasNamespace = computed(() => namespacesStore.namespaceList.length !== 0);
 const showNamespaceAdd = ref(false);
@@ -201,22 +202,6 @@ const activeNamespaceDescription = computed(() => (
           Each namespace has its own unique Tenant ID used to register devices. 
           You can create multiple namespaces to organize different projects, teams, or environments.`
 ));
-
-const fetchStats = async () => {
-  if (!hasNamespace.value) return;
-
-  try {
-    await statsStore.fetchStats();
-  } catch (error: unknown) {
-    hasError.value = true;
-    snackbar.showError("Failed to load the home page.");
-    handleError(error);
-  }
-};
-
-onMounted(async () => { await fetchStats(); });
-
-watch(hasNamespace, async (newValue) => { if (newValue) await fetchStats(); });
 
 defineExpose({ hasError });
 </script>

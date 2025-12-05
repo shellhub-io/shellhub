@@ -9,11 +9,15 @@ const useDevicesStore = defineStore("devices", () => {
   const device = ref<IDevice>({} as IDevice);
   const showDevices = ref<boolean>(false);
   const deviceCount = ref<number>(0);
+
+  const totalDevicesCount = ref<number>(0);
+  const onlineDevicesCount = ref<number>(0);
+  const offlineDevicesCount = ref<number>(0);
+  const pendingDevicesCount = ref<number>(0);
+
   const duplicatedDeviceName = ref<string>("");
   const deviceListFilter = ref<string>();
-
   const onlineDevices = ref<Array<IDevice>>([]);
-
   const showDeviceChooser = ref<boolean>(false);
   const suggestedDevices = ref<Array<IDevice>>([]);
   const selectedDevices = ref<Array<IDevice>>([]);
@@ -38,6 +42,26 @@ const useDevicesStore = defineStore("devices", () => {
       deviceCount.value = 0;
       throw error;
     }
+  };
+
+  const fetchDeviceCounts = async () => {
+    const acceptedRes = await devicesApi.fetchDevices(1, 1, "accepted");
+    totalDevicesCount.value = parseInt(acceptedRes.headers["x-total-count"] as string, 10);
+
+    const pendingRes = await devicesApi.fetchDevices(1, 1, "pending");
+    pendingDevicesCount.value = parseInt(pendingRes.headers["x-total-count"] as string, 10);
+
+    const onlineFilter = Buffer.from(JSON.stringify([
+      { type: "property", params: { name: "online", operator: "eq", value: true } },
+    ])).toString("base64");
+    const onlineRes = await devicesApi.fetchDevices(1, 1, "accepted", onlineFilter);
+    onlineDevicesCount.value = parseInt(onlineRes.headers["x-total-count"] as string, 10);
+
+    const offlineFilter = Buffer.from(JSON.stringify([
+      { type: "property", params: { name: "online", operator: "eq", value: false } },
+    ])).toString("base64");
+    const offlineRes = await devicesApi.fetchDevices(1, 1, "accepted", offlineFilter);
+    offlineDevicesCount.value = parseInt(offlineRes.headers["x-total-count"] as string, 10);
   };
 
   const setDeviceListVisibility = async () => {
@@ -117,14 +141,18 @@ const useDevicesStore = defineStore("devices", () => {
     device,
     showDevices,
     deviceCount,
+    totalDevicesCount,
+    onlineDevicesCount,
+    offlineDevicesCount,
+    pendingDevicesCount,
     onlineDevices,
     showDeviceChooser,
     suggestedDevices,
     selectedDevices,
     duplicatedDeviceName,
     deviceListFilter,
-
     fetchDeviceList,
+    fetchDeviceCounts,
     setDeviceListVisibility,
     fetchOnlineDevices,
     removeDevice,

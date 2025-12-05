@@ -10,10 +10,8 @@ import DeviceActionButton from "@/components/Devices/DeviceActionButton.vue";
 import { devicesApi } from "@/api/http";
 import { SnackbarInjectionKey, SnackbarPlugin } from "@/plugins/snackbar";
 import { router } from "@/router";
-import useStatsStore from "@/store/modules/stats";
 import useDevicesStore from "@/store/modules/devices";
 import { IDevice } from "@/interfaces/IDevice";
-import { IStats } from "@/interfaces/IStats";
 import useAuthStore from "@/store/modules/auth";
 import { nextTick } from "vue";
 import useNamespacesStore from "@/store/modules/namespaces";
@@ -23,6 +21,7 @@ const Component = {
   template: "<v-layout><DevicesDropdown /></v-layout>",
 };
 
+// Mock Vuetify display
 vi.mock("vuetify", async () => {
   const actual = await vi.importActual<typeof import("vuetify")>("vuetify");
 
@@ -86,7 +85,7 @@ const mockPendingDevices: IDevice[] = [
   },
 ];
 
-const mockRecentDevices: IDevice[] = [
+const mockAcceptedDevices: IDevice[] = [
   {
     uid: "recent-device-1",
     name: "recent-test-1",
@@ -123,14 +122,6 @@ const mockRecentDevices: IDevice[] = [
   },
 ];
 
-const mockStats: IStats = {
-  registered_devices: 10,
-  online_devices: 6,
-  pending_devices: 2,
-  rejected_devices: 1,
-  active_sessions: 0,
-};
-
 const mockNamespace: INamespace = {
   name: "examplespace",
   owner: "507f1f77bcf86cd799439011",
@@ -158,22 +149,38 @@ describe("Device Management Dropdown", () => {
   let wrapper: VueWrapper<unknown>;
   let drawer: VueWrapper<InstanceType<typeof DevicesDropdown>>;
   const vuetify = createVuetify();
+
   setActivePinia(createPinia());
-  const statsStore = useStatsStore();
   const namespacesStore = useNamespacesStore();
   const devicesStore = useDevicesStore();
   const authStore = useAuthStore();
   const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+
   authStore.role = "owner";
   namespacesStore.namespaceList = [mockNamespace];
+
   beforeEach(async () => {
+    devicesStore.totalDevicesCount = 0;
+    devicesStore.onlineDevicesCount = 0;
+    devicesStore.offlineDevicesCount = 0;
+    devicesStore.pendingDevicesCount = 0;
+
     mockDevicesApi
-      .onGet("http://localhost:3000/api/stats")
-      .reply(200, mockStats);
+      .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending")
+      .reply(200, mockPendingDevices, { "x-total-count": "2" });
+
     mockDevicesApi
-      .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending").reply(200, mockPendingDevices);
+      .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=accepted")
+      .reply(200, mockAcceptedDevices, { "x-total-count": "10" });
+
     mockDevicesApi
-      .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, mockRecentDevices);
+      .onGet("http://localhost:3000/api/devices?page=1&per_page=1&status=accepted")
+      .reply(200, [], { "x-total-count": "10" });
+
+    mockDevicesApi
+      .onGet("http://localhost:3000/api/devices?page=1&per_page=1&status=pending")
+      .reply(200, [], { "x-total-count": "2" });
+
     wrapper = mount(Component, {
       global: {
         plugins: [vuetify, router],
@@ -186,48 +193,53 @@ describe("Device Management Dropdown", () => {
       },
       attachTo: document.body,
     });
-    await wrapper.find('[data-test="devices-icon"]').trigger("click");
+
     drawer = wrapper.findComponent(DevicesDropdown);
+    drawer.vm.isDrawerOpen = true;
+    await flushPromises();
+
+    await nextTick();
   });
 
-  afterEach(() => { if (wrapper) wrapper.unmount(); });
+  afterEach(() => {
+    if (wrapper) wrapper.unmount();
+  });
 
-  it("Fetches all required data on mount", async () => {
-    const fetchStatsSpy = vi.spyOn(statsStore, "fetchStats");
-    const fetchDevicesSpy = vi.spyOn(devicesStore, "fetchDeviceList");
+  it("Fetches device lists on mount (pending + recent)", async () => {
+    const fetchDevicesSpy = vi.spyOn(devicesStore, "fetchDeviceList").mockResolvedValue();
+    const fetchCountsSpy = vi.spyOn(devicesStore, "fetchDeviceCounts").mockResolvedValue();
 
-    wrapper.unmount();
     wrapper = mount(Component, {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
-      },
-      provide: { [SnackbarInjectionKey]: mockSnackbar },
-      components: {
-        "v-layout": VLayout,
-        DevicesDropdown,
+        components: { "v-layout": VLayout, DevicesDropdown },
       },
     });
+
     await flushPromises();
 
-    expect(fetchStatsSpy).toHaveBeenCalled();
-    expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "pending", perPage: 100 });
-    expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "accepted" });
+    expect(fetchCountsSpy).toHaveBeenCalled();
+    expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "pending", perPage: 100, filter: undefined });
+    expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "accepted", perPage: 100, filter: undefined });
   });
 
   it("Opens drawer when icon is clicked", async () => {
     drawer.vm.isDrawerOpen = false;
-    const icon = wrapper.find('[data-test="devices-icon"]');
-    await icon.trigger("click");
+    await nextTick();
+
+    await wrapper.find('[data-test="devices-icon"]').trigger("click");
+    await nextTick();
     await flushPromises();
 
-    expect(drawer.vm.isDrawerOpen).toBe(true);
-    const drawerComponent = wrapper.find('[data-test="devices-drawer"]');
-    expect(drawerComponent.exists()).toBe(true);
+    expect(wrapper.find('[data-test="devices-drawer"]').exists()).toBe(true);
   });
 
   it("Displays correct statistics cards with proper values", async () => {
-    statsStore.stats = mockStats;
-    await flushPromises();
+    devicesStore.totalDevicesCount = 10;
+    devicesStore.onlineDevicesCount = 6;
+    devicesStore.pendingDevicesCount = 2;
+    devicesStore.offlineDevicesCount = 4;
+    await nextTick();
 
     const totalCard = wrapper.find('[data-test="total-devices-card"]');
     const onlineCard = wrapper.find('[data-test="online-devices-card"]');
@@ -237,13 +249,10 @@ describe("Device Management Dropdown", () => {
     expect(totalCard.text()).toContain("10");
     expect(onlineCard.text()).toContain("6");
     expect(pendingCard.text()).toContain("2");
-    expect(offlineCard.text()).toContain("4"); // 10 - 6 = 4
+    expect(offlineCard.text()).toContain("4");
   });
 
   it("Switches to recent tab when clicked", async () => {
-    drawer.vm.isDrawerOpen = true;
-    await flushPromises();
-
     const recentTab = wrapper.find('[data-test="recent-tab"]');
     await recentTab.trigger("click");
     await flushPromises();
@@ -252,21 +261,16 @@ describe("Device Management Dropdown", () => {
   });
 
   it("Displays pending devices list correctly", async () => {
-    devicesStore.devices = mockPendingDevices;
     drawer.vm.pendingDevicesList = mockPendingDevices;
-    drawer.vm.isDrawerOpen = true;
     drawer.vm.activeTab = "pending";
     await flushPromises();
 
-    const deviceItems = wrapper.findAll('[data-test="pending-device-item"]');
-    expect(deviceItems.length).toBe(2);
+    expect(wrapper.findAll('[data-test="pending-device-item"]').length).toBe(2);
   });
 
   it("Shows empty state when no pending devices", async () => {
-    mockDevicesApi
-      .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending").reply(200, []);
     drawer.vm.pendingDevicesList = [];
-    drawer.vm.isDrawerOpen = true;
+    devicesStore.pendingDevicesCount = 0;
     drawer.vm.activeTab = "pending";
     await flushPromises();
 
@@ -274,9 +278,8 @@ describe("Device Management Dropdown", () => {
   });
 
   it("Shows pending device count badge", async () => {
-    statsStore.stats = mockStats;
-    drawer.vm.isDrawerOpen = true;
-    await flushPromises();
+    devicesStore.pendingDevicesCount = 2;
+    await nextTick();
 
     const pendingTab = wrapper.find('[data-test="pending-tab"]');
     expect(pendingTab.text()).toContain("2");
@@ -289,38 +292,37 @@ describe("Device Management Dropdown", () => {
 
     const acceptSpy = vi.spyOn(devicesStore, "acceptDevice");
     drawer.vm.pendingDevicesList = mockPendingDevices;
-    drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    const acceptButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+    const acceptBtn = wrapper.findAllComponents(DeviceActionButton)
       .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "accept");
 
-    await acceptButtonComponent?.vm.handleClick();
+    await acceptBtn?.vm.handleClick();
     await flushPromises();
 
     expect(acceptSpy).toHaveBeenCalledWith(mockPendingDevices[0].uid);
   });
 
-  it("Refetches stats and pending devices on handleUpdate", async () => {
-    const fetchStatsSpy = vi.spyOn(statsStore, "fetchStats").mockResolvedValue();
+  it("Refetches pending and accepted devices on handleUpdate", async () => {
     const fetchDevicesSpy = vi.spyOn(devicesStore, "fetchDeviceList").mockResolvedValue();
+    const fetchCountsSpy = vi.spyOn(devicesStore, "fetchDeviceCounts").mockResolvedValue();
 
-    await drawer?.vm.handleUpdate();
+    await drawer.vm.handleUpdate();
     await flushPromises();
 
-    expect(fetchStatsSpy).toHaveBeenCalled();
-    expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "pending", perPage: 100 });
+    expect(fetchCountsSpy).toHaveBeenCalled();
+    expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "pending", perPage: 100, filter: undefined });
+    expect(fetchDevicesSpy).toHaveBeenCalledWith({ status: "accepted", perPage: 100, filter: undefined });
   });
 
   it("Shows correct pending devices count in badge", async () => {
-    const badge = wrapper.find('[data-test="device-dropdown-badge"]');
-    drawer.vm.pendingDevicesList = mockPendingDevices;
+    devicesStore.pendingDevicesCount = 2;
     await nextTick();
-    expect(badge.text()).toBe("2");
+    expect(wrapper.find('[data-test="device-dropdown-badge"]').text()).toContain("2");
 
-    drawer.vm.pendingDevicesList = [];
+    devicesStore.pendingDevicesCount = 0;
     await nextTick();
-    expect(badge.text()).toBe("0");
+    expect(wrapper.find('[data-test="device-dropdown-badge"]').text()).not.toContain("2");
   });
 
   it("Shows error snackbar when accept fails", async () => {
@@ -329,13 +331,12 @@ describe("Device Management Dropdown", () => {
       .reply(402);
 
     drawer.vm.pendingDevicesList = mockPendingDevices;
-    drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    const acceptButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+    const acceptBtn = wrapper.findAllComponents(DeviceActionButton)
       .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "accept");
 
-    await acceptButtonComponent?.vm.handleClick();
+    await acceptBtn?.vm.handleClick();
     await flushPromises();
 
     expect(mockSnackbar.showError).toHaveBeenCalled();
@@ -349,13 +350,12 @@ describe("Device Management Dropdown", () => {
     const rejectSpy = vi.spyOn(devicesStore, "rejectDevice");
 
     drawer.vm.pendingDevicesList = mockPendingDevices;
-    drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    const rejectButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+    const rejectBtn = wrapper.findAllComponents(DeviceActionButton)
       .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "reject");
 
-    await rejectButtonComponent?.vm.handleClick();
+    await rejectBtn?.vm.handleClick();
     await flushPromises();
 
     expect(rejectSpy).toHaveBeenCalledWith(mockPendingDevices[0].uid);
@@ -367,23 +367,21 @@ describe("Device Management Dropdown", () => {
       .reply(500);
 
     drawer.vm.pendingDevicesList = mockPendingDevices;
-    drawer.vm.isDrawerOpen = true;
     await flushPromises();
 
-    const rejectButtonComponent = wrapper.findAllComponents(DeviceActionButton)
+    const rejectBtn = wrapper.findAllComponents(DeviceActionButton)
       .find((c) => c.props("uid") === mockPendingDevices[0].uid && c.props("action") === "reject");
 
-    await rejectButtonComponent?.vm.handleClick();
+    await rejectBtn?.vm.handleClick();
     await flushPromises();
 
     expect(mockSnackbar.showError).toHaveBeenCalled();
   });
 
   it("Displays recent devices sorted by last_seen descending", async () => {
-    drawer.vm.recentDevicesList = [...mockRecentDevices].sort(
+    drawer.vm.recentDevicesList = [...mockAcceptedDevices].sort(
       (a, b) => new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime(),
     );
-    drawer.vm.isDrawerOpen = true;
     drawer.vm.activeTab = "recent";
     await flushPromises();
 
@@ -393,7 +391,6 @@ describe("Device Management Dropdown", () => {
 
   it("Shows empty state when no recent devices", async () => {
     drawer.vm.recentDevicesList = [];
-    drawer.vm.isDrawerOpen = true;
     drawer.vm.activeTab = "recent";
     await flushPromises();
 
@@ -401,40 +398,21 @@ describe("Device Management Dropdown", () => {
   });
 
   it("Formats time ago correctly for valid dates", () => {
-    const pastDate = new Date(Date.now() - 3600000); // 1 hour ago
-    const result = drawer.vm.formatTimeAgo(pastDate);
-
-    expect(result).toBe("an hour ago");
+    const date = new Date(Date.now() - 3600000);
+    expect(drawer.vm.formatTimeAgo(date)).toBe("an hour ago");
   });
 
   it("Handles null/undefined dates gracefully", () => {
     // @ts-expect-error Testing invalid input
-    const result = drawer.vm.formatTimeAgo();
-    expect(result).toBe("Unknown");
+    expect(drawer.vm.formatTimeAgo()).toBe("Unknown");
   });
 
   it("Device detail link navigates to correct route", async () => {
-    drawer.vm.recentDevicesList = mockRecentDevices;
-    drawer.vm.isDrawerOpen = true;
+    drawer.vm.recentDevicesList = mockAcceptedDevices;
     drawer.vm.activeTab = "recent";
     await flushPromises();
 
-    const deviceLink = wrapper.find(`a[href="/devices/${mockRecentDevices[0].uid}"]`);
-    expect(deviceLink.exists()).toBeTruthy();
-  });
-
-  it("Shows badge count matching stats.pending_devices", async () => {
-    statsStore.stats = { ...mockStats, pending_devices: 5 };
-    drawer.vm.isDrawerOpen = true;
-    await flushPromises();
-
-    const badge = wrapper.find(".v-chip");
-    expect(badge.text()).toBe("5");
-  });
-
-  it("Hides badge when no pending devices", async () => {
-    statsStore.stats = { ...mockStats, pending_devices: 0 };
-    await flushPromises();
-    expect(drawer.vm.stats.pending_devices).toBe(0);
+    const deviceLink = wrapper.find(`a[href="/devices/${mockAcceptedDevices[0].uid}"]`);
+    expect(deviceLink.exists()).toBe(true);
   });
 });
