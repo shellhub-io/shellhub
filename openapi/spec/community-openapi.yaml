@@ -111,6 +111,12 @@ paths:
     $ref: paths/api@namespaces@api-key.yaml
   /api/namespaces/api-key/{key}:
     $ref: paths/api@namespaces@api-key@{key}.yaml
+  /api/tags:
+    $ref: paths/api@tags.yaml
+  /api/tags/{name}:
+    $ref: paths/api@tags@{name}.yaml
+  /api/devices/{uid}/tags/{name}:
+    $ref: paths/api@devices@{uid}@tags@{name}.yaml
   /api/namespaces/{tenant}/tags:
     $ref: paths/api@namespaces@{tenant}@tags.yaml
   /api/namespaces/{tenant}/tags/{name}:

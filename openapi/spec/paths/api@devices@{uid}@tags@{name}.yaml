@@ -1,8 +1,7 @@
 post:
-  operationId: pushTagToDeviceDeprecated
-  deprecated: true
+  operationId: pushTagToDevice
   summary: Associate a tag with a device
-  description: '**Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.'
+  description: Associates a tag with a device in the authenticated namespace.
   tags:
     - community
     - tags
@@ -10,7 +9,6 @@ post:
     - jwt: []
     - api-key: []
   parameters:
-    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
     - $ref: ../components/parameters/path/deviceUIDPath.yaml
     - name: name
       description: Tag name to associate
@@ -34,10 +32,9 @@ post:
     '500':
       $ref: ../components/responses/500.yaml
 delete:
-  operationId: pullTagFromDeviceDeprecated
-  deprecated: true
+  operationId: pullTagFromDevice
   summary: Remove a tag from a device
-  description: '**Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.'
+  description: Removes a tag from a device in the authenticated namespace.
   tags:
     - community
     - tags
@@ -45,7 +42,6 @@ delete:
     - jwt: []
     - api-key: []
   parameters:
-    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
     - $ref: ../components/parameters/path/deviceUIDPath.yaml
     - name: name
       description: Tag name to remove
