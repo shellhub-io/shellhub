@@ -117,7 +117,7 @@ jobs:
 
       - name: Set up Node.JS 21.4.0 [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
-        uses: actions/setup-node@v6.0.0
+        uses: actions/setup-node@v6.1.0
         with:
           node-version: "21.4.0"
 
