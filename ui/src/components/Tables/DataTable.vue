@@ -90,6 +90,7 @@
       >
         <v-combobox
           v-model="internalItemsPerPage"
+          v-model:menu="itemsPerPageMenuOpen"
           :items="itemsPerPageOptions"
           outlined
           variant="underlined"
@@ -104,6 +105,7 @@
           :rules="[validateItemsPerPage]"
           @blur="sanitizeItemsPerPage"
           @keydown.enter="sanitizeItemsPerPage"
+          @update:menu="handleItemsPerPageMenuChange"
           @keydown="blockNonNumeric"
           @paste.prevent
         />
@@ -175,6 +177,7 @@ const rawItemsPerPage = defineModel<number>("itemsPerPage", {
 });
 
 const internalItemsPerPage = ref(rawItemsPerPage.value);
+const itemsPerPageMenuOpen = ref(false);
 
 const pageQuantity = computed(() => Math.ceil(props.totalCount / rawItemsPerPage.value) || 1);
 
@@ -216,9 +219,21 @@ const sanitizeItemsPerPage = () => {
   if (isNaN(num) || num < 1) num = 1;
   if (num > 100) num = 100;
 
+  const changed = rawItemsPerPage.value !== num;
+
   rawItemsPerPage.value = num;
   internalItemsPerPage.value = num;
 
-  goToFirstPage();
+  if (changed) {
+    goToFirstPage();
+  }
+};
+
+const handleItemsPerPageMenuChange = (isOpen: boolean) => {
+  itemsPerPageMenuOpen.value = isOpen;
+
+  if (!isOpen) {
+    sanitizeItemsPerPage();
+  }
 };
 </script>
