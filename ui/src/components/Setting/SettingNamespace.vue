@@ -106,6 +106,36 @@
           <v-divider />
           <v-card-item
             style="grid-template-columns: max-content 1.5fr 2fr"
+            data-test="type-details-item"
+          >
+            <template #prepend>
+              <v-icon data-test="type-icon">
+                mdi-shape-outline
+              </v-icon>
+            </template>
+            <template #title>
+              <span
+                class="text-subtitle-1"
+                data-test="type-title"
+              >Type</span>
+            </template>
+            <template #append>
+              <v-chip
+                class="ml-1 text-capitalize"
+                data-test="type-chip"
+              >
+                <v-icon
+                  size="small"
+                  class="mr-1"
+                  :icon="namespaceTypeIcon"
+                />
+                {{ namespace.type || "team" }}
+              </v-chip>
+            </template>
+          </v-card-item>
+          <v-divider />
+          <v-card-item
+            style="grid-template-columns: max-content 1.5fr 2fr"
             data-test="tenant-details-item"
           >
             <template #prepend>
@@ -380,6 +410,8 @@ const updateName = async () => {
 };
 
 const canRenameNamespace = hasPermission("namespace:rename");
+
+const namespaceTypeIcon = computed(() => namespace.value.type === "personal" ? "mdi-account" : "mdi-account-group");
 
 onMounted(async () => {
   if (tenantId) await getNamespace();
