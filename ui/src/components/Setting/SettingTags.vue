@@ -18,63 +18,59 @@
       />
     </div>
 
-    <v-card
+    <div
       v-else
-      variant="flat"
-      class="bg-transparent"
+      class="py-3"
       data-test="tags-settings-card"
     >
-      <v-card-item>
-        <v-row cols="12">
-          <v-col
-            cols="3"
-            class="pt-0"
+      <v-row
+        cols="12"
+        class="px-4"
+      >
+        <v-col
+          :cols="hasTags ? 3 : 6"
+          class="mb-2 pt-0"
+        >
+          <h1>Tags</h1>
+          <p
+            data-test="profile-subtitle"
+            class="text-body-2 text-medium-emphasis font-weight-regular"
           >
-            <v-list-item
-              class="pa-0 ma-0 mb-2"
-              data-test="profile-header"
-            >
-              <template #title>
-                <h1>Tags</h1>
-              </template>
-              <template #subtitle>
-                <span data-test="profile-subtitle">Manage your device and connector tags</span>
-              </template>
-            </v-list-item>
-          </v-col>
+            Manage your device and connector tags
+          </p>
+        </v-col>
 
-          <v-col cols="6">
-            <v-text-field
-              v-if="hasTags"
-              v-model.trim="filter"
-              label="Search by Tag Name"
-              variant="outlined"
-              color="primary"
-              single-line
-              hide-details
-              prepend-inner-icon="mdi-magnify"
-              density="compact"
-              data-test="search-text"
-              @keyup="searchTags"
-            />
-          </v-col>
+        <v-col
+          v-if="hasTags"
+          cols="6"
+        >
+          <v-text-field
+            v-model.trim="filter"
+            label="Search by Tag Name"
+            color="primary"
+            single-line
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+            density="compact"
+            data-test="search-text"
+            @keyup="searchTags"
+          />
+        </v-col>
 
-          <v-col
-            cols="3"
-            class="d-flex justify-end"
-          >
-            <v-btn
-              v-if="hasTags"
-              color="primary"
-              variant="elevated"
-              data-test="tag-create-button"
-              @click="openCreate"
-            >
-              Create Tag
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-item>
+        <v-col
+          v-if="hasTags"
+          cols="3"
+          class="d-flex justify-end"
+        >
+          <v-btn
+            color="primary"
+            variant="elevated"
+            data-test="tag-create-button"
+            text="Create Tag"
+            @click="openCreate"
+          />
+        </v-col>
+      </v-row>
 
       <TagList
         v-if="hasTags"
@@ -107,7 +103,7 @@
           </v-btn>
         </template>
       </NoItemsMessage>
-    </v-card>
+    </div>
   </v-container>
 </template>
 
@@ -125,7 +121,7 @@ const snackbar = useSnackbar();
 const tagListRef = ref<InstanceType<typeof TagList> | null>(null);
 const createDialog = ref(false);
 const filter = ref("");
-const loading = ref(true);
+const loading = ref(false);
 const tenant = computed(() => localStorage.getItem("tenant") || "");
 
 const hasTags = computed(() => tagsStore.getNumberTags > 0);
