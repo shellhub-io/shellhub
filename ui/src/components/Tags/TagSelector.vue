@@ -32,7 +32,7 @@
           density="compact"
           style="max-height: 320px; overflow-y: auto"
         >
-          <template
+          <div
             v-for="tag in fetchedTags"
             :key="tag.name"
           >
@@ -49,14 +49,22 @@
                 <v-list-item-title>{{ getTagName(tag) }}</v-list-item-title>
               </v-list-item-action>
             </v-list-item>
-          </template>
 
-          <div
-            ref="sentinel"
-            data-test="tags-sentinel"
-            style="height: 1px"
-          />
+            <div
+              ref="sentinel"
+              data-test="tags-sentinel"
+              style="height: 1px"
+            />
+          </div>
         </v-list>
+        <v-divider />
+        <v-btn
+          color="primary"
+          text="Manage Tags"
+          prepend-icon="mdi-cog"
+          class="ma-2"
+          :to="{ name: 'Tags' }"
+        />
       </div>
     </v-menu>
   </div>

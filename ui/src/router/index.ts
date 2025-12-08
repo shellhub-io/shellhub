@@ -9,6 +9,7 @@ import useNamespacesStore from "@/store/modules/namespaces";
 import useUsersStore from "@/store/modules/users";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 import { computed } from "vue";
+import useTagsStore from "@/store/modules/tags";
 
 export const handleAcceptInvite = async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const namespacesStore = useNamespacesStore();
@@ -59,6 +60,7 @@ const Devices = () => import("@/views/Devices.vue");
 const DeviceList = () => import("@/components/Devices/DeviceList.vue");
 const DevicePendingList = () => import("@/components/Devices/DevicePendingList.vue");
 const DeviceRejectedList = () => import("@/components/Devices/DeviceRejectedList.vue");
+const Tags = () => import("@/views/Tags.vue");
 const Containers = () => import("@/views/Containers.vue");
 const ContainerList = () => import("@/components/Containers/ContainerList.vue");
 const ContainerPendingList = () => import("@/components/Containers/ContainerPendingList.vue");
@@ -386,6 +388,19 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/devices/:id/terminal",
     name: "DeviceTerminal",
     component: DeviceDetails,
+  },
+  {
+    path: "/tags",
+    name: "Tags",
+    component: Tags,
+    beforeEnter: async (to, from, next) => {
+      await useTagsStore().setTagListVisibility(localStorage.getItem("tenant") || "");
+      next();
+    },
+    meta: {
+      icon: "mdi-tag-multiple",
+      title: "Tags",
+    },
   },
   {
     path: "/sessions",
