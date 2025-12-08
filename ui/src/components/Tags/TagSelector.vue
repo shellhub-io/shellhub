@@ -1,7 +1,7 @@
 <template>
   <div class="mr-4">
     <v-menu
-      v-model="menuOpen"
+      v-model="isMenuOpen"
       location="bottom"
       v-bind="$attrs"
       scrim
@@ -19,58 +19,35 @@
             data-test="tags-btn"
             color="primary"
             variant="outlined"
-            :disabled="tags.length === 0"
-            @click="loadInitialTags"
-          >
-            Tags
-            <v-icon right>
-              mdi-chevron-down
-            </v-icon>
-          </v-btn>
+            append-icon="mdi-chevron-down"
+            text="Tags"
+            :disabled="fetchedTags.length === 0"
+          />
         </v-badge>
       </template>
 
-      <div
-        ref="scrollArea"
-        class="bg-v-theme-surface"
-        style="max-height: 320px; overflow-y: auto"
-      >
+      <div class="bg-v-theme-surface">
         <v-list
-          shaped
+          ref="scrollArea"
           density="compact"
+          style="max-height: 320px; overflow-y: auto"
         >
           <template
-            v-for="(item, i) in tags"
-            :key="`row-${i}`"
+            v-for="tag in fetchedTags"
+            :key="tag.name"
           >
-            <v-divider
-              v-if="!item"
-              :key="`divider-${i}`"
-            />
             <v-list-item
-              v-else
-              :key="`item-${i}`"
-              :value="item"
-              color="primary"
               data-test="tag-item"
-              @click="selectTag(item)"
+              @click="selectTag(tag)"
             >
-              <template #default>
-                <div class="d-flex align-center">
-                  <v-list-item-action>
-                    <v-checkbox
-                      :model-value="tagIsSelected(item)"
-                      color="primary"
-                      hide-details
-                    />
-                    <v-list-item-title>
-                      {{
-                        getTagName(item)
-                      }}
-                    </v-list-item-title>
-                  </v-list-item-action>
-                </div>
-              </template>
+              <v-list-item-action>
+                <v-checkbox
+                  :model-value="isTagSelected(tag)"
+                  color="primary"
+                  hide-details
+                />
+                <v-list-item-title>{{ getTagName(tag) }}</v-list-item-title>
+              </v-list-item-action>
             </v-list-item>
           </template>
 
@@ -86,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, nextTick } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useIntersectionObserver } from "@vueuse/core";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
@@ -94,58 +71,45 @@ import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
 import useTagsStore from "@/store/modules/tags";
 import { ITag } from "@/interfaces/ITags";
+import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{ variant: "device" | "container" }>();
-
+const authStore = useAuthStore();
 const containersStore = useContainersStore();
 const devicesStore = useDevicesStore();
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 
-const tenant = computed(() => localStorage.getItem("tenant"));
-const menuOpen = ref(false);
+const tenant = computed(() => authStore.tenantId || "");
+const isMenuOpen = ref(false);
 
 const perPage = ref(10);
 
-const fetchedTags = ref<ITag[]>([]);
-const tags = computed(() => fetchedTags.value);
-const selectedTags = computed<ITag[]>(() =>
-  tagsStore.getSelected(props.variant),
-);
+const fetchedTags = computed(() => tagsStore.list);
+const selectedTags = computed(() => tagsStore.getSelected(props.variant));
 const isLoading = ref(false);
 
 const scrollArea = ref<HTMLElement | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
 
-const hasMore = computed(() => tagsStore.numberTags > fetchedTags.value.length);
+const hasMoreTagsToLoad = computed(() => tagsStore.numberTags > fetchedTags.value.length);
 
-const getTagName = (tag: ITag): string =>
-  typeof tag === "string" ? tag : tag.name;
+const getTagName = (tag: ITag) => typeof tag === "string" ? tag : tag.name;
 
-const getSelectedTagNames = (): string[] =>
-  selectedTags.value.map((t) => getTagName(t));
+const getSelectedTagNames = () => selectedTags.value.map((tag) => getTagName(tag));
 
-const tagIsSelected = (tag: ITag): boolean =>
-  selectedTags.value.some((sel) => getTagName(sel) === getTagName(tag));
+const isTagSelected = (tag: ITag) => selectedTags.value.some((selectedTag) => getTagName(selectedTag) === getTagName(tag));
 
-const resetPagination = (): void => {
-  perPage.value = 10;
-  fetchedTags.value = [];
-};
-
-const loadTags = async (): Promise<void> => {
+const loadTags = async () => {
   if (isLoading.value) return;
   isLoading.value = true;
 
   try {
     await tagsStore.autocomplete({
-      tenant: tenant.value || "",
+      tenant: tenant.value,
       filter: "",
       perPage: perPage.value,
     });
-
-    const newTags = tagsStore.list;
-    fetchedTags.value = [...newTags];
   } catch (error) {
     snackbar.showError("Failed to load tags.");
     handleError(error);
@@ -154,46 +118,29 @@ const loadTags = async (): Promise<void> => {
   }
 };
 
-const loadInitialTags = async (): Promise<void> => {
-  if (isLoading.value) return;
-  resetPagination();
-  await loadTags();
-};
-
 const setFilter = (filter?: string) => {
-  const encoded = filter && filter.length ? filter : undefined;
-  if (props.variant === "device") {
-    devicesStore.deviceListFilter = encoded;
-  } else {
-    containersStore.containerListFilter = encoded;
-  }
+  if (props.variant === "device") devicesStore.deviceListFilter = filter;
+  else containersStore.containerListFilter = filter;
 };
 
-const getItems = (tagNames: string[]) => {
-  const filter = [
-    {
-      type: "property",
-      params: { name: "tags.name", operator: "contains", value: tagNames },
-    },
-  ];
-  const encodedFilter = Buffer.from(JSON.stringify(filter), "utf-8").toString(
-    "base64",
-  );
+const encodeFilter = (tagNames: string[]) => {
+  const filter = [{
+    type: "property",
+    params: { name: "tags.name", operator: "contains", value: tagNames },
+  }];
+  const encodedFilter = Buffer.from(JSON.stringify(filter), "utf-8").toString("base64");
   setFilter(encodedFilter);
 };
 
-const selectTag = (item: ITag) => {
-  tagsStore.setSelected({ variant: props.variant, tag: item });
+const selectTag = (tag: ITag) => {
+  tagsStore.setSelected({ variant: props.variant, tag });
 
-  if (selectedTags.value.length > 0) {
-    getItems(getSelectedTagNames());
-  } else {
-    setFilter();
-  }
+  if (selectedTags.value.length > 0) encodeFilter(getSelectedTagNames());
+  else setFilter();
 };
 
 const bumpPerPageAndLoad = async () => {
-  if (!hasMore.value || isLoading.value) return;
+  if (!hasMoreTagsToLoad.value || isLoading.value) return;
   perPage.value += 10;
   await loadTags();
 };
@@ -204,19 +151,10 @@ useIntersectionObserver(
   { root: scrollArea, threshold: 1.0 },
 );
 
-watch(menuOpen, async (open) => {
-  if (open) {
-    if (fetchedTags.value.length === 0) {
-      await loadInitialTags();
-    }
-    await nextTick();
-  }
-});
-
 onMounted(async () => {
   tagsStore.clearSelected(props.variant);
   await loadTags();
 });
 
-defineExpose({ menuOpen, loadTags, fetchedTags });
+defineExpose({ isMenuOpen, loadTags, fetchedTags });
 </script>
