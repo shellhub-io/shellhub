@@ -103,6 +103,22 @@ exports[`Setting Namespace > Renders the component 1`] = `
           </div>
         </div>
         <hr data-v-80a16399="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
+        <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="type-details-item">
+          <div class="v-card-item__prepend"><i data-v-80a16399="" class="mdi-shape-outline mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="type-icon"></i></div>
+          <div class="v-card-item__content">
+            <div class="v-card-title"><span data-v-80a16399="" class="text-subtitle-1" data-test="type-title">Type</span></div>
+            <!---->
+            <!---->
+          </div>
+          <div class="v-card-item__append"><span data-v-80a16399="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal ml-1 text-capitalize" draggable="false" data-test="type-chip"><!----><span class="v-chip__underlay"></span>
+            <!---->
+            <!---->
+            <div class="v-chip__content" data-no-activator=""><i data-v-80a16399="" class="mdi-account-group mdi v-icon notranslate v-theme--light v-icon--size-small mr-1" aria-hidden="true"></i> team</div>
+            <!---->
+            <!----></span>
+          </div>
+        </div>
+        <hr data-v-80a16399="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         <div data-v-80a16399="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="tenant-details-item">
           <div class="v-card-item__prepend"><i data-v-80a16399="" class="mdi-identifier mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="tenant-icon"></i></div>
           <div class="v-card-item__content">
@@ -185,7 +201,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                       <!---->
                       <!---->
                     </div>
-                    <div class="v-selection-control__input"><input checked="" id="switch-v-8" aria-disabled="false" type="checkbox" value="true">
+                    <div class="v-selection-control__input"><input checked="" id="switch-v-10" aria-disabled="false" type="checkbox" value="true">
                       <div class="v-switch__thumb">
                         <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
                           <!---->
