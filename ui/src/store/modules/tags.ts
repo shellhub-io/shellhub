@@ -13,6 +13,7 @@ interface TagsResponse {
 const useTagsStore = defineStore("tags", () => {
   const tags = ref<Array<ITag>>([]);
   const numberTags = ref(0);
+  const showTags = ref(false);
   const page = ref(1);
   const perPage = ref(10);
   const filter = ref<string | undefined>("");
@@ -92,6 +93,11 @@ const useTagsStore = defineStore("tags", () => {
       clearListTags();
       throw error;
     }
+  };
+
+  const setTagListVisibility = async (tenant: string) => {
+    const { headers } = await tagsApi.getTags(tenant, "", 1, 1);
+    if (parseInt(headers["x-total-count"] as string, 10)) showTags.value = true;
   };
 
   const search = async ({
@@ -190,6 +196,7 @@ const useTagsStore = defineStore("tags", () => {
     // State
     tags,
     numberTags,
+    showTags,
     page,
     perPage,
     filter,
@@ -211,6 +218,7 @@ const useTagsStore = defineStore("tags", () => {
 
     // Async API Actions
     fetch,
+    setTagListVisibility,
     search,
     autocomplete,
     createTag,
