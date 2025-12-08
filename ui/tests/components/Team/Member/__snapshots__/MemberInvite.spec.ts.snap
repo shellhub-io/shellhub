@@ -79,7 +79,7 @@ exports[`Member Invite > Renders the component 1`] = `
                     <transition-stub name="" appear="false" persisted="false" css="true">
                       <div class="v-window-item v-window-item--active">
                         <p class="mb-4"> If this email isn't associated with an existing account, we'll send an email to sign-up. </p>
-                        <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mb-6" data-test="email-text">
+                        <div class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-text-field mb-6 mt-2" data-test="email-text">
                           <!---->
                           <div class="v-input__control">
                             <div class="v-field v-field--center-affix v-field--variant-filled v-theme--light v-locale--is-ltr">

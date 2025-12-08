@@ -45,7 +45,7 @@
             </p>
             <v-text-field
               v-model="email"
-              class="mb-6"
+              class="mb-6 mt-2"
               label="Email"
               :error-messages="emailError"
               required
