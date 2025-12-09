@@ -29,7 +29,7 @@ describe("Tag Selector", () => {
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   localStorage.setItem("tenant", "fake-tenant-data");
   mockTagsApi
-    .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+    .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
     .reply(200, tags);
 
   beforeEach(() => {

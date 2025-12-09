@@ -60,7 +60,7 @@ describe("Tag Remove", () => {
 
   it("Successfully removes tag", async () => {
     mockTagsApi
-      .onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test")
+      .onDelete("http://localhost:3000/api/tags/tag-test")
       .reply(200);
 
     const tagsStore = useTagsStore();
@@ -74,7 +74,6 @@ describe("Tag Remove", () => {
     await flushPromises();
 
     expect(storeSpy).toHaveBeenCalledWith({
-      tenant: "fake-tenant-data",
       currentName: "tag-test",
     });
 
@@ -83,7 +82,7 @@ describe("Tag Remove", () => {
 
   it("Shows error snackbar on failure", async () => {
     mockTagsApi
-      .onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test")
+      .onDelete("http://localhost:3000/api/tags/tag-test")
       .reply(409);
 
     await wrapper.find('[data-test="open-tag-remove"]').trigger("click");

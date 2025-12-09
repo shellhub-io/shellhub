@@ -76,7 +76,6 @@ const snackbar = useSnackbar();
 const tagListRef = ref<InstanceType<typeof TagList> | null>(null);
 const showCreateTagDialog = ref(false);
 const filter = ref("");
-const tenant = computed(() => localStorage.getItem("tenant") || "");
 
 const showTags = computed(() => tagsStore.showTags);
 
@@ -93,7 +92,6 @@ const searchTags = async () => {
 
   try {
     await tagsStore.search({
-      tenant: tenant.value,
       filter: encodedFilter,
     });
   } catch {

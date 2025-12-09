@@ -32,7 +32,7 @@ describe("Public Keys", () => {
   localStorage.setItem("tenant", "fake-tenant-data");
   mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?page=1&per_page=10").reply(200, mockPublicKeys, { "x-total-count": 1 });
   mockTagsApi
-    .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+    .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
     .reply(200, []);
   publicKeysStore.publicKeys = mockPublicKeys;
 

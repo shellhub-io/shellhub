@@ -121,17 +121,14 @@ const loading = ref(false);
 const itemsPerPage = ref(10);
 const page = ref<number>(1);
 const tags = computed(() => tagsStore.list);
-const tenant = computed(() => localStorage.getItem("tenant"));
 const numberTags = computed<number>(
   () => tagsStore.getNumberTags,
 );
 
 const getTags = async (): Promise<void> => {
-  if (!tenant.value) return;
   loading.value = true;
   try {
     await tagsStore.fetch({
-      tenant: tenant.value,
       filter: tagsStore.getFilter || "",
       perPage: itemsPerPage.value,
       page: page.value,

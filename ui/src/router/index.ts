@@ -393,7 +393,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "Tags",
     component: Tags,
     beforeEnter: async (to, from, next) => {
-      await useTagsStore().setTagListVisibility(localStorage.getItem("tenant") || "");
+      await useTagsStore().setTagListVisibility();
       next();
     },
     meta: {

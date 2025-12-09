@@ -55,7 +55,7 @@ describe("Tag Form Edit", () => {
   });
 
   it("Successfully edit tag", async () => {
-    mockTagsApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(200);
+    mockTagsApi.onPatch("http://localhost:3000/api/tags/tag-test").reply(200);
 
     const tagsSpy = vi.spyOn(tagsStore, "editTag");
 
@@ -77,7 +77,7 @@ describe("Tag Form Edit", () => {
   });
 
   it("Failed to add tags", async () => {
-    mockTagsApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/tags/tag-test").reply(409);
+    mockTagsApi.onPatch("http://localhost:3000/api/tags/tag-test").reply(409);
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 

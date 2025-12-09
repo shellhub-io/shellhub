@@ -51,7 +51,7 @@ describe("Public Key Add", () => {
     authStore = useAuthStore();
     publicKeysStore = usePublicKeysStore();
 
-    mockTagsApi.onGet(/api\/namespaces\/.*\/tags/).reply(200, [
+    mockTagsApi.onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10").reply(200, [
       { name: "tag1" }, { name: "tag2" }, { name: "tag3" }, { name: "tag4" },
     ]);
     mockSshApi.onPost(/api\/sshkeys\/public-keys/).reply(200);

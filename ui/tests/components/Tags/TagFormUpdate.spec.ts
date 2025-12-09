@@ -67,7 +67,7 @@ describe("Tag Form Update", () => {
   const vuetify = createVuetify();
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   mockTagsApi
-    .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+    .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
     .reply(200, tags);
   localStorage.setItem("tenant", "fake-tenant-data");
 
@@ -117,7 +117,7 @@ describe("Tag Form Update", () => {
 
   it("Successfully add tags", async () => {
     mockTagsApi
-      .onPost("http://localhost:3000/api/namespaces/fake-tenant-data/devices/a582b47a42d/tags/tag-test-1")
+      .onPost("http://localhost:3000/api/devices/a582b47a42d/tags/tag-test-1")
       .reply(200);
 
     const tagsSpy = vi.spyOn(tagsStore, "pushTagToDevice");
@@ -136,7 +136,7 @@ describe("Tag Form Update", () => {
 
   it("Successfully removes tags", async () => {
     mockTagsApi
-      .onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/devices/a582b47a42d/tags/test1")
+      .onDelete("http://localhost:3000/api/devices/a582b47a42d/tags/test1")
       .reply(200);
 
     const tagsSpy = vi.spyOn(tagsStore, "removeTagFromDevice");
@@ -155,7 +155,7 @@ describe("Tag Form Update", () => {
 
   it("Successfully loads more tags", async () => {
     mockTagsApi
-      .onGet("http://localhost:3000/api/namespaces/fake-tenant-data/tags?filter=&page=1&per_page=10")
+      .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
       .reply(200, tags);
 
     const tagsSpy = vi.spyOn(tagsStore, "autocomplete");
@@ -171,7 +171,6 @@ describe("Tag Form Update", () => {
     expect(tagsSpy).toHaveBeenCalledWith({
       filter: "",
       perPage: 10,
-      tenant: "fake-tenant-data",
     });
     expect(wrapper.vm.tags).toEqual(tags);
   });

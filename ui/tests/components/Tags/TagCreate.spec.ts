@@ -57,7 +57,7 @@ describe("Tag Form Create", () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
 
-    mockTagsApi.onPost("http://localhost:3000/api/namespaces/fake-tenant-data/tags").reply(200);
+    mockTagsApi.onPost("http://localhost:3000/api/tags").reply(200);
 
     const tagsSpy = vi.spyOn(tagsStore, "createTag");
 
@@ -78,7 +78,7 @@ describe("Tag Form Create", () => {
     await flushPromises();
 
     mockTagsApi
-      .onPost("http://localhost:3000/api/namespaces/fake-tenant-data/tags")
+      .onPost("http://localhost:3000/api/tags")
       .reply(409);
 
     await wrapper.findComponent('[data-test="tag-field"]').setValue("duplicate-tag");
