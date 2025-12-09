@@ -21,13 +21,13 @@
             variant="outlined"
             append-icon="mdi-chevron-down"
             text="Tags"
-            :disabled="fetchedTags.length === 0"
           />
         </v-badge>
       </template>
 
       <div class="bg-v-theme-surface">
         <v-list
+          v-if="fetchedTags.length > 0"
           ref="scrollArea"
           density="compact"
           style="max-height: 320px; overflow-y: auto"
@@ -57,7 +57,7 @@
             />
           </div>
         </v-list>
-        <v-divider />
+        <v-divider v-if="fetchedTags.length > 0" />
         <v-btn
           color="primary"
           text="Manage Tags"
