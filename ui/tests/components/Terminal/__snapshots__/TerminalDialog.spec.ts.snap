@@ -34,13 +34,13 @@ exports[`Terminal Dialog > Renders the component 1`] = `
               <div class="v-toolbar__content" style="height: 64px;">
                 <!---->
                 <!---->
-                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-login mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
+                <div class="v-avatar v-theme--light text-primary v-avatar--density-default v-avatar--rounded v-avatar--variant-tonal border border-primary border-opacity-100 mr-3" style="width: 48px; height: 48px;"><i class="mdi-console mdi v-icon notranslate v-theme--light" style="font-size: 24px; height: 24px; width: 24px;" aria-hidden="true"></i>
                   <!----><span class="v-avatar__underlay"></span>
                 </div>
                 <div>
                   <div class="v-toolbar-title text-h6">
                     <div class="v-toolbar-title__placeholder">
-                      <!---->Terminal Login
+                      <!---->Connect to Device
                     </div>
                   </div>
                   <!--v-if-->
@@ -198,6 +198,7 @@ exports[`Terminal Dialog > Renders the component 1`] = `
                     <!---->
                   </div>
                 </div>
+                <!--v-if-->
                 <!--v-if-->
               </div>
             </form><!-- Footer -->

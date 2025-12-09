@@ -38,6 +38,8 @@ exports[`Device List > Renders the component 1`] = `
                   <!---->
                   <!---->
                   <!---->
+                  <!---->
+                  <!---->
                 </td>
                 <td data-v-787abe29="" class="text-center">39-5e-2a</td>
                 <td data-v-787abe29="" class="text-center"><i data-v-787abe29="" data-test="deviceIcon-component" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-787abe29="">Linux Mint 19.3</span></td>
@@ -45,18 +47,21 @@ exports[`Device List > Renders the component 1`] = `
                   <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="sshid-chip"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
-                    <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-7" class="hover-text">user.39-5e-2a@localhost</span>
+                    <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-7" class="hover-text text-mono">user.39-5e-2a@localhost</span>
                       <!--teleport start-->
                       <!--teleport end-->
                     </div>
-                    <!---->
+                    <div class="v-chip__append"><i data-v-787abe29="" class="mdi-help-circle-outline mdi v-icon notranslate v-theme--light v-icon--size-small text-primary v-icon--clickable ml-2" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-8" data-test="sshid-help-btn"></i>
+                      <!--teleport start-->
+                      <!--teleport end-->
+                    </div>
                     <!----></span>
                     <!---->
                     <!---->
                   </div>
                 </td>
                 <td data-v-787abe29="" class="text-center">
-                  <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-8" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
+                  <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-9" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
                     <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -66,7 +71,7 @@ exports[`Device List > Renders the component 1`] = `
                     <!--teleport end-->
                   </div>
                 </td>
-                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-11" aria-owns="v-menu-v-11"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-12" aria-owns="v-menu-v-12"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
@@ -82,7 +87,7 @@ exports[`Device List > Renders the component 1`] = `
                         <!----><span class="v-btn__content" data-no-activator="">Connect</span>
                         <!---->
                         <!---->
-                      </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-16" aria-owns="v-menu-v-16"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                      </button><button data-v-35d3a308="" type="button" class="v-btn v-btn--flat v-btn--icon v-theme--light text-success v-btn--density-compact v-btn--size-default v-btn--variant-outlined" style="height: auto;" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-17" aria-owns="v-menu-v-17"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                         <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-triangle-small-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                         <!---->
                         <!---->
@@ -94,6 +99,8 @@ exports[`Device List > Renders the component 1`] = `
                   <!---->
                   <!---->
                   <!---->
+                  <!---->
+                  <!---->
                 </td>
                 <td data-v-787abe29="" class="text-center">39-5e-2b</td>
                 <td data-v-787abe29="" class="text-center"><i data-v-787abe29="" data-test="deviceIcon-component" class="fl-linuxmint mr-1 mr-2" style="font-size: 20px;"></i><span data-v-787abe29="">Linux Mint 19.3</span></td>
@@ -101,18 +108,21 @@ exports[`Device List > Renders the component 1`] = `
                   <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-default v-chip--variant-tonal" draggable="false" data-test="sshid-chip"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
-                    <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-20" class="hover-text">user.39-5e-2b@localhost</span>
+                    <div class="v-chip__content" data-no-activator=""><span data-v-787abe29="" aria-describedby="v-tooltip-v-21" class="hover-text text-mono">user.39-5e-2b@localhost</span>
                       <!--teleport start-->
                       <!--teleport end-->
                     </div>
-                    <!---->
+                    <div class="v-chip__append"><i data-v-787abe29="" class="mdi-help-circle-outline mdi v-icon notranslate v-theme--light v-icon--size-small text-primary v-icon--clickable ml-2" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-22" data-test="sshid-help-btn"></i>
+                      <!--teleport start-->
+                      <!--teleport end-->
+                    </div>
                     <!----></span>
                     <!---->
                     <!---->
                   </div>
                 </td>
                 <td data-v-787abe29="" class="text-center">
-                  <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-21" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
+                  <div data-v-787abe29=""><span data-v-787abe29="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal mr-1" draggable="false" aria-describedby="v-tooltip-v-23" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
                     <!---->
                     <!---->
                     <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -122,7 +132,7 @@ exports[`Device List > Renders the component 1`] = `
                     <!--teleport end-->
                   </div>
                 </td>
-                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-24" aria-owns="v-menu-v-24"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <td data-v-787abe29="" class="text-center"><button data-v-787abe29="" type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-26" aria-owns="v-menu-v-26"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
@@ -154,7 +164,7 @@ exports[`Device List > Renders the component 1`] = `
           <div class="v-input v-input--horizontal v-input--hide-spin-buttons v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-text-field v-input--plain-underlined v-combobox v-combobox--single mb-4 mr-1 w-100" data-test="ipp-combo">
             <!---->
             <div class="v-input__control">
-              <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-28" aria-owns="menu-v-28">
+              <div class="v-field v-field--active v-field--appended v-field--center-affix v-field--dirty v-field--no-label v-field--variant-underlined v-theme--light v-locale--is-ltr" role="combobox" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-v-30" aria-owns="menu-v-30">
                 <div class="v-field__overlay"></div>
                 <div class="v-field__loader">
                   <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -178,7 +188,7 @@ exports[`Device List > Renders the component 1`] = `
                   <div class="v-field__input" data-no-activator="">
                     <!---->
                     <!---->
-                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="number" id="input-v-30" aria-expanded="false" aria-controls="menu-v-28" outlined="" value="10">
+                    <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="number" id="input-v-32" aria-expanded="false" aria-controls="menu-v-30" outlined="" value="10">
                   </div>
                   <!---->
                 </div>

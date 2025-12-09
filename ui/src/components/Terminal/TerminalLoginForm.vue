@@ -1,8 +1,8 @@
 <template>
   <FormDialog
     v-model="showDialog"
-    title="Terminal Login"
-    icon="mdi-login"
+    title="Connect to Device"
+    icon="mdi-console"
     confirm-text="Connect"
     :confirm-loading="isConnecting"
     :confirm-disabled="!isFormValid"
@@ -83,8 +83,43 @@
         @click:append-inner="showPassword = !showPassword"
         @keydown.enter.prevent="submitForm"
       />
+
+      <v-alert
+        v-if="props.sshid"
+        color="primary"
+        variant="tonal"
+        density="compact"
+        class="mt-4"
+        data-test="sshid-hint"
+      >
+        <div class="d-flex align-center justify-space-between">
+          <div class="text-caption">
+            <v-icon
+              icon="mdi-lightbulb-on-outline"
+              size="small"
+              class="mr-1"
+            />
+            <strong>Did you know?</strong> You can also connect from your local
+            terminal using the SSHID.
+          </div>
+          <v-btn
+            size="small"
+            variant="text"
+            data-test="show-sshid-examples-btn"
+            @click="showTerminalHelper = true"
+          >
+            Show me how
+          </v-btn>
+        </div>
+      </v-alert>
     </v-card-text>
   </FormDialog>
+
+  <SSHIDHelper
+    v-if="props.sshid"
+    v-model="showTerminalHelper"
+    :sshid="props.sshid"
+  />
 </template>
 
 <script setup lang="ts">
@@ -92,9 +127,14 @@ import { ref, computed } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
+import SSHIDHelper from "./SSHIDHelper.vue";
 import { LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
+
+const props = defineProps<{
+  sshid?: string;
+}>();
 
 const emit = defineEmits<{
   submit: [formData: LoginFormData];
@@ -109,6 +149,7 @@ const showPassword = ref(false);
 const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
 const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
 const showPassphraseField = ref(false);
+const showTerminalHelper = ref(false);
 
 const {
   value: username,
@@ -134,7 +175,10 @@ const {
   initialValue: "",
 });
 
-const getSelectedPrivateKey = () => privateKeys.find((item: IPrivateKey) => item.name === selectedPrivateKeyName.value);
+const getSelectedPrivateKey = () =>
+  privateKeys.find(
+    (item: IPrivateKey) => item.name === selectedPrivateKeyName.value,
+  );
 
 const isFormValid = computed(() => {
   if (usernameError.value) return false;
@@ -180,7 +224,10 @@ const handleClose = () => {
 const submitForm = () => {
   if (!isFormValid.value) return;
 
-  const privateKey = authenticationMethod.value === TerminalAuthMethods.PrivateKey ? getSelectedPrivateKey()?.data : undefined;
+  const privateKey
+    = authenticationMethod.value === TerminalAuthMethods.PrivateKey
+      ? getSelectedPrivateKey()?.data
+      : undefined;
 
   const formData: LoginFormData = {
     username: username.value,
