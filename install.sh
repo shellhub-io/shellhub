@@ -155,6 +155,14 @@ snap_install() {
       sudo snap set shellhub preferred-hostname="${PREFERRED_HOSTNAME}"
     fi
 
+    if [ -n "${PREFERRED_IDENTITY}" ]; then
+      sudo snap set shellhub preferred-identity="${PREFERRED_IDENTITY}"
+    fi
+
+    if [ -n "${KEEPALIVE_INTERVAL}" ]; then
+      sudo snap set shellhub keepalive-interval="${KEEPALIVE_INTERVAL}"
+    fi
+
     sudo snap set shellhub server-address="$SERVER_ADDRESS"
     sudo snap set shellhub tenant-id="$TENANT_ID"
     sudo snap set shellhub private-key="${PRIVATE_KEY:-/etc/shellhub.key}"
@@ -209,6 +217,25 @@ standalone_install() {
   sed -i "s,__TENANT_ID__,$TENANT_ID,g" $TMP_DIR/config.json
   sed -i "s,__ROOT_PATH__,$INSTALL_DIR/rootfs,g" $TMP_DIR/config.json
   sed -i "s,__INSTALL_DIR__,$INSTALL_DIR,g" $TMP_DIR/shellhub-agent.service
+
+  # Handle optional environment variables
+  if [ -n "${PREFERRED_HOSTNAME}" ]; then
+    sed -i "s,__PREFERRED_HOSTNAME__,SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME,g" $TMP_DIR/config.json
+  else
+    sed -i '/"__PREFERRED_HOSTNAME__"/d' $TMP_DIR/config.json
+  fi
+
+  if [ -n "${PREFERRED_IDENTITY}" ]; then
+    sed -i "s,__PREFERRED_IDENTITY__,SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY,g" $TMP_DIR/config.json
+  else
+    sed -i '/"__PREFERRED_IDENTITY__"/d' $TMP_DIR/config.json
+  fi
+
+  if [ -n "${KEEPALIVE_INTERVAL}" ]; then
+    sed -i "s,__KEEPALIVE_INTERVAL__,SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL,g" $TMP_DIR/config.json
+  else
+    sed -i '/"__KEEPALIVE_INTERVAL__"/d' $TMP_DIR/config.json
+  fi
 
   echo "🚀 Starting ShellHub system service..."
 
