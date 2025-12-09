@@ -89,21 +89,19 @@
         class="pa-0"
       >
         <v-combobox
-          v-model="internalItemsPerPage"
+          :model-value="itemsPerPage"
           :items="itemsPerPageOptions"
-          outlined
+          :error-messages="itemsPerPageError"
           variant="underlined"
-          center-affix
           type="number"
           hide-spin-buttons
           hide-details="auto"
           hide-no-data
           class="mb-4 mr-1 w-100"
-          filter-mode="every"
           data-test="ipp-combo"
-          :rules="[validateItemsPerPage]"
-          @blur="sanitizeItemsPerPage"
-          @keydown.enter="sanitizeItemsPerPage"
+          @update:model-value="updateItemsPerPage"
+          @blur="constrainItemsPerPage"
+          @keydown.enter="constrainItemsPerPage"
           @keydown="blockNonNumeric"
           @paste.prevent
         />
@@ -169,18 +167,13 @@ const page = defineModel<number>("page", {
   type: Number,
 });
 
-const rawItemsPerPage = defineModel<number>("itemsPerPage", {
+const itemsPerPage = defineModel<number>("itemsPerPage", {
   required: true,
   type: Number,
 });
 
-const internalItemsPerPage = ref(rawItemsPerPage.value);
-
-const pageQuantity = computed(() => Math.ceil(props.totalCount / rawItemsPerPage.value) || 1);
-
-const goToFirstPage = () => {
-  page.value = 1;
-};
+const itemsPerPageError = ref<string | null>(null);
+const pageQuantity = computed(() => Math.ceil(props.totalCount / itemsPerPage.value) || 1);
 
 const blockNonNumeric = (e: KeyboardEvent) => {
   const allowedKeys = [
@@ -195,30 +188,29 @@ const blockNonNumeric = (e: KeyboardEvent) => {
   ];
 
   if (allowedKeys.includes(e.key)) return;
-
   if (/^[0-9]$/.test(e.key)) return;
 
   e.preventDefault();
 };
 
-const validateItemsPerPage = (value: unknown): true | string => {
-  const num = Number(value);
+const updateItemsPerPage = (value: number) => {
+  if (value < 1) {
+    itemsPerPageError.value = "Minimum is 1";
+    return;
+  }
+  if (value > 100) {
+    itemsPerPageError.value = "Maximum is 100";
+    return;
+  }
 
-  if (num < 1) return "Minimum is 1";
-  if (num > 100) return "Maximum is 100";
-
-  return true;
+  itemsPerPageError.value = null;
+  if (value !== itemsPerPage.value) itemsPerPage.value = value;
 };
 
-const sanitizeItemsPerPage = () => {
-  let num = Number(internalItemsPerPage.value);
-
-  if (isNaN(num) || num < 1) num = 1;
-  if (num > 100) num = 100;
-
-  rawItemsPerPage.value = num;
-  internalItemsPerPage.value = num;
-
-  goToFirstPage();
+const constrainItemsPerPage = (value: number) => {
+  const clamped = Math.max(1, Math.min(100, value));
+  itemsPerPage.value = clamped;
+  page.value = 1;
+  itemsPerPageError.value = null;
 };
 </script>
