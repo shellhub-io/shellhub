@@ -20,6 +20,12 @@
         >
           {{ item.name }}
         </td>
+        <td
+          class="text-center"
+          data-test="tag-created-at"
+        >
+          {{ formatShortDateTime(item.created_at) }}
+        </td>
         <td class="text-center">
           <v-menu
             location="bottom"
@@ -92,11 +98,16 @@ import TagEdit from "./TagEdit.vue";
 import handleError from "@/utils/handleError";
 import useTagsStore from "@/store/modules/tags";
 import useSnackbar from "@/helpers/snackbar";
+import { formatShortDateTime } from "@/utils/date";
 
 const headers = ref([
   {
     text: "Name",
     value: "name",
+  },
+  {
+    text: "Created At",
+    value: "created_at",
   },
   {
     text: "Actions",
