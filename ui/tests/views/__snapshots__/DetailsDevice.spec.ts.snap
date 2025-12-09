@@ -40,6 +40,8 @@ exports[`Details Device > Renders the component 1`] = `
       <!---->
       <!---->
       <!---->
+      <!---->
+      <!---->
       <!----><span class="ml-6">39-5e-2a</span>
     </div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
@@ -131,6 +133,8 @@ exports[`Details Device > Renders the component when device has no last seen dat
           <!---->
         </div>
       </div>
+      <!---->
+      <!---->
       <!---->
       <!---->
       <!---->
@@ -228,6 +232,8 @@ exports[`Details Device > Renders the component when device has no tags 1`] = `
       <!---->
       <!---->
       <!---->
+      <!---->
+      <!---->
       <!----><span class="ml-6">39-5e-2a</span>
     </div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
@@ -308,6 +314,8 @@ exports[`Details Device > Renders the component when device is offline 1`] = `
           <!---->
         </div>
       </div>
+      <!---->
+      <!---->
       <!---->
       <!---->
       <!---->

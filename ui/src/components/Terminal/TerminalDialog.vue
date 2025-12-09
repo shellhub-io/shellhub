@@ -3,6 +3,7 @@
     v-if="showLoginForm"
     v-model="showLoginDialog"
     v-model:loading="isConnecting"
+    :sshid="sshid"
     @submit="handleSubmit"
     @close="close"
   />
@@ -36,9 +37,10 @@ import Terminal from "./Terminal.vue";
 // Utility to create key fingerprint for private key auth
 import { convertToFingerprint } from "@/utils/sshKeys";
 
-const { deviceUid, deviceName } = defineProps<{
+const { deviceUid, deviceName, sshid } = defineProps<{
   deviceUid: string;
   deviceName: string;
+  sshid?: string;
 }>();
 
 const route = useRoute(); // current route

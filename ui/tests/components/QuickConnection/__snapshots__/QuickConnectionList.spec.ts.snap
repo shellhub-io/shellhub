@@ -14,18 +14,21 @@ exports[`Quick Connection List > Renders the component 1`] = `
           <!---->
           <!---->
           <div class="v-chip__content" data-no-activator="">
-            <div data-v-7c65953f=""><span data-v-7c65953f="" aria-describedby="v-tooltip-v-2" tabindex="0" class="hover-text" data-test="copy-id-button">user.39-5e-2a@localhost</span>
+            <div data-v-7c65953f=""><span data-v-7c65953f="" aria-describedby="v-tooltip-v-2" tabindex="0" class="hover-text text-mono" data-test="copy-id-button">user.39-5e-2a@localhost</span>
               <!---->
               <!---->
             </div>
             <!--teleport start-->
             <!--teleport end-->
           </div>
-          <!---->
+          <div class="v-chip__append"><i data-v-7c65953f="" class="mdi-help-circle-outline mdi v-icon notranslate v-theme--light v-icon--size-small text-primary v-icon--clickable ml-2" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-3" data-test="sshid-help-btn"></i>
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
           <!----></span>
         </div>
         <div data-v-7c65953f="" class="v-col-md-3 v-col text-center" data-test="device-tags">
-          <div data-v-7c65953f=""><span data-v-7c65953f="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-3" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
+          <div data-v-7c65953f=""><span data-v-7c65953f="" class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false" aria-describedby="v-tooltip-v-4" data-test="tag-chip"><!----><span class="v-chip__underlay"></span>
             <!---->
             <!---->
             <div class="v-chip__content" data-no-activator="">test-tag</div>
@@ -51,14 +54,17 @@ exports[`Quick Connection List > Renders the component 1`] = `
           <!---->
           <!---->
           <div class="v-chip__content" data-no-activator="">
-            <div data-v-7c65953f=""><span data-v-7c65953f="" aria-describedby="v-tooltip-v-8" tabindex="0" class="hover-text" data-test="copy-id-button">user.39-5e-2b@localhost</span>
+            <div data-v-7c65953f=""><span data-v-7c65953f="" aria-describedby="v-tooltip-v-9" tabindex="0" class="hover-text text-mono" data-test="copy-id-button">user.39-5e-2b@localhost</span>
               <!---->
               <!---->
             </div>
             <!--teleport start-->
             <!--teleport end-->
           </div>
-          <!---->
+          <div class="v-chip__append"><i data-v-7c65953f="" class="mdi-help-circle-outline mdi v-icon notranslate v-theme--light v-icon--size-small text-primary v-icon--clickable ml-2" role="button" aria-hidden="false" tabindex="0" aria-describedby="v-tooltip-v-10" data-test="sshid-help-btn"></i>
+            <!--teleport start-->
+            <!--teleport end-->
+          </div>
           <!----></span>
         </div>
         <div data-v-7c65953f="" class="v-col-md-3 v-col text-center" data-test="device-tags">
@@ -75,5 +81,6 @@ exports[`Quick Connection List > Renders the component 1`] = `
     <!---->
   </div>
 </div>
+<!--v-if-->
 <!--v-if-->"
 `;

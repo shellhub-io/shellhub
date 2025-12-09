@@ -40,29 +40,39 @@
             <span>{{ item.info.pretty_name }}</span>
           </td>
           <td class="text-center">
-            <CopyWarning
-              :copied-item="'Device SSHID'"
-              :bypass="shouldOpenTerminalHelper()"
-            >
+            <CopyWarning :copied-item="'Device SSHID'">
               <template #default="{ copyText }">
                 <v-chip data-test="sshid-chip">
                   <v-tooltip location="bottom">
                     <template #activator="{ props }">
                       <span
                         v-bind="props"
-                        class="hover-text"
+                        class="hover-text text-mono"
                         @click="handleSshidClick(item, copyText)"
                         @keypress.enter="handleSshidClick(item, copyText)"
                       >
                         {{ getSshid(item) }}
                       </span>
                     </template>
-                    <span>{{
-                      shouldOpenTerminalHelper()
-                        ? "Show connection instructions"
-                        : "Copy ID"
-                    }}</span>
+                    <span>Copy SSHID</span>
                   </v-tooltip>
+
+                  <template #append>
+                    <v-tooltip location="bottom">
+                      <template #activator="{ props }">
+                        <v-icon
+                          v-bind="props"
+                          icon="mdi-help-circle-outline"
+                          size="small"
+                          color="primary"
+                          class="ml-2"
+                          data-test="sshid-help-btn"
+                          @click.stop="forceOpenTerminalHelper(item)"
+                        />
+                      </template>
+                      <span>What is an SSHID?</span>
+                    </v-tooltip>
+                  </template>
                 </v-chip>
               </template>
             </CopyWarning>
@@ -251,13 +261,11 @@
         </tr>
       </template>
     </DataTable>
-    <TerminalHelper
+    <SSHIDHelper
       v-if="showTerminalHelper"
       v-model="showTerminalHelper"
       :sshid="selectedSshid"
-      :user-id="userId"
-      :show-checkbox="true"
-      data-test="terminal-helper-component"
+      data-test="sshid-helper-component"
     />
   </div>
 </template>
@@ -272,7 +280,7 @@ import DeviceDelete from "../Devices/DeviceDelete.vue";
 import TagFormUpdate from "../Tags/TagFormUpdate.vue";
 import TerminalConnectButton from "../Terminal/TerminalConnectButton.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
-import TerminalHelper from "../Terminal/TerminalHelper.vue";
+import SSHIDHelper from "../Terminal/SSHIDHelper.vue";
 import { IDevice, IDeviceMethods, DeviceStatus } from "@/interfaces/IDevice";
 import hasPermission from "@/utils/permission";
 import showTag from "@/utils/tag";
@@ -280,7 +288,6 @@ import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import { formatFullDateTime } from "@/utils/date";
 import { IContainerMethods } from "@/interfaces/IContainer";
-import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{
   storeMethods: IDeviceMethods | IContainerMethods;
@@ -290,7 +297,6 @@ const props = defineProps<{
 }>();
 
 const { fetchDevices, getList, getCount, getFilter } = props.storeMethods;
-const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
 const items = computed(() => getList());
@@ -304,7 +310,6 @@ const sortField = ref<string>();
 const sortOrder = ref<"asc" | "desc">();
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
-const userId = authStore.id;
 
 const headers = [
   {
@@ -390,23 +395,12 @@ const openTerminalHelper = (item: IDevice) => {
   showTerminalHelper.value = true;
 };
 
-const shouldOpenTerminalHelper = () => {
-  try {
-    const dispensedUsers = JSON.parse(
-      localStorage.getItem("dispenseTerminalHelper") || "[]",
-    ) as string[];
-    return !dispensedUsers.includes(userId);
-  } catch {
-    return true;
-  }
+const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
+  copyFn(getSshid(item));
 };
 
-const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
-  if (shouldOpenTerminalHelper()) {
-    openTerminalHelper(item);
-    return;
-  }
-  copyFn(getSshid(item));
+const forceOpenTerminalHelper = (item: IDevice) => {
+  openTerminalHelper(item);
 };
 
 const canUpdateDeviceTag = hasPermission("tag:update");

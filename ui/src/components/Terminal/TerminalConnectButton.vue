@@ -48,8 +48,9 @@
     v-model="showWebTerminal"
     :device-uid
     :device-name
+    :sshid
   />
-  <TerminalHelper
+  <SSHIDHelper
     v-model="showTerminalHelper"
     :sshid
   />
@@ -58,7 +59,7 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import TerminalDialog from "./TerminalDialog.vue";
-import TerminalHelper from "./TerminalHelper.vue";
+import SSHIDHelper from "./SSHIDHelper.vue";
 
 defineOptions({
   inheritAttrs: false,

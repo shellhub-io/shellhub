@@ -64,14 +64,13 @@
                 <CopyWarning
                   ref="copyRef"
                   :copied-item="'Device SSHID'"
-                  :bypass="shouldOpenTerminalHelper()"
                   :macro="getSshid(item)"
                 >
                   <template #default="{ copyText }">
                     <span
                       v-bind="props"
                       tabindex="0"
-                      class="hover-text"
+                      class="hover-text text-mono"
                       data-test="copy-id-button"
                       @click.stop="handleSshidClick(item, copyText)"
                       @keypress.enter.stop="handleSshidClick(item, copyText)"
@@ -81,8 +80,25 @@
                   </template>
                 </CopyWarning>
               </template>
-              <span>Copy ID</span>
+              <span>Copy SSHID</span>
             </v-tooltip>
+
+            <template #append>
+              <v-tooltip location="bottom">
+                <template #activator="{ props }">
+                  <v-icon
+                    v-bind="props"
+                    icon="mdi-help-circle-outline"
+                    size="small"
+                    color="primary"
+                    class="ml-2"
+                    data-test="sshid-help-btn"
+                    @click.stop="forceOpenTerminalHelper(item)"
+                  />
+                </template>
+                <span>What is an SSHID?</span>
+              </v-tooltip>
+            </template>
           </v-chip>
         </v-col>
         <v-col
@@ -125,12 +141,10 @@
       </v-row>
     </v-list-item>
   </v-list>
-  <TerminalHelper
+  <SSHIDHelper
     v-if="showTerminalHelper"
     v-model="showTerminalHelper"
     :sshid="selectedSshid"
-    :user-id="userId"
-    :show-checkbox="true"
   />
   <TerminalDialog
     v-model="showDialog"
@@ -145,7 +159,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import { VList } from "vuetify/components";
 import { useMagicKeys } from "@vueuse/core";
 import TerminalDialog from "../Terminal/TerminalDialog.vue";
-import TerminalHelper from "../Terminal/TerminalHelper.vue";
+import SSHIDHelper from "../Terminal/SSHIDHelper.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
@@ -153,12 +167,10 @@ import DeviceIcon from "../Devices/DeviceIcon.vue";
 import handleError from "@/utils/handleError";
 import { IDevice } from "@/interfaces/IDevice";
 import useSnackbar from "@/helpers/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useDevicesStore from "@/store/modules/devices";
 
 const props = defineProps<{ filter?: string }>();
 
-const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
@@ -168,7 +180,6 @@ const selectedDeviceName = ref("");
 const showDialog = ref(false);
 const showTerminalHelper = ref(false);
 const selectedSshid = ref("");
-const userId = authStore.id;
 const onlineDevices = computed(() => devicesStore.onlineDevices);
 
 const filter = computed(() =>
@@ -213,23 +224,12 @@ const openTerminalHelper = (item: IDevice) => {
   showTerminalHelper.value = true;
 };
 
-const shouldOpenTerminalHelper = () => {
-  try {
-    const dispensedUsers = JSON.parse(
-      localStorage.getItem("dispenseTerminalHelper") || "[]",
-    ) as string[];
-    return !dispensedUsers.includes(userId);
-  } catch {
-    return true;
-  }
+const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
+  copyFn(getSshid(item));
 };
 
-const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
-  if (shouldOpenTerminalHelper()) {
-    openTerminalHelper(item);
-    return;
-  }
-  copyFn(getSshid(item));
+const forceOpenTerminalHelper = (item: IDevice) => {
+  openTerminalHelper(item);
 };
 
 const openTerminalMacro = (value: IDevice) => {
