@@ -79,20 +79,14 @@ import useContainersStore from "@/store/modules/containers";
 import useDevicesStore from "@/store/modules/devices";
 import useTagsStore from "@/store/modules/tags";
 import { ITag } from "@/interfaces/ITags";
-import useAuthStore from "@/store/modules/auth";
 
 const props = defineProps<{ variant: "device" | "container" }>();
-const authStore = useAuthStore();
 const containersStore = useContainersStore();
 const devicesStore = useDevicesStore();
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-
-const tenant = computed(() => authStore.tenantId || "");
 const isMenuOpen = ref(false);
-
 const perPage = ref(10);
-
 const fetchedTags = computed(() => tagsStore.list);
 const selectedTags = computed(() => tagsStore.getSelected(props.variant));
 const isLoading = ref(false);
@@ -114,7 +108,6 @@ const loadTags = async () => {
 
   try {
     await tagsStore.autocomplete({
-      tenant: tenant.value,
       filter: "",
       perPage: perPage.value,
     });

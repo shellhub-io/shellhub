@@ -77,7 +77,6 @@ const loadTags = async () => {
 
   try {
     await tagsStore.autocomplete({
-      tenant: localStorage.getItem("tenant") || "",
       filter: encodeFilter(filter.value),
       perPage: itemsPerPage.value,
     });

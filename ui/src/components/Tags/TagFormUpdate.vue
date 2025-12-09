@@ -193,7 +193,6 @@ const loadTags = async () => {
     const encodedFilter = encodeFilter(filter.value);
 
     await tagsStore.autocomplete({
-      tenant: tenant.value,
       filter: encodedFilter,
       perPage: perPage.value,
     });

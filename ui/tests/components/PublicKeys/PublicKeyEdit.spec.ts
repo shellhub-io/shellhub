@@ -41,7 +41,7 @@ describe("Public Key Edit", () => {
 
     mockTagsApi.resetHandlers();
     mockTagsApi
-      .onGet(/\/api\/namespaces\/fake-tenant-data\/tags.*/)
+      .onGet(/\/api\/tags.*/)
       .reply(200, [{ name: "1" }, { name: "2" }, { name: "3" }, { name: "4" }]);
 
     mockSshApi.resetHandlers();

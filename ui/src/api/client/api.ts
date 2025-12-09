@@ -11839,18 +11839,62 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
          * @summary Create a new tag in the namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTag: async (tenant: string, createTagRequest: CreateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('createTag', 'tenant', tenant)
+        createTag: async (createTagRequest: CreateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'createTagRequest' is not null or undefined
             assertParamExists('createTag', 'createTagRequest', createTagRequest)
+            const localVarPath = `/api/tags`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createTagRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        createTagDeprecated: async (tenant: string, createTagRequest: CreateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('createTagDeprecated', 'tenant', tenant)
+            // verify required parameter 'createTagRequest' is not null or undefined
+            assertParamExists('createTagDeprecated', 'createTagRequest', createTagRequest)
             const localVarPath = `/api/namespaces/{tenant}/tags`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -12047,18 +12091,60 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * Removes a tag and all its associations
+         * Removes a tag and all its associations from the authenticated namespace.
          * @summary Delete a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTag: async (tenant: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('deleteTag', 'tenant', tenant)
+        deleteTag: async (name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'name' is not null or undefined
             assertParamExists('deleteTag', 'name', name)
+            const localVarPath = `/api/tags/{name}`
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+         * @summary Delete a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Tag name to delete
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        deleteTagDeprecated: async (tenant: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('deleteTagDeprecated', 'tenant', tenant)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('deleteTagDeprecated', 'name', name)
             const localVarPath = `/api/namespaces/{tenant}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"name"}}`, encodeURIComponent(String(name)));
@@ -12733,18 +12819,71 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * 
-         * @summary Retrieve all tags associated with a namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
+         * Retrieves all tags for the authenticated namespace.
+         * @summary Retrieve all tags associated with the namespace
          * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTags: async (tenant: string, filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getTags: async (filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/tags`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `GET /api/tags` instead.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        getTagsDeprecated: async (tenant: string, filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('getTags', 'tenant', tenant)
+            assertParamExists('getTagsDeprecated', 'tenant', tenant)
             const localVarPath = `/api/namespaces/{tenant}/tags`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -13033,21 +13172,67 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * 
+         * Removes a tag from a device in the authenticated namespace.
          * @summary Remove a tag from a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pullTagFromDevice: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('pullTagFromDevice', 'tenant', tenant)
+        pullTagFromDevice: async (uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('pullTagFromDevice', 'uid', uid)
             // verify required parameter 'name' is not null or undefined
             assertParamExists('pullTagFromDevice', 'name', name)
+            const localVarPath = `/api/devices/{uid}/tags/{name}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pullTagFromDeviceDeprecated: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pullTagFromDeviceDeprecated', 'tenant', tenant)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('pullTagFromDeviceDeprecated', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pullTagFromDeviceDeprecated', 'name', name)
             const localVarPath = `/api/namespaces/{tenant}/devices/{uid}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
@@ -13131,21 +13316,67 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * 
+         * Associates a tag with a device in the authenticated namespace.
          * @summary Associate a tag with a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pushTagToDevice: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('pushTagToDevice', 'tenant', tenant)
+        pushTagToDevice: async (uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('pushTagToDevice', 'uid', uid)
             // verify required parameter 'name' is not null or undefined
             assertParamExists('pushTagToDevice', 'name', name)
+            const localVarPath = `/api/devices/{uid}/tags/{name}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+         * @summary Associate a tag with a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pushTagToDeviceDeprecated: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pushTagToDeviceDeprecated', 'tenant', tenant)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('pushTagToDeviceDeprecated', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pushTagToDeviceDeprecated', 'name', name)
             const localVarPath = `/api/namespaces/{tenant}/devices/{uid}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
@@ -13706,21 +13937,69 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
-         * 
+         * Updates a tag in the authenticated namespace.
          * @summary Update a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Current tag name
          * @param {UpdateTagRequest} updateTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTag: async (tenant: string, name: string, updateTagRequest: UpdateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('updateTag', 'tenant', tenant)
+        updateTag: async (name: string, updateTagRequest: UpdateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'name' is not null or undefined
             assertParamExists('updateTag', 'name', name)
             // verify required parameter 'updateTagRequest' is not null or undefined
             assertParamExists('updateTag', 'updateTagRequest', updateTagRequest)
+            const localVarPath = `/api/tags/{name}`
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateTagRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        updateTagDeprecated: async (tenant: string, name: string, updateTagRequest: UpdateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('updateTagDeprecated', 'tenant', tenant)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('updateTagDeprecated', 'name', name)
+            // verify required parameter 'updateTagRequest' is not null or undefined
+            assertParamExists('updateTagDeprecated', 'updateTagRequest', updateTagRequest)
             const localVarPath = `/api/namespaces/{tenant}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"name"}}`, encodeURIComponent(String(name)));
@@ -14037,17 +14316,31 @@ export const CommunityApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
          * @summary Create a new tag in the namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createTag(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createTag(tenant, createTagRequest, options);
+        async createTag(createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTag(createTagRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CommunityApi.createTag']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async createTagDeprecated(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTagDeprecated(tenant, createTagRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommunityApi.createTagDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -14103,17 +14396,31 @@ export const CommunityApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Removes a tag and all its associations
+         * Removes a tag and all its associations from the authenticated namespace.
          * @summary Delete a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteTag(tenant: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTag(tenant, name, options);
+        async deleteTag(name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTag(name, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CommunityApi.deleteTag']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+         * @summary Delete a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Tag name to delete
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async deleteTagDeprecated(tenant: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTagDeprecated(tenant, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommunityApi.deleteTagDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -14314,19 +14621,35 @@ export const CommunityApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
-         * @summary Retrieve all tags associated with a namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
+         * Retrieves all tags for the authenticated namespace.
+         * @summary Retrieve all tags associated with the namespace
          * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tag>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getTags(tenant, filter, page, perPage, options);
+        async getTags(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tag>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTags(filter, page, perPage, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CommunityApi.getTags']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `GET /api/tags` instead.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async getTagsDeprecated(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tag>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTagsDeprecated(tenant, filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommunityApi.getTagsDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -14411,18 +14734,33 @@ export const CommunityApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Removes a tag from a device in the authenticated namespace.
          * @summary Remove a tag from a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async pullTagFromDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromDevice(tenant, uid, name, options);
+        async pullTagFromDevice(uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromDevice(uid, name, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CommunityApi.pullTagFromDevice']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async pullTagFromDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromDeviceDeprecated(tenant, uid, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommunityApi.pullTagFromDeviceDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -14441,18 +14779,33 @@ export const CommunityApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Associates a tag with a device in the authenticated namespace.
          * @summary Associate a tag with a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async pushTagToDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToDevice(tenant, uid, name, options);
+        async pushTagToDevice(uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToDevice(uid, name, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CommunityApi.pushTagToDevice']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+         * @summary Associate a tag with a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async pushTagToDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToDeviceDeprecated(tenant, uid, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommunityApi.pushTagToDeviceDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -14624,18 +14977,33 @@ export const CommunityApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Updates a tag in the authenticated namespace.
          * @summary Update a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Current tag name
          * @param {UpdateTagRequest} updateTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTag(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tag>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTag(tenant, name, updateTagRequest, options);
+        async updateTag(name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tag>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTag(name, updateTagRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CommunityApi.updateTag']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async updateTagDeprecated(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tag>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagDeprecated(tenant, name, updateTagRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommunityApi.updateTagDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -14805,15 +15173,26 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
             return localVarFp.createPublicKey(publicKeyRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
          * @summary Create a new tag in the namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTag(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.createTag(tenant, createTagRequest, options).then((request) => request(axios, basePath));
+        createTag(createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.createTag(createTagRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        createTagDeprecated(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.createTagDeprecated(tenant, createTagRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Delete a container.
@@ -14856,15 +15235,26 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
             return localVarFp.deletePublicKey(fingerprint, options).then((request) => request(axios, basePath));
         },
         /**
-         * Removes a tag and all its associations
+         * Removes a tag and all its associations from the authenticated namespace.
          * @summary Delete a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTag(tenant: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.deleteTag(tenant, name, options).then((request) => request(axios, basePath));
+        deleteTag(name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteTag(name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+         * @summary Delete a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Tag name to delete
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        deleteTagDeprecated(tenant: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteTagDeprecated(tenant, name, options).then((request) => request(axios, basePath));
         },
         /**
          * Edit a namespace.
@@ -15022,17 +15412,30 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
             return localVarFp.getStatusDevices(options).then((request) => request(axios, basePath));
         },
         /**
-         * 
-         * @summary Retrieve all tags associated with a namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
+         * Retrieves all tags for the authenticated namespace.
+         * @summary Retrieve all tags associated with the namespace
          * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Tag>> {
-            return localVarFp.getTags(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
+        getTags(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Tag>> {
+            return localVarFp.getTags(filter, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `GET /api/tags` instead.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        getTagsDeprecated(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Tag>> {
+            return localVarFp.getTagsDeprecated(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
          * Get a token from its tenant.
@@ -15098,16 +15501,28 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
             return localVarFp.pullTagFromContainer(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Removes a tag from a device in the authenticated namespace.
          * @summary Remove a tag from a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pullTagFromDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.pullTagFromDevice(tenant, uid, name, options).then((request) => request(axios, basePath));
+        pullTagFromDevice(uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pullTagFromDevice(uid, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pullTagFromDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pullTagFromDeviceDeprecated(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -15122,16 +15537,28 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
             return localVarFp.pushTagToContainer(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Associates a tag with a device in the authenticated namespace.
          * @summary Associate a tag with a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pushTagToDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.pushTagToDevice(tenant, uid, name, options).then((request) => request(axios, basePath));
+        pushTagToDevice(uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pushTagToDevice(uid, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+         * @summary Associate a tag with a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pushTagToDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pushTagToDeviceDeprecated(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
          * Remove a member from a namespace.
@@ -15266,16 +15693,28 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
             return localVarFp.updatePublicKey(fingerprint, updatePublicKeyRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Updates a tag in the authenticated namespace.
          * @summary Update a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Current tag name
          * @param {UpdateTagRequest} updateTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTag(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<Tag> {
-            return localVarFp.updateTag(tenant, name, updateTagRequest, options).then((request) => request(axios, basePath));
+        updateTag(name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<Tag> {
+            return localVarFp.updateTag(name, updateTagRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        updateTagDeprecated(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<Tag> {
+            return localVarFp.updateTagDeprecated(tenant, name, updateTagRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -15444,15 +15883,27 @@ export class CommunityApi extends BaseAPI {
     }
 
     /**
-     * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+     * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
      * @summary Create a new tag in the namespace
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {CreateTagRequest} createTagRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public createTag(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig) {
-        return CommunityApiFp(this.configuration).createTag(tenant, createTagRequest, options).then((request) => request(this.axios, this.basePath));
+    public createTag(createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).createTag(createTagRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+     * @summary Create a new tag in the namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {CreateTagRequest} createTagRequest 
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public createTagDeprecated(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).createTagDeprecated(tenant, createTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -15500,15 +15951,27 @@ export class CommunityApi extends BaseAPI {
     }
 
     /**
-     * Removes a tag and all its associations
+     * Removes a tag and all its associations from the authenticated namespace.
      * @summary Delete a tag
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} name Tag name to delete
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public deleteTag(tenant: string, name: string, options?: RawAxiosRequestConfig) {
-        return CommunityApiFp(this.configuration).deleteTag(tenant, name, options).then((request) => request(this.axios, this.basePath));
+    public deleteTag(name: string, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).deleteTag(name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+     * @summary Delete a tag
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} name Tag name to delete
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public deleteTagDeprecated(tenant: string, name: string, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).deleteTagDeprecated(tenant, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -15681,17 +16144,31 @@ export class CommunityApi extends BaseAPI {
     }
 
     /**
-     * 
-     * @summary Retrieve all tags associated with a namespace
-     * @param {string} tenant Namespace\&#39;s tenant ID
+     * Retrieves all tags for the authenticated namespace.
+     * @summary Retrieve all tags associated with the namespace
      * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
      * @param {number} [page] Page number
      * @param {number} [perPage] Items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
-        return CommunityApiFp(this.configuration).getTags(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    public getTags(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).getTags(filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `GET /api/tags` instead.
+     * @summary Retrieve all tags associated with a namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public getTagsDeprecated(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).getTagsDeprecated(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -15764,16 +16241,29 @@ export class CommunityApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Removes a tag from a device in the authenticated namespace.
      * @summary Remove a tag from a device
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} uid Device\&#39;s UID
      * @param {string} name Tag name to remove
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public pullTagFromDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
-        return CommunityApiFp(this.configuration).pullTagFromDevice(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
+    public pullTagFromDevice(uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).pullTagFromDevice(uid, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+     * @summary Remove a tag from a device
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} name Tag name to remove
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public pullTagFromDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).pullTagFromDeviceDeprecated(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -15790,16 +16280,29 @@ export class CommunityApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Associates a tag with a device in the authenticated namespace.
      * @summary Associate a tag with a device
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} uid Device\&#39;s UID
      * @param {string} name Tag name to associate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public pushTagToDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
-        return CommunityApiFp(this.configuration).pushTagToDevice(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
+    public pushTagToDevice(uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).pushTagToDevice(uid, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+     * @summary Associate a tag with a device
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} name Tag name to associate
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public pushTagToDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).pushTagToDeviceDeprecated(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -15947,16 +16450,29 @@ export class CommunityApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Updates a tag in the authenticated namespace.
      * @summary Update a tag
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} name Current tag name
      * @param {UpdateTagRequest} updateTagRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public updateTag(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig) {
-        return CommunityApiFp(this.configuration).updateTag(tenant, name, updateTagRequest, options).then((request) => request(this.axios, this.basePath));
+    public updateTag(name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).updateTag(name, updateTagRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+     * @summary Update a tag
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} name Current tag name
+     * @param {UpdateTagRequest} updateTagRequest 
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public updateTagDeprecated(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).updateTagDeprecated(tenant, name, updateTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -27914,18 +28430,62 @@ export class SystemApi extends BaseAPI {
 export const TagsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
          * @summary Create a new tag in the namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTag: async (tenant: string, createTagRequest: CreateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('createTag', 'tenant', tenant)
+        createTag: async (createTagRequest: CreateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'createTagRequest' is not null or undefined
             assertParamExists('createTag', 'createTagRequest', createTagRequest)
+            const localVarPath = `/api/tags`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createTagRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        createTagDeprecated: async (tenant: string, createTagRequest: CreateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('createTagDeprecated', 'tenant', tenant)
+            // verify required parameter 'createTagRequest' is not null or undefined
+            assertParamExists('createTagDeprecated', 'createTagRequest', createTagRequest)
             const localVarPath = `/api/namespaces/{tenant}/tags`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -27961,18 +28521,60 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Removes a tag and all its associations
+         * Removes a tag and all its associations from the authenticated namespace.
          * @summary Delete a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTag: async (tenant: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('deleteTag', 'tenant', tenant)
+        deleteTag: async (name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'name' is not null or undefined
             assertParamExists('deleteTag', 'name', name)
+            const localVarPath = `/api/tags/{name}`
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+         * @summary Delete a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Tag name to delete
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        deleteTagDeprecated: async (tenant: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('deleteTagDeprecated', 'tenant', tenant)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('deleteTagDeprecated', 'name', name)
             const localVarPath = `/api/namespaces/{tenant}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"name"}}`, encodeURIComponent(String(name)));
@@ -28006,18 +28608,71 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
-         * @summary Retrieve all tags associated with a namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
+         * Retrieves all tags for the authenticated namespace.
+         * @summary Retrieve all tags associated with the namespace
          * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTags: async (tenant: string, filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getTags: async (filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/tags`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (filter !== undefined) {
+                localVarQueryParameter['filter'] = filter;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (perPage !== undefined) {
+                localVarQueryParameter['per_page'] = perPage;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `GET /api/tags` instead.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        getTagsDeprecated: async (tenant: string, filter?: string, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('getTags', 'tenant', tenant)
+            assertParamExists('getTagsDeprecated', 'tenant', tenant)
             const localVarPath = `/api/namespaces/{tenant}/tags`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -28111,21 +28766,67 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
+         * Removes a tag from a device in the authenticated namespace.
          * @summary Remove a tag from a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pullTagFromDevice: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('pullTagFromDevice', 'tenant', tenant)
+        pullTagFromDevice: async (uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('pullTagFromDevice', 'uid', uid)
             // verify required parameter 'name' is not null or undefined
             assertParamExists('pullTagFromDevice', 'name', name)
+            const localVarPath = `/api/devices/{uid}/tags/{name}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pullTagFromDeviceDeprecated: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pullTagFromDeviceDeprecated', 'tenant', tenant)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('pullTagFromDeviceDeprecated', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pullTagFromDeviceDeprecated', 'name', name)
             const localVarPath = `/api/namespaces/{tenant}/devices/{uid}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
@@ -28209,21 +28910,67 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
+         * Associates a tag with a device in the authenticated namespace.
          * @summary Associate a tag with a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pushTagToDevice: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('pushTagToDevice', 'tenant', tenant)
+        pushTagToDevice: async (uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('pushTagToDevice', 'uid', uid)
             // verify required parameter 'name' is not null or undefined
             assertParamExists('pushTagToDevice', 'name', name)
+            const localVarPath = `/api/devices/{uid}/tags/{name}`
+                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+         * @summary Associate a tag with a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pushTagToDeviceDeprecated: async (tenant: string, uid: string, name: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('pushTagToDeviceDeprecated', 'tenant', tenant)
+            // verify required parameter 'uid' is not null or undefined
+            assertParamExists('pushTagToDeviceDeprecated', 'uid', uid)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('pushTagToDeviceDeprecated', 'name', name)
             const localVarPath = `/api/namespaces/{tenant}/devices/{uid}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"uid"}}`, encodeURIComponent(String(uid)))
@@ -28258,21 +29005,69 @@ export const TagsApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * 
+         * Updates a tag in the authenticated namespace.
          * @summary Update a tag
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} name Current tag name
          * @param {UpdateTagRequest} updateTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTag: async (tenant: string, name: string, updateTagRequest: UpdateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'tenant' is not null or undefined
-            assertParamExists('updateTag', 'tenant', tenant)
+        updateTag: async (name: string, updateTagRequest: UpdateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'name' is not null or undefined
             assertParamExists('updateTag', 'name', name)
             // verify required parameter 'updateTagRequest' is not null or undefined
             assertParamExists('updateTag', 'updateTagRequest', updateTagRequest)
+            const localVarPath = `/api/tags/{name}`
+                .replace(`{${"name"}}`, encodeURIComponent(String(name)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication api-key required
+            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
+
+            // authentication jwt required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateTagRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        updateTagDeprecated: async (tenant: string, name: string, updateTagRequest: UpdateTagRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'tenant' is not null or undefined
+            assertParamExists('updateTagDeprecated', 'tenant', tenant)
+            // verify required parameter 'name' is not null or undefined
+            assertParamExists('updateTagDeprecated', 'name', name)
+            // verify required parameter 'updateTagRequest' is not null or undefined
+            assertParamExists('updateTagDeprecated', 'updateTagRequest', updateTagRequest)
             const localVarPath = `/api/namespaces/{tenant}/tags/{name}`
                 .replace(`{${"tenant"}}`, encodeURIComponent(String(tenant)))
                 .replace(`{${"name"}}`, encodeURIComponent(String(name)));
@@ -28318,47 +29113,91 @@ export const TagsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = TagsApiAxiosParamCreator(configuration)
     return {
         /**
-         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
          * @summary Create a new tag in the namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createTag(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createTag(tenant, createTagRequest, options);
+        async createTag(createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTag(createTagRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TagsApi.createTag']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Removes a tag and all its associations
-         * @summary Delete a tag
+         * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async createTagDeprecated(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTagDeprecated(tenant, createTagRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TagsApi.createTagDeprecated']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Removes a tag and all its associations from the authenticated namespace.
+         * @summary Delete a tag
          * @param {string} name Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteTag(tenant: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTag(tenant, name, options);
+        async deleteTag(name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTag(name, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TagsApi.deleteTag']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
-         * @summary Retrieve all tags associated with a namespace
+         * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+         * @summary Delete a tag
          * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Tag name to delete
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async deleteTagDeprecated(tenant: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTagDeprecated(tenant, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TagsApi.deleteTagDeprecated']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Retrieves all tags for the authenticated namespace.
+         * @summary Retrieve all tags associated with the namespace
          * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tag>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getTags(tenant, filter, page, perPage, options);
+        async getTags(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tag>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTags(filter, page, perPage, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TagsApi.getTags']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `GET /api/tags` instead.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async getTagsDeprecated(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Tag>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTagsDeprecated(tenant, filter, page, perPage, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TagsApi.getTagsDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -28377,18 +29216,33 @@ export const TagsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Removes a tag from a device in the authenticated namespace.
          * @summary Remove a tag from a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async pullTagFromDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromDevice(tenant, uid, name, options);
+        async pullTagFromDevice(uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromDevice(uid, name, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TagsApi.pullTagFromDevice']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async pullTagFromDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pullTagFromDeviceDeprecated(tenant, uid, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TagsApi.pullTagFromDeviceDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -28407,33 +29261,63 @@ export const TagsApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
+         * Associates a tag with a device in the authenticated namespace.
          * @summary Associate a tag with a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async pushTagToDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToDevice(tenant, uid, name, options);
+        async pushTagToDevice(uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToDevice(uid, name, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TagsApi.pushTagToDevice']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * 
-         * @summary Update a tag
+         * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+         * @summary Associate a tag with a device
          * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async pushTagToDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pushTagToDeviceDeprecated(tenant, uid, name, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TagsApi.pushTagToDeviceDeprecated']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Updates a tag in the authenticated namespace.
+         * @summary Update a tag
          * @param {string} name Current tag name
          * @param {UpdateTagRequest} updateTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTag(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tag>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTag(tenant, name, updateTagRequest, options);
+        async updateTag(name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tag>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTag(name, updateTagRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['TagsApi.updateTag']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        async updateTagDeprecated(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Tag>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTagDeprecated(tenant, name, updateTagRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TagsApi.updateTagDeprecated']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -28446,39 +29330,74 @@ export const TagsApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = TagsApiFp(configuration)
     return {
         /**
-         * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
          * @summary Create a new tag in the namespace
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {CreateTagRequest} createTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTag(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.createTag(tenant, createTagRequest, options).then((request) => request(axios, basePath));
+        createTag(createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.createTag(createTagRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Removes a tag and all its associations
-         * @summary Delete a tag
+         * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+         * @summary Create a new tag in the namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {CreateTagRequest} createTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        createTagDeprecated(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.createTagDeprecated(tenant, createTagRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Removes a tag and all its associations from the authenticated namespace.
+         * @summary Delete a tag
          * @param {string} name Tag name to delete
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTag(tenant: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.deleteTag(tenant, name, options).then((request) => request(axios, basePath));
+        deleteTag(name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteTag(name, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
-         * @summary Retrieve all tags associated with a namespace
+         * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+         * @summary Delete a tag
          * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Tag name to delete
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        deleteTagDeprecated(tenant: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteTagDeprecated(tenant, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieves all tags for the authenticated namespace.
+         * @summary Retrieve all tags associated with the namespace
          * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
          * @param {number} [page] Page number
          * @param {number} [perPage] Items per page
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Tag>> {
-            return localVarFp.getTags(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
+        getTags(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Tag>> {
+            return localVarFp.getTags(filter, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `GET /api/tags` instead.
+         * @summary Retrieve all tags associated with a namespace
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+         * @param {number} [page] Page number
+         * @param {number} [perPage] Items per page
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        getTagsDeprecated(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Tag>> {
+            return localVarFp.getTagsDeprecated(tenant, filter, page, perPage, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -28493,16 +29412,28 @@ export const TagsApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.pullTagFromContainer(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Removes a tag from a device in the authenticated namespace.
          * @summary Remove a tag from a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to remove
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pullTagFromDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.pullTagFromDevice(tenant, uid, name, options).then((request) => request(axios, basePath));
+        pullTagFromDevice(uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pullTagFromDevice(uid, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+         * @summary Remove a tag from a device
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to remove
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pullTagFromDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pullTagFromDeviceDeprecated(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -28517,28 +29448,52 @@ export const TagsApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.pushTagToContainer(tenant, uid, name, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
+         * Associates a tag with a device in the authenticated namespace.
          * @summary Associate a tag with a device
-         * @param {string} tenant Namespace\&#39;s tenant ID
          * @param {string} uid Device\&#39;s UID
          * @param {string} name Tag name to associate
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        pushTagToDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.pushTagToDevice(tenant, uid, name, options).then((request) => request(axios, basePath));
+        pushTagToDevice(uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pushTagToDevice(uid, name, options).then((request) => request(axios, basePath));
         },
         /**
-         * 
-         * @summary Update a tag
+         * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+         * @summary Associate a tag with a device
          * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} uid Device\&#39;s UID
+         * @param {string} name Tag name to associate
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        pushTagToDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.pushTagToDeviceDeprecated(tenant, uid, name, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Updates a tag in the authenticated namespace.
+         * @summary Update a tag
          * @param {string} name Current tag name
          * @param {UpdateTagRequest} updateTagRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTag(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<Tag> {
-            return localVarFp.updateTag(tenant, name, updateTagRequest, options).then((request) => request(axios, basePath));
+        updateTag(name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<Tag> {
+            return localVarFp.updateTag(name, updateTagRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+         * @summary Update a tag
+         * @param {string} tenant Namespace\&#39;s tenant ID
+         * @param {string} name Current tag name
+         * @param {UpdateTagRequest} updateTagRequest 
+         * @param {*} [options] Override http request option.
+         * @deprecated
+         * @throws {RequiredError}
+         */
+        updateTagDeprecated(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig): AxiosPromise<Tag> {
+            return localVarFp.updateTagDeprecated(tenant, name, updateTagRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -28548,41 +29503,79 @@ export const TagsApiFactory = function (configuration?: Configuration, basePath?
  */
 export class TagsApi extends BaseAPI {
     /**
-     * Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+     * Creates a tag in the authenticated namespace that can be later associated with content. Tag names must be unique within the namespace.
      * @summary Create a new tag in the namespace
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {CreateTagRequest} createTagRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public createTag(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig) {
-        return TagsApiFp(this.configuration).createTag(tenant, createTagRequest, options).then((request) => request(this.axios, this.basePath));
+    public createTag(createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).createTag(createTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * Removes a tag and all its associations
-     * @summary Delete a tag
+     * **Deprecated**: Use `POST /api/tags` instead. Creates a tag that can be later associated with content. Tag names must be unique within the namespace.
+     * @summary Create a new tag in the namespace
      * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {CreateTagRequest} createTagRequest 
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public createTagDeprecated(tenant: string, createTagRequest: CreateTagRequest, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).createTagDeprecated(tenant, createTagRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Removes a tag and all its associations from the authenticated namespace.
+     * @summary Delete a tag
      * @param {string} name Tag name to delete
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public deleteTag(tenant: string, name: string, options?: RawAxiosRequestConfig) {
-        return TagsApiFp(this.configuration).deleteTag(tenant, name, options).then((request) => request(this.axios, this.basePath));
+    public deleteTag(name: string, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).deleteTag(name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
-     * @summary Retrieve all tags associated with a namespace
+     * **Deprecated**: Use `DELETE /api/tags/{name}` instead. Removes a tag and all its associations.
+     * @summary Delete a tag
      * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} name Tag name to delete
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public deleteTagDeprecated(tenant: string, name: string, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).deleteTagDeprecated(tenant, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieves all tags for the authenticated namespace.
+     * @summary Retrieve all tags associated with the namespace
      * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
      * @param {number} [page] Page number
      * @param {number} [perPage] Items per page
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public getTags(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
-        return TagsApiFp(this.configuration).getTags(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    public getTags(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).getTags(filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `GET /api/tags` instead.
+     * @summary Retrieve all tags associated with a namespace
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} [filter] Filter field receives a JSON object enconded as base64 string for limit a search.  The JSON enconded must follow these interafaces: &#x60;&#x60;&#x60;typescript interface ParamProperty {   name: string;   operator: \&quot;contains\&quot; | \&quot;eq\&quot; | \&quot;bool\&quot; | \&quot;gt\&quot; | \&quot;lt\&quot;;   value: string; }  interface ParamOperator {   name: \&quot;and\&quot; | \&quot;or\&quot;; }  interface Filter {   type: \&quot;property\&quot; | \&quot;operator\&quot;;   param: ParamOperator | ParamProperty; }  interface FilterList {   Filters: Array&lt;Filter&gt;; }  &#x60;&#x60;&#x60;  ## Examples  This is a example to filter and get only the resource what property \&quot;confirmed\&quot; is \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {   \&quot;type\&quot;: \&quot;property\&quot;,   \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;confirmed\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;       }   } ] &#x60;&#x60;&#x60;  This one, filter resource by the property \&quot;id\&quot; inside \&quot;info\&quot; structure when it is equal to \&quot;manjaro\&quot; and online property is set to \&quot;true\&quot; &#x60;&#x60;&#x60;json [   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;info.id\&quot;,       \&quot;operator\&quot;: \&quot;eq\&quot;,       \&quot;value\&quot;: \&quot;manjaro\&quot;     }   },   {     \&quot;type\&quot;: \&quot;property\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;online\&quot;,       \&quot;operator\&quot;: \&quot;bool\&quot;,       \&quot;value\&quot;: \&quot;true\&quot;     }   },   {     \&quot;type\&quot;: \&quot;operator\&quot;,     \&quot;params\&quot;: {       \&quot;name\&quot;: \&quot;and\&quot;     }   } ] &#x60;&#x60;&#x60; 
+     * @param {number} [page] Page number
+     * @param {number} [perPage] Items per page
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public getTagsDeprecated(tenant: string, filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).getTagsDeprecated(tenant, filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -28599,16 +29592,29 @@ export class TagsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Removes a tag from a device in the authenticated namespace.
      * @summary Remove a tag from a device
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} uid Device\&#39;s UID
      * @param {string} name Tag name to remove
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public pullTagFromDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
-        return TagsApiFp(this.configuration).pullTagFromDevice(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
+    public pullTagFromDevice(uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pullTagFromDevice(uid, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `DELETE /api/devices/{uid}/tags/{name}` instead.
+     * @summary Remove a tag from a device
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} name Tag name to remove
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public pullTagFromDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pullTagFromDeviceDeprecated(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -28625,29 +29631,55 @@ export class TagsApi extends BaseAPI {
     }
 
     /**
-     * 
+     * Associates a tag with a device in the authenticated namespace.
      * @summary Associate a tag with a device
-     * @param {string} tenant Namespace\&#39;s tenant ID
      * @param {string} uid Device\&#39;s UID
      * @param {string} name Tag name to associate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public pushTagToDevice(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
-        return TagsApiFp(this.configuration).pushTagToDevice(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
+    public pushTagToDevice(uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pushTagToDevice(uid, name, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
-     * 
-     * @summary Update a tag
+     * **Deprecated**: Use `POST /api/devices/{uid}/tags/{name}` instead.
+     * @summary Associate a tag with a device
      * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} uid Device\&#39;s UID
+     * @param {string} name Tag name to associate
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public pushTagToDeviceDeprecated(tenant: string, uid: string, name: string, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).pushTagToDeviceDeprecated(tenant, uid, name, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Updates a tag in the authenticated namespace.
+     * @summary Update a tag
      * @param {string} name Current tag name
      * @param {UpdateTagRequest} updateTagRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public updateTag(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig) {
-        return TagsApiFp(this.configuration).updateTag(tenant, name, updateTagRequest, options).then((request) => request(this.axios, this.basePath));
+    public updateTag(name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).updateTag(name, updateTagRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * **Deprecated**: Use `PATCH /api/tags/{name}` instead.
+     * @summary Update a tag
+     * @param {string} tenant Namespace\&#39;s tenant ID
+     * @param {string} name Current tag name
+     * @param {UpdateTagRequest} updateTagRequest 
+     * @param {*} [options] Override http request option.
+     * @deprecated
+     * @throws {RequiredError}
+     */
+    public updateTagDeprecated(tenant: string, name: string, updateTagRequest: UpdateTagRequest, options?: RawAxiosRequestConfig) {
+        return TagsApiFp(this.configuration).updateTagDeprecated(tenant, name, updateTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

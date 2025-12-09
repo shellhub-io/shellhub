@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
@@ -52,7 +52,6 @@ const emit = defineEmits(["update"]);
 
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
-const tenant = computed(() => localStorage.getItem("tenant") || "");
 const showDialog = ref(false);
 
 const update = () => {
@@ -63,7 +62,6 @@ const update = () => {
 const remove = async () => {
   try {
     await tagsStore.removeTag({
-      tenant: tenant.value,
       currentName: props.tagName,
     });
     snackbar.showSuccess(`${props.tagName} was removed successfully.`);

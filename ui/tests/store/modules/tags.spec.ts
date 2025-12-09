@@ -5,11 +5,10 @@ import { tagsApi } from "@/api/http";
 import useTagsStore from "@/store/modules/tags";
 import type { ITag } from "@/interfaces/ITags";
 
-const TENANT = "fake-tenant";
 const BASE = "http://localhost:3000";
 
 // eslint-disable-next-line vue/max-len
-const makeUrl = (tenant: string, filter: string, page: number, perPage: number) => `${BASE}/api/namespaces/${tenant}/tags?filter=${encodeURIComponent(filter)}&page=${page}&per_page=${perPage}`;
+const makeUrl = (filter: string, page: number, perPage: number) => `${BASE}/api/tags?filter=${encodeURIComponent(filter)}&page=${page}&per_page=${perPage}`;
 
 const mockTags = [{ name: "tag1" }, { name: "tag2" }, { name: "tag3" }] as ITag[];
 
@@ -43,10 +42,10 @@ describe("Tags Store", () => {
   });
 
   it("successfully fetches tags (fetch)", async () => {
-    const url = makeUrl(TENANT, "", 1, 10);
+    const url = makeUrl("", 1, 10);
     mock.onGet(url).reply(200, mockTags, { "x-total-count": String(mockTags.length) });
 
-    await store.fetch({ tenant: TENANT, filter: "", page: 1, perPage: 10 });
+    await store.fetch({ filter: "", page: 1, perPage: 10 });
 
     expect(store.list).toEqual(mockTags);
     expect(store.getNumberTags).toBe(3);
@@ -56,15 +55,15 @@ describe("Tags Store", () => {
   });
 
   it("search updates tags and filter while keeping page/perPage", async () => {
-    const initialUrl = makeUrl(TENANT, "", 2, 20);
+    const initialUrl = makeUrl("", 2, 20);
     mock.onGet(initialUrl).reply(200, mockTags, { "x-total-count": String(mockTags.length) });
-    await store.fetch({ tenant: TENANT, filter: "", page: 2, perPage: 20 });
+    await store.fetch({ filter: "", page: 2, perPage: 20 });
 
     const filter = "abc";
-    const searchUrl = makeUrl(TENANT, filter, 2, 20);
+    const searchUrl = makeUrl(filter, 2, 20);
     mock.onGet(searchUrl).reply(200, mockTags, { "x-total-count": "3" });
 
-    await store.search({ tenant: TENANT, filter });
+    await store.search({ filter });
 
     expect(store.list).toEqual(mockTags);
     expect(store.getNumberTags).toBe(3);
@@ -75,14 +74,14 @@ describe("Tags Store", () => {
   });
 
   it("autocomplete loads using provided page/perPage but does not mutate page/perPage in state", async () => {
-    const url1 = makeUrl(TENANT, "", 1, 10);
+    const url1 = makeUrl("", 1, 10);
     mock.onGet(url1).reply(200, mockTags, { "x-total-count": "3" });
-    await store.fetch({ tenant: TENANT, filter: "", page: 1, perPage: 10 });
+    await store.fetch({ filter: "", page: 1, perPage: 10 });
 
-    const autoUrl = makeUrl(TENANT, "", 1, 50);
+    const autoUrl = makeUrl("", 1, 50);
     mock.onGet(autoUrl).reply(200, mockTags, { "x-total-count": "3" });
 
-    await store.autocomplete({ tenant: TENANT, filter: "", perPage: 50 });
+    await store.autocomplete({ filter: "", perPage: 50 });
 
     expect(store.list).toEqual(mockTags);
     expect(store.getNumberTags).toBe(3);
@@ -91,11 +90,11 @@ describe("Tags Store", () => {
   });
 
   it("fetch clears list on error", async () => {
-    const badUrl = makeUrl(TENANT, "", 1, 10);
+    const badUrl = makeUrl("", 1, 10);
     mock.onGet(badUrl).reply(500);
 
     await expect(
-      store.fetch({ tenant: TENANT, filter: "", page: 1, perPage: 10 }),
+      store.fetch({ filter: "", page: 1, perPage: 10 }),
     ).rejects.toBeTruthy();
 
     expect(store.list).toEqual([]);

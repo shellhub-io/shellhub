@@ -74,18 +74,16 @@ const useTagsStore = defineStore("tags", () => {
   };
 
   const fetch = async ({
-    tenant,
     filter,
     page,
     perPage,
   }: {
-    tenant: string;
     filter: string;
     page: number;
     perPage: number;
   }) => {
     try {
-      const res = await tagsApi.getTags(tenant, filter, page, perPage);
+      const res = await tagsApi.getTags(filter, page, perPage);
       setTags(res as unknown as TagsResponse);
       setPagePerPage({ page, perPage });
       setFilter(filter);
@@ -95,20 +93,18 @@ const useTagsStore = defineStore("tags", () => {
     }
   };
 
-  const setTagListVisibility = async (tenant: string) => {
-    const { headers } = await tagsApi.getTags(tenant, "", 1, 1);
+  const setTagListVisibility = async () => {
+    const { headers } = await tagsApi.getTags("", 1, 1);
     if (parseInt(headers["x-total-count"] as string, 10)) showTags.value = true;
   };
 
   const search = async ({
-    tenant,
     filter,
   }: {
-    tenant: string;
     filter: string;
   }) => {
     try {
-      const res = await tagsApi.getTags(tenant, filter, page.value, perPage.value);
+      const res = await tagsApi.getTags(filter, page.value, perPage.value);
       setTags(res as unknown as TagsResponse);
       setFilter(filter);
     } catch (error) {
@@ -118,16 +114,14 @@ const useTagsStore = defineStore("tags", () => {
   };
 
   const autocomplete = async ({
-    tenant,
     filter,
     perPage,
   }: {
-    tenant: string;
     filter: string;
     perPage: number;
   }) => {
     try {
-      const res = await tagsApi.getTags(tenant, filter, 1, perPage);
+      const res = await tagsApi.getTags(filter, 1, perPage);
       setTags(res as unknown as TagsResponse);
       setFilter(filter);
     } catch (error) {
@@ -137,17 +131,15 @@ const useTagsStore = defineStore("tags", () => {
   };
 
   const createTag = async ({
-    tenant,
     name,
   }: {
     tenant: string;
     name: string;
   }) => {
-    await tagsApi.createTag(tenant, name);
+    await tagsApi.createTag(name);
   };
 
   const editTag = async ({
-    tenant,
     currentName,
     newName,
   }: {
@@ -155,21 +147,18 @@ const useTagsStore = defineStore("tags", () => {
     currentName: string;
     newName: UpdateTagRequest;
   }) => {
-    await tagsApi.updateTag(tenant, currentName, newName);
+    await tagsApi.updateTag(currentName, newName);
   };
 
   const removeTag = async ({
-    tenant,
     currentName,
   }: {
-    tenant: string;
     currentName: string;
   }) => {
-    await tagsApi.removeTag(tenant, currentName);
+    await tagsApi.removeTag(currentName);
   };
 
   const pushTagToDevice = async ({
-    tenant,
     uid,
     name,
   }: {
@@ -177,11 +166,10 @@ const useTagsStore = defineStore("tags", () => {
     uid: string;
     name: string;
   }) => {
-    await tagsApi.pushTagToDevice(tenant, uid, name);
+    await tagsApi.pushTagToDevice(uid, name);
   };
 
   const removeTagFromDevice = async ({
-    tenant,
     uid,
     name,
   }: {
@@ -189,7 +177,7 @@ const useTagsStore = defineStore("tags", () => {
     uid: string;
     name: string;
   }) => {
-    await tagsApi.removeTagFromDevice(tenant, uid, name);
+    await tagsApi.removeTagFromDevice(uid, name);
   };
 
   return {
