@@ -218,14 +218,6 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Private Keys-listItem">Private Keys</div>
                   </div>
                   <!---->
-                </a><a data-v-e7291ef4="" href="/settings/tags" tabindex="-2" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="link" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
-                  <!---->
-                  <div class="v-list-item__content" data-no-activator="">
-                    <!---->
-                    <!---->
-                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Tags-listItem">Tags</div>
-                  </div>
-                  <!---->
                 </a><a data-v-e7291ef4="" href="/settings/billing" tabindex="-2" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="link" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
                   <!---->
                   <div class="v-list-item__content" data-no-activator="">

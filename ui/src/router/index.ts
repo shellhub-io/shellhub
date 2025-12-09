@@ -78,7 +78,6 @@ const Settings = () => import("@/views/Settings.vue");
 const SettingProfile = () => import("@/components/Setting/SettingProfile.vue");
 const SettingNamespace = () => import("@/components/Setting/SettingNamespace.vue");
 const SettingPrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
-const SettingTags = () => import("@/components/Setting/SettingTags.vue");
 const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
 const TeamMembers = () => import("@/views/TeamMembers.vue");
 const TeamApiKeys = () => import("@/views/TeamApiKeys.vue");
@@ -520,16 +519,6 @@ export const routes: Array<RouteRecordRaw> = [
         meta: {
           title: "Private Keys",
           showInSidebar: true,
-        },
-      },
-      {
-        path: "tags",
-        name: "SettingTags",
-        component: SettingTags,
-        meta: {
-          title: "Tags",
-          showInSidebar: true,
-          isHidden: () => localStorage.getItem("tenant") === "",
         },
       },
       {
