@@ -8,7 +8,20 @@ import { router } from "@/router";
 import { tagsApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const tags = [{ name: "123x" }, { name: "newtag" }];
+const tags = [
+  {
+    tenant_id: "fake-tenant-data",
+    name: "123x",
+    created_at: "2025-01-01T10:00:00Z",
+    updated_at: "2025-01-01T10:00:00Z",
+  },
+  {
+    tenant_id: "fake-tenant-data",
+    name: "newtag",
+    created_at: "2025-01-02T12:00:00Z",
+    updated_at: "2025-01-02T12:00:00Z",
+  },
+];
 
 describe("Tag List", () => {
   const vuetify = createVuetify();
