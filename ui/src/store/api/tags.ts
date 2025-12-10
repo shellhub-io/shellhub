@@ -1,11 +1,11 @@
-import { UpdateTagRequest } from "@/api/client";
 import { tagsApi } from "@/api/http";
+import { IUpdateTagName } from "@/interfaces/ITags";
 
 export const createTag = async (name: string) => tagsApi.createTag({ name });
 
 export const updateTag = async (
   currentName: string,
-  newName: UpdateTagRequest,
+  newName: IUpdateTagName,
 ) => tagsApi.updateTag(currentName, newName);
 
 export const removeTag = async (name: string) => tagsApi.deleteTag(name);
@@ -15,7 +15,7 @@ export const removeTagFromDevice = async (uid: string, name: string) => tagsApi.
 export const pushTagToDevice = async (uid: string, name: string) => tagsApi.pushTagToDevice(uid, name);
 
 export const getTags = async (
-  filter: string | undefined,
   page: number,
   perPage: number,
+  filter?: string,
 ) => tagsApi.getTags(filter, page, perPage);

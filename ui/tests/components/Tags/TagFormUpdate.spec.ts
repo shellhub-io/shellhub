@@ -68,7 +68,7 @@ describe("Tag Form Update", () => {
   const mockTagsApi = new MockAdapter(tagsApi.getAxios());
   mockTagsApi
     .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
-    .reply(200, tags);
+    .reply(200, tags, { "x-total-count": "3" });
   localStorage.setItem("tenant", "fake-tenant-data");
 
   beforeEach(() => {
@@ -86,10 +86,6 @@ describe("Tag Form Update", () => {
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
   it("Renders the component", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
@@ -98,40 +94,41 @@ describe("Tag Form Update", () => {
     const dialog = new DOMWrapper(document.body);
     await flushPromises();
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="deviceTag-autocomplete"]').trigger("click");
+    await wrapper.findComponent('[data-test="device-tags-autocomplete"]').trigger("click");
 
     expect(wrapper.find('[data-test="has-tags-verification"]').exists()).toBe(true);
 
     const formDialog = wrapper.findComponent({ name: "FormDialog" });
     expect(formDialog.exists()).toBe(true);
-    expect(formDialog.props("title")).toBe("Edit tags");
+    expect(formDialog.props("title")).toBe("Edit Tags");
     expect(formDialog.props("icon")).toBe("mdi-tag");
-    expect(formDialog.props("confirmText")).toBe("");
-    expect(formDialog.props("cancelText")).toBe("Close");
-    expect(formDialog.props("confirmDisabled")).toBe(true);
+    expect(formDialog.props("confirmText")).toBe("Save");
+    expect(formDialog.props("cancelText")).toBe("Cancel");
 
     // Content inside the dialog
-    expect(dialog.find('[data-test="deviceTag-autocomplete"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="device-tags-autocomplete"]').exists()).toBe(true);
+    expect(dialog.find('[data-test="cancel-btn"]').exists()).toBe(true);
   });
 
-  it("Successfully add tags", async () => {
+  it("Successfully saves tags", async () => {
     mockTagsApi
       .onPost("http://localhost:3000/api/devices/a582b47a42d/tags/tag-test-1")
       .reply(200);
 
-    const tagsSpy = vi.spyOn(tagsStore, "pushTagToDevice");
+    const tagsSpy = vi.spyOn(tagsStore, "addTagToDevice");
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    await wrapper.vm.updateTags("tag-test-1");
+
+    wrapper.vm.selectedTags = ["tag-test-1", "test1"];
+    await wrapper.vm.saveTags();
 
     await flushPromises();
 
-    expect(tagsSpy).toHaveBeenCalledWith({
-      tenant: "fake-tenant-data",
-      uid: "a582b47a42d",
-      name: "tag-test-1",
-    });
+    expect(tagsSpy).toHaveBeenCalledWith(
+      "a582b47a42d",
+      "tag-test-1",
+    );
+    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Tags updated successfully.");
   });
 
   it("Successfully removes tags", async () => {
@@ -142,23 +139,31 @@ describe("Tag Form Update", () => {
     const tagsSpy = vi.spyOn(tagsStore, "removeTagFromDevice");
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    await wrapper.vm.updateTags("test1");
+
+    // Remove tag locally
+    wrapper.vm.removeTag("test1");
+
+    // Verify local removal
+    expect(wrapper.vm.selectedTags).not.toContain("test1");
+
+    // Save the changes
+    await wrapper.vm.saveTags();
 
     await flushPromises();
 
-    expect(tagsSpy).toHaveBeenCalledWith({
-      tenant: "fake-tenant-data",
-      uid: "a582b47a42d",
-      name: "test1",
-    });
+    expect(tagsSpy).toHaveBeenCalledWith(
+      "a582b47a42d",
+      "test1",
+    );
+    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Tags updated successfully.");
   });
 
   it("Successfully loads more tags", async () => {
     mockTagsApi
-      .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
-      .reply(200, tags);
+      .onGet("http://localhost:3000/api/tags?page=1&per_page=10")
+      .reply(200, tags, { "x-total-count": "3" });
 
-    const tagsSpy = vi.spyOn(tagsStore, "autocomplete");
+    const tagsSpy = vi.spyOn(tagsStore, "fetchTagList");
 
     await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
 
@@ -172,6 +177,6 @@ describe("Tag Form Update", () => {
       filter: "",
       perPage: 10,
     });
-    expect(wrapper.vm.tags).toEqual(tags);
+    expect(tagsStore.tags).toEqual(tags);
   });
 });

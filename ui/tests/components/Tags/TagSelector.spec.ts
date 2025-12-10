@@ -30,7 +30,7 @@ describe("Tag Selector", () => {
   localStorage.setItem("tenant", "fake-tenant-data");
   mockTagsApi
     .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
-    .reply(200, tags);
+    .reply(200, tags, { "x-total-count": "11" });
 
   beforeEach(() => {
     wrapper = mount(TagSelector, {

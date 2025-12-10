@@ -67,10 +67,7 @@ describe("Tag Form Create", () => {
 
     await flushPromises();
 
-    expect(tagsSpy).toHaveBeenCalledWith({
-      tenant: "fake-tenant-data",
-      name: "tag-test2",
-    });
+    expect(tagsSpy).toHaveBeenCalledWith("tag-test2");
   });
 
   it("Fails to create tag", async () => {

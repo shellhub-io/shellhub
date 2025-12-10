@@ -5,11 +5,8 @@
     data-test="open-tag-remove"
     @click="showDialog = true"
   >
-    <div class="d-flex align-center">
-      <div class="mr-2">
-        <v-icon> mdi-delete </v-icon>
-      </div>
-
+    <div class="d-flex align-center ga-2">
+      <v-icon icon="mdi-delete" />
       <v-list-item-title data-test="mdi-information-list-item">
         Remove
       </v-list-item-title>
@@ -19,7 +16,7 @@
   <MessageDialog
     v-model="showDialog"
     title="Are you sure?"
-    description="You are about to remove this tag. After confirming this action cannot be redone."
+    description="You are about to remove this tag. After confirming this action cannot be undone."
     icon="mdi-alert"
     icon-color="error"
     confirm-text="Remove"
@@ -41,8 +38,6 @@ import useSnackbar from "@/helpers/snackbar";
 import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
 import useTagsStore from "@/store/modules/tags";
 
-defineOptions({ inheritAttrs: false });
-
 const props = defineProps<{
   tagName: string;
   hasAuthorization: boolean;
@@ -61,16 +56,12 @@ const update = () => {
 
 const remove = async () => {
   try {
-    await tagsStore.removeTag({
-      currentName: props.tagName,
-    });
+    await tagsStore.deleteTag(props.tagName);
     snackbar.showSuccess(`${props.tagName} was removed successfully.`);
     update();
   } catch (error: unknown) {
     snackbar.showError("Failed to remove tag.");
     handleError(error);
-  } finally {
-    showDialog.value = false;
   }
 };
 </script>
