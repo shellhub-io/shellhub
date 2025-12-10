@@ -64,6 +64,9 @@ func (h *Handler) GetTags(c gateway.Context) error {
 		return err
 	}
 
+	req.Paginator.Normalize()
+	req.Sorter.Normalize()
+
 	tags, totalCount, err := h.service.ListTags(c.Ctx(), req)
 	if err != nil {
 		return err
