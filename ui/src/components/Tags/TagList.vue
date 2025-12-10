@@ -5,26 +5,26 @@
     :headers
     :items="tags"
     :loading
-    :total-count="numberTags"
+    :total-count="tagCount"
     :items-per-page-options="[10, 20, 50, 100]"
     data-test="tag-list"
   >
     <template #rows>
       <tr
-        v-for="(item, i) in tags"
-        :key="i"
+        v-for="tag in tags"
+        :key="tag.name"
       >
         <td
           class="text-center"
           data-test="tag-name"
         >
-          {{ item.name }}
+          {{ tag.name }}
         </td>
         <td
           class="text-center"
           data-test="tag-created-at"
         >
-          {{ formatShortDateTime(item.created_at) }}
+          {{ formatShortDateTime(tag.created_at) }}
         </td>
         <td class="text-center">
           <v-menu
@@ -56,9 +56,9 @@
                 <template #activator="{ props }">
                   <div v-bind="props">
                     <TagEdit
-                      :tag-name="item.name"
+                      :tag-name="tag.name"
                       :has-authorization="canEditTag"
-                      @update="refresh()"
+                      @update="getTags"
                     />
                   </div>
                 </template>
@@ -73,9 +73,9 @@
                 <template #activator="{ props }">
                   <div v-bind="props">
                     <TagRemove
-                      :tag-name="item.name"
+                      :tag-name="tag.name"
                       :has-authorization="canRemoveTag"
-                      @update="refresh()"
+                      @update="getTags"
                     />
                   </div>
                 </template>
@@ -100,6 +100,8 @@ import useTagsStore from "@/store/modules/tags";
 import useSnackbar from "@/helpers/snackbar";
 import { formatShortDateTime } from "@/utils/date";
 
+const props = defineProps<{ filter: string }>();
+
 const headers = ref([
   {
     text: "Name",
@@ -119,19 +121,26 @@ const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
 const itemsPerPage = ref(10);
-const page = ref<number>(1);
-const tags = computed(() => tagsStore.list);
-const numberTags = computed<number>(
-  () => tagsStore.getNumberTags,
-);
+const page = ref(1);
+const tags = computed(() => tagsStore.tags);
+const tagCount = computed(() => tagsStore.tagCount);
 
-const getTags = async (): Promise<void> => {
+const encodeFilter = () => {
+  if (!props.filter) return undefined;
+  const filterObject = [{
+    type: "property",
+    params: { name: "name", operator: "contains", value: props.filter },
+  }];
+  return Buffer.from(JSON.stringify(filterObject)).toString("base64");
+};
+
+const getTags = async () => {
   loading.value = true;
   try {
-    await tagsStore.fetch({
-      filter: tagsStore.getFilter || "",
+    await tagsStore.fetchTagList({
       perPage: itemsPerPage.value,
       page: page.value,
+      filter: encodeFilter(),
     });
   } catch (error) {
     snackbar.showError("Failed to load tags.");
@@ -141,9 +150,10 @@ const getTags = async (): Promise<void> => {
   }
 };
 
-const refresh = async () => {
+watch(() => props.filter, async () => {
+  page.value = 1;
   await getTags();
-};
+}, { immediate: true });
 
 watch([page, itemsPerPage], async () => { await getTags(); });
 
@@ -151,9 +161,7 @@ const canEditTag = hasPermission("tag:edit");
 
 const canRemoveTag = hasPermission("tag:remove");
 
-onMounted(async () => {
-  await getTags();
-});
+onMounted(async () => { await getTags(); });
 
-defineExpose({ refresh });
+defineExpose({ getTags });
 </script>

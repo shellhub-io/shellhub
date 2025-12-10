@@ -6,8 +6,7 @@ exports[`Tag Form Update > Renders the component 1`] = `
   <div class="v-list-item__content" data-no-activator="">
     <!---->
     <!---->
-    <div class="d-flex align-center">
-      <div class="mr-2"><i class="mdi-tag mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+    <div class="d-flex align-center ga-2"><i class="mdi-tag mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
       <div class="v-list-item-title" data-test="has-tags-verification">Edit tags</div>
     </div>
   </div>

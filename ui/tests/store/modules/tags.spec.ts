@@ -1,120 +1,145 @@
 import { createPinia, setActivePinia } from "pinia";
 import MockAdapter from "axios-mock-adapter";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { tagsApi } from "@/api/http";
 import useTagsStore from "@/store/modules/tags";
 import type { ITag } from "@/interfaces/ITags";
 
 const BASE = "http://localhost:3000";
 
-// eslint-disable-next-line vue/max-len
-const makeUrl = (filter: string, page: number, perPage: number) => `${BASE}/api/tags?filter=${encodeURIComponent(filter)}&page=${page}&per_page=${perPage}`;
+const makeUrl = (page: number, perPage: number, filter?: string) => {
+  const params = new URLSearchParams();
+  if (filter) params.append("filter", filter);
+  params.append("page", String(page));
+  params.append("per_page", String(perPage));
+  return `${BASE}/api/tags?${params.toString()}`;
+};
 
-const mockTags = [{ name: "tag1" }, { name: "tag2" }, { name: "tag3" }] as ITag[];
+const mockTags = [
+  { name: "tag1", tenant_id: "tenant1", created_at: "2025-01-01", updated_at: "2025-01-01" },
+  { name: "tag2", tenant_id: "tenant1", created_at: "2025-01-01", updated_at: "2025-01-01" },
+  { name: "tag3", tenant_id: "tenant1", created_at: "2025-01-01", updated_at: "2025-01-01" },
+] as ITag[];
 
 describe("Tags Store", () => {
-  let mock: MockAdapter;
-  let store: ReturnType<typeof useTagsStore>;
+  setActivePinia(createPinia());
+  const tagsStore = useTagsStore();
+  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    store = useTagsStore();
-    mock = new MockAdapter(tagsApi.getAxios());
-  });
-
-  afterEach(() => {
-    mock.restore();
-  });
+  // afterEach(() => { mockTagsApi.restore(); });
 
   it("should have initial state values", () => {
-    expect(store.tags).toEqual([]);
-    expect(store.numberTags).toBe(0);
-    expect(store.page).toBe(1);
-    expect(store.perPage).toBe(10);
-    expect(store.filter).toBe("");
-    expect(store.getSelected("device")).toEqual([]);
-    expect(store.getSelected("container")).toEqual([]);
-    expect(store.list).toEqual([]);
-    expect(store.getNumberTags).toBe(0);
-    expect(store.getPage).toBe(1);
-    expect(store.getPerPage).toBe(10);
-    expect(store.getFilter).toBe("");
+    expect(tagsStore.tags).toEqual([]);
+    expect(tagsStore.tagCount).toBe(0);
+    expect(tagsStore.showTags).toBe(false);
+    expect(tagsStore.selectedTags).toEqual([]);
   });
 
-  it("successfully fetches tags (fetch)", async () => {
-    const url = makeUrl("", 1, 10);
-    mock.onGet(url).reply(200, mockTags, { "x-total-count": String(mockTags.length) });
+  it("successfully fetches tags", async () => {
+    const url = makeUrl(1, 10);
+    mockTagsApi.onGet(url).reply(200, mockTags, { "x-total-count": String(mockTags.length) });
 
-    await store.fetch({ filter: "", page: 1, perPage: 10 });
+    await tagsStore.fetchTagList({ page: 1, perPage: 10 });
 
-    expect(store.list).toEqual(mockTags);
-    expect(store.getNumberTags).toBe(3);
-    expect(store.getPage).toBe(1);
-    expect(store.getPerPage).toBe(10);
-    expect(store.getFilter).toBe("");
+    expect(tagsStore.tags).toEqual(mockTags);
+    expect(tagsStore.tagCount).toBe(3);
   });
 
-  it("search updates tags and filter while keeping page/perPage", async () => {
-    const initialUrl = makeUrl("", 2, 20);
-    mock.onGet(initialUrl).reply(200, mockTags, { "x-total-count": String(mockTags.length) });
-    await store.fetch({ filter: "", page: 2, perPage: 20 });
-
+  it("fetchTagList with filter parameter", async () => {
     const filter = "abc";
-    const searchUrl = makeUrl(filter, 2, 20);
-    mock.onGet(searchUrl).reply(200, mockTags, { "x-total-count": "3" });
+    const url = makeUrl(1, 10, filter);
+    mockTagsApi.onGet(url).reply(200, mockTags, { "x-total-count": "3" });
 
-    await store.search({ filter });
+    await tagsStore.fetchTagList({ filter, page: 1, perPage: 10 });
 
-    expect(store.list).toEqual(mockTags);
-    expect(store.getNumberTags).toBe(3);
-    expect(store.getFilter).toBe(filter);
-    // page/perPage unchanged
-    expect(store.getPage).toBe(2);
-    expect(store.getPerPage).toBe(20);
+    expect(tagsStore.tags).toEqual(mockTags);
+    expect(tagsStore.tagCount).toBe(3);
   });
 
-  it("autocomplete loads using provided page/perPage but does not mutate page/perPage in state", async () => {
-    const url1 = makeUrl("", 1, 10);
-    mock.onGet(url1).reply(200, mockTags, { "x-total-count": "3" });
-    await store.fetch({ filter: "", page: 1, perPage: 10 });
-
-    const autoUrl = makeUrl("", 1, 50);
-    mock.onGet(autoUrl).reply(200, mockTags, { "x-total-count": "3" });
-
-    await store.autocomplete({ filter: "", perPage: 50 });
-
-    expect(store.list).toEqual(mockTags);
-    expect(store.getNumberTags).toBe(3);
-    expect(store.getPage).toBe(1);
-    expect(store.getPerPage).toBe(10);
-  });
-
-  it("fetch clears list on error", async () => {
-    const badUrl = makeUrl("", 1, 10);
-    mock.onGet(badUrl).reply(500);
+  it("fetchTagList clears list on error", async () => {
+    const url = makeUrl(1, 10);
+    mockTagsApi.onGet(url).reply(500);
 
     await expect(
-      store.fetch({ filter: "", page: 1, perPage: 10 }),
+      tagsStore.fetchTagList({ page: 1, perPage: 10 }),
     ).rejects.toBeTruthy();
 
-    expect(store.list).toEqual([]);
-    expect(store.getNumberTags).toBe(0);
+    expect(tagsStore.tags).toEqual([]);
+    expect(tagsStore.tagCount).toBe(0);
   });
 
-  it("setSelected toggles and clearSelected resets per variant", () => {
+  it("setTagListVisibility sets showTags when tags exist", async () => {
+    const url = makeUrl(1, 1);
+    mockTagsApi.onGet(url).reply(200, [mockTags[0]], { "x-total-count": "3" });
+
+    await tagsStore.setTagListVisibility();
+
+    expect(tagsStore.showTags).toBe(true);
+  });
+
+  it("toggleSelectedTag adds and removes tags", () => {
     const t1 = { name: "tag1" } as ITag;
     const t2 = { name: "tag2" } as ITag;
 
-    store.setSelected({ variant: "device", tag: t1 });
-    store.setSelected({ variant: "device", tag: t2 });
-    expect(store.getSelected("device")).toEqual([t1, t2]);
+    tagsStore.toggleSelectedTag(t1);
+    tagsStore.toggleSelectedTag(t2);
+    expect(tagsStore.selectedTags).toEqual([t1, t2]);
 
-    store.clearSelected("device");
-    store.setSelected({ variant: "device", tag: t1 });
-    expect(store.getSelected("device")).toEqual([t1]);
+    tagsStore.toggleSelectedTag(t1);
+    expect(tagsStore.selectedTags).toEqual([t2]);
 
-    store.clearSelected("device");
-    expect(store.getSelected("device")).toEqual([]);
-    expect(store.getSelected("container")).toEqual([]);
+    tagsStore.toggleSelectedTag(t2);
+    expect(tagsStore.selectedTags).toEqual([]);
+  });
+
+  it("can clear selectedTags directly", () => {
+    const t1 = { name: "tag1" } as ITag;
+    tagsStore.toggleSelectedTag(t1);
+    expect(tagsStore.selectedTags).toEqual([t1]);
+
+    tagsStore.selectedTags = [];
+    expect(tagsStore.selectedTags).toEqual([]);
+  });
+
+  it("successfully creates a tag", async () => {
+    mockTagsApi.onPost(`${BASE}/api/tags`).reply(201);
+
+    await tagsStore.createTag("new-tag");
+
+    expect(mockTagsApi.history.post.length).toBe(1);
+  });
+
+  it("successfully updates a tag", async () => {
+    mockTagsApi.onPatch(`${BASE}/api/tags/old-tag`).reply(200);
+
+    await tagsStore.updateTag("old-tag", { name: "new-tag" });
+
+    expect(mockTagsApi.history.patch.length).toBe(1);
+  });
+
+  it("successfully deletes a tag", async () => {
+    mockTagsApi.onDelete(`${BASE}/api/tags/tag-to-delete`).reply(200);
+
+    await tagsStore.deleteTag("tag-to-delete");
+
+    expect(mockTagsApi.history.delete.length).toBe(1);
+  });
+
+  it("successfully adds tag to device", async () => {
+    mockTagsApi.resetHistory();
+    mockTagsApi.onPost(`${BASE}/api/devices/device-123/tags/tag1`).reply(200);
+
+    await tagsStore.addTagToDevice("device-123", "tag1");
+
+    expect(mockTagsApi.history.post.length).toBe(1);
+  });
+
+  it("successfully removes tag from device", async () => {
+    mockTagsApi.resetHistory();
+    mockTagsApi.onDelete(`${BASE}/api/devices/device-123/tags/tag1`).reply(200);
+
+    await tagsStore.removeTagFromDevice("device-123", "tag1");
+
+    expect(mockTagsApi.history.delete.length).toBe(1);
   });
 });

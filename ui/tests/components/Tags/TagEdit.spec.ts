@@ -57,7 +57,7 @@ describe("Tag Form Edit", () => {
   it("Successfully edit tag", async () => {
     mockTagsApi.onPatch("http://localhost:3000/api/tags/tag-test").reply(200);
 
-    const tagsSpy = vi.spyOn(tagsStore, "editTag");
+    const tagsSpy = vi.spyOn(tagsStore, "updateTag");
 
     await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
 
@@ -67,13 +67,12 @@ describe("Tag Form Edit", () => {
 
     await flushPromises();
 
-    expect(tagsSpy).toHaveBeenCalledWith({
-      tenant: "fake-tenant-data",
-      currentName: "tag-test",
-      newName: {
+    expect(tagsSpy).toHaveBeenCalledWith(
+      "tag-test",
+      {
         name: "tag-test2",
       },
-    });
+    );
   });
 
   it("Failed to add tags", async () => {

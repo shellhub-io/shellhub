@@ -64,7 +64,7 @@ describe("Tag Remove", () => {
       .reply(200);
 
     const tagsStore = useTagsStore();
-    const storeSpy = vi.spyOn(tagsStore, "removeTag");
+    const storeSpy = vi.spyOn(tagsStore, "deleteTag");
 
     await wrapper.find('[data-test="open-tag-remove"]').trigger("click");
     await flushPromises();
@@ -73,9 +73,7 @@ describe("Tag Remove", () => {
     await messageDialogStub.vm.$emit("confirm");
     await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalledWith({
-      currentName: "tag-test",
-    });
+    expect(storeSpy).toHaveBeenCalledWith("tag-test");
 
     expect(mockSnackbar.showSuccess).toHaveBeenCalled();
   });

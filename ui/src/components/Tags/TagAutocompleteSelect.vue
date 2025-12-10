@@ -32,7 +32,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, onUnmounted } from "vue";
 import { useIntersectionObserver } from "@vueuse/core";
-import { ITag } from "@/interfaces/ITags";
 import useSnackbar from "@/helpers/snackbar";
 import useTagsStore from "@/store/modules/tags";
 import handleError from "@/utils/handleError";
@@ -40,8 +39,8 @@ import handleError from "@/utils/handleError";
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 
-const tags = ref<ITag[]>([]);
-const hasMoreTagsToLoad = computed(() => tagsStore.numberTags > tags.value.length);
+const tags = ref(tagsStore.tags);
+const hasMoreTagsToLoad = computed(() => tagsStore.tagCount > tags.value.length);
 const selectedTags = defineModel<string[]>("selectedTags", { required: true });
 const tagSelectorErrorMessage = defineModel<string>("tagSelectorErrorMessage", { required: true });
 const isAutocompleteMenuOpen = ref(false);
@@ -76,11 +75,10 @@ const loadTags = async () => {
   isLoading.value = true;
 
   try {
-    await tagsStore.autocomplete({
+    await tagsStore.fetchTagList({
       filter: encodeFilter(filter.value),
       perPage: itemsPerPage.value,
     });
-    tags.value = tagsStore.list;
   } catch (error) {
     snackbar.showError("Failed to load tags.");
     handleError(error);

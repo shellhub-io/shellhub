@@ -13,20 +13,22 @@
     @cancel="close"
     @confirm="create"
   >
-    <div class="px-6 pt-4">
+    <div class="pa-6">
       <v-text-field
-        v-model="inputTags"
+        v-model="tagInput"
         label="Tag name"
-        :error-messages="tagsError"
+        :error-messages="tagError"
         required
+        hide-details="auto"
         data-test="tag-field"
+        @update:model-value="validateTagInput"
       />
     </div>
   </FormDialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
@@ -37,25 +39,19 @@ const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const showDialog = defineModel<boolean>({ required: true });
 
-const inputTags = ref<string>("");
-const tagsError = ref("");
-const tagsHasLessThan3Characters = computed(() => inputTags.value.length < 3);
-const tenant = computed(() => localStorage.getItem("tenant"));
+const tagInput = ref<string>("");
+const tagError = ref("");
+const confirmDisabled = computed(() => !tagInput.value || !!tagError.value);
 
-watch(inputTags, () => {
-  if (inputTags.value.length > 255) {
-    tagsError.value = "Maximum of 3 tags";
-  } else if (tagsHasLessThan3Characters.value) {
-    tagsError.value = "The minimum length is 3 characters";
-  } else {
-    tagsError.value = "";
-  }
-});
-
-const confirmDisabled = computed(() => !inputTags.value || !!tagsError.value);
+const validateTagInput = () => {
+  const inputLength = tagInput.value.length;
+  if (inputLength > 255) tagError.value = "The maximum length is 255 characters";
+  else if (inputLength < 3) tagError.value = "The minimum length is 3 characters";
+  else tagError.value = "";
+};
 
 const close = () => {
-  inputTags.value = "";
+  tagInput.value = "";
   showDialog.value = false;
 };
 
@@ -65,13 +61,10 @@ const update = () => {
 };
 
 const create = async () => {
-  if (tagsError.value) return;
+  if (tagError.value) return;
 
   try {
-    await tagsStore.createTag({
-      tenant: tenant.value || "",
-      name: inputTags.value,
-    });
+    await tagsStore.createTag(tagInput.value);
 
     snackbar.showSuccess("Successfully created tag");
     update();
@@ -81,5 +74,5 @@ const create = async () => {
   }
 };
 
-defineExpose({ inputTags, showDialog });
+defineExpose({ tagInput, showDialog });
 </script>

@@ -37,7 +37,7 @@ describe("Tags View", async () => {
   envVariables.isCloud = true;
 
   mockTagsApi
-    .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
+    .onGet("http://localhost:3000/api/tags?page=1&per_page=10")
     .reply(200, mockTags, { "x-total-count": "2" });
 
   const wrapper = mount(Tags, { global: { plugins: [vuetify, SnackbarPlugin] } });
@@ -73,7 +73,7 @@ describe("Tags View", async () => {
     tagsStore.showTags = false;
     mockTagsApi.reset();
     mockTagsApi
-      .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
+      .onGet("http://localhost:3000/api/tags?page=1&per_page=10")
       .reply(200, [], { "x-total-count": "0" });
 
     wrapper.unmount();

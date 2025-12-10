@@ -5,11 +5,8 @@
     data-test="open-tag-edit"
     @click="open"
   >
-    <div class="d-flex align-center">
-      <div class="mr-2">
-        <v-icon> mdi-pencil </v-icon>
-      </div>
-
+    <div class="d-flex align-center ga-2">
+      <v-icon icon="mdi-pencil"> mdi-pencil </v-icon>
       <v-list-item-title data-test="mdi-information-list-item">
         Edit
       </v-list-item-title>
@@ -30,62 +27,56 @@
     @cancel="close"
     @confirm="edit"
   >
-    <div class="px-6 pt-4">
+    <div class="pa-6">
       <v-text-field
-        v-model="inputTags"
+        v-model="tagInput"
         label="Tag name"
-        :error-messages="tagsError"
+        hide-details="auto"
+        :error-messages="tagError"
         required
         data-test="tag-field"
+        @update:model-value="validateTagInput"
       />
     </div>
   </FormDialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useTagsStore from "@/store/modules/tags";
 
-const props = defineProps({
-  tagName: { type: String, required: true },
-  hasAuthorization: { type: Boolean, default: false },
-});
+const props = defineProps<{
+  tagName: string;
+  hasAuthorization?: boolean;
+}>();
 
 const emit = defineEmits(["update"]);
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 
 const showDialog = ref(false);
-const inputTags = ref<string>("");
-const tagsError = ref("");
+const tagInput = ref<string>("");
+const tagError = ref("");
+const confirmDisabled = computed(() => !tagInput.value || !!tagError.value);
 
-const tenant = computed(() => localStorage.getItem("tenant"));
-
-const tagsHasLessThan3Characters = computed(() => inputTags.value.length < 3);
-
-watch(inputTags, () => {
-  if (inputTags.value.length > 255) {
-    tagsError.value = "The maximum length is 255 characters";
-  } else if (tagsHasLessThan3Characters.value) {
-    tagsError.value = "The minimum length is 3 characters";
-  } else {
-    tagsError.value = "";
-  }
-});
-
-const confirmDisabled = computed(() => !inputTags.value || !!tagsError.value);
+const validateTagInput = () => {
+  const inputLength = tagInput.value.length;
+  if (inputLength > 255) tagError.value = "The maximum length is 255 characters";
+  else if (inputLength < 3) tagError.value = "The minimum length is 3 characters";
+  else tagError.value = "";
+};
 
 const open = () => {
   showDialog.value = true;
-  inputTags.value = props.tagName;
+  tagInput.value = props.tagName;
 };
 
 const close = () => {
   showDialog.value = false;
-  inputTags.value = "";
+  tagInput.value = "";
 };
 
 const update = () => {
@@ -94,14 +85,13 @@ const update = () => {
 };
 
 const edit = async () => {
-  if (tagsError.value) return;
+  if (tagError.value) return;
 
   try {
-    await tagsStore.editTag({
-      tenant: tenant.value || "",
-      currentName: props.tagName,
-      newName: { name: inputTags.value },
-    });
+    await tagsStore.updateTag(
+      props.tagName,
+      { name: tagInput.value },
+    );
 
     snackbar.showSuccess("Tag updated successfully.");
     update();
@@ -110,6 +100,4 @@ const edit = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ inputTags });
 </script>

@@ -87,27 +87,27 @@ const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const isMenuOpen = ref(false);
 const perPage = ref(10);
-const fetchedTags = computed(() => tagsStore.list);
-const selectedTags = computed(() => tagsStore.getSelected(props.variant));
+const fetchedTags = computed(() => tagsStore.tags);
+const selectedTags = computed(() => tagsStore.selectedTags);
 const isLoading = ref(false);
 
 const scrollArea = ref<HTMLElement | null>(null);
 const sentinel = ref<HTMLElement | null>(null);
 
-const hasMoreTagsToLoad = computed(() => tagsStore.numberTags > fetchedTags.value.length);
+const hasMoreTagsToLoad = computed(() => tagsStore.tagCount > fetchedTags.value.length);
 
 const getTagName = (tag: ITag) => typeof tag === "string" ? tag : tag.name;
 
-const getSelectedTagNames = () => selectedTags.value.map((tag) => getTagName(tag));
+const getSelectedTagsNames = () => selectedTags.value.map((tag) => getTagName(tag));
 
-const isTagSelected = (tag: ITag) => selectedTags.value.some((selectedTag) => getTagName(selectedTag) === getTagName(tag));
+const isTagSelected = (selectedTag: ITag) => selectedTags.value.some((tag) => getTagName(tag) === getTagName(selectedTag));
 
 const loadTags = async () => {
   if (isLoading.value) return;
   isLoading.value = true;
 
   try {
-    await tagsStore.autocomplete({
+    await tagsStore.fetchTagList({
       filter: "",
       perPage: perPage.value,
     });
@@ -124,19 +124,19 @@ const setFilter = (filter?: string) => {
   else containersStore.containerListFilter = filter;
 };
 
-const encodeFilter = (tagNames: string[]) => {
+const encodeFilter = (tagsNames: string[]) => {
   const filter = [{
     type: "property",
-    params: { name: "tags.name", operator: "contains", value: tagNames },
+    params: { name: "tags.name", operator: "contains", value: tagsNames },
   }];
   const encodedFilter = Buffer.from(JSON.stringify(filter), "utf-8").toString("base64");
   setFilter(encodedFilter);
 };
 
 const selectTag = (tag: ITag) => {
-  tagsStore.setSelected({ variant: props.variant, tag });
+  tagsStore.toggleSelectedTag(tag);
 
-  if (selectedTags.value.length > 0) encodeFilter(getSelectedTagNames());
+  if (selectedTags.value.length > 0) encodeFilter(getSelectedTagsNames());
   else setFilter();
 };
 
@@ -153,7 +153,7 @@ useIntersectionObserver(
 );
 
 onMounted(async () => {
-  tagsStore.clearSelected(props.variant);
+  tagsStore.selectedTags = [];
   await loadTags();
 });
 

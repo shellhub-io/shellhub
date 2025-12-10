@@ -11,3 +11,7 @@ export interface FetchTagsParams {
   page: number;
   filter?: string;
 }
+
+export interface IUpdateTagName {
+  name: string;
+}

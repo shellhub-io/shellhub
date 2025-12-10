@@ -21,7 +21,6 @@
       prepend-inner-icon="mdi-magnify"
       density="compact"
       data-test="search-text"
-      @update:model-value="searchTags"
     />
     <v-spacer />
     <v-btn
@@ -37,6 +36,7 @@
   <TagList
     v-if="showTags"
     ref="tagListRef"
+    :filter
   />
 
   <NoItemsMessage
@@ -69,37 +69,14 @@ import TagList from "@/components/Tags/TagList.vue";
 import TagCreate from "@/components/Tags/TagCreate.vue";
 import NoItemsMessage from "@/components/NoItemsMessage.vue";
 import useTagsStore from "@/store/modules/tags";
-import useSnackbar from "@/helpers/snackbar";
 
 const tagsStore = useTagsStore();
-const snackbar = useSnackbar();
 const tagListRef = ref<InstanceType<typeof TagList> | null>(null);
 const showCreateTagDialog = ref(false);
 const filter = ref("");
-
 const showTags = computed(() => tagsStore.showTags);
-
-const searchTags = async () => {
-  let encodedFilter = "";
-
-  if (filter.value) {
-    const filterToEncodeBase64 = [{
-      type: "property",
-      params: { name: "name", operator: "contains", value: filter.value },
-    }];
-    encodedFilter = Buffer.from(JSON.stringify(filterToEncodeBase64), "utf-8").toString("base64");
-  }
-
-  try {
-    await tagsStore.search({
-      filter: encodedFilter,
-    });
-  } catch {
-    snackbar.showError("Failed to search tags.");
-  }
-};
 
 const openCreateTagDialog = () => { showCreateTagDialog.value = true; };
 
-const refreshTagList = async () => { await tagListRef.value?.refresh(); };
+const refreshTagList = async () => { await tagListRef.value?.getTags(); };
 </script>
