@@ -1,5 +1,6 @@
 <template>
   <FormDialog
+    v-bind="$attrs"
     v-model="showDialog"
     title="Connect to Device"
     icon="mdi-console"
