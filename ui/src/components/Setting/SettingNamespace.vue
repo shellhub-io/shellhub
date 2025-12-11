@@ -9,7 +9,7 @@
       v-model="namespaceLeave"
       :tenant="tenantId"
     />
-    <NamespaceEdit
+    <ConnectionAnnouncementEdit
       v-model="editAnnouncement"
       @update="getNamespace"
     />
@@ -314,7 +314,7 @@ import { useField } from "vee-validate";
 import hasPermission from "@/utils/permission";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
-import NamespaceEdit from "../Namespace/NamespaceEdit.vue";
+import ConnectionAnnouncementEdit from "../Namespace/ConnectionAnnouncementEdit.vue";
 import handleError from "@/utils/handleError";
 import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
 import useSnackbar from "@/helpers/snackbar";
