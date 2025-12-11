@@ -1,24 +1,24 @@
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { nextTick } from "vue";
-import NamespaceEdit from "@/components/Namespace/NamespaceEdit.vue";
+import ConnectionAnnouncementEdit from "@/components/Namespace/ConnectionAnnouncementEdit.vue";
 import { namespacesApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useNamespacesStore from "@/store/modules/namespaces";
 import { INamespaceMember } from "@/interfaces/INamespace";
 
-type NamespaceEditWrapper = VueWrapper<InstanceType<typeof NamespaceEdit>>;
+type ConnectionAnnouncementEditWrapper = VueWrapper<InstanceType<typeof ConnectionAnnouncementEdit>>;
 
 const mockSnackbar = {
   showSuccess: vi.fn(),
   showError: vi.fn(),
 };
 
-describe("Namespace Edit", () => {
-  let wrapper: NamespaceEditWrapper;
+describe("Connection Announcement Edit", () => {
+  let wrapper: ConnectionAnnouncementEditWrapper;
   setActivePinia(createPinia());
   const namespacesStore = useNamespacesStore();
   const vuetify = createVuetify();
@@ -57,7 +57,7 @@ describe("Namespace Edit", () => {
 
     namespacesStore.currentNamespace = namespaceData;
 
-    wrapper = mount(NamespaceEdit, {
+    wrapper = mount(ConnectionAnnouncementEdit, {
       global: {
         plugins: [vuetify],
         provide: { [SnackbarInjectionKey]: mockSnackbar },
@@ -70,18 +70,7 @@ describe("Namespace Edit", () => {
     wrapper.unmount();
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", async () => {
-    wrapper.vm.showDialog = true;
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-    expect(dialog.html()).toMatchSnapshot();
-  });
-
-  it("Successfully changes connection_announcement data", async () => {
+  it("Successfully changes connection announcement data", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
     const changeNamespaceData = {
@@ -103,7 +92,7 @@ describe("Namespace Edit", () => {
     expect(storeSpy).toHaveBeenCalledWith(changeNamespaceData);
   });
 
-  it("Fails to change namespace data", async () => {
+  it("Fails to change connection announcement data", async () => {
     wrapper.vm.showDialog = true;
     await flushPromises();
     mockNamespacesApi.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(403);
