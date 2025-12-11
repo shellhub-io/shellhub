@@ -1,6 +1,7 @@
 <template>
   <FormDialog
     v-model="showDialog"
+    threshold="md"
     title="Change Connection Announcement"
     icon="mdi-bullhorn"
     confirm-text="Save Announcement"
@@ -124,3 +125,9 @@ const updateAnnouncement = async () => {
 
 defineExpose({ showDialog });
 </script>
+
+<style scoped lang="scss">
+:deep(textarea) {
+  font-family: monospace;
+}
+</style>
