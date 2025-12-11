@@ -27,12 +27,12 @@
     data-test="devices-list"
   >
     <v-list-item
-      v-for="(item, i) in onlineDevices"
+      v-for="(device, i) in onlineDevices"
       :key="i"
       class="ma-0 pa-2 item border"
       data-test="device-list-item"
       @click="openDialog(device)"
-      @keydown="openTerminalMacro(item)"
+      @keydown="openTerminalMacro(device)"
     >
       <v-row
         align="center"
@@ -43,15 +43,15 @@
           md="3"
           data-test="device-name"
         >
-          {{ item.name }}
+          {{ device.name }}
         </v-col>
         <v-col
           class="text-center text-truncate"
           md="3"
           data-test="device-info"
         >
-          <DeviceIcon :icon="item.info.id" />
-          <span>{{ item.info.pretty_name }}</span>
+          <DeviceIcon :icon="device.info.id" />
+          <span>{{ device.info.pretty_name }}</span>
         </v-col>
         <v-col
           class="text-truncate text-center"
@@ -64,7 +64,7 @@
                 <CopyWarning
                   ref="copyRef"
                   :copied-item="'Device SSHID'"
-                  :macro="getSshid(item)"
+                  :macro="getSshid(device)"
                 >
                   <template #default="{ copyText }">
                     <span
@@ -72,10 +72,10 @@
                       tabindex="0"
                       class="hover-text text-mono"
                       data-test="copy-id-button"
-                      @click.stop="handleSshidClick(item, copyText)"
-                      @keypress.enter.stop="handleSshidClick(item, copyText)"
+                      @click.stop="handleSshidClick(device, copyText)"
+                      @keypress.enter.stop="handleSshidClick(device, copyText)"
                     >
-                      {{ getSshid(item) }}
+                      {{ getSshid(device) }}
                     </span>
                   </template>
                 </CopyWarning>
@@ -93,7 +93,7 @@
                     color="primary"
                     class="ml-2"
                     data-test="sshid-help-btn"
-                    @click.stop="forceOpenTerminalHelper(item)"
+                    @click.stop="forceOpenTerminalHelper(device)"
                   />
                 </template>
                 <span>What is an SSHID?</span>
@@ -106,9 +106,9 @@
           data-test="device-tags"
           class="text-center"
         >
-          <div v-if="item.tags[0]">
+          <div v-if="device.tags[0]">
             <v-tooltip
-              v-for="(tag, index) in item.tags"
+              v-for="(tag, index) in device.tags"
               :key="index"
               location="bottom"
               :disabled="!showTag(tag.name)"
@@ -218,23 +218,23 @@ const getDevices = async () => {
   loading.value = false;
 };
 
-const getSshid = (item: IDevice) =>
-  `${item.namespace}.${item.name}@${window.location.hostname}`;
+const getSshid = (device: IDevice) =>
+  `${device.namespace}.${device.name}@${window.location.hostname}`;
 
-const openTerminalHelper = (item: IDevice) => {
-  selectedSshid.value = getSshid(item);
+const openTerminalHelper = (device: IDevice) => {
+  selectedSshid.value = getSshid(device);
   showTerminalHelper.value = true;
 };
 
-const handleSshidClick = (item: IDevice, copyFn: (text: string) => void) => {
-  copyFn(getSshid(item));
+const handleSshidClick = (device: IDevice, copyFn: (text: string) => void) => {
+  copyFn(getSshid(device));
 };
 
-const forceOpenTerminalHelper = (item: IDevice) => {
-  openTerminalHelper(item);
+const forceOpenTerminalHelper = (device: IDevice) => {
+  openTerminalHelper(device);
 };
 
-const openTerminalMacro = (value: IDevice) => {
+const openTerminalMacro = (device: IDevice) => {
   let executed = false;
 
   return useMagicKeys({
@@ -242,13 +242,13 @@ const openTerminalMacro = (value: IDevice) => {
     onEventFired(e) {
       if (
         !executed
-        && value
+        && device
         && e.ctrlKey
         && e.key === "c"
         && e.type === "keydown"
       ) {
         executed = true;
-        openTerminalHelper(value);
+        openTerminalHelper(device);
         e.preventDefault();
       }
     },
