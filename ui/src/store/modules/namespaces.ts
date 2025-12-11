@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import * as namespacesApi from "../api/namespaces";
 import {
   INamespace,
@@ -14,6 +14,7 @@ const useNamespacesStore = defineStore("namespaces", () => {
   const currentNamespace = ref<INamespace>({} as INamespace);
   const namespaceList = ref<Array<INamespace>>([]);
   const userStatus = ref<string>();
+  const hasNamespaces = computed(() => namespaceList.value.length > 0);
 
   const fetchNamespaceList = async (data?: { page?: number; perPage?: number; filter?: string }) => {
     const res = await namespacesApi.fetchNamespaces(data?.page || 1, data?.perPage || 10, data?.filter);
@@ -99,6 +100,7 @@ const useNamespacesStore = defineStore("namespaces", () => {
     currentNamespace,
     namespaceList,
     userStatus,
+    hasNamespaces,
 
     createNamespace,
     fetchNamespaceList,

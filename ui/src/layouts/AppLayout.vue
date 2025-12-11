@@ -187,7 +187,7 @@ const namespacesStore = useNamespacesStore();
 const spinnerStore = useSpinnerStore();
 const { getPrivateKeyList } = usePrivateKeysStore();
 const currentRoute = computed(() => router.currentRoute);
-const hasNamespaces = computed(() => namespacesStore.namespaceList.length !== 0);
+const hasNamespaces = computed(() => namespacesStore.hasNamespaces);
 const theme = computed(() => layoutStore.theme);
 
 const { lgAndUp } = useDisplay();
