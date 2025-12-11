@@ -60,7 +60,6 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 			{
 				ID:      user.ID,
 				Role:    authorizer.RoleOwner,
-				Status:  models.MemberStatusAccepted,
 				AddedAt: clock.Now(),
 			},
 		},

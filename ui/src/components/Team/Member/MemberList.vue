@@ -41,14 +41,6 @@
           <td>
             <v-icon> mdi-account </v-icon>
             {{ member.email }}
-          </td>
-
-          <td class="text-center text-capitalize">
-            {{ member.role }}
-          </td>
-
-          <td class="text-center text-capitalize">
-            {{ member.status }}
             <v-tooltip
               v-if="member.added_at !== '0001-01-01T00:00:00Z'"
               activator="parent"
@@ -56,6 +48,10 @@
             >
               This member was added on {{ formatFullDateTime(member.added_at) }}
             </v-tooltip>
+          </td>
+
+          <td class="text-center text-capitalize">
+            {{ member.role }}
           </td>
 
           <td class="text-center">
@@ -157,11 +153,6 @@ const headers = [
   {
     text: "Role",
     value: "role",
-    sortable: false,
-  },
-  {
-    text: "Status",
-    value: "status",
     sortable: false,
   },
   {

@@ -114,11 +114,11 @@ import CopyWarning from "@/components/User/CopyWarning.vue";
 import RoleSelect from "../RoleSelect.vue";
 import { BasicRole } from "@/interfaces/INamespace";
 import useAuthStore from "@/store/modules/auth";
-import useNamespacesStore from "@/store/modules/namespaces";
+import useInvitationsStore from "@/store/modules/invitations";
 
 const emit = defineEmits(["update"]);
 const authStore = useAuthStore();
-const namespacesStore = useNamespacesStore();
+const invitationsStore = useInvitationsStore();
 const snackbar = useSnackbar();
 const showDialog = ref(false);
 const isLoading = ref(false);
@@ -149,11 +149,6 @@ const close = () => {
   formWindow.value = "form-1";
 };
 
-const update = () => {
-  emit("update");
-  close();
-};
-
 const handleInviteError = (error: unknown) => {
   snackbar.showError("Failed to send invitation.");
 
@@ -182,9 +177,10 @@ const getInvitePayload = () => ({
 const generateLinkInvite = async () => {
   isLoading.value = true;
   try {
-    invitationLink.value = await namespacesStore.generateInvitationLink(getInvitePayload());
+    invitationLink.value = await invitationsStore.generateInvitationLink(getInvitePayload());
     snackbar.showSuccess("Invitation link generated successfully.");
     formWindow.value = "form-2";
+    emit("update");
   } catch (error) {
     handleInviteError(error);
   } finally {
@@ -195,10 +191,10 @@ const generateLinkInvite = async () => {
 const sendEmailInvite = async () => {
   isLoading.value = true;
   try {
-    await namespacesStore.sendEmailInvitation(getInvitePayload());
+    await invitationsStore.sendInvitationEmail(getInvitePayload());
     snackbar.showSuccess("Invitation email sent successfully.");
-    update();
-    resetFields();
+    emit("update");
+    close();
   } catch (error) {
     handleInviteError(error);
   } finally {

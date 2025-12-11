@@ -81,7 +81,6 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 			{
 				ID:      insertedID,
 				Role:    authorizer.RoleOwner,
-				Status:  models.MemberStatusAccepted,
 				AddedAt: clock.Now(),
 			},
 		},

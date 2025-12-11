@@ -2,13 +2,30 @@ package migrations
 
 import (
 	"context"
+	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+// Member struct as it was when migration 72 was created (with Status field)
+type memberForMigration72 struct {
+	ID      string          `json:"id,omitempty" bson:"id,omitempty"`
+	AddedAt time.Time       `json:"added_at" bson:"added_at"`
+	Email   string          `json:"email" bson:"email,omitempty" validate:"email"`
+	Role    authorizer.Role `json:"role" bson:"role" validate:"required,oneof=administrator operator observer"`
+	Status  string          `json:"status" bson:"status"`
+}
+
+// Namespace struct for migration 72 with the old Member type
+type namespaceForMigration72 struct {
+	models.Namespace `bson:",inline"`
+	Members          []memberForMigration72 `json:"members" bson:"members"`
+}
 
 var migration72 = migrate.Migration{
 	Version:     72,
@@ -39,7 +56,7 @@ var migration72 = migrate.Migration{
 		updateModels := make([]mongo.WriteModel, 0)
 
 		for cursor.Next(ctx) {
-			namespace := new(models.Namespace)
+			namespace := new(namespaceForMigration72)
 			if err := cursor.Decode(namespace); err != nil {
 				return err
 			}
@@ -49,7 +66,7 @@ var migration72 = migrate.Migration{
 					updateModel := mongo.
 						NewUpdateOneModel().
 						SetFilter(bson.M{"tenant_id": namespace.TenantID, "members": bson.M{"$elemMatch": bson.M{"id": m.ID}}}).
-						SetUpdate(bson.M{"$set": bson.M{"members.$.status": models.DeviceStatusAccepted}})
+						SetUpdate(bson.M{"$set": bson.M{"members.$.status": "accepted"}})
 
 					updateModels = append(updateModels, updateModel)
 				}
@@ -90,7 +107,7 @@ var migration72 = migrate.Migration{
 		updateModels := make([]mongo.WriteModel, 0)
 
 		for cursor.Next(ctx) {
-			namespace := new(models.Namespace)
+			namespace := new(namespaceForMigration72)
 			if err := cursor.Decode(namespace); err != nil {
 				return err
 			}

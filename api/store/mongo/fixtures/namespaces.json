@@ -7,14 +7,12 @@
                 {
                     "id": "507f1f77bcf86cd799439011",
                     "added_at": "2023-01-01T12:00:00.000Z",
-                    "role": "owner",
-                    "status": "accepted"
+                    "role": "owner"
                 },
                 {
                     "id": "6509e169ae6144b2f56bf288",
                     "added_at": "2023-01-01T12:00:00.000Z",
-                    "role": "observer",
-                    "status": "pending"
+                    "role": "observer"
                 }
             ],
             "name": "namespace-1",
@@ -35,14 +33,12 @@
                 {
                     "id": "6509e169ae6144b2f56bf288",
                     "added_at": "2023-01-01T12:00:00.000Z",
-                    "role": "owner",
-                    "status": "accepted"
+                    "role": "owner"
                 },
                 {
                     "id": "907f1f77bcf86cd799439022",
                     "added_at": "2023-01-01T12:00:00.000Z",
-                    "role": "operator",
-                    "status": "accepted"
+                    "role": "operator"
                 }
             ],
             "name": "namespace-2",
@@ -63,8 +59,7 @@
                 {
                     "id": "657b0e3bff780d625f74e49a",
                     "added_at": "2023-01-01T12:00:00.000Z",
-                    "role": "owner",
-                    "status": "accepted"
+                    "role": "owner"
                 }
             ],
             "name": "namespace-3",
@@ -85,8 +80,7 @@
                 {
                     "id": "6577267d8752d05270a4c07d",
                     "added_at": "2023-01-01T12:00:00.000Z",
-                    "role": "owner",
-                    "status": "accepted"
+                    "role": "owner"
                 }
             ],
             "name": "namespace-4",

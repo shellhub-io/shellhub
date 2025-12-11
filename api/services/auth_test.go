@@ -1891,134 +1891,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds to authenticate with a namespace (and member status 'pending')",
-			sourceIP:    "127.0.0.1",
-			req: &requests.AuthLocalUser{
-				Identifier: "john_doe",
-				Password:   "secret",
-			},
-			requiredMocks: func() {
-				user := &models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOriginLocal,
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
-						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
-					},
-				}
-				updatedUser := &models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOriginLocal,
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "",
-						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
-					},
-				}
-
-				mock.
-					On("SystemGet", ctx).
-					Return(
-						&models.System{
-							Authentication: &models.SystemAuthentication{
-								Local: &models.SystemAuthenticationLocal{
-									Enabled: true,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
-				mock.
-					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
-					Return(user, nil).
-					Once()
-				cacheMock.
-					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
-					Return(int64(0), 0, nil).
-					Once()
-				hashMock.
-					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
-					Return(true).
-					Once()
-				cacheMock.
-					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
-					Return(nil).
-					Once()
-
-				ns := &models.Namespace{
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Members: []models.Member{
-						{
-							ID:     "65fdd16b5f62f93184ec8a39",
-							Role:   "owner",
-							Status: models.MemberStatusPending,
-						},
-					},
-				}
-
-				mock.
-					On("NamespaceGetPreferred", ctx, "65fdd16b5f62f93184ec8a39").
-					Return(ns, nil).
-					Once()
-
-				clockMock := new(clockmock.Clock)
-				clock.DefaultBackend = clockMock
-				clockMock.On("Now").Return(now)
-
-				cacheMock.
-					On("Set", ctx, "token_65fdd16b5f62f93184ec8a39", testifymock.Anything, time.Hour*72).
-					Return(nil).
-					Once()
-
-				mock.
-					On("UserUpdate", ctx, updatedUser).
-					Return(nil).
-					Once()
-			},
-			expected: Expected{
-				res: &models.UserAuthResponse{
-					ID:          "65fdd16b5f62f93184ec8a39",
-					Origin:      models.UserOriginLocal.String(),
-					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
-					Name:        "john doe",
-					User:        "john_doe",
-					Email:       "john.doe@test.com",
-					Tenant:      "",
-					Role:        "",
-					Token:       "must ignore",
-				},
-				lockout:  0,
-				mfaToken: "",
-				err:      nil,
-			},
-		},
-		{
 			description: "succeeds to authenticate with a namespace (and empty preferred namespace)",
 			sourceIP:    "127.0.0.1",
 			req: &requests.AuthLocalUser{
@@ -2392,57 +2264,6 @@ func TestCreateUserToken(t *testing.T) {
 			},
 		},
 		{
-			description: "[with-tenant] fails when user membership is pending",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(
-						&models.User{
-							ID:        "000000000000000000000000",
-							Status:    models.UserStatusConfirmed,
-							LastLogin: now,
-							MFA: models.UserMFA{
-								Enabled: false,
-							},
-							UserData: models.UserData{
-								Username: "john_doe",
-								Email:    "john.doe@test.com",
-								Name:     "john doe",
-							},
-							Password: models.UserPassword{
-								Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-							},
-							Preferences: models.UserPreferences{
-								PreferredNamespace: "",
-							},
-						},
-						nil,
-					).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(
-						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Members: []models.Member{
-								{
-									ID:     "000000000000000000000000",
-									Role:   "administrator",
-									Status: models.MemberStatusPending,
-								},
-							},
-						},
-						nil,
-					).
-					Once()
-			},
-			expected: Expected{
-				res: nil,
-				err: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
-			},
-		},
-		{
 			description: "[with-tenant] succeeds",
 			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
@@ -2496,9 +2317,8 @@ func TestCreateUserToken(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Members: []models.Member{
 								{
-									ID:     "000000000000000000000000",
-									Role:   "owner",
-									Status: models.MemberStatusAccepted,
+									ID:   "000000000000000000000000",
+									Role: "owner",
 								},
 							},
 						},
@@ -2566,9 +2386,8 @@ func TestCreateUserToken(t *testing.T) {
 							TenantID: "00000000-0000-4000-0000-000000000000",
 							Members: []models.Member{
 								{
-									ID:     "000000000000000000000000",
-									Role:   "owner",
-									Status: models.MemberStatusAccepted,
+									ID:   "000000000000000000000000",
+									Role: "owner",
 								},
 							},
 						},

@@ -18,7 +18,11 @@ import useNamespacesStore from "@/store/modules/namespaces";
 import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
 
 const Component = {
-  template: "<v-layout><DevicesDropdown /></v-layout>",
+  template: "<v-layout><DevicesDropdown v-model=\"show\" /></v-layout>",
+  props: ["modelValue"],
+  data: () => ({
+    show: true,
+  }),
 };
 
 // Mock Vuetify display
@@ -191,6 +195,9 @@ describe("Device Management Dropdown", () => {
         },
         stubs: { teleport: true },
       },
+      props: {
+        modelValue: true,
+      },
       attachTo: document.body,
     });
 
@@ -213,6 +220,9 @@ describe("Device Management Dropdown", () => {
       global: {
         plugins: [vuetify, router, SnackbarPlugin],
         components: { "v-layout": VLayout, DevicesDropdown },
+      },
+      props: {
+        modelValue: true,
       },
     });
 

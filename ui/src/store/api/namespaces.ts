@@ -1,10 +1,4 @@
-import {
-  INamespaceAcceptInvite,
-  INamespaceAddMember,
-  INamespaceEdit,
-  INamespaceEditMember,
-  INamespaceRemoveMember,
-} from "@/interfaces/INamespace";
+import { INamespaceEdit, INamespaceEditMember, INamespaceRemoveMember } from "@/interfaces/INamespace";
 import { namespacesApi } from "@/api/http";
 
 export const createNamespace = async (name: string) => namespacesApi.createNamespace({ name });
@@ -25,16 +19,6 @@ export const editNamespace = async (data: INamespaceEdit) => namespacesApi.editN
   },
 });
 
-export const sendNamespaceLink = async (data: INamespaceAddMember) => namespacesApi.addNamespaceMember(data.tenant_id, {
-  email: data.email,
-  role: data.role,
-});
-
-export const generateNamespaceLink = async (data: INamespaceAddMember) => namespacesApi.generateInvitationLink(data.tenant_id, {
-  email: data.email,
-  role: data.role,
-});
-
 export const updateNamespaceMember = async (data: INamespaceEditMember) => namespacesApi.updateNamespaceMember(
   data.tenant_id,
   data.user_id,
@@ -47,8 +31,6 @@ export const removeUserFromNamespace = async (data: INamespaceRemoveMember) => n
 );
 
 export const switchNamespace = async (tenantId: string) => namespacesApi.getNamespaceToken(tenantId);
-
-export const acceptNamespaceInvite = async (data: INamespaceAcceptInvite) => namespacesApi.acceptInvite(data.tenant, { sig: data.sig });
 
 export const getSupportID = async (tenant: string) => namespacesApi.getNamespaceSupport(tenant);
 
