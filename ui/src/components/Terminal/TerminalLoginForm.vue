@@ -40,17 +40,10 @@
         @update:model-value="togglePassphraseField"
       />
 
-      <v-select
+      <PrivateKeySelectWithAdd
         v-if="authenticationMethod === TerminalAuthMethods.PrivateKey"
         v-model="selectedPrivateKeyName"
-        :items="privateKeysNames"
-        item-text="name"
-        item-value="data"
-        label="Private Key"
-        hint="Select a private key file for authentication"
-        persistent-hint
-        data-test="private-keys-select"
-        @update:model-value="togglePassphraseField"
+        @key-added="togglePassphraseField"
       />
 
       <v-text-field
@@ -127,6 +120,7 @@ import * as yup from "yup";
 import { useField } from "vee-validate";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import SSHIDHelper from "./SSHIDHelper.vue";
+import PrivateKeySelectWithAdd from "@/components/PrivateKeys/PrivateKeySelectWithAdd.vue";
 import { LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
@@ -146,7 +140,6 @@ const { privateKeys } = usePrivateKeysStore();
 const authenticationMethod = ref(TerminalAuthMethods.Password);
 const showPassword = ref(false);
 const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
-const privateKeysNames = privateKeys.map((item: IPrivateKey) => item.name);
 const showPassphraseField = ref(false);
 const showTerminalHelper = ref(false);
 
