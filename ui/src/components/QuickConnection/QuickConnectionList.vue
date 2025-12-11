@@ -31,7 +31,7 @@
       :key="i"
       class="ma-0 pa-2 item border"
       data-test="device-list-item"
-      @click="openDialog(item.uid, item.name)"
+      @click="openDialog(device)"
       @keydown="openTerminalMacro(item)"
     >
       <v-row
@@ -150,6 +150,7 @@
     v-model="showDialog"
     :device-uid="selectedDeviceUid"
     :device-name="selectedDeviceName"
+    :sshid="selectedSshid"
     data-test="terminalDialog-component"
   />
 </template>
@@ -198,9 +199,10 @@ const filter = computed(() =>
   ),
 );
 
-const openDialog = (deviceUid: string, deviceName: string) => {
-  selectedDeviceUid.value = deviceUid;
-  selectedDeviceName.value = deviceName;
+const openDialog = (device: IDevice) => {
+  selectedDeviceUid.value = device.uid;
+  selectedDeviceName.value = device.name;
+  selectedSshid.value = getSshid(device);
   showDialog.value = true;
 };
 
