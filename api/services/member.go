@@ -23,10 +23,10 @@ type MemberService interface {
 
 	// AddNamespaceMember adds a member to a namespace.
 	//
-	// In cloud environments, the member is assigned a [MemberStatusPending] status until they accept the invite via
+	// In cloud environments, a membership invitation is created with pending status until they accept the invite via
 	// an invitation email. If the target user does not exist, the email will redirect them to the registration page,
-	// and the invite can be accepted after finishing. In community and enterprise environments, the status is set to
-	// [MemberStatusAccepted] without sending an email.
+	// and the invite can be accepted after finishing. In community and enterprise environments, the member is added
+	// directly to the namespace without sending an email.
 	//
 	// The role assigned to the new member must not grant more authority than the user adding them (e.g.,
 	// an administrator cannot add a member with a higher role such as an owner). Owners cannot be created.
@@ -35,11 +35,15 @@ type MemberService interface {
 	AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error)
 
 	// UpdateNamespaceMember updates a member with the specified ID in the specified namespace. The member's role cannot
-	// have more authority than the user who is updating the member; owners cannot be created. It returns an error, if any.
+	// have more authority than the user who is updating the member; owners cannot be created.
+	//
+	// It returns an error, if any.
 	UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error
 
 	// RemoveNamespaceMember removes a specified member from a namespace. The action must be performed by a user with higher
-	// authority than the target member. Owners cannot be removed. Returns the updated namespace and an error, if any.
+	// authority than the target member. Owners cannot be removed.
+	//
+	// Returns the updated namespace and an error, if any.
 	RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
 
 	// LeaveNamespace allows an authenticated user to remove themselves from a namespace. Owners cannot leave a namespace.
@@ -85,54 +89,81 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		}
 	}
 
-	// In cloud instances, if a member exists and their status is pending and the expiration date is reached,
-	// we resend the invite instead of adding the member.
-	// In community and enterprise instances, a "duplicate" error is always returned,
-	// since the member will never be in a pending status.
-	// Otherwise, add the member "from scratch"
-	if m, ok := namespace.FindMember(passiveUser.ID); ok {
-		now := clock.Now()
+	if _, ok := namespace.FindMember(passiveUser.ID); ok {
+		return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
+	}
 
-		if !envs.IsCloud() || (m.Status != models.MemberStatusPending || !m.ExpiresAt.Before(now)) {
-			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
-		}
-
-		if err := s.store.WithTransaction(ctx, s.resendMemberInvite(m, req)); err != nil {
-			return nil, err
-		}
+	var callback store.TransactionCb
+	if !envs.IsCloud() {
+		callback = s.addMember(namespace, passiveUser.ID, req)
 	} else {
-		if err := s.store.WithTransaction(ctx, s.addMember(passiveUser.ID, req)); err != nil {
+		invitation, err := s.store.MembershipInvitationResolve(ctx, req.TenantID, passiveUser.ID)
+		if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 			return nil, err
+		}
+
+		switch {
+		case invitation == nil, !invitation.IsPending():
+			callback = s.addMember(namespace, passiveUser.ID, req)
+		case invitation.IsExpired():
+			callback = s.resendMembershipInvite(invitation, req)
+		default:
+			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
 	}
 
-	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	if err := s.store.WithTransaction(ctx, callback); err != nil {
+		return nil, err
+	}
+
+	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	return n, nil
 }
 
-// addMember returns a transaction callback that adds a member and sends an invite if the instance is cloud.
-func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) store.TransactionCb {
+// addMember returns a transaction callback that adds a member to a namespace.
+//
+// In all environments, it creates a membership_invitation record for audit purposes:
+// - Cloud: Creates pending invitation with expiration and sends email
+// - Community/Enterprise: Creates accepted invitation and adds member directly to namespace
+func (s *service) addMember(namespace *models.Namespace, userID string, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		member := &models.Member{
-			ID:      memberID,
-			AddedAt: clock.Now(),
-			Role:    req.MemberRole,
+		now := clock.Now()
+
+		invitation := &models.MembershipInvitation{
+			TenantID:        req.TenantID,
+			UserID:          userID,
+			InvitedBy:       namespace.Owner,
+			Role:            req.MemberRole,
+			CreatedAt:       now,
+			UpdatedAt:       now,
+			StatusUpdatedAt: now,
+			Invitations:     1,
 		}
 
-		// In cloud instances, the member must accept the invite before enter in the namespace.
 		if envs.IsCloud() {
-			member.Status = models.MemberStatusPending
-			member.ExpiresAt = member.AddedAt.Add(7 * (24 * time.Hour))
+			expiresAt := now.Add(7 * (24 * time.Hour))
+			invitation.Status = models.MembershipInvitationStatusPending
+			invitation.ExpiresAt = &expiresAt
+			if err := s.store.MembershipInvitationCreate(ctx, invitation); err != nil {
+				return err
+			}
+
+			if err := s.client.InviteMember(ctx, req.TenantID, userID, req.FowardedHost); err != nil {
+				return err
+			}
 		} else {
-			member.Status = models.MemberStatusAccepted
-			member.ExpiresAt = time.Time{}
-		}
+			invitation.Status = models.MembershipInvitationStatusAccepted
+			invitation.ExpiresAt = nil
+			if err := s.store.MembershipInvitationCreate(ctx, invitation); err != nil {
+				return err
+			}
 
-		if err := s.store.NamespaceCreateMembership(ctx, req.TenantID, member); err != nil {
-			return err
-		}
-
-		if envs.IsCloud() {
-			if err := s.client.InviteMember(ctx, req.TenantID, member.ID, req.FowardedHost); err != nil {
+			member := &models.Member{ID: userID, AddedAt: now, Role: req.MemberRole}
+			if err := s.store.NamespaceCreateMembership(ctx, req.TenantID, member); err != nil {
 				return err
 			}
 		}
@@ -141,18 +172,27 @@ func (s *service) addMember(memberID string, req *requests.NamespaceAddMember) s
 	}
 }
 
-// resendMemberInvite returns a transaction callback that resends an invitation to the member with the
-// specified ID.
-func (s *service) resendMemberInvite(member *models.Member, req *requests.NamespaceAddMember) store.TransactionCb {
+// resendMembershipInvite returns a transaction callback that resends a membership invitation.
+//
+// This function updates an existing invitation to pending status, extends the expiration date,
+// increments the invitation counter, and sends a new invitation email (cloud only).
+func (s *service) resendMembershipInvite(invitation *models.MembershipInvitation, req *requests.NamespaceAddMember) store.TransactionCb {
 	return func(ctx context.Context) error {
-		member.ExpiresAt = clock.Now().Add(7 * (24 * time.Hour))
-		member.Role = req.MemberRole
+		now := clock.Now()
 
-		if err := s.store.NamespaceUpdateMembership(ctx, req.TenantID, member); err != nil {
+		expiresAt := now.Add(7 * (24 * time.Hour))
+		invitation.Status = models.MembershipInvitationStatusPending
+		invitation.Role = req.MemberRole
+		invitation.ExpiresAt = &expiresAt
+		invitation.UpdatedAt = now
+		invitation.StatusUpdatedAt = now
+		invitation.Invitations++
+
+		if err := s.store.MembershipInvitationUpdate(ctx, invitation); err != nil {
 			return err
 		}
 
-		return s.client.InviteMember(ctx, req.TenantID, member.ID, req.FowardedHost)
+		return s.client.InviteMember(ctx, req.TenantID, invitation.UserID, req.FowardedHost)
 	}
 }
 

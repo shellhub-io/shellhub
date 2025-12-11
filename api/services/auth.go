@@ -309,10 +309,8 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 
 	tenantID := ""
 	role := ""
-	// Populate the tenant and role when the user is associated with a namespace. If the member status is pending, we
-	// ignore the namespace.
 	if ns, _ := s.store.NamespaceGetPreferred(ctx, user.ID); ns != nil && ns.TenantID != "" {
-		if m, _ := ns.FindMember(user.ID); m.Status != models.MemberStatusPending {
+		if m, _ := ns.FindMember(user.ID); m != nil {
 			tenantID = ns.TenantID
 			role = m.Role.String()
 		}
@@ -393,10 +391,8 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
 		}
 
-		if member.Status != models.MemberStatusPending {
-			tenantID = namespace.TenantID
-			role = member.Role.String()
-		}
+		tenantID = namespace.TenantID
+		role = member.Role.String()
 	default:
 		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
@@ -405,10 +401,6 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 
 		member, ok := namespace.FindMember(user.ID)
 		if !ok {
-			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
-		}
-
-		if member.Status == models.MemberStatusPending {
 			return nil, NewErrNamespaceMemberNotFound(user.ID, nil)
 		}
 
