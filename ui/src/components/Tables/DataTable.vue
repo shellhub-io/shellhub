@@ -89,23 +89,20 @@
         class="pa-0"
       >
         <v-combobox
-          v-model="internalItemsPerPage"
-          v-model:menu="itemsPerPageMenuOpen"
+          :model-value="itemsPerPage"
           :items="itemsPerPageOptions"
-          outlined
+          :error-messages="itemsPerPageError"
           variant="underlined"
-          center-affix
           type="number"
           hide-spin-buttons
           hide-details="auto"
           hide-no-data
           class="mb-4 mr-1 w-100"
-          filter-mode="every"
           data-test="ipp-combo"
-          :rules="[validateItemsPerPage]"
-          @blur="sanitizeItemsPerPage"
-          @keydown.enter="sanitizeItemsPerPage"
-          @update:menu="handleItemsPerPageMenuChange"
+          @update:model-value="updateItemsPerPage"
+          @update:search="handleItemsPerPageSearch"
+          @blur="constrainItemsPerPage"
+          @keydown.enter="constrainItemsPerPage"
           @keydown="blockNonNumeric"
           @paste.prevent
         />
@@ -171,19 +168,13 @@ const page = defineModel<number>("page", {
   type: Number,
 });
 
-const rawItemsPerPage = defineModel<number>("itemsPerPage", {
+const itemsPerPage = defineModel<number>("itemsPerPage", {
   required: true,
   type: Number,
 });
 
-const internalItemsPerPage = ref(rawItemsPerPage.value);
-const itemsPerPageMenuOpen = ref(false);
-
-const pageQuantity = computed(() => Math.ceil(props.totalCount / rawItemsPerPage.value) || 1);
-
-const goToFirstPage = () => {
-  page.value = 1;
-};
+const itemsPerPageError = ref<string | null>(null);
+const pageQuantity = computed(() => Math.ceil(props.totalCount / itemsPerPage.value) || 1);
 
 const blockNonNumeric = (e: KeyboardEvent) => {
   const allowedKeys = [
@@ -198,42 +189,60 @@ const blockNonNumeric = (e: KeyboardEvent) => {
   ];
 
   if (allowedKeys.includes(e.key)) return;
-
   if (/^[0-9]$/.test(e.key)) return;
 
   e.preventDefault();
 };
 
-const validateItemsPerPage = (value: unknown): true | string => {
-  const num = Number(value);
+const clampItemsPerPage = (value: number) => Math.min(100, Math.max(1, value));
 
-  if (num < 1) return "Minimum is 1";
-  if (num > 100) return "Maximum is 100";
-
-  return true;
+const parseItemsPerPageValue = (value: unknown) => {
+  if (value === "" || value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 };
 
-const sanitizeItemsPerPage = () => {
-  let num = Number(internalItemsPerPage.value);
-
-  if (isNaN(num) || num < 1) num = 1;
-  if (num > 100) num = 100;
-
-  const changed = rawItemsPerPage.value !== num;
-
-  rawItemsPerPage.value = num;
-  internalItemsPerPage.value = num;
-
-  if (changed) {
-    goToFirstPage();
+const applyItemsPerPageChange = (value: number) => {
+  if (value !== itemsPerPage.value) {
+    itemsPerPage.value = value;
+    page.value = 1;
   }
+  itemsPerPageError.value = null;
 };
 
-const handleItemsPerPageMenuChange = (isOpen: boolean) => {
-  itemsPerPageMenuOpen.value = isOpen;
+const updateItemsPerPage = (value: number | string | null) => {
+  const parsed = parseItemsPerPageValue(value);
+  if (parsed === null) return;
 
-  if (!isOpen) {
-    sanitizeItemsPerPage();
+  if (parsed < 1) {
+    itemsPerPageError.value = "Minimum is 1";
+    return;
   }
+  if (parsed > 100) {
+    itemsPerPageError.value = "Maximum is 100";
+    return;
+  }
+
+  applyItemsPerPageChange(parsed);
+};
+
+const handleItemsPerPageSearch = (value: string | number | null) => {
+  if (value === null || value === undefined) return;
+  updateItemsPerPage(value);
+};
+
+const readValueFromEvent = (value: unknown) => {
+  if (typeof value === "number" || typeof value === "string") return parseItemsPerPageValue(value);
+  if (typeof value === "object" && value !== null && "target" in value) {
+    const target = value.target as HTMLInputElement | null;
+    return target ? parseItemsPerPageValue(target.value) : null;
+  }
+  return null;
+};
+
+const constrainItemsPerPage = (value?: number | string | FocusEvent | KeyboardEvent) => {
+  const parsed = readValueFromEvent(value);
+  const clamped = clampItemsPerPage(parsed ?? itemsPerPage.value);
+  applyItemsPerPageChange(clamped);
 };
 </script>

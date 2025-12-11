@@ -127,7 +127,7 @@ describe("DataTable", () => {
       expect(getPagerRoot().exists()).toBe(false);
     });
 
-    it("resets to first page when itemsPerPage changes via combobox", async () => {
+    it("resets to first page when itemsPerPage changes via combobox selection", async () => {
       await wrapper.setProps({ page: 3 });
       await uiTick();
 
@@ -135,9 +135,6 @@ describe("DataTable", () => {
       expect(combo.exists()).toBe(true);
 
       combo.vm.$emit("update:modelValue", 25);
-      await uiTick();
-
-      await combo.trigger("blur");
       await uiTick();
 
       const pageEvents = wrapper.emitted("update:page");
