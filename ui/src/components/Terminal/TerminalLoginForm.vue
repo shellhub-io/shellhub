@@ -92,11 +92,10 @@
         class="mt-4"
         data-test="sshid-hint"
       >
-        <div class="d-flex align-center justify-space-between">
-          <div class="text-caption">
+        <div class="d-flex align-center justify-space-between ga-2">
+          <div class="text-body-2">
             <v-icon
               icon="mdi-lightbulb-on-outline"
-              size="small"
               class="mr-1"
             />
             <strong>Did you know?</strong> You can also connect from your local
@@ -106,10 +105,9 @@
             size="small"
             variant="text"
             data-test="show-sshid-examples-btn"
+            text="Show me how"
             @click="showTerminalHelper = true"
-          >
-            Show me how
-          </v-btn>
+          />
         </div>
       </v-alert>
     </v-card-text>
