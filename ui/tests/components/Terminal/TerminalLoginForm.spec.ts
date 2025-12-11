@@ -7,6 +7,7 @@ import TerminalLoginForm from "@/components/Terminal/TerminalLoginForm.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
 import usePrivateKeysStore from "@/store/modules/private_keys";
+import { SnackbarPlugin } from "@/plugins/snackbar";
 
 const mockPrivateKeys: Array<IPrivateKey> = [
   { id: 1, name: "test-key-1", data: "private-key-data-1", hasPassphrase: true, fingerprint: "fingerprint-1" },
@@ -25,7 +26,7 @@ describe("Terminal Login Form", () => {
 
     wrapper = mount(TerminalLoginForm, {
       global: {
-        plugins: [vuetify],
+        plugins: [vuetify, SnackbarPlugin],
       },
       props: {
         modelValue: true,
