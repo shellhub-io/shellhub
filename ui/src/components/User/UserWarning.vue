@@ -81,7 +81,7 @@ const showForceRecoveryMail = computed(() => authStore.showForceRecoveryMail);
 const showPaywall = computed(() => usersStore.showPaywall);
 const stats = computed(() => statsStore.stats);
 const currentAnnouncement = computed(() => announcementStore.currentAnnouncement);
-const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
+const hasNamespaces = computed(() => namespacesStore.hasNamespaces);
 const showDeviceChooser = computed(() => devicesStore.showDeviceChooser);
 const showBillingWarning = computed({
   get() {

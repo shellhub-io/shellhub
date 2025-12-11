@@ -39,8 +39,7 @@ import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
 
 const authStore = useAuthStore();
-const { namespaceList } = useNamespacesStore();
-const hasNamespaces = namespaceList.length > 0;
+const { hasNamespaces } = useNamespacesStore();
 const snackbar = useSnackbar();
 const router = useRouter();
 const showDialog = defineModel<boolean>({ default: false });

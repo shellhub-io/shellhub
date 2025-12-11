@@ -166,7 +166,7 @@ const showAddDialog = ref(false);
 
 const currentNamespace = computed(() => namespacesStore.currentNamespace);
 const namespaceList = computed(() => namespacesStore.namespaceList);
-const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
+const hasNamespaces = computed(() => namespacesStore.hasNamespaces);
 const showInstructionsDialog = ref(false);
 const userId = computed(() => authStore.id || localStorage.getItem("id") || "");
 

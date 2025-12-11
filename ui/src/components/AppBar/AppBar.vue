@@ -215,7 +215,7 @@ const userId = computed(() => authStore.id);
 const currentUser = computed(() => authStore.username);
 const isBillingActive = computed(() => billingStore.isActive);
 const theme = computed(() => layoutStore.theme);
-const hasNamespaces = computed(() => namespacesStore.namespaceList.length > 0);
+const hasNamespaces = computed(() => namespacesStore.hasNamespaces);
 const isChatCreated = computed(() => supportStore.isChatCreated);
 const identifier = computed(() => supportStore.identifier);
 const isDarkMode = ref(theme.value === "dark");
