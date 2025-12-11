@@ -48,6 +48,14 @@ const mockSnackbar = {
   showError: vi.fn(),
 };
 
+const mockStats = {
+  registered_devices: 10,
+  online_devices: 6,
+  pending_devices: 2,
+  rejected_devices: 1,
+  active_sessions: 0,
+};
+
 const mockPendingDevices: IDevice[] = [
   {
     uid: "pending-device-1",
@@ -166,6 +174,10 @@ describe("Device Management Dropdown", () => {
     devicesStore.pendingDevicesCount = 0;
 
     mockDevicesApi
+      .onGet("http://localhost:3000/api/stats")
+      .reply(200, mockStats);
+
+    mockDevicesApi
       .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending")
       .reply(200, mockPendingDevices, { "x-total-count": "2" });
 
@@ -175,6 +187,16 @@ describe("Device Management Dropdown", () => {
 
     mockDevicesApi
       .onGet("http://localhost:3000/api/devices?page=1&per_page=1&status=accepted")
+      .reply(200, [], { "x-total-count": "10" });
+
+    mockDevicesApi
+      // eslint-disable-next-line vue/max-len
+      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fV0%3D&page=1&per_page=1&status=accepted")
+      .reply(200, [], { "x-total-count": "10" });
+
+    mockDevicesApi
+      // eslint-disable-next-line vue/max-len
+      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOmZhbHNlfX1d&page=1&per_page=1&status=accepted")
       .reply(200, [], { "x-total-count": "10" });
 
     mockDevicesApi
