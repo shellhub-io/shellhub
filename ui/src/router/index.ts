@@ -74,7 +74,7 @@ const Sessions = () => import("@/views/Sessions.vue");
 const SessionDetails = () => import("@/views/DetailsSessions.vue");
 const FirewallRules = () => import("@/views/FirewallRules.vue");
 const PublicKeys = () => import("@/views/PublicKeys.vue");
-const PrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
+const PrivateKeys = () => import("@/views/PrivateKeys.vue");
 const AcceptInvite = () => import("@/views/NamespaceInviteCard.vue");
 const Settings = () => import("@/views/Settings.vue");
 const SettingProfile = () => import("@/components/Setting/SettingProfile.vue");
