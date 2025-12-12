@@ -2,14 +2,14 @@ import { setActivePinia, createPinia } from "pinia";
 import { createVuetify } from "vuetify";
 import { mount, VueWrapper } from "@vue/test-utils";
 import { beforeEach, describe, expect, it } from "vitest";
-import SettingPrivateKeys from "@/components/Setting/SettingPrivateKeys.vue";
+import PrivateKeys from "@/views/PrivateKeys.vue";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
-type SettingPrivateKeysWrapper = VueWrapper<InstanceType<typeof SettingPrivateKeys>>;
+type PrivateKeysWrapper = VueWrapper<InstanceType<typeof PrivateKeys>>;
 
-describe("Setting Private Keys", () => {
-  let wrapper: SettingPrivateKeysWrapper;
+describe("Private Keys", () => {
+  let wrapper: PrivateKeysWrapper;
   let privateKeysStore: ReturnType<typeof usePrivateKeysStore>;
   const vuetify = createVuetify();
 
@@ -17,7 +17,6 @@ describe("Setting Private Keys", () => {
 
   beforeEach(() => {
     privateKeysStore = usePrivateKeysStore();
-
     privateKeysStore.$patch({
       privateKeys: [
         {
@@ -30,7 +29,7 @@ describe("Setting Private Keys", () => {
       ],
     });
 
-    wrapper = mount(SettingPrivateKeys, {
+    wrapper = mount(PrivateKeys, {
       global: {
         plugins: [vuetify, SnackbarPlugin],
         stubs: {
@@ -51,9 +50,8 @@ describe("Setting Private Keys", () => {
   });
 
   it("Renders components", () => {
-    expect(wrapper.find('[data-test="card"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="card-button"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="private-key-list"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="private-keys-title"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="private-keys-components"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
   });
 });
