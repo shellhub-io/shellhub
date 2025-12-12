@@ -63,23 +63,14 @@ import { ref, computed } from "vue";
 import PrivateKeyAdd from "@/components/PrivateKeys/PrivateKeyAdd.vue";
 import PrivateKeyList from "@/components/PrivateKeys/PrivateKeyList.vue";
 import NoItemsMessage from "@/components/NoItemsMessage.vue";
-import handleError from "@/utils/handleError";
-import useSnackbar from "@/helpers/snackbar";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 import PageHeader from "@/components/PageHeader.vue";
 
 const privateKeysStore = usePrivateKeysStore();
-const snackbar = useSnackbar();
 const privateKeyAdd = ref(false);
+const privateKeysList = ref<InstanceType<typeof PrivateKeyList> | null>(null);
 
 const hasPrivateKeys = computed(() => privateKeysStore.privateKeys.length > 0);
 
-const getPrivateKeys = () => {
-  try {
-    privateKeysStore.getPrivateKeyList();
-  } catch (error: unknown) {
-    snackbar.showError("Failed to load the private keys list.");
-    handleError(error);
-  }
-};
+const getPrivateKeys = () => { privateKeysList.value?.getPrivateKeysList(); };
 </script>
