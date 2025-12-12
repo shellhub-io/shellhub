@@ -74,11 +74,11 @@ const Sessions = () => import("@/views/Sessions.vue");
 const SessionDetails = () => import("@/views/DetailsSessions.vue");
 const FirewallRules = () => import("@/views/FirewallRules.vue");
 const PublicKeys = () => import("@/views/PublicKeys.vue");
+const PrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
 const AcceptInvite = () => import("@/views/NamespaceInviteCard.vue");
 const Settings = () => import("@/views/Settings.vue");
 const SettingProfile = () => import("@/components/Setting/SettingProfile.vue");
 const SettingNamespace = () => import("@/components/Setting/SettingNamespace.vue");
-const SettingPrivateKeys = () => import("@/components/Setting/SettingPrivateKeys.vue");
 const SettingBilling = () => import("@/components/Setting/SettingBilling.vue");
 const TeamMembers = () => import("@/views/TeamMembers.vue");
 const TeamApiKeys = () => import("@/views/TeamApiKeys.vue");
@@ -444,15 +444,35 @@ export const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/sshkeys/public-keys",
-    name: "PublicKeys",
-    component: PublicKeys,
+    path: "/sshkeys",
+    name: "SSHKeys",
+    redirect: { name: "PublicKeys" },
     meta: {
-      icon: "mdi-key",
-      title: "Public Keys",
+      icon: "mdi-key-chain",
+      title: "SSH Keys",
       showInSidebar: true,
       sidebarOrder: 8,
     },
+    children: [
+      {
+        path: "public",
+        name: "PublicKeys",
+        component: PublicKeys,
+        meta: {
+          title: "Public Keys",
+          showInSidebar: true,
+        },
+      },
+      {
+        path: "private",
+        name: "PrivateKeys",
+        component: PrivateKeys,
+        meta: {
+          title: "Private Keys",
+          showInSidebar: true,
+        },
+      },
+    ],
   },
   {
     path: "/team",
@@ -524,15 +544,6 @@ export const routes: Array<RouteRecordRaw> = [
           title: "Namespace",
           showInSidebar: true,
           isHidden: () => localStorage.getItem("tenant") === "",
-        },
-      },
-      {
-        path: "private-keys",
-        name: "SettingPrivateKeys",
-        component: SettingPrivateKeys,
-        meta: {
-          title: "Private Keys",
-          showInSidebar: true,
         },
       },
       {
