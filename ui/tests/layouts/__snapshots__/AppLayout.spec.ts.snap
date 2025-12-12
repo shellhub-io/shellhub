@@ -124,22 +124,45 @@ exports[`App Layout Component > Renders the component 1`] = `
               <!--v-if-->
               <div class="v-list-item__spacer"></div>
             </div>
-          </a><a data-v-e7291ef4="" href="/sshkeys/public-keys" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text mb-2" role="link" data-test="list-item">
-            <!----><span class="v-list-item__underlay"></span>
-            <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-key mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
-              <div class="v-list-item__spacer"></div>
-            </div>
-            <div class="v-list-item__content" data-no-activator="">
-              <!---->
-              <!---->
-              <div data-v-e7291ef4="" class="v-list-item-title" data-test="mdi-key-listItem">Public Keys</div>
-            </div>
-            <div class="v-list-item__append">
-              <!--v-if-->
-              <!--v-if-->
-              <div class="v-list-item__spacer"></div>
-            </div>
           </a>
+          <div data-v-e7291ef4="" class="v-list-group v-list-group--prepend" modelvalue="false" data-test="list-group">
+            <div data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" role="listitem" id="v-list-group--id-Symbol(nested item)">
+              <!----><span class="v-list-item__underlay"></span>
+              <div class="v-list-item__prepend"><i data-v-e7291ef4="" class="mdi-key-chain mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" data-test="icon"></i>
+                <div class="v-list-item__spacer"></div>
+              </div>
+              <div class="v-list-item__content" data-no-activator="">
+                <!---->
+                <!---->
+                <div data-v-e7291ef4="" class="v-list-item-title">SSH Keys</div>
+              </div>
+              <div class="v-list-item__append"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--dark v-icon--size-default" aria-hidden="true" density="compact"></i>
+                <!---->
+                <div class="v-list-item__spacer"></div>
+              </div>
+            </div>
+            <transition-stub name="expand-transition" appear="false" persisted="false" css="true">
+              <div class="v-list-group__items" role="group" aria-labelledby="v-list-group--id-Symbol(nested item)" style="display: none;"><a data-v-e7291ef4="" href="/sshkeys/public" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="link" data-test="list-item">
+                  <!----><span class="v-list-item__underlay"></span>
+                  <!---->
+                  <div class="v-list-item__content" data-no-activator="">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Public Keys-listItem">Public Keys</div>
+                  </div>
+                  <!---->
+                </a><a data-v-e7291ef4="" href="/sshkeys/private" aria-disabled="true" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="link" data-test="list-item">
+                  <!----><span class="v-list-item__underlay"></span>
+                  <!---->
+                  <div class="v-list-item__content" data-no-activator="">
+                    <!---->
+                    <!---->
+                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Private Keys-listItem">Private Keys</div>
+                  </div>
+                  <!---->
+                </a></div>
+            </transition-stub>
+          </div>
           <div data-v-e7291ef4="" class="v-list-group v-list-group--prepend" modelvalue="false" data-test="list-group">
             <div data-v-e7291ef4="" class="v-list-item v-list-item--disabled v-theme--dark v-list-item--density-compact v-list-item--two-line rounded-0 v-list-item--variant-text v-list-group__header" role="listitem" id="v-list-group--id-Symbol(nested item)">
               <!----><span class="v-list-item__underlay"></span>
@@ -208,14 +231,6 @@ exports[`App Layout Component > Renders the component 1`] = `
                     <!---->
                     <!---->
                     <div data-v-e7291ef4="" class="v-list-item-title" data-test="Namespace-listItem">Namespace</div>
-                  </div>
-                  <!---->
-                </a><a data-v-e7291ef4="" href="/settings/private-keys" tabindex="-2" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="link" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
-                  <!---->
-                  <div class="v-list-item__content" data-no-activator="">
-                    <!---->
-                    <!---->
-                    <div data-v-e7291ef4="" class="v-list-item-title" data-test="Private Keys-listItem">Private Keys</div>
                   </div>
                   <!---->
                 </a><a data-v-e7291ef4="" href="/settings/billing" tabindex="-2" class="v-list-item v-list-item--link v-theme--dark v-list-item--density-compact v-list-item--one-line rounded-0 v-list-item--variant-text" role="link" data-test="list-item"><span class="v-list-item__overlay"></span><span class="v-list-item__underlay"></span>
