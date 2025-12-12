@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Private Keys > Renders the component 1`] = `
+"<div class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2" data-test="private-keys-title">
+  <h1>Private Keys</h1><button type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="private-key-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <!----><span class="v-btn__content" data-no-activator="">Add Private Key</span>
+    <!---->
+    <!---->
+  </button>
+</div>
+<div data-test="private-keys-components">
+  <!---->
+  <!---->
+  <div data-test="private-key-list"></div>
+</div>"
+`;
