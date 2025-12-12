@@ -1,134 +1,135 @@
 <template>
-  <v-table class="bg-background border rounded mx-4">
-    <thead
-      class="bg-v-theme-background"
-      data-test="privateKey-thead"
+  <div>
+    <DataTable
+      v-model:page="page"
+      v-model:items-per-page="itemsPerPage"
+      :headers
+      :items="privateKeys"
+      :total-count="privateKeyCount"
+      :loading
+      :items-per-page-options="[10, 20, 50, 100]"
+      data-test="private-keys-list"
     >
-      <tr>
-        <th
-          v-for="(head, i) in headers"
+      <template #rows>
+        <tr
+          v-for="(item, i) in privateKeys"
           :key="i"
-          :class="head.align ? `text-${head.align}` : 'text-center'"
+          data-test="private-key-item"
         >
-          <span> {{ head.text }}</span>
-        </th>
-      </tr>
-    </thead>
-    <tbody v-if="privateKeys.length">
-      <tr
-        v-for="(privateKey, i) in privateKeys"
-        :key="i"
-      >
-        <td
-          class="text-center"
-          data-test="privateKey-name"
-        >
-          {{ privateKey.name }}
-        </td>
-        <td
-          class="text-center"
-          data-test="privateKey-fingerprint"
-        >
-          {{ getKeyFingerprint(privateKey) }}
-        </td>
-        <td class="text-center">
-          <v-menu
-            location="bottom"
-            scrim
-            eager
+          <td
+            class="text-center"
+            data-test="privateKey-name"
           >
-            <template #activator="{ props }">
-              <v-btn
-                v-bind="props"
-                variant="plain"
-                class="border rounded bg-v-theme-background"
-                density="comfortable"
-                size="default"
-                icon="mdi-format-list-bulleted"
-                data-test="privateKey-actions"
-              />
-            </template>
-            <v-list
-              class="bg-v-theme-surface"
-              lines="two"
-              density="compact"
-            >
-              <PrivateKeyEdit
-                :private-key="privateKey"
-                @update="getPrivateKeys"
-              />
+            {{ item.name }}
+          </td>
 
-              <PrivateKeyDelete
-                :id="privateKey.id"
-                @update="getPrivateKeys"
-              />
-            </v-list>
-          </v-menu>
-        </td>
-      </tr>
-    </tbody>
-    <div
-      v-else
-      sm="12"
-      class="text-start mt-2 mb-3"
-      data-test="no-private-key-warning"
-    >
-      <span class="ml-4">No data available</span>
-    </div>
-  </v-table>
+          <td
+            class="text-center"
+            data-test="privateKey-fingerprint"
+          >
+            {{ getKeyFingerprint(item) }}
+          </td>
+
+          <td
+            class="text-center"
+            data-test="privateKey-actions"
+          >
+            <v-menu
+              location="bottom"
+              scrim
+              eager
+            >
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  variant="plain"
+                  class="border rounded bg-v-theme-background"
+                  density="comfortable"
+                  size="default"
+                  icon="mdi-format-list-bulleted"
+                  data-test="privateKey-actions"
+                />
+              </template>
+              <v-list
+                class="bg-v-theme-surface"
+                lines="two"
+                density="compact"
+              >
+                <PrivateKeyEdit
+                  :private-key="item"
+                  @update="getPrivateKeysList"
+                />
+
+                <PrivateKeyDelete
+                  :id="item.id"
+                  @update="getPrivateKeysList"
+                />
+              </v-list>
+            </v-menu>
+          </td>
+        </tr>
+      </template>
+    </DataTable>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
+import DataTable from "../Tables/DataTable.vue";
 import PrivateKeyDelete from "./PrivateKeyDelete.vue";
 import PrivateKeyEdit from "./PrivateKeyEdit.vue";
 import handleError from "@/utils/handleError";
+import useSnackbar from "@/helpers/snackbar";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { convertToFingerprint } from "@/utils/sshKeys";
 import usePrivateKeysStore from "@/store/modules/private_keys";
-
-const privateKeysStore = usePrivateKeysStore();
 
 const headers = [
   {
     text: "Name",
     value: "name",
-    align: "center",
     sortable: true,
   },
   {
     text: "Fingerprint",
     value: "data",
-    align: "center",
     sortable: true,
   },
   {
     text: "Actions",
     value: "actions",
-    align: "center",
-    sortable: false,
   },
 ];
-const privateKeys = computed(() => privateKeysStore.privateKeys);
 
-const getPrivateKeys = () => {
+const privateKeysStore = usePrivateKeysStore();
+const snackbar = useSnackbar();
+const loading = ref(false);
+const itemsPerPage = ref(10);
+const page = ref(1);
+const privateKeys = computed(() => privateKeysStore.privateKeys);
+const privateKeyCount = computed(() => privateKeys.value.length);
+
+const getPrivateKeysList = () => {
   try {
+    loading.value = true;
     privateKeysStore.getPrivateKeyList();
   } catch (error: unknown) {
+    snackbar.showError("Failed to load private keys.");
     handleError(error);
   }
+  loading.value = false;
 };
 
+watch([page, itemsPerPage], () => { getPrivateKeysList(); });
+
 const getKeyFingerprint = (privateKey: IPrivateKey) => {
-  if (privateKey.fingerprint) {
-    return privateKey.fingerprint;
-  }
+  if (privateKey.fingerprint) return privateKey.fingerprint;
 
   const fingerprint = convertToFingerprint(privateKey.data);
   return fingerprint || "Fingerprint not available";
 };
 
-onMounted(() => {
-  getPrivateKeys();
-});
+onMounted(() => { getPrivateKeysList(); });
+
+defineExpose({ getPrivateKeysList });
 </script>
