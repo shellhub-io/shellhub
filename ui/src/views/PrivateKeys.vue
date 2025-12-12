@@ -9,13 +9,13 @@
       variant="elevated"
       data-test="private-key-add-btn"
       text="Add Private Key"
-      @click="privateKeyAdd = true"
+      @click="showPrivateKeyAdd = true"
     />
   </div>
 
   <div data-test="private-keys-components">
     <PrivateKeyAdd
-      v-model="privateKeyAdd"
+      v-model="showPrivateKeyAdd"
       @update="getPrivateKeys"
     />
 
@@ -45,7 +45,7 @@
           color="primary"
           variant="elevated"
           text="Add Private Key"
-          @click="privateKeyAdd = true"
+          @click="showPrivateKeyAdd = true"
         />
       </template>
     </NoItemsMessage>
@@ -60,10 +60,12 @@ import NoItemsMessage from "@/components/NoItemsMessage.vue";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
 const privateKeysStore = usePrivateKeysStore();
-const privateKeyAdd = ref(false);
+const showPrivateKeyAdd = ref(false);
 const privateKeysList = ref<InstanceType<typeof PrivateKeyList> | null>(null);
 
 const hasPrivateKeys = computed(() => privateKeysStore.privateKeys.length > 0);
 
 const getPrivateKeys = () => { privateKeysList.value?.getPrivateKeysList(); };
+
+defineExpose({ showPrivateKeyAdd });
 </script>

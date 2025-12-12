@@ -1,76 +1,73 @@
 <template>
-  <div>
-    <DataTable
-      v-model:page="page"
-      v-model:items-per-page="itemsPerPage"
-      :headers
-      :items="privateKeys"
-      :total-count="privateKeyCount"
-      :loading
-      :items-per-page-options="[10, 20, 50, 100]"
-      data-test="private-keys-list"
-    >
-      <template #rows>
-        <tr
-          v-for="(item, i) in privateKeys"
-          :key="i"
-          data-test="private-key-item"
+  <DataTable
+    v-model:page="page"
+    v-model:items-per-page="itemsPerPage"
+    :headers
+    :items="privateKeys"
+    :total-count="privateKeyCount"
+    :loading
+    :items-per-page-options="[10, 20, 50, 100]"
+    data-test="private-keys-list"
+  >
+    <template #rows>
+      <tr
+        v-for="(item, i) in privateKeys"
+        :key="i"
+        data-test="private-key-item"
+      >
+        <td
+          class="text-center"
+          data-test="privateKey-name"
         >
-          <td
-            class="text-center"
-            data-test="privateKey-name"
-          >
-            {{ item.name }}
-          </td>
+          {{ item.name }}
+        </td>
 
-          <td
-            class="text-center"
-            data-test="privateKey-fingerprint"
-          >
-            {{ getKeyFingerprint(item) }}
-          </td>
+        <td
+          class="text-center"
+          data-test="privateKey-fingerprint"
+        >
+          {{ getKeyFingerprint(item) }}
+        </td>
 
-          <td
-            class="text-center"
-            data-test="privateKey-actions"
+        <td
+          class="text-center"
+          data-test="private-key-actions"
+        >
+          <v-menu
+            location="bottom"
+            scrim
+            eager
           >
-            <v-menu
-              location="bottom"
-              scrim
-              eager
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                variant="plain"
+                class="border rounded bg-v-theme-background"
+                density="comfortable"
+                size="default"
+                icon="mdi-format-list-bulleted"
+              />
+            </template>
+            <v-list
+              class="bg-v-theme-surface"
+              lines="two"
+              density="compact"
             >
-              <template #activator="{ props }">
-                <v-btn
-                  v-bind="props"
-                  variant="plain"
-                  class="border rounded bg-v-theme-background"
-                  density="comfortable"
-                  size="default"
-                  icon="mdi-format-list-bulleted"
-                  data-test="privateKey-actions"
-                />
-              </template>
-              <v-list
-                class="bg-v-theme-surface"
-                lines="two"
-                density="compact"
-              >
-                <PrivateKeyEdit
-                  :private-key="item"
-                  @update="getPrivateKeysList"
-                />
+              <PrivateKeyEdit
+                :private-key="item"
+                @update="getPrivateKeysList"
+              />
 
-                <PrivateKeyDelete
-                  :id="item.id"
-                  @update="getPrivateKeysList"
-                />
-              </v-list>
-            </v-menu>
-          </td>
-        </tr>
-      </template>
-    </DataTable>
-  </div>
+              <PrivateKeyDelete
+                :id="item.id"
+                @update="getPrivateKeysList"
+              />
+            </v-list>
+          </v-menu>
+        </td>
+      </tr>
+    </template>
+  </DataTable>
 </template>
 
 <script setup lang="ts">
