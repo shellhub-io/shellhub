@@ -65,7 +65,7 @@ describe("WebEndpoints.vue", () => {
   });
 
   it("renders the title, search field, and create button", () => {
-    expect(wrapper.find("h1").text()).toContain("Web Endpoints");
+    expect(wrapper.text()).toContain("Web Endpoints");
     expect(wrapper.find('[data-test="search-text"]').exists()).toBe(true);
     expect(wrapper.findAll('[data-test="tunnel-create-dialog-btn"]')).toHaveLength(1);
   });

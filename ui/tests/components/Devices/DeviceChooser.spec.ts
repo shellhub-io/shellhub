@@ -92,7 +92,7 @@ describe("Device Chooser", () => {
 
     const formDialog = wrapper.findComponent({ name: "FormDialog" });
     expect(formDialog.props("title")).toBe("Update account or select three devices");
-    expect(formDialog.props("icon")).toBe("mdi-devices");
+    expect(formDialog.props("icon")).toBe("mdi-developer-board");
     expect(formDialog.props("confirmText")).toBe("Accept");
     expect(formDialog.props("cancelText")).toBe("Close");
     expect(formDialog.props("threshold")).toBe("md");

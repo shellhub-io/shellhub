@@ -4,7 +4,7 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
 "<div data-v-d7a09f69="" class="v-container v-container--fluid v-locale--is-ltr">
   <!---->
   <!---->
-  <div data-v-d7a09f69="" class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent" data-test="billing-card">
+  <div data-v-d7a09f69="" class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-6 bg-transparent mb-6 position-relative overflow-hidden border-b mx-n8 mt-n8" data-test="billing-card">
     <!---->
     <div class="v-card__loader">
       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -22,33 +22,48 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div data-v-d7a09f69="" class="v-card-item">
-      <!---->
-      <div class="v-card-item__content">
-        <!---->
-        <!---->
-        <div data-v-d7a09f69="" class="v-list-item v-theme--light v-list-item--density-default rounded-0 v-list-item--variant-text pa-0" data-test="billing-header">
-          <!----><span class="v-list-item__underlay"></span>
-          <!---->
-          <div class="v-list-item__content" data-no-activator="">
-            <div class="v-list-item-title">
-              <h1 data-v-d7a09f69="" data-test="billing-title"> Billing </h1>
-            </div>
-            <div class="v-list-item-subtitle"><span data-v-d7a09f69="" data-test="billing-subtitle">Manage your subscription info</span></div>
-            <!---->
-          </div>
-          <div class="v-list-item__append"><button data-v-d7a09f69="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="subscribe-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-              <!----><span class="v-btn__content" data-no-activator=""> Subscribe </span>
-              <!---->
-              <!---->
-            </button>
-            <div class="v-list-item__spacer"></div>
-          </div>
+    <div class="d-flex align-start justify-space-between position-relative" style="z-index: 1;">
+      <!-- Left side: Icon + Title + Description -->
+      <div class="d-flex align-start flex-grow-1">
+        <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-4" style="width: 48px; height: 48px;"><i class="mdi-credit-card mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+          <!----><span class="v-avatar__underlay"></span>
         </div>
+        <div>
+          <div class="text-overline text-medium-emphasis mb-1">Settings</div>
+          <div class="text-h5 font-weight-bold mb-2">Billing</div>
+          <div class="text-body-2 text-medium-emphasis">Manage your subscription plan, payment methods, and billing information.</div>
+          <!--v-if-->
+        </div>
+      </div><!-- Right side: Actions -->
+      <div class="ml-4"><button data-v-d7a09f69="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="subscribe-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          <!----><span class="v-btn__content" data-no-activator=""> Subscribe </span>
+          <!---->
+          <!---->
+        </button></div>
+    </div><!-- Extra content below -->
+    <!--v-if-->
+    <!---->
+    <!----><span class="v-card__underlay"></span>
+  </div>
+  <div data-v-d7a09f69="" class="v-card v-theme--light v-card--density-default v-card--variant-flat bg-transparent">
+    <!---->
+    <div class="v-card__loader">
+      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+        <!---->
+        <div class="v-progress-linear__background"></div>
+        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+          <div class="v-progress-linear__indeterminate">
+            <div class="v-progress-linear__indeterminate long"></div>
+            <div class="v-progress-linear__indeterminate short"></div>
+          </div>
+        </transition-stub>
+        <!---->
       </div>
-      <!---->
     </div>
-    <div data-v-d7a09f69="" class="v-card-text pt-4">
+    <!---->
+    <!---->
+    <div data-v-d7a09f69="" class="v-card-text pt-0">
       <div data-v-d7a09f69="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="list" data-test="billing-details-list">
         <div data-v-d7a09f69="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;" data-test="billing-portal-section">
           <div class="v-card-item__prepend"><i data-v-d7a09f69="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" data-test="billing-portal-icon"></i></div>

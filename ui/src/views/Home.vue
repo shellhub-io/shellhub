@@ -1,88 +1,40 @@
 <template>
   <div v-if="!hasError">
-    <v-card
-      class="bg-transparent mb-6"
-      elevation="0"
-      rounded="0"
+    <PageHeader
+      icon="mdi-home"
+      :title="hasNamespace ? namespace.name : 'No Active Namespace'"
+      overline="Home"
+      :description="activeNamespaceDescription"
+      icon-color="primary"
+      class="mb-6"
     >
-      <v-row>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <div class="d-flex align-start">
-            <v-avatar
-              color="primary"
-              size="48"
-              class="mr-4"
-            >
-              <v-icon
-                size="32"
-                icon="mdi-home"
-              />
-            </v-avatar>
-            <div>
-              <div class="text-overline text-medium-emphasis mb-1">Home</div>
-              <div class="text-h5 font-weight-bold mb-2">
-                {{ hasNamespace ? namespace.name : "No Active Namespace" }}
-              </div>
-              <div class="text-body-2 text-medium-emphasis">{{ activeNamespaceDescription }}</div>
-            </div>
+      <template #actions>
+        <div v-if="hasNamespace">
+          <v-btn
+            to="/settings/namespace"
+            color="primary"
+            variant="elevated"
+            text="Settings"
+            data-test="namespace-settings-btn"
+          />
+        </div>
+        <div v-else>
+          <div class="text-overline text-medium-emphasis mb-2">Create your first namespace</div>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            prepend-icon="mdi-plus"
+            data-test="create-namespace-home-btn"
+            text="Create Namespace"
+            class="mb-2"
+            @click="showNamespaceAdd = true"
+          />
+          <div class="text-caption text-medium-emphasis">
+            You need to create or join a namespace to start managing your devices and remote connections.
           </div>
-        </v-col>
-        <v-col
-          cols="12"
-          md="6"
-        >
-          <v-card
-            class="pa-4"
-            variant="tonal"
-          >
-            <div v-if="hasNamespace">
-              <div class="text-overline text-medium-emphasis mb-2">TENANT ID</div>
-              <div class="d-flex align-center justify-space-between">
-                <code
-                  class="text-primary"
-                  data-test="tenant-info-text"
-                >{{ namespace.tenant_id }}</code>
-                <CopyWarning copied-item="Tenant ID">
-                  <template #default="{ copyText }">
-                    <v-btn
-                      data-test="copy-tenant-btn"
-                      color="primary"
-                      variant="elevated"
-                      size="small"
-                      prepend-icon="mdi-content-copy"
-                      @click="copyText(namespace.tenant_id)"
-                    >
-                      Copy
-                    </v-btn>
-                  </template>
-                </CopyWarning>
-              </div>
-              <div class="text-caption text-medium-emphasis mt-2">Use this ID to register new devices to this namespace</div>
-            </div>
-            <div v-else>
-              <div class="text-overline text-medium-emphasis">Create your first namespace</div>
-              <div class="my-2">
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  size="small"
-                  prepend-icon="mdi-plus"
-                  data-test="create-namespace-home-btn"
-                  text="Create Namespace"
-                  @click="showNamespaceAdd = true"
-                />
-              </div>
-              <div class="text-caption text-medium-emphasis">
-                You need to create or join a namespace to start managing your devices and remote connections.
-              </div>
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-card>
+        </div>
+      </template>
+    </PageHeader>
 
     <div v-if="hasNamespace">
       <v-row>
@@ -92,7 +44,7 @@
         >
           <v-icon
             class="mr-2"
-            icon="mdi-devices"
+            icon="mdi-developer-board"
           />
           <h2 class="text-h6">Devices</h2>
         </v-col>
@@ -179,9 +131,9 @@ import { computed, ref } from "vue";
 import useNamespacesStore from "@/store/modules/namespaces";
 import useDevicesStore from "@/store/modules/devices";
 import DeviceAdd from "@/components/Devices/DeviceAdd.vue";
-import CopyWarning from "@/components/User/CopyWarning.vue";
 import StatCard from "@/components/StatCard.vue";
 import NamespaceAdd from "@/components/Namespace/NamespaceAdd.vue";
+import PageHeader from "@/components/PageHeader.vue";
 
 const namespacesStore = useNamespacesStore();
 const devicesStore = useDevicesStore();

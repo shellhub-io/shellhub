@@ -13,66 +13,51 @@
       v-model="showDeleteAccountDialog"
       data-test="delete-user-dialog"
     />
+    <PageHeader
+      icon="mdi-account-circle"
+      title="Account Profile"
+      overline="Settings"
+      description="Manage your personal account information, authentication settings, and security preferences."
+      icon-color="primary"
+      data-test="account-profile-card"
+    >
+      <template #actions>
+        <v-btn
+          v-if="!editDataStatus"
+          color="primary"
+          variant="elevated"
+          data-test="edit-profile-button"
+          @click="editDataStatus = !editDataStatus"
+        >
+          Edit Profile
+        </v-btn>
+        <template v-else>
+          <v-btn
+            color="primary"
+            variant="text"
+            class="mr-2"
+            data-test="cancel-edit-button"
+            @click="cancel('data')"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            data-test="save-changes-button"
+            @click="updateUserData"
+          >
+            Save Changes
+          </v-btn>
+        </template>
+      </template>
+    </PageHeader>
+
     <v-card
       variant="flat"
       class="bg-transparent"
-      data-test="account-profile-card"
     >
-      <v-card-item>
-        <v-list-item
-          class="pa-0"
-          data-test="profile-header"
-        >
-          <template #prepend>
-            <UserIcon
-              size="4rem"
-              data-test="user-icon"
-            />
-          </template>
-          <template #title>
-            <h1 data-test="profile-title">
-              Account Profile
-            </h1>
-          </template>
-          <template #subtitle>
-            <span data-test="profile-subtitle">Manage your account profile</span>
-          </template>
-          <template #append>
-            <div class="mr-4">
-              <v-btn
-                v-if="!editDataStatus"
-                color="primary"
-                variant="elevated"
-                data-test="edit-profile-button"
-                @click="editDataStatus = !editDataStatus"
-              >
-                Edit Profile
-              </v-btn>
-              <template v-else>
-                <v-btn
-                  color="primary"
-                  variant="text"
-                  class="mr-2"
-                  data-test="cancel-edit-button"
-                  @click="cancel('data')"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  variant="flat"
-                  data-test="save-changes-button"
-                  @click="updateUserData"
-                >
-                  Save Changes
-                </v-btn>
-              </template>
-            </div>
-          </template>
-        </v-list-item>
-      </v-card-item>
-
-      <v-card-text class="pt-4">
+      <v-card-text class="pt-0">
         <v-list
           border
           rounded
@@ -295,7 +280,7 @@ import MfaSettings from "../AuthMFA/MfaSettings.vue";
 import MfaDisable from "../AuthMFA/MfaDisable.vue";
 import UserDelete from "../User/UserDelete.vue";
 import UserDeleteWarning from "../User/UserDeleteWarning.vue";
-import UserIcon from "../User/UserIcon.vue";
+import PageHeader from "../PageHeader.vue";
 import { envVariables } from "@/envVariables";
 import ChangePassword from "../User/ChangePassword.vue";
 import useSnackbar from "@/helpers/snackbar";

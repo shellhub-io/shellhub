@@ -1,5 +1,5 @@
 <template>
-  <div class="mr-4">
+  <div>
     <v-menu
       v-model="isMenuOpen"
       location="bottom"
@@ -17,8 +17,8 @@
           <v-btn
             v-bind="props"
             data-test="tags-btn"
-            color="primary"
-            variant="outlined"
+            border
+            variant="text"
             append-icon="mdi-chevron-down"
             text="Tags"
           />

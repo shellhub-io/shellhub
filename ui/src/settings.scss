@@ -1,0 +1,12 @@
+// ShellHub Vuetify SASS Settings
+// This file overrides Vuetify's default SASS variables
+// Documentation: https://vuetifyjs.com/en/features/sass-variables/
+
+@forward 'vuetify/settings' with (
+  // Override field outline opacity to match other components (default is 0.38)
+  $field-outline-opacity: 0.12,
+
+  // Align button, button-group, and text-field heights to 56px
+  $button-height: 40px,
+  $btn-group-height: 40px
+);

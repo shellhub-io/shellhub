@@ -90,9 +90,6 @@ describe("Setting Namespace", () => {
 
   const dataTests = [
     "card",
-    "card-header",
-    "card-title",
-    "card-subtitle",
     "edit-namespace-btn",
     "profile-details-list",
     "profile-details-item",

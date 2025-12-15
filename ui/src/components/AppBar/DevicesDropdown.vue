@@ -164,7 +164,7 @@
                     >
                       <template #prepend>
                         <v-icon
-                          icon="mdi-devices"
+                          icon="mdi-developer-board"
                           color="primary"
                           size="small"
                           class="mr-n3 ml-1"

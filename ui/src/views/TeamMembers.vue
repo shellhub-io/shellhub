@@ -1,19 +1,16 @@
 <template>
-  <div
-    class="d-flex pa-0 align-center"
+  <PageHeader
+    icon="mdi-account-multiple"
+    title="Members"
+    overline="Team Management"
+    description="Manage team members and their access to this namespace. Invite collaborators and control their permissions."
+    icon-color="primary"
     data-test="title"
   >
-    <h1>Members</h1>
-
-    <v-spacer />
-
-    <div
-      class="d-flex"
-      data-test="member-invite"
-    >
+    <template #actions>
       <MemberInvite @update="getNamespace" />
-    </div>
-  </div>
+    </template>
+  </PageHeader>
 
   <div
     class="mt-2"
@@ -29,6 +26,7 @@ import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import MemberInvite from "@/components/Team/Member/MemberInvite.vue";
 import MemberList from "@/components/Team/Member/MemberList.vue";
+import PageHeader from "@/components/PageHeader.vue";
 import useSnackbar from "@/helpers/snackbar";
 import useNamespacesStore from "@/store/modules/namespaces";
 

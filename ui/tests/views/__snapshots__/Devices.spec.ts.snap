@@ -1,20 +1,49 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Devices View > Renders the component 1`] = `
-"<div class="d-flex flex-column justify-space-between align-center flex-sm-row" data-test="device-title">
-  <h1>Devices</h1>
-  <div class="v-col-md-6 v-col">
-    <!--v-if-->
+"<div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-6 bg-transparent mb-6 position-relative overflow-hidden border-b mx-n8 mt-n8" data-test="device-title">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
   </div>
-  <div class="d-flex" data-test="device-header-component-group">
-    <!--v-if--><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-      <!----><span class="v-btn__content" data-no-activator="">Add Device</span>
+  <!---->
+  <!---->
+  <div class="d-flex align-start justify-space-between position-relative" style="z-index: 1;">
+    <!-- Left side: Icon + Title + Description -->
+    <div class="d-flex align-start flex-grow-1">
+      <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-4" style="width: 48px; height: 48px;"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+        <!----><span class="v-avatar__underlay"></span>
+      </div>
+      <div>
+        <div class="text-overline text-medium-emphasis mb-1">Device Management</div>
+        <div class="text-h5 font-weight-bold mb-2">Devices</div>
+        <div class="text-body-2 text-medium-emphasis">Manage and monitor all devices connected to this namespace. Install the ShellHub agent on your devices to register them.</div>
+        <!--v-if-->
+      </div>
+    </div><!-- Right side: Actions -->
+    <div class="ml-4"><button tabindex="0" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated" data-test="device-add-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator="">Add Device</span>
+        <!---->
+        <!---->
+      </button>
       <!---->
       <!---->
-    </button>
-    <!---->
-    <!---->
-  </div>
+    </div>
+  </div><!-- Extra content below -->
+  <!--v-if-->
+  <!---->
+  <!----><span class="v-card__underlay"></span>
 </div>
 <div data-v-94cd2bfb="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated bg-v-theme-surface mx-auto py-6 border text-center position-relative mt-2" data-test="no-items-message-component">
   <!---->

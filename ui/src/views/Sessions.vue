@@ -1,10 +1,12 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2"
+  <PageHeader
+    icon="mdi-history"
+    title="Sessions"
+    overline="SSH Sessions"
+    description="View and monitor all SSH connections to your devices. Each session is created when a connection is established."
+    icon-color="primary"
     data-test="sessions-title"
-  >
-    <h1>Sessions</h1>
-  </div>
+  />
   <div>
     <SessionList
       v-if="hasSession"
@@ -36,6 +38,7 @@
 import { computed, onMounted } from "vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import SessionList from "../components/Sessions/SessionList.vue";
+import PageHeader from "../components/PageHeader.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useSessionsStore from "@/store/modules/sessions";

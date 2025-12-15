@@ -1,36 +1,16 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-sm-row"
+  <PageHeader
+    icon="mdi-docker"
+    title="Containers"
+    overline="Container Management"
+    :description="description"
+    icon-color="primary"
     data-test="device-title"
   >
-    <h1>Containers</h1>
-    <v-col md="6">
-      <v-text-field
-        v-if="showContainers"
-        v-model.trim="filter"
-        label="Search by hostname"
-        variant="outlined"
-        color="primary"
-        single-line
-        hide-details
-        prepend-inner-icon="mdi-magnify"
-        density="compact"
-        data-test="search-text"
-        @keyup="searchContainers"
-      />
-    </v-col>
-
-    <div
-      class="d-flex"
-      data-test="device-header-component-group"
-    >
-      <TagSelector
-        v-if="isContainerList"
-        variant="container"
-      />
+    <template #actions>
       <ContainerAdd />
-    </div>
-  </div>
+    </template>
+  </PageHeader>
   <div
     v-if="showContainers"
     class="mt-2"
@@ -60,42 +40,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed } from "vue";
 import Containers from "../components/Containers/Container.vue";
-import TagSelector from "../components/Tags/TagSelector.vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import ContainerAdd from "../components/Containers/ContainerAdd.vue";
-import useSnackbar from "@/helpers/snackbar";
+import PageHeader from "../components/PageHeader.vue";
 import useContainersStore from "@/store/modules/containers";
 
+const description
+  = "View and manage Docker containers from connected Docker Engine connectors. "
+    + "Access and monitor your containerized applications.";
+
 const containersStore = useContainersStore();
-const router = useRouter();
-const isContainerList = computed(() => router.currentRoute.value.name === "ContainerList");
-const filter = ref("");
 const showContainers = computed(() => containersStore.showContainers);
-const snackbar = useSnackbar();
-
-const searchContainers = async () => {
-  let encodedFilter = "";
-
-  if (filter.value) {
-    const filterToEncodeBase64 = [
-      {
-        type: "property",
-        params: { name: "name", operator: "contains", value: filter.value },
-      },
-    ];
-    encodedFilter = btoa(JSON.stringify(filterToEncodeBase64));
-  }
-
-  try {
-    await containersStore.fetchContainerList({
-      filter: encodedFilter,
-    });
-  } catch {
-    snackbar.showError("An error occurred while searching for containers.");
-  }
-};
-
 </script>

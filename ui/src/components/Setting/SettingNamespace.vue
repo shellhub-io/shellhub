@@ -13,61 +13,52 @@
       v-model="editAnnouncement"
       @update="getNamespace"
     />
+    <PageHeader
+      icon="mdi-cloud-braces"
+      title="Namespace"
+      overline="Settings"
+      description="Manage the namespace settings including name, type, and access controls."
+      icon-color="primary"
+      data-test="card"
+    >
+      <template #actions>
+        <v-btn
+          v-if="!editDataStatus"
+          :disabled="!canRenameNamespace"
+          color="primary"
+          variant="elevated"
+          data-test="edit-namespace-btn"
+          @click="editDataStatus = true"
+        >
+          Edit Namespace
+        </v-btn>
+        <template v-else>
+          <v-btn
+            color="primary"
+            variant="text"
+            class="mr-2"
+            data-test="cancel-edit-btn"
+            @click="cancel"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            data-test="save-changes-btn"
+            :disabled="!!nameError"
+            @click="updateName"
+          >
+            Save Changes
+          </v-btn>
+        </template>
+      </template>
+    </PageHeader>
     <v-card
       variant="flat"
       class="bg-transparent"
-      data-test="card"
     >
-      <v-card-item>
-        <v-list-item
-          class="pa-0"
-          data-test="card-header"
-        >
-          <template #title>
-            <h1 data-test="card-title">
-              Namespace
-            </h1>
-          </template>
-          <template #subtitle>
-            <span data-test="card-subtitle">Manage the namespace settings</span>
-          </template>
-          <template #append>
-            <div class="mr-4">
-              <v-btn
-                v-if="!editDataStatus"
-                :disabled="!canRenameNamespace"
-                color="primary"
-                variant="elevated"
-                data-test="edit-namespace-btn"
-                @click="editDataStatus = true"
-              >
-                Edit Namespace
-              </v-btn>
-              <template v-else>
-                <v-btn
-                  color="primary"
-                  variant="text"
-                  class="mr-2"
-                  data-test="cancel-edit-btn"
-                  @click="cancel"
-                >
-                  Cancel
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  variant="flat"
-                  data-test="save-changes-btn"
-                  :disabled="!!nameError"
-                  @click="updateName"
-                >
-                  Save Changes
-                </v-btn>
-              </template>
-            </div>
-          </template>
-        </v-list-item>
-      </v-card-item>
-      <v-card-text class="pt-4">
+      <v-card-text class="pt-0">
         <v-list
           border
           rounded
@@ -315,6 +306,7 @@ import hasPermission from "@/utils/permission";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import ConnectionAnnouncementEdit from "../Namespace/ConnectionAnnouncementEdit.vue";
+import PageHeader from "../PageHeader.vue";
 import handleError from "@/utils/handleError";
 import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
 import useSnackbar from "@/helpers/snackbar";

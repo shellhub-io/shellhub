@@ -26,6 +26,9 @@ export default defineConfig({
     Vue(),
     VuetifyPlugin({
       autoImport: true,
+      styles: {
+        configFile: 'src/settings.scss',
+      },
     }),
     Markdown({ markdownItOptions: {
       html: true,
