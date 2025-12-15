@@ -80,10 +80,10 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
                           <!---->Username
-                        </label><label class="v-label v-field-label" for="input-v-2">
+                        </label><label class="v-label v-field-label" id="input-v-2-label" for="input-v-2" aria-hidden="true">
                           <!---->Username
                         </label>
-                        <!----><input autofocus="" size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" validate-on-blur="true" class="v-field__input" value="">
+                        <!----><input autofocus="" size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" aria-describedby="input-v-2-messages" validate-on-blur="true" class="v-field__input" value="">
                         <!---->
                       </div>
                       <!---->
@@ -124,7 +124,7 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-7" aria-hidden="false">
                           <!---->Authentication method
-                        </label><label class="v-label v-field-label" for="input-v-7">
+                        </label><label class="v-label v-field-label" id="input-v-7-label" for="input-v-7" aria-hidden="true">
                           <!---->Authentication method
                         </label>
                         <!---->
@@ -134,14 +134,13 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                           </select>
                           <!---->
                           <!---->
-                          <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" id="input-v-7" inputmode="none" aria-expanded="false" aria-controls="menu-v-5" aria-label="Open" title="Open" value="Password">
+                          <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" aria-labelledby="input-v-7-label" id="input-v-7" inputmode="none" aria-expanded="false" aria-controls="menu-v-5" value="Password">
                         </div>
                         <!---->
                       </div>
                       <!---->
                       <div class="v-field__append-inner">
                         <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
-                        <!---->
                       </div>
                       <div class="v-field__outline">
                         <!---->
@@ -174,16 +173,14 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-11" aria-hidden="false">
                           <!---->Password
-                        </label><label class="v-label v-field-label" for="input-v-11">
+                        </label><label class="v-label v-field-label" id="input-v-11-label" for="input-v-11" aria-hidden="true">
                           <!---->Password
                         </label>
-                        <!----><input size="1" type="password" id="input-v-11" aria-describedby="input-v-11-messages" required="" class="v-field__input" value="">
+                        <!----><input size="1" type="password" aria-labelledby="input-v-11-label" id="input-v-11" aria-describedby="input-v-11-messages" required="" class="v-field__input" value="">
                         <!---->
                       </div>
                       <!---->
-                      <div class="v-field__append-inner">
-                        <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i>
-                      </div>
+                      <div class="v-field__append-inner"><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i></div>
                       <div class="v-field__outline">
                         <!---->
                         <!---->
@@ -327,10 +324,10 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
                           <!---->Username
-                        </label><label class="v-label v-field-label" for="input-v-2">
+                        </label><label class="v-label v-field-label" id="input-v-2-label" for="input-v-2" aria-hidden="true">
                           <!---->Username
                         </label>
-                        <!----><input autofocus="" size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" validate-on-blur="true" class="v-field__input" value="">
+                        <!----><input autofocus="" size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" aria-describedby="input-v-2-messages" validate-on-blur="true" class="v-field__input" value="">
                         <!---->
                       </div>
                       <!---->
@@ -371,7 +368,7 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-7" aria-hidden="false">
                           <!---->Authentication method
-                        </label><label class="v-label v-field-label" for="input-v-7">
+                        </label><label class="v-label v-field-label" id="input-v-7-label" for="input-v-7" aria-hidden="true">
                           <!---->Authentication method
                         </label>
                         <!---->
@@ -381,14 +378,13 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                           </select>
                           <!---->
                           <!---->
-                          <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" id="input-v-7" inputmode="none" aria-expanded="false" aria-controls="menu-v-5" aria-label="Open" title="Open" value="Password">
+                          <div class="v-select__selection"><span class="v-select__selection-text">Password<!----></span></div><input size="1" role="combobox" type="text" aria-labelledby="input-v-7-label" id="input-v-7" inputmode="none" aria-expanded="false" aria-controls="menu-v-5" value="Password">
                         </div>
                         <!---->
                       </div>
                       <!---->
                       <div class="v-field__append-inner">
                         <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
-                        <!---->
                       </div>
                       <div class="v-field__outline">
                         <!---->
@@ -421,16 +417,14 @@ exports[`Terminal Login Form > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-11" aria-hidden="false">
                           <!---->Password
-                        </label><label class="v-label v-field-label" for="input-v-11">
+                        </label><label class="v-label v-field-label" id="input-v-11-label" for="input-v-11" aria-hidden="true">
                           <!---->Password
                         </label>
-                        <!----><input size="1" type="password" id="input-v-11" aria-describedby="input-v-11-messages" required="" class="v-field__input" value="">
+                        <!----><input size="1" type="password" aria-labelledby="input-v-11-label" id="input-v-11" aria-describedby="input-v-11-messages" required="" class="v-field__input" value="">
                         <!---->
                       </div>
                       <!---->
-                      <div class="v-field__append-inner">
-                        <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i>
-                      </div>
+                      <div class="v-field__append-inner"><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i></div>
                       <div class="v-field__outline">
                         <!---->
                         <!---->

@@ -106,10 +106,10 @@ exports[`Configure SSO > Renders the component 1`] = `
                         </div>
                         <!---->
                         <div class="v-field__field" data-no-activator="">
-                          <!----><label class="v-label v-field-label" for="input-v-5">
+                          <!----><label class="v-label v-field-label" id="input-v-5-label" for="input-v-5" aria-hidden="false">
                             <!---->IdP SignOn POST URL
                           </label>
-                          <!----><input size="1" type="text" id="input-v-5" aria-describedby="input-v-5-messages" required="" class="v-field__input" value="">
+                          <!----><input size="1" type="text" aria-labelledby="input-v-5-label" id="input-v-5" aria-describedby="input-v-5-messages" required="" class="v-field__input" value="">
                           <!---->
                         </div>
                         <!---->
@@ -150,10 +150,10 @@ exports[`Configure SSO > Renders the component 1`] = `
                         </div>
                         <!---->
                         <div class="v-field__field" data-no-activator="">
-                          <!----><label class="v-label v-field-label" for="input-v-8">
+                          <!----><label class="v-label v-field-label" id="input-v-8-label" for="input-v-8" aria-hidden="false">
                             <!---->IdP SignOn Redirect URL
                           </label>
-                          <!----><input size="1" type="text" id="input-v-8" aria-describedby="input-v-8-messages" required="" class="v-field__input" value="">
+                          <!----><input size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" aria-describedby="input-v-8-messages" required="" class="v-field__input" value="">
                           <!---->
                         </div>
                         <!---->
@@ -194,10 +194,10 @@ exports[`Configure SSO > Renders the component 1`] = `
                         </div>
                         <!---->
                         <div class="v-field__field" data-no-activator="">
-                          <!----><label class="v-label v-field-label" for="input-v-11">
+                          <!----><label class="v-label v-field-label" id="input-v-11-label" for="input-v-11" aria-hidden="false">
                             <!---->IdP Entity ID
                           </label>
-                          <!----><input size="1" type="text" id="input-v-11" aria-describedby="input-v-11-messages" required="" class="v-field__input" value="">
+                          <!----><input size="1" type="text" aria-labelledby="input-v-11-label" id="input-v-11" aria-describedby="input-v-11-messages" required="" class="v-field__input" value="">
                           <!---->
                         </div>
                         <!---->
@@ -238,10 +238,10 @@ exports[`Configure SSO > Renders the component 1`] = `
                         </div>
                         <!---->
                         <div class="v-field__field" data-no-activator="">
-                          <!----><label class="v-label v-field-label" for="input-v-14">
+                          <!----><label class="v-label v-field-label" id="input-v-14-label" for="input-v-14" aria-hidden="false">
                             <!---->IdP X.509 Certificate
                           </label>
-                          <!----><textarea class="v-field__input" rows="5" id="input-v-14" aria-describedby="input-v-14-messages" required="" value=""></textarea>
+                          <!----><textarea class="v-field__input" rows="5" aria-labelledby="input-v-14-label" id="input-v-14" aria-describedby="input-v-14-messages" required="" value=""></textarea>
                           <!---->
                           <!---->
                         </div>

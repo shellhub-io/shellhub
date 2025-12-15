@@ -25,16 +25,14 @@ exports[`Users > Renders the component 1`] = `
         </div>
         <!---->
         <div class="v-field__field" data-no-activator="">
-          <!----><label class="v-label v-field-label" for="input-v-1">
+          <!----><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
             <!---->Search by username
           </label>
-          <!----><input size="1" type="text" id="input-v-1" class="v-field__input" value="">
+          <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" class="v-field__input" value="">
           <!---->
         </div>
         <!---->
-        <div class="v-field__append-inner">
-          <!----><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Search by username appended action"></i>
-        </div>
+        <div class="v-field__append-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Search by username appended action"></i></div>
         <div class="v-field__outline">
           <!---->
           <!---->
@@ -114,14 +112,13 @@ exports[`Users > Renders the component 1`] = `
               <div class="v-field__input" data-no-activator="">
                 <!---->
                 <!---->
-                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="number" id="input-v-7" aria-expanded="false" aria-controls="menu-v-5" value="10">
+                <div class="v-combobox__selection"><span class="v-combobox__selection-text">10<!----></span></div><input size="1" role="combobox" type="number" aria-labelledby="input-v-7-label" id="input-v-7" aria-expanded="false" aria-controls="menu-v-5" value="10">
               </div>
               <!---->
             </div>
             <!---->
             <div class="v-field__append-inner">
-              <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="false" tabindex="-1" aria-label="Open" title="Open"></i>
-              <!---->
+              <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="true" tabindex="-1"></i>
             </div>
             <div class="v-field__outline">
               <!---->

@@ -113,10 +113,10 @@ exports[`User Export > Renders the component 2`] = `
                       </div>
                       <!---->
                       <div class="v-field__field" data-no-activator="">
-                        <!----><label class="v-label v-field-label" for="input-v-8">
+                        <!----><label class="v-label v-field-label" id="input-v-8-label" for="input-v-8" aria-hidden="true">
                           <!---->Number of namespaces
                         </label>
-                        <!----><input size="1" type="text" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="0"><span class="v-text-field__suffix"><span class="v-text-field__suffix__text">namespaces</span></span>
+                        <!----><input size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="0"><span class="v-text-field__suffix"><span class="v-text-field__suffix__text">namespaces</span></span>
                       </div>
                       <!---->
                       <!---->

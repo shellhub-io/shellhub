@@ -80,7 +80,7 @@ exports[`Member Edit > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-4" aria-hidden="false">
                           <!---->Role
-                        </label><label class="v-label v-field-label" for="input-v-4">
+                        </label><label class="v-label v-field-label" id="input-v-4-label" for="input-v-4" aria-hidden="true">
                           <!---->Role
                         </label>
                         <!---->
@@ -91,14 +91,13 @@ exports[`Member Edit > Renders the component 1`] = `
                           </select>
                           <!---->
                           <!---->
-                          <div class="v-select__selection"><span class="v-select__selection-text">owner<!----></span></div><input size="1" role="combobox" type="text" id="input-v-4" inputmode="none" aria-expanded="false" aria-controls="menu-v-2" aria-label="Open" title="Open" required="" value="owner">
+                          <div class="v-select__selection"><span class="v-select__selection-text">owner<!----></span></div><input size="1" role="combobox" type="text" aria-labelledby="input-v-4-label" id="input-v-4" inputmode="none" aria-expanded="false" aria-controls="menu-v-2" required="" value="owner">
                         </div>
                         <!---->
                       </div>
                       <!---->
                       <div class="v-field__append-inner">
                         <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
-                        <!---->
                       </div>
                       <div class="v-field__outline">
                         <!---->

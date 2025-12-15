@@ -86,7 +86,7 @@ exports[`Setting Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-2" required="" class="v-field__input" value="test">
+                    <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" required="" class="v-field__input" value="test">
                     <!---->
                   </div>
                   <!---->

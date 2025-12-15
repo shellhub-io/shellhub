@@ -52,9 +52,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
             <!---->
           </div>
         </div>
-        <div class="v-field__prepend-inner"><i class="mdi-speedometer mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-          <!---->
-        </div>
+        <div class="v-field__prepend-inner"><i class="mdi-speedometer mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
         <div class="v-field__field" data-no-activator="">
           <!---->
           <!---->
@@ -67,14 +65,13 @@ exports[`Asciinema Player > Renders the component 1`] = `
             </select>
             <!---->
             <!---->
-            <div class="v-select__selection"><span class="v-select__selection-text">1<!----></span></div><input size="1" role="combobox" type="text" id="input-v-5" inputmode="none" aria-expanded="false" aria-controls="menu-v-3" aria-label="Open" title="Open" value="1">
+            <div class="v-select__selection"><span class="v-select__selection-text">1<!----></span></div><input size="1" role="combobox" type="text" aria-labelledby="input-v-5-label" id="input-v-5" inputmode="none" aria-expanded="false" aria-controls="menu-v-3" value="1">
           </div>
           <!---->
         </div>
         <!---->
         <div class="v-field__append-inner">
           <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
-          <!---->
         </div>
         <div class="v-field__outline">
           <!---->

@@ -98,7 +98,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-2" required="" class="v-field__input" value="">
+                    <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
@@ -147,7 +147,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                     <div class="v-field__field" data-no-activator="">
                       <!---->
                       <!---->
-                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-5" required="" class="v-field__input" value="">
+                      <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-5-label" id="input-v-5" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -196,7 +196,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                   <div class="v-field__field" data-no-activator="">
                     <!---->
                     <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" id="input-v-8" required="" class="v-field__input" value="">
+                    <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" required="" class="v-field__input" value="">
                     <!---->
                   </div>
                   <!---->
@@ -245,7 +245,7 @@ exports[`Settings Namespace > Renders the component 1`] = `
                     <div class="v-field__field" data-no-activator="">
                       <!---->
                       <!---->
-                      <!----><input readonly="" disabled="" size="1" type="text" id="input-v-11" required="" class="v-field__input" value="">
+                      <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-11-label" id="input-v-11" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
