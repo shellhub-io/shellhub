@@ -9,7 +9,7 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/go-playground/assert/v2 v2.2.0
-	github.com/labstack/echo/v4 v4.13.4
+	github.com/labstack/echo/v4 v4.14.0
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/openwall/yescrypt-go v1.0.0
 	github.com/pkg/errors v0.9.1
@@ -67,7 +67,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
-	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
