@@ -2,6 +2,7 @@ import { createVuetify } from "vuetify";
 import { mount, VueWrapper, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DataTable from "@/components/Tables/DataTable.vue";
+import * as useTablePreferenceModule from "@/composables/useTablePreference";
 
 type DataTableWrapper = VueWrapper<InstanceType<typeof DataTable>>;
 
@@ -183,6 +184,76 @@ describe("DataTable", () => {
 
       text = wrapper.find('[data-test="pager-text"]').text();
       expect(text).toContain("1 of 2");
+    });
+  });
+
+  describe("persistence with tableName prop", () => {
+    let mockGetItemsPerPage: ReturnType<typeof vi.fn>;
+    let mockSetItemsPerPage: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      mockGetItemsPerPage = vi.fn().mockReturnValue(10);
+      mockSetItemsPerPage = vi.fn();
+
+      vi.spyOn(useTablePreferenceModule, "useTablePreference").mockReturnValue({
+        getItemsPerPage: mockGetItemsPerPage,
+        setItemsPerPage: mockSetItemsPerPage,
+      });
+    });
+
+    it("should load initial itemsPerPage from localStorage when tableName is provided", async () => {
+      mockGetItemsPerPage.mockReturnValue(50);
+
+      const localWrapper = mountWrapper({ tableName: "sessions", itemsPerPage: 10 });
+      await uiTick();
+
+      expect(mockGetItemsPerPage).toHaveBeenCalledWith("sessions");
+
+      const ippEvents = localWrapper.emitted("update:itemsPerPage");
+      expect(ippEvents).toBeTruthy();
+      expect(ippEvents && ippEvents[0]).toEqual([50]);
+
+      localWrapper.unmount();
+    });
+
+    it("should not call persistence functions when tableName is not provided", async () => {
+      const localWrapper = mountWrapper({ itemsPerPage: 10 });
+      await uiTick();
+
+      const combo = localWrapper.findComponent({ name: "VCombobox" });
+      combo.vm.$emit("update:modelValue", 20);
+      await uiTick();
+
+      expect(mockSetItemsPerPage).not.toHaveBeenCalled();
+
+      localWrapper.unmount();
+    });
+
+    it("should save to localStorage when itemsPerPage changes and tableName is provided", async () => {
+      const localWrapper = mountWrapper({ tableName: "devices", itemsPerPage: 10 });
+      await uiTick();
+
+      const combo = localWrapper.findComponent({ name: "VCombobox" });
+      combo.vm.$emit("update:modelValue", 25);
+      await uiTick();
+
+      expect(mockSetItemsPerPage).toHaveBeenCalledWith("devices", 25);
+
+      localWrapper.unmount();
+    });
+
+    it("should handle localStorage failures gracefully without breaking functionality", async () => {
+      vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new Error("localStorage error");
+      });
+
+      const localWrapper = mountWrapper({ tableName: "sessions", itemsPerPage: 10 });
+      await uiTick();
+
+      expect(localWrapper.vm).toBeTruthy();
+      expect(localWrapper.find('[data-test="datatable"]').exists()).toBe(true);
+
+      localWrapper.unmount();
     });
   });
 });

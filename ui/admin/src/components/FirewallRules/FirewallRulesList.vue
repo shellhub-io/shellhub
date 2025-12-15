@@ -7,6 +7,7 @@
     :loading
     :total-count="firewallRulesCount"
     :items-per-page-options="[10, 20, 50, 100]"
+    table-name="adminFirewallRules"
     data-test="firewall-rules-list"
   >
     <template #rows>

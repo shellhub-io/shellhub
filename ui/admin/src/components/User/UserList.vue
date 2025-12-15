@@ -7,6 +7,7 @@
     :loading
     :items-per-page-options="[10, 20, 50, 100]"
     :total-count="userCount"
+    table-name="adminUsers"
     data-test="users-list"
   >
     <template #rows>

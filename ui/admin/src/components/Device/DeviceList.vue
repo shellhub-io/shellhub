@@ -8,6 +8,7 @@
       :loading
       :total-count="devicesCount"
       :items-per-page-options="[10, 20, 50, 100]"
+      table-name="adminDevices"
       data-test="devices-list"
       @update:sort="sortByItem"
     >

@@ -8,6 +8,7 @@
       :total-count="apiKeysCount"
       :loading
       :items-per-page-options="[10, 20, 50, 100]"
+      table-name="apiKeys"
       data-test="api-key-list"
       @update:sort="sortByItem"
     >

@@ -8,6 +8,7 @@
       :loading="loading"
       :total-count="namespaceCount"
       :items-per-page-options="[10, 20, 50, 100]"
+      table-name="adminNamespaces"
       data-test="namespaces-list"
     >
       <template #rows>

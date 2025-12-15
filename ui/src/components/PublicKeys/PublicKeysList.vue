@@ -8,6 +8,7 @@
       :total-count="publicKeyCount"
       :loading
       :items-per-page-options="[10, 20, 50, 100]"
+      table-name="publicKeys"
       data-test="public-keys-list"
     >
       <template #rows>

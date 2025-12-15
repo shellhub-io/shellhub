@@ -8,6 +8,7 @@
       :total-count="invitationCount"
       :loading
       :items-per-page-options="[10, 20, 50, 100]"
+      table-name="invitations"
       data-test="invitations-list"
     >
       <template #rows>
