@@ -46,7 +46,7 @@ jobs:
         run: mkdir bundled/
 
       - name: Download artificats
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: bundled
           path: bundled/
