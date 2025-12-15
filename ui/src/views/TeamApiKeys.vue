@@ -1,4 +1,20 @@
 <template>
+  <PageHeader
+    icon="mdi-key"
+    title="API Keys"
+    overline="Team Management"
+    description="API Keys allow you to authenticate and integrate external applications or scripts with ShellHub securely."
+    icon-color="primary"
+    data-test="api-key-title"
+  >
+    <template #actions>
+      <ApiKeyGenerate
+        v-if="hasApiKeys"
+        @update="refreshApiKeys"
+      />
+    </template>
+  </PageHeader>
+
   <div
     v-if="loading"
     class="d-flex justify-center mt-4"
@@ -9,53 +25,37 @@
     />
   </div>
 
-  <div v-else>
-    <div
-      class="d-flex pa-0 align-center"
-      data-test="title"
-    >
-      <h1>API Keys</h1>
-
-      <v-spacer />
-
-      <div
-        v-if="hasApiKeys"
-        class="d-flex"
-        data-test="api-key-generate"
-      >
-        <ApiKeyGenerate @update="refreshApiKeys" />
-      </div>
-    </div>
-
-    <div
-      v-if="hasApiKeys"
-      class="mt-2"
+  <div
+    v-else-if="hasApiKeys"
+    class="mt-2"
+  >
+    <ApiKeyList
+      ref="apiKeyList"
       data-test="api-key-list"
-    >
-      <ApiKeyList ref="apiKeyList" />
-    </div>
-
-    <NoItemsMessage
-      v-else
-      item="API Keys"
-      icon="mdi-cloud-key"
-      data-test="no-items-message-component"
-    >
-      <template #content>
-        <p>
-          API Keys allow you to authenticate and integrate external applications
-          or scripts with ShellHub securely.
-        </p>
-        <p>
-          They are essential for automating tasks without manual user intervention,
-          enabling third-party apps to interact with your resources based on specific permissions.
-        </p>
-      </template>
-      <template #action>
-        <ApiKeyGenerate @update="refreshApiKeys" />
-      </template>
-    </NoItemsMessage>
+    />
   </div>
+
+  <NoItemsMessage
+    v-else
+    class="mt-2"
+    item="API Keys"
+    icon="mdi-cloud-key"
+    data-test="no-items-message-component"
+  >
+    <template #content>
+      <p>
+        API Keys allow you to authenticate and integrate external applications
+        or scripts with ShellHub securely.
+      </p>
+      <p>
+        They are essential for automating tasks without manual user intervention,
+        enabling third-party apps to interact with your resources based on specific permissions.
+      </p>
+    </template>
+    <template #action>
+      <ApiKeyGenerate @update="refreshApiKeys" />
+    </template>
+  </NoItemsMessage>
 </template>
 
 <script setup lang="ts">
@@ -63,6 +63,7 @@ import { ref, computed, onMounted } from "vue";
 import ApiKeyGenerate from "@/components/Team/ApiKeys/ApiKeyGenerate.vue";
 import ApiKeyList from "@/components/Team/ApiKeys/ApiKeyList.vue";
 import NoItemsMessage from "@/components/NoItemsMessage.vue";
+import PageHeader from "@/components/PageHeader.vue";
 import useApiKeysStore from "@/store/modules/api_keys";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";

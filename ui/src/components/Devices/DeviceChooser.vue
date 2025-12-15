@@ -3,7 +3,7 @@
     v-if="canChooseDevices"
     v-model="showDialog"
     title="Update account or select three devices"
-    icon="mdi-devices"
+    icon="mdi-developer-board"
     confirm-text="Accept"
     cancel-text="Close"
     :confirm-disabled="disableButton"

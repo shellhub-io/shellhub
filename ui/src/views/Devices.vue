@@ -1,36 +1,16 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-sm-row"
+  <PageHeader
+    icon="mdi-developer-board"
+    title="Devices"
+    overline="Device Management"
+    description="Manage and monitor all devices connected to this namespace. Install the ShellHub agent on your devices to register them."
+    icon-color="primary"
     data-test="device-title"
   >
-    <h1>Devices</h1>
-    <v-col md="6">
-      <v-text-field
-        v-if="showDevices"
-        v-model.trim="filter"
-        label="Search by hostname"
-        variant="outlined"
-        color="primary"
-        single-line
-        hide-details
-        prepend-inner-icon="mdi-magnify"
-        density="compact"
-        data-test="search-text"
-        @update:model-value="updateDeviceListFilter"
-      />
-    </v-col>
-
-    <div
-      class="d-flex"
-      data-test="device-header-component-group"
-    >
-      <TagSelector
-        v-if="isDeviceList"
-        variant="device"
-      />
+    <template #actions>
       <DeviceAdd />
-    </div>
-  </div>
+    </template>
+  </PageHeader>
   <div
     v-if="showDevices"
     class="mt-2"
@@ -65,28 +45,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed } from "vue";
 import Device from "../components/Devices/Device.vue";
 import DeviceAdd from "../components/Devices/DeviceAdd.vue";
-import TagSelector from "../components/Tags/TagSelector.vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
+import PageHeader from "../components/PageHeader.vue";
 import useDevicesStore from "@/store/modules/devices";
 
 const devicesStore = useDevicesStore();
-const route = useRoute();
-const filter = ref("");
 const showDevices = computed(() => devicesStore.showDevices);
-const isDeviceList = computed(() => route.name === "DeviceList");
-
-const updateDeviceListFilter = () => {
-  const base64DeviceFilter = [{
-    type: "property",
-    params: { name: "name", operator: "contains", value: filter.value },
-  }];
-
-  const encodedFilter = filter.value ? btoa(JSON.stringify(base64DeviceFilter)) : undefined;
-
-  devicesStore.deviceListFilter = encodedFilter;
-};
 </script>

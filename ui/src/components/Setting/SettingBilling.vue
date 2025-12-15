@@ -11,39 +11,32 @@
       v-model="dialogCheckout"
       @reload="reload"
     />
+    <PageHeader
+      icon="mdi-credit-card"
+      title="Billing"
+      overline="Settings"
+      description="Manage your subscription plan, payment methods, and billing information."
+      icon-color="primary"
+      data-test="billing-card"
+    >
+      <template #actions>
+        <v-btn
+          color="primary"
+          variant="elevated"
+          class="align-content-lg-center text-none text-uppercase"
+          :disabled="billingStatus === ''"
+          data-test="subscribe-button"
+          @click="dialogCheckout = true"
+        >
+          Subscribe
+        </v-btn>
+      </template>
+    </PageHeader>
     <v-card
       variant="flat"
       class="bg-transparent"
-      data-test="billing-card"
     >
-      <v-card-item>
-        <v-list-item
-          class="pa-0"
-          data-test="billing-header"
-        >
-          <template #title>
-            <h1 data-test="billing-title">
-              Billing
-            </h1>
-          </template>
-          <template #subtitle>
-            <span data-test="billing-subtitle">Manage your subscription info</span>
-          </template>
-          <template #append>
-            <v-btn
-              color="primary"
-              variant="elevated"
-              class="align-content-lg-center text-none text-uppercase"
-              :disabled="billingStatus === ''"
-              data-test="subscribe-button"
-              @click="dialogCheckout = true"
-            >
-              Subscribe
-            </v-btn>
-          </template>
-        </v-list-item>
-      </v-card-item>
-      <v-card-text class="pt-4">
+      <v-card-text class="pt-0">
         <v-list
           border
           rounded
@@ -218,6 +211,7 @@ import { useEventListener } from "@vueuse/core";
 import hasPermission from "@/utils/permission";
 import BillingDialog from "../Billing/BillingDialog.vue";
 import SettingOwnerInfo from "./SettingOwnerInfo.vue";
+import PageHeader from "../PageHeader.vue";
 import formatCurrency from "@/utils/currency";
 import { formatUnixToDate } from "@/utils/date";
 import handleError from "@/utils/handleError";

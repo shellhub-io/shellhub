@@ -1,38 +1,128 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Device > Renders correctly 1`] = `
-"<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a href="/devices" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
-    <!---->
-    <!---->
-  </a><a href="/devices/pending" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Pending</span>
-    <!---->
-    <!---->
-  </a><a href="/devices/rejected" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Rejected</span>
-    <!---->
-    <!---->
-  </a></div>
+"<div class="d-flex flex-wrap ga-2 mb-4 align-center justify-space-between">
+  <div class="d-flex ga-2 align-center flex-wrap flex-grow-1">
+    <div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default border"><a href="/devices" class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
+        <!---->
+        <!---->
+      </a><a href="/devices/pending" class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator="">Pending</span>
+        <!---->
+        <!---->
+      </a><a href="/devices/rejected" class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator="">Rejected</span>
+        <!---->
+        <!---->
+      </a></div>
+    <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field flex-grow-1" data-test="search-text">
+      <!---->
+      <div class="v-input__control">
+        <div class="v-field v-field--center-affix v-field--prepended v-field--single-line v-field--variant-outlined v-theme--light v-locale--is-ltr">
+          <div class="v-field__overlay"></div>
+          <div class="v-field__loader">
+            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+              <!---->
+              <div class="v-progress-linear__background bg-primary"></div>
+              <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
+              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                <div class="v-progress-linear__indeterminate">
+                  <div class="v-progress-linear__indeterminate long bg-primary"></div>
+                  <div class="v-progress-linear__indeterminate short bg-primary"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <div class="v-field__prepend-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-field__field" data-no-activator="">
+            <!----><label class="v-label v-field-label" id="input-v-4-label" for="input-v-4" aria-hidden="false">
+              <!---->Search by hostname
+            </label>
+            <!----><input size="1" type="text" aria-labelledby="input-v-4-label" id="input-v-4" class="v-field__input" value="">
+            <!---->
+          </div>
+          <!---->
+          <!---->
+          <div class="v-field__outline">
+            <div class="v-field__outline__start"></div>
+            <!---->
+            <div class="v-field__outline__end"></div>
+            <!---->
+          </div>
+        </div>
+      </div>
+      <!---->
+      <!---->
+    </div>
+  </div>
+  <!--v-if-->
+</div>
 <div>
   <!---->
 </div>"
 `;
 
 exports[`Device > Renders the component 1`] = `
-"<div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default mb-4 border"><a href="/devices" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
-    <!---->
-    <!---->
-  </a><a href="/devices/pending" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Pending</span>
-    <!---->
-    <!---->
-  </a><a href="/devices/rejected" class="v-btn v-btn--flat v-theme--light bg-a v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-    <!----><span class="v-btn__content" data-no-activator="">Rejected</span>
-    <!---->
-    <!---->
-  </a></div>
+"<div class="d-flex flex-wrap ga-2 mb-4 align-center justify-space-between">
+  <div class="d-flex ga-2 align-center flex-wrap flex-grow-1">
+    <div class="v-btn-group v-btn-group--horizontal v-btn-group--divided v-theme--light v-btn-group--density-default border"><a href="/devices" class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator="">Accepted</span>
+        <!---->
+        <!---->
+      </a><a href="/devices/pending" class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator="">Pending</span>
+        <!---->
+        <!---->
+      </a><a href="/devices/rejected" class="v-btn v-btn--flat v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-flat bg-background" style="height: auto;"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator="">Rejected</span>
+        <!---->
+        <!---->
+      </a></div>
+    <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field flex-grow-1" data-test="search-text">
+      <!---->
+      <div class="v-input__control">
+        <div class="v-field v-field--center-affix v-field--prepended v-field--single-line v-field--variant-outlined v-theme--light v-locale--is-ltr">
+          <div class="v-field__overlay"></div>
+          <div class="v-field__loader">
+            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+              <!---->
+              <div class="v-progress-linear__background bg-primary"></div>
+              <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
+              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                <div class="v-progress-linear__indeterminate">
+                  <div class="v-progress-linear__indeterminate long bg-primary"></div>
+                  <div class="v-progress-linear__indeterminate short bg-primary"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <div class="v-field__prepend-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-field__field" data-no-activator="">
+            <!----><label class="v-label v-field-label" id="input-v-4-label" for="input-v-4" aria-hidden="false">
+              <!---->Search by hostname
+            </label>
+            <!----><input size="1" type="text" aria-labelledby="input-v-4-label" id="input-v-4" class="v-field__input" value="">
+            <!---->
+          </div>
+          <!---->
+          <!---->
+          <div class="v-field__outline">
+            <div class="v-field__outline__start"></div>
+            <!---->
+            <div class="v-field__outline__end"></div>
+            <!---->
+          </div>
+        </div>
+      </div>
+      <!---->
+      <!---->
+    </div>
+  </div>
+  <!--v-if-->
+</div>
 <div>
   <!---->
 </div>"

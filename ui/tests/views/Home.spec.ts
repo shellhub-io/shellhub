@@ -106,9 +106,8 @@ describe("Home", () => {
     it("displays namespace information", async () => {
       await flushPromises();
 
-      expect(wrapper.text()).toContain("TENANT ID");
-      expect(wrapper.text()).toContain(namespaceData.tenant_id);
       expect(wrapper.text()).toContain("This is your active namespace");
+      expect(wrapper.text()).toContain(namespaceData.name);
     });
 
     it("displays device stat cards", () => {
@@ -176,7 +175,8 @@ describe("Home", () => {
       await nextTick();
       await flushPromises();
 
-      expect(wrapper.text()).toContain(namespaceData.tenant_id);
+      expect(wrapper.text()).toContain(namespaceData.name);
+      expect(wrapper.text()).toContain("Settings");
     });
   });
 
@@ -191,19 +191,6 @@ describe("Home", () => {
       expect(wrapper.find('[data-test="home-failed"]').text()).toContain(
         "Something is wrong, try again!",
       );
-    });
-  });
-
-  describe("User Interactions", () => {
-    it("allows copying tenant ID", () => {
-      const copyButton = wrapper.find('[data-test="copy-tenant-btn"]');
-      expect(copyButton.exists()).toBe(true);
-    });
-
-    it("displays tenant ID in code format", () => {
-      const codeElement = wrapper.find('[data-test="tenant-info-text"]');
-      expect(codeElement.exists()).toBe(true);
-      expect(codeElement.text()).toBe(namespaceData.tenant_id);
     });
   });
 

@@ -64,8 +64,7 @@ describe("Team Api Keys", () => {
 
   it("Renders the template with data", async () => {
     await flushPromises();
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="api-key-generate"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="api-key-title"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="api-key-list"]').exists()).toBe(true);
   });
 });

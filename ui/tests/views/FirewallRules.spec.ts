@@ -57,16 +57,6 @@ describe("Firewall Rules", () => {
 
   it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="firewall-rules"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="help-icon"]').exists()).toBe(true);
-  });
-
-  it("Toggles showHelp when help icon is clicked", async () => {
-    const helpIcon = wrapper.find('[data-test="help-icon"]');
-    await helpIcon.trigger("click");
-    expect(wrapper.vm.showHelp).toBe(true);
-
-    await helpIcon.trigger("click");
-    expect(wrapper.vm.showHelp).toBe(false);
   });
 
   it("Shows the no items message when there are no firewall rules", () => {

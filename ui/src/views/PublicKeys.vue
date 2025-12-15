@@ -1,15 +1,16 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2"
+  <PageHeader
+    icon="mdi-key"
+    title="Public Keys"
+    overline="SSH Authentication"
+    description="Manage SSH public keys for secure, password-free authentication to your devices. SSH keys are more secure than passwords."
+    icon-color="primary"
     data-test="public-keys-title"
   >
-    <h1>Public Keys</h1>
-
-    <v-spacer />
-    <v-spacer />
-
-    <PublicKeyAdd @update="refresh" />
-  </div>
+    <template #actions>
+      <PublicKeyAdd @update="refresh" />
+    </template>
+  </PageHeader>
 
   <div data-test="public-keys-components">
     <PublicKeysList v-if="hasPublicKey" />
@@ -36,6 +37,7 @@ import { computed, onMounted } from "vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import PublicKeyAdd from "../components/PublicKeys/PublicKeyAdd.vue";
 import PublicKeysList from "../components/PublicKeys/PublicKeysList.vue";
+import PageHeader from "../components/PageHeader.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import usePublicKeysStore from "@/store/modules/public_keys";

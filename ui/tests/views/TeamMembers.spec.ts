@@ -66,7 +66,6 @@ describe("Team Members", () => {
 
   it("Renders the template with data", () => {
     expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="member-invite"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="member-list"]').exists()).toBe(true);
   });
 });

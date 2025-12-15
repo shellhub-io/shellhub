@@ -1,34 +1,37 @@
 <template>
-  <v-row class="align-center justify-space-between flex-column flex-sm-row mb-2 ga-4">
-    <h1 class="text-center text-sm-left">
-      Web Endpoints
-    </h1>
-
-    <v-text-field
-      v-if="showList"
-      v-model.trim="filter"
-      class="w-75 w-sm-auto"
-      label="Search by Address"
-      variant="outlined"
-      color="primary"
-      single-line
-      hide-details
-      prepend-inner-icon="mdi-magnify"
-      density="compact"
-      data-test="search-text"
-      @keyup="searchWebEndpoints"
-    />
-    <v-btn
-      color="primary"
-      variant="elevated"
-      data-test="tunnel-create-dialog-btn"
-      :disabled="!canCreateWebEndpoint"
-      @click="showWebEndpointCreate = true"
-      @keypress.enter="showWebEndpointCreate = true"
-    >
-      Create Web Endpoint
-    </v-btn>
-  </v-row>
+  <PageHeader
+    icon="mdi-web"
+    title="Web Endpoints"
+    overline="Web Access"
+    :description="webEndpointDescription"
+    icon-color="primary"
+  >
+    <template #actions>
+      <v-text-field
+        v-if="showList"
+        v-model.trim="filter"
+        label="Search by Address"
+        variant="outlined"
+        color="primary"
+        single-line
+        hide-details
+        prepend-inner-icon="mdi-magnify"
+        density="compact"
+        data-test="search-text"
+        @keyup="searchWebEndpoints"
+      />
+      <v-btn
+        color="primary"
+        variant="elevated"
+        data-test="tunnel-create-dialog-btn"
+        :disabled="!canCreateWebEndpoint"
+        @click="showWebEndpointCreate = true"
+        @keypress.enter="showWebEndpointCreate = true"
+      >
+        Create Web Endpoint
+      </v-btn>
+    </template>
+  </PageHeader>
 
   <WebEndpointList
     v-if="showList"
@@ -74,9 +77,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import WebEndpointList from "@/components/WebEndpoints/WebEndpointList.vue";
 import NoItemsMessage from "@/components/NoItemsMessage.vue";
+import PageHeader from "@/components/PageHeader.vue";
 import useSnackbar from "@/helpers/snackbar";
 import hasPermission from "@/utils/permission";
 import WebEndpointCreate from "@/components/WebEndpoints/WebEndpointCreate.vue";
@@ -88,6 +92,12 @@ const snackbar = useSnackbar();
 const filter = ref("");
 const showList = computed(() => webEndpointsStore.showWebEndpoints);
 const showWebEndpointCreate = ref(false);
+
+// Keep the description on multiple shorter lines to satisfy the max-line-length rule
+const webEndpointDescription = [
+  "Secure direct access to HTTP services on your devices without SSH port forwarding.",
+  "Access web-based interfaces seamlessly from your browser.",
+].join(" ");
 
 const canCreateWebEndpoint = hasPermission("webEndpoint:create");
 
@@ -106,6 +116,15 @@ const searchWebEndpoints = async () => {
     handleError(error);
   }
 };
+
+onMounted(async () => {
+  try {
+    await webEndpointsStore.fetchWebEndpointsList();
+  } catch (error) {
+    snackbar.showError("Failed to load web endpoints.");
+    handleError(error);
+  }
+});
 
 defineExpose({ searchWebEndpoints });
 </script>

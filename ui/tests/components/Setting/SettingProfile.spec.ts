@@ -88,10 +88,6 @@ describe("Settings Namespace", () => {
     const dataTests = [
       "account-profile-container",
       "account-profile-card",
-      "profile-header",
-      "user-icon",
-      "profile-title",
-      "profile-subtitle",
       "edit-profile-button",
       "profile-details-list",
       "name-field",

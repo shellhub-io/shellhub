@@ -1,40 +1,21 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2"
+  <PageHeader
+    icon="mdi-security"
+    title="Firewall Rules"
+    overline="Security"
+    icon-color="primary"
     data-test="firewall-rules"
   >
-    <div class="d-flex align-center">
-      <h1>Firewall Rules</h1>
-
-      <v-icon
-        class="ml-2"
-        size="small"
-        data-test="help-icon"
-        @click="showHelp = !showHelp"
-      >
-        mdi-help-circle
-      </v-icon>
-
-      <v-spacer />
-      <v-spacer />
-    </div>
-
-    <FirewallRuleAdd @update="fetchFirewallRules" />
-  </div>
-
-  <p
-    v-if="showHelp"
-    class="mt-n4 mb-2"
-    data-test="firewall-helper"
-  >
-    Firewall rules gives a fine-grained control over which SSH connections reach
-    the devices.
-    <a
-      href="https://docs.shellhub.io/user-guides/firewall/"
-      target="_blank"
-      rel="noopener noreferrer"
-    >See More</a>
-  </p>
+    <template #description>
+      <p class="mb-0">
+        Control which SSH connections reach your devices with fine-grained firewall rules.
+        Allow or deny connections from specific IP addresses to devices using specific usernames.
+      </p>
+    </template>
+    <template #actions>
+      <FirewallRuleAdd @update="fetchFirewallRules" />
+    </template>
+  </PageHeader>
 
   <div>
     <FirewallRuleList v-if="hasFirewallRule" />
@@ -63,16 +44,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted } from "vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import { envVariables } from "../envVariables";
 import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
 import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";
+import PageHeader from "../components/PageHeader.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
-
-const showHelp = ref(false);
 const firewallRulesStore = useFirewallRulesStore();
 const snackbar = useSnackbar();
 const hasFirewallRule = computed(() => firewallRulesStore.firewallRuleCount > 0);
@@ -87,6 +67,4 @@ const fetchFirewallRules = async () => {
 };
 
 onMounted(async () => { if (!envVariables.isCommunity) await fetchFirewallRules(); });
-
-defineExpose({ showHelp });
 </script>

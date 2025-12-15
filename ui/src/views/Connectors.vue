@@ -1,14 +1,14 @@
 <template>
-  <div
-    class="d-flex flex-column justify-space-between align-center flex-sm-row"
+  <PageHeader
+    icon="mdi-connection"
+    title="Docker Connectors"
+    overline="Docker Integration"
+    description="Connect to Docker Engine instances to view and manage containers.
+      Add connectors to enable ShellHub to access your Docker environments."
+    icon-color="primary"
     data-test="device-title"
   >
-    <h1>Docker Connectors</h1>
-
-    <div
-      class="d-flex mt-4 mb-2"
-      data-test="device-header-component-group"
-    >
+    <template #actions>
       <v-btn
         class="mr-2"
         color="primary"
@@ -21,8 +21,8 @@
         Containers
       </v-btn>
       <ConnectorAdd @update="getConnectors()" />
-    </div>
-  </div>
+    </template>
+  </PageHeader>
   <div
     class="mt-2"
     data-test="connector-table-component"
@@ -37,6 +37,7 @@ import axios, { AxiosError } from "axios";
 import handleError from "@/utils/handleError";
 import ConnectorList from "../components/Connector/ConnectorList.vue";
 import ConnectorAdd from "../components/Connector/ConnectorAdd.vue";
+import PageHeader from "../components/PageHeader.vue";
 import useSnackbar from "@/helpers/snackbar";
 import useConnectorStore from "@/store/modules/connectors";
 

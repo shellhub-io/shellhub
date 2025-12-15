@@ -1,9 +1,9 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Tag Selector > Renders the component 1`] = `
-"<div class="mr-4">
+"<div>
   <div class="v-badge v-badge--bordered" value="0">
-    <div class="v-badge__wrapper"><button type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-outlined" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-0" aria-owns="v-menu-v-0" data-test="tags-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    <div class="v-badge__wrapper"><button type="button" class="v-btn v-theme--light v-btn--border v-btn--density-default v-btn--size-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-0" aria-owns="v-menu-v-0" data-test="tags-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
         <!----><span class="v-btn__content" data-no-activator="">Tags</span><span class="v-btn__append"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
         <!---->
       </button>

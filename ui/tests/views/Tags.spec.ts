@@ -44,7 +44,7 @@ describe("Tags View", async () => {
   await flushPromises();
 
   it("Renders the main heading", () => {
-    expect(wrapper.find("h1").text()).toBe("Tags");
+    expect(wrapper.text()).toContain("Tags");
   });
 
   it("Renders the TagList component with 2 tag rows", () => {

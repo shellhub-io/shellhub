@@ -3,7 +3,6 @@ import "@mdi/font/css/materialdesignicons.css";
 import "@fortawesome/fontawesome-free/css/all.css";
 import "vuetify/styles";
 import { VFileUpload, VFileUploadItem } from "vuetify/labs/VFileUpload";
-import "../styles/_variables.scss";
 import { fa } from "vuetify/iconsets/fa";
 
 // Vuetify
