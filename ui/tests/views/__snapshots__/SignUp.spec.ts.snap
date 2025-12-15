@@ -25,14 +25,12 @@ exports[`Sign Up > Renders the component 1`] = `
                 <!---->
               </div>
             </div>
-            <div class="v-field__prepend-inner"><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-              <!---->
-            </div>
+            <div class="v-field__prepend-inner"><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-1">
+              <!----><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
                 <!---->Name
               </label>
-              <!----><input size="1" type="text" id="input-v-1" aria-describedby="input-v-1-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" aria-describedby="input-v-1-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
@@ -71,14 +69,12 @@ exports[`Sign Up > Renders the component 1`] = `
                 <!---->
               </div>
             </div>
-            <div class="v-field__prepend-inner"><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-              <!---->
-            </div>
+            <div class="v-field__prepend-inner"><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-4">
+              <!----><label class="v-label v-field-label" id="input-v-4-label" for="input-v-4" aria-hidden="false">
                 <!---->Username
               </label>
-              <!----><input size="1" type="text" id="input-v-4" aria-describedby="input-v-4-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="text" aria-labelledby="input-v-4-label" id="input-v-4" aria-describedby="input-v-4-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
@@ -117,14 +113,12 @@ exports[`Sign Up > Renders the component 1`] = `
                 <!---->
               </div>
             </div>
-            <div class="v-field__prepend-inner"><i class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-              <!---->
-            </div>
+            <div class="v-field__prepend-inner"><i class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-7">
+              <!----><label class="v-label v-field-label" id="input-v-7-label" for="input-v-7" aria-hidden="false">
                 <!---->Email
               </label>
-              <!----><input size="1" type="text" id="input-v-7" aria-describedby="input-v-7-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="text" aria-labelledby="input-v-7-label" id="input-v-7" aria-describedby="input-v-7-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
@@ -163,20 +157,16 @@ exports[`Sign Up > Renders the component 1`] = `
                 <!---->
               </div>
             </div>
-            <div class="v-field__prepend-inner"><i class="mdi-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-              <!---->
-            </div>
+            <div class="v-field__prepend-inner"><i class="mdi-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-10">
+              <!----><label class="v-label v-field-label" id="input-v-10-label" for="input-v-10" aria-hidden="false">
                 <!---->Password
               </label>
-              <!----><input size="1" type="password" id="input-v-10" aria-describedby="input-v-10-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="password" aria-labelledby="input-v-10-label" id="input-v-10" aria-describedby="input-v-10-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
-            <div class="v-field__append-inner">
-              <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i>
-            </div>
+            <div class="v-field__append-inner"><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i></div>
             <div class="v-field__outline">
               <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-10" aria-hidden="true">
                 <!---->Password
@@ -211,20 +201,16 @@ exports[`Sign Up > Renders the component 1`] = `
                 <!---->
               </div>
             </div>
-            <div class="v-field__prepend-inner"><i class="mdi-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-              <!---->
-            </div>
+            <div class="v-field__prepend-inner"><i class="mdi-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-13">
+              <!----><label class="v-label v-field-label" id="input-v-13-label" for="input-v-13" aria-hidden="false">
                 <!---->Confirm Password
               </label>
-              <!----><input size="1" type="password" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
+              <!----><input size="1" type="password" aria-labelledby="input-v-13-label" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
               <!---->
             </div>
             <!---->
-            <div class="v-field__append-inner">
-              <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Confirm Password appended action"></i>
-            </div>
+            <div class="v-field__append-inner"><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Confirm Password appended action"></i></div>
             <div class="v-field__outline">
               <!----><label class="v-label v-field-label v-field-label--floating" for="input-v-13" aria-hidden="true">
                 <!---->Confirm Password

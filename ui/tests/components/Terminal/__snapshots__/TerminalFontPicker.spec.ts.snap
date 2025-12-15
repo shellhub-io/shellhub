@@ -24,7 +24,7 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
         <!---->
         <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
             <!---->Font Family
-          </label><label class="v-label v-field-label" for="input-v-3">
+          </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="true">
             <!---->Font Family
           </label>
           <!---->
@@ -40,14 +40,13 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
             </select>
             <!---->
             <!---->
-            <div class="v-select__selection"><span class="v-select__selection-text">Monospace<!----></span></div><input size="1" role="combobox" type="text" id="input-v-3" aria-describedby="input-v-3-messages" inputmode="none" aria-expanded="false" aria-controls="menu-v-1" aria-label="Open" title="Open" value="Monospace">
+            <div class="v-select__selection"><span class="v-select__selection-text">Monospace<!----></span></div><input size="1" role="combobox" type="text" aria-labelledby="input-v-3-label" id="input-v-3" aria-describedby="input-v-3-messages" inputmode="none" aria-expanded="false" aria-controls="menu-v-1" value="Monospace">
           </div>
           <!---->
         </div>
         <!---->
         <div class="v-field__append-inner">
           <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
-          <!---->
         </div>
         <div class="v-field__outline">
           <!---->
@@ -83,7 +82,6 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
           </div>
         </div>
         <div class="v-field__prepend-inner">
-          <!---->
           <div class="v-number-input__control"><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-text" style="height: 100%;" tabindex="-1" aria-hidden="true" data-testid="decrement"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
               <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-minus mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
               <!---->
@@ -94,10 +92,10 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
           <!---->
         </div>
         <div class="v-field__field" data-no-activator="">
-          <!----><label class="v-label v-field-label" for="input-v-7">
+          <!----><label class="v-label v-field-label" id="input-v-7-label" for="input-v-7" aria-hidden="true">
             <!---->Font Size
           </label>
-          <!----><input size="1" type="text" id="input-v-7" inputmode="decimal" class="v-field__input" value="15">
+          <!----><input size="1" type="text" aria-labelledby="input-v-7-label" id="input-v-7" inputmode="decimal" class="v-field__input" value="15">
           <!---->
         </div>
         <!---->
@@ -110,7 +108,6 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
               <!---->
             </button>
           </div>
-          <!---->
         </div>
         <div class="v-field__outline">
           <div class="v-field__outline__start"></div>

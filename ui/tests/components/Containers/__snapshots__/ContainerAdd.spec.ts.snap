@@ -83,7 +83,7 @@ exports[`ContainerAdd > Renders the component 1`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator="">
                         <!---->
-                        <!----><span class="v-text-field__prefix"><span class="v-text-field__prefix__text">$</span></span><input readonly="" size="1" type="text" id="input-v-3" class="v-field__input" value="curl -sSf http://localhost:3000/install.sh | TENANT_ID= SERVER_ADDRESS=http://localhost:3000 sh -s connector">
+                        <!----><span class="v-text-field__prefix"><span class="v-text-field__prefix__text">$</span></span><input readonly="" size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" class="v-field__input" value="curl -sSf http://localhost:3000/install.sh | TENANT_ID= SERVER_ADDRESS=http://localhost:3000 sh -s connector">
                         <!---->
                       </div>
                       <!---->
@@ -94,13 +94,11 @@ exports[`ContainerAdd > Renders the component 1`] = `
                       </div>
                     </div>
                   </div>
-                  <div class="v-input__append">
-                    <!----><button data-v-0cebd2fd="" type="button" class="v-btn v-btn--icon v-theme--light bg-primary v-btn--density-default v-btn--rounded v-btn--size-small v-btn--variant-flat" data-test="copy-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                  <div class="v-input__append"><button data-v-0cebd2fd="" type="button" class="v-btn v-btn--icon v-theme--light bg-primary v-btn--density-default v-btn--rounded v-btn--size-small v-btn--variant-flat" data-test="copy-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                       <!---->
                       <!---->
-                    </button>
-                  </div>
+                    </button></div>
                   <!---->
                 </div>
                 <!---->

@@ -83,10 +83,10 @@ exports[`MfaSettings > Renders the component (Recovery email window) 1`] = `
                           <!---->
                           <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
                               <!---->Recovery Email
-                            </label><label class="v-label v-field-label" for="input-v-3">
+                            </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="false">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
+                            <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -235,10 +235,10 @@ exports[`MfaSettings > Renders the components (Recovery codes window) 1`] = `
                           <!---->
                           <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
                               <!---->Recovery Email
-                            </label><label class="v-label v-field-label" for="input-v-3">
+                            </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="false">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
+                            <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -448,10 +448,10 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                           <!---->
                           <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="true">
                               <!---->Recovery Email
-                            </label><label class="v-label v-field-label" for="input-v-3">
+                            </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="false">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" id="input-v-3" required="" class="v-field__input" value="">
+                            <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -564,10 +564,10 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                           <!---->
                           <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-17" aria-hidden="false">
                               <!---->Secret
-                            </label><label class="v-label v-field-label" for="input-v-17">
+                            </label><label class="v-label v-field-label" id="input-v-17-label" for="input-v-17" aria-hidden="true">
                               <!---->Secret
                             </label>
-                            <!----><input readonly="" size="1" type="text" id="input-v-17" aria-describedby="input-v-17-messages" class="v-field__input" value="secret-mfa">
+                            <!----><input readonly="" size="1" type="text" aria-labelledby="input-v-17-label" id="input-v-17" aria-describedby="input-v-17-messages" class="v-field__input" value="secret-mfa">
                             <!---->
                           </div>
                           <!---->

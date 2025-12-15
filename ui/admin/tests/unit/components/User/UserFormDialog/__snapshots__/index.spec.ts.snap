@@ -96,10 +96,10 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
                           <!---->Name
-                        </label><label class="v-label v-field-label" for="input-v-3">
+                        </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="true">
                           <!---->Name
                         </label>
-                        <!----><input size="1" type="text" id="input-v-3" aria-describedby="input-v-3-messages" required="" class="v-field__input" value="Antony">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" aria-describedby="input-v-3-messages" required="" class="v-field__input" value="Antony">
                         <!---->
                       </div>
                       <!---->
@@ -140,10 +140,10 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-6" aria-hidden="false">
                           <!---->Username
-                        </label><label class="v-label v-field-label" for="input-v-6">
+                        </label><label class="v-label v-field-label" id="input-v-6-label" for="input-v-6" aria-hidden="true">
                           <!---->Username
                         </label>
-                        <!----><input size="1" type="text" id="input-v-6" aria-describedby="input-v-6-messages" required="" class="v-field__input" value="antony">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-6-label" id="input-v-6" aria-describedby="input-v-6-messages" required="" class="v-field__input" value="antony">
                         <!---->
                       </div>
                       <!---->
@@ -184,10 +184,10 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-9" aria-hidden="false">
                           <!---->Email
-                        </label><label class="v-label v-field-label" for="input-v-9">
+                        </label><label class="v-label v-field-label" id="input-v-9-label" for="input-v-9" aria-hidden="true">
                           <!---->Email
                         </label>
-                        <!----><input name="email" size="1" type="text" id="input-v-9" aria-describedby="input-v-9-messages" required="" class="v-field__input" value="antony@gmail.com">
+                        <!----><input name="email" size="1" type="text" aria-labelledby="input-v-9-label" id="input-v-9" aria-describedby="input-v-9-messages" required="" class="v-field__input" value="antony@gmail.com">
                         <!---->
                       </div>
                       <!---->
@@ -228,16 +228,14 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-12" aria-hidden="true">
                           <!---->Password
-                        </label><label class="v-label v-field-label" for="input-v-12">
+                        </label><label class="v-label v-field-label" id="input-v-12-label" for="input-v-12" aria-hidden="false">
                           <!---->Password
                         </label>
-                        <!----><input name="password" size="1" type="password" id="input-v-12" aria-describedby="input-v-12-messages" class="v-field__input">
+                        <!----><input name="password" size="1" type="password" aria-labelledby="input-v-12-label" id="input-v-12" aria-describedby="input-v-12-messages" class="v-field__input">
                         <!---->
                       </div>
                       <!---->
-                      <div class="v-field__append-inner">
-                        <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i>
-                      </div>
+                      <div class="v-field__append-inner"><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i></div>
                       <div class="v-field__outline">
                         <!---->
                         <!---->
@@ -303,10 +301,10 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                       </div>
                       <!---->
                       <div class="v-field__field" data-no-activator="">
-                        <!----><label class="v-label v-field-label" for="input-v-21">
+                        <!----><label class="v-label v-field-label" id="input-v-21-label" for="input-v-21" aria-hidden="true">
                           <!---->Namespace limit
                         </label>
-                        <!----><input size="1" type="text" id="input-v-21" aria-describedby="input-v-21-messages" inputmode="decimal" class="v-field__input" value="10">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-21-label" id="input-v-21" aria-describedby="input-v-21-messages" inputmode="decimal" class="v-field__input" value="10">
                         <!---->
                       </div>
                       <!---->
@@ -324,7 +322,6 @@ exports[`UserFormDialog (Create User) > Renders the component 2`] = `
                             <!---->
                           </button>
                         </div>
-                        <!---->
                       </div>
                       <div class="v-field__outline">
                         <div class="v-field__outline__start"></div>
@@ -548,10 +545,10 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
                           <!---->Name
-                        </label><label class="v-label v-field-label" for="input-v-3">
+                        </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="true">
                           <!---->Name
                         </label>
-                        <!----><input size="1" type="text" id="input-v-3" aria-describedby="input-v-3-messages" required="" class="v-field__input" value="Antony">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" aria-describedby="input-v-3-messages" required="" class="v-field__input" value="Antony">
                         <!---->
                       </div>
                       <!---->
@@ -592,10 +589,10 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-6" aria-hidden="false">
                           <!---->Username
-                        </label><label class="v-label v-field-label" for="input-v-6">
+                        </label><label class="v-label v-field-label" id="input-v-6-label" for="input-v-6" aria-hidden="true">
                           <!---->Username
                         </label>
-                        <!----><input size="1" type="text" id="input-v-6" aria-describedby="input-v-6-messages" required="" class="v-field__input" value="antony">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-6-label" id="input-v-6" aria-describedby="input-v-6-messages" required="" class="v-field__input" value="antony">
                         <!---->
                       </div>
                       <!---->
@@ -636,10 +633,10 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-9" aria-hidden="false">
                           <!---->Email
-                        </label><label class="v-label v-field-label" for="input-v-9">
+                        </label><label class="v-label v-field-label" id="input-v-9-label" for="input-v-9" aria-hidden="true">
                           <!---->Email
                         </label>
-                        <!----><input name="email" size="1" type="text" id="input-v-9" aria-describedby="input-v-9-messages" required="" class="v-field__input" value="antony@gmail.com">
+                        <!----><input name="email" size="1" type="text" aria-labelledby="input-v-9-label" id="input-v-9" aria-describedby="input-v-9-messages" required="" class="v-field__input" value="antony@gmail.com">
                         <!---->
                       </div>
                       <!---->
@@ -680,16 +677,14 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-12" aria-hidden="true">
                           <!---->Password
-                        </label><label class="v-label v-field-label" for="input-v-12">
+                        </label><label class="v-label v-field-label" id="input-v-12-label" for="input-v-12" aria-hidden="false">
                           <!---->Password
                         </label>
-                        <!----><input name="password" size="1" type="password" id="input-v-12" aria-describedby="input-v-12-messages" class="v-field__input">
+                        <!----><input name="password" size="1" type="password" aria-labelledby="input-v-12-label" id="input-v-12" aria-describedby="input-v-12-messages" class="v-field__input">
                         <!---->
                       </div>
                       <!---->
-                      <div class="v-field__append-inner">
-                        <!----><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i>
-                      </div>
+                      <div class="v-field__append-inner"><i class="mdi-eye-off mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Password appended action"></i></div>
                       <div class="v-field__outline">
                         <!---->
                         <!---->
@@ -755,10 +750,10 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                       </div>
                       <!---->
                       <div class="v-field__field" data-no-activator="">
-                        <!----><label class="v-label v-field-label" for="input-v-21">
+                        <!----><label class="v-label v-field-label" id="input-v-21-label" for="input-v-21" aria-hidden="true">
                           <!---->Namespace limit
                         </label>
-                        <!----><input size="1" type="text" id="input-v-21" aria-describedby="input-v-21-messages" inputmode="decimal" class="v-field__input" value="10">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-21-label" id="input-v-21" aria-describedby="input-v-21-messages" inputmode="decimal" class="v-field__input" value="10">
                         <!---->
                       </div>
                       <!---->
@@ -776,7 +771,6 @@ exports[`UserFormDialog (Edit User) > Renders the component 2`] = `
                             <!---->
                           </button>
                         </div>
-                        <!---->
                       </div>
                       <div class="v-field__outline">
                         <div class="v-field__outline__start"></div>

@@ -96,10 +96,10 @@ exports[`Billing Dialog > Renders the component (Checkout window) 1`] = `
                                 <!---->
                                 <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="false" style="">
                                     <!---->Name
-                                  </label><label class="v-label v-field-label" for="input-v-8" style="">
+                                  </label><label class="v-label v-field-label" id="input-v-8-label" for="input-v-8" aria-hidden="true" style="">
                                     <!---->Name
                                   </label>
-                                  <!----><input disabled="" size="1" type="text" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="test">
+                                  <!----><input disabled="" size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="test">
                                   <!---->
                                 </div>
                                 <!---->
@@ -142,10 +142,10 @@ exports[`Billing Dialog > Renders the component (Checkout window) 1`] = `
                                 <!---->
                                 <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-11" aria-hidden="false" style="">
                                     <!---->E-mail
-                                  </label><label class="v-label v-field-label" for="input-v-11" style="">
+                                  </label><label class="v-label v-field-label" id="input-v-11-label" for="input-v-11" aria-hidden="true" style="">
                                     <!---->E-mail
                                   </label>
-                                  <!----><input disabled="" size="1" type="text" id="input-v-11" aria-describedby="input-v-11-messages" class="v-field__input" value="test@test.com">
+                                  <!----><input disabled="" size="1" type="text" aria-labelledby="input-v-11-label" id="input-v-11" aria-describedby="input-v-11-messages" class="v-field__input" value="test@test.com">
                                   <!---->
                                 </div>
                                 <!---->
@@ -477,10 +477,10 @@ exports[`Billing Dialog > Renders the component (Payment Details window) 1`] = `
                                 <!---->
                                 <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="false">
                                     <!---->Name
-                                  </label><label class="v-label v-field-label" for="input-v-8">
+                                  </label><label class="v-label v-field-label" id="input-v-8-label" for="input-v-8" aria-hidden="true">
                                     <!---->Name
                                   </label>
-                                  <!----><input disabled="" size="1" type="text" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="test">
+                                  <!----><input disabled="" size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="test">
                                   <!---->
                                 </div>
                                 <!---->
@@ -523,10 +523,10 @@ exports[`Billing Dialog > Renders the component (Payment Details window) 1`] = `
                                 <!---->
                                 <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-11" aria-hidden="false">
                                     <!---->E-mail
-                                  </label><label class="v-label v-field-label" for="input-v-11">
+                                  </label><label class="v-label v-field-label" id="input-v-11-label" for="input-v-11" aria-hidden="true">
                                     <!---->E-mail
                                   </label>
-                                  <!----><input disabled="" size="1" type="text" id="input-v-11" aria-describedby="input-v-11-messages" class="v-field__input" value="test@test.com">
+                                  <!----><input disabled="" size="1" type="text" aria-labelledby="input-v-11-label" id="input-v-11" aria-describedby="input-v-11-messages" class="v-field__input" value="test@test.com">
                                   <!---->
                                 </div>
                                 <!---->
@@ -768,10 +768,10 @@ exports[`Billing Dialog > Renders the component (Success window) 1`] = `
                                 <!---->
                                 <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-8" aria-hidden="false" style="">
                                     <!---->Name
-                                  </label><label class="v-label v-field-label" for="input-v-8" style="">
+                                  </label><label class="v-label v-field-label" id="input-v-8-label" for="input-v-8" aria-hidden="true" style="">
                                     <!---->Name
                                   </label>
-                                  <!----><input disabled="" size="1" type="text" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="test">
+                                  <!----><input disabled="" size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" aria-describedby="input-v-8-messages" class="v-field__input" value="test">
                                   <!---->
                                 </div>
                                 <!---->
@@ -814,10 +814,10 @@ exports[`Billing Dialog > Renders the component (Success window) 1`] = `
                                 <!---->
                                 <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-11" aria-hidden="false" style="">
                                     <!---->E-mail
-                                  </label><label class="v-label v-field-label" for="input-v-11" style="">
+                                  </label><label class="v-label v-field-label" id="input-v-11-label" for="input-v-11" aria-hidden="true" style="">
                                     <!---->E-mail
                                   </label>
-                                  <!----><input disabled="" size="1" type="text" id="input-v-11" aria-describedby="input-v-11-messages" class="v-field__input" value="test@test.com">
+                                  <!----><input disabled="" size="1" type="text" aria-labelledby="input-v-11-label" id="input-v-11" aria-describedby="input-v-11-messages" class="v-field__input" value="test@test.com">
                                   <!---->
                                 </div>
                                 <!---->

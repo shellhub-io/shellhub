@@ -85,10 +85,10 @@ exports[`Namespace Edit > Renders the component and dialog 2`] = `
                       <!---->
                       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
                           <!---->Name
-                        </label><label class="v-label v-field-label" for="input-v-2">
+                        </label><label class="v-label v-field-label" id="input-v-2-label" for="input-v-2" aria-hidden="true">
                           <!---->Name
                         </label>
-                        <!----><input size="1" type="text" id="input-v-2" aria-describedby="input-v-2-messages" required="" class="v-field__input" value="ossystems">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" aria-describedby="input-v-2-messages" required="" class="v-field__input" value="ossystems">
                         <!---->
                       </div>
                       <!---->
@@ -128,10 +128,10 @@ exports[`Namespace Edit > Renders the component and dialog 2`] = `
                       </div>
                       <!---->
                       <div class="v-field__field" data-no-activator="">
-                        <!----><label class="v-label v-field-label" for="input-v-5">
+                        <!----><label class="v-label v-field-label" id="input-v-5-label" for="input-v-5" aria-hidden="true">
                           <!---->Maximum Devices
                         </label>
-                        <!----><input size="1" type="text" id="input-v-5" aria-describedby="input-v-5-messages" inputmode="decimal" required="" class="v-field__input" value="10">
+                        <!----><input size="1" type="text" aria-labelledby="input-v-5-label" id="input-v-5" aria-describedby="input-v-5-messages" inputmode="decimal" required="" class="v-field__input" value="10">
                         <!---->
                       </div>
                       <!---->

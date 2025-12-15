@@ -33,9 +33,9 @@ exports[`Setup Account > Renders the component 1`] = `
                     <!---->
                     <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-2" aria-hidden="false">
                         <!---->Setup Command
-                      </label><label class="v-label v-field-label" for="input-v-2">
+                      </label><label class="v-label v-field-label" id="input-v-2-label" for="input-v-2" aria-hidden="true">
                         <!---->Setup Command
-                      </label><span class="v-text-field__prefix"><span class="v-text-field__prefix__text">$</span></span><input readonly="" size="1" type="text" id="input-v-2" class="v-field__input" value="./bin/setup">
+                      </label><span class="v-text-field__prefix"><span class="v-text-field__prefix__text">$</span></span><input readonly="" size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" class="v-field__input" value="./bin/setup">
                       <!---->
                     </div>
                     <!---->
@@ -46,13 +46,11 @@ exports[`Setup Account > Renders the component 1`] = `
                     </div>
                   </div>
                 </div>
-                <div class="v-input__append">
-                  <!----><button data-v-0cebd2fd="" type="button" class="v-btn v-btn--icon v-theme--light bg-primary v-btn--density-default v-btn--rounded v-btn--size-small v-btn--variant-flat" data-test="copy-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <div class="v-input__append"><button data-v-0cebd2fd="" type="button" class="v-btn v-btn--icon v-theme--light bg-primary v-btn--density-default v-btn--rounded v-btn--size-small v-btn--variant-flat" data-test="copy-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                     <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-content-copy mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
                     <!---->
                     <!---->
-                  </button>
-                </div>
+                  </button></div>
                 <!---->
               </div>
               <!---->
@@ -77,15 +75,13 @@ exports[`Setup Account > Renders the component 1`] = `
                       <!---->
                     </div>
                   </div>
-                  <div class="v-field__prepend-inner"><i class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i>
-                    <!---->
-                  </div>
+                  <div class="v-field__prepend-inner"><i class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
                   <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-6" aria-hidden="true">
                       <!---->Sign
-                    </label><label class="v-label v-field-label" for="input-v-6">
+                    </label><label class="v-label v-field-label" id="input-v-6-label" for="input-v-6" aria-hidden="false">
                       <!---->Sign
                     </label>
-                    <!----><input size="1" type="text" id="input-v-6" aria-describedby="input-v-6-messages" required="" class="v-field__input">
+                    <!----><input size="1" type="text" aria-labelledby="input-v-6-label" id="input-v-6" aria-describedby="input-v-6-messages" required="" class="v-field__input">
                     <!---->
                   </div>
                   <!---->

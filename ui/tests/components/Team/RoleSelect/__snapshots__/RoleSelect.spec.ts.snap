@@ -23,7 +23,7 @@ exports[`RoleSelect > Renders the component 1`] = `
       <!---->
       <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
           <!---->Role
-        </label><label class="v-label v-field-label" for="input-v-3">
+        </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="true">
           <!---->Role
         </label>
         <!---->
@@ -34,14 +34,13 @@ exports[`RoleSelect > Renders the component 1`] = `
           </select>
           <!---->
           <!---->
-          <div class="v-select__selection"><span class="v-select__selection-text">Administrator<!----></span></div><input size="1" role="combobox" type="text" id="input-v-3" inputmode="none" aria-expanded="false" aria-controls="menu-v-1" aria-label="Open" title="Open" required="" value="Administrator">
+          <div class="v-select__selection"><span class="v-select__selection-text">Administrator<!----></span></div><input size="1" role="combobox" type="text" aria-labelledby="input-v-3-label" id="input-v-3" inputmode="none" aria-expanded="false" aria-controls="menu-v-1" required="" value="Administrator">
         </div>
         <!---->
       </div>
       <!---->
       <div class="v-field__append-inner">
         <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
-        <!---->
       </div>
       <div class="v-field__outline">
         <!---->

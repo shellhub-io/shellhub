@@ -120,9 +120,7 @@ exports[`License > Renders the component 1`] = `
       <!---->
       <div data-v-75f26564="" class="v-card-title text-h6 text-center"> License Field </div>
       <div data-v-75f26564="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-file-input mt-4 mb-2">
-        <div class="v-input__prepend">
-          <!----><i class="mdi-paperclip mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Select license file prepended action"></i>
-        </div>
+        <div class="v-input__prepend"><i class="mdi-paperclip mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="0" aria-label="Select license file prepended action"></i></div>
         <div class="v-input__control">
           <div class="v-field v-field--appended v-field--center-affix v-field--variant-outlined v-theme--light v-locale--is-ltr" prependicon="$file">
             <div class="v-field__overlay"></div>
@@ -142,7 +140,7 @@ exports[`License > Renders the component 1`] = `
             </div>
             <!---->
             <div class="v-field__field" data-no-activator="">
-              <!----><label class="v-label v-field-label" for="input-v-13">
+              <!----><label class="v-label v-field-label" for="input-v-13" aria-hidden="false">
                 <!---->Select license file
               </label><input type="file" accept=".dat" id="input-v-13" aria-describedby="input-v-13-messages">
               <div class="v-field__input">
@@ -153,7 +151,6 @@ exports[`License > Renders the component 1`] = `
               <div class="v-field__clearable" style="display: none;"><i class="mdi-close-circle mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable" role="button" aria-hidden="false" tabindex="-1" aria-label="Clear Select license file"></i></div>
             </transition-stub>
             <div class="v-field__append-inner">
-              <!---->
               <!---->
             </div>
             <div class="v-field__outline">

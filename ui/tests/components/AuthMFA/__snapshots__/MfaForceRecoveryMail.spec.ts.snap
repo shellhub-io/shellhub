@@ -77,10 +77,10 @@ exports[`Force Adding a Recovery Mail > Renders the component 1`] = `
                     <!---->
                     <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="true">
                         <!---->Recovery Email
-                      </label><label class="v-label v-field-label" for="input-v-1">
+                      </label><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
                         <!---->Recovery Email
                       </label>
-                      <!----><input size="1" type="text" id="input-v-1" required="" class="v-field__input" value="">
+                      <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
@@ -192,10 +192,10 @@ exports[`Force Adding a Recovery Mail > Renders the component 1`] = `
                     <!---->
                     <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="true">
                         <!---->Recovery Email
-                      </label><label class="v-label v-field-label" for="input-v-1">
+                      </label><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
                         <!---->Recovery Email
                       </label>
-                      <!----><input size="1" type="text" id="input-v-1" required="" class="v-field__input" value="">
+                      <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" required="" class="v-field__input" value="">
                       <!---->
                     </div>
                     <!---->
