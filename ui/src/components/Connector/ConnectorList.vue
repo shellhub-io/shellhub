@@ -7,6 +7,7 @@
     :total-count="connectorCount"
     :loading
     :items-per-page-options="[10, 20, 50, 100]"
+    table-name="connectors"
     data-test="connector-list"
   >
     <template #rows>

@@ -7,6 +7,7 @@
     :total-count="announcementCount"
     :loading
     :items-per-page-options="[10, 20, 50, 100]"
+    table-name="adminAnnouncements"
     data-test="announcement-list"
   >
     <template #rows>

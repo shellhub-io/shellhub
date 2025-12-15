@@ -8,6 +8,7 @@
       :total-count="sessionCount"
       :loading
       :items-per-page-options="[10, 20, 50, 100]"
+      table-name="sessions"
       data-test="sessions-list"
     >
       <template #rows>

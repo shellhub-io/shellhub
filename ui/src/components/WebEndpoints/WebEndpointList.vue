@@ -7,6 +7,7 @@
     :total-count="totalCount"
     :loading="loading"
     :items-per-page-options="[10, 20, 50]"
+    table-name="webEndpoints"
     data-test="web-endpoints-table"
     @update:sort="sortByItem"
   >

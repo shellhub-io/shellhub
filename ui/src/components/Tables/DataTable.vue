@@ -145,7 +145,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
+import { useTablePreference, type TableName } from "@/composables/useTablePreference";
 
 type Header = {
   text: string;
@@ -159,6 +160,7 @@ const props = defineProps<{
   totalCount: number;
   loading: boolean;
   itemsPerPageOptions?: number[];
+  tableName?: TableName;
 }>();
 
 defineEmits(["update:sort"]);
@@ -175,6 +177,18 @@ const itemsPerPage = defineModel<number>("itemsPerPage", {
 
 const itemsPerPageError = ref<string | null>(null);
 const pageQuantity = computed(() => Math.ceil(props.totalCount / itemsPerPage.value) || 1);
+
+const { getItemsPerPage, setItemsPerPage } = useTablePreference();
+
+onMounted(() => {
+  if (!props.tableName) return;
+  const storedValue = getItemsPerPage(props.tableName);
+  if (storedValue !== itemsPerPage.value) itemsPerPage.value = storedValue;
+});
+
+watch(itemsPerPage, (newValue, oldValue) => {
+  if (props.tableName && newValue !== oldValue && oldValue !== undefined) setItemsPerPage(props.tableName, newValue);
+}, { flush: "post" });
 
 const blockNonNumeric = (e: KeyboardEvent) => {
   const allowedKeys = [

@@ -7,6 +7,7 @@
     :loading
     :total-count="tagCount"
     :items-per-page-options="[10, 20, 50, 100]"
+    table-name="tags"
     data-test="tag-list"
   >
     <template #rows>
