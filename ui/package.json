@@ -67,6 +67,7 @@
     "webfontloader": "^1.6.28"
   },
   "devDependencies": {
+    "@pinia/testing": "^1.0.3",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@stylistic/eslint-plugin": "^5.5.0",
     "@types/node": "^18.8.1",
