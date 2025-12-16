@@ -42,19 +42,54 @@
           />
           <v-btn
             :disabled="!hasSign"
-            type="submit"
             data-test="sign-btn"
             color="primary"
             variant="tonal"
             block
-            text="Setup"
+            text="Next"
             @click="step = 2"
           />
         </v-window-item>
+
         <v-window-item :value="2">
           <v-card-subtitle
-            class="text-wrap text-center mb-3"
+            class="text-wrap text-center mb-4"
             data-test="subtitle-2"
+          >
+            Help us improve ShellHub by sharing your feedback
+          </v-card-subtitle>
+
+          <div style="position: relative; height: 500px; overflow: auto;">
+            <iframe
+              :src="formbricksUrl"
+              frameborder="0"
+              style="position: absolute; left: 0; top: 0; width: 100%; height: 500px; border: 0; border-radius: 4px;"
+            />
+          </div>
+
+          <v-card-actions class="mt-4">
+            <v-btn
+              color="primary"
+              variant="text"
+              @click="step = 1"
+            >
+              Back
+            </v-btn>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              variant="tonal"
+              @click="step = 3"
+            >
+              Continue
+            </v-btn>
+          </v-card-actions>
+        </v-window-item>
+
+        <v-window-item :value="3">
+          <v-card-subtitle
+            class="text-wrap text-center mb-3"
+            data-test="subtitle-3"
           >
             Please complete the following form to set up your account with your personal information.
           </v-card-subtitle>
@@ -114,14 +149,21 @@
             @click:append-inner="showConfirmPassword = !showConfirmPassword"
           />
 
-          <v-card-actions>
+          <v-card-actions class="mt-4">
+            <v-btn
+              color="primary"
+              variant="text"
+              @click="step = 2"
+            >
+              Back
+            </v-btn>
+            <v-spacer />
             <v-btn
               :disabled="!isFormValid"
               type="submit"
               data-test="setup-account-btn"
               color="primary"
               variant="tonal"
-              block
               text="Create Account"
             />
           </v-card-actions>
@@ -148,6 +190,20 @@ const alertMessage = ref("");
 const alertType = ref<"success" | "error">("success");
 const step = ref<number>(1);
 const hasQuery = computed(() => route.query.sign as string);
+const formbricksUrl = computed(() => {
+  const baseUrl = "https://forms.infra.ossystems.io/s/nhq8yq73j9lp3qor3jwxrhs2";
+  const params = new URLSearchParams({
+    consent_to_contact: "accepted",
+    source: "self-hosted",
+    embed: "true",
+  });
+
+  if (import.meta.env.DEV) {
+    params.append("preview", "true");
+  }
+
+  return `${baseUrl}?${params.toString()}`;
+});
 
 const {
   value: sign,
