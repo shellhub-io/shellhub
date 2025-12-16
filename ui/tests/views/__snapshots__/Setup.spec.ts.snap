@@ -99,11 +99,16 @@ exports[`Setup Account > Renders the component 1`] = `
                 </transition-group-stub>
                 <!---->
               </div>
-            </div><button type="submit" class="v-btn v-btn--block v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal" disabled="" data-test="sign-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-              <!----><span class="v-btn__content" data-no-activator="">Setup</span>
+            </div><button type="button" class="v-btn v-btn--block v-btn--disabled v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal" disabled="" data-test="sign-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+              <!----><span class="v-btn__content" data-no-activator="">Next</span>
               <!---->
               <!---->
             </button>
+          </div>
+        </transition-stub>
+        <transition-stub name="" appear="false" persisted="false" css="true">
+          <div class="v-window-item" style="display: none;">
+            <!---->
           </div>
         </transition-stub>
         <transition-stub name="" appear="false" persisted="false" css="true">
