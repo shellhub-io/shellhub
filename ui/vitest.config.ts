@@ -10,6 +10,8 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@admin": fileURLToPath(new URL("./admin/src", import.meta.url)),
+      "@tests": fileURLToPath(new URL("./tests", import.meta.url)),
+      "@admin/tests": fileURLToPath(new URL("./admin/tests", import.meta.url)),
     },
   },
   css: {
