@@ -18,6 +18,8 @@
       "@/*": ["src/*"],
       "@ui/*": ["src/*"],
       "@admin/*": ["admin/src/*"],
+      "@tests/*": ["tests/*"],
+      "@admin/tests/*": ["admin/tests/*"],
     },
     "noImplicitAny": false,
     "sourceRoot": "/",
