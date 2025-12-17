@@ -58,6 +58,10 @@ const props = defineProps<{
   name: string
 }>();
 
+const emit = defineEmits<{
+  update: [];
+}>();
+
 const showDialog = ref(false);
 const snackbar = useSnackbar();
 const messages = ref(
@@ -90,6 +94,7 @@ const rename = async () => {
     });
 
     close();
+    emit("update");
     snackbar.showSuccess("Device renamed successfully.");
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
