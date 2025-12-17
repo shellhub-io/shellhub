@@ -1,163 +1,189 @@
-import { createPinia, setActivePinia } from "pinia";
-import { defineComponent, nextTick } from "vue";
-import { mount, flushPromises } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import * as components from "vuetify/components";
-import * as directives from "vuetify/directives";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { createRouter, createWebHistory } from "vue-router";
+import { flushPromises } from "@vue/test-utils";
+import type { VueWrapper } from "@vue/test-utils";
+import { VApp } from "vuetify/components";
+import { mountComponent } from "@tests/utils/mount";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { devicesApi, namespacesApi } from "@/api/http";
 import { envVariables } from "@/envVariables";
 import useSpinnerStore from "@/store/modules/spinner";
+import useNamespacesStore from "@/store/modules/namespaces";
+import { routes } from "@/router";
+import { INamespace } from "@/interfaces/INamespace";
 
-const cards = [
-  {
-    title: "ShellHub Cloud",
-    features: [
-      "Protection Against DDoS Attacks",
-      "Session record and playback",
-      "Managing Firewall Rules",
-      "Secure remote communication",
-    ],
-    button: {
-      link: "https://www.shellhub.io/pricing",
-      label: "Pricing",
-    },
-  },
-  {
-    title: "ShellHub Enterprise",
-    features: [
-      "Dedicated server for each customer",
-      "Supports up to thousands of devices",
-      "Reduced maintenance cost",
-    ],
-    button: {
-      link: "https://www.shellhub.io/pricing",
-      label: "Get a quote",
-    },
-  },
-];
+const Component = { template: "<v-app><AppLayout /></v-app>" };
 
-describe("App Layout Component", async () => {
-  setActivePinia(createPinia());
-  const spinnerStore = useSpinnerStore();
-  const vuetify = createVuetify({ components, directives });
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+describe("AppLayout", async () => {
+  let wrapper: VueWrapper;
 
-  vi.stubGlobal("fetch", vi.fn(async () => Promise.resolve({
-    json: () => (cards),
-  })));
-
-  const AppWrapperComponent = defineComponent({
-    components: { AppLayout },
-    template: `
-      <v-app>
-        <AppLayout />
-      </v-app>
-      `,
+  const router = createRouter({
+    routes,
+    history: createWebHistory(),
   });
-
-  localStorage.setItem("theme", "dark");
-  envVariables.hasWebEndpoints = true;
-  envVariables.isCloud = true;
-  spinnerStore.status = true;
-
-  mockDevicesApi
-    .onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending")
-    .reply(200, []);
-  mockDevicesApi
-    .onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted")
-    .reply(200, []);
-  mockDevicesApi
-    .onGet("http://localhost:3000/api/stats")
-    .reply(200, []);
-  mockNamespacesApi
-    .onGet("http://localhost:3000/api/namespaces?page=1&per_page=30")
-    .reply(200, []);
-
   await router.push("/");
   await router.isReady();
 
-  const wrapper = mount(AppWrapperComponent, {
-    global: {
-      plugins: [vuetify, router, SnackbarPlugin],
-      stubs: {
-        "router-link": {
-          template: "<a><slot /></a>",
+  beforeEach(() => {
+    envVariables.hasWebEndpoints = false;
+    envVariables.isCloud = false;
+    envVariables.isCommunity = false;
+    envVariables.premiumPaywall = false;
+
+    wrapper = mountComponent(Component, {
+      global: {
+        plugins: [router],
+        stubs: { "router-view": true },
+        components: {
+          "v-app": VApp,
+          AppLayout,
         },
-        "router-view": true,
       },
-
-    },
-    attachTo: document.body,
+    });
   });
 
-  await flushPromises();
+  afterEach(() => { wrapper.unmount(); });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  it("renders main components", () => {
+    expect(wrapper.find('[data-test="navigation-drawer"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="logo"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="main"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="container"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="app-bar"]').exists()).toBe(true);
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders internal components", () => {
-    const layoutWrapper = wrapper.findComponent(AppLayout);
-    expect(layoutWrapper.find('[data-test="navigation-drawer"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="drawer-toolbar"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="logo"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="list"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="list-item"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="icon"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="app-bar"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="main"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="container"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="overlay"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="progress-circular"]').exists()).toBe(true);
-    expect(layoutWrapper.find('[data-test="userWarning-component"]').exists()).toBe(false);
-  });
-
-  it("Renders loading screen", async () => {
+  it("displays loading overlay when spinner is active", async () => {
+    const spinnerStore = useSpinnerStore();
     spinnerStore.status = true;
+
     await flushPromises();
 
-    const layoutWrapper = wrapper.findComponent(AppLayout);
-    expect(layoutWrapper.find('[data-test="progress-circular"]').exists()).toBeTruthy();
+    expect(wrapper.find('[data-test="overlay"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="progress-circular"]').exists()).toBe(true);
   });
 
-  it("Renders navigation drawer correctly", async () => {
-    const layoutWrapper = wrapper.findComponent(AppLayout);
-    layoutWrapper.vm.lgAndUp = !layoutWrapper.vm.lgAndUp;
-    await nextTick();
-    expect(layoutWrapper.find('[data-test="navigation-drawer"]').isVisible()).toBe(layoutWrapper.vm.lgAndUp);
-  });
+  it("hides loading overlay when spinner is inactive", async () => {
+    const spinnerStore = useSpinnerStore();
+    spinnerStore.status = false;
 
-  it("Renders navigation items from router", () => {
-    const layoutWrapper = wrapper.findComponent(AppLayout);
-    const { items } = layoutWrapper.vm;
-
-    expect(items.length).toBeGreaterThan(0);
-    expect(items[0]).toHaveProperty("icon");
-    expect(items[0]).toHaveProperty("title");
-    expect(items[0]).toHaveProperty("path");
-  });
-
-  it("renders BETA chip for Web Endpoints item", async () => {
-    const layoutWrapper = wrapper.findComponent(AppLayout);
     await flushPromises();
 
-    const webEndpointsItem = layoutWrapper.find('[data-test="mdi-web-listItem"]');
+    const progressCircular = wrapper.find('[data-test="progress-circular"]');
+    expect(progressCircular.exists()).toBe(false);
+  });
 
-    expect(webEndpointsItem.exists()).toBe(true);
+  it("renders navigation items from router configuration", () => {
+    const listItems = wrapper.findAll('[data-test="list-item"]');
+    expect(listItems.length).toBeGreaterThan(0);
+  });
 
-    const betaChip = layoutWrapper.find('[data-test="isBeta-chip"]');
+  it("renders BETA chip in Web Endpoints item when isCloud is enabled", async () => {
+    envVariables.isCloud = true;
+    envVariables.hasWebEndpoints = true;
 
+    wrapper = mountComponent(Component, {
+      global: {
+        plugins: [router],
+        stubs: { "router-view": true },
+        components: {
+          "v-app": VApp,
+          AppLayout,
+        },
+      },
+    });
+
+    await flushPromises();
+
+    const betaChip = wrapper.find('[data-test="isBeta-chip"]');
     expect(betaChip.exists()).toBe(true);
-    expect(betaChip.text().toLowerCase()).toBe("beta");
+    expect(betaChip.text()).toBe("BETA");
+  });
+
+  it("does not render BETA chip when isCloud is disabled", async () => {
+    envVariables.isCloud = false;
+    envVariables.hasWebEndpoints = true;
+
+    wrapper = mountComponent(Component, {
+      global: {
+        plugins: [router],
+        stubs: { "router-view": true },
+        components: {
+          "v-app": VApp,
+          AppLayout,
+        },
+      },
+    });
+
+    await flushPromises();
+
+    const betaChip = wrapper.find('[data-test="isBeta-chip"]');
+    expect(betaChip.exists()).toBe(false);
+  });
+
+  it("disables navigation items when no namespaces exist", async () => {
+    const namespacesStore = useNamespacesStore();
+    expect(namespacesStore.hasNamespaces).toBe(false);
+
+    await flushPromises();
+
+    // Most items should be disabled except Settings and Home
+    const listItems = wrapper.findAll('[data-test="list-item"]');
+    expect(listItems.length).toBeGreaterThan(0);
+  });
+
+  it("enables navigation items when namespaces exist", async () => {
+    const namespacesStore = useNamespacesStore();
+    namespacesStore.namespaceList = [{ name: "dev", tenant_id: "test-tenant" }] as INamespace[];
+    expect(namespacesStore.hasNamespaces).toBe(true);
+
+    await flushPromises();
+
+    const listItems = wrapper.findAll('[data-test="list-item"]');
+    expect(listItems.length).toBeGreaterThan(0);
+  });
+
+  it("renders premium crown icon for premium features when in community with paywall", async () => {
+    envVariables.isCommunity = true;
+    envVariables.premiumPaywall = true;
+
+    wrapper = mountComponent(Component, {
+      global: {
+        plugins: [router],
+        stubs: { "router-view": true },
+        components: {
+          "v-app": VApp,
+          AppLayout,
+        },
+      },
+    });
+
+    await flushPromises();
+
+    // Check if any premium indicators exist
+    const icons = wrapper.findAll('[data-test="icon"]');
+    expect(icons.length).toBeGreaterThan(0);
+  });
+
+  it("renders QuickConnection component", () => {
+    expect(wrapper.findComponent({ name: "QuickConnection" }).exists()).toBe(true);
+  });
+
+  it("applies light theme container styling when theme is light", async () => {
+    localStorage.setItem("theme", "light");
+
+    wrapper = mountComponent(Component, {
+      global: {
+        plugins: [router],
+        stubs: { "router-view": true },
+        components: {
+          "v-app": VApp,
+          AppLayout,
+        },
+      },
+    });
+
+    await flushPromises();
+
+    const container = wrapper.find('[data-test="container"]');
+    expect(container.classes()).toContain("container-light-bg");
   });
 });

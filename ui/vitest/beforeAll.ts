@@ -2,6 +2,7 @@ import MockAdapter from "axios-mock-adapter";
 import { beforeAll, vi } from "vitest";
 import ResizeObserver from "resize-observer-polyfill";
 import { systemApi } from "../src/api/http";
+import { setActivePinia, createPinia } from "pinia";
 
 const mockedSystemInfo = {
   authentication: {
@@ -26,6 +27,8 @@ vi.mock("vue-router", async (importOriginal) => {
     onBeforeRouteLeave: vi.fn(),
   };
 });
+
+setActivePinia(createPinia());
 
 Object.defineProperty(window, "location", {
   value: {
