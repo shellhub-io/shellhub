@@ -41,7 +41,7 @@
           <td>
             <router-link
               :to="{ name: 'namespaceDetails', params: { id: item.tenant_id } }"
-              class="text-white"
+              class="hyper-link"
             >
               {{ item.namespace }}
             </router-link>
@@ -201,5 +201,18 @@ watch([itemsPerPage, page], async () => { await fetchDevices(); });
 
 onMounted(async () => { await fetchDevices(); });
 
-defineExpose({ headers, devices, loading, itemsPerPage });
+defineExpose({ headers, devices, loading, itemsPerPage, showTag });
 </script>
+
+<style scoped>
+.hyper-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.hyper-link:visited,
+.hyper-link:hover,
+.hyper-link:active {
+  color: inherit;
+}
+</style>

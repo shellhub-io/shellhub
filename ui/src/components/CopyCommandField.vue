@@ -9,7 +9,7 @@
         data-test="copy-command-field"
         :persistent-hint
         :hide-details
-        class="code text-white"
+        class="code"
         readonly
         density="compact"
       >

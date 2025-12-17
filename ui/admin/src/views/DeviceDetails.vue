@@ -98,7 +98,7 @@
             <h3 class="item-title">Namespace:</h3>
             <router-link
               :to="{ name: 'namespaceDetails', params: { id: device.tenant_id } }"
-              class="text-white"
+              class="hyper-link"
             >
               {{ device.namespace }}
             </router-link>
@@ -208,3 +208,16 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.hyper-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.hyper-link:visited,
+.hyper-link:hover,
+.hyper-link:active {
+  color: inherit;
+}
+</style>

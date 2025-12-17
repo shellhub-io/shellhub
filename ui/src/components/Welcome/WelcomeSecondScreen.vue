@@ -25,8 +25,8 @@
       class="pa-4 mb-4"
       color="primary"
     >
-      <div class="mb-1 text-white">
-        <h3>Requirements:</h3>
+      <div class="mb-1 text-high-emphasis">
+        <h3 class="text-h6">Requirements:</h3>
         <v-list
           class="bg-transparent"
           :lines="false"

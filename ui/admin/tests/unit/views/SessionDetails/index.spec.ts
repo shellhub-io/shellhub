@@ -72,11 +72,6 @@ describe("Session Details", async () => {
     expect(wrapper.find(".text-h6").text()).toBe(sessionDetail.uid);
   });
 
-  it("Shows active status icon with tooltip", () => {
-    const icon = wrapper.find('[data-test="active-icon"]');
-    expect(icon.classes()).toContain("text-white");
-  });
-
   it("Displays session UID", () => {
     const uidField = wrapper.find('[data-test="session-uid-field"]');
     expect(uidField.text()).toContain("UID:");
