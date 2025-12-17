@@ -165,6 +165,13 @@
                   <span> You don't have this kind of authorization. </span>
                 </v-tooltip>
 
+                <DeviceRename
+                  :uid="item.uid"
+                  :name="item.name"
+                  data-test="device-rename-component"
+                  @update="getDevices"
+                />
+
                 <v-tooltip
                   location="bottom"
                   class="text-center"
@@ -278,6 +285,7 @@ import DataTable from "./DataTable.vue";
 import DeviceIcon from "../Devices/DeviceIcon.vue";
 import DeviceActionButton from "../Devices/DeviceActionButton.vue";
 import DeviceDelete from "../Devices/DeviceDelete.vue";
+import DeviceRename from "../Devices/DeviceRename.vue";
 import TagFormUpdate from "../Tags/TagFormUpdate.vue";
 import TerminalConnectButton from "../Terminal/TerminalConnectButton.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
