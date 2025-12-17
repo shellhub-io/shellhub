@@ -1,5 +1,17 @@
 <template>
   <div>
+    <div class="mb-4">
+      <v-select
+        v-model="statusFilter"
+        :items="statusOptions"
+        label="Filter by status"
+        variant="outlined"
+        density="compact"
+        hide-details
+        max-width="200"
+        data-test="invitation-status-select"
+      />
+    </div>
     <DataTable
       v-model:page="page"
       v-model:items-per-page="itemsPerPage"
@@ -164,7 +176,12 @@ import useInvitationsStore from "@/store/modules/invitations";
 import { IInvitation } from "@/interfaces/IInvitation";
 import { getInvitationStatusFilter, orderInvitationsByCreatedAt, isInvitationExpired } from "@/utils/invitations";
 
-const props = defineProps<{ statusFilter: IInvitation["status"] }>();
+const statusOptions: { title: string; value: IInvitation["status"] }[] = [
+  { title: "Pending", value: "pending" },
+  { title: "Cancelled", value: "cancelled" },
+  { title: "Accepted", value: "accepted" },
+  { title: "Rejected", value: "rejected" },
+];
 
 const authStore = useAuthStore();
 const invitationsStore = useInvitationsStore();
@@ -175,14 +192,15 @@ const page = ref(1);
 const tenant = computed(() => authStore.tenantId);
 const invitations = computed(() => orderInvitationsByCreatedAt(invitationsStore.namespaceInvitations));
 const invitationCount = computed(() => invitationsStore.invitationCount);
-const filter = computed(() => getInvitationStatusFilter(props.statusFilter));
+const statusFilter = ref<IInvitation["status"]>("pending");
+const filter = computed(() => getInvitationStatusFilter(statusFilter.value));
 const canEditInvitation = hasPermission("namespace:editInvitation");
 const canCancelInvitation = hasPermission("namespace:cancelInvitation");
 const canSendInvitation = hasPermission("namespace:addMember");
 
 const dateColumnHeader = computed(() => {
-  if (props.statusFilter === "pending") return "Expires At";
-  const capitalizedStatus = props.statusFilter.charAt(0).toUpperCase() + props.statusFilter.slice(1);
+  if (statusFilter.value === "pending") return "Expires At";
+  const capitalizedStatus = statusFilter.value.charAt(0).toUpperCase() + statusFilter.value.slice(1);
   return `${capitalizedStatus} At`;
 });
 
@@ -224,6 +242,8 @@ const getStatusColor = (status: IInvitation["status"]) => statusColorMap[status]
 
 const isInvitationPending = (invitation: IInvitation) => invitation.status === "pending";
 
+const setStatusFilterToPending = () => { statusFilter.value = "pending"; };
+
 const getInvitations = async () => {
   try {
     loading.value = true;
@@ -254,5 +274,5 @@ watch([page, itemsPerPage], async () => { await getInvitations(); });
 
 onMounted(async () => { await getInvitations(); });
 
-defineExpose({ getInvitations });
+defineExpose({ getInvitations, setStatusFilterToPending });
 </script>

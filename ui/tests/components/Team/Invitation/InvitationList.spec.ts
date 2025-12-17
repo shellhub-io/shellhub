@@ -42,13 +42,10 @@ const mockInvitationsUrl = "http://localhost:3000/api/namespaces/fake-tenant/inv
 
 const vuetify = createVuetify();
 
-const mountWrapper = (statusFilter: IInvitation["status"]) => mount(InvitationList, {
+const mountWrapper = () => mount(InvitationList, {
   global: {
     plugins: [vuetify],
     provide: { [SnackbarInjectionKey]: mockSnackbar },
-  },
-  props: {
-    statusFilter,
   },
 });
 
@@ -67,41 +64,42 @@ describe("InvitationList", async () => {
 
   const storeSpy = vi.spyOn(invitationsStore, "fetchNamespaceInvitationList");
 
-  const wrapper = mountWrapper("pending");
+  const wrapper = mountWrapper();
 
   await flushPromises();
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
 
   it("Loads invitations on mount", () => {
     expect(storeSpy).toHaveBeenCalled();
   });
 
-  it("Shows 'Expires At' header for pending status filter", () => {
+  it("Renders the status filter select", () => {
+    const statusSelect = wrapper.find('[data-test="invitation-status-select"]');
+    expect(statusSelect.exists()).toBe(true);
+  });
+
+  it("Shows 'Expires At' header for pending status filter by default", () => {
     expect(wrapper.text()).toContain("Expires At");
   });
 
   it("Shows 'Cancelled At' header for cancelled status filter", async () => {
-    const cancelledWrapper = mountWrapper("cancelled");
-
+    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
+    await statusSelect.setValue("cancelled");
     await flushPromises();
-    expect(cancelledWrapper.text()).toContain("Cancelled At");
+    expect(wrapper.text()).toContain("Cancelled At");
   });
 
   it("Shows 'Accepted At' header for accepted status filter", async () => {
-    const acceptedWrapper = mountWrapper("accepted");
-
+    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
+    await statusSelect.setValue("accepted");
     await flushPromises();
-    expect(acceptedWrapper.text()).toContain("Accepted At");
+    expect(wrapper.text()).toContain("Accepted At");
   });
 
   it("Shows 'Rejected At' header for rejected status filter", async () => {
-    const rejectedWrapper = mountWrapper("rejected");
-
+    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
+    await statusSelect.setValue("rejected");
     await flushPromises();
-    expect(rejectedWrapper.text()).toContain("Rejected At");
+    expect(wrapper.text()).toContain("Rejected At");
   });
 
   it("Shows expiration date for pending invitations", () => {
@@ -116,7 +114,7 @@ describe("InvitationList", async () => {
       expires_at: "2020-01-01T00:00:00Z",
     };
     const formattedExpiresAt = formatShortDateTime(expiredInvitation.expires_at); // January 1, 2020 00:00 AM
-    const expiredWrapper = mountWrapper("pending");
+    const expiredWrapper = mountWrapper();
     await flushPromises();
     invitationsStore.namespaceInvitations = [expiredInvitation];
     await nextTick();
@@ -134,12 +132,27 @@ describe("InvitationList", async () => {
     };
     const formattedStatusUpdatedAt = formatShortDateTime(cancelledInvitation.status_updated_at); // December 15, 2025 10:30 AM
 
-    invitationsStore.namespaceInvitations = [cancelledInvitation];
-
-    const cancelledWrapper = mountWrapper("cancelled");
+    const cancelledWrapper = mountWrapper();
     await flushPromises();
+
+    const statusSelect = cancelledWrapper.findComponent('[data-test="invitation-status-select"]');
+    await statusSelect.setValue("cancelled");
+    await flushPromises();
+
+    invitationsStore.namespaceInvitations = [cancelledInvitation];
+    await nextTick();
 
     const dateCell = cancelledWrapper.find('[data-test="invitation-date-cell"]');
     expect(dateCell.text()).toContain(formattedStatusUpdatedAt);
+  });
+
+  it("Can change status filter and it updates the invitations", async () => {
+    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
+
+    storeSpy.mockClear();
+    await statusSelect.setValue("accepted");
+    await flushPromises();
+
+    expect(storeSpy).toHaveBeenCalled();
   });
 });
