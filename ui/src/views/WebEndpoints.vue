@@ -7,19 +7,6 @@
     icon-color="primary"
   >
     <template #actions>
-      <v-text-field
-        v-if="showList"
-        v-model.trim="filter"
-        label="Search by Address"
-        variant="outlined"
-        color="primary"
-        single-line
-        hide-details
-        prepend-inner-icon="mdi-magnify"
-        density="compact"
-        data-test="search-text"
-        @keyup="searchWebEndpoints"
-      />
       <v-btn
         color="primary"
         variant="elevated"
@@ -32,6 +19,20 @@
       </v-btn>
     </template>
   </PageHeader>
+
+  <v-text-field
+    v-if="showList"
+    v-model.trim="filter"
+    label="Search by Address"
+    variant="outlined"
+    color="primary"
+    single-line
+    hide-details
+    prepend-inner-icon="mdi-magnify"
+    density="compact"
+    data-test="search-text"
+    @keyup="searchWebEndpoints"
+  />
 
   <WebEndpointList
     v-if="showList"
