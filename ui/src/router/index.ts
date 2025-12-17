@@ -207,10 +207,12 @@ export const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
     },
     beforeEnter: (to, from, next) => {
-      if (envVariables.isCloud || useUsersStore().systemInfo.setup) {
+      const forceSetup = to.query.force === "true";
+      if (!forceSetup && (envVariables.isCloud || useUsersStore().systemInfo.setup)) {
         next({ name: "Login" });
+      } else {
+        next();
       }
-      next();
     },
     component: () => import("../views/Setup.vue"),
   },

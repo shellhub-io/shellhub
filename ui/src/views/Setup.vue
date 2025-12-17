@@ -16,7 +16,7 @@
         Welcome to ShellHub!
       </v-card-title>
       <v-window v-model="step">
-        <v-window-item :value="1">
+        <v-window-item :value="SetupStep.Sign">
           <v-card-subtitle
             class="text-wrap text-justify px-0"
             data-test="subtitle-1"
@@ -47,11 +47,14 @@
             variant="tonal"
             block
             text="Next"
-            @click="step = 2"
+            @click="step = showOnboardingStep ? SetupStep.Onboarding : SetupStep.Account"
           />
         </v-window-item>
 
-        <v-window-item :value="2">
+        <v-window-item
+          v-if="showOnboardingStep"
+          :value="SetupStep.Onboarding"
+        >
           <v-card-subtitle
             class="text-wrap text-center mb-4"
             data-test="subtitle-2"
@@ -59,11 +62,11 @@
             Help us improve ShellHub by sharing your feedback
           </v-card-subtitle>
 
-          <div style="position: relative; height: 500px; overflow: auto;">
+          <div style="position: relative; height:60dvh; overflow:auto;">
             <iframe
-              :src="formbricksUrl"
+              :src="onboardingUrl"
               frameborder="0"
-              style="position: absolute; left: 0; top: 0; width: 100%; height: 500px; border: 0; border-radius: 4px;"
+              style="position: absolute; left:0; top:0; width:100%; height:100%; border:0;"
             />
           </div>
 
@@ -71,22 +74,24 @@
             <v-btn
               color="primary"
               variant="text"
-              @click="step = 1"
+              @click="step = SetupStep.Sign"
             >
               Back
             </v-btn>
             <v-spacer />
             <v-btn
+              :disabled="!surveyCompleted"
               color="primary"
               variant="tonal"
-              @click="step = 3"
+              data-test="continue-btn"
+              @click="step = SetupStep.Account"
             >
               Continue
             </v-btn>
           </v-card-actions>
         </v-window-item>
 
-        <v-window-item :value="3">
+        <v-window-item :value="SetupStep.Account">
           <v-card-subtitle
             class="text-wrap text-center mb-3"
             data-test="subtitle-3"
@@ -153,7 +158,7 @@
             <v-btn
               color="primary"
               variant="text"
-              @click="step = 2"
+              @click="step = showOnboardingStep ? SetupStep.Onboarding : SetupStep.Sign"
             >
               Back
             </v-btn>
@@ -177,25 +182,44 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useField } from "vee-validate";
+import { useEventListener } from "@vueuse/core";
 import * as yup from "yup";
 import useUsersStore from "@/store/modules/users";
 import CopyCommandField from "@/components/CopyCommandField.vue";
+import { envVariables } from "@/envVariables";
+
+enum SetupStep {
+  Sign = 1,
+  Onboarding = 2,
+  Account = 3,
+}
 
 const usersStore = useUsersStore();
 const router = useRouter();
 const route = useRoute();
+
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const alertMessage = ref("");
 const alertType = ref<"success" | "error">("success");
-const step = ref<number>(1);
+const step = ref<SetupStep>(SetupStep.Sign);
+const surveyCompleted = ref(false);
 const hasQuery = computed(() => route.query.sign as string);
-const formbricksUrl = computed(() => {
-  const baseUrl = "https://forms.infra.ossystems.io/s/nhq8yq73j9lp3qor3jwxrhs2";
+
+// Onboarding survey is only available in Community Edition
+const showOnboardingStep = computed(() => envVariables.isCommunity && !!envVariables.onboardingUrl);
+
+const onboardingUrl = computed(() => {
+  if (!envVariables.onboardingUrl) {
+    return "";
+  }
+
+  const baseUrl = envVariables.onboardingUrl;
   const params = new URLSearchParams({
     consent_to_contact: "accepted",
     source: "self-hosted",
     embed: "true",
+    instance_domain: window.location.hostname,
   });
 
   if (import.meta.env.DEV) {
@@ -271,7 +295,32 @@ const isFormValid = computed(() => (
   && !passwordConfirmError.value
 ));
 
-onMounted(() => { if (hasQuery.value) step.value = 2; });
+// Listen for FormBricks survey completion
+useEventListener(window, "message", (event: MessageEvent) => {
+  // Verify the message is from FormBricks
+  if (!envVariables.onboardingUrl) return;
+
+  try {
+    const formbricksOrigin = new URL(envVariables.onboardingUrl).origin;
+    if (event.origin !== formbricksOrigin) {
+      return;
+    }
+  } catch {
+    return;
+  }
+
+  // Check if the survey was completed
+  // FormBricks sends the completion event as a simple string
+  if (event.data === "formbricksSurveyCompleted") {
+    surveyCompleted.value = true;
+  }
+});
+
+onMounted(() => {
+  if (hasQuery.value) {
+    step.value = showOnboardingStep.value ? SetupStep.Onboarding : SetupStep.Account;
+  }
+});
 
 const setupAccount = async () => {
   if (isFormValid.value) {

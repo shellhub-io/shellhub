@@ -32,4 +32,5 @@ export const envVariables = {
   stripeKey: env.VUE_APP_SHELLHUB_STRIPE_PUBLISHABLE_KEY as string,
   sentryDsn: env.VUE_APP_SHELLHUB_SENTRY_DSN_VERSION as string,
   googleAnalyticsID: env.VUE_APP_SHELLHUB_GOOGLE_ANALYTICS_ID as string,
+  onboardingUrl: env.VUE_APP_SHELLHUB_ONBOARDING_URL as string,
 };

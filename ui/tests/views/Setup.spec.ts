@@ -21,6 +21,8 @@ describe("Setup Account", () => {
   const mockUsersApi = new MockAdapter(usersApi.getAxios());
   beforeEach(() => {
     envVariables.isCloud = false;
+    envVariables.isCommunity = true;
+    envVariables.onboardingUrl = "https://forms.example.com/survey";
 
     wrapper = mount(Setup, {
       global: {
