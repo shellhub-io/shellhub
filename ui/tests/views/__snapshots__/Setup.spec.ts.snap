@@ -11,7 +11,7 @@ exports[`Setup Account > Renders the component 1`] = `
           <div class="v-window-item v-window-item--active">
             <div class="v-card-subtitle text-wrap text-justify px-0" data-test="subtitle-1"> To set up your account, please run the following command in your terminal to generate a signature. Use the generated signature in the "Sign" field below to proceed. </div>
             <div data-v-0cebd2fd="" class="my-4" data-test="setup-command-field">
-              <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code text-white" data-test="copy-command-field">
+              <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code" data-test="copy-command-field">
                 <!---->
                 <div class="v-input__control">
                   <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr">

@@ -55,7 +55,7 @@ exports[`Welcome Fourth Screen > Renders the component 1`] = `
     <!---->
     <!---->
     <div class="mb-3">
-      <h4 class="text-h6 mb-3 d-flex align-center text-white"><i class="mdi-compass mdi v-icon notranslate v-theme--light v-icon--size-default text-primary mr-2" aria-hidden="true"></i> Helpful Resources </h4>
+      <h4 class="text-h6 mb-3 d-flex align-center text-high-emphasis"><i class="mdi-compass mdi v-icon notranslate v-theme--light v-icon--size-default text-primary mr-2" aria-hidden="true"></i> Helpful Resources </h4>
       <div class="d-flex flex-wrap ga-4"><a href="http://docs.shellhub.io/" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-tonal" target="_blank" rel="noopener noreferrer" data-test="welcome-fourth-links"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-book-open-variant mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Documentation <i class="mdi-open-in-new mdi v-icon notranslate v-theme--light ml-1" style="font-size: 12px; height: 12px; width: 12px;" aria-hidden="true"></i></span>
           <!---->
           <!---->

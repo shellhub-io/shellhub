@@ -2,7 +2,7 @@
 
 exports[`CopyCommandField > renders the component 1`] = `
 "<div data-v-0cebd2fd="" copied-item="Command" persistentplaceholder="true">
-  <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code text-white" data-test="copy-command-field">
+  <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code" data-test="copy-command-field">
     <!---->
     <div class="v-input__control">
       <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--variant-filled v-theme--light v-locale--is-ltr">

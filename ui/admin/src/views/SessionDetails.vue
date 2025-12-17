@@ -44,7 +44,7 @@
             <h3 class="item-title">Device:</h3>
             <router-link
               :to="{ name: 'deviceDetails', params: { id: session.device.uid } }"
-              class="text-white"
+              class="hyper-link"
             >
               {{ session.device.name || session.device.uid }}
             </router-link>
@@ -80,7 +80,7 @@
             <h3 class="item-title">Namespace:</h3>
             <router-link
               :to="{ name: 'namespaceDetails', params: { id: session.tenant_id } }"
-              class="text-white"
+              class="hyper-link"
             >
               {{ session.device.namespace }}
             </router-link>
@@ -139,3 +139,16 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.hyper-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.hyper-link:visited,
+.hyper-link:hover,
+.hyper-link:active {
+  color: inherit;
+}
+</style>

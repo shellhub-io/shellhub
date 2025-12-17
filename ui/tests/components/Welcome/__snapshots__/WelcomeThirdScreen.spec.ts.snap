@@ -25,10 +25,10 @@ exports[`Welcome Third Screen > Renders the component 1`] = `
     <div class="v-expansion-panel border bg-background rounded">
       <div class="v-expansion-panel__shadow"></div>
       <!---->
-      <!----><button class="v-expansion-panel-title text-white bg-v-theme-surface border-b d-flex align-center" type="button" aria-expanded="false"><span class="v-expansion-panel-title__overlay"></span><i data-test="device-icon" class="fl-linuxmint mr-1 mr-3" style="font-size: 20px;" size="32"></i>
+      <!----><button class="v-expansion-panel-title text-high-emphasis bg-v-theme-surface border-b d-flex align-center" type="button" aria-expanded="false"><span class="v-expansion-panel-title__overlay"></span><i data-test="device-icon" class="fl-linuxmint mr-1 mr-3" style="font-size: 20px;" size="32"></i>
         <div>
           <div class="text-h6" data-test="device-field">39-5e-2a</div>
-          <div class="text-body-2 text-white" data-test="device-pretty-name-field">Linux Mint 19.3</div>
+          <div class="text-body-2 text-medium-emphasis" data-test="device-pretty-name-field">Linux Mint 19.3</div>
         </div><span class="v-expansion-panel-title__icon"><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       </button>
       <transition-stub name="expand-transition" appear="false" persisted="false" css="true">

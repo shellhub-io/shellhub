@@ -11,7 +11,7 @@
     >
       <router-link
         :to="{ name: 'dashboard' }"
-        class="text-white text-decoration-none w-100"
+        class="text-decoration-none w-100"
       >
         <v-img
           :src="Logo"

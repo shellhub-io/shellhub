@@ -27,8 +27,8 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div class="mb-1 text-white">
-      <h3>Requirements:</h3>
+    <div class="mb-1 text-high-emphasis">
+      <h3 class="text-h6">Requirements:</h3>
       <div class="v-list v-theme--light v-list--density-default bg-transparent" tabindex="0" role="list">
         <div class="v-list-item v-theme--light v-list-item--density-compact rounded-0 v-list-item--variant-text d-flex align-center pa-0" role="listitem">
           <!----><span class="v-list-item__underlay"></span>
@@ -68,7 +68,7 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
         <!---->
         <div data-test="welcome-second-run-title"> Ready to install? Copy the command below and run it on your target device: </div>
         <div data-v-0cebd2fd="" class="mt-3">
-          <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code text-white" data-test="copy-command-field">
+          <div data-v-0cebd2fd="" class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-input--dirty v-input--readonly v-text-field v-text-field--prefixed code" data-test="copy-command-field">
             <!---->
             <div class="v-input__control">
               <div class="v-field v-field--active v-field--center-affix v-field--dirty v-field--no-label v-field--variant-filled v-theme--light v-locale--is-ltr">

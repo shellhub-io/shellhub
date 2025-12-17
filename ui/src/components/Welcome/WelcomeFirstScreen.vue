@@ -43,11 +43,11 @@
           class="mr-4"
           :icon="feature.icon"
         />
-        <div class="text-white">
-          <v-card-title class="text-h6 mb-1 pa-0">
+        <div class="text-high-emphasis">
+          <v-card-title class="text-h6 mb-1 pa-0 text-high-emphasis">
             {{ feature.title }}
           </v-card-title>
-          <v-card-subtitle class="mb-0 pl-0">
+          <v-card-subtitle class="mb-0 pl-0 text-medium-emphasis">
             {{ feature.description }}
           </v-card-subtitle>
         </div>

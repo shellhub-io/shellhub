@@ -51,7 +51,7 @@
       class="pa-4 mb-4"
     >
       <div class="mb-3">
-        <h4 class="text-h6 mb-3 d-flex align-center text-white">
+        <h4 class="text-h6 mb-3 d-flex align-center text-high-emphasis">
           <v-icon
             color="primary"
             class="mr-2"

@@ -29,9 +29,9 @@ exports[`Welcome First Screen > Renders the component 1`] = `
     <!---->
     <!---->
     <div class="d-flex align-center h-100"><i class="mdi-monitor mdi v-icon notranslate v-theme--light text-primary mr-4" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
-      <div class="text-white">
-        <div class="v-card-title text-h6 mb-1 pa-0">Remote Access</div>
-        <div class="v-card-subtitle mb-0 pl-0">Access your Linux devices from anywhere via CLI or web interface</div>
+      <div class="text-high-emphasis">
+        <div class="v-card-title text-h6 mb-1 pa-0 text-high-emphasis">Remote Access</div>
+        <div class="v-card-subtitle mb-0 pl-0 text-medium-emphasis">Access your Linux devices from anywhere via CLI or web interface</div>
       </div>
     </div>
     <!---->
@@ -56,9 +56,9 @@ exports[`Welcome First Screen > Renders the component 1`] = `
     <!---->
     <!---->
     <div class="d-flex align-center h-100"><i class="mdi-shield-check mdi v-icon notranslate v-theme--light text-primary mr-4" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
-      <div class="text-white">
-        <div class="v-card-title text-h6 mb-1 pa-0">Secure Connection</div>
-        <div class="v-card-subtitle mb-0 pl-0">Bypass firewalls and NAT with secure, encrypted connections</div>
+      <div class="text-high-emphasis">
+        <div class="v-card-title text-h6 mb-1 pa-0 text-high-emphasis">Secure Connection</div>
+        <div class="v-card-subtitle mb-0 pl-0 text-medium-emphasis">Bypass firewalls and NAT with secure, encrypted connections</div>
       </div>
     </div>
     <!---->
@@ -83,9 +83,9 @@ exports[`Welcome First Screen > Renders the component 1`] = `
     <!---->
     <!---->
     <div class="d-flex align-center h-100"><i class="mdi-cogs mdi v-icon notranslate v-theme--light text-primary mr-4" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
-      <div class="text-white">
-        <div class="v-card-title text-h6 mb-1 pa-0">Easy Setup</div>
-        <div class="v-card-subtitle mb-0 pl-0">Automated access process with seamless device management</div>
+      <div class="text-high-emphasis">
+        <div class="v-card-title text-h6 mb-1 pa-0 text-high-emphasis">Easy Setup</div>
+        <div class="v-card-subtitle mb-0 pl-0 text-medium-emphasis">Automated access process with seamless device management</div>
       </div>
     </div>
     <!---->

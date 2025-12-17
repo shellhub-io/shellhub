@@ -44,7 +44,7 @@
       <v-expansion-panel
         class="border bg-background rounded"
       >
-        <v-expansion-panel-title class="text-white bg-v-theme-surface border-b d-flex align-center">
+        <v-expansion-panel-title class="text-high-emphasis bg-v-theme-surface border-b d-flex align-center">
           <DeviceIcon
             v-if="firstPendingDevice.info"
             :icon="firstPendingDevice.info.id"
@@ -60,7 +60,7 @@
             </div>
             <div
               v-if="firstPendingDevice.info"
-              class="text-body-2 text-white"
+              class="text-body-2 text-medium-emphasis"
               data-test="device-pretty-name-field"
             >
               {{ firstPendingDevice.info.pretty_name }}
