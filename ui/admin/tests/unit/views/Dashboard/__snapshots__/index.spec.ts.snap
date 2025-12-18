@@ -2,7 +2,7 @@
 
 exports[`Dashboard > Renders the component 1`] = `
 "<div>
-  <div class="v-card v-theme--light v-card--density-default elevation-0 v-card--variant-elevated bg-transparent mb-12">
+  <div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-6 bg-transparent mb-6 position-relative overflow-hidden border-b mx-n8 mt-n8">
     <!---->
     <div class="v-card__loader">
       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -20,16 +20,22 @@ exports[`Dashboard > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div class="d-flex align-start">
-      <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-4" style="width: 48px; height: 48px;"><i class="mdi-view-dashboard mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
-        <!----><span class="v-avatar__underlay"></span>
-      </div>
-      <div>
-        <h1 class="text-overline text-medium-emphasis mb-1"> Admin Dashboard </h1>
-        <h2 class="text-h5 font-weight-bold mb-2"> System Overview </h2>
-        <p class="text-body-2 text-medium-emphasis"> Monitor and manage your ShellHub instance metrics and statistics </p>
-      </div>
-    </div>
+    <div class="d-flex align-start justify-space-between position-relative" style="z-index: 1;">
+      <!-- Left side: Icon + Title + Description -->
+      <div class="d-flex align-start flex-grow-1">
+        <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-4" style="width: 48px; height: 48px;"><i class="mdi-home mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+          <!----><span class="v-avatar__underlay"></span>
+        </div>
+        <div>
+          <div class="text-overline text-medium-emphasis mb-1">Admin Dashboard</div>
+          <div class="text-h5 font-weight-bold mb-2">System Overview</div>
+          <div class="text-body-2 text-medium-emphasis">Monitor and manage your ShellHub instance metrics and statistics.</div>
+          <!--v-if-->
+        </div>
+      </div><!-- Right side: Actions -->
+      <!--v-if-->
+    </div><!-- Extra content below -->
+    <!--v-if-->
     <!---->
     <!----><span class="v-card__underlay"></span>
   </div>
@@ -216,7 +222,7 @@ exports[`Dashboard > Renders the component 1`] = `
         </div>
         <!---->
         <!---->
-        <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i class="mdi-console-network mdi v-icon notranslate v-theme--light" style="font-size: 40px; height: 40px; width: 40px;" aria-hidden="true"></i>
+        <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mb-4" style="width: 64px; height: 64px;"><i class="mdi-history mdi v-icon notranslate v-theme--light" style="font-size: 40px; height: 40px; width: 40px;" aria-hidden="true"></i>
           <!----><span class="v-avatar__underlay"></span>
         </div>
         <div class="v-card-title text-overline text-medium-emphasis mb-2">Active Sessions</div>

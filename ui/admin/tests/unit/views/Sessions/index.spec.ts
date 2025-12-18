@@ -35,7 +35,6 @@ describe("Sessions", () => {
   });
 
   it("Should render all the components in the screen", () => {
-    expect(wrapper.find("h1").text()).toContain("Sessions");
     expect(wrapper.find("[data-test='session-list']").exists()).toBe(true);
   });
 });

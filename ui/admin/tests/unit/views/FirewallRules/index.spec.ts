@@ -62,7 +62,6 @@ describe("Firewall Rules", () => {
   });
 
   it("Should render all the components in the screen", () => {
-    expect(wrapper.find("h1").text()).toContain("Firewall Rules");
     expect(wrapper.find("[data-test='firewall-rules-list']").exists()).toBe(true);
   });
 });

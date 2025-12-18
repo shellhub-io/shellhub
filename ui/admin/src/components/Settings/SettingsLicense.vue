@@ -1,14 +1,19 @@
 <template>
   <v-alert
     v-if="licenseAlert"
-    class="mt-4 pl-4 pr-4 d-flex justify-center align-center"
+    class="my-4 pl-4 pr-4 d-flex justify-center align-center"
     variant="outlined"
     :type="licenseAlert.type"
     :text="licenseAlert.message"
   />
-  <h1 class="pb-2">
-    License Details
-  </h1>
+  <PageHeader
+    icon="mdi-license"
+    title="License Details"
+    overline="Admin Settings"
+    description="Review the current license scope and upload a new file when your subscription changes."
+    icon-color="primary"
+    title-test-id="license-header"
+  />
   <v-card
     class="w-100 pa-4 bg-background border"
     data-test="license-card"
@@ -153,6 +158,7 @@ import { AdminLicenseFeatures } from "@admin/interfaces/ILicense";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import useSnackbar from "@/helpers/snackbar";
 import handleError from "@/utils/handleError";
+import PageHeader from "@/components/PageHeader.vue";
 
 const licenseStore = useLicenseStore();
 const snackbar = useSnackbar();

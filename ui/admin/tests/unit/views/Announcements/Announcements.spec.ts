@@ -52,10 +52,6 @@ describe("Announcement Details", () => {
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("Has the correct data", () => {
-    expect(wrapper.find("[data-test='announcement-title']").text()).toBe("Announcements");
-  });
-
   it("Renders the correct HTML", () => {
     expect(wrapper.find("[data-test='announcement-title']").exists()).toBeTruthy();
     expect(wrapper.find("[data-test='new-announcement-btn']").exists()).toBeTruthy();

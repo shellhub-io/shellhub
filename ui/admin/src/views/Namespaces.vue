@@ -1,26 +1,33 @@
 <template>
-  <div class="d-flex flex-column justify-space-between align-center flex-md-row mb-2">
-    <h1>Namespaces</h1>
-    <v-spacer />
+  <PageHeader
+    icon="mdi-cloud-braces"
+    title="Namespaces"
+    overline="Namespace Management"
+    description="Track every tenant, search by name, and export namespace data for audits."
+    icon-color="primary"
+  >
+    <template #actions>
+      <NamespaceExport />
+    </template>
+
     <v-text-field
       v-model.trim="filter"
       label="Search by name"
       color="primary"
-      class="w-50"
+      class="w-100 w-md-50"
       single-line
       hide-details
       append-inner-icon="mdi-magnify"
       density="compact"
       @keyup="searchNamespaces"
     />
-    <v-spacer />
-    <NamespaceExport />
-  </div>
+  </PageHeader>
   <NamespaceList />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
+import PageHeader from "@/components/PageHeader.vue";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import NamespaceList from "../components/Namespace/NamespaceList.vue";
 import NamespaceExport from "../components/Namespace/NamespaceExport.vue";

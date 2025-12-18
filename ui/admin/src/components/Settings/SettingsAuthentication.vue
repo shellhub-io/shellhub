@@ -4,11 +4,14 @@
     data-test="configure-sso-dialog"
   />
 
-  <div class="pb-2">
-    <h1 data-test="auth-header">
-      Authentication
-    </h1>
-  </div>
+  <PageHeader
+    icon="mdi-shield-account"
+    title="Authentication"
+    overline="Admin Settings"
+    description="Control how administrators authenticate to the ShellHub console, including SAML SSO."
+    icon-color="primary"
+    title-test-id="auth-header"
+  />
   <v-card
     class="w-100 pa-4 bg-background border"
     data-test="auth-card"
@@ -163,6 +166,7 @@ import useInstanceStore from "@admin/store/modules/instance";
 import useSnackbar from "@/helpers/snackbar";
 import ConfigureSSO from "../Instance/SSO/ConfigureSSO.vue";
 import CopyWarning from "@/components/User/CopyWarning.vue";
+import PageHeader from "@/components/PageHeader.vue";
 
 const showSSODialog = ref(false);
 const snackbar = useSnackbar();

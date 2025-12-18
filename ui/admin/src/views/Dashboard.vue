@@ -1,33 +1,12 @@
 <template>
   <div v-if="!hasStatus">
-    <v-card
-      class="bg-transparent mb-12"
-      elevation="0"
-    >
-      <div class="d-flex align-start">
-        <v-avatar
-          color="primary"
-          size="48"
-          class="mr-4"
-        >
-          <v-icon
-            size="32"
-            icon="mdi-view-dashboard"
-          />
-        </v-avatar>
-        <div>
-          <h1 class="text-overline text-medium-emphasis mb-1">
-            Admin Dashboard
-          </h1>
-          <h2 class="text-h5 font-weight-bold mb-2">
-            System Overview
-          </h2>
-          <p class="text-body-2 text-medium-emphasis">
-            Monitor and manage your ShellHub instance metrics and statistics
-          </p>
-        </div>
-      </div>
-    </v-card>
+    <PageHeader
+      icon="mdi-home"
+      title="System Overview"
+      overline="Admin Dashboard"
+      description="Monitor and manage your ShellHub instance metrics and statistics."
+      icon-color="primary"
+    />
 
     <v-row class="d-flex align-center mb-2 pa-3">
       <v-icon
@@ -111,7 +90,7 @@
         <StatCard
           title="Active Sessions"
           :stat="stats.active_sessions ?? 0"
-          icon="mdi-console-network"
+          icon="mdi-history"
           button-label="View all Sessions"
           path="sessions"
         />
@@ -137,6 +116,7 @@ import useStatsStore from "@admin/store/modules/stats";
 import { IAdminStats } from "@admin/interfaces/IStats";
 import useSnackbar from "@/helpers/snackbar";
 import StatCard from "@/components/StatCard.vue";
+import PageHeader from "@/components/PageHeader.vue";
 
 const snackbar = useSnackbar();
 const statsStore = useStatsStore();

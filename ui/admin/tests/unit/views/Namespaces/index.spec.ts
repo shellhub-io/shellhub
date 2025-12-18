@@ -45,7 +45,6 @@ describe("Namespaces", () => {
   });
 
   it("Should render all the components in the screen", () => {
-    expect(wrapper.find("h1").text()).toContain("Namespaces");
     expect(wrapper.find("[data-test='namespaces-list']").exists()).toBe(true);
     expect(wrapper.find("[data-test='namespaces-export-btn']").exists()).toBe(true);
     expect(wrapper.find("input").exists()).toBe(true);

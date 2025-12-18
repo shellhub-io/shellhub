@@ -1,7 +1,43 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Firewall Rules > Renders the component 1`] = `
-"<h1 class="mb-2"> Firewall Rules </h1>
+"<div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-6 bg-transparent mb-6 position-relative overflow-hidden border-b mx-n8 mt-n8" data-test="firewall-rules">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="d-flex align-start justify-space-between position-relative" style="z-index: 1;">
+    <!-- Left side: Icon + Title + Description -->
+    <div class="d-flex align-start flex-grow-1">
+      <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-4" style="width: 48px; height: 48px;"><i class="mdi-security mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+        <!----><span class="v-avatar__underlay"></span>
+      </div>
+      <div>
+        <div class="text-overline text-medium-emphasis mb-1">Security Controls</div>
+        <div class="text-h5 font-weight-bold mb-2">Firewall Rules</div>
+        <div class="text-body-2 text-medium-emphasis">Review every policy applied across namespaces and confirm access is locked down.</div>
+        <!--v-if-->
+      </div>
+    </div><!-- Right side: Actions -->
+    <!--v-if-->
+  </div><!-- Extra content below -->
+  <!--v-if-->
+  <!---->
+  <!----><span class="v-card__underlay"></span>
+</div>
 <div data-test="firewall-rules-list">
   <div class="v-table v-theme--light v-table--density-default bg-background border rounded text-center" data-test="datatable">
     <!---->
