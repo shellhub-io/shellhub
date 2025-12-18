@@ -119,7 +119,6 @@ describe("Device", () => {
   });
 
   it("Should render all the components in the screen", () => {
-    expect(wrapper.find("h1").text()).toContain("Devices");
     expect(wrapper.find("input").exists()).toBe(true);
     expect(wrapper.find("[data-test='devices-list']").exists()).toBe(true);
   });

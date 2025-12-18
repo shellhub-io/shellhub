@@ -41,7 +41,6 @@ describe("Users", () => {
   });
 
   it("Should render all the components in the screen", () => {
-    expect(wrapper.find("h1").text()).toContain("Users");
     expect(wrapper.find("[data-test='users-list']").exists()).toBe(true);
     expect(wrapper.find("[data-test='users-export-btn']").exists()).toBe(true);
     expect(wrapper.find("[data-test='user-add-btn']").exists()).toBe(true);

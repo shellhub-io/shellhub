@@ -1,12 +1,23 @@
 <template>
-  <div class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2">
-    <h1>Users</h1>
-    <v-spacer />
+  <PageHeader
+    icon="mdi-account-group"
+    title="Users"
+    overline="Account Management"
+    description="Review every account, keep credentials healthy, and quickly onboard administrators."
+    icon-color="primary"
+  >
+    <template #actions>
+      <div class="d-flex flex-column flex-sm-row ga-2 mt-2 mt-md-0">
+        <UserExport data-test="users-export-btn" />
+        <UserFormDialog create-user />
+      </div>
+    </template>
+
     <v-text-field
       v-model.trim="filter"
       label="Search by username"
       color="primary"
-      class="w-50"
+      class="w-100 w-md-50"
       single-line
       hide-details
       append-inner-icon="mdi-magnify"
@@ -14,21 +25,14 @@
       @keyup.enter="searchUsers"
       @click:append-inner="searchUsers"
     />
-    <v-spacer />
-    <div class="d-flex mt-2 mt-md-0">
-      <UserExport
-        class="ml-2"
-        data-test="users-export-btn"
-      />
-      <UserFormDialog create-user />
-    </div>
-  </div>
+  </PageHeader>
   <UserList />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { watchDebounced } from "@vueuse/core";
+import PageHeader from "@/components/PageHeader.vue";
 import useUsersStore from "@admin/store/modules/users";
 import UserList from "../components/User/UserList.vue";
 import UserFormDialog from "../components/User/UserFormDialog.vue";

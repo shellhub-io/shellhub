@@ -39,10 +39,6 @@ describe("New Announcement", () => {
     expect(html).toMatchSnapshot();
   });
 
-  it("Has the correct title", () => {
-    expect(wrapper.find("h1").text()).toBe("Create new Announcement");
-  });
-
   it("Renders the correct HTML", () => {
     expect(wrapper.find("[data-test='announcement-title']").exists()).toBeTruthy();
     expect(wrapper.find("[data-test='announcement-content']").exists()).toBeTruthy();

@@ -1,10 +1,14 @@
 <template>
-  <div class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2">
-    <h1>Devices</h1>
-    <v-spacer />
+  <PageHeader
+    icon="mdi-developer-board"
+    title="Devices"
+    overline="Fleet Oversight"
+    description="Audit every registered device across all namespaces and quickly find specific hosts."
+    icon-color="primary"
+  >
     <v-text-field
       v-model.trim="filter"
-      class="w-50"
+      class="w-100 w-md-50"
       label="Search by hostname"
       color="primary"
       single-line
@@ -13,13 +17,13 @@
       density="compact"
       @keyup="searchDevices"
     />
-    <v-spacer />
-  </div>
+  </PageHeader>
   <DeviceList />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
+import PageHeader from "@/components/PageHeader.vue";
 import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
 import DeviceList from "../components/Device/DeviceList.vue";

@@ -1,23 +1,29 @@
 <template>
-  <div class="d-flex flex-column justify-space-between align-center flex-md-row mb-2">
-    <h1 data-test="announcement-title">
-      Announcements
-    </h1>
-    <v-spacer />
-    <v-btn
-      :tabindex="0"
-      data-test="new-announcement-btn"
-      color="primary"
-      append-icon="mdi-plus"
-      text="New"
-      @click="goToNewAnnouncement"
-    />
-  </div>
+  <PageHeader
+    icon="mdi-bullhorn"
+    title="Announcements"
+    overline="Platform Messaging"
+    description="Share important system broadcasts with every namespace administrator."
+    icon-color="primary"
+    data-test="announcement-title"
+  >
+    <template #actions>
+      <v-btn
+        :tabindex="0"
+        data-test="new-announcement-btn"
+        color="primary"
+        append-icon="mdi-plus"
+        text="New"
+        @click="goToNewAnnouncement"
+      />
+    </template>
+  </PageHeader>
   <AnnouncementList />
 </template>
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import PageHeader from "@/components/PageHeader.vue";
 import AnnouncementList from "../components/Announcement/AnnouncementList.vue";
 
 const router = useRouter();

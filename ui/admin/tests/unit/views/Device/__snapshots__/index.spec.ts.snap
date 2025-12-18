@@ -1,48 +1,81 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`Device > Renders the component 1`] = `
-"<div class="d-flex flex-column justify-space-between align-center flex-sm-row mb-2">
-  <h1>Devices</h1>
-  <div class="v-spacer"></div>
-  <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field w-50">
-    <!---->
-    <div class="v-input__control">
-      <div class="v-field v-field--appended v-field--center-affix v-field--single-line v-field--variant-filled v-theme--light v-locale--is-ltr">
-        <div class="v-field__overlay"></div>
-        <div class="v-field__loader">
-          <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+"<div class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-6 bg-transparent mb-6 position-relative overflow-hidden border-b mx-n8 mt-n8">
+  <!---->
+  <div class="v-card__loader">
+    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+      <!---->
+      <div class="v-progress-linear__background"></div>
+      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+        <div class="v-progress-linear__indeterminate">
+          <div class="v-progress-linear__indeterminate long"></div>
+          <div class="v-progress-linear__indeterminate short"></div>
+        </div>
+      </transition-stub>
+      <!---->
+    </div>
+  </div>
+  <!---->
+  <!---->
+  <div class="d-flex align-start justify-space-between position-relative" style="z-index: 1;">
+    <!-- Left side: Icon + Title + Description -->
+    <div class="d-flex align-start flex-grow-1">
+      <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-4" style="width: 48px; height: 48px;"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+        <!----><span class="v-avatar__underlay"></span>
+      </div>
+      <div>
+        <div class="text-overline text-medium-emphasis mb-1">Fleet Oversight</div>
+        <div class="text-h5 font-weight-bold mb-2">Devices</div>
+        <div class="text-body-2 text-medium-emphasis">Audit every registered device across all namespaces and quickly find specific hosts.</div>
+        <!--v-if-->
+      </div>
+    </div><!-- Right side: Actions -->
+    <!--v-if-->
+  </div><!-- Extra content below -->
+  <div class="mt-4 position-relative" style="z-index: 1;">
+    <div class="v-input v-input--horizontal v-input--center-affix v-input--density-compact v-theme--light v-locale--is-ltr v-text-field w-100 w-md-50">
+      <!---->
+      <div class="v-input__control">
+        <div class="v-field v-field--appended v-field--center-affix v-field--single-line v-field--variant-filled v-theme--light v-locale--is-ltr">
+          <div class="v-field__overlay"></div>
+          <div class="v-field__loader">
+            <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+              <!---->
+              <div class="v-progress-linear__background bg-primary"></div>
+              <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
+              <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                <div class="v-progress-linear__indeterminate">
+                  <div class="v-progress-linear__indeterminate long bg-primary"></div>
+                  <div class="v-progress-linear__indeterminate short bg-primary"></div>
+                </div>
+              </transition-stub>
+              <!---->
+            </div>
+          </div>
+          <!---->
+          <div class="v-field__field" data-no-activator="">
+            <!----><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
+              <!---->Search by hostname
+            </label>
+            <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" class="v-field__input" value="">
             <!---->
-            <div class="v-progress-linear__background bg-primary"></div>
-            <div class="v-progress-linear__buffer bg-primary" style="width: 0%;"></div>
-            <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-              <div class="v-progress-linear__indeterminate">
-                <div class="v-progress-linear__indeterminate long bg-primary"></div>
-                <div class="v-progress-linear__indeterminate short bg-primary"></div>
-              </div>
-            </transition-stub>
+          </div>
+          <!---->
+          <div class="v-field__append-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
+          <div class="v-field__outline">
+            <!---->
             <!---->
           </div>
         </div>
-        <!---->
-        <div class="v-field__field" data-no-activator="">
-          <!----><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
-            <!---->Search by hostname
-          </label>
-          <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" class="v-field__input" value="">
-          <!---->
-        </div>
-        <!---->
-        <div class="v-field__append-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-        <div class="v-field__outline">
-          <!---->
-          <!---->
-        </div>
       </div>
+      <!---->
+      <!---->
     </div>
-    <!---->
-    <!---->
   </div>
-  <div class="v-spacer"></div>
+  <!---->
+  <!----><span class="v-card__underlay"></span>
 </div>
 <div data-v-aca44803="">
   <div data-v-aca44803="" data-test="devices-list">

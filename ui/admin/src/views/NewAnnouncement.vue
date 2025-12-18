@@ -1,5 +1,12 @@
 <template>
-  <h1>Create new Announcement</h1>
+  <PageHeader
+    icon="mdi-bullhorn"
+    title="Create new Announcement"
+    overline="Platform Messaging"
+    description="Compose a system-wide update to keep every namespace informed about critical changes."
+    icon-color="primary"
+    data-test="announcement-title"
+  />
 
   <v-card class="pa-4 mt-2 bg-background border">
     <v-card-item>
@@ -74,6 +81,7 @@ import useAnnouncementStore from "@admin/store/modules/announcement";
 import useSnackbar from "@/helpers/snackbar";
 import { envVariables } from "@/envVariables";
 import handleError from "@/utils/handleError";
+import PageHeader from "@/components/PageHeader.vue";
 
 const router = useRouter();
 const snackbar = useSnackbar();

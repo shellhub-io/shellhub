@@ -288,7 +288,7 @@ const items = reactive([
     path: "/firewall-rules",
   },
   {
-    icon: "mdi-login",
+    icon: "mdi-cloud-braces",
     title: "Namespaces",
     path: "/namespaces",
   },
