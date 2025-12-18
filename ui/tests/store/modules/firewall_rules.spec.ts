@@ -1,133 +1,312 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { createPinia, setActivePinia } from "pinia";
 import { rulesApi } from "@/api/http";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
 
-const firewallRuleData: IFirewallRule = {
-  id: "rule1",
-  tenant_id: "tenant1",
+const mockFirewallRuleBase: IFirewallRule = {
+  id: "rule-123",
+  tenant_id: "tenant-456",
   priority: 1,
   action: "allow",
   active: true,
   source_ip: "192.168.1.0/24",
-  username: "user1",
+  username: "testuser",
   filter: {
     hostname: ".*",
   },
 };
 
-describe("Firewall Rules Pinia Store", () => {
-  setActivePinia(createPinia());
-  const mockRulesApi = new MockAdapter(rulesApi.getAxios());
-  const firewallRulesStore = useFirewallRulesStore();
+describe("Firewall Rules Store", () => {
+  let mockRulesApi: MockAdapter;
+  let store: ReturnType<typeof useFirewallRulesStore>;
 
   beforeEach(() => {
-    firewallRulesStore.firewallRules = [];
-    firewallRulesStore.firewallRuleCount = 0;
+    setActivePinia(createPinia());
+    mockRulesApi = new MockAdapter(rulesApi.getAxios());
+    store = useFirewallRulesStore();
   });
 
-  it("should have initial state values", () => {
-    expect(firewallRulesStore.firewallRules).toEqual([]);
-    expect(firewallRulesStore.firewallRuleCount).toBe(0);
+  afterEach(() => {
+    mockRulesApi.reset();
   });
 
-  it("should create firewall rule successfully", async () => {
-    mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(200);
-
-    await expect(firewallRulesStore.createFirewallRule(firewallRuleData)).resolves.not.toThrow();
+  describe("Initial State", () => {
+    it("should have correct default values", () => {
+      expect(store.firewallRules).toEqual([]);
+      expect(store.firewallRuleCount).toBe(0);
+    });
   });
 
-  it("should fetch firewall rule list successfully", async () => {
-    const firewallRulesData = [
-      firewallRuleData,
-      {
-        id: "rule2",
-        tenant_id: "tenant1",
+  describe("fetchFirewallRuleList", () => {
+    it("should fetch firewall rules successfully with pagination", async () => {
+      const mockRules = [
+        mockFirewallRuleBase,
+        {
+          ...mockFirewallRuleBase,
+          id: "rule-456",
+          priority: 2,
+          action: "deny" as const,
+          source_ip: "10.0.0.0/8",
+          username: "admin",
+        },
+      ];
+
+      mockRulesApi
+        .onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10")
+        .reply(200, mockRules, {
+          "x-total-count": "2",
+        });
+
+      await store.fetchFirewallRuleList({ page: 1, perPage: 10 });
+
+      expect(store.firewallRules).toEqual(mockRules);
+      expect(store.firewallRuleCount).toBe(2);
+    });
+
+    it("should handle empty firewall rules list", async () => {
+      mockRulesApi
+        .onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10")
+        .reply(200, [], {
+          "x-total-count": "0",
+        });
+
+      await store.fetchFirewallRuleList({ page: 1, perPage: 10 });
+
+      expect(store.firewallRules).toEqual([]);
+      expect(store.firewallRuleCount).toBe(0);
+    });
+
+    it("should use default pagination when no parameters provided", async () => {
+      const mockRules = [mockFirewallRuleBase];
+
+      mockRulesApi
+        .onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10")
+        .reply(200, mockRules, {
+          "x-total-count": "1",
+        });
+
+      await store.fetchFirewallRuleList();
+
+      expect(store.firewallRules).toEqual(mockRules);
+      expect(store.firewallRuleCount).toBe(1);
+    });
+
+    it("should fetch rules with different pagination values", async () => {
+      const mockRules = [mockFirewallRuleBase];
+
+      mockRulesApi
+        .onGet("http://localhost:3000/api/firewall/rules?page=2&per_page=25")
+        .reply(200, mockRules, {
+          "x-total-count": "1",
+        });
+
+      await store.fetchFirewallRuleList({ page: 2, perPage: 25 });
+
+      expect(store.firewallRules).toEqual(mockRules);
+      expect(store.firewallRuleCount).toBe(1);
+    });
+
+    it("should reset state when request fails with forbidden error", async () => {
+      mockRulesApi
+        .onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10")
+        .reply(403, { message: "Insufficient permissions" });
+
+      await expect(
+        store.fetchFirewallRuleList({ page: 1, perPage: 10 }),
+      ).rejects.toBeAxiosErrorWithStatus(403);
+
+      expect(store.firewallRules).toEqual([]);
+      expect(store.firewallRuleCount).toBe(0);
+    });
+
+    it("should reset state when request fails with server error", async () => {
+      mockRulesApi
+        .onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10")
+        .reply(500, { message: "Internal Server Error" });
+
+      await expect(
+        store.fetchFirewallRuleList({ page: 1, perPage: 10 }),
+      ).rejects.toBeAxiosErrorWithStatus(500);
+
+      expect(store.firewallRules).toEqual([]);
+      expect(store.firewallRuleCount).toBe(0);
+    });
+
+    it("should reset state when network error occurs", async () => {
+      mockRulesApi
+        .onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10")
+        .networkError();
+
+      await expect(
+        store.fetchFirewallRuleList({ page: 1, perPage: 10 }),
+      ).rejects.toThrow();
+
+      expect(store.firewallRules).toEqual([]);
+      expect(store.firewallRuleCount).toBe(0);
+    });
+  });
+
+  describe("createFirewallRule", () => {
+    it("should create firewall rule successfully", async () => {
+      mockRulesApi
+        .onPost("http://localhost:3000/api/firewall/rules")
+        .reply(200);
+
+      await expect(store.createFirewallRule(mockFirewallRuleBase)).resolves.not.toThrow();
+    });
+
+    it("should create deny rule successfully", async () => {
+      const denyRule = {
+        ...mockFirewallRuleBase,
+        action: "deny" as const,
         priority: 2,
-        action: "deny",
-        active: true,
-        source_ip: "10.0.0.0/8",
-        username: "user2",
-        filter: { hostname: "test.*" },
-      },
-    ];
+      };
 
-    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRulesData, {
-      "x-total-count": "2",
+      mockRulesApi
+        .onPost("http://localhost:3000/api/firewall/rules")
+        .reply(200);
+
+      await expect(store.createFirewallRule(denyRule)).resolves.not.toThrow();
     });
 
-    await firewallRulesStore.fetchFirewallRuleList({ page: 1, perPage: 10 });
-    expect(firewallRulesStore.firewallRules).toEqual(firewallRulesData);
-    expect(firewallRulesStore.firewallRuleCount).toBe(2);
-  });
+    it("should handle validation error when creating rule", async () => {
+      mockRulesApi
+        .onPost("http://localhost:3000/api/firewall/rules")
+        .reply(400, { message: "Invalid rule data" });
 
-  it("should handle empty firewall rule list", async () => {
-    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, [], {
-      "x-total-count": "0",
+      await expect(
+        store.createFirewallRule(mockFirewallRuleBase),
+      ).rejects.toBeAxiosErrorWithStatus(400);
     });
 
-    await firewallRulesStore.fetchFirewallRuleList({ page: 1, perPage: 10 });
+    it("should handle server error when creating rule", async () => {
+      mockRulesApi
+        .onPost("http://localhost:3000/api/firewall/rules")
+        .reply(500, { message: "Internal Server Error" });
 
-    expect(firewallRulesStore.firewallRules).toEqual([]);
-    expect(firewallRulesStore.firewallRuleCount).toBe(0);
-  });
-
-  it("should use default pagination when no parameters provided", async () => {
-    const firewallRulesData = [firewallRuleData];
-
-    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRulesData, {
-      "x-total-count": "1",
+      await expect(
+        store.createFirewallRule(mockFirewallRuleBase),
+      ).rejects.toBeAxiosErrorWithStatus(500);
     });
 
-    await firewallRulesStore.fetchFirewallRuleList();
+    it("should handle network error when creating rule", async () => {
+      mockRulesApi
+        .onPost("http://localhost:3000/api/firewall/rules")
+        .networkError();
 
-    expect(firewallRulesStore.firewallRules).toEqual(firewallRulesData);
-    expect(firewallRulesStore.firewallRuleCount).toBe(1);
+      await expect(store.createFirewallRule(mockFirewallRuleBase)).rejects.toThrow();
+    });
   });
 
-  it("should update firewall rule", async () => {
-    const updatedFirewallRule: IFirewallRule = {
-      ...firewallRuleData,
-      active: false,
-      action: "deny",
-      filter: {
-        hostname: "updated.*",
-      },
-    };
+  describe("updateFirewallRule", () => {
+    it("should update firewall rule successfully", async () => {
+      const updatedRule = {
+        ...mockFirewallRuleBase,
+        active: false,
+        priority: 5,
+      };
 
-    mockRulesApi.onPut("http://localhost:3000/api/firewall/rules/rule1").reply(200);
+      mockRulesApi
+        .onPut("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(200);
 
-    await expect(firewallRulesStore.updateFirewallRule(updatedFirewallRule)).resolves.not.toThrow();
+      await expect(store.updateFirewallRule(updatedRule)).resolves.not.toThrow();
+    });
+
+    it("should update rule action successfully", async () => {
+      const updatedRule = {
+        ...mockFirewallRuleBase,
+        action: "deny" as const,
+      };
+
+      mockRulesApi
+        .onPut("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(200);
+
+      await expect(store.updateFirewallRule(updatedRule)).resolves.not.toThrow();
+    });
+
+    it("should update rule filter successfully", async () => {
+      const updatedRule = {
+        ...mockFirewallRuleBase,
+        filter: {
+          hostname: "prod-.*",
+        },
+      };
+
+      mockRulesApi
+        .onPut("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(200);
+
+      await expect(store.updateFirewallRule(updatedRule)).resolves.not.toThrow();
+    });
+
+    it("should handle not found error when updating rule", async () => {
+      mockRulesApi
+        .onPut("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(404, { message: "Firewall rule not found" });
+
+      await expect(
+        store.updateFirewallRule(mockFirewallRuleBase),
+      ).rejects.toBeAxiosErrorWithStatus(404);
+    });
+
+    it("should handle server error when updating rule", async () => {
+      mockRulesApi
+        .onPut("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(500, { message: "Internal Server Error" });
+
+      await expect(
+        store.updateFirewallRule(mockFirewallRuleBase),
+      ).rejects.toBeAxiosErrorWithStatus(500);
+    });
+
+    it("should handle network error when updating rule", async () => {
+      mockRulesApi
+        .onPut("http://localhost:3000/api/firewall/rules/rule-123")
+        .networkError();
+
+      await expect(store.updateFirewallRule(mockFirewallRuleBase)).rejects.toThrow();
+    });
   });
 
-  it("should remove firewall rule", async () => {
-    mockRulesApi.onDelete("http://localhost:3000/api/firewall/rules/rule1").reply(200);
-    await expect(firewallRulesStore.removeFirewallRule("rule1")).resolves.not.toThrow();
-  });
+  describe("removeFirewallRule", () => {
+    it("should remove firewall rule successfully", async () => {
+      mockRulesApi
+        .onDelete("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(200);
 
-  it("should handle fetch firewall rule list error", async () => {
-    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(500);
+      await expect(store.removeFirewallRule("rule-123")).resolves.not.toThrow();
+    });
 
-    await expect(firewallRulesStore.fetchFirewallRuleList({ page: 1, perPage: 10 })).rejects.toThrow();
+    it("should handle not found error when removing rule", async () => {
+      mockRulesApi
+        .onDelete("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(404, { message: "Firewall rule not found" });
 
-    expect(firewallRulesStore.firewallRules).toEqual([]);
-    expect(firewallRulesStore.firewallRuleCount).toBe(0);
-  });
+      await expect(
+        store.removeFirewallRule("rule-123"),
+      ).rejects.toBeAxiosErrorWithStatus(404);
+    });
 
-  it("should handle create firewall rule error", async () => {
-    mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(400);
-    await expect(firewallRulesStore.createFirewallRule(firewallRuleData)).rejects.toThrow();
-  });
+    it("should handle server error when removing rule", async () => {
+      mockRulesApi
+        .onDelete("http://localhost:3000/api/firewall/rules/rule-123")
+        .reply(500, { message: "Internal Server Error" });
 
-  it("should handle update firewall rule error", async () => {
-    mockRulesApi.onPut("http://localhost:3000/api/firewall/rules/rule1").reply(404);
-    await expect(firewallRulesStore.updateFirewallRule(firewallRuleData)).rejects.toThrow();
-  });
+      await expect(
+        store.removeFirewallRule("rule-123"),
+      ).rejects.toBeAxiosErrorWithStatus(500);
+    });
 
-  it("should handle remove firewall rule error", async () => {
-    mockRulesApi.onDelete("http://localhost:3000/api/firewall/rules/rule1").reply(404);
-    await expect(firewallRulesStore.removeFirewallRule("rule1")).rejects.toThrow();
+    it("should handle network error when removing rule", async () => {
+      mockRulesApi
+        .onDelete("http://localhost:3000/api/firewall/rules/rule-123")
+        .networkError();
+
+      await expect(store.removeFirewallRule("rule-123")).rejects.toThrow();
+    });
   });
 });
