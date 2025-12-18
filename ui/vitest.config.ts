@@ -44,7 +44,7 @@ export default defineConfig({
     // https://vitest.dev/guide/#configuring-vitest
     globals: true,
     globalSetup: [fileURLToPath(new URL("./vitest/setup.ts", import.meta.url))],
-    setupFiles: ["./vitest/vitest-canvas-mock.ts"],
+    setupFiles: ["./vitest/vitest-canvas-mock.ts", "./vitest/setupAxiosMatchers.ts"],
     environment: "jsdom",
     server: {
       deps: {
