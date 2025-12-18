@@ -1,34 +1,50 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import useLayoutStore from "@/store/modules/layout";
 
 describe("Layout Store", () => {
-  setActivePinia(createPinia());
-  const layoutStore = useLayoutStore();
+  let layoutStore: ReturnType<typeof useLayoutStore>;
 
   beforeEach(() => {
     localStorage.clear();
-  });
-
-  it("should have initial state values", () => {
-    expect(layoutStore.layout).toEqual(undefined);
-    expect(layoutStore.theme).toEqual("dark");
-  });
-
-  it("should initialize with theme from localStorage if available", () => {
-    localStorage.setItem("theme", "light");
-
     setActivePinia(createPinia());
-    const freshLayoutStore = useLayoutStore();
-
-    expect(freshLayoutStore.theme).toEqual("light");
+    layoutStore = useLayoutStore();
   });
 
-  it("should persist theme changes to localStorage", () => {
-    layoutStore.setTheme("light");
-    expect(localStorage.getItem("theme")).toEqual("light");
+  afterEach(() => { localStorage.clear(); });
 
-    layoutStore.setTheme("dark");
-    expect(localStorage.getItem("theme")).toEqual("dark");
+  describe("Initial State", () => {
+    it("should have undefined layout", () => {
+      expect(layoutStore.layout).toBeUndefined();
+    });
+
+    it("should have dark theme as default", () => {
+      expect(layoutStore.theme).toBe("dark");
+    });
+
+    it("should initialize with theme from localStorage when available", () => {
+      localStorage.setItem("theme", "light");
+
+      setActivePinia(createPinia());
+      const freshLayoutStore = useLayoutStore();
+
+      expect(freshLayoutStore.theme).toBe("light");
+    });
+  });
+
+  describe("setTheme", () => {
+    it("should update theme state to light", () => {
+      layoutStore.setTheme("light");
+
+      expect(layoutStore.theme).toBe("light");
+      expect(localStorage.getItem("theme")).toBe("light");
+    });
+
+    it("should update theme state to dark", () => {
+      layoutStore.setTheme("dark");
+
+      expect(layoutStore.theme).toBe("dark");
+      expect(localStorage.getItem("theme")).toBe("dark");
+    });
   });
 });
