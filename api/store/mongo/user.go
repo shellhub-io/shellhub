@@ -185,6 +185,21 @@ func (s *Store) UserUpdate(ctx context.Context, user *models.User) error {
 	objID, _ := primitive.ObjectIDFromHex(user.ID)
 	delete(doc, "_id")
 
+	// HACK: When a document is read from MongoDB with a null field, Go's BSON driver deserializes
+	// it as the zero value for that type (e.g., "" for strings). When we marshal this struct back
+	// to BSON for an update, the empty string is written instead of null. This causes issues with
+	// unique indexes that have a partial filter expression for string types (see migration 77),
+	// as multiple documents with "" would violate the uniqueness constraint, while null values
+	// are allowed to coexist. To preserve null values in the database, we remove these fields
+	// from the update document when they are empty strings.
+	if user.Username == "" {
+		delete(doc, "username")
+	}
+
+	if user.Email == "" {
+		delete(doc, "email")
+	}
+
 	r, err := s.db.Collection("users").UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"$set": doc})
 	if err != nil {
 		return FromMongoError(err)
