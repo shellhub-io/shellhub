@@ -23,13 +23,19 @@ exports[`Details Sessions > Renders the component 1`] = `
   <!---->
   <!---->
   <div class="v-card-title bg-v-theme-surface pa-4 d-flex align-center justify-space-between">
-    <div class="d-flex align-center"><i class="mdi-check-circle mdi v-icon notranslate v-theme--light v-icon--size-small text-white" aria-hidden="true" aria-describedby="v-tooltip-v-0" data-test="session-active-icon"></i>
+    <div class="d-flex align-center">
+      <div aria-describedby="v-tooltip-v-0"><button type="button" class="v-btn v-theme--light text-primary v-btn--density-comfortable v-btn--size-default v-btn--variant-outlined mr-3" data-test="session-details-play-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-play mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator=""> Play </span>
+          <!---->
+          <!---->
+        </button></div>
       <!--teleport start-->
-      <!--teleport end--><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated text-none border rounded bg-v-theme-background ml-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator="">00-00-00-00-00-01</span>
+      <!--teleport end-->
+      <!---->
+      <!----><button type="button" class="v-btn v-btn--elevated v-theme--light v-btn--density-default v-btn--size-default v-btn--variant-elevated text-none border rounded bg-v-theme-background ml-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span><span class="v-btn__prepend"><i class="mdi-developer-board mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span><span class="v-btn__content" data-no-activator="">00-00-00-00-00-01</span>
         <!---->
         <!---->
       </button>
-    </div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-2" aria-owns="v-menu-v-2"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+    </div><button type="button" class="v-btn v-btn--icon v-theme--light v-btn--density-comfortable v-btn--size-default v-btn--variant-plain border rounded bg-v-theme-background" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-3" aria-owns="v-menu-v-3"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
       <!----><span class="v-btn__content" data-no-activator=""><i class="mdi-format-list-bulleted mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></span>
       <!---->
       <!---->
@@ -53,6 +59,10 @@ exports[`Details Sessions > Renders the component 1`] = `
           <div class="item-title"> Authenticated: </div><i class="mdi-shield-check mdi v-icon notranslate v-theme--light v-icon--size-default text-success" aria-hidden="true" aria-describedby="v-tooltip-v-7"></i>
           <!--teleport start-->
           <!--teleport end-->
+        </div>
+        <div data-test="session-active-field">
+          <div class="item-title"> Active session: </div>
+          <div class="d-flex align-center"><i class="mdi-alert-circle mdi v-icon notranslate v-theme--light v-icon--size-default text-error" aria-hidden="true" data-test="session-active-icon"></i></div>
         </div>
       </div>
       <div class="v-col-md-6 v-col-12 my-0 py-0">

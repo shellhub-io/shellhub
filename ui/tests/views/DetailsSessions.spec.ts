@@ -96,8 +96,10 @@ describe("Details Sessions", () => {
     expect(wrapper.find('[data-test="session-uid-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="session-user-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="session-authenticated-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-active-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="session-ip-address-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="session-started-at-field"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="session-last-seen-field"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="session-details-play-btn"]').exists()).toBe(true);
   });
 });

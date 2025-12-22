@@ -10,21 +10,26 @@
   >
     <v-card-title class="bg-v-theme-surface pa-4 d-flex align-center justify-space-between">
       <div class="d-flex align-center">
-        <v-tooltip
-          location="bottom"
-          :disabled="session.active"
+        <SessionPlay
+          v-slot="{ loading, disabled, openDialog }"
+          :uid="session.uid"
+          :recorded="session.recorded"
+          :authenticated="session.authenticated"
         >
-          <template #activator="{ props }">
-            <v-icon
-              v-bind="props"
-              :color="session.active ? 'success' : 'white'"
-              size="small"
-              data-test="session-active-icon"
-              icon="mdi-check-circle"
-            />
-          </template>
-          <span>{{ getTimeFromNow(session.last_seen) }}</span>
-        </v-tooltip>
+          <v-btn
+            color="primary"
+            prepend-icon="mdi-play"
+            variant="outlined"
+            :loading="loading"
+            density="comfortable"
+            class="mr-3"
+            data-test="session-details-play-btn"
+            :disabled="disabled"
+            @click="openDialog"
+          >
+            Play
+          </v-btn>
+        </SessionPlay>
         <DeviceLink
           v-if="session.device"
           :device-uid="session.device.uid"
@@ -53,30 +58,6 @@
           lines="two"
           density="compact"
         >
-          <SessionPlay
-            v-slot="{ loading, disabled, openDialog }"
-            :uid="session.uid"
-            :recorded="session.recorded"
-            :authenticated="session.authenticated"
-          >
-            <div>
-              <v-list-item
-                :loading
-                :disabled
-                @click="openDialog"
-              >
-                <div class="d-flex align-center">
-                  <v-icon
-                    icon="mdi-play"
-                    class="mr-2"
-                  />
-                  <v-list-item-title>
-                    Play Session
-                  </v-list-item-title>
-                </div>
-              </v-list-item>
-            </div>
-          </SessionPlay>
           <v-tooltip
             location="bottom"
             class="text-center"
@@ -160,6 +141,19 @@
               <span>{{ authenticatedTooltipAttrs.text }}</span>
             </v-tooltip>
           </div>
+
+          <div data-test="session-active-field">
+            <div class="item-title">
+              Active session:
+            </div>
+            <div class="d-flex align-center">
+              <v-icon
+                :icon="session.active ? 'mdi-check-circle' : 'mdi-alert-circle'"
+                :color="session.active ? 'success' : 'error'"
+                data-test="session-active-icon"
+              />
+            </div>
+          </div>
         </v-col>
 
         <v-col
@@ -204,7 +198,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { formatFullDateTime, getTimeFromNow } from "@/utils/date";
+import { formatFullDateTime } from "@/utils/date";
 import hasPermission from "@/utils/permission";
 import SessionDelete from "@/components/Sessions/SessionDelete.vue";
 import SessionClose from "@/components/Sessions/SessionClose.vue";
