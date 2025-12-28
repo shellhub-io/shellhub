@@ -2,9 +2,12 @@ package dbtest
 
 import (
 	"context"
+	"os"
 
 	"github.com/shellhub-io/mongotest"
+	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
+	"github.com/testcontainers/testcontainers-go/network"
 )
 
 // Server represents a MongoDB test server instance.
@@ -49,7 +52,15 @@ func (srv *Server) configure(ctx context.Context) error {
 func (srv *Server) Up(ctx context.Context) error {
 	var err error
 
-	srv.tContainer, err = mongodb.Run(ctx, "mongo:4.4.8", mongodb.WithReplicaSet("rs"))
+	opts := []testcontainers.ContainerCustomizer{mongodb.WithReplicaSet("rs")}
+
+	// If TESTCONTAINERS_DOCKER_NETWORK env var is set (e.g., when running inside Docker),
+	// attach the container to that network. This is useful for Docker-in-Docker scenarios.
+	if networkName := os.Getenv("TESTCONTAINERS_DOCKER_NETWORK"); networkName != "" {
+		opts = append(opts, network.WithNetworkName([]string{"mongo"}, networkName))
+	}
+
+	srv.tContainer, err = mongodb.Run(ctx, "mongo:4.4.8", opts...)
 	if err != nil {
 		return err
 	}

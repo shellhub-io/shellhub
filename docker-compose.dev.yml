@@ -32,6 +32,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./.golangci.yaml:/.golangci.yaml
     environment:
+      - TESTCONTAINERS_DOCKER_NETWORK=${SHELLHUB_NETWORK}
       - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
