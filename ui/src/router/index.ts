@@ -444,35 +444,15 @@ export const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/sshkeys",
-    name: "SSHKeys",
-    redirect: { name: "PublicKeys" },
+    path: "/sshkeys/public-keys",
+    name: "PublicKeys",
+    component: PublicKeys,
     meta: {
-      icon: "mdi-key-chain",
-      title: "SSH Keys",
+      icon: "mdi-key",
+      title: "Public Keys",
       showInSidebar: true,
       sidebarOrder: 8,
     },
-    children: [
-      {
-        path: "public",
-        name: "PublicKeys",
-        component: PublicKeys,
-        meta: {
-          title: "Public Keys",
-          showInSidebar: true,
-        },
-      },
-      {
-        path: "private",
-        name: "PrivateKeys",
-        component: PrivateKeys,
-        meta: {
-          title: "Private Keys",
-          showInSidebar: true,
-        },
-      },
-    ],
   },
   {
     path: "/team",
@@ -544,6 +524,15 @@ export const routes: Array<RouteRecordRaw> = [
           title: "Namespace",
           showInSidebar: true,
           isHidden: () => localStorage.getItem("tenant") === "",
+        },
+      },
+      {
+        path: "private-keys",
+        name: "PrivateKeys",
+        component: PrivateKeys,
+        meta: {
+          title: "Private Keys",
+          showInSidebar: true,
         },
       },
       {
