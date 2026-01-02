@@ -1,4 +1,4 @@
-package main
+package integration
 
 import (
 	"bufio"
@@ -8,7 +8,6 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"os"
 	"strconv"
@@ -49,44 +48,34 @@ func NewAgentContainerWithIdentity(identity string) NewAgentContainerOption {
 	}
 }
 
+// NewAgentContainer creates a new agent container.
+// Deprecated: Use environment.NewAgentContainer() for better performance (build-once pattern).
 func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
-	envs := map[string]string{
-		"SHELLHUB_SERVER_ADDRESS":     fmt.Sprintf("http://localhost:%s", port),
-		"SHELLHUB_TENANT_ID":          "00000000-0000-4000-0000-000000000000",
-		"SHELLHUB_PRIVATE_KEY":        "/tmp/shellhub.key",
-		"SHELLHUB_LOG_FORMAT":         "json",
-		"SHELLHUB_KEEPALIVE_INTERVAL": "1",
-		"SHELLHUB_LOG_LEVEL":          "trace",
-	}
-
+	// Extract identity from opts if present
+	identity := ""
 	for _, opt := range opts {
-		opt(envs)
+		// Check if it's the identity option
+		testEnvs := make(map[string]string)
+		opt(testEnvs)
+		if id, ok := testEnvs["SHELLHUB_PREFERRED_IDENTITY"]; ok {
+			identity = id
+		}
 	}
 
-	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Env:         envs,
-			NetworkMode: "host",
-			FromDockerfile: testcontainers.FromDockerfile{
-				Repo:          "agent",
-				Tag:           "test",
-				Context:       "..",
-				Dockerfile:    "agent/Dockerfile.test",
-				PrintBuildLog: false,
-				KeepImage:     false,
-				BuildArgs: map[string]*string{
-					"USERNAME": &ShellHubAgentUsername,
-					"PASSWORD": &ShellHubAgentPassword,
-				},
-			},
-		},
-		Logger: log.New(io.Discard, "", log.LstdFlags),
+	// Use new environment package with build-once pattern
+	agent, err := environment.NewAgentContainer(ctx, environment.AgentContainerOptions{
+		ServerAddress: fmt.Sprintf("http://localhost:%s", port),
+		TenantID:      "00000000-0000-4000-0000-000000000000",
+		Identity:      identity,
+		Username:      ShellHubAgentUsername,
+		Password:      ShellHubAgentPassword,
+		Networks:      []string{}, // Use host network for backward compatibility
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return c, nil
+	return agent, nil
 }
 
 func TestSSH(t *testing.T) {
@@ -676,7 +665,9 @@ func TestSSH(t *testing.T) {
 					OriginPort uint32
 				}
 
-				port := environment.GetFreePort(t)
+				portRes := environment.ReservePort(t)
+				port := portRes.Port
+				portRes.Release()
 
 				listener, err := net.Listen("tcp", ":"+port)
 				require.NoError(t, err)
@@ -704,8 +695,10 @@ func TestSSH(t *testing.T) {
 				dest, err := strconv.Atoi(port)
 				require.NoError(t, err)
 
-				orig, err := strconv.Atoi(environment.GetFreePort(t))
+				origPortRes := environment.ReservePort(t)
+				orig, err := strconv.Atoi(origPortRes.Port)
 				require.NoError(t, err)
+				origPortRes.Release()
 
 				data := Data{
 					DestAddr:   "0.0.0.0",

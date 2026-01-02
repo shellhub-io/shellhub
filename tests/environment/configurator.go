@@ -16,30 +16,48 @@ import (
 )
 
 type DockerComposeConfigurator struct {
-	envs map[string]string
-	t    *testing.T
-	mu   *sync.Mutex
+	envs        map[string]string
+	t           *testing.T
+	mu          *sync.Mutex
+	composeFile string // Override compose file (default: docker-compose.integration.yml)
 }
 
 // New creates a new [DockerComposeConfigurator]. By default, it reads from the .env file, but
 // it assigns random values for ports and network to avoid collision errors. Use
 // [DockerComposeConfigurator.Up] to build the instance, initiating a [DockerCompose] instance.
 func New(t *testing.T) *DockerComposeConfigurator {
-	envs, err := godotenv.Read("../.env")
+	envs, err := godotenv.Read("../../.env")
 	if !assert.NoError(t, err) {
 		assert.FailNow(t, err.Error())
 	}
 
-	envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
-	envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
+	httpPort := ReservePort(t)
+	sshPort := ReservePort(t)
+
+	envs["SHELLHUB_HTTP_PORT"] = httpPort.Port
+	envs["SHELLHUB_SSH_PORT"] = sshPort.Port
 	envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
 	envs["SHELLHUB_LOG_LEVEL"] = "trace"
 
+	// Release ports immediately - docker-compose will claim them
+	httpPort.Release()
+	sshPort.Release()
+
 	return &DockerComposeConfigurator{
-		envs: envs,
-		t:    t,
-		mu:   new(sync.Mutex),
+		envs:        envs,
+		t:           t,
+		mu:          new(sync.Mutex),
+		composeFile: "../docker-compose.integration.yml",
 	}
+}
+
+// NewE2E creates a new [DockerComposeConfigurator] for E2E tests with UI.
+// Same as New() but uses docker-compose.e2e.yml which includes UI service.
+func NewE2E(t *testing.T) *DockerComposeConfigurator {
+	dcc := New(t)
+	dcc.composeFile = "../docker-compose.e2e.yml"
+
+	return dcc
 }
 
 // WithEnv sets an environment variable with the specified key and value.
@@ -74,9 +92,13 @@ func (dcc *DockerComposeConfigurator) Clone(t *testing.T) *DockerComposeConfigur
 	}
 
 	dcc.mu.Lock()
-	clonedEnv.envs["SHELLHUB_HTTP_PORT"] = GetFreePort(t)
-	clonedEnv.envs["SHELLHUB_SSH_PORT"] = GetFreePort(t)
+	httpPort := ReservePort(t)
+	sshPort := ReservePort(t)
+	clonedEnv.envs["SHELLHUB_HTTP_PORT"] = httpPort.Port
+	clonedEnv.envs["SHELLHUB_SSH_PORT"] = sshPort.Port
 	clonedEnv.envs["SHELLHUB_NETWORK"] = "shellhub_network_" + uuid.Generate()
+	httpPort.Release()
+	sshPort.Release()
 	dcc.mu.Unlock()
 
 	return clonedEnv
@@ -96,8 +118,11 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		down:     nil,
 	}
 
+	var tcDc *compose.DockerCompose
+	// Both E2E and integration tests compose with base docker-compose.yml
+	// Use relative paths so docker-compose resolves build contexts correctly
 	tcDc, err := compose.NewDockerComposeWith(
-		compose.WithStackFiles("../docker-compose.yml", "../docker-compose.test.yml"),
+		compose.WithStackFiles("../../docker-compose.yml", dcc.composeFile),
 		compose.WithLogger(log.New(io.Discard, "", log.LstdFlags)),
 	)
 	if !assert.NoError(dcc.t, err) {
@@ -122,9 +147,12 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 		}
 	}
 
-	services := []Service{ServiceGateway, ServiceAPI, ServiceSSH, ServiceUI}
-	// TODO: Perhaps we could devise a strategy to wait for specific services instead
-	// of blocking until all are running|healthy?
+	services := []Service{ServiceGateway, ServiceAPI, ServiceSSH}
+	// Add UI service if using E2E compose
+	if dcc.composeFile == "../docker-compose.e2e.yml" {
+		services = append(services, ServiceUI)
+	}
+	// Wait for all services to be healthy (using Docker Compose health checks)
 	if !assert.NoError(dc.t, tcDc.WithEnv(dcc.envs).Up(ctx, compose.Wait(true))) {
 		assert.FailNow(dc.t, err.Error())
 	}
@@ -137,6 +165,9 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 
 		dc.services[service] = composeService
 	}
+
+	// Services are already healthy from compose.Wait(true) above
+	// No need for additional HTTP health checks
 
 	return dc
 }

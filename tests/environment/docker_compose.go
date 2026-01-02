@@ -2,9 +2,12 @@ package environment
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -32,13 +35,98 @@ type DockerCompose struct {
 	// function parameter, for example. Consequently, we construct the Down method within
 	// the Up method, encapsulating it within an attribute and invoking it within a method.
 	down func()
+
+	// agents tracks agent containers for centralized cleanup
+	agents []tc.Container
+	mu     sync.Mutex
 }
 
 // Down stops the [DockerCompose] instance, removing images, services, networks, and volumes
 // associated with it. It's generally a good idea to encapsulate it inside a [t.Cleanup]
 // function.
 func (dc *DockerCompose) Down() {
+	// Clean up agents first
+	dc.mu.Lock()
+	agents := dc.agents
+	dc.agents = nil
+	dc.mu.Unlock()
+
+	for _, agent := range agents {
+		if agent != nil {
+			_ = agent.Terminate(context.Background())
+		}
+	}
+
+	// Then clean up compose services
 	dc.down()
+}
+
+// RegisterAgent registers an agent container for centralized cleanup.
+// The agent will be automatically terminated when Down() is called.
+func (dc *DockerCompose) RegisterAgent(agent tc.Container) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	dc.agents = append(dc.agents, agent)
+}
+
+// WaitForServices waits for all critical services to become healthy.
+// This should be called after compose.Up() to ensure services are ready for testing.
+func (dc *DockerCompose) WaitForServices(ctx context.Context) error {
+	type serviceCheck struct {
+		name     Service
+		endpoint string
+	}
+
+	checks := []serviceCheck{
+		{ServiceAPI, "/api/healthcheck"},
+		{ServiceSSH, "/healthcheck"},
+		{ServiceGateway, "/healthcheck"},
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, HealthCheckTimeout)
+	defer cancel()
+
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(checks))
+
+	for _, check := range checks {
+		wg.Add(1)
+		go func(sc serviceCheck) {
+			defer wg.Done()
+
+			ticker := time.NewTicker(HealthCheckInterval)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-ctx.Done():
+					errChan <- fmt.Errorf("%s: timeout waiting for health check", sc.name)
+
+					return
+				case <-ticker.C:
+					resp, err := dc.R(ctx).Get(sc.endpoint)
+					if err == nil && resp.StatusCode() == 200 {
+						return
+					}
+				}
+			}
+		}(check)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	// Collect all errors
+	var errs []error
+	for err := range errChan {
+		errs = append(errs, err)
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("health check failures: %v", errs)
+	}
+
+	return nil
 }
 
 // R return a [resty.R] with `http://localhost:{SHELLHUB_HTTP_PORT}` as base URL.
@@ -69,7 +157,7 @@ func (dc *DockerCompose) buildCLICommand(ctx context.Context, cmds []string) (tc
 			FromDockerfile: tc.FromDockerfile{
 				Repo:          "cli",
 				Tag:           "test",
-				Context:       "..",
+				Context:       "../..",
 				Dockerfile:    "cli/Dockerfile.test",
 				PrintBuildLog: false,
 				KeepImage:     false,

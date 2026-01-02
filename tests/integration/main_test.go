@@ -1,6 +1,7 @@
-package main
+package integration
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/tests/environment"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -80,16 +82,30 @@ func keygen() error {
 }
 
 func TestMain(m *testing.M) {
-	// INFO: Due to issue related on testcontainers-go, we are disabling Ryuk it as a temporary solution.
+	// INFO: Due to issue related on testcontainers-go, we are disabling Ryuk as a temporary solution.
+	// We implement our own cleanup mechanism in environment/cleanup.go to handle resource cleanup.
 	//
 	// https://github.com/testcontainers/testcontainers-go/issues/2445
-	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+	if environment.ShouldDisableRyuk() {
+		os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+	}
+
+	// Initialize cleanup system
+	environment.InitCleanup()
 
 	if err := keygen(); err != nil {
 		log.WithError(err).Error("failed to generate the ShellHub keys")
-
 		os.Exit(1)
 	}
 
-	os.Exit(m.Run())
+	// Run tests
+	exitCode := m.Run()
+
+	// Cleanup any orphaned containers
+	ctx := context.Background()
+	if err := environment.CleanupOrphanedContainers(ctx); err != nil {
+		log.WithError(err).Warn("failed to cleanup orphaned containers")
+	}
+
+	os.Exit(exitCode)
 }
