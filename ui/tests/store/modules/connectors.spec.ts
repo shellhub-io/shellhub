@@ -3,44 +3,67 @@ import MockAdapter from "axios-mock-adapter";
 import { createPinia, setActivePinia } from "pinia";
 import { namespacesApi } from "@/api/http";
 import useConnectorStore from "@/store/modules/connectors";
+import { IConnector, IConnectorPayload } from "@/interfaces/IConnector";
 
-describe("Connectors Pinia Store", () => {
-  setActivePinia(createPinia());
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
-  let connectorStore: ReturnType<typeof useConnectorStore>;
+const mockConnectorBase: IConnector = {
+  uid: "connector-123",
+  tenant_id: "tenant-456",
+  address: "127.0.0.1",
+  port: 8080,
+  status: {
+    state: "connected",
+    message: "Connection successful",
+  },
+  enable: true,
+  secure: false,
+};
+
+const mockConnectorPayloadBase: IConnectorPayload = {
+  uid: "connector-123",
+  enable: true,
+  secure: false,
+  address: "127.0.0.1",
+  port: 8080,
+};
+
+describe("Connectors Store", () => {
+  let mockNamespacesApi: MockAdapter;
+  let store: ReturnType<typeof useConnectorStore>;
 
   beforeEach(() => {
-    connectorStore = useConnectorStore();
+    setActivePinia(createPinia());
+    mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+    store = useConnectorStore();
   });
 
   afterEach(() => {
     mockNamespacesApi.reset();
   });
 
-  describe("initial state", () => {
-    it("should have initial state values", () => {
-      expect(connectorStore.connectors).toEqual([]);
-      expect(connectorStore.connector).toEqual({});
-      expect(connectorStore.connectorInfo).toEqual({});
-      expect(connectorStore.connectorCount).toBe(0);
+  describe("Initial State", () => {
+    it("should have correct default values", () => {
+      expect(store.connectors).toEqual([]);
+      expect(store.connector).toEqual({});
+      expect(store.connectorInfo).toEqual({});
+      expect(store.connectorCount).toBe(0);
     });
   });
 
-  describe("actions", () => {
-    it("should fetch connector list successfully", async () => {
-      const connectorsData = [
-        { uid: "1", name: "Connector 1", enable: true, address: "127.0.0.1", port: 8080, secure: false },
-        { uid: "2", name: "Connector 2", enable: false, address: "127.0.0.2", port: 8081, secure: true },
+  describe("fetchConnectorList", () => {
+    it("should fetch connector list successfully with pagination", async () => {
+      const mockConnectors = [
+        mockConnectorBase,
+        { ...mockConnectorBase, uid: "connector-456", address: "127.0.0.2", port: 8081, enable: false, secure: true },
       ];
 
-      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(200, connectorsData, {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(200, mockConnectors, {
         "x-total-count": "2",
       });
 
-      await connectorStore.fetchConnectorList({ page: 1, perPage: 10 });
+      await store.fetchConnectorList({ page: 1, perPage: 10 });
 
-      expect(connectorStore.connectors).toEqual(connectorsData);
-      expect(connectorStore.connectorCount).toBe(2);
+      expect(store.connectors).toEqual(mockConnectors);
+      expect(store.connectorCount).toBe(2);
     });
 
     it("should handle empty connector list", async () => {
@@ -48,95 +71,181 @@ describe("Connectors Pinia Store", () => {
         "x-total-count": "0",
       });
 
-      await connectorStore.fetchConnectorList({ page: 1, perPage: 10 });
+      await store.fetchConnectorList({ page: 1, perPage: 10 });
 
-      expect(connectorStore.connectors).toEqual([]);
-      expect(connectorStore.connectorCount).toBe(0);
+      expect(store.connectors).toEqual([]);
+      expect(store.connectorCount).toBe(0);
     });
 
-    it("should fetch connector by ID", async () => {
-      const connectorData = { uid: "1", name: "Connector 1", enable: true, address: "127.0.0.1", port: 8080, secure: false };
+    it("should reset state when request fails with permission error", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(403, { message: "Insufficient permissions" });
 
-      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1").reply(200, connectorData);
+      await expect(store.fetchConnectorList({ page: 1, perPage: 10 })).rejects.toBeAxiosErrorWithStatus(403);
 
-      await connectorStore.fetchConnectorById("1");
-
-      expect(connectorStore.connector).toEqual(connectorData);
+      expect(store.connectors).toEqual([]);
+      expect(store.connectorCount).toBe(0);
     });
 
-    it("should get connector info", async () => {
-      const infoData = { status: "connected", message: "Connection successful" };
+    it("should reset state when request fails with 500 error", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(500);
 
-      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1/info").reply(200, infoData);
+      await expect(store.fetchConnectorList({ page: 1, perPage: 10 })).rejects.toBeAxiosErrorWithStatus(500);
 
-      await connectorStore.getConnectorInfo("1");
-
-      expect(connectorStore.connectorInfo).toEqual(infoData);
+      expect(store.connectors).toEqual([]);
+      expect(store.connectorCount).toBe(0);
     });
 
-    it("should create connector", async () => {
-      const createData = { name: "New Connector", enable: true, address: "127.0.0.3", port: 8082, secure: false };
+    it("should reset state when network error occurs", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").networkError();
+
+      await expect(store.fetchConnectorList({ page: 1, perPage: 10 })).rejects.toThrow();
+
+      expect(store.connectors).toEqual([]);
+      expect(store.connectorCount).toBe(0);
+    });
+  });
+
+  describe("fetchConnectorById", () => {
+    it("should fetch connector by ID successfully", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123").reply(200, mockConnectorBase);
+
+      await store.fetchConnectorById("connector-123");
+
+      expect(store.connector).toEqual(mockConnectorBase);
+    });
+
+    it("should handle not found error when fetching connector", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123").reply(404, { message: "Connector not found" });
+
+      await expect(store.fetchConnectorById("connector-123")).rejects.toBeAxiosErrorWithStatus(404);
+    });
+
+    it("should throw error when request fails with 500 error", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123").reply(500);
+
+      await expect(store.fetchConnectorById("connector-123")).rejects.toBeAxiosErrorWithStatus(500);
+    });
+
+    it("should throw error when network error occurs", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123").networkError();
+
+      await expect(store.fetchConnectorById("connector-123")).rejects.toThrow();
+    });
+  });
+
+  describe("getConnectorInfo", () => {
+    it("should get connector info successfully", async () => {
+      const mockInfo = { status: "connected", message: "Connection successful" };
+
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123/info").reply(200, mockInfo);
+
+      await store.getConnectorInfo("connector-123");
+
+      expect(store.connectorInfo).toEqual(mockInfo);
+    });
+
+    it("should handle permission error when getting connector info", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123/info").reply(403, { message: "Forbidden" });
+
+      await expect(store.getConnectorInfo("connector-123")).rejects.toBeAxiosErrorWithStatus(403);
+    });
+
+    it("should throw error when request fails with 500 error", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123/info").reply(500);
+
+      await expect(store.getConnectorInfo("connector-123")).rejects.toBeAxiosErrorWithStatus(500);
+    });
+
+    it("should throw error when network error occurs", async () => {
+      mockNamespacesApi.onGet("http://localhost:3000/api/connector/connector-123/info").networkError();
+
+      await expect(store.getConnectorInfo("connector-123")).rejects.toThrow();
+    });
+  });
+
+  describe("createConnector", () => {
+    it("should create connector successfully", async () => {
+      const { uid: _uid, ...createData } = mockConnectorPayloadBase;
 
       mockNamespacesApi.onPost("http://localhost:3000/api/connector").reply(201);
 
-      await expect(connectorStore.createConnector(createData)).resolves.not.toThrow();
+      await expect(store.createConnector(createData)).resolves.not.toThrow();
     });
 
-    it("should update connector", async () => {
-      const updateData = { uid: "1", name: "Updated Connector", enable: false, address: "127.0.0.1", port: 8080, secure: true };
+    it("should handle validation errors when creating connector", async () => {
+      const { uid: _uid, ...createData } = mockConnectorPayloadBase;
 
-      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/1").reply(200);
+      mockNamespacesApi.onPost("http://localhost:3000/api/connector").reply(400, { message: "Invalid request data" });
 
-      await expect(connectorStore.updateConnector(updateData)).resolves.not.toThrow();
+      await expect(store.createConnector(createData)).rejects.toBeAxiosErrorWithStatus(400);
     });
 
-    it("should delete connector", async () => {
-      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/1").reply(200);
+    it("should throw error when request fails with 500 error", async () => {
+      const { uid: _uid, ...createData } = mockConnectorPayloadBase;
 
-      await expect(connectorStore.deleteConnector("1")).resolves.not.toThrow();
+      mockNamespacesApi.onPost("http://localhost:3000/api/connector").reply(500);
+
+      await expect(store.createConnector(createData)).rejects.toBeAxiosErrorWithStatus(500);
     });
 
-    it("should handle fetch connector list error", async () => {
-      mockNamespacesApi.onGet("http://localhost:3000/api/connector?page=1&per_page=10").reply(500);
+    it("should throw error when network error occurs", async () => {
+      const { uid: _uid, ...createData } = mockConnectorPayloadBase;
 
-      await expect(connectorStore.fetchConnectorList({ page: 1, perPage: 10 })).rejects.toThrow();
+      mockNamespacesApi.onPost("http://localhost:3000/api/connector").networkError();
 
-      expect(connectorStore.connectors).toEqual([]);
-      expect(connectorStore.connectorCount).toBe(0);
+      await expect(store.createConnector(createData)).rejects.toThrow();
+    });
+  });
+
+  describe("updateConnector", () => {
+    it("should update connector successfully", async () => {
+      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/connector-123").reply(200);
+
+      await expect(store.updateConnector(mockConnectorPayloadBase)).resolves.not.toThrow();
     });
 
-    it("should handle fetch connector by ID error", async () => {
-      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1").reply(404);
+    it("should handle not found error when updating connector", async () => {
+      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/connector-123").reply(404, { message: "Connector not found" });
 
-      await expect(connectorStore.fetchConnectorById("1")).rejects.toThrow();
+      await expect(store.updateConnector(mockConnectorPayloadBase)).rejects.toBeAxiosErrorWithStatus(404);
     });
 
-    it("should handle get connector info error", async () => {
-      mockNamespacesApi.onGet("http://localhost:3000/api/connector/1/info").reply(500);
+    it("should throw error when request fails with 500 error", async () => {
+      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/connector-123").reply(500);
 
-      await expect(connectorStore.getConnectorInfo("1")).rejects.toThrow();
+      await expect(store.updateConnector(mockConnectorPayloadBase)).rejects.toBeAxiosErrorWithStatus(500);
     });
 
-    it("should handle create connector error", async () => {
-      const createData = { name: "New Connector", enable: true, address: "127.0.0.3", port: 8082, secure: false };
+    it("should throw error when network error occurs", async () => {
+      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/connector-123").networkError();
 
-      mockNamespacesApi.onPost("http://localhost:3000/api/connector").reply(400);
+      await expect(store.updateConnector(mockConnectorPayloadBase)).rejects.toThrow();
+    });
+  });
 
-      await expect(connectorStore.createConnector(createData)).rejects.toThrow();
+  describe("deleteConnector", () => {
+    it("should delete connector successfully", async () => {
+      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/connector-123").reply(200);
+
+      await expect(store.deleteConnector("connector-123")).resolves.not.toThrow();
     });
 
-    it("should handle update connector error", async () => {
-      const updateData = { uid: "1", name: "Updated Connector", enable: false, address: "127.0.0.1", port: 8080, secure: true };
+    it("should handle permission error when deleting connector", async () => {
+      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/connector-123").reply(403, { message: "Insufficient permissions" });
 
-      mockNamespacesApi.onPatch("http://localhost:3000/api/connector/1").reply(400);
-
-      await expect(connectorStore.updateConnector(updateData)).rejects.toThrow();
+      await expect(store.deleteConnector("connector-123")).rejects.toBeAxiosErrorWithStatus(403);
     });
 
-    it("should handle delete connector error", async () => {
-      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/1").reply(500);
+    it("should throw error when request fails with 500 error", async () => {
+      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/connector-123").reply(500);
 
-      await expect(connectorStore.deleteConnector("1")).rejects.toThrow();
+      await expect(store.deleteConnector("connector-123")).rejects.toBeAxiosErrorWithStatus(500);
+    });
+
+    it("should throw error when network error occurs", async () => {
+      mockNamespacesApi.onDelete("http://localhost:3000/api/connector/connector-123").networkError();
+
+      await expect(store.deleteConnector("connector-123")).rejects.toThrow();
     });
   });
 });
