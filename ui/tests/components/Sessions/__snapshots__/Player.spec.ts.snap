@@ -7,7 +7,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
     <!---->
     <!---->
   </button><span data-v-f3a0259a="" id="playback-time" class="text-medium-emphasis text-body-1" data-test="playback-time">00:00 / 00:00</span>
-  <div data-v-f3a0259a="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-slider v-locale--is-ltr ml-0 flex-grow-1 flex-shrink-0" aria-labelledby="playback-time" data-test="time-slider">
+  <div data-v-f3a0259a="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-slider v-locale--is-ltr ml-0 flex-grow-1 flex-shrink-0" data-test="time-slider">
     <!---->
     <div class="v-input__control">
       <div class="v-slider__container"><input id="input-v-1" name="input-v-1" tabindex="-1" value="0">
@@ -16,7 +16,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
           <div class="v-slider-track__fill bg-white" style="inset-inline-start: 0%; width: 0%;"></div>
           <!---->
         </div>
-        <div class="v-slider-thumb v-locale--is-ltr" style="--v-slider-thumb-position: 0%; --v-slider-thumb-size: 20px;" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-readonly="false" aria-orientation="horizontal" elevation="2">
+        <div class="v-slider-thumb v-locale--is-ltr" style="--v-slider-thumb-position: 0%; --v-slider-thumb-size: 20px;" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-readonly="false" aria-orientation="horizontal" elevation="2" aria-labelledby="playback-time">
           <div class="v-slider-thumb__surface text-white elevation-2"></div>
           <div class="v-slider-thumb__ripple text-white"></div>
           <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
@@ -72,6 +72,7 @@ exports[`Asciinema Player > Renders the component 1`] = `
         <!---->
         <div class="v-field__append-inner">
           <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
+          <!---->
         </div>
         <div class="v-field__outline">
           <!---->

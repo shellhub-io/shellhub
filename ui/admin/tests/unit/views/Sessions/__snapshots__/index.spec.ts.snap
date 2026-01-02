@@ -104,6 +104,7 @@ exports[`Sessions > Renders the component 1`] = `
               <!---->
               <div class="v-field__append-inner">
                 <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-icon--clickable v-combobox__menu-icon" role="button" aria-hidden="true" tabindex="-1"></i>
+                <!---->
               </div>
               <div class="v-field__outline">
                 <!---->

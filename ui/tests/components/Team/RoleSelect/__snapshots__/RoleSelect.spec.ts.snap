@@ -41,6 +41,7 @@ exports[`RoleSelect > Renders the component 1`] = `
       <!---->
       <div class="v-field__append-inner">
         <!----><i class="mdi-menu-down mdi v-icon notranslate v-theme--light v-icon--size-default v-select__menu-icon" aria-hidden="true"></i>
+        <!---->
       </div>
       <div class="v-field__outline">
         <!---->
