@@ -7,7 +7,6 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/store"
 	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -341,14 +340,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2, DevicesRemovedCount: 1}, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3, DevicesRemovedCount: 1}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, errors.New("error", "layer", 0)).
 					Once()
 			},
@@ -390,14 +385,10 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 2, DevicesRemovedCount: 1}, nil).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("true").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", MaxDevices: 3, DevicesAcceptedCount: 3, DevicesRemovedCount: 1}, nil).
 					Once()
 				storeMock.
-					On("DeviceList", ctx, store.DeviceAcceptableFromRemoved, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					On("DeviceList", ctx, store.DeviceAcceptableAsFalse, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
 					Return([]models.Device{}, 0, nil).
 					Once()
 			},
@@ -982,39 +973,13 @@ func TestDeleteDevice(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("_uid"), errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when the store namespace get fails",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				queryOptionsMock.
-					On("InNamespace", "tenant").
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
-					Return(
-						&models.Device{
-							UID:       "uid",
-							TenantID:  "tenant",
-							CreatedAt: time.Time{},
-						},
-						nil,
-					).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(nil, errors.New("error", "", 0)).
-					Once()
-			},
-			expected: NewErrNamespaceNotFound("tenant", errors.New("error", "", 0)),
-		},
-		{
-			description: "fails when the store device delete fails",
+			description: "fails when the store device delete fails (hard-delete pending)",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
 				device := &models.Device{
 					UID:       "uid",
+					Status:    models.DeviceStatusPending,
 					TenantID:  "tenant",
 					CreatedAt: time.Time{},
 				}
@@ -1025,31 +990,6 @@ func TestDeleteDevice(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(
-						&models.Namespace{
-							Name:     "group1",
-							Owner:    "id",
-							TenantID: "tenant",
-							Members: []models.Member{
-								{
-									ID:   "id",
-									Role: authorizer.RoleOwner,
-								},
-								{
-									ID:   "id2",
-									Role: authorizer.RoleObserver,
-								},
-							},
-							MaxDevices: 3,
-						},
-						nil,
-					).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").Return("false").
 					Once()
 				storeMock.
 					On("DeviceDelete", ctx, device).
@@ -1077,33 +1017,17 @@ func TestDeleteDevice(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.Status = models.DeviceStatusRemoved
+				expectedDevice.RemovedAt = &now
+
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(
-						&models.Namespace{
-							Name:     "group1",
-							Owner:    "id",
-							TenantID: "tenant",
-							Members: []models.Member{
-								{
-									ID:   "id",
-									Role: authorizer.RoleOwner,
-								},
-								{
-									ID:   "id2",
-									Role: authorizer.RoleObserver,
-								},
-							},
-							MaxDevices: 3,
-						},
-						nil,
-					).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").Return("false").
+					On("DeviceUpdate", ctx, &expectedDevice).
+					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, device).
+					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusRemoved, int64(1)).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1127,34 +1051,6 @@ func TestDeleteDevice(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(
-						&models.Namespace{
-							Name:     "group1",
-							Owner:    "id",
-							TenantID: "tenant",
-							Members: []models.Member{
-								{
-									ID:   "id",
-									Role: authorizer.RoleOwner,
-								},
-								{
-									ID:   "id2",
-									Role: authorizer.RoleObserver,
-								},
-							},
-							MaxDevices: 3,
-							Billing: &models.Billing{
-								Active: false,
-							},
-						},
-						nil,
-					).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").Return("true").
 					Once()
 
 				expectedDevice := *device
@@ -1182,34 +1078,6 @@ func TestDeleteDevice(t *testing.T) {
 				storeMock.
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(
-						&models.Namespace{
-							Name:     "group1",
-							Owner:    "id",
-							TenantID: "tenant",
-							Members: []models.Member{
-								{
-									ID:   "id",
-									Role: authorizer.RoleOwner,
-								},
-								{
-									ID:   "id2",
-									Role: authorizer.RoleObserver,
-								},
-							},
-							MaxDevices: 3,
-							Billing: &models.Billing{
-								Active: false,
-							},
-						},
-						nil,
-					).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").Return("true").
 					Once()
 
 				expectedDevice := *device
@@ -1247,34 +1115,6 @@ func TestDeleteDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(
-						&models.Namespace{
-							Name:     "group1",
-							Owner:    "id",
-							TenantID: "tenant",
-							Members: []models.Member{
-								{
-									ID:   "id",
-									Role: authorizer.RoleOwner,
-								},
-								{
-									ID:   "id2",
-									Role: authorizer.RoleObserver,
-								},
-							},
-							MaxDevices: 3,
-							Billing: &models.Billing{
-								Active: false,
-							},
-						},
-						nil,
-					).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").Return("true").
-					Once()
-				storeMock.
 					On("DeviceDelete", ctx, device).
 					Return(nil).
 					Once()
@@ -1286,7 +1126,7 @@ func TestDeleteDevice(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "[with_billing] succeeds and deletes device when billing is active",
+			description: "[with_billing] succeeds and soft-deletes device even when billing is active",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
 			requiredMocks: func() {
@@ -1300,36 +1140,17 @@ func TestDeleteDevice(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
+
+				expectedDevice := *device
+				expectedDevice.Status = models.DeviceStatusRemoved
+				expectedDevice.RemovedAt = &now
+
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(
-						&models.Namespace{
-							Name:     "group1",
-							Owner:    "id",
-							TenantID: "tenant",
-							Members: []models.Member{
-								{
-									ID:   "id",
-									Role: authorizer.RoleOwner,
-								},
-								{
-									ID:   "id2",
-									Role: authorizer.RoleObserver,
-								},
-							},
-							MaxDevices: 3,
-							Billing: &models.Billing{
-								Active: true,
-							},
-						},
-						nil,
-					).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").Return("true").
+					On("DeviceUpdate", ctx, &expectedDevice).
+					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, device).
+					On("NamespaceIncrementDeviceCount", ctx, "tenant", models.DeviceStatusRemoved, int64(1)).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2580,6 +2401,74 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 			},
 			expectedError: NewErrBillingEvaluate(errors.New("evaluate error", "service", 4)),
+		},
+		{
+			description: "failure (accepted) (different MAC) (billing inactive) - device limit reached without billing [cloud]",
+			req: &requests.DeviceUpdateStatus{
+				TenantID: "00000000-0000-0000-0000-000000000000",
+				UID:      "limit-device",
+				Status:   "accepted",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
+					Return(
+						&models.Namespace{
+							TenantID:             "00000000-0000-0000-0000-000000000000",
+							MaxDevices:           3,
+							DevicesAcceptedCount: 3,
+							Billing:              &models.Billing{Active: false},
+						},
+						nil,
+					).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "limit-device", mock.AnythingOfType("store.QueryOption")).
+					Return(
+						&models.Device{
+							UID:      "limit-device",
+							Name:     "test-device",
+							TenantID: "00000000-0000-0000-0000-000000000000",
+							Status:   models.DeviceStatusPending,
+							Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+						},
+						nil,
+					).
+					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				queryOptionsMock.
+					On("WithDeviceStatus", models.DeviceStatusAccepted).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				envMock.
+					On("Get", "SHELLHUB_CLOUD").
+					Return("true").
+					Once()
+			},
+			expectedError: NewErrDeviceLimit(3, nil),
 		},
 		{
 			description: "failure (accepted) (different MAC) (billing inactive) (removed device) - can't accept [cloud]",
