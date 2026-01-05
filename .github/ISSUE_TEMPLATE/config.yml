@@ -6,9 +6,3 @@ contact_links:
   - name: Question
     about: Get help from the community
     url: https://github.com/shellhub-io/shellhub/discussions/categories/q-a
-  - name: Documentation
-    about: Report issues with docs or suggest improvements
-    url: https://docs.shellhub.io
-  - name: Security Vulnerability
-    about: Privately report a security issue (do not create public issue)
-    url: https://github.com/shellhub-io/shellhub/security/advisories/new
