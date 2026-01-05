@@ -83,19 +83,9 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
 		}
 
-		if ns.HasMaxDevices() {
-			switch {
-			case envs.IsCloud():
-				if ns.HasLimitDevicesReached() {
-					return s.store.DeviceList(ctx, store.DeviceAcceptableFromRemoved, opts...)
-				}
-			case envs.IsEnterprise():
-				fallthrough
-			case envs.IsCommunity():
-				if ns.HasMaxDevicesReached() {
-					return s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, opts...)
-				}
-			}
+		// Unified logic: if limit reached, prevent accepting new devices
+		if ns.HasMaxDevices() && ns.HasMaxDevicesReached() {
+			return s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, opts...)
 		}
 	}
 
@@ -147,15 +137,9 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return NewErrDeviceNotFound(uid, err)
 	}
 
-	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant)
-	if err != nil {
-		return NewErrNamespaceNotFound(tenant, err)
-	}
-
-	// NOTE: If the namespace has a limit of devices, we change the device's slot status to removed only when it is
-	// [models.DeviceStatusAccepted]. This way, we can keep track of the number of devices that were removed from the
-	// namespace and void the device switching.
-	if envs.IsCloud() && !ns.Billing.IsActive() && device.Status == models.DeviceStatusAccepted {
+	// NOTE: Always soft-delete accepted devices for audit purposes.
+	// Pending/Rejected devices can be hard-deleted as they don't need audit trail.
+	if device.Status == models.DeviceStatusAccepted {
 		now := clock.Now()
 
 		deviceCopy := *device
@@ -169,6 +153,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 			return err
 		}
 	} else {
+		// Hard-delete pending/rejected devices (no audit needed)
 		if err := s.store.DeviceDelete(ctx, device); err != nil {
 			return err
 		}
@@ -325,14 +310,12 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 
 				if envs.IsCloud() {
 					hasBillingActive := namespace.Billing != nil && namespace.Billing.IsActive()
-					hasRechedLimit := namespace.HasMaxDevices() && namespace.HasLimitDevicesReached()
-					isDeviceStatusRemoved := device.RemovedAt != nil
 
-					if !hasBillingActive && hasRechedLimit && !isDeviceStatusRemoved {
+					if !hasBillingActive && namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
 						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).
 							Error("namespace's limit reached - cannot accept another device")
 
-						return NewErrDeviceRemovedFull(namespace.MaxDevices, nil)
+						return NewErrDeviceLimit(namespace.MaxDevices, nil)
 					}
 
 					if err := s.handleCloudBilling(ctx, namespace); err != nil {

@@ -31,15 +31,10 @@ func (n *Namespace) HasMaxDevices() bool {
 }
 
 // HasMaxDevicesReached checks if the namespace has reached the maximum number of devices.
+// Only counts accepted devices. Removed devices no longer count towards the limit,
+// allowing immediate slot reuse after deletion.
 func (n *Namespace) HasMaxDevicesReached() bool {
 	return n.DevicesAcceptedCount >= int64(n.MaxDevices)
-}
-
-// HasLimitDevicesReached checks if the namespace limit was reached using the removed devices collection.
-//
-// This method is intended to be run only when the ShellHub instance is Cloud.
-func (n *Namespace) HasLimitDevicesReached() bool {
-	return n.DevicesAcceptedCount+n.DevicesRemovedCount >= int64(n.MaxDevices)
 }
 
 // FindMember checks if a member with the specified ID exists in the namespace.
