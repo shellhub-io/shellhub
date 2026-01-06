@@ -98,10 +98,10 @@ describe("Connectors Store", () => {
   });
 
   describe("fetchConnectorById", () => {
-    const baseFetchByIdUrl = (id: string) => `http://localhost:3000/api/connector/${id}`;
+    const generateFetchByIdUrl = (id: string) => `http://localhost:3000/api/connector/${id}`;
 
     it("should fetch connector by ID successfully", async () => {
-      mockNamespacesApi.onGet(baseFetchByIdUrl("connector-123")).reply(200, mockConnectorBase);
+      mockNamespacesApi.onGet(generateFetchByIdUrl("connector-123")).reply(200, mockConnectorBase);
 
       await store.fetchConnectorById("connector-123");
 
@@ -109,25 +109,25 @@ describe("Connectors Store", () => {
     });
 
     it("should handle not found error when fetching connector", async () => {
-      mockNamespacesApi.onGet(baseFetchByIdUrl("connector-123")).reply(404, { message: "Connector not found" });
+      mockNamespacesApi.onGet(generateFetchByIdUrl("connector-123")).reply(404, { message: "Connector not found" });
 
       await expect(store.fetchConnectorById("connector-123")).rejects.toBeAxiosErrorWithStatus(404);
     });
 
     it("should throw error when network error occurs", async () => {
-      mockNamespacesApi.onGet(baseFetchByIdUrl("connector-123")).networkError();
+      mockNamespacesApi.onGet(generateFetchByIdUrl("connector-123")).networkError();
 
       await expect(store.fetchConnectorById("connector-123")).rejects.toThrow();
     });
   });
 
   describe("getConnectorInfo", () => {
-    const baseInfoUrl = (id: string) => `http://localhost:3000/api/connector/${id}/info`;
+    const generateInfoUrl = (id: string) => `http://localhost:3000/api/connector/${id}/info`;
 
     it("should get connector info successfully", async () => {
       const mockInfo = { status: "connected", message: "Connection successful" };
 
-      mockNamespacesApi.onGet(baseInfoUrl("connector-123")).reply(200, mockInfo);
+      mockNamespacesApi.onGet(generateInfoUrl("connector-123")).reply(200, mockInfo);
 
       await store.getConnectorInfo("connector-123");
 
@@ -135,13 +135,13 @@ describe("Connectors Store", () => {
     });
 
     it("should handle permission error when getting connector info", async () => {
-      mockNamespacesApi.onGet(baseInfoUrl("connector-123")).reply(403, { message: "Forbidden" });
+      mockNamespacesApi.onGet(generateInfoUrl("connector-123")).reply(403, { message: "Forbidden" });
 
       await expect(store.getConnectorInfo("connector-123")).rejects.toBeAxiosErrorWithStatus(403);
     });
 
     it("should throw error when network error occurs", async () => {
-      mockNamespacesApi.onGet(baseInfoUrl("connector-123")).networkError();
+      mockNamespacesApi.onGet(generateInfoUrl("connector-123")).networkError();
 
       await expect(store.getConnectorInfo("connector-123")).rejects.toThrow();
     });
@@ -176,44 +176,44 @@ describe("Connectors Store", () => {
   });
 
   describe("updateConnector", () => {
-    const baseUpdateUrl = (id: string) => `http://localhost:3000/api/connector/${id}`;
+    const generateUpdateUrl = (id: string) => `http://localhost:3000/api/connector/${id}`;
 
     it("should update connector successfully", async () => {
-      mockNamespacesApi.onPatch(baseUpdateUrl("connector-123")).reply(200);
+      mockNamespacesApi.onPatch(generateUpdateUrl("connector-123")).reply(200);
 
       await expect(store.updateConnector(mockConnectorPayloadBase)).resolves.not.toThrow();
     });
 
     it("should handle not found error when updating connector", async () => {
-      mockNamespacesApi.onPatch(baseUpdateUrl("connector-123")).reply(404, { message: "Connector not found" });
+      mockNamespacesApi.onPatch(generateUpdateUrl("connector-123")).reply(404, { message: "Connector not found" });
 
       await expect(store.updateConnector(mockConnectorPayloadBase)).rejects.toBeAxiosErrorWithStatus(404);
     });
 
     it("should throw error when network error occurs", async () => {
-      mockNamespacesApi.onPatch(baseUpdateUrl("connector-123")).networkError();
+      mockNamespacesApi.onPatch(generateUpdateUrl("connector-123")).networkError();
 
       await expect(store.updateConnector(mockConnectorPayloadBase)).rejects.toThrow();
     });
   });
 
   describe("deleteConnector", () => {
-    const baseDeleteUrl = (id: string) => `http://localhost:3000/api/connector/${id}`;
+    const generateDeleteUrl = (id: string) => `http://localhost:3000/api/connector/${id}`;
 
     it("should delete connector successfully", async () => {
-      mockNamespacesApi.onDelete(baseDeleteUrl("connector-123")).reply(200);
+      mockNamespacesApi.onDelete(generateDeleteUrl("connector-123")).reply(200);
 
       await expect(store.deleteConnector("connector-123")).resolves.not.toThrow();
     });
 
     it("should handle permission error when deleting connector", async () => {
-      mockNamespacesApi.onDelete(baseDeleteUrl("connector-123")).reply(403, { message: "Insufficient permissions" });
+      mockNamespacesApi.onDelete(generateDeleteUrl("connector-123")).reply(403, { message: "Insufficient permissions" });
 
       await expect(store.deleteConnector("connector-123")).rejects.toBeAxiosErrorWithStatus(403);
     });
 
     it("should throw error when network error occurs", async () => {
-      mockNamespacesApi.onDelete(baseDeleteUrl("connector-123")).networkError();
+      mockNamespacesApi.onDelete(generateDeleteUrl("connector-123")).networkError();
 
       await expect(store.deleteConnector("connector-123")).rejects.toThrow();
     });

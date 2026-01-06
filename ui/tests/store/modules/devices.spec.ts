@@ -300,6 +300,79 @@ describe("Devices Store", () => {
     });
   });
 
+  describe("fetchDeviceCounts", () => {
+    const baseUrl = "http://localhost:3000/api/devices";
+    const onlineFilter = Buffer.from(JSON.stringify([
+      { type: "property", params: { name: "online", operator: "eq", value: true } },
+    ])).toString("base64");
+    const offlineFilter = Buffer.from(JSON.stringify([
+      { type: "property", params: { name: "online", operator: "eq", value: false } },
+    ])).toString("base64");
+
+    const acceptedUrl = buildUrl(baseUrl, { page: "1", per_page: "1", status: "accepted" });
+    const pendingUrl = buildUrl(baseUrl, { page: "1", per_page: "1", status: "pending" });
+    const onlineUrl = buildUrl(baseUrl, { filter: onlineFilter, page: "1", per_page: "1", status: "accepted" });
+    const offlineUrl = buildUrl(baseUrl, { filter: offlineFilter, page: "1", per_page: "1", status: "accepted" });
+
+    it("should fetch all device counts successfully", async () => {
+      mockDevicesApi
+        .onGet(acceptedUrl)
+        .reply(200, [], { "x-total-count": "100" });
+
+      mockDevicesApi
+        .onGet(pendingUrl)
+        .reply(200, [], { "x-total-count": "5" });
+
+      mockDevicesApi
+        .onGet(onlineUrl)
+        .reply(200, [], { "x-total-count": "60" });
+
+      mockDevicesApi
+        .onGet(offlineUrl)
+        .reply(200, [], { "x-total-count": "40" });
+
+      await store.fetchDeviceCounts();
+
+      expect(store.totalDevicesCount).toBe(100);
+      expect(store.pendingDevicesCount).toBe(5);
+      expect(store.onlineDevicesCount).toBe(60);
+      expect(store.offlineDevicesCount).toBe(40);
+    });
+
+    it("should handle zero counts", async () => {
+      mockDevicesApi
+        .onGet(acceptedUrl)
+        .reply(200, [], { "x-total-count": "0" });
+
+      mockDevicesApi
+        .onGet(pendingUrl)
+        .reply(200, [], { "x-total-count": "0" });
+
+      mockDevicesApi
+        .onGet(onlineUrl)
+        .reply(200, [], { "x-total-count": "0" });
+
+      mockDevicesApi
+        .onGet(offlineUrl)
+        .reply(200, [], { "x-total-count": "0" });
+
+      await store.fetchDeviceCounts();
+
+      expect(store.totalDevicesCount).toBe(0);
+      expect(store.pendingDevicesCount).toBe(0);
+      expect(store.onlineDevicesCount).toBe(0);
+      expect(store.offlineDevicesCount).toBe(0);
+    });
+
+    it("should handle error when fetching counts", async () => {
+      mockDevicesApi
+        .onGet(acceptedUrl)
+        .reply(500, { message: "Internal Server Error" });
+
+      await expect(store.fetchDeviceCounts()).rejects.toBeAxiosErrorWithStatus(500);
+    });
+  });
+
   describe("setDeviceListVisibility", () => {
     const url = "http://localhost:3000/api/devices?page=1&per_page=1";
 

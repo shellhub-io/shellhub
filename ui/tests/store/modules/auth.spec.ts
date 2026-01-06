@@ -54,6 +54,29 @@ describe("Auth Store", () => {
     });
   });
 
+  describe("Computed Properties", () => {
+    it("should compute showForceRecoveryMail when MFA enabled but no recovery email", () => {
+      store.isMfaEnabled = true;
+      store.recoveryEmail = "";
+
+      expect(store.showForceRecoveryMail).toBe(true);
+    });
+
+    it("should not show force recovery mail when recovery email exists", () => {
+      store.isMfaEnabled = true;
+      store.recoveryEmail = "recovery@example.com";
+
+      expect(store.showForceRecoveryMail).toBe(false);
+    });
+
+    it("should compute showRecoveryModal when recovering MFA", () => {
+      store.isRecoveringMfa = true;
+      store.isMfaEnabled = true;
+
+      expect(store.showRecoveryModal).toBe(true);
+    });
+  });
+
   describe("login", () => {
     const loginUrl = "http://localhost:3000/api/login";
 
@@ -593,26 +616,46 @@ describe("Auth Store", () => {
     });
   });
 
-  describe("Computed Properties", () => {
-    it("should compute showForceRecoveryMail when MFA enabled but no recovery email", () => {
-      store.isMfaEnabled = true;
-      store.recoveryEmail = "";
+  describe("setShowWelcomeScreen", () => {
+    it("should set welcome screen flag for a tenant", () => {
+      const tenantId = "test-tenant-123";
 
-      expect(store.showForceRecoveryMail).toBe(true);
+      store.setShowWelcomeScreen(tenantId);
+
+      const stored = JSON.parse(localStorage.getItem("namespacesWelcome") || "{}");
+      expect(stored[tenantId]).toBe(true);
     });
 
-    it("should not show force recovery mail when recovery email exists", () => {
-      store.isMfaEnabled = true;
-      store.recoveryEmail = "recovery@example.com";
+    it("should preserve existing tenant flags when adding new one", () => {
+      const tenant1 = "tenant-1";
+      const tenant2 = "tenant-2";
 
-      expect(store.showForceRecoveryMail).toBe(false);
+      store.setShowWelcomeScreen(tenant1);
+      store.setShowWelcomeScreen(tenant2);
+
+      const stored = JSON.parse(localStorage.getItem("namespacesWelcome") || "{}");
+      expect(stored[tenant1]).toBe(true);
+      expect(stored[tenant2]).toBe(true);
     });
 
-    it("should compute showRecoveryModal when recovering MFA", () => {
-      store.isRecoveringMfa = true;
-      store.isMfaEnabled = true;
+    it("should handle empty localStorage initially", () => {
+      localStorage.removeItem("namespacesWelcome");
+      const tenantId = "new-tenant";
 
-      expect(store.showRecoveryModal).toBe(true);
+      store.setShowWelcomeScreen(tenantId);
+
+      const stored = JSON.parse(localStorage.getItem("namespacesWelcome") || "{}");
+      expect(stored[tenantId]).toBe(true);
+    });
+
+    it("should update existing tenant flag", () => {
+      const tenantId = "existing-tenant";
+      localStorage.setItem("namespacesWelcome", JSON.stringify({ [tenantId]: false }));
+
+      store.setShowWelcomeScreen(tenantId);
+
+      const stored = JSON.parse(localStorage.getItem("namespacesWelcome") || "{}");
+      expect(stored[tenantId]).toBe(true);
     });
   });
 });

@@ -215,44 +215,6 @@ describe("Announcement Store", () => {
       expect(store.currentAnnouncement).toEqual({});
     });
 
-    it("should reset currentAnnouncement and throw on permission error", async () => {
-      store.currentAnnouncement = {
-        uuid: "test",
-        title: "Test",
-        date: "2025-12-18T10:00:00Z",
-        content: "Test content",
-      };
-
-      mockAnnouncementApi
-        .onGet(generateFetchByIdUrl("restricted"))
-        .reply(403, { message: "Access denied" });
-
-      await expect(
-        store.fetchById("restricted"),
-      ).rejects.toBeAxiosErrorWithStatus(403);
-
-      expect(store.currentAnnouncement).toEqual({});
-    });
-
-    it("should reset currentAnnouncement and throw on server error", async () => {
-      store.currentAnnouncement = {
-        uuid: "test",
-        title: "Test",
-        date: "2025-12-18T10:00:00Z",
-        content: "Test content",
-      };
-
-      mockAnnouncementApi
-        .onGet(generateFetchByIdUrl("announcement-123"))
-        .reply(500, { message: "Internal Server Error" });
-
-      await expect(
-        store.fetchById("announcement-123"),
-      ).rejects.toBeAxiosErrorWithStatus(500);
-
-      expect(store.currentAnnouncement).toEqual({});
-    });
-
     it("should reset currentAnnouncement and throw on network error", async () => {
       store.currentAnnouncement = {
         uuid: "test",

@@ -124,6 +124,62 @@ describe("TerminalTheme Store", () => {
       });
     });
 
+    describe("currentTheme computed", () => {
+      it("should return fallback theme when themes not loaded", () => {
+        expect(terminalThemeStore.currentTheme).toEqual({
+          name: "Default",
+          description: "Fallback theme",
+          colors: {
+            background: "#0f1526",
+            foreground: "#ffffff",
+          },
+        });
+      });
+
+      it("should return correct theme after loading", async () => {
+        mockSuccessfulThemeLoads();
+
+        await terminalThemeStore.loadThemes();
+
+        expect(terminalThemeStore.currentTheme).toEqual({
+          name: "ShellHub Dark",
+          description: "Dark theme",
+          colors: mockShellHubDarkColors,
+        });
+      });
+
+      it("should update when theme name changes", async () => {
+        mockSuccessfulThemeLoads();
+
+        await terminalThemeStore.loadThemes();
+
+        terminalThemeStore.setTheme("Dracula");
+
+        expect(terminalThemeStore.currentTheme).toEqual({
+          name: "Dracula",
+          description: "Dark theme",
+          colors: mockDraculaColors,
+        });
+      });
+
+      it("should return fallback when selected theme not found", async () => {
+        mockSuccessfulThemeLoads();
+
+        await terminalThemeStore.loadThemes();
+
+        terminalThemeStore.setTheme("Non-Existent Theme");
+
+        expect(terminalThemeStore.currentTheme).toEqual({
+          name: "Default",
+          description: "Fallback theme",
+          colors: {
+            background: "#0f1526",
+            foreground: "#ffffff",
+          },
+        });
+      });
+    });
+
     it("should load font family from localStorage", () => {
       localStorage.setItem("terminalFontFamily", "Fira Code");
       localStorage.setItem("terminalFontSize", "18");
@@ -322,62 +378,6 @@ describe("TerminalTheme Store", () => {
       terminalThemeStore.setTheme("ShellHub Light");
       expect(terminalThemeStore.currentThemeName).toBe("ShellHub Light");
       expect(localStorage.getItem("terminalTheme")).toBe("ShellHub Light");
-    });
-  });
-
-  describe("currentTheme computed", () => {
-    it("should return fallback theme when themes not loaded", () => {
-      expect(terminalThemeStore.currentTheme).toEqual({
-        name: "Default",
-        description: "Fallback theme",
-        colors: {
-          background: "#0f1526",
-          foreground: "#ffffff",
-        },
-      });
-    });
-
-    it("should return correct theme after loading", async () => {
-      mockSuccessfulThemeLoads();
-
-      await terminalThemeStore.loadThemes();
-
-      expect(terminalThemeStore.currentTheme).toEqual({
-        name: "ShellHub Dark",
-        description: "Dark theme",
-        colors: mockShellHubDarkColors,
-      });
-    });
-
-    it("should update when theme name changes", async () => {
-      mockSuccessfulThemeLoads();
-
-      await terminalThemeStore.loadThemes();
-
-      terminalThemeStore.setTheme("Dracula");
-
-      expect(terminalThemeStore.currentTheme).toEqual({
-        name: "Dracula",
-        description: "Dark theme",
-        colors: mockDraculaColors,
-      });
-    });
-
-    it("should return fallback when selected theme not found", async () => {
-      mockSuccessfulThemeLoads();
-
-      await terminalThemeStore.loadThemes();
-
-      terminalThemeStore.setTheme("Non-Existent Theme");
-
-      expect(terminalThemeStore.currentTheme).toEqual({
-        name: "Default",
-        description: "Fallback theme",
-        colors: {
-          background: "#0f1526",
-          foreground: "#ffffff",
-        },
-      });
     });
   });
 });
