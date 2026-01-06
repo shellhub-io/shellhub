@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useTablePreference } from "@/composables/useTablePreference";
+import handleError from "@/utils/handleError";
+
+// Mock handleError to prevent console output during tests
+vi.mock("@/utils/handleError", () => ({
+  default: vi.fn(),
+}));
 
 describe("useTablePreference", () => {
   const STORAGE_KEY = "tablePreferences";
@@ -77,7 +83,7 @@ describe("useTablePreference", () => {
       expect(preferencesObject).toEqual({ sessions: 20, devices: 100 });
     });
 
-    it("should handle localStorage quota exceeded errors silently", () => {
+    it("should not throw when localStorage quota is exceeded", () => {
       const { setItemsPerPage } = useTablePreference();
       vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
         throw new DOMException("QuotaExceededError");
@@ -92,6 +98,20 @@ describe("useTablePreference", () => {
 
       // Should not throw when encountering invalid JSON
       expect(() => setItemsPerPage("sessions", 20)).not.toThrow();
+      // Should call handleError when encountering parse error
+      expect(handleError).toHaveBeenCalledWith(expect.any(SyntaxError));
+    });
+
+    it("should handle storage errors and call handleError", () => {
+      const { setItemsPerPage } = useTablePreference();
+      const storageError = new DOMException("QuotaExceededError");
+      vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+        throw storageError;
+      });
+
+      setItemsPerPage("sessions", 20);
+
+      expect(handleError).toHaveBeenCalledWith(storageError);
     });
   });
 
