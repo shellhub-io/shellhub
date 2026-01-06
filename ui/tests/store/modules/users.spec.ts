@@ -363,6 +363,7 @@ describe("Users Store", () => {
 
   describe("getSamlUrl", () => {
     const samlUrl = "http://localhost:3000/api/user/saml/auth";
+
     it("should get SAML URL successfully", async () => {
       const mockSamlUrl = "https://saml.example.com/login";
       mockUsersApi.onGet(samlUrl).reply(200, { url: mockSamlUrl });

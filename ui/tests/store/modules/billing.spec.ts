@@ -48,6 +48,66 @@ describe("Billing Store", () => {
     });
   });
 
+  describe("showBillingWarning", () => {
+    it("should allow setting showBillingWarning to true", () => {
+      store.showBillingWarning = true;
+      expect(store.showBillingWarning).toBe(true);
+    });
+
+    it("should allow setting showBillingWarning to false", () => {
+      store.showBillingWarning = true;
+      store.showBillingWarning = false;
+      expect(store.showBillingWarning).toBe(false);
+    });
+  });
+
+  describe("Computed Properties", () => {
+    it("should compute isActive correctly when active is true", () => {
+      store.billing = { ...mockBillingBase, active: true };
+
+      expect(store.isActive).toBe(true);
+    });
+
+    it("should compute isActive correctly when active is false", () => {
+      store.billing = { ...mockBillingBase, active: false };
+
+      expect(store.isActive).toBe(false);
+    });
+
+    it("should compute isActive as false when active is undefined", () => {
+      const { active: _active, ...billingWithoutActive } = mockBillingBase;
+      store.billing = billingWithoutActive as IBilling;
+
+      expect(store.isActive).toBe(false);
+    });
+
+    it("should compute status correctly", () => {
+      store.billing = { ...mockBillingBase, status: "trialing" };
+
+      expect(store.status).toBe("trialing");
+    });
+
+    it("should compute status as inactive when undefined", () => {
+      const { status: _status, ...billingWithoutStatus } = mockBillingBase;
+      store.billing = billingWithoutStatus as IBilling;
+
+      expect(store.status).toBe("inactive");
+    });
+
+    it("should compute invoices correctly", () => {
+      store.billing = mockBillingBase;
+
+      expect(store.invoices).toEqual(mockBillingBase.invoices);
+    });
+
+    it("should compute invoices as empty array when undefined", () => {
+      const { invoices: _invoices, ...billingWithoutInvoices } = mockBillingBase;
+      store.billing = billingWithoutInvoices as IBilling;
+
+      expect(store.invoices).toEqual([]);
+    });
+  });
+
   describe("getSubscriptionInfo", () => {
     const subscriptionUrl = "http://localhost:3000/api/billing/subscription";
 
@@ -114,69 +174,6 @@ describe("Billing Store", () => {
       axiosMock.onPost(portalUrl).networkError();
 
       await expect(store.openBillingPortal()).rejects.toThrow();
-    });
-  });
-
-  describe("Computed Properties", () => {
-    it("should compute isActive correctly when active is true", () => {
-      store.billing = { ...mockBillingBase, active: true };
-
-      expect(store.isActive).toBe(true);
-    });
-
-    it("should compute isActive correctly when active is false", () => {
-      store.billing = { ...mockBillingBase, active: false };
-
-      expect(store.isActive).toBe(false);
-    });
-
-    it("should compute isActive as false when active is undefined", () => {
-      const { active: _active, ...billingWithoutActive } = mockBillingBase;
-      store.billing = billingWithoutActive as IBilling;
-
-      expect(store.isActive).toBe(false);
-    });
-
-    it("should compute status correctly", () => {
-      store.billing = { ...mockBillingBase, status: "trialing" };
-
-      expect(store.status).toBe("trialing");
-    });
-
-    it("should compute status as inactive when undefined", () => {
-      const { status: _status, ...billingWithoutStatus } = mockBillingBase;
-      store.billing = billingWithoutStatus as IBilling;
-
-      expect(store.status).toBe("inactive");
-    });
-
-    it("should compute invoices correctly", () => {
-      store.billing = mockBillingBase;
-
-      expect(store.invoices).toEqual(mockBillingBase.invoices);
-    });
-
-    it("should compute invoices as empty array when undefined", () => {
-      const { invoices: _invoices, ...billingWithoutInvoices } = mockBillingBase;
-      store.billing = billingWithoutInvoices as IBilling;
-
-      expect(store.invoices).toEqual([]);
-    });
-  });
-
-  describe("showBillingWarning", () => {
-    it("should allow setting showBillingWarning to true", () => {
-      store.showBillingWarning = true;
-
-      expect(store.showBillingWarning).toBe(true);
-    });
-
-    it("should allow setting showBillingWarning to false", () => {
-      store.showBillingWarning = true;
-
-      store.showBillingWarning = false;
-
-      expect(store.showBillingWarning).toBe(false);
     });
   });
 });

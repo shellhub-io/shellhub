@@ -147,6 +147,7 @@ describe("API Keys Store", () => {
   });
 
   describe("editApiKey", () => {
+    const generateEditApiKeyUrl = (key: string) => `http://localhost:3000/api/namespaces/api-key/${key}`;
     it("should edit API key name successfully", async () => {
       const editData = {
         key: "test-key-123",
@@ -155,7 +156,7 @@ describe("API Keys Store", () => {
       };
 
       mockApiKeysApi
-        .onPatch(`http://localhost:3000/api/namespaces/api-key/${editData.key}`)
+        .onPatch(generateEditApiKeyUrl(editData.key))
         .reply(200);
 
       await expect(store.editApiKey(editData)).resolves.not.toThrow();
@@ -169,7 +170,7 @@ describe("API Keys Store", () => {
       };
 
       mockApiKeysApi
-        .onPatch(`http://localhost:3000/api/namespaces/api-key/${editData.key}`)
+        .onPatch(generateEditApiKeyUrl(editData.key))
         .reply(200);
 
       await expect(store.editApiKey(editData)).resolves.not.toThrow();
@@ -183,7 +184,7 @@ describe("API Keys Store", () => {
       };
 
       mockApiKeysApi
-        .onPatch(`http://localhost:3000/api/namespaces/api-key/${editData.key}`)
+        .onPatch(generateEditApiKeyUrl(editData.key))
         .reply(404, { message: "API key not found" });
 
       await expect(
@@ -193,7 +194,7 @@ describe("API Keys Store", () => {
   });
 
   describe("removeApiKey", () => {
-    const baseRemoveUrl = (key: string) => `http://localhost:3000/api/namespaces/api-key/${key}`;
+    const generateRemoveApiKeyUrl = (key: string) => `http://localhost:3000/api/namespaces/api-key/${key}`;
 
     it("should remove API key successfully", async () => {
       const removeData = {
@@ -201,7 +202,7 @@ describe("API Keys Store", () => {
       };
 
       mockApiKeysApi
-        .onDelete(baseRemoveUrl(removeData.key))
+        .onDelete(generateRemoveApiKeyUrl(removeData.key))
         .reply(200);
 
       await expect(store.removeApiKey(removeData)).resolves.not.toThrow();
@@ -213,7 +214,7 @@ describe("API Keys Store", () => {
       };
 
       mockApiKeysApi
-        .onDelete(baseRemoveUrl(removeData.key))
+        .onDelete(generateRemoveApiKeyUrl(removeData.key))
         .reply(404, { message: "API key not found" });
 
       await expect(
