@@ -49,6 +49,12 @@ func NewAgentContainerWithIdentity(identity string) NewAgentContainerOption {
 	}
 }
 
+func NewAgentContainerWithConnectionVersion(version int) NewAgentContainerOption {
+	return func(envs map[string]string) {
+		envs["SHELLHUB_CONNECTION_VERSION"] = fmt.Sprintf("%d", version)
+	}
+}
+
 func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	envs := map[string]string{
 		"SHELLHUB_SERVER_ADDRESS":     fmt.Sprintf("http://localhost:%s", port),
@@ -57,6 +63,7 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 		"SHELLHUB_LOG_FORMAT":         "json",
 		"SHELLHUB_KEEPALIVE_INTERVAL": "1",
 		"SHELLHUB_LOG_LEVEL":          "trace",
+		"SHELLHUB_CONNECTION_VERSION": "1", // Default to v1 for compatibility
 	}
 
 	for _, opt := range opts {
@@ -90,6 +97,15 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 }
 
 func TestSSH(t *testing.T) {
+	// Run all tests with both v1 and v2
+	for _, version := range []int{1, 2} {
+		t.Run(fmt.Sprintf("connection_v%d", version), func(t *testing.T) {
+			testSSHWithVersion(t, version)
+		})
+	}
+}
+
+func testSSHWithVersion(t *testing.T, connectionVersion int) {
 	type Environment struct {
 		services *environment.DockerCompose
 		agent    testcontainers.Container
@@ -1351,10 +1367,15 @@ func TestSSH(t *testing.T) {
 	for _, tc := range tests {
 		test := tc
 		t.Run(test.name, func(tt *testing.T) {
+			// Combine connection version with test-specific options
+			opts := append([]NewAgentContainerOption{
+				NewAgentContainerWithConnectionVersion(connectionVersion),
+			}, test.options...)
+
 			agent, err := NewAgentContainer(
 				ctx,
 				compose.Env("SHELLHUB_HTTP_PORT"),
-				test.options...,
+				opts...,
 			)
 			require.NoError(tt, err)
 
