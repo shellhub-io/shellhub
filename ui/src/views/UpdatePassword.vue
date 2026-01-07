@@ -59,7 +59,7 @@
 
     <v-card-subtitle
       class="d-flex align-center justify-center pa-4 mx-auto pt-2"
-      data-test="isCloud-card"
+      data-test="back-to-login"
     >
       Back to
       <router-link
@@ -172,9 +172,4 @@ const updatePassword = async () => {
     handleError(error);
   }
 };
-
-defineExpose({
-  updatePassword,
-  handleError,
-});
 </script>

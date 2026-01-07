@@ -126,6 +126,4 @@ onMounted(async () => {
     handleError(error);
   }
 });
-
-defineExpose({ searchWebEndpoints });
 </script>

@@ -1,102 +1,59 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import Devices from "@/views/Devices.vue";
-import { devicesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { router } from "@/router";
-import useDevicesStore from "@/store/modules/devices";
-import { IDevice } from "@/interfaces/IDevice";
-
-type DevicesWrapper = VueWrapper<InstanceType<typeof Devices>>;
 
 describe("Devices View", () => {
-  let wrapper: DevicesWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
-  const devicesStore = useDevicesStore();
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+  let wrapper: VueWrapper<InstanceType<typeof Devices>>;
+  const router = createCleanRouter();
 
-  const mockDevices = [
-    {
-      uid: "a582b47a42d",
-      name: "39-5e-2a",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
-      info: {
-        id: "linuxmint",
-        pretty_name: "Linux Mint 19.3",
-        version: "",
-      },
-      public_key: "----- PUBLIC KEY -----",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2020-05-20T18:58:53.276Z",
-      online: false,
-      namespace: "user",
-      status: "accepted",
-    },
-    {
-      uid: "a582b47a42e",
-      name: "39-5e-2b",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
-      info: {
-        id: "linuxmint",
-        pretty_name: "Linux Mint 19.3",
-        version: "",
-      },
-      public_key: "----- PUBLIC KEY -----",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2020-05-20T19:58:53.276Z",
-      online: true,
-      namespace: "user",
-      status: "accepted",
-    },
-  ];
+  const mountWrapper = (showDevices = true) =>
+    wrapper = mountComponent(Devices, {
+      global: { plugins: [router] },
+      piniaOptions: { initialState: { devices: { showDevices } } },
+    });
 
-  beforeEach(() => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(
-      200,
-      { data: mockDevicesApi, headers: { "x-total-count": 2 } },
-    );
+  afterEach(() => { wrapper?.unmount(); });
 
-    devicesStore.devices = mockDevices as IDevice[];
+  describe("when devices exist", () => {
+    beforeEach(() => { wrapper = mountWrapper(); });
 
-    wrapper = mount(Devices, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="devices-header"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Device Management");
+      expect(pageHeader.find('[data-test="device-add-btn"]').exists()).toBe(true);
+    });
+
+    it("displays the device list component", () => {
+      expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(true);
+    });
+
+    it("does not show the no items message", () => {
+      expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
     });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    wrapper.unmount();
-  });
+  describe("when no devices exist", () => {
+    beforeEach(() => { wrapper = mountWrapper(false); });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="devices-header"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Device Management");
+      expect(pageHeader.find('[data-test="device-add-btn"]').exists()).toBe(true);
+    });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    it("does not display the device list component", () => {
+      expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(false);
+    });
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="search-text"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="device-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-table-component"]').exists()).toBe(false);
-  });
-
-  it("Shows the no items message when there are no public keys", () => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10").reply(200, []);
-    devicesStore.devices = [];
-    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Devices");
+    it("shows the no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      expect(noItemsMessage.exists()).toBe(true);
+      expect(noItemsMessage.text()).toContain("In order to register a device on ShellHub");
+      expect(noItemsMessage.find('[data-test="device-add-btn"]').exists()).toBe(true);
+    });
   });
 });

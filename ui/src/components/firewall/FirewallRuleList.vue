@@ -8,7 +8,7 @@
     :loading
     :items-per-page-options="[10, 20, 50, 100]"
     table-name="firewallRules"
-    data-test="firewallRules-list"
+    data-test="firewall-rules-list"
   >
     <template #rows>
       <tr

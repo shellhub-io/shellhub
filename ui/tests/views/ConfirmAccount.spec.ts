@@ -1,73 +1,100 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { Router } from "vue-router";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import ConfirmAccount from "@/views/ConfirmAccount.vue";
-import { usersApi } from "@/api/http";
-import { router } from "@/router";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useUsersStore from "@/store/modules/users";
+import createCleanRouter from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
+
+vi.mock("@/store/api/users");
 
 type ConfirmAccountWrapper = VueWrapper<InstanceType<typeof ConfirmAccount>>;
-const username = "test";
 
-const mockSnackbar = {
-  showError: vi.fn(),
-  showSuccess: vi.fn(),
-};
-
-describe("Confirm Account", () => {
+describe("Confirm Account View", () => {
   let wrapper: ConfirmAccountWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const usersStore = useUsersStore();
-  const mockUsersApi = new MockAdapter(usersApi.getAxios());
-  beforeEach(async () => {
-    await router.push(`/confirm-account?username=${username}`);
+  let router: Router;
 
-    wrapper = mount(ConfirmAccount, {
-      global: {
-        plugins: [vuetify, router],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
+  const username = "test-user";
+
+  const mountWrapper = async ({
+    queryUsername = username,
+    mockError,
+  }: {
+    queryUsername?: string;
+    mockError?: Error;
+  } = {}) => {
+    router = createCleanRouter();
+    await router.push({ name: "ConfirmAccount", query: { username: queryUsername } });
+    await router.isReady();
+
+    wrapper = mountComponent(ConfirmAccount, {
+      global: { plugins: [router] },
+      piniaOptions: { stubActions: !mockError },
+    });
+
+    const usersStore = useUsersStore();
+    if (mockError) vi.mocked(usersStore.resendEmail).mockRejectedValueOnce(mockError);
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("when page loads", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the account activation message", () => {
+      const title = wrapper.find('[data-test="title"]');
+      const subtitle = wrapper.find('[data-test="subtitle"]');
+
+      expect(title.text()).toContain("Account Activation Required");
+      expect(subtitle.text()).toContain("Thank you for registering an account on ShellHub");
+      expect(subtitle.text()).toContain("An email was sent with a confirmation link");
+    });
+
+    it("displays the resend email button", () => {
+      expect(wrapper.find('[data-test="resend-email-btn"]').text()).toContain("Resend Email");
+    });
+
+    it("displays the back to login link", () => {
+      const loginLink = wrapper.find('[data-test="back-to-login-link"]');
+      expect(loginLink.text()).toContain("Back to");
+      expect(loginLink.text()).toContain("Login");
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
+  describe("when resend email succeeds", () => {
+    it("displays success message and redirects to login", async () => {
+      await mountWrapper();
+      const pushSpy = vi.spyOn(router, "push").mockImplementation(() => Promise.resolve());
+
+      await wrapper.find('[data-test="resend-email-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("The email has been sent.");
+      expect(pushSpy).toHaveBeenCalledWith({ name: "Login" });
+    });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("when resend email fails", () => {
+    beforeEach(() => mountWrapper({ mockError: createAxiosError(500, "Failed to send email") }));
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    it("displays error snackbar notification", async () => {
+      await wrapper.find('[data-test="resend-email-btn"]').trigger("click");
+      await flushPromises();
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="subtitle"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="resendEmail-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="isCloud-card"]').exists()).toBe(true);
-  });
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while sending the email. Please try again.");
+    });
 
-  it("Resends an email to the user", async () => {
-    const resendEmailSpy = vi.spyOn(usersStore, "resendEmail");
+    it("does not redirect to login on error", async () => {
+      const pushSpy = vi.spyOn(router, "push");
 
-    mockUsersApi.onPost("http://localhost:3000/api/user/resend_email").reply(200);
-    await wrapper.findComponent('[data-test="resendEmail-btn"]').trigger("click");
-    await flushPromises();
+      await wrapper.find('[data-test="resend-email-btn"]').trigger("click");
+      await flushPromises();
 
-    expect(resendEmailSpy).toHaveBeenCalledWith(username);
-  });
-
-  it("Error case on resends an email to the user", async () => {
-    mockUsersApi.onPost("http://localhost:3000/api/user/resend_email").reply(400);
-    await wrapper.findComponent('[data-test="resendEmail-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while sending the email. Please try again.");
+      expect(pushSpy).not.toHaveBeenCalled();
+    });
   });
 });

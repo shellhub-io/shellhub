@@ -9,7 +9,7 @@ export const generateApiKey = async (data: IApiKeyCreate) => apiKeysApi.apiKeyCr
   expires_at: data.expires_in,
 });
 
-export const getApiKey = async (
+export const getApiKeys = async (
   page: number,
   perPage: number,
   sortOrder?: "asc" | "desc",

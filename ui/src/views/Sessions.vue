@@ -27,6 +27,7 @@
             rel="noopener noreferrer"
             target="_blank"
             href="https://docs.shellhub.io/user-guides/devices/connecting"
+            data-test="how-to-connect-link"
           >how to connect to your devices</a>.
         </p>
       </template>

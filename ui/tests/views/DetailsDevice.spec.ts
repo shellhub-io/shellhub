@@ -1,141 +1,153 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import { nextTick } from "vue";
-import { createRouter, createWebHistory } from "vue-router";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { Router } from "vue-router";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import DetailsDevice from "@/views/DetailsDevice.vue";
-import { devicesApi, tagsApi } from "@/api/http";
-import { routes } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useDevicesStore from "@/store/modules/devices";
 import { IDevice } from "@/interfaces/IDevice";
+import { envVariables } from "@/envVariables";
+import { formatFullDateTime } from "@/utils/date";
+import { mockDevice } from "@tests/views/mocks";
+import { createAxiosError } from "@tests/utils/axiosError";
+import useDevicesStore from "@/store/modules/devices";
 
-type DetailsDeviceWrapper = VueWrapper<InstanceType<typeof DetailsDevice>>;
+vi.mock("@/store/api/devices");
 
-describe("Details Device", () => {
-  let wrapper: DetailsDeviceWrapper;
-  setActivePinia(createPinia());
-  const devicesStore = useDevicesStore();
-  const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+vi.mock("@/envVariables", () => ({
+  envVariables: {
+    hasWebEndpoints: false,
+    isEnterprise: true,
+  },
+}));
 
-  const device = {
-    uid: "a582b47a42d",
-    name: "39-5e-2a",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-      arch: "x86_64",
-      platform: "linux",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T18:58:53.276Z",
-    created_at: "2020-05-20T18:00:00.000Z",
-    status_updated_at: "2020-05-20T18:58:53.276Z",
-    online: false,
-    namespace: "user",
-    status: "accepted" as const,
-    remote_addr: "127.0.0.1",
-    position: { latitude: 0, longitude: 0 },
-    tags: [
-      {
-        tenant_id: "fake-tenant-data",
-        name: "test-tag",
-        created_at: "",
-        updated_at: "",
-      },
-    ],
-  };
+describe("Details Device View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof DetailsDevice>>;
+  let router: Router;
 
-  localStorage.setItem("tenant", "fake-tenant-data");
+  const device: IDevice = mockDevice;
 
-  beforeEach(async () => {
-    const router = createRouter({
-      history: createWebHistory(),
-      routes,
-    });
-    await router.push("/devices/123456");
+  const mountWrapper = async ({
+    deviceId = "123456",
+    initialDevice = device,
+    mockError,
+  }: {
+    deviceId?: string;
+    initialDevice?: Partial<IDevice>;
+    mockError?: Error;
+  } = {}) => {
+    localStorage.setItem("tenant", "fake-tenant-data");
+
+    router = createCleanRouter();
+    await router.push({ name: "DeviceDetails", params: { identifier: deviceId } });
     await router.isReady();
 
-    mockDevicesApi.onGet("http://localhost:3000/api/devices/resolve?uid=123456")
-      .reply(200, device);
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted")
-      .reply(200, [device]);
-    mockTagsApi
-      .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
-      .reply(200, []);
-
-    devicesStore.device = device;
-
-    wrapper = mount(DetailsDevice, {
-      global: {
-        plugins: [vuetify, [router], SnackbarPlugin],
+    wrapper = mountComponent(DetailsDevice, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        ...(mockError ? {} : { initialState: { devices: { device: initialDevice } } }),
+        stubActions: !mockError,
       },
+    });
+
+    const devicesStore = useDevicesStore();
+    if (mockError) vi.mocked(devicesStore.fetchDevice).mockRejectedValueOnce(mockError);
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("when device loads successfully", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders all device detail fields with correct values", () => {
+      const uidField = wrapper.find('[data-test="device-uid-field"]');
+      const macField = wrapper.find('[data-test="device-mac-field"]');
+      const prettyNameField = wrapper.find('[data-test="device-pretty-name-field"]');
+      const versionField = wrapper.find('[data-test="device-version-field"]');
+      const tagsField = wrapper.find('[data-test="device-tags-field"]');
+      const lastSeenField = wrapper.find('[data-test="device-last-seen-field"]');
+
+      expect(uidField.text()).toContain(device.uid);
+      expect(macField.text()).toContain(device.identity.mac);
+      expect(prettyNameField.text()).toContain(device.info.pretty_name);
+      expect(versionField.text()).toContain(device.info.version);
+      expect(tagsField.text()).toContain(device.tags[0].name);
+      expect(lastSeenField.text()).toContain(formatFullDateTime(device.last_seen));
+    });
+
+    it("displays the device name in the header", () => {
+      expect(wrapper.text()).toContain(device.name);
+    });
+
+    it("displays the connect button for accepted devices", () => {
+      expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
+    });
+
+    it("displays device action menu items", () => {
+      const actionsList = wrapper.findComponent({ name: "VList" });
+      expect(actionsList.find('[data-test="device-rename-component"]').exists()).toBe(true);
+      expect(actionsList.find('[data-test="open-tags-btn"]').exists()).toBe(true);
+      expect(actionsList.find('[data-test="device-delete-item"]').exists()).toBe(true);
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
+  describe("when device has different statuses", () => {
+    it.each([
+      ["pending", false],
+      ["rejected", false],
+      ["accepted", true],
+    ] as const)(
+      "displays connect button: %s -> %s",
+      async (status, shouldShowButton) => {
+        await mountWrapper({ initialDevice: { ...device, status } });
+        expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(shouldShowButton);
+      },
+    );
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("when device has no tags", () => {
+    beforeEach(() => mountWrapper({ initialDevice: { ...device, tags: [] } }));
+
+    it("still renders the device details", () => {
+      expect(wrapper.find('[data-test="device-uid-field"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="device-tags-field"]').exists()).toBe(false);
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("when device fails to load", () => {
+    beforeEach(() => mountWrapper({ deviceId: "inexistent-device", mockError: createAxiosError(404, "Device not found") }));
+
+    it("shows error message when device does not load", () => {
+      expect(wrapper.text()).toContain("Something is wrong, try again !");
+    });
+
+    it("does not render device detail fields", () => {
+      expect(wrapper.find('[data-test="device-uid-field"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(false);
+    });
+
+    it("displays error snackbar notification", () => {
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("There was an error loading the device details.");
+    });
   });
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="device-uid-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-mac-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-pretty-name-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-version-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-tags-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-last-seen-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="connect-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="tunnel-list"]').exists()).toBe(false);
-  });
+  describe("when web endpoints feature is enabled", () => {
+    const findActionsList = () => wrapper.findComponent({ name: "VList" });
 
-  it("Renders the component when deviceIsEmpty is true", async () => {
-    devicesStore.device = {} as IDevice;
-    await nextTick();
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    it("displays create web endpoint button when feature is enabled", async () => {
+      vi.mocked(envVariables).hasWebEndpoints = true;
+      await mountWrapper();
+      expect(findActionsList().find('[data-test="create-web-endpoint-btn"]').exists()).toBe(true);
+    });
 
-  it("Renders the component when device status is not accepted", async () => {
-    // Set device status to 'pending'
-    devicesStore.device = { ...device, status: "pending" };
-    await nextTick();
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the component when device is offline", async () => {
-    // Set device online status to false
-    devicesStore.device = { ...device, online: false };
-    await nextTick();
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the component when device has no tags", async () => {
-    // Set device tags to empty array
-    devicesStore.device = { ...device, tags: [] };
-    await nextTick();
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the component when device has no last seen date", async () => {
-    // Set device last_seen to empty string
-    devicesStore.device = { ...device, last_seen: "" };
-    await nextTick();
-    expect(wrapper.html()).toMatchSnapshot();
+    it("does not display create web endpoint button when feature is disabled", async () => {
+      vi.mocked(envVariables).hasWebEndpoints = false;
+      await mountWrapper();
+      expect(findActionsList().find('[data-test="create-web-endpoint-btn"]').exists()).toBe(false);
+    });
   });
 });

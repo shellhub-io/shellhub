@@ -1,64 +1,133 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import ForgotPassword from "@/views/ForgotPassword.vue";
-import { usersApi } from "@/api/http";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useUsersStore from "@/store/modules/users";
+import { createAxiosError } from "@tests/utils/axiosError";
 
-type ForgotPasswordWrapper = VueWrapper<InstanceType<typeof ForgotPassword>>;
+vi.mock("@/store/api/users");
 
-const mockSnackbar = { showError: vi.fn() };
+describe("Forgot Password View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof ForgotPassword>>;
 
-describe("Forgot Password", () => {
-  let wrapper: ForgotPasswordWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const usersStore = useUsersStore();
-  const mockUsersApi = new MockAdapter(usersApi.getAxios());
+  const mountWrapper = (mockError?: Error) => {
+    wrapper = mountComponent(ForgotPassword, {
+      global: { plugins: [createCleanRouter()] },
+      piniaOptions: { stubActions: !mockError },
+    });
 
-  beforeEach(() => {
-    envVariables.isCloud = true;
+    const usersStore = useUsersStore();
+    if (mockError) vi.mocked(usersStore.recoverPassword).mockRejectedValueOnce(mockError);
+  };
 
-    wrapper = mount(ForgotPassword, {
-      global: {
-        plugins: [vuetify, router],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("when page loads", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the forgot password form", () => {
+      const title = wrapper.find('[data-test="title-text"]');
+      const body = wrapper.find('[data-test="body-text"]');
+      const accountField = wrapper.find('[data-test="account-text"]');
+
+      expect(title.text()).toContain("Forgot your password");
+      expect(body.text()).toContain("Please insert the email associated with the account");
+      expect(accountField.exists()).toBe(true);
+    });
+
+    it("displays the reset password button", () => {
+      const resetBtn = wrapper.find('[data-test="forgot-password-btn"]');
+      expect(resetBtn.exists()).toBe(true);
+      expect(resetBtn.text()).toContain("RESET PASSWORD");
+    });
+
+    it("displays the back to login link", () => {
+      const backLink = wrapper.find('[data-test="back-to-login"]');
+      expect(backLink.text()).toContain("Back to");
+      expect(backLink.text()).toContain("Login");
+    });
+
+    it("does not show success message initially", () => {
+      expect(wrapper.find('[data-test="success-text"]').exists()).toBe(false);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("when password reset succeeds", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays success message after submitting valid email", async () => {
+      const accountField = wrapper.find('[data-test="account-text"] input');
+      const form = wrapper.find("form");
+
+      await accountField.setValue("testuser@example.com");
+      await form.trigger("submit");
+      await flushPromises();
+
+      const successText = wrapper.find('[data-test="success-text"]');
+      expect(successText.exists()).toBe(true);
+      expect(successText.text()).toContain("An email with password reset instructions has been sent");
+    });
+
+    it("hides the form after successful submission", async () => {
+      const accountField = wrapper.find('[data-test="account-text"] input');
+      const form = wrapper.find("form");
+
+      await accountField.setValue("testuser");
+      await form.trigger("submit");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="title-text"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="account-text"]').exists()).toBe(false);
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("when password reset fails", () => {
+    beforeEach(() => mountWrapper(createAxiosError(404, "User not found")));
+
+    it("displays error snackbar notification", async () => {
+      const accountField = wrapper.find('[data-test="account-text"] input');
+      const form = wrapper.find("form");
+
+      await accountField.setValue("nonexistent@example.com");
+      await form.trigger("submit");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith(
+        "Failed to send password reset email. Please ensure the email/username is correct and try again.",
+      );
+    });
+
+    it("does not show success message on error", async () => {
+      const accountField = wrapper.find('[data-test="account-text"] input');
+      const form = wrapper.find("form");
+
+      await accountField.setValue("invalid");
+      await form.trigger("submit");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="success-text"]').exists()).toBe(false);
+    });
   });
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="account-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="title-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="body-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="forgot-password-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="back-to-login"]').exists()).toBe(true);
-  });
+  describe("form validation", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Calls the Forgot Password action when the button is clicked", async () => {
-    mockUsersApi.onPost("http://localhost:3000/api/user/recover_password").reply(200);
+    it("disables submit button when account field is empty", () => {
+      const resetBtn = wrapper.find('[data-test="forgot-password-btn"]');
+      expect(resetBtn.attributes("disabled")).toBeDefined();
+    });
 
-    const storeSpy = vi.spyOn(usersStore, "recoverPassword");
+    it("enables submit button when valid account is entered", async () => {
+      const accountField = wrapper.find('[data-test="account-text"] input');
+      await accountField.setValue("validuser@example.com");
+      await flushPromises();
 
-    await wrapper.findComponent('[data-test="account-text"]').setValue("testuser");
-    await wrapper.find('[data-test="forgot-password-btn"]').trigger("submit");
-
-    await flushPromises();
-
-    expect(storeSpy).toHaveBeenCalledWith("testuser");
-    expect(wrapper.find('[data-test="success-text"]').exists()).toBe(true);
+      const resetBtn = wrapper.find('[data-test="forgot-password-btn"]');
+      expect(resetBtn.attributes("disabled")).toBeUndefined();
+    });
   });
 });

@@ -344,6 +344,4 @@ const setupAccount = async () => {
     }
   }
 };
-
-defineExpose({ step });
 </script>

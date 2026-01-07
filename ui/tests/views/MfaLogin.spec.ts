@@ -1,87 +1,158 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { RouteLocationAsRelativeGeneric, Router } from "vue-router";
+import { mountComponent } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import MfaLogin from "@/views/MfaLogin.vue";
-import { mfaApi } from "@/api/http";
-import { router } from "@/router";
 import useAuthStore from "@/store/modules/auth";
+import { routes } from "@/router";
+
+vi.mock("@/store/api/auth");
 
 type MfaLoginWrapper = VueWrapper<InstanceType<typeof MfaLogin>>;
 
-describe("MfaLogin", () => {
-  let wrapper: MfaLoginWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const mockMfaApi = new MockAdapter(mfaApi.getAxios());
+const mockRoutes = [
+  ...routes,
+  // Add MfaLogin route without beforeEnter guard
+  { path: "/mfa-login", name: "MfaLogin", meta: { layout: "LoginLayout", requiresAuth: false }, component: MfaLogin },
+];
 
-  beforeEach(() => {
-    wrapper = mount(MfaLogin, {
-      global: {
-        plugins: [vuetify, router],
-      },
+describe("MfaLogin View", () => {
+  let wrapper: MfaLoginWrapper;
+  let router: Router;
+  let authStore: ReturnType<typeof useAuthStore>;
+
+  const mountWrapper = async (options: {
+    route?: RouteLocationAsRelativeGeneric;
+    initialState?: Record<string, object>;
+    stubActions?: boolean;
+    mockError?: Error;
+  } = {}) => {
+    const {
+      route = { name: "MfaLogin" },
+      initialState = {},
+      mockError,
+    } = options;
+
+    router = createCleanRouter(mockRoutes);
+    await router.push(route);
+    await router.isReady();
+
+    wrapper = mountComponent(MfaLogin, {
+      global: { plugins: [router] },
+      piniaOptions: { initialState, stubActions: !mockError },
+    });
+
+    authStore = useAuthStore();
+    if (mockError) vi.mocked(authStore.validateMfa).mockRejectedValueOnce(mockError);
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("form display", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays MFA form elements", () => {
+      expect(wrapper.find('[data-test="title"]').text()).toContain("Multi-factor Authentication");
+      expect(wrapper.find('[data-test="sub-title"]').text()).toContain("Verify your identity");
+      expect(wrapper.find('[data-test="verification-code"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="verify-btn"]').exists()).toBe(true);
+    });
+
+    it("displays recovery code link", () => {
+      expect(wrapper.find('[data-test="redirect-recover"]').text()).toContain("Lost your TOTP password?");
+    });
+
+    it("disables verify button when verification code is empty", () => {
+      const verifyButton = wrapper.find('[data-test="verify-btn"]');
+      expect(verifyButton.attributes("disabled")).toBeDefined();
+    });
+
+    it("enables verify button when verification code is provided", async () => {
+      await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
+      await flushPromises();
+
+      const verifyButton = wrapper.find('[data-test="verify-btn"]');
+      expect(verifyButton.attributes("disabled")).toBeUndefined();
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
+  describe("MFA verification flow", () => {
+    beforeEach(() => mountWrapper());
+
+    it("calls validateMfa action with verification code on form submit", async () => {
+      const routerPushSpy = vi.spyOn(router, "push");
+
+      await wrapper.findComponent('[data-test="verification-code"]').setValue("123456");
+      await wrapper.find('[data-test="verify-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(authStore.validateMfa).toHaveBeenCalledWith("123456");
+      expect(routerPushSpy).toHaveBeenCalledWith("/");
+    });
+
+    it("redirects to home page on successful verification", async () => {
+      const routerPushSpy = vi.spyOn(router, "push");
+
+      await wrapper.findComponent('[data-test="verification-code"]').setValue("123456");
+      await wrapper.find('[data-test="verify-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(routerPushSpy).toHaveBeenCalledWith("/");
+    });
+
+    it("redirects to recovery page when clicking recovery link", async () => {
+      const routerPushSpy = vi.spyOn(router, "push");
+
+      await wrapper.find('[data-test="redirect-recover"]').trigger("click");
+      await flushPromises();
+
+      expect(routerPushSpy).toHaveBeenCalledWith({ name: "RecoverMfa" });
+    });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("error handling", () => {
+    it("displays error alert for invalid verification code (500)", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      await mountWrapper({ mockError: error });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+      await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
+      await wrapper.find('[data-test="verify-btn"]').trigger("click");
+      await flushPromises();
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="verification-code"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="verify-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="redirect-recover"]').exists()).toBe(true);
-  });
+      const alert = wrapper.find('[data-test="alert-message"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain("The verification code sent in your MFA verification is invalid");
+    });
 
-  it("disables submit button when the form is invalid", async () => {
-    await wrapper.findComponent('[data-test="verification-code"]').setValue("");
+    it("displays generic error alert for other errors", async () => {
+      const error = createAxiosError(400, "Bad Request");
+      await mountWrapper({ mockError: error });
 
-    expect(wrapper.find('[data-test="verify-btn"]').attributes().disabled).toBeDefined();
-  });
+      await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
+      await wrapper.find('[data-test="verify-btn"]').trigger("click");
+      await flushPromises();
 
-  it("calls the mfa action when the login form is submitted", async () => {
-    const responseData = {
-      token: "token",
-    };
+      const alert = wrapper.find('[data-test="alert-message"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain("An error occurred during your MFA verification");
+    });
 
-    mockMfaApi.onPost("http://localhost:3000/api/user/mfa/auth").reply(200, responseData);
+    it("does not navigate on verification failure", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      await mountWrapper({ mockError: error });
 
-    const mfaSpy = vi.spyOn(authStore, "validateMfa");
+      const routerPushSpy = vi.spyOn(router, "push");
 
-    await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
-    await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");
-    await flushPromises();
+      await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
+      await wrapper.find('[data-test="verify-btn"]').trigger("click");
+      await flushPromises();
 
-    expect(mfaSpy).toHaveBeenCalledWith("000000");
-    expect(wrapper.vm.showAlert).toBe(false);
-  });
-
-  it("calls the mfa action when the login form is submitted (error)", async () => {
-    const responseData = {
-      token: "token",
-    };
-
-    mockMfaApi.onPost("http://localhost:3000/api/user/mfa/auth").reply(500, responseData);
-
-    const mfaSpy = vi.spyOn(authStore, "validateMfa");
-
-    await wrapper.findComponent('[data-test="verification-code"]').setValue("000000");
-    await wrapper.findComponent('[data-test="verify-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(mfaSpy).toHaveBeenCalledWith("000000");
-    expect(wrapper.vm.showAlert).toBe(true);
+      expect(routerPushSpy).not.toHaveBeenCalled();
+    });
   });
 });

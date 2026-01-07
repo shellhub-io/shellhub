@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex pa-0 align-center">
-    <h1>Connector Details</h1>
+    <h1 data-test="connector-details-title">Connector Details</h1>
   </div>
   <v-card
     v-if="connector.uid"
@@ -12,6 +12,7 @@
           <v-col class="pr-0">
             <v-switch
               v-model="connector.enable"
+              data-test="connector-enable-switch"
               inset
               hide-details
               :color="connector.enable ? 'primary' : 'grey-darken-2'"
@@ -242,7 +243,7 @@ const filteredItems = [
 ];
 
 const redirectContainers = async () => {
-  await router.push({ name: "containers" });
+  await router.push({ name: "Containers" });
 };
 
 const canEditConnector = hasPermission("connector:edit");

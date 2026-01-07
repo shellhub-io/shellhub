@@ -63,16 +63,8 @@ describe("Firewall Rule List", () => {
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
   it("Renders the Firewall List", () => {
-    expect(wrapper.find('[data-test="firewallRules-list"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="firewall-rules-list"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-active"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-priority"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="firewall-rules-action"]').exists()).toBe(true);

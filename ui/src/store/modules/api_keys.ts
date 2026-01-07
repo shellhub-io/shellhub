@@ -13,7 +13,7 @@ const useApiKeysStore = defineStore("apiKeys", () => {
     sortOrder?: "asc" | "desc";
     sortField?: string;
   }) => {
-    const res = await apiKeysApi.getApiKey(
+    const res = await apiKeysApi.getApiKeys(
       page || 1,
       perPage || 10,
       sortOrder,

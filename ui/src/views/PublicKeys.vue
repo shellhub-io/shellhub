@@ -56,6 +56,4 @@ const refresh = async () => {
 };
 
 onMounted(async () => { await refresh(); });
-
-defineExpose({ refresh });
 </script>
