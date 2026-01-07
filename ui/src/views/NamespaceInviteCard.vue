@@ -81,11 +81,4 @@ onMounted(() => {
   if (isUserValid.value) return;
   errorAlert.value = "You aren't logged in the account meant for this invitation.";
 });
-
-defineExpose({
-  message,
-  errorAlert,
-  redirectToHome,
-  isUserValid,
-});
 </script>

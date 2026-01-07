@@ -1,74 +1,100 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import PublicKeys from "@/views/PublicKeys.vue";
-import { sshApi, tagsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockPublicKeys } from "@tests/views/mocks";
 import usePublicKeysStore from "@/store/modules/public_keys";
+import { createAxiosError } from "@tests/utils/axiosError";
 
-type PublicKeysWrapper = VueWrapper<InstanceType<typeof PublicKeys>>;
+vi.mock("@/store/api/public_keys");
 
-const mockPublicKeys = [{
-  data: "",
-  fingerprint: "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:01",
-  created_at: "2025-01-01T00:00:00.000Z",
-  tenant_id: "00000000-0000-4000-0000-000000000000",
-  name: "public-key-test",
-  username: ".*",
-  filter: {
-    hostname: ".*",
-  },
-}];
+describe("Public Keys View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof PublicKeys>>;
 
-describe("Public Keys", () => {
-  let wrapper: PublicKeysWrapper;
-  setActivePinia(createPinia());
-  const publicKeysStore = usePublicKeysStore();
-  const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
-  const mockSshApi = new MockAdapter(sshApi.getAxios());
-  localStorage.setItem("tenant", "fake-tenant-data");
-  mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?page=1&per_page=10").reply(200, mockPublicKeys, { "x-total-count": 1 });
-  mockTagsApi
-    .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
-    .reply(200, []);
-  publicKeysStore.publicKeys = mockPublicKeys;
-
-  beforeEach(() => {
-    wrapper = mount(PublicKeys, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
+  const mountWrapper = async (hasKeys = true, mockError?: Error) => {
+    const initialState = {
+      publicKeys: {
+        publicKeys: hasKeys ? mockPublicKeys : [],
+        publicKeyCount: hasKeys ? 1 : 0,
       },
+    };
+
+    wrapper = mountComponent(PublicKeys, {
+      piniaOptions: { initialState, stubActions: !mockError },
+    });
+
+    const publicKeysStore = usePublicKeysStore();
+    if (mockError) vi.mocked(publicKeysStore.fetchPublicKeyList).mockRejectedValueOnce(mockError);
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("when public keys exist", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="public-keys-title"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Public Keys");
+    });
+
+    it("displays add public key button in header", () => {
+      const addBtn = wrapper.findComponent({ name: "PublicKeyAdd" });
+      expect(addBtn.exists()).toBe(true);
+    });
+
+    it("displays the public keys list", () => {
+      const publicKeysList = wrapper.findComponent({ name: "PublicKeysList" });
+      expect(publicKeysList.exists()).toBe(true);
+    });
+
+    it("does not show the no items message", () => {
+      expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
+  describe("when no public keys exist", () => {
+    beforeEach(() => mountWrapper(false));
+
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="public-keys-title"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Public Keys");
+    });
+
+    it("displays add public key button in header", () => {
+      const addBtn = wrapper.findComponent({ name: "PublicKeyAdd" });
+      expect(addBtn.exists()).toBe(true);
+    });
+
+    it("does not display the public keys list", () => {
+      const publicKeysList = wrapper.findComponent({ name: "PublicKeysList" });
+      expect(publicKeysList.exists()).toBe(false);
+    });
+
+    it("shows the no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      expect(noItemsMessage.exists()).toBe(true);
+      expect(noItemsMessage.text()).toContain("Public Keys");
+      expect(noItemsMessage.text()).toContain("SSH keys are more secure than passwords");
+    });
+
+    it("displays add public key button in no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      const addBtn = noItemsMessage.findComponent({ name: "PublicKeyAdd" });
+      expect(addBtn.exists()).toBe(true);
+    });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="public-keys-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="public-keys-components"]').exists()).toBe(true);
-  });
-
-  it("Renders the PublicKeyAdd component", () => {
-    expect(wrapper.findComponent({ name: "PublicKeyAdd" }).exists()).toBe(true);
-  });
-
-  it("Shows the no items message when there are no public keys", async () => {
-    mockSshApi.onGet("http://localhost:3000/api/sshkeys/public-keys?page=1&per_page=10").reply(200, [], { "x-total-count": 0 });
-    await wrapper.vm.refresh();
-    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Public Keys");
+  describe("when loading public keys fails", () => {
+    it("displays error snackbar notification", async () => {
+      await mountWrapper(false, createAxiosError(500, "Internal Server Error"));
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load the public keys list.");
+    });
   });
 });

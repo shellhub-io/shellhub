@@ -14,7 +14,7 @@
             tabindex="0"
             variant="elevated"
             :disabled="!canCreateFirewallRule"
-            data-test="firewall-add-rule-btn"
+            data-test="add-firewall-rule-btn"
             @click="open"
           >
             Add Rule

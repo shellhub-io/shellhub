@@ -99,8 +99,4 @@ const loginMfa = async () => {
 const goToRecoveryCodes = async () => {
   await router.push({ name: "RecoverMfa" });
 };
-
-defineExpose({
-  showAlert,
-});
 </script>

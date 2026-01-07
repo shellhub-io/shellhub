@@ -1,0 +1,45 @@
+import { createRouter, createWebHistory } from "vue-router";
+import { routes as appRoutes } from "@/router";
+
+/**
+ * Creates a clean router instance for testing purposes.
+ *
+ * This utility creates a fresh Vue Router instance with web history mode,
+ * useful for isolating router state between tests. By default, it uses the
+ * application's routes, but custom routes can be provided for specific test scenarios.
+ *
+ * @param routes - Optional array of route configurations. Defaults to application routes from @/router
+ * @returns A new Vue Router instance with the specified routes
+ *
+ * @example
+ * // Basic usage with default app routes
+ * const router = createCleanRouter();
+ * const wrapper = mount(MyComponent, {
+ *   global: {
+ *     plugins: [router]
+ *   }
+ * });
+ *
+ * @example
+ * // With custom routes for testing
+ * const customRoutes = [
+ *   { path: '/', component: Home },
+ *   { path: '/about', component: About }
+ * ];
+ * const router = createCleanRouter(customRoutes);
+ *
+ * @example
+ * // Testing route navigation
+ * const router = createCleanRouter();
+ * await router.push('/devices');
+ * const wrapper = mount(DevicesView, {
+ *   global: { plugins: [router] }
+ * });
+ * expect(router.currentRoute.value.path).toBe('/devices');
+ */
+const createCleanRouter = (routes = appRoutes) => createRouter({
+  history: createWebHistory(),
+  routes,
+});
+
+export default createCleanRouter;

@@ -1,205 +1,121 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { mountComponent } from "@tests/utils/mount";
 import Home from "@/views/Home.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useNamespacesStore from "@/store/modules/namespaces";
-import useDevicesStore from "@/store/modules/devices";
-import { INamespace } from "@/interfaces/INamespace";
+import { mockNamespace } from "@tests/views/mocks";
 
-type HomeWrapper = VueWrapper<InstanceType<typeof Home>>;
+describe("Home View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof Home>>;
 
-describe("Home", () => {
-  let wrapper: HomeWrapper;
-  let namespacesStore: ReturnType<typeof useNamespacesStore>;
-  let devicesStore: ReturnType<typeof useDevicesStore>;
-  const vuetify = createVuetify();
+  const mountWrapper = (hasNamespace = true, deviceStats = { total: 5, online: 3, pending: 1 }) => {
+    const initialState = hasNamespace
+      ? {
+        namespaces: {
+          namespaceList: [mockNamespace],
+          currentNamespace: mockNamespace,
+        },
+        devices: {
+          totalDevicesCount: deviceStats.total,
+          onlineDevicesCount: deviceStats.online,
+          pendingDevicesCount: deviceStats.pending,
+        },
+      }
+      : {
+        namespaces: {
+          namespaceList: [],
+          currentNamespace: {},
+        },
+        devices: {
+          totalDevicesCount: 0,
+          onlineDevicesCount: 0,
+          pendingDevicesCount: 0,
+        },
+      };
 
-  const members = [
-    {
-      id: "xxxxxxxx",
-      role: "owner" as const,
-      email: "test@example.com",
-      status: "accepted" as const,
-      added_at: "2024-01-01T00:00:00Z",
-      expires_at: "2025-01-01T00:00:00Z",
-    },
-  ];
-
-  const namespaceData: INamespace = {
-    billing: null,
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_accepted_count: 0,
-    devices_rejected_count: 0,
-    devices_pending_count: 0,
-    created_at: "",
-    type: "personal",
+    wrapper = mountComponent(Home, { piniaOptions: { initialState } });
   };
 
-  beforeEach(async () => {
-    setActivePinia(createPinia());
-    namespacesStore = useNamespacesStore();
-    devicesStore = useDevicesStore();
+  afterEach(() => { wrapper?.unmount(); });
 
-    namespacesStore.$patch({
-      namespaceList: [namespaceData],
-      currentNamespace: namespaceData,
+  describe("when namespace exists", () => {
+    beforeEach(() => { mountWrapper(); });
+
+    it("displays namespace name and description", () => {
+      expect(wrapper.text()).toContain(mockNamespace.name);
+      expect(wrapper.text()).toContain("This is your active namespace");
     });
 
-    devicesStore.$patch({
-      totalDevicesCount: 5,
-      onlineDevicesCount: 3,
-      pendingDevicesCount: 1,
+    it("displays settings button for the namespace", () => {
+      const settingsBtn = wrapper.find('[data-test="namespace-settings-btn"]');
+      expect(settingsBtn.text()).toContain("Settings");
     });
 
-    wrapper = mount(Home, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+    it("displays device statistics cards", () => {
+      const acceptedCard = wrapper.find('[data-test="accepted-devices-card"]');
+      expect(acceptedCard.text()).toContain("Accepted Devices");
+      expect(acceptedCard.text()).toContain("5");
+      expect(acceptedCard.text()).toContain("View all devices");
+
+      const onlineCard = wrapper.find('[data-test="online-devices-card"]');
+      expect(onlineCard.text()).toContain("Online Devices");
+      expect(onlineCard.text()).toContain("3");
+      expect(onlineCard.text()).toContain("View Online Devices");
+
+      const pendingCard = wrapper.find('[data-test="pending-devices-card"]');
+      expect(pendingCard.text()).toContain("Pending Devices");
+      expect(pendingCard.text()).toContain("1");
+      expect(pendingCard.text()).toContain("Approve Devices");
     });
 
-    await flushPromises();
-  });
-
-  afterEach(() => {
-    wrapper.unmount();
-  });
-
-  describe("Component Rendering", () => {
-    it("renders the component successfully", () => {
-      expect(wrapper.exists()).toBe(true);
-      expect(wrapper.html()).toMatchSnapshot();
-    });
-
-    it("renders the no namespace state correctly", async () => {
+    it("updates displayed statistics when different values are provided", () => {
       wrapper.unmount();
-      namespacesStore.$patch({
-        namespaceList: [],
-        currentNamespace: {},
-      });
+      mountWrapper(true, { total: 10, online: 8, pending: 2 });
 
-      wrapper = mount(Home, {
-        global: { plugins: [vuetify, router, SnackbarPlugin] },
-      });
+      const acceptedCard = wrapper.find('[data-test="accepted-devices-card"]');
+      expect(acceptedCard.text()).toContain("10");
 
-      await flushPromises();
+      const onlineCard = wrapper.find('[data-test="online-devices-card"]');
+      expect(onlineCard.text()).toContain("8");
 
-      expect(wrapper.exists()).toBe(true);
+      const pendingCard = wrapper.find('[data-test="pending-devices-card"]');
+      expect(pendingCard.text()).toContain("2");
+    });
+  });
+
+  describe("when no namespace exists", () => {
+    beforeEach(() => { mountWrapper(false); });
+
+    it("displays no active namespace message", () => {
       expect(wrapper.text()).toContain("No Active Namespace");
       expect(wrapper.text()).toContain(
         "A namespace is a logical grouping that isolates your devices, sessions, and configurations from others.",
       );
-      expect(wrapper.text()).toContain("You need to create or join a namespace");
     });
 
-    it("displays namespace information", async () => {
-      await flushPromises();
-
-      expect(wrapper.text()).toContain("This is your active namespace");
-      expect(wrapper.text()).toContain(namespaceData.name);
-    });
-
-    it("displays device stat cards", () => {
+    it("displays create namespace button with instructions", () => {
       const text = wrapper.text();
-      expect(text).toContain("Accepted Devices");
-      expect(text).toContain("Online Devices");
-      expect(text).toContain("Pending Devices");
+      expect(text).toContain("Create your first namespace");
+      expect(text).toContain("Create Namespace");
+      expect(text).toContain("You need to create or join a namespace");
     });
 
-    it("displays the add device card", () => {
-      const text = wrapper.text();
-      expect(text).toContain("Add a new device");
-      expect(text).toContain("Register new devices to this namespace");
-    });
-  });
-
-  describe("Stats Loading (From devicesStore)", () => {
-    it("displays correct stat values via computed properties", async () => {
-      await flushPromises();
-      expect(devicesStore.totalDevicesCount).toBe(5);
-      expect(devicesStore.onlineDevicesCount).toBe(3);
-      expect(devicesStore.pendingDevicesCount).toBe(1);
-    });
-
-    it("updates UI when store changes", async () => {
-      devicesStore.$patch({
-        totalDevicesCount: 10,
-        onlineDevicesCount: 8,
-        pendingDevicesCount: 2,
-      });
-
-      await nextTick();
-      const html = wrapper.html();
-
-      expect(html).toContain("10");
-      expect(html).toContain("8");
-      expect(html).toContain("2");
-    });
-
-    it("handles missing namespace gracefully", async () => {
-      wrapper.unmount();
-      namespacesStore.namespaceList = [];
-
-      wrapper = mount(Home, {
-        global: { plugins: [vuetify, router, SnackbarPlugin] },
-      });
-
+    it("opens create namespace dialog when button is clicked", async () => {
+      const createBtn = wrapper.find('[data-test="create-namespace-home-btn"]');
+      await createBtn.trigger("click");
       await flushPromises();
 
-      expect(wrapper.exists()).toBe(true);
-      expect(wrapper.text()).toContain("No Active Namespace");
+      const dialog = wrapper.findComponent({ name: "NamespaceAdd" });
+      expect(dialog.props("modelValue")).toBe(true);
     });
 
-    it("reacts when namespace becomes available", async () => {
-      wrapper.unmount();
-      namespacesStore.namespaceList = [];
-
-      wrapper = mount(Home, {
-        global: { plugins: [vuetify, router, SnackbarPlugin] },
-      });
-
-      await flushPromises();
-
-      namespacesStore.namespaceList = [namespaceData];
-      await nextTick();
-      await flushPromises();
-
-      expect(wrapper.text()).toContain(namespaceData.name);
-      expect(wrapper.text()).toContain("Settings");
+    it("does not display device statistics cards", () => {
+      expect(wrapper.text()).not.toContain("Accepted Devices");
+      expect(wrapper.text()).not.toContain("Online Devices");
+      expect(wrapper.text()).not.toContain("Pending Devices");
     });
-  });
 
-  describe("Error Handling", () => {
-    it("can manually toggle error state", async () => {
-      expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(false);
-
-      wrapper.vm.hasError = true;
-      await nextTick();
-
-      expect(wrapper.find('[data-test="home-failed"]').exists()).toBe(true);
-      expect(wrapper.find('[data-test="home-failed"]').text()).toContain(
-        "Something is wrong, try again!",
-      );
-    });
-  });
-
-  describe("Navigation", () => {
-    it("has navigation buttons for device pages", () => {
-      const text = wrapper.text();
-      expect(text).toContain("View all devices");
-      expect(text).toContain("View Online Devices");
-      expect(text).toContain("Approve Devices");
+    it("does not display settings button", () => {
+      expect(wrapper.find('[data-test="namespace-settings-btn"]').exists()).toBe(false);
     });
   });
 });

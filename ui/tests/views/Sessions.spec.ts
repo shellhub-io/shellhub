@@ -1,108 +1,91 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import Sessions from "@/views/Sessions.vue";
-import { sessionsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { router } from "@/router";
+import { mockSession } from "@tests/views/mocks";
+import useSessionsStore from "@/store/modules/sessions";
+import { createAxiosError } from "@tests/utils/axiosError";
 
-type SessionsWrapper = VueWrapper<InstanceType<typeof Sessions>>;
+vi.mock("@/store/api/sessions");
 
 describe("Sessions View", () => {
-  let wrapper: SessionsWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
+  let wrapper: VueWrapper<InstanceType<typeof Sessions>>;
+  const router = createCleanRouter();
 
-  const mockSessionsApi = new MockAdapter(sessionsApi.getAxios());
-
-  const mockSession = {
-    uid: "1",
-    device_uid: "1",
-    device: {
-      uid: "1",
-      name: "00-00-00-00-00-01",
-      identity: {
-        mac: "00-00-00-00-00-01",
+  const mountWrapper = async (hasSessions = true, mockError?: Error) => {
+    const initialState = {
+      sessions: {
+        sessionCount: hasSessions ? 1 : 0,
+        sessions: hasSessions ? [mockSession] : [],
       },
-      info: {
-        id: "manjaro",
-        pretty_name: "Manjaro Linux",
-        version: "latest",
-        arch: "amd64",
-        platform: "docker",
-      },
-      public_key: "",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2025-01-02T00:00:00.000Z",
-      online: true,
-      namespace: "dev",
-      status: "accepted",
-      status_updated_at: "0",
-      created_at: "2025-01-01T00:00:00.000Z",
-      remote_addr: "192.168.0.1",
-      position: { latitude: 0, longitude: 0 },
-      tags: [],
-      public_url: false,
-      public_url_address: "",
-      acceptable: false,
-    },
-    tenant_id: "fake-tenant-data",
-    username: "test",
-    ip_address: "192.168.0.1",
-    started_at: "2025-01-02T00:00:00.000Z",
-    last_seen: "2025-01-02T00:00:00.000Z",
-    active: false,
-    authenticated: true,
-    recorded: true,
-    type: "none",
-    term: "none",
-    position: { longitude: 0, latitude: 0 },
+    };
 
+    wrapper = mountComponent(Sessions, {
+      global: { plugins: [router] },
+      piniaOptions: { initialState, stubActions: !mockError },
+    });
+
+    const sessionsStore = useSessionsStore();
+    if (mockError) vi.mocked(sessionsStore.fetchSessionList).mockRejectedValueOnce(mockError);
+
+    await flushPromises();
   };
 
-  beforeEach(() => {
-    mockSessionsApi.onGet("http://localhost:3000/api/sessions?page=1&per_page=10").reply(200, [mockSession], { "x-total-count": "1" });
-
-    wrapper = mount(Sessions, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-  });
-
   afterEach(() => {
-    wrapper.unmount();
+    vi.clearAllMocks();
+    wrapper?.unmount();
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("when sessions exist", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="sessions-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sessions-list"]').exists()).toBe(true);
-  });
-
-  it("Renders the SessionList component", () => {
-    expect(wrapper.findComponent({ name: "SessionList" }).exists()).toBe(true);
-  });
-
-  it("Shows the no items message when there are no sessions", async () => {
-    mockSessionsApi.onGet("http://localhost:3000/api/sessions?page=1&per_page=10").reply(200, [], { "x-total-count": "0" });
-    wrapper.unmount();
-    wrapper = mount(Sessions, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="sessions-title"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Sessions");
     });
-    await flushPromises();
-    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Sessions");
+
+    it("displays the sessions list", () => {
+      expect(wrapper.find('[data-test="sessions-list"]').exists()).toBe(true);
+    });
+
+    it("does not show the no items message", () => {
+      expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
+    });
+  });
+
+  describe("when no sessions exist", () => {
+    beforeEach(() => mountWrapper(false));
+
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="sessions-title"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Sessions");
+    });
+
+    it("does not display the sessions list", () => {
+      expect(wrapper.find('[data-test="sessions-list"]').exists()).toBe(false);
+    });
+
+    it("shows the no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      expect(noItemsMessage.exists()).toBe(true);
+      expect(noItemsMessage.text()).toContain("An SSH session is created when a connection is made");
+    });
+
+    it("displays link to connection guide", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      const link = noItemsMessage.find('[data-test="how-to-connect-link"]');
+      expect(link.exists()).toBe(true);
+      expect(link.text()).toContain("how to connect to your devices");
+    });
+  });
+
+  describe("when loading sessions fails", () => {
+    it("displays error snackbar notification", async () => {
+      await mountWrapper(false, createAxiosError(500, "Internal Server Error"));
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load the sessions list.");
+    });
   });
 });

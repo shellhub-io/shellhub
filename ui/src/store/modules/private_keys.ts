@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 
-const usePrivateKeysStore = defineStore("privateKey", () => {
+const usePrivateKeysStore = defineStore("privateKeys", () => {
   const privateKeys = ref<Array<IPrivateKey>>([]);
 
   const getPrivateKeyList = () => {

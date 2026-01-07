@@ -1,66 +1,77 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, shallowMount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it } from "vitest";
-import { nextTick } from "vue";
+import { VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import NamespaceInviteCard from "@/views/NamespaceInviteCard.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { routes } from "@/router";
 
-type NamespaceInviteCardWrapper = VueWrapper<InstanceType<typeof NamespaceInviteCard>>;
+const mockRoutes = [
+  ...routes,
+  { name: "AcceptInvite", path: "/accept-invite", component: NamespaceInviteCard },
+];
 
-let wrapper: NamespaceInviteCardWrapper;
-setActivePinia(createPinia());
-const vuetify = createVuetify();
+describe("Namespace Invite Card View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceInviteCard>>;
 
-describe("Namespace Invite Card (Invalid User)", () => {
-  beforeEach(async () => {
-    localStorage.removeItem("id");
-    await router.push({ query: { "user-id": "507f1f77bcf86cd799439011", "tenant-id": "fake-tenant" } });
+  const mountWrapper = async (setLocalStorage = true) => {
+    const userId = "507f1f77bcf86cd799439011";
+    const tenantId = "fake-tenant";
+
+    if (setLocalStorage) {
+      localStorage.setItem("tenant", tenantId);
+      localStorage.setItem("id", userId);
+    }
+
+    const router = createCleanRouter(mockRoutes);
+    await router.push({ name: "AcceptInvite", query: { "user-id": userId, "tenant-id": tenantId } });
     await router.isReady();
 
-    wrapper = shallowMount(NamespaceInviteCard, {
-      global: { plugins: [vuetify, router, SnackbarPlugin] },
+    wrapper = mountComponent(NamespaceInviteCard, { global: { plugins: [router] } });
+  };
+
+  afterEach(() => {
+    wrapper?.unmount();
+    localStorage.clear();
+  });
+
+  describe("when user is logged in with matching account", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the invitation dialog with correct title", () => {
+      expect(wrapper.find('[data-test="title"]').text()).toBe("Namespace Invitation");
     });
 
-    await nextTick();
-  });
-
-  it("Displays appropriate error alert when user is not valid", () => {
-    expect(wrapper.vm.errorAlert).toBe("You aren't logged in the account meant for this invitation.");
-  });
-});
-
-describe("Namespace Invite Card", () => {
-  beforeEach(async () => {
-    await router.push({ query: { "user-id": "507f1f77bcf86cd799439011", "tenant-id": "fake-tenant" } });
-    localStorage.setItem("tenant", "fake-tenant");
-    localStorage.setItem("id", "507f1f77bcf86cd799439011");
-
-    wrapper = mount(NamespaceInviteCard, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+    it("displays the invitation message", () => {
+      const message = wrapper.find('[data-test="message"]');
+      expect(message.exists()).toBe(true);
     });
 
-    await nextTick();
+    it("displays accept and decline buttons", () => {
+      expect(wrapper.find('[data-test="accept-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="decline-btn"]').exists()).toBe(true);
+    });
+
+    it("renders all dialog action elements", () => {
+      expect(wrapper.find('[data-test="actions"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="spacer"]').exists()).toBe(true);
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("when user is not logged in with matching account", () => {
+    beforeEach(() => mountWrapper(false));
 
-  it("Renders dialog elements with correct data-test attributes", () => {
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="message"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="actions"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="decline-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="spacer"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="accept-btn"]').exists()).toBe(true);
-  });
+    it("displays error alert for invalid user", () => {
+      const errorAlert = wrapper.find('[data-test="error-alert"]');
+      expect(errorAlert.exists()).toBe(true);
+      expect(errorAlert.text()).toContain("You aren't logged in the account meant for this invitation.");
+    });
 
-  it("Displays the correct title and message", () => {
-    expect(wrapper.find('[data-test="title"]').text()).toBe("Namespace Invitation");
-    expect(wrapper.find('[data-test="message"]').text()).toBe(wrapper.vm.message);
+    it("disables the accept button", () => {
+      expect(wrapper.find('[data-test="accept-btn"]').attributes("disabled")).toBeDefined();
+    });
+
+    it("changes decline button text to redirect home", () => {
+      expect(wrapper.find('[data-test="decline-btn"]').text()).toContain("Back to Home Page");
+    });
   });
 });

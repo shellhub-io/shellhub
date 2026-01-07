@@ -1,137 +1,177 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import { nextTick } from "vue";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import Setup from "@/views/Setup.vue";
-import { usersApi } from "@/api/http";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 import useUsersStore from "@/store/modules/users";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { envVariables } from "@/envVariables";
 
-type SetupWrapper = VueWrapper<InstanceType<typeof Setup>>;
+vi.mock("@/store/api/users");
 
-describe("Setup Account", () => {
-  let wrapper: SetupWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const usersStore = useUsersStore();
-  const mockUsersApi = new MockAdapter(usersApi.getAxios());
-  beforeEach(() => {
-    envVariables.isCloud = false;
-    envVariables.isCommunity = true;
-    envVariables.onboardingUrl = "https://forms.example.com/survey";
+vi.mock("@/envVariables", () => ({
+  envVariables: {
+    isCloud: false,
+    isCommunity: true,
+    onboardingUrl: "",
+  },
+}));
 
-    wrapper = mount(Setup, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+describe("Setup View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof Setup>>;
+  let usersStore: ReturnType<typeof useUsersStore>;
+
+  const mountWrapper = async (mockError?: Error) => {
+    const router = createCleanRouter();
+    await router.push({ name: "Setup" });
+    await router.isReady();
+
+    wrapper = mountComponent(Setup, {
+      global: { plugins: [router] },
+      piniaOptions: { stubActions: !mockError },
+    });
+
+    usersStore = useUsersStore();
+
+    if (mockError) vi.mocked(usersStore.setup).mockRejectedValueOnce(mockError);
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("when page loads", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the welcome title", () => {
+      expect(wrapper.find('[data-test="welcome-title"]').text()).toContain("Welcome to ShellHub!");
+    });
+
+    it("displays the sign step with command field and sign input", () => {
+      expect(wrapper.find('[data-test="subtitle-1"]').text()).toContain(
+        "To set up your account, please run the following command in your terminal to generate a signature");
+      expect(wrapper.find('[data-test="setup-command-field"]').text()).toContain("Setup Command");
+      expect(wrapper.find('[data-test="sign-text"]').text()).toContain("Sign");
+      expect(wrapper.find('[data-test="sign-btn"]').text()).toContain("Next");
+    });
+
+    it("does not show error alert initially", () => {
+      expect(wrapper.find('[data-test="user-status-alert"]').exists()).toBe(false);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("when account setup succeeds", () => {
+    it("calls setup with correct parameters", async () => {
+      await mountWrapper();
+      await wrapper.find('[data-test="sign-text"] input').setValue("sign");
+      await wrapper.find('[data-test="sign-btn"]').trigger("click");
+      await flushPromises();
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+      // Now on step 3 (Account step)
+      await wrapper.find('[data-test="name-text"] input').setValue("test");
+      await wrapper.find('[data-test="username-text"] input').setValue("test");
+      await wrapper.find('[data-test="email-text"] input').setValue("test@test.com");
+      await wrapper.find('[data-test="password-text"] input').setValue("test123");
+      await wrapper.find('[data-test="password-confirm-text"] input').setValue("test123");
+      await wrapper.find('[data-test="setup-account-btn"]').trigger("submit");
+      await flushPromises();
 
-  it("Renders the template with data", async () => {
-    expect(wrapper.find('[data-test="user-status-alert"]').exists()).toBe(false);
-
-    expect(wrapper.find('[data-test="welcome-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sign-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="subtitle-1"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sign-btn"]').exists()).toBe(true);
-
-    wrapper.vm.step = 2;
-
-    await nextTick();
-
-    expect(wrapper.find('[data-test="subtitle-2"]').exists()).toBe(true);
-
-    wrapper.vm.step = 3;
-
-    await nextTick();
-
-    expect(wrapper.find('[data-test="subtitle-3"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="name-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="username-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="email-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="password-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="password-confirm-text"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="privacy-policy-error"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="setup-account-btn"]').exists()).toBe(true);
-  });
-
-  it("disables submit button when the form is invalid", async () => {
-    wrapper.vm.step = 3;
-
-    await nextTick();
-
-    expect(wrapper.find('[data-test="setup-account-btn"]').attributes().disabled).toBeDefined();
-  });
-
-  it("Calls the Create Account action when the button is clicked", async () => {
-    const responseData = {
-      sign: "sign",
-      name: "test",
-      email: "test@test.com",
-      username: "test",
-      password: "test123",
-    };
-
-    mockUsersApi.onPost("http://localhost:3000/api/setup").reply(200, responseData);
-
-    const storeSpy = vi.spyOn(usersStore, "setup");
-
-    await wrapper.findComponent('[data-test="sign-text"]').setValue("sign");
-
-    wrapper.vm.step = 3;
-
-    await nextTick();
-
-    await wrapper.findComponent('[data-test="name-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="username-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
-    await wrapper.findComponent('[data-test="password-text"]').setValue("test123");
-    await wrapper.findComponent('[data-test="password-confirm-text"]').setValue("test123");
-
-    await wrapper.find('[data-test="setup-account-btn"]').trigger("submit");
-
-    await flushPromises();
-    await nextTick();
-    expect(storeSpy).toHaveBeenCalledWith({
-      sign: "sign",
-      name: "test",
-      email: "test@test.com",
-      username: "test",
-      password: "test123",
+      expect(usersStore.setup).toHaveBeenCalledWith({
+        sign: "sign",
+        name: "test",
+        email: "test@test.com",
+        username: "test",
+        password: "test123",
+      });
     });
   });
 
-  it("Handles error (400)", async () => {
-    mockUsersApi.onPost("http://localhost:3000/api/setup").reply(400);
+  describe("when account setup fails", () => {
+    beforeEach(() => mountWrapper(createAxiosError(400, "Bad Request")));
 
-    await wrapper.findComponent('[data-test="sign-text"]').setValue("sign");
+    it("displays error alert on failure", async () => {
+      await wrapper.find('[data-test="sign-text"] input').setValue("sign");
+      await wrapper.find('[data-test="sign-btn"]').trigger("click");
+      await flushPromises();
 
-    wrapper.vm.step = 3;
+      await wrapper.find('[data-test="name-text"] input').setValue("test");
+      await wrapper.find('[data-test="username-text"] input').setValue("test");
+      await wrapper.find('[data-test="email-text"] input').setValue("test@test.com");
+      await wrapper.find('[data-test="password-text"] input').setValue("test123");
+      await wrapper.find('[data-test="password-confirm-text"] input').setValue("test123");
+      await wrapper.find('[data-test="setup-account-btn"]').trigger("submit");
+      await flushPromises();
 
-    await nextTick();
+      const alert = wrapper.find('[data-test="user-status-alert"]');
+      expect(alert.text()).toContain(
+        "An error occurred. Please check if the sign matches the same generated by the command and try again.",
+      );
+    });
+  });
 
-    await wrapper.findComponent('[data-test="name-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="username-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="email-text"]').setValue("test@test.com");
-    await wrapper.findComponent('[data-test="password-text"]').setValue("test123");
-    await wrapper.findComponent('[data-test="password-confirm-text"]').setValue("test123");
+  describe("form validation", () => {
+    beforeEach(() => mountWrapper());
 
-    await wrapper.find('[data-test="setup-account-btn"]').trigger("submit");
-    await flushPromises();
-    await nextTick();
+    it("disables next button when sign field is empty", () => {
+      expect(wrapper.find('[data-test="sign-btn"]').attributes("disabled")).toBeDefined();
+    });
 
-    expect(wrapper.find('[data-test="user-status-alert"]').exists());
+    it("enables next button when sign is provided", async () => {
+      await wrapper.find('[data-test="sign-text"] input').setValue("sign");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="sign-btn"]').attributes("disabled")).toBeUndefined();
+    });
+
+    it("disables submit button when form fields are incomplete", async () => {
+      await wrapper.find('[data-test="sign-text"] input').setValue("sign");
+      await wrapper.find('[data-test="sign-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="setup-account-btn"]').attributes("disabled")).toBeDefined();
+    });
+  });
+
+  describe("multi-step navigation", () => {
+    beforeEach(() => mountWrapper());
+
+    it("shows account form after clicking next on sign step", async () => {
+      await wrapper.find('[data-test="sign-text"] input').setValue("sign");
+      await wrapper.find('[data-test="sign-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="subtitle-3"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="name-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="username-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="email-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="password-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="password-confirm-text"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="setup-account-btn"]').exists()).toBe(true);
+    });
+  });
+
+  describe("onboarding step", () => {
+    beforeEach(async () => {
+      vi.mocked(envVariables).onboardingUrl = "https://forms.example.com/survey";
+      await mountWrapper();
+    });
+
+    it("shows onboarding step after clicking next on sign step", async () => {
+      await wrapper.find('[data-test="sign-text"] input').setValue("sign");
+      await wrapper.find('[data-test="sign-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="subtitle-2"]').text()).toContain("Help us improve ShellHub by sharing your feedback");
+      expect(wrapper.find('[data-test="continue-btn"]').exists()).toBe(true);
+    });
+
+    it("disables continue button initially", async () => {
+      await wrapper.find('[data-test="sign-text"] input').setValue("sign");
+      await wrapper.find('[data-test="sign-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="continue-btn"]').attributes("disabled")).toBeDefined();
+    });
   });
 });

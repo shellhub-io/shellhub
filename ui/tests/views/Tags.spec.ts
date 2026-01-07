@@ -1,91 +1,119 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
 import Tags from "@/views/Tags.vue";
-import { tagsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { envVariables } from "@/envVariables";
-import TagList from "@/components/Tags/TagList.vue";
-import NoItemsMessage from "@/components/NoItemsMessage.vue";
-import useTagsStore from "@/store/modules/tags";
+import { mockTags } from "@tests/views/mocks";
 
-const mockTags = [
-  {
-    tenant_id: "fake-tenant-data",
-    name: "1",
-    created_at: "2025-12-09T10:00:00Z",
-    updated_at: "2025-12-09T10:00:00Z",
-  },
-  {
-    tenant_id: "fake-tenant-data",
-    name: "2",
-    created_at: "2025-12-09T12:00:00Z",
-    updated_at: "2025-12-09T12:00:00Z",
-  },
-];
+describe("Tags View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof Tags>>;
 
-describe("Tags View", async () => {
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
-  const tagsStore = useTagsStore();
-  tagsStore.showTags = true;
+  const mountWrapper = (hasTags = true) => {
+    const initialState = {
+      tags: {
+        showTags: hasTags,
+        tags: hasTags ? mockTags : [],
+      },
+    };
 
-  localStorage.setItem("tenant", "fake-tenant-data");
-  envVariables.isCloud = true;
+    wrapper = mountComponent(Tags, { piniaOptions: { initialState } });
+  };
 
-  mockTagsApi
-    .onGet("http://localhost:3000/api/tags?page=1&per_page=10")
-    .reply(200, mockTags, { "x-total-count": "2" });
+  afterEach(() => { wrapper?.unmount(); });
 
-  const wrapper = mount(Tags, { global: { plugins: [vuetify, SnackbarPlugin] } });
-  await flushPromises();
+  describe("when tags exist", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Renders the main heading", () => {
-    expect(wrapper.text()).toContain("Tags");
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="tags-settings-card"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Tags");
+      expect(pageHeader.text()).toContain("Organization");
+    });
+
+    it("displays the search field", () => {
+      const searchField = wrapper.find('[data-test="search-text"]');
+      expect(searchField.exists()).toBe(true);
+    });
+
+    it("displays the create tag button in header", () => {
+      const createButton = wrapper.find('[data-test="tag-create-button"]');
+      expect(createButton.exists()).toBe(true);
+      expect(createButton.text()).toContain("Create Tag");
+    });
+
+    it("displays the tags list", () => {
+      const tagList = wrapper.findComponent({ name: "TagList" });
+      expect(tagList.exists()).toBe(true);
+    });
+
+    it("does not show the no items message", () => {
+      expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
+    });
+
+    it("opens create tag dialog when button is clicked", async () => {
+      const createButton = wrapper.find('[data-test="tag-create-button"]');
+      await createButton.trigger("click");
+      await flushPromises();
+
+      const dialog = wrapper.findComponent({ name: "TagCreate" });
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props("modelValue")).toBe(true);
+    });
+
+    it("allows searching for tags", async () => {
+      const searchField = wrapper.find('[data-test="search-text"]').find("input");
+      await searchField.setValue("test-tag");
+      await flushPromises();
+
+      expect(searchField.element.value).toBe("test-tag");
+    });
   });
 
-  it("Renders the TagList component with 2 tag rows", () => {
-    const tagList = wrapper.findComponent(TagList);
-    expect(tagList.exists()).toBe(true);
+  describe("when no tags exist", () => {
+    beforeEach(() => mountWrapper(false));
 
-    const tagRows = tagList.findAll('[data-test="tag-name"]');
-    expect(tagRows).toHaveLength(2);
-    expect(tagRows[0].text()).toBe("1");
-    expect(tagRows[1].text()).toBe("2");
-  });
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="tags-settings-card"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Tags");
+    });
 
-  it("Renders the search field when tags exist", () => {
-    const searchField = wrapper.find('[data-test="search-text"]');
-    expect(searchField.exists()).toBe(true);
-    expect(searchField.text()).toContain("Search by Tag Name"); // Input label
-  });
+    it("does not display the search field", () => {
+      expect(wrapper.find('[data-test="search-text"]').exists()).toBe(false);
+    });
 
-  it("Renders the create tag button when tags exist", () => {
-    const createButton = wrapper.find('[data-test="tag-create-button"]');
-    expect(createButton.exists()).toBe(true);
-    expect(createButton.text()).toBe("Create Tag");
-  });
+    it("does not display the create tag button in header", () => {
+      expect(wrapper.find('[data-test="tag-create-button"]').exists()).toBe(false);
+    });
 
-  it("Renders NoItemsMessage when no tags exist", async () => {
-    tagsStore.showTags = false;
-    mockTagsApi.reset();
-    mockTagsApi
-      .onGet("http://localhost:3000/api/tags?page=1&per_page=10")
-      .reply(200, [], { "x-total-count": "0" });
+    it("does not display the tags list", () => {
+      const tagList = wrapper.findComponent({ name: "TagList" });
+      expect(tagList.exists()).toBe(false);
+    });
 
-    wrapper.unmount();
-    const emptyWrapper = mount(Tags, { global: { plugins: [vuetify, SnackbarPlugin] } });
-    await flushPromises();
+    it("shows the no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      expect(noItemsMessage.exists()).toBe(true);
+      expect(noItemsMessage.text()).toContain("Tags");
+      expect(noItemsMessage.text()).toContain("organize your resources using Tags");
+    });
 
-    expect(emptyWrapper.findComponent(TagList).exists()).toBe(false);
-    expect(emptyWrapper.find('[data-test="search-text"]').exists()).toBe(false);
+    it("displays create tag button in no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      const createButton = noItemsMessage.find("button");
+      expect(createButton.exists()).toBe(true);
+      expect(createButton.text()).toContain("Create Tag");
+    });
 
-    const noItemsMessage = emptyWrapper.findComponent(NoItemsMessage);
-    expect(noItemsMessage.exists()).toBe(true);
-    expect(noItemsMessage.props("item")).toBe("Tags");
-    expect(noItemsMessage.props("icon")).toBe("mdi-tag-multiple");
+    it("opens create tag dialog when no items button is clicked", async () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      const createButton = noItemsMessage.find("button");
+      await createButton.trigger("click");
+      await flushPromises();
+
+      const dialog = wrapper.findComponent({ name: "TagCreate" });
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props("modelValue")).toBe(true);
+    });
   });
 });

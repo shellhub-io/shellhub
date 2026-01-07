@@ -10,7 +10,7 @@
     <v-card-text
       v-if="verifyActivationProcessingStatus === 'processing'"
       class="d-flex align-center justify-center"
-      data-test="processing-cardText"
+      data-test="processing-card-text"
     >
       Processing activation.
     </v-card-text>
@@ -18,7 +18,7 @@
     <v-card-text
       v-if="verifyActivationProcessingStatus === 'success'"
       class="d-flex align-center justify-center text-center"
-      data-test="success-cardText"
+      data-test="success-card-text"
     >
       Congrats and welcome to ShellHub.
     </v-card-text>
@@ -26,7 +26,7 @@
     <v-card-text
       v-if="verifyActivationProcessingStatus === 'failed'"
       class="d-flex align-center justify-center text-center"
-      data-test="failed-cardText"
+      data-test="failed-card-text"
     >
       There was a problem activating your account. Go to the login
       page, login to receive another email with the activation link.
@@ -35,7 +35,7 @@
     <v-card-text
       v-if="verifyActivationProcessingStatus === 'failed-token'"
       class="d-flex align-center justify-center text-center"
-      data-test="failed-token-cardText"
+      data-test="failed-token-card-text"
     >
       Your account activation token has expired. Go to the login page,
       login to receive another email with the activation link.
@@ -43,7 +43,7 @@
 
     <v-card-subtitle
       class="d-flex align-center justify-center pa-4 mx-auto pt-2"
-      data-test="isCloud-card"
+      data-test="back-to-login"
     >
       Back to
       <router-link
@@ -110,6 +110,4 @@ const validateAccount = async () => {
 onMounted(async () => {
   await validateAccount();
 });
-
-defineExpose({ activationProcessingStatus });
 </script>

@@ -147,6 +147,4 @@ const validationAccount = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ disableProcessingStatus });
 </script>

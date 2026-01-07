@@ -1,105 +1,105 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { createRouter, createWebHistory } from "vue-router";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { Router } from "vue-router";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import DetailsSessions from "@/views/DetailsSessions.vue";
-import { sessionsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { routes } from "@/router";
+import { ISession } from "@/interfaces/ISession";
+import { formatFullDateTime } from "@/utils/date";
+import { mockDetailedSession } from "@tests/views/mocks";
+import useSessionsStore from "@/store/modules/sessions";
+import { createAxiosError } from "@tests/utils/axiosError";
 
-type DetailsSessionsWrapper = VueWrapper<InstanceType<typeof DetailsSessions>>;
+vi.mock("@/store/api/sessions");
 
-describe("Details Sessions", () => {
-  let wrapper: DetailsSessionsWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
+describe("Details Sessions View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof DetailsSessions>>;
+  let router: Router;
 
-  const mockSessionsApi = new MockAdapter(sessionsApi.getAxios());
+  const mockSession: ISession = { ...mockDetailedSession, active: false };
 
-  const mockSession = {
-    uid: "1",
-    device_uid: "1",
-    device: {
-      uid: "1",
-      name: "00-00-00-00-00-01",
-      identity: {
-        mac: "00-00-00-00-00-01",
-      },
-      info: {
-        id: "manjaro",
-        pretty_name: "Manjaro Linux",
-        version: "latest",
-        arch: "amd64",
-        platform: "docker",
-      },
-      public_key: "",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2025-01-02T00:00:00.000Z",
-      online: true,
-      namespace: "dev",
-      status: "accepted",
-      status_updated_at: "0",
-      created_at: "2025-01-01T00:00:00.000Z",
-      remote_addr: "192.168.0.1",
-      position: { latitude: 0, longitude: 0 },
-      tags: [],
-      public_url: false,
-      public_url_address: "",
-      acceptable: false,
-    },
-    tenant_id: "fake-tenant-data",
-    username: "test",
-    ip_address: "192.168.0.1",
-    started_at: "2025-01-02T00:00:00.000Z",
-    last_seen: "2025-01-02T00:00:00.000Z",
-    active: false,
-    authenticated: true,
-    recorded: true,
-    type: "none",
-    term: "none",
-    position: { longitude: 0, latitude: 0 },
-  };
+  const mountWrapper = async ({
+    sessionId = "1",
+    initialSession = mockSession,
+    mockError,
+  }: {
+    sessionId?: string;
+    initialSession?: Partial<ISession>;
+    mockError?: Error;
+  } = {}) => {
+    localStorage.setItem("tenant", "fake-tenant-data");
 
-  const router = createRouter({
-    history: createWebHistory(),
-    routes,
-  });
-
-  beforeEach(async () => {
-    await router.push("/sessions/1");
+    router = createCleanRouter();
+    await router.push({ name: "SessionDetails", params: { id: sessionId } });
     await router.isReady();
 
-    mockSessionsApi.onGet("http://localhost:3000/api/sessions/1").reply(200, mockSession);
-
-    wrapper = mount(DetailsSessions, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
+    wrapper = mountComponent(DetailsSessions, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        ...(mockError ? {} : { initialState: { sessions: { session: initialSession } } }),
+        stubActions: !mockError,
       },
     });
-  });
+
+    const sessionsStore = useSessionsStore();
+    if (mockError) vi.mocked(sessionsStore.getSession).mockRejectedValueOnce(mockError);
+
+    await flushPromises();
+  };
 
   afterEach(() => {
-    wrapper.unmount();
+    vi.clearAllMocks();
+    wrapper?.unmount();
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("when session loads successfully", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders all session detail fields with correct values", () => {
+      const uidField = wrapper.find('[data-test="session-uid-field"]');
+      const userField = wrapper.find('[data-test="session-user-field"]');
+      const authenticatedField = wrapper.find('[data-test="session-authenticated-field"]');
+      const activeField = wrapper.find('[data-test="session-active-field"]');
+      const ipAddressField = wrapper.find('[data-test="session-ip-address-field"]');
+      const startedAtField = wrapper.find('[data-test="session-started-at-field"]');
+      const lastSeenField = wrapper.find('[data-test="session-last-seen-field"]');
+
+      expect(uidField.text()).toContain(mockSession.uid);
+      expect(userField.text()).toContain(mockSession.username);
+      expect(authenticatedField.find("i").classes()).toContain("mdi-shield-check");
+      expect(activeField.find("i").classes()).toContain("mdi-alert-circle");
+      expect(ipAddressField.text()).toContain(mockSession.ip_address);
+      expect(startedAtField.text()).toContain(formatFullDateTime(mockSession.started_at));
+      expect(lastSeenField.text()).toContain(formatFullDateTime(mockSession.last_seen));
+    });
+
+    it.each([
+      [true, true],
+      [false, false],
+    ] as const)(
+      "has correct disable attribute for play button for recorded = %s -> %s",
+      async (recorded, shouldShowButton) => {
+        await mountWrapper({ initialSession: { ...mockSession, recorded } });
+        // If enabled, attribute is undefined, otherwise it's an empty string
+        expect(wrapper.find('[data-test="session-details-play-btn"]').attributes("disabled")).toBe(shouldShowButton ? undefined : "");
+      },
+    );
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("when session fails to load", () => {
+    beforeEach(() => mountWrapper({ sessionId: "inexistent-session", mockError: createAxiosError(404, "Not Found") }));
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="session-uid-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="session-user-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="session-authenticated-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="session-active-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="session-ip-address-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="session-started-at-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="session-last-seen-field"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="session-details-play-btn"]').exists()).toBe(true);
+    it("shows error message when session does not load", () => {
+      expect(wrapper.text()).toContain("Something is wrong, try again !");
+    });
+
+    it("does not render session detail fields", () => {
+      expect(wrapper.find('[data-test="session-uid-field"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="session-details-play-btn"]').exists()).toBe(false);
+    });
+
+    it("displays error snackbar notification", () => {
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load session details.");
+    });
   });
 });

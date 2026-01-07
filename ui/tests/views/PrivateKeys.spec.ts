@@ -1,69 +1,97 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
 import PrivateKeys from "@/views/PrivateKeys.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import usePrivateKeysStore from "@/store/modules/private_keys";
+import { mockPrivateKeys } from "@tests/views/mocks";
 
-type PrivateKeysWrapper = VueWrapper<InstanceType<typeof PrivateKeys>>;
+describe("Private Keys View", () => {
+  let wrapper: VueWrapper<InstanceType<typeof PrivateKeys>>;
 
-describe("Private Keys", () => {
-  let wrapper: PrivateKeysWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const privateKeysStore = usePrivateKeysStore();
+  const mountWrapper = async (hasKeys = true) => {
+    const initialState = { privateKeys: { privateKeys: hasKeys ? mockPrivateKeys : [] } };
 
-  const createWrapper = () => mount(PrivateKeys, {
-    global: {
-      plugins: [vuetify, SnackbarPlugin],
-      stubs: {
-        "v-file-upload": true,
-        "v-file-upload-item": true,
-      },
-    },
-  });
-
-  it("Renders with private keys", () => {
-    privateKeysStore.$patch({
-      privateKeys: [
-        {
-          id: 1,
-          name: "test-key",
-          data: "fake-data",
-          hasPassphrase: false,
-          fingerprint: "aa:bb:cc:dd",
+    wrapper = mountComponent(PrivateKeys, {
+      global: {
+        stubs: {
+          "v-file-upload": true,
+          "v-file-upload-item": true,
         },
-      ],
+      },
+      piniaOptions: { initialState },
     });
 
-    wrapper = createWrapper();
+    await flushPromises();
+  };
 
-    expect(wrapper.find('[data-test="private-keys-page-header"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="add-private-key-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="private-keys-list"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
+  afterEach(() => { wrapper?.unmount(); });
+
+  describe("when private keys exist", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="private-keys-page-header"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Private Keys");
+    });
+
+    it("displays add private key button in header", () => {
+      expect(wrapper.find('[data-test="add-private-key-btn"]').exists()).toBe(true);
+    });
+
+    it("displays the private keys list", () => {
+      expect(wrapper.find('[data-test="private-keys-list"]').exists()).toBe(true);
+    });
+
+    it("does not show the no items message", () => {
+      expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
+    });
+
+    it("opens add private key dialog when button is clicked", async () => {
+      const addBtn = wrapper.find('[data-test="add-private-key-btn"]');
+      await addBtn.trigger("click");
+      await flushPromises();
+
+      const dialog = wrapper.findComponent({ name: "PrivateKeyAdd" });
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props("modelValue")).toBe(true);
+    });
   });
 
-  it("Renders without private keys", () => {
-    privateKeysStore.$patch({ privateKeys: [] });
+  describe("when no private keys exist", () => {
+    beforeEach(async () => await mountWrapper(false));
 
-    wrapper = createWrapper();
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="private-keys-page-header"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Private Keys");
+    });
 
-    expect(wrapper.find('[data-test="private-keys-page-header"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="add-private-key-btn"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="private-keys-list"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-items-add-private-key-btn"]').exists()).toBe(true);
-  });
+    it("does not display add private key button in header", () => {
+      expect(wrapper.find('[data-test="add-private-key-btn"]').exists()).toBe(false);
+    });
 
-  it("Opens dialog when button is clicked", async () => {
-    privateKeysStore.$patch({ privateKeys: [] });
-    wrapper = createWrapper();
+    it("does not display the private keys list", () => {
+      expect(wrapper.find('[data-test="private-keys-list"]').exists()).toBe(false);
+    });
 
-    const button = wrapper.find('[data-test="no-items-add-private-key-btn"]');
-    await button.trigger("click");
+    it("shows the no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      expect(noItemsMessage.exists()).toBe(true);
+      expect(noItemsMessage.text()).toContain("Private Keys");
+    });
 
-    expect(wrapper.vm.showPrivateKeyAdd).toBe(true);
+    it("displays add private key button in no items message", () => {
+      expect(wrapper.find('[data-test="no-items-add-private-key-btn"]').exists()).toBe(true);
+    });
+
+    it("opens add private key dialog when no items button is clicked", async () => {
+      const addBtn = wrapper.find('[data-test="no-items-add-private-key-btn"]');
+      await addBtn.trigger("click");
+      await flushPromises();
+
+      const dialog = wrapper.findComponent({ name: "PrivateKeyAdd" });
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props("modelValue")).toBe(true);
+    });
   });
 });

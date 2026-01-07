@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import handleError from "@/utils/handleError";
 import ConnectorList from "../components/Connector/ConnectorList.vue";
 import ConnectorAdd from "../components/Connector/ConnectorAdd.vue";
@@ -52,16 +52,11 @@ const getConnectors = async () => {
       perPage: 10,
     });
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("The request has failed, please try again.");
-        handleError(error);
-      }
-    } else {
-      snackbar.showError("Error loading the connectors.");
-      handleError(error);
-    }
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You do not have permission to access the connectors.");
+    } else snackbar.showError("Error loading the connectors.");
+
+    handleError(error);
   }
 };
 
