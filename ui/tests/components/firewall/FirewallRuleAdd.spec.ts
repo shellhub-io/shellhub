@@ -44,20 +44,12 @@ describe("Firewall Rule Add", () => {
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
   it("Renders the dialog open button and other key elements", async () => {
     const dialog = new DOMWrapper(document.body);
 
-    expect(wrapper.find('[data-test="firewall-add-rule-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="add-firewall-rule-btn"]').exists()).toBe(true);
 
-    await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="add-firewall-rule-btn"]').trigger("click");
 
     expect(dialog.find('[data-test="firewall-rule-status"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-priority"]').exists()).toBe(true);
@@ -76,7 +68,7 @@ describe("Firewall Rule Add", () => {
     wrapper.vm.selectedUsernameOption = "username";
     wrapper.vm.selectedFilterOption = FormFilterOptions.Tags;
 
-    await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="add-firewall-rule-btn"]').trigger("click");
 
     expect(dialog.find('[data-test="firewall-rule-source-ip"]').exists()).toBe(true);
     expect(dialog.find('[data-test="firewall-rule-username-restriction"]').exists()).toBe(true);
@@ -88,7 +80,7 @@ describe("Firewall Rule Add", () => {
 
     wrapper.vm.selectedFilterOption = FormFilterOptions.Hostname;
 
-    await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="add-firewall-rule-btn"]').trigger("click");
 
     expect(dialog.find('[data-test="firewall-rule-hostname-restriction"]').exists()).toBe(true);
   });
@@ -98,7 +90,7 @@ describe("Firewall Rule Add", () => {
 
     mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(200);
 
-    await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="add-firewall-rule-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="firewall-rule-add-btn"]').trigger("click");
 
@@ -117,7 +109,7 @@ describe("Firewall Rule Add", () => {
   it("Fails on adding firewall rules", async () => {
     mockRulesApi.onPost("http://localhost:3000/api/firewall/rules").reply(404);
 
-    await wrapper.findComponent('[data-test="firewall-add-rule-btn"]').trigger("click");
+    await wrapper.findComponent('[data-test="add-firewall-rule-btn"]').trigger("click");
 
     await wrapper.findComponent('[data-test="firewall-rule-add-btn"]').trigger("click");
     await flushPromises();

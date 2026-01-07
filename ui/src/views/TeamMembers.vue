@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import handleError from "@/utils/handleError";
 import MemberInvite from "@/components/Team/Member/MemberInvite.vue";
 import MemberList from "@/components/Team/Member/MemberList.vue";
@@ -38,15 +38,12 @@ const getNamespace = async () => {
   try {
     await namespacesStore.fetchNamespace(tenant.value);
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("You don't have permission to access this resource.");
-      }
-    } else {
-      snackbar.showError("Failed to load namespaces.");
-      handleError(error);
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You don't have permission to access this resource.");
+      return;
     }
+    snackbar.showError("Failed to load namespaces.");
+    handleError(error);
   }
 };
 

@@ -1,49 +1,24 @@
-import { setActivePinia, createPinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { vi, expect, describe, it, beforeEach } from "vitest";
+import { vi, expect, describe, it } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
 import NotFound from "@/views/NotFound.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import createCleanRouter from "@tests/utils/router";
 
 describe("Not Found Page", () => {
-  let wrapper: VueWrapper<InstanceType<typeof NotFound>>;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
+  const router = createCleanRouter();
+  const wrapper = mountComponent(NotFound, { global: { plugins: [router] } });
 
-  beforeEach(() => {
-    wrapper = mount(NotFound, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-  });
-
-  it("renders the correct text and elements", () => {
-    expect(wrapper.find("h1.text-h3.font-weight-bold.mt-6.mb-4").text()).toMatch("Whoops!");
-    expect(wrapper.find("h1.text-h1.font-weight-bold.mt-4.mb-2.text-primary").text()).toMatch("404");
-    expect(wrapper.find("p.font-weight-bold.text-h3").text()).toMatch("Page not found");
-    expect(wrapper.find("p.font-weight-bold.text-h6").text())
-      .toMatch("The requested URL was not found on the server. You can go back to the home by clicking the button below.");
+  it("renders all page elements correctly", () => {
+    expect(wrapper.find('[data-test="whoops-heading"]').text()).toBe("Whoops!");
+    expect(wrapper.find('[data-test="404-heading"]').text()).toBe("404");
+    expect(wrapper.find('[data-test="not-found-message"]').text()).toBe("Page not found");
+    expect(wrapper.find('[data-test="help-text"]').text()).toContain("The requested URL was not found on the server");
+    expect(wrapper.find('[data-test="error-icon"]').exists()).toBe(true);
     expect(wrapper.find('[data-test="home-btn"]').exists()).toBe(true);
   });
 
-  it("navigates to home on button click", async () => {
+  it("navigates to home when button is clicked", async () => {
     const pushSpy = vi.spyOn(router, "push");
-    await wrapper.findComponent('[data-test="home-btn"]').trigger("click");
+    await wrapper.find('[data-test="home-btn"]').trigger("click");
     expect(pushSpy).toHaveBeenCalledWith({ name: "Home" });
-  });
-
-  it("navigates to home on button click", async () => {
-    const pushSpy = vi.spyOn(router, "push");
-    await wrapper.vm.goToHome();
-    expect(pushSpy).toHaveBeenCalledWith({ name: "Home" });
-  });
-
-  it("navigates to the correct route", async () => {
-    const pushSpy = vi.spyOn(router, "push");
-    await wrapper.vm.goToHome();
-    expect(pushSpy).toHaveBeenCalledWith({ name: "Home" });
-    pushSpy.mockRestore();
   });
 });

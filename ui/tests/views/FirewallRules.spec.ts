@@ -1,74 +1,79 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
+import createCleanRouter from "@tests/utils/router";
 import FirewallRules from "@/views/FirewallRules.vue";
-import { rulesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useFirewallRulesStore from "@/store/modules/firewall_rules";
-import { IFirewallRule } from "@/interfaces/IFirewallRule";
+import { mockFirewallRules } from "@tests/views/mocks";
 
 type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
 
-describe("Firewall Rules", () => {
+describe("Firewall Rules View", () => {
   let wrapper: FirewallRulesWrapper;
-  setActivePinia(createPinia());
-  const firewallRulesStore = useFirewallRulesStore();
-  const vuetify = createVuetify();
+  const router = createCleanRouter();
 
-  const mockRulesApi = new MockAdapter(rulesApi.getAxios());
+  const mountWrapper = async (hasRules = true) => {
+    const initialState = hasRules
+      ? {
+        firewallRules: {
+          firewallRules: mockFirewallRules,
+          firewallRuleCount: 1,
+        },
+      }
+      : {
+        firewallRules: {
+          firewallRules: [],
+          firewallRuleCount: 0,
+        },
+      };
 
-  const firewallRules = [
-    {
-      priority: 1,
-      action: "allow",
-      active: true,
-      filter: {
-        hostname: ".*",
-      },
-      source_ip: ".*",
-      username: ".*",
-    },
-  ];
+    wrapper = mountComponent(FirewallRules, {
+      global: { plugins: [router] },
+      piniaOptions: { initialState },
+    }) as FirewallRulesWrapper;
 
-  beforeEach(() => {
-    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, firewallRules);
-    firewallRulesStore.firewallRules = firewallRules as IFirewallRule[];
-    firewallRulesStore.firewallRuleCount = 1;
-    wrapper = mount(FirewallRules, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
+    await flushPromises();
+  };
+
+  afterEach(() => { wrapper?.unmount(); });
+
+  describe("when firewall rules exist", () => {
+    beforeEach(async () => { await mountWrapper(); });
+
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="firewall-rules-header"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Firewall Rules");
+      expect(pageHeader.find('[data-test="add-firewall-rule-btn"]').exists()).toBe(true);
+    });
+
+    it("displays the firewall rules list", () => {
+      expect(wrapper.find('[data-test="firewall-rules-list"]').exists()).toBe(true);
+    });
+
+    it("does not show the no items message", () => {
+      expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(false);
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
-  });
+  describe("when no firewall rules exist", () => {
+    beforeEach(async () => { await mountWrapper(false); });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="firewall-rules"]').exists()).toBe(true);
-  });
-
-  it("Shows the no items message when there are no firewall rules", () => {
-    mockRulesApi.onGet("http://localhost:3000/api/firewall/rules?page=1&per_page=10").reply(200, []);
-    firewallRulesStore.firewallRules = [];
-    firewallRulesStore.firewallRuleCount = 0;
-    wrapper = mount(FirewallRules, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
+    it("renders the page header", () => {
+      const pageHeader = wrapper.find('[data-test="firewall-rules-header"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Firewall Rules");
+      expect(pageHeader.find('[data-test="add-firewall-rule-btn"]').exists()).toBe(true);
     });
-    expect(wrapper.find('[data-test="no-items-message-component"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-items-message-component"]').text()).toContain("Looks like you don't have any Firewall Rules");
+
+    it("does not display the firewall rules list", () => {
+      expect(wrapper.find('[data-test="firewall-rules-list"]').exists()).toBe(false);
+    });
+
+    it("shows the no items message", () => {
+      const noItemsMessage = wrapper.find('[data-test="no-items-message-component"]');
+      expect(noItemsMessage.exists()).toBe(true);
+      expect(noItemsMessage.text()).toContain("Firewall Rules");
+      expect(noItemsMessage.find('[data-test="add-firewall-rule-btn"]').exists()).toBe(true);
+    });
   });
 });

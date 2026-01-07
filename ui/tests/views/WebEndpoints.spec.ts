@@ -9,30 +9,11 @@ import { SnackbarPlugin } from "@/plugins/snackbar";
 import { webEndpointsApi } from "@/api/http";
 import { router } from "@/router";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
-import { IWebEndpoint } from "@/interfaces/IWebEndpoints";
 import useAuthStore from "@/store/modules/auth";
 import useDevicesStore from "@/store/modules/devices";
+import { mockWebEndpoints } from "@tests/views/mocks";
 
 type WebEndpointsWrapper = VueWrapper<InstanceType<typeof WebEndpoints>>;
-
-const mockWebEndpoints = [
-  {
-    address: "123abc",
-    full_address: "localhost:8080",
-    device_uid: "device-abc",
-    device: {
-      uid: "device-abc",
-      name: "device-abc-name",
-      info: {
-        id: "linuxmint",
-        pretty_name: "Linux Mint",
-      },
-    },
-    host: "localhost",
-    port: 8080,
-    expires_in: "2099-01-01T00:00:00Z",
-  },
-] as IWebEndpoint[];
 
 describe("WebEndpoints.vue", () => {
   let wrapper: WebEndpointsWrapper;

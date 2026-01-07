@@ -73,6 +73,4 @@ const privateKeysList = ref<InstanceType<typeof PrivateKeyList> | null>(null);
 const hasPrivateKeys = computed(() => privateKeysStore.privateKeys.length > 0);
 
 const getPrivateKeys = () => { privateKeysList.value?.getPrivateKeysList(); };
-
-defineExpose({ showPrivateKeyAdd });
 </script>

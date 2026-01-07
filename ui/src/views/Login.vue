@@ -291,10 +291,4 @@ const login = async () => {
     handleError(error);
   }
 };
-
-defineExpose({
-  invalidCredentials,
-  validForm,
-  authentication,
-});
 </script>

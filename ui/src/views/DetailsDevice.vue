@@ -48,8 +48,7 @@
 
           <div v-if="envVariables.hasWebEndpoints && envVariables.isEnterprise">
             <v-list-item
-              v-bind="$attrs"
-              data-test="tunnel-create-dialog-btn"
+              data-test="create-web-endpoint-btn"
               :disabled="!canCreateWebEndpoint"
               @click="showWebEndpointCreate = true"
             >
@@ -69,7 +68,6 @@
             :device-uid="device.uid"
             :tags-list="device.tags"
             :has-authorization="canUpdateDeviceTag"
-            data-test="tag-form-update-component"
             @update="refreshDevices"
           />
 
