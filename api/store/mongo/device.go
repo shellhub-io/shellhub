@@ -225,6 +225,7 @@ func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConfli
 				"$or": []bson.M{
 					{"name": target.Name},
 				},
+				"status": bson.M{"$ne": models.DeviceStatusRemoved},
 			},
 		},
 	}

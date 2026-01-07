@@ -26,6 +26,7 @@ var (
 const (
 	fixtureAPIKeys               = "api-key"                // Check "store.mongo.fixtures.api-keys" for fixture info
 	fixtureDevices               = "devices"                // Check "store.mongo.fixtures.devices" for fixture info
+	fixtureDevicesWithRemoved    = "devices_with_removed"   // Check "store.mongo.fixtures.devices_with_removed" for fixture info
 	fixtureSessions              = "sessions"               // Check "store.mongo.fixtures.sessions" for fixture info
 	fixtureActiveSessions        = "active_sessions"        // Check "store.mongo.fixtures.active_sessions" for fixture info
 	fixtureFirewallRules         = "firewall_rules"         // Check "store.mongo.fixtures.firewall_rules" for fixture info

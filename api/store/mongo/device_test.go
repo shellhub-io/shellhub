@@ -775,6 +775,12 @@ func TestDeviceConflicts(t *testing.T) {
 			fixtures:    []string{fixtureDevices},
 			expected:    Expected{[]string{"name"}, true, nil},
 		},
+		{
+			description: "no conflict with removed device name",
+			target:      &models.DeviceConflicts{Name: "device-removed"},
+			fixtures:    []string{fixtureDevicesWithRemoved},
+			expected:    Expected{[]string{}, false, nil},
+		},
 	}
 
 	for _, tc := range cases {
