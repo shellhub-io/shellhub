@@ -14,17 +14,17 @@ import (
 )
 
 type Target interface {
-	prepare(conn net.Conn, version ConnectionVersion) (net.Conn, error)
+	prepare(conn net.Conn, version TransportVersion) (net.Conn, error)
 }
 
 // SSHOpenTarget prepares a connection for initiating a new SSH session
 // with the agent.
 type SSHOpenTarget struct{ SessionID string }
 
-func (t SSHOpenTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Conn, error) { // nolint:ireturn
+func (t SSHOpenTarget) prepare(conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
-	case ConnectionVersion1:
-		log.Debug("preparing SSH open target for connection version 1")
+	case TransportVersion1:
+		log.Debug("preparing SSH open target for transport version 1")
 
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/%s", t.SessionID), nil)
 		if err := req.Write(conn); err != nil {
@@ -32,8 +32,8 @@ func (t SSHOpenTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Co
 
 			return nil, err
 		}
-	case ConnectionVersion2:
-		log.Debug("preparing SSH open target for connection version 2")
+	case TransportVersion2:
+		log.Debug("preparing SSH open target for transport version 2")
 
 		if err := multistream.SelectProtoOrFail(ProtoSSHOpen, conn); err != nil {
 			return nil, err
@@ -42,7 +42,7 @@ func (t SSHOpenTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Co
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("unsupported connection version: %d", version)
+		return nil, fmt.Errorf("unsupported transport version: %d", version)
 	}
 
 	return conn, nil
@@ -51,14 +51,14 @@ func (t SSHOpenTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Co
 // SSHCloseTarget prepares a connection to request closing an existing SSH session.
 type SSHCloseTarget struct{ SessionID string }
 
-func (t SSHCloseTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Conn, error) { // nolint:ireturn
+func (t SSHCloseTarget) prepare(conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
-	case ConnectionVersion1:
+	case TransportVersion1:
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/ssh/close/%s", t.SessionID), nil)
 		if err := req.Write(conn); err != nil {
 			return nil, err
 		}
-	case ConnectionVersion2:
+	case TransportVersion2:
 		if err := multistream.SelectProtoOrFail(ProtoSSHClose, conn); err != nil {
 			return nil, err
 		}
@@ -66,7 +66,7 @@ func (t SSHCloseTarget) prepare(conn net.Conn, version ConnectionVersion) (net.C
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("unsupported connection version: %d", version)
+		return nil, fmt.Errorf("unsupported transport version: %d", version)
 	}
 
 	return conn, nil
@@ -82,9 +82,9 @@ type HTTPProxyTarget struct {
 	Port      int
 }
 
-func (t HTTPProxyTarget) prepare(conn net.Conn, version ConnectionVersion) (net.Conn, error) { // nolint:ireturn
+func (t HTTPProxyTarget) prepare(conn net.Conn, version TransportVersion) (net.Conn, error) { // nolint:ireturn
 	switch version {
-	case ConnectionVersion1:
+	case TransportVersion1:
 		// Write initial handshake request and expect 200 OK.
 		handshakeReq, _ := http.NewRequest(http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", t.Host, t.Port), nil)
 		if err := handshakeReq.Write(conn); err != nil {
@@ -97,7 +97,7 @@ func (t HTTPProxyTarget) prepare(conn net.Conn, version ConnectionVersion) (net.
 		if resp.StatusCode != http.StatusOK {
 			return nil, fmt.Errorf("http proxy handshake failed: %s", resp.Status)
 		}
-	case ConnectionVersion2:
+	case TransportVersion2:
 		if err := multistream.SelectProtoOrFail(ProtoHTTPProxy, conn); err != nil {
 			return nil, err
 		}
@@ -119,7 +119,7 @@ func (t HTTPProxyTarget) prepare(conn net.Conn, version ConnectionVersion) (net.
 			return nil, fmt.Errorf("http proxy negotiation failed: %s", result["message"])
 		}
 	default:
-		return nil, fmt.Errorf("unsupported connection version: %d", version)
+		return nil, fmt.Errorf("unsupported transport version: %d", version)
 	}
 
 	return conn, nil

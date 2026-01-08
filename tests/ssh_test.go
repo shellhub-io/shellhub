@@ -51,7 +51,7 @@ func NewAgentContainerWithIdentity(identity string) NewAgentContainerOption {
 
 func NewAgentContainerWithConnectionVersion(version int) NewAgentContainerOption {
 	return func(envs map[string]string) {
-		envs["SHELLHUB_CONNECTION_VERSION"] = fmt.Sprintf("%d", version)
+		envs["SHELLHUB_TRANSPORT_VERSION"] = fmt.Sprintf("%d", version)
 	}
 }
 
@@ -63,7 +63,7 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 		"SHELLHUB_LOG_FORMAT":         "json",
 		"SHELLHUB_KEEPALIVE_INTERVAL": "1",
 		"SHELLHUB_LOG_LEVEL":          "trace",
-		"SHELLHUB_CONNECTION_VERSION": "1", // Default to v1 for compatibility
+		"SHELLHUB_TRANSPORT_VERSION":  "1", // Default to v1 for compatibility
 	}
 
 	for _, opt := range opts {
