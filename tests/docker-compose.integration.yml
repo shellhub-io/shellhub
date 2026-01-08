@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: ssh/Dockerfile
-      target: production 
+      target: production
     healthcheck:
       interval: 5s
       start_period: 10s
@@ -17,7 +17,7 @@ services:
     build:
       context: .
       dockerfile: api/Dockerfile
-      target: production 
+      target: production
     healthcheck:
       interval: 5s
       start_period: 10s
@@ -28,7 +28,7 @@ services:
     build:
       context: .
       dockerfile: gateway/Dockerfile
-      target: production 
+      target: production
     healthcheck:
       interval: 5s
       start_period: 10s
@@ -40,3 +40,11 @@ services:
       start_period: 10s
       retries: 20
     ports: []
+
+secrets:
+  ssh_private_key:
+    file: ./tests/ssh_private_key
+  api_private_key:
+    file: ./tests/api_private_key
+  api_public_key:
+    file: ./tests/api_public_key

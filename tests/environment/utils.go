@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/docker/docker/pkg/stdcopy"
@@ -23,27 +24,50 @@ const (
 	ServiceUI      Service = "ui"
 )
 
-var freePortController []string
+var (
+	freePortController []string
+	portMutex          sync.Mutex
+)
 
-// GetFreePort returns a randomly available TCP port. It can be used to avoid
-// network conflicts in Docker Compose.
-func GetFreePort(t *testing.T) string {
+// PortReservation holds a reserved port and its listener to prevent race conditions.
+type PortReservation struct {
+	Port     string
+	listener *net.TCPListener
+}
+
+// Release releases the port reservation, allowing it to be used.
+func (pr *PortReservation) Release() {
+	if pr.listener != nil {
+		pr.listener.Close()
+	}
+}
+
+// ReservePort reserves a randomly available TCP port and keeps it reserved
+// until Release() is called. This prevents race conditions where another
+// process might claim the port between allocation and usage.
+func ReservePort(t *testing.T) *PortReservation {
+	portMutex.Lock()
+	defer portMutex.Unlock()
+
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	require.NoError(t, err)
 
 	l, err := net.ListenTCP("tcp", addr)
 	require.NoError(t, err)
 
-	defer l.Close()
-
 	port := strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
 	if slices.Contains(freePortController, port) {
-		return GetFreePort(t)
+		l.Close()
+
+		return ReservePort(t)
 	}
 
 	freePortController = append(freePortController, port)
 
-	return port
+	return &PortReservation{
+		Port:     port,
+		listener: l,
+	}
 }
 
 func ReaderToString(t *testing.T, reader io.Reader) string {

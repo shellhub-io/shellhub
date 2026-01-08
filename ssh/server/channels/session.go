@@ -290,6 +290,11 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							reject(nil, "failed to recover the session dimensions")
 						}
 
+						logger.WithFields(log.Fields{
+							"width":  dimensions.Width,
+							"height": dimensions.Height,
+						}).Debug("window-change request received from client")
+
 						sess.Event(req.Type, dimensions, seat) //nolint:errcheck
 					case AuthRequestOpenSSHRequest:
 						gliderssh.SetAgentRequested(ctx)
