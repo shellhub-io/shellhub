@@ -71,9 +71,7 @@ export default defineConfig({
   ],
   server: {
     port: 8080,
-    hmr: {
-      clientPort: 80,
-    },
+    allowedHosts: true,
   },
   css: {
     preprocessorOptions: {
