@@ -21,17 +21,17 @@
 //     connection for a particular application-level purpose (for example,
 //     opening or closing an SSH session, or establishing an HTTP proxy). The
 //     prepare method will perform any necessary handshake depending on the
-//     negotiated connection version.
+//     negotiated transport version.
 //
 // # Versioning
 //
-// ConnectionVersion1 (v1) uses the older revdial/http handshake where the
-// client expects HTTP-style GET/CONNECT requests. ConnectionVersion2 (v2)
+// TransportVersion1 (v1) uses the older revdial/http handshake where the
+// client expects HTTP-style GET/CONNECT requests. TransportVersion2 (v2)
 // uses a yamux session and performs per-stream negotiation with the
 // multistream protocol strings (see ProtoSSHOpen, ProtoSSHClose,
 // ProtoHTTPProxy). Callers should prepare the appropriate Target and the
 // dialer will perform the correct handshake based on the returned
-// ConnectionVersion.
+// TransportVersion.
 //
 // Usage (server-side)
 //

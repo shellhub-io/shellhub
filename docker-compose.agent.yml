@@ -22,7 +22,7 @@ services:
       - SHELLHUB_LOG_LEVEL=${SHELLHUB_LOG_LEVEL}
       - SHELLHUB_LOG_FORMAT=${SHELLHUB_LOG_FORMAT}
       - SHELLHUB_PERMIT_EMPTY_PASSWORDS=${SHELLHUB_PERMIT_EMPTY_PASSWORDS}
-      - SHELLHUB_CONNECTION_VERSION=2
+      - SHELLHUB_TRANSPORT_VERSION=2
     volumes:
       - ./agent:/go/src/github.com/shellhub-io/shellhub/agent
       - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg

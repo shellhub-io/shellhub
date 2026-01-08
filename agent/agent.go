@@ -107,9 +107,10 @@ type Config struct {
 	// before attempting to reconnect to the ShellHub server. Default is 60 seconds.
 	MaxRetryConnectionTimeout int `env:"MAX_RETRY_CONNECTION_TIMEOUT,default=60" validate:"min=10,max=120"`
 
-	// ConnectionVersion specifies the version of the connection protocol to use.
+	// TransportVersion specifies the version of the agent transport protocol to use.
+	// Version 1 uses HTTP-based revdial, version 2 uses yamux multiplexing with multistream.
 	// Supported values are 1 and 2. Default is 1.
-	ConnectionVersion int `env:"CONNECTION_VERSION,default=1"`
+	TransportVersion int `env:"TRANSPORT_VERSION,default=1"`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
@@ -258,13 +259,13 @@ func (a *Agent) Initialize() error {
 	a.closed.Store(false)
 
 	a.logger = log.WithFields(log.Fields{
-		"version":            AgentVersion,
-		"tenant_id":          a.authData.Namespace,
-		"server_address":     a.config.ServerAddress,
-		"ssh_endpoint":       a.serverInfo.Endpoints.SSH,
-		"api_endpoint":       a.serverInfo.Endpoints.API,
-		"connection_version": a.config.ConnectionVersion,
-		"sshid":              fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
+		"version":           AgentVersion,
+		"tenant_id":         a.authData.Namespace,
+		"server_address":    a.config.ServerAddress,
+		"ssh_endpoint":      a.serverInfo.Endpoints.SSH,
+		"api_endpoint":      a.serverInfo.Endpoints.API,
+		"transport_version": a.config.TransportVersion,
+		"sshid":             fmt.Sprintf("%s.%s@%s", a.authData.Namespace, a.authData.Name, strings.Split(a.serverInfo.Endpoints.SSH, ":")[0]),
 	})
 
 	return nil
@@ -391,20 +392,20 @@ func (a *Agent) Close() error {
 }
 
 const (
-	ConnectionV1 = 1
-	ConnectionV2 = 2
+	TransportV1 = 1
+	TransportV2 = 2
 )
 
 func (a *Agent) Listen(ctx context.Context) error {
 	a.mode.Serve(a)
 
-	switch a.config.ConnectionVersion {
-	case ConnectionV1:
+	switch a.config.TransportVersion {
+	case TransportV1:
 		return a.listenV1(ctx)
-	case ConnectionV2:
+	case TransportV2:
 		return a.listenV2(ctx)
 	default:
-		return fmt.Errorf("unsupported connection version: %d", a.config.ConnectionVersion)
+		return fmt.Errorf("unsupported transport version: %d", a.config.TransportVersion)
 	}
 }
 

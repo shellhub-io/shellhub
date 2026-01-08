@@ -136,25 +136,25 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 	return nil
 }
 
-// ConnectionVersion protocol version identifiers used when dialing a device.
-type ConnectionVersion byte
+// TransportVersion protocol version identifiers used when dialing a device.
+type TransportVersion byte
 
 const (
-	// ConnectionVersionUnknown is used when the transport version could not be determined.
-	ConnectionVersionUnknown ConnectionVersion = 0
-	// ConnectionVersion1 is the legacy transport using revdial over HTTP.
-	ConnectionVersion1 ConnectionVersion = 1
-	// ConnectionVersion2 is the current transport using yamux multiplexing.
-	ConnectionVersion2 ConnectionVersion = 2
+	// TransportVersionUnknown is used when the transport version could not be determined.
+	TransportVersionUnknown TransportVersion = 0
+	// TransportVersion1 is the legacy transport using revdial over HTTP.
+	TransportVersion1 TransportVersion = 1
+	// TransportVersion2 is the current transport using yamux multiplexing.
+	TransportVersion2 TransportVersion = 2
 )
 
 // Dial tries to find a connection by its key and dials it.
 //
-// It returns the connection, its version ([ConnectionVersion1] or [ConnectionVersion2]) and an error,
-func (m *Manager) Dial(ctx context.Context, key string) (net.Conn, ConnectionVersion, error) {
+// It returns the connection, its version ([TransportVersion1] or [TransportVersion2]) and an error,
+func (m *Manager) Dial(ctx context.Context, key string) (net.Conn, TransportVersion, error) {
 	loaded, ok := m.Connections.Load(key)
 	if !ok {
-		return nil, ConnectionVersionUnknown, ErrNoConnection
+		return nil, TransportVersionUnknown, ErrNoConnection
 	}
 
 	if size := m.Connections.Size(key); size > 1 {
@@ -177,10 +177,10 @@ func (m *Manager) Dial(ctx context.Context, key string) (net.Conn, ConnectionVer
 				"version": "v1",
 			}).WithError(err).Error("failed to dial reverse connection")
 
-			return nil, ConnectionVersionUnknown, err
+			return nil, TransportVersionUnknown, err
 		}
 
-		return conn, ConnectionVersion1, nil
+		return conn, TransportVersion1, nil
 	}
 
 	if session, ok := loaded.(*yamux.Session); ok {
@@ -197,8 +197,8 @@ func (m *Manager) Dial(ctx context.Context, key string) (net.Conn, ConnectionVer
 			}).WithError(err).Error("failed to open yamux stream for reverse connection")
 		}
 
-		return conn, ConnectionVersion2, nil
+		return conn, TransportVersion2, nil
 	}
 
-	return nil, ConnectionVersionUnknown, ErrNoConnection
+	return nil, TransportVersionUnknown, ErrNoConnection
 }
