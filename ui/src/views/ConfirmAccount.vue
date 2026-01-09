@@ -22,16 +22,15 @@
         color="primary"
         variant="tonal"
         block
-        data-test="resendEmail-btn"
+        data-test="resend-email-btn"
+        text="Resend Email"
         @click="resendEmail()"
-      >
-        Resend Email
-      </v-btn>
+      />
     </v-card-actions>
 
     <v-card-subtitle
       class="d-flex align-center justify-center pa-4 mx-auto"
-      data-test="isCloud-card"
+      data-test="back-to-login-link"
     >
       Back to
       <router-link

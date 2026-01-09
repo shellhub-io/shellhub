@@ -5,7 +5,7 @@
     overline="Device Management"
     description="Manage and monitor all devices connected to this namespace. Install the ShellHub agent on your devices to register them."
     icon-color="primary"
-    data-test="device-title"
+    data-test="devices-header"
   >
     <template #actions>
       <DeviceAdd />

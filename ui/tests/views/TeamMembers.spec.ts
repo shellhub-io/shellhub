@@ -1,19 +1,15 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import MockAdapter from "axios-mock-adapter";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import TeamMembers from "@/views/TeamMembers.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useNamespacesStore from "@/store/modules/namespaces";
 import { INamespaceMember } from "@/interfaces/INamespace";
+import { namespacesApi } from "@/api/http";
 
-type TeamMembersWrapper = VueWrapper<InstanceType<typeof TeamMembers>>;
-
-describe("Team Members", () => {
-  let wrapper: TeamMembersWrapper;
-  setActivePinia(createPinia());
-  const namespacesStore = useNamespacesStore();
-  const vuetify = createVuetify();
+describe("TeamMembers", () => {
+  let wrapper: VueWrapper<InstanceType<typeof TeamMembers>>;
+  let mockNamespacesApi: MockAdapter;
+  const tenantId = "fake-tenant-data";
 
   const members = [
     {
@@ -25,7 +21,7 @@ describe("Team Members", () => {
   const namespaceData = {
     name: "test",
     owner: "test",
-    tenant_id: "fake-tenant-data",
+    tenant_id: tenantId,
     members,
     max_devices: 3,
     devices_count: 3,
@@ -40,32 +36,65 @@ describe("Team Members", () => {
     type: "team" as const,
   };
 
-  beforeEach(() => {
-    namespacesStore.currentNamespace = namespaceData;
+  const mountWrapper = async (mockError = false) => {
+    localStorage.setItem("tenant", tenantId);
 
-    wrapper = mount(TeamMembers, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
+    if (mockError) vi.spyOn(console, "error").mockImplementation(() => {});
+
+    wrapper = mountComponent(TeamMembers, {
+      piniaOptions: {
+        initialState: { namespaces: { currentNamespace: namespaceData } },
+        stubActions: !mockError,
       },
+    });
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    wrapper?.unmount();
+    localStorage.clear();
+    mockNamespacesApi?.restore();
+    vi.restoreAllMocks();
+  });
+
+  describe("successful render", () => {
+    beforeEach(async () => { await mountWrapper(); });
+
+    it("renders the page header with correct content", () => {
+      const pageHeader = wrapper.find('[data-test="title"]');
+      expect(pageHeader.exists()).toBe(true);
+      expect(pageHeader.text()).toContain("Members");
+      expect(pageHeader.text()).toContain("Team Management");
+      expect(pageHeader.text()).toContain("Manage team members and their access to this namespace");
+    });
+
+    it("displays the member list", () => {
+      expect(wrapper.find('[data-test="member-list"]').exists()).toBe(true);
     });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-    wrapper.unmount();
-  });
+  describe("error handling", () => {
+    beforeEach(() => { mockNamespacesApi = new MockAdapter(namespacesApi.getAxios()); });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+    describe("403 - forbidden", () => {
+      it("displays permission denied snackbar", async () => {
+        mockNamespacesApi.onGet(`http://localhost:3000/api/namespaces/${tenantId}`).reply(403);
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+        await mountWrapper(true);
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="member-list"]').exists()).toBe(true);
+        expect(mockSnackbar.showError).toHaveBeenCalledWith("You don't have permission to access this resource.");
+      });
+    });
+
+    describe("500 - internal server error", () => {
+      it("displays default error snackbar", async () => {
+        mockNamespacesApi.onGet(`http://localhost:3000/api/namespaces/${tenantId}`).reply(500);
+
+        await mountWrapper(true);
+
+        expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load namespaces.");
+      });
+    });
   });
 });

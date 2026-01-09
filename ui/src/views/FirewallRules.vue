@@ -4,7 +4,7 @@
     title="Firewall Rules"
     overline="Security"
     icon-color="primary"
-    data-test="firewall-rules"
+    data-test="firewall-rules-header"
   >
     <template #description>
       <p class="mb-0">
@@ -53,6 +53,7 @@ import PageHeader from "../components/PageHeader.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
+
 const firewallRulesStore = useFirewallRulesStore();
 const snackbar = useSnackbar();
 const hasFirewallRule = computed(() => firewallRulesStore.firewallRuleCount > 0);

@@ -1,5 +1,5 @@
 import { Component } from "vue";
-import { mount, VueWrapper, MountingOptions, ComponentMountingOptions } from "@vue/test-utils";
+import { mount, MountingOptions, ComponentMountingOptions } from "@vue/test-utils";
 import { vi } from "vitest";
 import { createVuetify } from "vuetify";
 import { createTestingPinia, TestingOptions } from "@pinia/testing";
@@ -87,7 +87,7 @@ export interface ShellHubMountOptions<T> extends Omit<MountingOptions<T>, "globa
 export const mountComponent = <T extends Component>(
   component: T,
   options: ShellHubMountOptions<T> = {},
-): VueWrapper<T> => {
+) => {
   const {
     piniaOptions,
     shallow = false,
