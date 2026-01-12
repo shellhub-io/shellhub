@@ -9,7 +9,7 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/go-playground/assert/v2 v2.2.0
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/multiformats/go-multistream v0.6.1
