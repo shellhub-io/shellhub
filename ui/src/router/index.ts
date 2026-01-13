@@ -66,9 +66,7 @@ const Containers = () => import("@/views/Containers.vue");
 const ContainerList = () => import("@/components/Containers/ContainerList.vue");
 const ContainerPendingList = () => import("@/components/Containers/ContainerPendingList.vue");
 const ContainerRejectedList = () => import("@/components/Containers/ContainerRejectedList.vue");
-const Connectors = () => import("@/views/Connectors.vue");
 const WebEndpoints = () => import("@/views/WebEndpoints.vue");
-const ConnectorDetails = () => import("@/views/ConnectorDetails.vue");
 const DeviceDetails = () => import("@/views/DetailsDevice.vue");
 const Sessions = () => import("@/views/Sessions.vue");
 const SessionDetails = () => import("@/views/DetailsSessions.vue");
@@ -351,32 +349,6 @@ export const routes: Array<RouteRecordRaw> = [
       isBeta: true,
       isHidden: () => !envVariables.hasWebEndpoints,
       sidebarOrder: 4,
-    },
-  },
-  {
-    path: "/connectors",
-    name: "Connectors",
-    component: Connectors,
-    beforeEnter: (to, from, next) => {
-      if (envVariables.isCommunity && envVariables.premiumPaywall) {
-        useUsersStore().showPaywall = true;
-      }
-      next();
-    },
-    meta: {
-      icon: "mdi-server",
-      title: "Connectors",
-      showInSidebar: false,
-      isPremium: true,
-      sidebarOrder: 5,
-    },
-  },
-  {
-    path: "/connectors/:id",
-    name: "ConnectorDetails",
-    component: ConnectorDetails,
-    meta: {
-      title: "Details",
     },
   },
   {
