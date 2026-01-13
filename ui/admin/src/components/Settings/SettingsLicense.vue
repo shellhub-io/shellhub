@@ -1,11 +1,4 @@
 <template>
-  <v-alert
-    v-if="licenseAlert"
-    class="my-4 pl-4 pr-4 d-flex justify-center align-center"
-    variant="outlined"
-    :type="licenseAlert.type"
-    :text="licenseAlert.message"
-  />
   <PageHeader
     icon="mdi-license"
     title="License Details"
@@ -13,6 +6,13 @@
     description="Review the current license scope and upload a new file when your subscription changes."
     icon-color="primary"
     title-test-id="license-header"
+  />
+  <v-alert
+    v-if="licenseAlert"
+    class="my-4 pl-4 pr-4 d-flex justify-center align-center"
+    variant="outlined"
+    :type="licenseAlert.type"
+    :text="licenseAlert.message"
   />
   <v-card
     class="w-100 pa-4 bg-background border"

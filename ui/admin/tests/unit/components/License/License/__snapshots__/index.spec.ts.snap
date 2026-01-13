@@ -1,8 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`License > Renders the component 1`] = `
-"<!--v-if-->
-<div data-v-75f26564="" class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-6 bg-transparent mb-6 position-relative overflow-hidden border-b mx-n8 mt-n8" title-test-id="license-header">
+"<div data-v-75f26564="" class="v-card v-theme--light v-card--density-default elevation-0 rounded-0 v-card--variant-elevated pa-6 bg-transparent mb-6 position-relative overflow-hidden border-b mx-n8 mt-n8" title-test-id="license-header">
   <!---->
   <div class="v-card__loader">
     <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -39,6 +38,7 @@ exports[`License > Renders the component 1`] = `
   <!---->
   <!----><span class="v-card__underlay"></span>
 </div>
+<!--v-if-->
 <div data-v-75f26564="" class="v-card v-theme--light v-card--density-default v-card--variant-elevated w-100 pa-4 bg-background border" data-test="license-card">
   <!---->
   <div class="v-card__loader">
