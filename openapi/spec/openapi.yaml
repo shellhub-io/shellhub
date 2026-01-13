@@ -231,12 +231,6 @@ paths:
     $ref: paths/api@user@mfa@reset@{user-id}.yaml
   /api/user:
     $ref: paths/api@user.yaml
-  /api/connector:
-    $ref: paths/api@connector.yaml
-  /api/connector/{uid}:
-    $ref: paths/api@connector@{uid}.yaml
-  /api/connector/{uid}/info:
-    $ref: paths/api@connector@{uid}@info.yaml
   # Lookup user status
   # TODO: rename this endpoint
   /api/namespaces/{tenant}/members/{id}/accept-invite:
