@@ -24,10 +24,14 @@
 import { ref, watch, onMounted, computed } from "vue";
 import useAuthStore from "@/store/modules/auth";
 
-defineProps<{ size: string | number }>();
+const props = defineProps<{
+  size: string | number;
+  email?: string | null;
+}>();
 
 const authStore = useAuthStore();
 const userEmail = computed(() => authStore.email);
+const effectiveEmail = computed(() => props.email || userEmail.value);
 
 const avatarLoadingFailed = ref(false);
 const avatarUrl = ref("");
@@ -48,7 +52,7 @@ const generateGravatarUrl = async (email: string | null) => {
 };
 
 watch(
-  userEmail,
+  effectiveEmail,
   async (newEmail) => {
     avatarLoadingFailed.value = false;
     await generateGravatarUrl(newEmail);
@@ -61,7 +65,7 @@ const onImageError = () => {
 };
 
 onMounted(async () => {
-  await generateGravatarUrl(userEmail.value);
+  await generateGravatarUrl(effectiveEmail.value);
 });
 </script>
 

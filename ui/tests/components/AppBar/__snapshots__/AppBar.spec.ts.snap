@@ -51,7 +51,7 @@ exports[`AppBar Component > Renders the component 1`] = `
       </div>
       <!--teleport start-->
       <!--teleport end--><button type="button" class="v-btn v-btn--icon v-theme--light text-primary v-btn--density-default v-btn--variant-text" aria-haspopup="menu" aria-expanded="false" aria-controls="v-menu-v-9" aria-owns="v-menu-v-9" data-test="user-menu-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-        <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" email="test@example.com" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
+        <!----><span class="v-btn__content" data-no-activator=""><div data-v-09753bb1="" class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat border" style="width: 1.5rem; height: 1.5rem;" data-test="user-icon"><div data-v-09753bb1="" class="v-responsive v-img v-img--booting" data-test="gravatar-image"><div class="v-responsive__sizer"></div><!----><transition-stub name="fade-transition" appear="false" persisted="false" css="true"><!----></transition-stub><!----><!----><!----><!----></div><!----><span class="v-avatar__underlay"></span>
     </div></span>
     <!---->
     <!----></button>
