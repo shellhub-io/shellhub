@@ -106,10 +106,11 @@
           v-bind="props"
           class="mr-8"
         >
-          <v-icon
-            left
+          <UserIcon
+            size="1.5rem"
+            :email="currentUser"
             class="mr-2"
-            icon="mdi-account"
+            data-test="user-icon"
           />
           {{ currentUser || "ADMIN" }}
           <v-icon
@@ -188,6 +189,7 @@ import useLayoutStore from "@/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
 import useSpinnerStore from "@/store/modules/spinner";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
+import UserIcon from "@/components/User/UserIcon.vue";
 import Namespace from "@/components/Namespace/Namespace.vue";
 import Logo from "@/assets/logo-inverted.png";
 import { createNewAdminClient } from "@/api/http";
