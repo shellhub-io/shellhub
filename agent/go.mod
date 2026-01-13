@@ -10,7 +10,7 @@ require (
 	github.com/gliderlabs/ssh v0.3.5
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/labstack/echo/v4 v4.10.2
+	github.com/labstack/echo/v4 v4.15.0
 	github.com/mattn/go-shellwords v1.0.12
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/openwall/yescrypt-go v1.0.0
@@ -45,10 +45,10 @@ require (
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
-	github.com/labstack/gommon v0.4.0 // indirect
+	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/atomicwriter v0.1.0 // indirect
 	github.com/multiformats/go-varint v0.0.6 // indirect
@@ -69,7 +69,6 @@ require (
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
-	golang.org/x/time v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 )
