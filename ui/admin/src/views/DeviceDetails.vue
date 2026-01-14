@@ -184,11 +184,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import useDevicesStore from "@admin/store/modules/devices";
 import useSnackbar from "@/helpers/snackbar";
-import { IAdminDevice } from "../interfaces/IDevice";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import { formatFullDateTime } from "@/utils/date";
@@ -198,11 +197,11 @@ const route = useRoute();
 const snackbar = useSnackbar();
 const devicesStore = useDevicesStore();
 const deviceId = computed(() => route.params.id);
-const device = ref({} as IAdminDevice);
+const device = computed(() => devicesStore.device);
 
 onMounted(async () => {
   try {
-    device.value = await devicesStore.fetchDeviceById(deviceId.value as string);
+    await devicesStore.fetchDeviceById(deviceId.value as string);
   } catch {
     snackbar.showError("Failed to get device details.");
   }

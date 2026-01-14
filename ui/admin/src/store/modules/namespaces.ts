@@ -6,6 +6,7 @@ import * as namespacesApi from "../api/namespaces";
 const useNamespacesStore = defineStore("adminNamespaces", () => {
   const namespaces = ref<IAdminNamespace[]>([]);
   const namespaceCount = ref(0);
+  const namespace = ref<IAdminNamespace>({} as IAdminNamespace);
 
   const currentFilter = ref<string>("");
 
@@ -24,7 +25,7 @@ const useNamespacesStore = defineStore("adminNamespaces", () => {
 
   const fetchNamespaceById = async (id: string) => {
     const { data } = await namespacesApi.getNamespace(id);
-    return data as IAdminNamespace;
+    namespace.value = data as IAdminNamespace;
   };
 
   const exportNamespacesToCsv = async (filter: string) => {
@@ -43,6 +44,7 @@ const useNamespacesStore = defineStore("adminNamespaces", () => {
   return {
     namespaces,
     namespaceCount,
+    namespace,
     currentFilter,
     setFilter,
     fetchNamespaceList,

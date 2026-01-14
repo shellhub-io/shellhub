@@ -37,6 +37,10 @@ describe("Admin Firewall Rules Store", () => {
     it("should have zero firewall rules count", () => {
       expect(firewallRulesStore.firewallRulesCount).toBe(0);
     });
+
+    it("should have empty firewall rule object", () => {
+      expect(firewallRulesStore.firewallRule).toEqual({});
+    });
   });
 
   describe("fetchFirewallRulesList", () => {
@@ -97,9 +101,8 @@ describe("Admin Firewall Rules Store", () => {
 
       mockAdminApi.onGet(generateGetRuleUrl(ruleId)).reply(200, mockFirewallRuleBase);
 
-      const result = await firewallRulesStore.fetchFirewallRuleById(ruleId);
-
-      expect(result).toEqual(mockFirewallRuleBase);
+      await expect(firewallRulesStore.fetchFirewallRuleById(ruleId)).resolves.not.toThrow();
+      expect(firewallRulesStore.firewallRule).toEqual(mockFirewallRuleBase);
     });
 
     it("should throw on not found error when fetching firewall rule by id", async () => {

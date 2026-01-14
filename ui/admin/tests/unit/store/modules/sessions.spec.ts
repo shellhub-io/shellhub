@@ -134,9 +134,9 @@ describe("Admin Sessions Store", () => {
 
       mockAdminApi.onGet(generateGetSessionUrl(sessionUid)).reply(200, mockSessionBase);
 
-      const result = await sessionsStore.fetchSessionById(sessionUid);
+      await sessionsStore.fetchSessionById(sessionUid);
 
-      expect(result).toEqual(mockSessionBase);
+      expect(sessionsStore.session).toEqual(mockSessionBase);
     });
 
     it("should throw on not found error when fetching session by id", async () => {

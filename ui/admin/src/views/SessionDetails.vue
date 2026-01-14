@@ -1,7 +1,7 @@
 <template>
   <h1>Session Details</h1>
   <v-card
-    v-if="session.uid"
+    v-if="session?.uid"
     class="mt-2 border rounded bg-background"
   >
     <v-card-title class="pa-4 d-flex align-center justify-space-between bg-v-theme-surface">
@@ -118,22 +118,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { IAdminSession } from "@admin/interfaces/ISession";
 import useSessionsStore from "@admin/store/modules/sessions";
 import useSnackbar from "@/helpers/snackbar";
 import { formatFullDateTime } from "@/utils/date";
 
 const route = useRoute();
 const snackbar = useSnackbar();
-const sessionStore = useSessionsStore();
+const sessionsStore = useSessionsStore();
 const sessionId = computed(() => route.params.id);
-const session = ref({} as IAdminSession);
+const session = computed(() => sessionsStore.session);
 
 onMounted(async () => {
   try {
-    session.value = await sessionStore.fetchSessionById(sessionId.value as string);
+    await sessionsStore.fetchSessionById(sessionId.value as string);
   } catch {
     snackbar.showError("Failed to get session details.");
   }

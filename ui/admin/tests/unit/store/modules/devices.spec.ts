@@ -58,6 +58,10 @@ describe("Admin Devices Store", () => {
       expect(devicesStore.deviceCount).toBe(0);
     });
 
+    it("should have empty device object", () => {
+      expect(devicesStore.device).toEqual({});
+    });
+
     it("should have empty current filter", () => {
       expect(devicesStore.currentFilter).toBe("");
     });
@@ -205,9 +209,9 @@ describe("Admin Devices Store", () => {
 
       mockAdminApi.onGet(baseGetDeviceUrl(deviceUid)).reply(200, mockDeviceBase);
 
-      const result = await devicesStore.fetchDeviceById(deviceUid);
+      await devicesStore.fetchDeviceById(deviceUid);
 
-      expect(result).toEqual(mockDeviceBase);
+      expect(devicesStore.device).toEqual(mockDeviceBase);
     });
 
     it("should throw on not found error when fetching device by id", async () => {

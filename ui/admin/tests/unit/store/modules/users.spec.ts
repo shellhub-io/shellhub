@@ -56,6 +56,10 @@ describe("Admin Users Store", () => {
       expect(usersStore.usersCount).toBe(0);
     });
 
+    it("should have empty user object", () => {
+      expect(usersStore.user).toEqual({});
+    });
+
     it("should have empty current filter", () => {
       expect(usersStore.currentFilter).toBe("");
     });
@@ -217,9 +221,8 @@ describe("Admin Users Store", () => {
     it("should fetch user by id successfully and return data", async () => {
       mockAdminApi.onGet(baseGetUserUrl).reply(200, mockUserBase);
 
-      const result = await usersStore.fetchUserById(userId);
-
-      expect(result).toEqual(mockUserBase);
+      await expect(usersStore.fetchUserById(userId)).resolves.not.toThrow();
+      expect(usersStore.user).toEqual(mockUserBase);
     });
 
     it("should throw on not found error when fetching user by id", async () => {
