@@ -56,6 +56,4 @@ const searchUsers = async () => {
 watchDebounced(filter, async () => {
   await searchUsers();
 }, { debounce: 1000, maxWait: 5000 });
-
-defineExpose({ filter });
 </script>

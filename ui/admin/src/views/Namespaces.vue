@@ -12,6 +12,7 @@
 
     <v-text-field
       v-model.trim="filter"
+      data-test="search-input"
       label="Search by name"
       color="primary"
       class="w-100 w-md-50"
@@ -48,6 +49,4 @@ const searchNamespaces = async () => {
 
   await namespacesStore.fetchNamespaceList({ filter: encodedFilter, page: 1 });
 };
-
-defineExpose({ filter });
 </script>

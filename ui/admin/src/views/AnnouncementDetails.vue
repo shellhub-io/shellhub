@@ -150,8 +150,6 @@ const loadAnnouncement = async () => {
 const handleDelete = () => { void router.push({ name: "announcements" }); };
 
 onMounted(loadAnnouncement);
-
-defineExpose({ announcement, contentToHtml });
 </script>
 
 <style lang="scss" scoped>

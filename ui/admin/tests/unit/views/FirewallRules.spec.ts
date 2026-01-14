@@ -1,67 +1,34 @@
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
-import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
-import routes from "@admin/router";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
 import FirewallRules from "@admin/views/FirewallRules.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type FirewallRulesWrapper = VueWrapper<InstanceType<typeof FirewallRules>>;
+describe("FirewallRules", () => {
+  let wrapper: VueWrapper<InstanceType<typeof FirewallRules>>;
 
-const firewallRules = [
-  {
-    action: "allow" as const,
-    active: true,
-    filter: {
-      tags: [
-        {
-          tenant_id: "fake-tenant-data",
-          name: "test-tag",
-          created_at: "",
-          updated_at: "",
-        },
-      ],
-    },
-    id: "5f1996c84d2190a22d5857bb",
-    tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    priority: 4,
-    source_ip: "127.0.0.1",
-    username: "shellhub",
-  },
-];
+  const mountWrapper = async () => {
+    const router = createCleanAdminRouter();
+    await router.push({ name: "firewall-rules" });
+    await router.isReady();
 
-describe("Firewall Rules", () => {
-  let wrapper: FirewallRulesWrapper;
+    wrapper = mountComponent(FirewallRules, { global: { plugins: [router] } });
+  };
 
-  beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
+  beforeEach(() => mountWrapper());
 
-    const firewallStore = useFirewallRulesStore();
-    firewallStore.fetchFirewallRulesList = vi.fn().mockImplementation(() => {
-      firewallStore.firewallRules = firewallRules;
-      firewallStore.firewallRulesCount = 1;
-    });
+  afterEach(() => { wrapper?.unmount(); });
 
-    const vuetify = createVuetify();
-
-    wrapper = mount(FirewallRules, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-      },
-    });
+  it("displays the page header with correct title", () => {
+    expect(wrapper.text()).toContain("Firewall Rules");
+    expect(wrapper.text()).toContain("Security Controls");
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+  it("displays the page header description", () => {
+    expect(wrapper.text()).toContain("Review every policy applied across namespaces and confirm access is locked down.");
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Should render all the components in the screen", () => {
-    expect(wrapper.find("[data-test='firewall-rules-list']").exists()).toBe(true);
+  it("displays the firewall rules list component", () => {
+    expect(wrapper.find('[data-test="firewall-rules-list"]').exists()).toBe(true);
   });
 });

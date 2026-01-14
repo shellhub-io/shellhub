@@ -1,154 +1,170 @@
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { formatFullDateTime } from "@/utils/date";
 import useNamespacesStore from "@admin/store/modules/namespaces";
-import { IAdminNamespace } from "@admin/interfaces/INamespace";
-import routes from "@admin/router";
 import NamespaceDetails from "@admin/views/NamespaceDetails.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockNamespace } from "../mocks";
+import { afterEach } from "vitest";
 
-type NamespaceDetailsWrapper = VueWrapper<InstanceType<typeof NamespaceDetails>>;
+vi.mock("@admin/store/api/namespaces");
 
-const namespaceDetail: IAdminNamespace = {
-  name: "dev",
-  owner: "6256b739302b50b6cc5eafcc",
-  tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  type: "team",
-  members: [
-    {
-      id: "6256b739302b50b6cc5eafcc",
-      role: "owner",
-      email: "owner@example.com",
-      status: "active",
-      added_at: "2022-04-13T11:43:24.668Z",
-      expires_at: "0001-01-01T00:00:00Z",
-    },
-    {
-      id: "7326b239302b50b6cc5eafdd",
-      role: "administrator",
-      email: "admin@example.com",
-      status: "pending",
-      added_at: "2022-04-14T11:43:24.668Z",
-      expires_at: "0001-01-01T00:00:00Z",
-    },
-  ],
-  settings: {
-    session_record: true,
-    connection_announcement: "New connection",
-  },
-  max_devices: 10,
-  devices_accepted_count: 1,
-  devices_pending_count: 0,
-  devices_rejected_count: 0,
-  created_at: "2022-04-13T11:43:24.668Z",
-  billing: undefined,
-} as IAdminNamespace;
+describe("NamespaceDetails", () => {
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceDetails>>;
 
-const devicesCount = namespaceDetail.devices_accepted_count
-  + namespaceDetail.devices_pending_count
-  + namespaceDetail.devices_rejected_count;
+  const devicesCount = mockNamespace.devices_accepted_count
+    + mockNamespace.devices_pending_count
+    + mockNamespace.devices_rejected_count;
 
-const mockRoute = {
-  params: {
-    id: namespaceDetail.tenant_id,
-  },
-};
+  const mountWrapper = async (mockError?: Error) => {
+    const router = createCleanAdminRouter();
+    await router.push({ name: "namespaceDetails", params: { id: mockNamespace.tenant_id } });
+    await router.isReady();
 
-describe("Namespace Details", () => {
-  let wrapper: NamespaceDetailsWrapper;
-  const pinia = createPinia();
-  setActivePinia(pinia);
-  const namespacesStore = useNamespacesStore();
-  const vuetify = createVuetify();
-  namespacesStore.fetchNamespaceById = vi.fn().mockResolvedValue(namespaceDetail);
-
-  beforeEach(() => {
-    wrapper = mount(NamespaceDetails, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-        mocks: {
-          $route: mockRoute,
-        },
+    wrapper = mountComponent(NamespaceDetails, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        initialState: { adminNamespaces: mockError ? {} : { namespace: mockNamespace } },
+        stubActions: !mockError,
       },
+    });
+
+    const namespacesStore = useNamespacesStore();
+    if (mockError) vi.mocked(namespacesStore.fetchNamespaceById).mockRejectedValueOnce(mockError);
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("when namespace loads successfully", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays the title", () => {
+      expect(wrapper.find("h1").text()).toBe("Namespace Details");
+    });
+
+    it("displays namespace name in card title and field", () => {
+      expect(wrapper.find(".text-h6").text()).toContain(mockNamespace.name);
+      const nameField = wrapper.find('[data-test="namespace-name-field"]');
+      expect(nameField.text()).toContain("Name:");
+      expect(nameField.text()).toContain(mockNamespace.name);
+    });
+
+    it("shows type chip with correct value", () => {
+      const typeChip = wrapper.find('[data-test="namespace-type-chip"]');
+      expect(typeChip.exists()).toBe(true);
+      expect(typeChip.text()).toBe(mockNamespace.type);
+    });
+
+    it("displays tenant id", () => {
+      const tenantField = wrapper.find('[data-test="namespace-tenant-id-field"]');
+      expect(tenantField.text()).toContain("Tenant ID:");
+      expect(tenantField.text()).toContain(mockNamespace.tenant_id);
+    });
+
+    it("displays owner with link", () => {
+      const ownerField = wrapper.find('[data-test="namespace-owner-field"]');
+      expect(ownerField.text()).toContain("Owner:");
+      const link = ownerField.find("a");
+      expect(link.exists()).toBe(true);
+      expect(link.text()).toBe(mockNamespace.owner);
+    });
+
+    it("displays total devices count", () => {
+      const devicesField = wrapper.find('[data-test="namespace-devices-field"]');
+      expect(devicesField.text()).toContain("Total Devices:");
+      expect(devicesField.text()).toContain(String(devicesCount));
+    });
+
+    it("displays devices breakdown with correct counts", () => {
+      const breakdown = wrapper.find('[data-test="namespace-devices-breakdown"]');
+      const accepted = breakdown.find('[data-test="namespace-devices-accepted"]');
+      expect(accepted.text()).toContain("Accepted:");
+      expect(accepted.text()).toContain(String(mockNamespace.devices_accepted_count));
+
+      const pending = breakdown.find('[data-test="namespace-devices-pending"]');
+      expect(pending.text()).toContain("Pending:");
+      expect(pending.text()).toContain(String(mockNamespace.devices_pending_count));
+
+      const rejected = breakdown.find('[data-test="namespace-devices-rejected"]');
+      expect(rejected.text()).toContain("Rejected:");
+      expect(rejected.text()).toContain(String(mockNamespace.devices_rejected_count));
+    });
+
+    it("displays created at date", () => {
+      const createdField = wrapper.find('[data-test="namespace-created-field"]');
+      expect(createdField.text()).toContain("Created:");
+      expect(createdField.text()).toContain(formatFullDateTime(mockNamespace.created_at));
+    });
+
+    it("displays max devices", () => {
+      const maxDevicesField = wrapper.find('[data-test="namespace-max-devices-field"]');
+      expect(maxDevicesField.text()).toContain("Max Devices:");
+      expect(maxDevicesField.text()).toContain(String(mockNamespace.max_devices));
+    });
+
+    it("displays session record setting", () => {
+      const sessionRecordField = wrapper.find('[data-test="namespace-session-record-field"]');
+      expect(sessionRecordField.text()).toContain("Session Record:");
+      expect(sessionRecordField.text()).toContain("Enabled");
+    });
+
+    it("displays connection announcement", () => {
+      const announcementField = wrapper.find('[data-test="namespace-connection-announcement-field"]');
+      expect(announcementField.text()).toContain("Connection Announcement:");
+      expect(announcementField.text()).toContain(mockNamespace.settings.connection_announcement);
+    });
+
+    it("displays members section", () => {
+      const membersSection = wrapper.find('[data-test="namespace-members-section"]');
+      expect(membersSection.exists()).toBe(true);
+      expect(membersSection.text()).toContain(`Members (${mockNamespace.members.length})`);
+    });
+
+    it("displays members list with all member items", () => {
+      const membersList = wrapper.find('[data-test="namespace-members-list"]');
+      expect(membersList.exists()).toBe(true);
+      const memberItems = wrapper.findAll('[data-test="namespace-member-item"]');
+      expect(memberItems.length).toBe(mockNamespace.members.length);
+    });
+
+    it("displays member roles with correct values", () => {
+      const roles = wrapper.findAll('[data-test="namespace-member-role"]');
+      expect(roles.length).toBe(mockNamespace.members.length);
+      expect(roles[0].text()).toContain("owner");
+    });
+
+    it("displays member statuses with correct values", () => {
+      const statuses = wrapper.findAll('[data-test="namespace-member-status"]');
+      expect(statuses.length).toBe(mockNamespace.members.length);
+      expect(statuses[0].text()).toBe(mockNamespace.members[0].status);
+    });
+
+    it("displays member ids", () => {
+      const memberIds = wrapper.findAll('[data-test="namespace-member-id"]');
+      expect(memberIds.length).toBe(mockNamespace.members.length);
+      expect(memberIds[0].text()).toContain(mockNamespace.members[0].id);
+    });
+
+    it("displays member added dates", () => {
+      const addedDates = wrapper.findAll('[data-test="namespace-member-added"]');
+      expect(addedDates.length).toBeGreaterThan(0);
+      expect(addedDates[0].text()).toContain("Added:");
+      expect(addedDates[0].text()).toContain(formatFullDateTime(mockNamespace.members[0].added_at));
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBeTruthy();
-  });
+  describe("when namespace fails to load", () => {
+    it("shows error snackbar", async () => {
+      await mountWrapper(createAxiosError(404, "Not Found"));
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Has the correct data", () => {
-    expect(wrapper.vm.namespace).toEqual(namespaceDetail);
-  });
-
-  it("Render the correct title", () => {
-    expect(wrapper.find("h1").text()).toEqual("Namespace Details");
-  });
-
-  it("Should render the props of the Namespace on screen", () => {
-    const nameField = wrapper.get('[data-test="namespace-name-field"]');
-    expect(nameField.text()).toContain(namespaceDetail.name);
-
-    const tenantField = wrapper.get('[data-test="namespace-tenant-id-field"]');
-    expect(tenantField.text()).toContain(namespaceDetail.tenant_id);
-
-    const ownerField = wrapper.get('[data-test="namespace-owner-field"]');
-    expect(ownerField.text()).toContain(namespaceDetail.members[0].email);
-
-    const devicesField = wrapper.get('[data-test="namespace-devices-field"]');
-    expect(devicesField.text()).toContain(String(devicesCount));
-
-    const breakdown = wrapper.get('[data-test="namespace-devices-breakdown"]');
-    expect(
-      breakdown.get('[data-test="namespace-devices-accepted"]').text(),
-    ).toContain(String(namespaceDetail.devices_accepted_count));
-    expect(
-      breakdown.get('[data-test="namespace-devices-pending"]').text(),
-    ).toContain(String(namespaceDetail.devices_pending_count));
-    expect(
-      breakdown.get('[data-test="namespace-devices-rejected"]').text(),
-    ).toContain(String(namespaceDetail.devices_rejected_count));
-
-    const maxDevicesField = wrapper.get('[data-test="namespace-max-devices-field"]');
-    expect(maxDevicesField.text()).toContain(String(namespaceDetail.max_devices));
-
-    const sessionRecordField = wrapper.get('[data-test="namespace-session-record-field"]');
-    expect(sessionRecordField.text()).toContain("Enabled");
-  });
-
-  it("Should render the props of the Namespace on screen", () => {
-    const nameField = wrapper.get('[data-test="namespace-name-field"]');
-    expect(nameField.text()).toContain(namespaceDetail.name);
-
-    const tenantField = wrapper.get('[data-test="namespace-tenant-id-field"]');
-    expect(tenantField.text()).toContain(namespaceDetail.tenant_id);
-
-    const ownerField = wrapper.get('[data-test="namespace-owner-field"]');
-    expect(ownerField.text()).toContain(namespaceDetail.members[0].email);
-
-    const devicesField = wrapper.get('[data-test="namespace-devices-field"]');
-    expect(devicesField.text()).toContain(String(devicesCount));
-
-    const breakdown = wrapper.get('[data-test="namespace-devices-breakdown"]');
-    expect(
-      breakdown.get('[data-test="namespace-devices-accepted"]').text(),
-    ).toContain(String(namespaceDetail.devices_accepted_count));
-    expect(
-      breakdown.get('[data-test="namespace-devices-pending"]').text(),
-    ).toContain(String(namespaceDetail.devices_pending_count));
-    expect(
-      breakdown.get('[data-test="namespace-devices-rejected"]').text(),
-    ).toContain(String(namespaceDetail.devices_rejected_count));
-
-    const maxDevicesField = wrapper.get('[data-test="namespace-max-devices-field"]');
-    expect(maxDevicesField.text()).toContain(String(namespaceDetail.max_devices));
-
-    const sessionRecordField = wrapper.get('[data-test="namespace-session-record-field"]');
-    expect(sessionRecordField.text()).toContain("Enabled");
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to fetch namespace details.");
+    });
   });
 });

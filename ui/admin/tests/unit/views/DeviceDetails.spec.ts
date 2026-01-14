@@ -1,189 +1,138 @@
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { formatFullDateTime } from "@/utils/date";
 import useDevicesStore from "@admin/store/modules/devices";
-import routes from "@admin/router";
 import DeviceDetails from "@admin/views/DeviceDetails.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockDevice } from "../mocks";
 
-type DeviceDetailsWrapper = VueWrapper<InstanceType<typeof DeviceDetails>>;
+vi.mock("@admin/store/api/devices");
 
-const deviceDetail = {
-  uid: "a582b47a42e",
-  name: "39-5e-2b",
-  identity: {
-    mac: "00:00:00:00:00:00",
-  },
-  info: {
-    id: "linuxmint",
-    pretty_name: "Linux Mint 19.3",
-    version: "v1.2.3",
-    arch: "x86_64",
-    platform: "linux",
-  },
-  public_key: "----- PUBLIC KEY -----",
-  tenant_id: "fake-tenant-data",
-  last_seen: "2020-05-20T19:58:53.276Z",
-  online: true,
-  namespace: "user",
-  status: "accepted",
-  created_at: "2020-05-01T00:00:00.000Z",
-  remote_addr: "127.0.0.1",
-  status_updated_at: "2020-05-02T00:00:00.000Z",
-  position: {
-    longitude: 0,
-    latitude: 0,
-  },
-  tags: [
-    {
-      tenant_id: "fake-tenant-data",
-      name: "test-tag",
-      created_at: "",
-      updated_at: "",
-    },
-  ],
-};
+describe("DeviceDetails", () => {
+  let wrapper: VueWrapper<InstanceType<typeof DeviceDetails>>;
 
-const mockRoute = {
-  params: {
-    id: deviceDetail.uid,
-  },
-};
+  const mountWrapper = async (mockError?: Error) => {
+    const router = createCleanAdminRouter();
+    await router.push({ name: "deviceDetails", params: { id: mockDevice.uid } });
+    await router.isReady();
 
-describe("Device Details", () => {
-  let wrapper: DeviceDetailsWrapper;
-
-  beforeEach(async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-
-    const devicesStore = useDevicesStore();
-    devicesStore.fetchDeviceById = vi.fn().mockResolvedValue(deviceDetail);
-
-    const vuetify = createVuetify();
-
-    wrapper = mount(DeviceDetails, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-        mocks: { $route: mockRoute },
+    wrapper = mountComponent(DeviceDetails, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        initialState: { adminDevices: mockError ? {} : { device: mockDevice } },
+        stubActions: !mockError,
       },
     });
 
-    await flushPromises();
-  });
-
-  it("Displays the device name in the card title", () => {
-    expect(wrapper.find(".text-h6").text()).toBe(deviceDetail.name);
-  });
-
-  it("Shows online status icon with tooltip", () => {
-    const icon = wrapper.findComponent('[data-test="online-icon"]');
-    expect(icon.classes()).toContain("mdi-check-circle");
-    expect(icon.classes()).toContain("text-success");
-  });
-
-  it("Shows status chip with capitalized text", () => {
-    const statusChip = wrapper.find('[data-test="device-status-chip"]');
-    expect(statusChip.text()).toBe(deviceDetail.status);
-  });
-
-  it("Displays device UID", () => {
-    const uidField = wrapper.find('[data-test="device-uid-field"]');
-    expect(uidField.text()).toContain("UID:");
-    expect(uidField.text()).toContain(deviceDetail.uid);
-  });
-
-  it("Displays MAC address", () => {
-    const macField = wrapper.find('[data-test="device-mac-field"]');
-    expect(macField.text()).toContain("MAC:");
-    expect(macField.find("code").text()).toBe(deviceDetail.identity.mac);
-  });
-
-  it("Displays operating system with icon", () => {
-    const osField = wrapper.find('[data-test="device-pretty-name-field"]');
-    expect(osField.text()).toContain("Operating System:");
-    expect(osField.text()).toContain(deviceDetail.info.pretty_name);
-  });
-
-  it("Displays agent version", () => {
-    const versionField = wrapper.find('[data-test="device-version-field"]');
-    expect(versionField.text()).toContain("Agent Version:");
-    expect(versionField.text()).toContain(deviceDetail.info.version);
-  });
-
-  it("Displays architecture", () => {
-    const archField = wrapper.find('[data-test="device-architecture-field"]');
-    expect(archField.text()).toContain("Architecture:");
-    expect(archField.text()).toContain(deviceDetail.info.arch);
-  });
-
-  it("Displays platform", () => {
-    const platformField = wrapper.find('[data-test="device-platform-field"]');
-    expect(platformField.text()).toContain("Platform:");
-    expect(platformField.text()).toContain(deviceDetail.info.platform);
-  });
-
-  it("Displays namespace", () => {
-    const namespaceField = wrapper.find('[data-test="device-namespace-field"]');
-    expect(namespaceField.text()).toContain("Namespace:");
-    expect(namespaceField.text()).toContain(deviceDetail.namespace);
-  });
-
-  it("Displays tenant ID", () => {
-    const tenantField = wrapper.find('[data-test="device-tenant-id-field"]');
-    expect(tenantField.text()).toContain("Tenant ID:");
-    expect(tenantField.text()).toContain(deviceDetail.tenant_id);
-  });
-
-  it("Displays remote address", () => {
-    const remoteAddrField = wrapper.find('[data-test="device-remote-addr-field"]');
-    expect(remoteAddrField.text()).toContain("Remote Address:");
-    expect(remoteAddrField.text()).toContain(deviceDetail.remote_addr);
-  });
-
-  it("Displays created at date", () => {
-    const createdAtField = wrapper.find('[data-test="device-created-at-field"]');
-    expect(createdAtField.text()).toContain("Created At:");
-  });
-
-  it("Displays device tags", () => {
-    const tagsField = wrapper.find('[data-test="device-tags-field"]');
-    expect(tagsField.text()).toContain("Tags:");
-    expect(tagsField.text()).toContain(deviceDetail.tags[0].name);
-  });
-
-  it("Displays last seen date", () => {
-    const lastSeenField = wrapper.find('[data-test="device-last-seen-field"]');
-    expect(lastSeenField.text()).toContain("Last Seen:");
-  });
-
-  it("Displays public key", () => {
-    const publicKeyField = wrapper.find('[data-test="device-public-key-field"]');
-    expect(publicKeyField.text()).toContain("Public Key:");
-    expect(publicKeyField.text()).toContain(deviceDetail.public_key);
-  });
-
-  it("Shows error message when device data is empty", async () => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-
     const devicesStore = useDevicesStore();
-    devicesStore.fetchDeviceById = vi.fn().mockResolvedValue({});
+    if (mockError) vi.mocked(devicesStore.fetchDeviceById).mockRejectedValueOnce(mockError);
 
-    const vuetify = createVuetify();
+    await flushPromises();
+  };
 
-    const errorWrapper = mount(DeviceDetails, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-        mocks: {
-          $route: mockRoute,
-        },
-      },
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("when device loads successfully", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays the device name in the card title", () => {
+      expect(wrapper.find(".text-h6").text()).toBe(mockDevice.name);
     });
 
-    await flushPromises();
+    it("shows online status icon", () => {
+      const icon = wrapper.find('[data-test="online-icon"]');
+      expect(icon.exists()).toBe(true);
+    });
 
-    expect(errorWrapper.text()).toContain("Something is wrong, try again!");
+    it("shows status chip with correct value", () => {
+      const statusChip = wrapper.find('[data-test="device-status-chip"]');
+      expect(statusChip.exists()).toBe(true);
+      expect(statusChip.text()).toBe(mockDevice.status);
+    });
+
+    it("displays device uid", () => {
+      const uidField = wrapper.find('[data-test="device-uid-field"]');
+      expect(uidField.text()).toContain("UID:");
+      expect(uidField.text()).toContain(mockDevice.uid);
+    });
+
+    it("displays mac address", () => {
+      const macField = wrapper.find('[data-test="device-mac-field"]');
+      expect(macField.text()).toContain("MAC:");
+      expect(macField.text()).toContain(mockDevice.identity.mac);
+    });
+
+    it("displays operating system", () => {
+      const osField = wrapper.find('[data-test="device-pretty-name-field"]');
+      expect(osField.text()).toContain("Operating System:");
+      expect(osField.text()).toContain(mockDevice.info.pretty_name);
+    });
+
+    it("displays agent version", () => {
+      const versionField = wrapper.find('[data-test="device-version-field"]');
+      expect(versionField.text()).toContain("Agent Version:");
+      expect(versionField.text()).toContain(mockDevice.info.version);
+    });
+
+    it("displays architecture", () => {
+      const archField = wrapper.find('[data-test="device-architecture-field"]');
+      expect(archField.text()).toContain("Architecture:");
+      expect(archField.text()).toContain(mockDevice.info.arch);
+    });
+
+    it("displays platform", () => {
+      const platformField = wrapper.find('[data-test="device-platform-field"]');
+      expect(platformField.text()).toContain("Platform:");
+      expect(platformField.text()).toContain(mockDevice.info.platform);
+    });
+
+    it("displays namespace with link", () => {
+      const namespaceField = wrapper.find('[data-test="device-namespace-field"]');
+      expect(namespaceField.text()).toContain("Namespace:");
+      const link = namespaceField.find("a");
+      expect(link.exists()).toBe(true);
+      expect(link.text()).toBe(mockDevice.namespace);
+    });
+
+    it("displays tenant id", () => {
+      const tenantField = wrapper.find('[data-test="device-tenant-id-field"]');
+      expect(tenantField.text()).toContain("Tenant ID:");
+      expect(tenantField.text()).toContain(mockDevice.tenant_id);
+    });
+
+    it("displays remote address", () => {
+      const remoteAddrField = wrapper.find('[data-test="device-remote-addr-field"]');
+      expect(remoteAddrField.text()).toContain("Remote Address:");
+      expect(remoteAddrField.text()).toContain(mockDevice.remote_addr);
+    });
+
+    it("displays created at date", () => {
+      const createdAtField = wrapper.find('[data-test="device-created-at-field"]');
+      expect(createdAtField.text()).toContain("Created At:");
+      expect(createdAtField.text()).toContain(formatFullDateTime(mockDevice.created_at));
+    });
+
+    it("displays last seen date", () => {
+      const lastSeenField = wrapper.find('[data-test="device-last-seen-field"]');
+      expect(lastSeenField.text()).toContain("Last Seen:");
+      expect(lastSeenField.text()).toContain(formatFullDateTime(mockDevice.last_seen));
+    });
+
+    it("displays public key", () => {
+      const publicKeyField = wrapper.find('[data-test="device-public-key-field"]');
+      expect(publicKeyField.text()).toContain("Public Key:");
+      expect(publicKeyField.text()).toContain(mockDevice.public_key);
+    });
+  });
+
+  describe("when device fails to load", () => {
+    it("shows error snackbar", () => mountWrapper(createAxiosError(404, "Not Found")).then(() => {
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to get device details.");
+    }));
   });
 });

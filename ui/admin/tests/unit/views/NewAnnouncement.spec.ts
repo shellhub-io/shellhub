@@ -1,59 +1,165 @@
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import routes from "@admin/router";
 import NewAnnouncement from "@admin/views/NewAnnouncement.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
-type NewAnnouncementWrapper = VueWrapper<InstanceType<typeof NewAnnouncement>>;
+vi.mock("@admin/store/api/announcement");
 
-describe("New Announcement", () => {
-  let wrapper: NewAnnouncementWrapper;
+// Mock TinyMCE Editor to make it testable
+vi.mock("@tinymce/tinymce-vue", () => ({
+  default: {
+    name: "Editor",
+    // eslint-disable-next-line vue/max-len
+    template: "<textarea :value=\"modelValue\" @input=\"$emit('update:modelValue', $event.target.value)\" data-test=\"announcement-content\"></textarea>",
+    props: ["modelValue", "apiKey", "init", "toolbar", "outputFormat"],
+  },
+}));
 
-  beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
+describe("NewAnnouncement", () => {
+  let wrapper: VueWrapper<InstanceType<typeof NewAnnouncement>>;
+  let announcementStore: ReturnType<typeof useAnnouncementStore>;
 
-    const announcementStore = useAnnouncementStore();
+  const mountWrapper = async () => {
+    const router = createCleanAdminRouter();
+    await router.push({ name: "new-announcement" });
+    await router.isReady();
 
-    announcementStore.createAnnouncement = vi.fn();
-    announcementStore.fetchAnnouncementList = vi.fn();
+    wrapper = mountComponent(NewAnnouncement, { global: { plugins: [router] } });
 
-    const vuetify = createVuetify();
+    announcementStore = useAnnouncementStore();
+    await flushPromises();
+  };
 
-    wrapper = mount(NewAnnouncement, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-      },
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  it("displays the page header with correct title", () => {
+    expect(wrapper.text()).toContain("Create new Announcement");
+    expect(wrapper.text()).toContain("Platform Messaging");
+  });
+
+  it("displays the page header description", () => {
+    expect(wrapper.text()).toContain("Compose a system-wide update to keep every namespace informed about critical changes.");
+  });
+
+  it("displays the title input field", () => {
+    const titleInput = wrapper.find('[data-test="announcement-title-field"] input');
+    expect(titleInput.exists()).toBe(true);
+    expect(wrapper.text()).toContain("Title");
+  });
+
+  it("displays the content editor", () => {
+    expect(wrapper.find('[data-test="announcement-content"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain("Content");
+  });
+
+  it("displays the post button", () => {
+    const postBtn = wrapper.find('[data-test="announcement-btn-post"]');
+    expect(postBtn.exists()).toBe(true);
+    expect(postBtn.text()).toBe("Post");
+  });
+
+  describe("when posting announcement", () => {
+    it("shows error when title is empty", async () => {
+      const postBtn = wrapper.find('[data-test="announcement-btn-post"]');
+      await postBtn.trigger("click");
+      await flushPromises();
+
+      const titleInput = wrapper.find('[data-test="announcement-title-field"]');
+      expect(titleInput.text()).toContain("Title cannot be empty!");
+    });
+
+    it("shows error when content is empty", async () => {
+      const titleInput = wrapper.find('[data-test="announcement-title-field"] input');
+      await titleInput.setValue("Test Title");
+      await flushPromises();
+
+      const postBtn = wrapper.find('[data-test="announcement-btn-post"]');
+      await postBtn.trigger("click");
+      await flushPromises();
+
+      const errorAlert = wrapper.find('[data-test="announcement-error"]');
+      expect(errorAlert.exists()).toBe(true);
+      expect(errorAlert.text()).toContain("The announcement cannot be empty!");
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to create announcement.");
+    });
+
+    it("creates announcement successfully with valid data", async () => {
+      const titleInput = wrapper.find('[data-test="announcement-title-field"] input');
+      await titleInput.setValue("Important Update");
+      await flushPromises();
+
+      const contentEditor = wrapper.find('[data-test="announcement-content"]');
+      await contentEditor.setValue("<p>This is the announcement content</p>");
+      await contentEditor.trigger("input");
+      await flushPromises();
+
+      vi.mocked(announcementStore.createAnnouncement).mockResolvedValueOnce(undefined);
+
+      const postBtn = wrapper.find('[data-test="announcement-btn-post"]');
+      await postBtn.trigger("click");
+      await flushPromises();
+
+      expect(announcementStore.createAnnouncement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Important Update",
+          content: expect.any(String),
+        }),
+      );
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Successfully created announcement.");
+    });
+
+    it("shows error when API call fails", async () => {
+      const titleInput = wrapper.find('[data-test="announcement-title-field"] input');
+      await titleInput.setValue("Failed Announcement");
+      await flushPromises();
+
+      const contentEditor = wrapper.find('[data-test="announcement-content"]');
+      await contentEditor.setValue("<p>Content</p>");
+      await contentEditor.trigger("input");
+      await flushPromises();
+
+      vi.mocked(announcementStore.createAnnouncement).mockRejectedValueOnce(
+        createAxiosError(500, "Server Error"),
+      );
+
+      const postBtn = wrapper.find('[data-test="announcement-btn-post"]');
+      await postBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to create announcement.");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
-  });
+  describe("when content changes", () => {
+    it("clears announcement error when content is added", async () => {
+      const titleInput = wrapper.find('[data-test="announcement-title-field"] input');
+      await titleInput.setValue("Test Title");
+      await flushPromises();
 
-  it("Renders the component", () => {
-    const html = wrapper.html().replace(/id="tiny-vue_\d+"/g, 'id="tiny-vue_random"');
-    expect(html).toMatchSnapshot();
-  });
+      // Trigger error first by posting without content
+      const postBtn = wrapper.find('[data-test="announcement-btn-post"]');
+      await postBtn.trigger("click");
+      await flushPromises();
 
-  it("Renders the correct HTML", () => {
-    expect(wrapper.find("[data-test='announcement-title']").exists()).toBeTruthy();
-    expect(wrapper.find("[data-test='announcement-content']").exists()).toBeTruthy();
-    expect(wrapper.find("[data-test='announcement-error']").exists()).toBeFalsy();
-    expect(wrapper.find("[data-test='announcement-btn-post']").exists()).toBeTruthy();
-  });
+      let errorAlert = wrapper.find('[data-test="announcement-error"]');
+      expect(errorAlert.exists()).toBe(true);
 
-  it("Renders the error message when the Title is empty", async () => {
-    await wrapper.find("[data-test='announcement-btn-post']").trigger("click");
-    expect(wrapper.vm.titleError).toBeTruthy();
-  });
+      // Add content to clear the error
+      const contentEditor = wrapper.find('[data-test="announcement-content"]');
+      await contentEditor.setValue("<p>New content</p>");
+      await contentEditor.trigger("input");
+      await flushPromises();
 
-  it("Renders the error message when the announcement is empty", async () => {
-    wrapper.vm.title = "News ShellHub";
-    await wrapper.find("[data-test='announcement-btn-post']").trigger("click");
-    expect(wrapper.find("[data-test='announcement-error']").exists()).toBeTruthy();
+      errorAlert = wrapper.find('[data-test="announcement-error"]');
+      expect(errorAlert.exists()).toBe(false);
+    });
   });
 });

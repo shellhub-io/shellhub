@@ -240,13 +240,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeMount, ref } from "vue";
+import { computed, onBeforeMount } from "vue";
 import { useRoute } from "vue-router";
 import useUsersStore from "@admin/store/modules/users";
 import useAuthStore from "@admin/store/modules/auth";
 import UserStatusChip from "@admin/components/User/UserStatusChip.vue";
 import UserDelete from "@admin/components/User/UserDelete.vue";
-import type { IAdminUser } from "@admin/interfaces/IUser";
 import useSnackbar from "@/helpers/snackbar";
 import { formatFullDateTime } from "@/utils/date";
 
@@ -256,7 +255,7 @@ const usersStore = useUsersStore();
 const authStore = useAuthStore();
 
 const userId = computed(() => route.params.id as string);
-const user = ref({} as IAdminUser);
+const user = computed(() => usersStore.user);
 
 const lastLoginText = computed(() => {
   const value = user.value?.last_login;
@@ -283,11 +282,9 @@ const loginWithToken = async () => {
 
 onBeforeMount(async () => {
   try {
-    user.value = await usersStore.fetchUserById(userId.value);
+    await usersStore.fetchUserById(userId.value);
   } catch {
     snackbar.showError("Failed to get user details.");
   }
 });
-
-defineExpose({ user });
 </script>

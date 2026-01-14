@@ -110,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import useStatsStore from "@admin/store/modules/stats";
 import useSnackbar from "@/helpers/snackbar";
@@ -127,16 +127,9 @@ onMounted(async () => {
     await statsStore.getStats();
   } catch (error: unknown) {
     hasStatus.value = true;
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 402) {
-        snackbar.showError("Failed to load the dashboard stats. Check your license and try again.");
-      } else {
-        snackbar.showError("Failed to load the dashboard stats. Please try again.");
-      }
-    }
+    if (axios.isAxiosError(error) && error.response?.status === 402) {
+      snackbar.showError("Failed to load the dashboard stats. Check your license and try again.");
+    } else snackbar.showError("Failed to load the dashboard stats. Please try again.");
   }
 });
-
-defineExpose({ stats, hasStatus });
 </script>

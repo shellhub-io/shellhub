@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { routes as appRoutes } from "@/router";
+import { routes as adminRoutes } from "@admin/router";
 
 /**
  * Creates a clean router instance for testing purposes.
@@ -39,6 +40,28 @@ import { routes as appRoutes } from "@/router";
  */
 const createCleanRouter = (routes = appRoutes) => createRouter({
   history: createWebHistory(),
+  routes,
+});
+
+/**
+ * Creates a clean admin router instance for testing purposes.
+ *
+ * This utility creates a fresh Vue Router instance with web history mode and
+ * the /admin/ base path, without navigation guards. Useful for testing admin
+ * views in isolation without auth/license checks.
+ *
+ * @returns A new Vue Router instance with admin routes
+ *
+ * @example
+ * // Basic usage for admin view tests
+ * const router = createCleanAdminRouter();
+ * await router.push('/dashboard');
+ * const wrapper = mountComponent(Dashboard, {
+ *   global: { plugins: [router] }
+ * });
+ */
+export const createCleanAdminRouter = (routes = adminRoutes) => createRouter({
+  history: createWebHistory("/admin/"),
   routes,
 });
 

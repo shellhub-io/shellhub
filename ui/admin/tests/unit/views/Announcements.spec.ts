@@ -1,60 +1,54 @@
-import MockAdapter from "axios-mock-adapter";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
-import useAnnouncementStore from "@admin/store/modules/announcement";
-import routes from "@admin/router";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
 import Announcements from "@admin/views/Announcements.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { adminApi } from "@/api/http";
+import { Router } from "vue-router";
 
-type AnnouncementsWrapper = VueWrapper<InstanceType<typeof Announcements>>;
+describe("Announcements", () => {
+  let wrapper: VueWrapper<InstanceType<typeof Announcements>>;
+  let router: Router;
 
-const announcements = [
-  {
-    uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
-    title: "Announcement 1",
-    content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-    date: "2022-12-15T19:45:45.618Z",
-  },
-];
+  beforeEach(async () => {
+    router = createCleanAdminRouter();
+    await router.push({ name: "announcements" });
+    await router.isReady();
 
-describe("Announcement Details", () => {
-  let wrapper: AnnouncementsWrapper;
-
-  const mockAdminApi = new MockAdapter(adminApi.getAxios());
-  mockAdminApi.onGet("http://localhost:3000/admin/api/announcements?page=1&per_page=10&order_by=desc").reply(200);
-
-  beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
-    const announcementStore = useAnnouncementStore();
-
-    vi.spyOn(announcementStore, "fetchAnnouncementList").mockResolvedValue();
-    announcementStore.announcements = announcements;
-    announcementStore.announcementCount = 1;
-
-    const vuetify = createVuetify();
-
-    wrapper = mount(Announcements, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-      },
-    });
+    wrapper = mountComponent(Announcements, { global: { plugins: [router] } });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+  afterEach(() => { wrapper?.unmount(); });
+
+  it("displays the page header with correct title", () => {
+    const header = wrapper.find('[data-test="announcement-title"]');
+    expect(header.exists()).toBe(true);
+    expect(wrapper.text()).toContain("Announcements");
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  it("displays the page header with correct overline", () => {
+    expect(wrapper.text()).toContain("Platform Messaging");
   });
 
-  it("Renders the correct HTML", () => {
-    expect(wrapper.find("[data-test='announcement-title']").exists()).toBeTruthy();
-    expect(wrapper.find("[data-test='new-announcement-btn']").exists()).toBeTruthy();
-    expect(wrapper.find("[data-test='announcement-list']").exists()).toBeTruthy();
+  it("displays the page header description", () => {
+    expect(wrapper.text()).toContain("Share important system broadcasts with every namespace administrator.");
+  });
+
+  it("displays the new announcement button", () => {
+    const newBtn = wrapper.find('[data-test="new-announcement-btn"]');
+    expect(newBtn.exists()).toBe(true);
+    expect(newBtn.text()).toBe("New");
+  });
+
+  it("displays the announcement list component", () => {
+    expect(wrapper.find('[data-test="announcement-list"]').exists()).toBe(true);
+  });
+
+  it("navigates to new announcement page when button is clicked", async () => {
+    const pushSpy = vi.spyOn(router, "push");
+    const newBtn = wrapper.find('[data-test="new-announcement-btn"]');
+
+    await newBtn.trigger("click");
+
+    expect(pushSpy).toHaveBeenCalledWith({ name: "new-announcement" });
   });
 });

@@ -17,7 +17,7 @@
         :error-messages="titleError"
         variant="underlined"
         placeholder="Enter announcement title"
-        data-test="announcement-title"
+        data-test="announcement-title-field"
       />
     </v-card-item>
 
@@ -127,8 +127,6 @@ const postAnnouncement = async () => {
     snackbar.showError("Failed to create announcement.");
   }
 };
-
-defineExpose({ title, titleError });
 </script>
 
 <style lang="scss">
