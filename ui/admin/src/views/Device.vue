@@ -8,6 +8,7 @@
   >
     <v-text-field
       v-model.trim="filter"
+      data-test="search-input"
       class="w-100 w-md-50"
       label="Search by hostname"
       color="primary"
@@ -51,6 +52,4 @@ const searchDevices = async () => {
     snackbar.showError("Failed to fetch the devices.");
   }
 };
-
-defineExpose({ filter });
 </script>

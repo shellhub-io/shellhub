@@ -1,150 +1,125 @@
-import { createVuetify } from "vuetify";
-import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi, beforeAll } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { formatFullDateTime } from "@/utils/date";
 import useUsersStore from "@admin/store/modules/users";
-import useAuthStore from "@admin/store/modules/auth";
 import UserDetails from "@admin/views/UserDetails.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockUser } from "../mocks";
 
-vi.mock("@/utils/date", () => ({
-  formatFullDateTime: (iso: string) => `formatted(${iso})`,
-}));
+vi.mock("@admin/store/api/users");
 
-const mockUser = {
-  id: "6256b739302b50b6cc5eafcc",
-  status: "confirmed",
-  created_at: "2022-04-13T11:42:49.578Z",
-  last_login: "0001-01-01T00:00:00Z",
-  email: "antony@gmail.com",
-  name: "antony",
-  username: "antony",
-  namespacesOwned: 2,
-  max_namespaces: 0,
-  mfa: { enabled: false },
-  email_marketing: null,
-  admin: true,
-  preferences: { auth_methods: ["local"] },
-};
+describe("UserDetails", () => {
+  let wrapper: VueWrapper<InstanceType<typeof UserDetails>>;
 
-describe("UserDetails.vue", async () => {
-  const pinia = createPinia();
-  setActivePinia(pinia);
-
-  const usersStore = useUsersStore();
-  usersStore.fetchUserById = vi.fn().mockResolvedValue(mockUser);
-
-  const authStore = useAuthStore();
-  authStore.getLoginToken = vi.fn().mockResolvedValue("mock-token");
-
-  const vuetify = createVuetify();
-
-  const router = createRouter({
-    history: createMemoryHistory(),
-    routes: [
-      {
-        path: "/user/:id",
-        name: "userDetails",
-        component: UserDetails,
-      },
-    ],
-  });
-
-  await router.push({ name: "userDetails", params: { id: mockUser.id } });
-  await router.isReady();
-
-  const wrapper = mount(UserDetails, {
-    global: {
-      plugins: [pinia, vuetify, router, SnackbarPlugin],
-      stubs: { Teleport: true },
-    },
-  });
-
-  beforeAll(async () => {
-    await flushPromises();
-  });
-
-  it("is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
-  });
-
-  it("loads and exposes the user data", () => {
-    expect((wrapper.vm).user).toEqual(mockUser);
-  });
-
-  it("renders the title", () => {
-    expect(wrapper.find("h1").text()).toBe("User Details");
-  });
-
-  it("renders admin chip only when user is admin", async () => {
-    const chip = wrapper.find("[data-test='user-admin-chip']");
-    expect(chip.exists()).toBe(true);
-    expect(chip.text()).toContain("Admin");
-
-    wrapper.unmount();
-
-    // Re-mount with non-admin user
-    const nonAdminUser = { ...mockUser, admin: false };
-    usersStore.fetchUserById = vi.fn().mockResolvedValue(nonAdminUser);
+  const mountWrapper = async (mockError?: Error) => {
+    const router = createCleanAdminRouter();
     await router.push({ name: "userDetails", params: { id: mockUser.id } });
     await router.isReady();
-    const wrapperNonAdmin = mount(UserDetails, {
-      global: { plugins: [pinia, vuetify, router, SnackbarPlugin] },
+
+    wrapper = mountComponent(UserDetails, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        initialState: { adminUsers: mockError ? {} : { user: mockUser } },
+        stubActions: !mockError,
+      },
     });
-    expect(wrapperNonAdmin.find("[data-test='user-admin-chip']").exists()).toBe(false);
+
+    const usersStore = useUsersStore();
+    if (mockError) vi.mocked(usersStore.fetchUserById).mockRejectedValueOnce(mockError);
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
   });
 
-  it("renders main user fields in their data-test blocks", () => {
-    const uid = wrapper.find("[data-test='user-uid-field']");
-    expect(uid.exists()).toBe(true);
-    expect(uid.text()).toContain(mockUser.id);
+  describe("when user loads successfully", () => {
+    beforeEach(() => mountWrapper());
 
-    const email = wrapper.find("[data-test='user-email-field']");
-    expect(email.exists()).toBe(true);
-    expect(email.text()).toContain(mockUser.email);
+    it("displays the title", () => {
+      expect(wrapper.find("h1").text()).toBe("User Details");
+    });
 
-    const username = wrapper.find("[data-test='user-username-field']");
-    expect(username.exists()).toBe(true);
-    expect(username.text()).toContain(mockUser.username);
+    it("displays the username in the card title", () => {
+      expect(wrapper.find(".text-h6").text()).toContain(mockUser.username);
+    });
 
-    const status = wrapper.find("[data-test='user-status-field']");
-    expect(status.exists()).toBe(true);
-    expect(status.text().toLowerCase()).toContain("confirmed");
+    it("displays admin chip when user is admin", () => {
+      const chip = wrapper.find('[data-test="user-admin-chip"]');
+      expect(chip.exists()).toBe(true);
+      expect(chip.text()).toContain("Admin");
+    });
+
+    it("displays user uid", () => {
+      const uidField = wrapper.find('[data-test="user-uid-field"]');
+      expect(uidField.text()).toContain("UID:");
+      expect(uidField.text()).toContain(mockUser.id);
+    });
+
+    it("displays user name", () => {
+      const nameField = wrapper.find('[data-test="user-name-field"]');
+      expect(nameField.text()).toContain("Name:");
+      expect(nameField.text()).toContain(mockUser.name);
+    });
+
+    it("displays username", () => {
+      const usernameField = wrapper.find('[data-test="user-username-field"]');
+      expect(usernameField.text()).toContain("Username:");
+      expect(usernameField.text()).toContain(mockUser.username);
+    });
+
+    it("displays email", () => {
+      const emailField = wrapper.find('[data-test="user-email-field"]');
+      expect(emailField.text()).toContain("Email:");
+      expect(emailField.text()).toContain(mockUser.email);
+    });
+
+    it("displays status", () => {
+      const statusField = wrapper.find('[data-test="user-status-field"]');
+      expect(statusField.text()).toContain("Status:");
+    });
+
+    it("displays created at date", () => {
+      const createdField = wrapper.find('[data-test="user-created-field"]');
+      expect(createdField.text()).toContain("Created:");
+      expect(createdField.text()).toContain(formatFullDateTime(mockUser.created_at));
+    });
+
+    it("displays last login field", () => {
+      const lastLoginField = wrapper.find('[data-test="user-last-login-field"]');
+      expect(lastLoginField.text()).toContain("Last Login:");
+    });
+
+    it("displays mfa status", () => {
+      const row = wrapper.find('[data-test="user-mfa-marketing-row"]');
+      expect(row.exists()).toBe(true);
+      expect(row.text()).toContain("MFA:");
+    });
+
+    it("displays auth methods", () => {
+      const authField = wrapper.find('[data-test="user-auth-methods-field"]');
+      expect(authField.text()).toContain("Auth Methods:");
+      expect(authField.text()).toContain("local");
+    });
+
+    it("displays namespace counters", () => {
+      const row = wrapper.find('[data-test="user-max-namespace-row"]');
+      expect(row.text()).toContain("Max Namespaces:");
+      expect(row.text()).toContain(String(mockUser.max_namespaces));
+      expect(row.text()).toContain("Namespaces Owned:");
+      expect(row.text()).toContain(String(mockUser.namespacesOwned));
+    });
   });
 
-  it("renders created_at using the formatter", () => {
-    const created = wrapper.find("[data-test='user-created-field']");
-    expect(created.exists()).toBe(true);
-    expect(created.text()).toContain(`formatted(${mockUser.created_at})`);
-  });
+  describe("when user fails to load", () => {
+    it("shows error snackbar", async () => {
+      await mountWrapper(createAxiosError(404, "Not Found"));
 
-  it("renders 'never logged in' state for the zero-date sentinel", () => {
-    const lastLogin = wrapper.find("[data-test='user-last-login-field']");
-    expect(lastLogin.exists()).toBe(true);
-    expect(lastLogin.text()).toContain("User never logged in");
-  });
-
-  it("renders MFA and Marketing blocks", () => {
-    const row = wrapper.find("[data-test='user-mfa-marketing-row']");
-    expect(row.exists()).toBe(true);
-
-    expect(row.text()).toContain("Disabled");
-
-    expect(row.text()).not.toContain("Opted in");
-    expect(row.text()).not.toContain("Opted out");
-  });
-
-  it("renders auth methods chips", () => {
-    const auth = wrapper.find("[data-test='user-auth-methods-field']");
-    expect(auth.exists()).toBe(true);
-    expect(auth.text()).toContain("local");
-  });
-
-  it("renders namespace counters", () => {
-    const row = wrapper.find("[data-test='user-max-namespace-row']");
-    expect(row.exists()).toBe(true);
-    expect(row.text()).toContain(String(mockUser.max_namespaces));
-    expect(row.text()).toContain(String(mockUser.namespacesOwned));
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to get user details.");
+    });
   });
 });

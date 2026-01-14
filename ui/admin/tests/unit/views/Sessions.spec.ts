@@ -1,40 +1,29 @@
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
-import useSessionsStore from "@admin/store/modules/sessions";
-import routes from "@admin/router";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
 import Sessions from "@admin/views/Sessions.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-
-type SessionsWrapper = VueWrapper<InstanceType<typeof Sessions>>;
 
 describe("Sessions", () => {
-  let wrapper: SessionsWrapper;
-  const pinia = createPinia();
-  setActivePinia(pinia);
-  const sessionsStore = useSessionsStore();
-  sessionsStore.fetchSessionList = vi.fn();
+  let wrapper: VueWrapper<InstanceType<typeof Sessions>>;
+  let router: ReturnType<typeof createCleanAdminRouter>;
 
-  const vuetify = createVuetify();
+  beforeEach(async () => {
+    router = createCleanAdminRouter();
+    await router.push({ name: "sessions" });
+    await router.isReady();
 
-  beforeEach(() => {
-    wrapper = mount(Sessions, {
-      global: {
-        plugins: [pinia, vuetify, routes, SnackbarPlugin],
-      },
-    });
+    wrapper = mountComponent(Sessions, { global: { plugins: [router] } });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+  afterEach(() => { wrapper?.unmount(); });
+
+  it("displays the page header with correct title", () => {
+    expect(wrapper.text()).toContain("Sessions");
+    expect(wrapper.text()).toContain("Activity Monitoring");
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Should render all the components in the screen", () => {
-    expect(wrapper.find("[data-test='session-list']").exists()).toBe(true);
+  it("renders the session list component", () => {
+    expect(wrapper.find('[data-test="session-list"]').exists()).toBe(true);
   });
 });

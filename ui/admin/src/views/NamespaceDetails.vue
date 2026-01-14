@@ -292,14 +292,14 @@ const route = useRoute();
 const loading = ref(false);
 const namespaceEdit = ref(false);
 const namespaceDelete = ref(false);
-const namespace = ref({} as IAdminNamespace);
+const namespace = computed(() => namespacesStore.namespace);
 const hasNamespace = computed(() => !!namespace.value.tenant_id);
 const namespaceId = computed(() => route.params.id);
 
 const fetchNamespaceDetails = async () => {
   try {
     loading.value = true;
-    namespace.value = await namespacesStore.fetchNamespaceById(namespaceId.value as string);
+    await namespacesStore.fetchNamespaceById(namespaceId.value as string);
   } catch (error) {
     snackbar.showError("Failed to fetch namespace details.");
     handleError(error);
@@ -341,8 +341,6 @@ const getOwnerLabel = (namespace: IAdminNamespace) => {
 
   return owner?.email || namespace.owner || "";
 };
-
-defineExpose({ namespace });
 </script>
 
 <style scoped>

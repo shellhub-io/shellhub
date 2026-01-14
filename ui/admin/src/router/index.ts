@@ -10,7 +10,7 @@ import useLicenseStore from "@admin/store/modules/license";
 import useAuthStore from "@admin/store/modules/auth";
 import { plugin as snackbar } from "@/plugins/snackbar"; // using direct plugin because inject() doesn't work outside components
 
-const routes = [
+export const routes = [
   {
     path: "/unauthorized",
     name: "Unauthorized",

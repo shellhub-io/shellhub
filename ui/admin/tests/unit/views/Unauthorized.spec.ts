@@ -1,27 +1,32 @@
-import { createVuetify } from "vuetify";
-import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import useAuthStore from "@admin/store/modules/auth";
 import Unauthorized from "@admin/views/Unauthorized.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Unauthorized", () => {
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  authStore.logout = vi.fn();
+  let wrapper: VueWrapper<InstanceType<typeof Unauthorized>>;
+  let authStore: ReturnType<typeof useAuthStore>;
 
-  const wrapper = mount(Unauthorized, { global: { plugins: [createVuetify(), SnackbarPlugin] } });
+  beforeEach(() => {
+    wrapper = mountComponent(Unauthorized);
+    authStore = useAuthStore();
+  });
 
-  it("Renders the correct heading", () => {
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+  });
+
+  it("displays the access denied heading", () => {
     expect(wrapper.find("h1").text()).toBe("Admin Access Required");
   });
 
-  it("Renders the correct subheading", () => {
+  it("displays the what you can do section", () => {
     expect(wrapper.find("h2").text()).toBe("What you can do:");
   });
 
-  it("Renders all action items", () => {
+  it("displays all action items", () => {
     const actionItems = [
       "Return to the main ShellHub application",
       "Contact your system administrator for admin access",
@@ -36,13 +41,13 @@ describe("Unauthorized", () => {
     });
   });
 
-  it("Renders the info alert", () => {
+  it("displays the info alert", () => {
     const alert = wrapper.find(".v-alert");
     expect(alert.exists()).toBe(true);
     expect(alert.text()).toContain("If you believe you should have admin access");
   });
 
-  it("Renders both action buttons", () => {
+  it("displays logout and go to main app buttons", () => {
     const buttons = wrapper.findAll(".v-btn");
     expect(buttons).toHaveLength(2);
 
@@ -50,19 +55,16 @@ describe("Unauthorized", () => {
     expect(buttons[1].text()).toContain("Go to ShellHub");
   });
 
-  it("Calls logout when logout button is clicked", async () => {
-    const authStore = useAuthStore();
+  it("calls logout and redirects when logout button is clicked", async () => {
     const logoutButton = wrapper.findAll(".v-btn")[0];
-
     await logoutButton.trigger("click");
 
     expect(authStore.logout).toHaveBeenCalled();
     expect(window.location.href).toBe("/login");
   });
 
-  it("Redirects to main app when 'Go to ShellHub' button is clicked", async () => {
+  it("redirects to main app when go to shellhub button is clicked", async () => {
     const goToMainAppButton = wrapper.findAll(".v-btn")[1];
-
     await goToMainAppButton.trigger("click");
 
     expect(window.location.href).toBe("/");

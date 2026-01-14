@@ -114,12 +114,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import isHostname from "@/utils/isHostname";
 import useSnackbar from "@/helpers/snackbar";
-import { IAdminFirewallRule } from "../interfaces/IFirewallRule";
 import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 
@@ -128,11 +127,11 @@ const snackbar = useSnackbar();
 const firewallRulesStore = useFirewallRulesStore();
 
 const firewallRuleId = computed(() => route.params.id as string);
-const firewallRule = ref({} as IAdminFirewallRule);
+const firewallRule = computed(() => firewallRulesStore.firewallRule);
 
 onMounted(async () => {
   try {
-    firewallRule.value = await firewallRulesStore.fetchFirewallRuleById(firewallRuleId.value);
+    await firewallRulesStore.fetchFirewallRuleById(firewallRuleId.value);
   } catch {
     snackbar.showError("Failed to get firewall rule details.");
   }

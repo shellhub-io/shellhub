@@ -1,74 +1,77 @@
-import { createVuetify } from "vuetify";
-import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useAnnouncementStore from "@admin/store/modules/announcement";
-import routes from "@admin/router";
 import AnnouncementDetails from "@admin/views/AnnouncementDetails.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockAnnouncement } from "../mocks";
+import { formatFullDateTime } from "@/utils/date";
 
-const mockAnnouncement = {
-  uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
-  title: "Announcement 1",
-  content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-  date: "2022-12-15T19:45:45.618Z",
-};
+vi.mock("@admin/store/api/announcement");
 
-const announcementContentInHtml = `<h2>ShellHub new features</h2>
-<ul>
-<li>New feature 1</li>
-<li>New feature 2</li>
-<li>New feature 3</li>
-</ul>
-`;
+describe("AnnouncementDetails", () => {
+  let wrapper: VueWrapper<InstanceType<typeof AnnouncementDetails>>;
 
-const mockRoute = { params: { uuid: mockAnnouncement.uuid } };
+  const mountWrapper = async (mockError?: Error) => {
+    const router = createCleanAdminRouter();
+    await router.push({ name: "announcementDetails", params: { uuid: mockAnnouncement.uuid } });
+    await router.isReady();
 
-describe("Announcement Details", async () => {
-  setActivePinia(createPinia());
-  const announcementStore = useAnnouncementStore();
-
-  announcementStore.fetchAnnouncement = vi.fn().mockResolvedValue(mockAnnouncement);
-  announcementStore.announcement = mockAnnouncement;
-
-  const wrapper = mount(AnnouncementDetails, {
-    global: {
-      plugins: [createVuetify(), routes, SnackbarPlugin],
-      mocks: {
-        $route: mockRoute,
-        $router: { push: vi.fn() },
+    wrapper = mountComponent(AnnouncementDetails, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        initialState: { adminAnnouncement: mockError ? {} : { announcement: mockAnnouncement } },
+        stubActions: !mockError,
       },
-    },
+    });
+
+    const announcementStore = useAnnouncementStore();
+    if (mockError) vi.mocked(announcementStore.fetchAnnouncement).mockRejectedValueOnce(mockError);
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
   });
 
-  await flushPromises();
+  describe("when announcement loads successfully", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Displays announcement title in card header", () => {
-    expect(wrapper.find(".text-h6").text()).toBe(mockAnnouncement.title);
+    it("displays announcement title in card header", () => {
+      expect(wrapper.find(".text-h6").text()).toBe(mockAnnouncement.title);
+    });
+
+    it("displays uuid field with value", () => {
+      const uuidField = wrapper.find('[data-test="announcement-uuid-field"]');
+      expect(uuidField.text()).toContain("UUID:");
+      expect(uuidField.text()).toContain(mockAnnouncement.uuid);
+    });
+
+    it("displays date field", () => {
+      const dateField = wrapper.find('[data-test="announcement-date-field"]');
+      expect(dateField.text()).toContain("Date:");
+      expect(dateField.text()).toContain(formatFullDateTime(mockAnnouncement.date));
+    });
+
+    it("displays content field", () => {
+      const contentField = wrapper.find('[data-test="announcement-content-field"]');
+      expect(contentField.text()).toContain("Content:");
+      expect(contentField.html()).toContain("<h2>ShellHub new features</h2>");
+    });
+
+    it("shows actions menu button", () => {
+      const menuBtn = wrapper.find('[data-test="announcement-actions-menu-btn"]');
+      expect(menuBtn.exists()).toBe(true);
+    });
   });
 
-  it("Displays UUID field", () => {
-    const uuidField = wrapper.find('[data-test="announcement-uuid-field"]');
-    expect(uuidField.text()).toContain("UUID:");
-    expect(uuidField.text()).toContain(mockAnnouncement.uuid);
-  });
-
-  it("Displays date field with formatted date", () => {
-    const dateField = wrapper.find('[data-test="announcement-date-field"]');
-    expect(dateField.text()).toContain("Date:");
-  });
-
-  it("Displays content field", () => {
-    const contentField = wrapper.find('[data-test="announcement-content-field"]');
-    expect(contentField.text()).toContain("Content:");
-  });
-
-  it("Renders markdown content as HTML", () => {
-    expect(wrapper.vm.contentToHtml.trim()).toBe(announcementContentInHtml.trim());
-  });
-
-  it("Shows actions menu button", () => {
-    const menuBtn = wrapper.find('[data-test="announcement-actions-menu-btn"]');
-    expect(menuBtn.exists()).toBe(true);
+  describe("when announcement fails to load", () => {
+    it("shows error snackbar", async () => {
+      await mountWrapper(createAxiosError(404, "Not Found"));
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to get announcement details.");
+    });
   });
 });

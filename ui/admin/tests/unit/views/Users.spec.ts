@@ -1,49 +1,44 @@
-import { createVuetify } from "vuetify";
-import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
-import useUsersStore from "@admin/store/modules/users";
-import routes from "@admin/router";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
 import Users from "@admin/views/Users.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
 describe("Users", () => {
-  const pinia = createPinia();
-  setActivePinia(pinia);
-  const usersStore = useUsersStore();
-  usersStore.fetchUsersList = vi.fn();
+  let wrapper: VueWrapper<InstanceType<typeof Users>>;
+  let router: ReturnType<typeof createCleanAdminRouter>;
 
-  const vuetify = createVuetify();
+  beforeEach(async () => {
+    router = createCleanAdminRouter();
+    await router.push({ name: "users" });
+    await router.isReady();
 
-  const wrapper = mount(Users, {
-    global: {
-      plugins: [pinia, vuetify, routes, SnackbarPlugin],
-    },
+    wrapper = mountComponent(Users, { global: { plugins: [router] } });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper).toBeTruthy();
+  afterEach(() => {
+    wrapper?.unmount();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  it("displays the page header with correct title", () => {
+    expect(wrapper.text()).toContain("Users");
+    expect(wrapper.text()).toContain("Account Management");
   });
 
-  it("Renders the template with default data", () => {
-    expect(wrapper.vm.filter).toBe("");
+  it("displays the search input field", () => {
+    const searchInput = wrapper.find('input[type="text"]');
+    expect(searchInput.exists()).toBe(true);
   });
 
-  it("Must change the filter value when input change", async () => {
-    expect(wrapper.vm.filter).toBe("");
-    const input = wrapper.find("input");
-    await input.setValue("ShellHub");
-    expect(wrapper.vm.filter).toBe("ShellHub");
+  it("displays the export users button", () => {
+    expect(wrapper.find('[data-test="users-export-btn"]').exists()).toBe(true);
   });
 
-  it("Should render all the components in the screen", () => {
-    expect(wrapper.find("[data-test='users-list']").exists()).toBe(true);
-    expect(wrapper.find("[data-test='users-export-btn']").exists()).toBe(true);
-    expect(wrapper.find("[data-test='user-add-btn']").exists()).toBe(true);
-    expect(wrapper.find("input").exists()).toBe(true);
+  it("displays the add user button", () => {
+    expect(wrapper.find('[data-test="user-add-btn"]').exists()).toBe(true);
+  });
+
+  it("displays the users list component", () => {
+    expect(wrapper.find('[data-test="users-list"]').exists()).toBe(true);
   });
 });
