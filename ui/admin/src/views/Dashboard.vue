@@ -111,9 +111,8 @@
 
 <script setup lang="ts">
 import axios, { AxiosError } from "axios";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import useStatsStore from "@admin/store/modules/stats";
-import { IAdminStats } from "@admin/interfaces/IStats";
 import useSnackbar from "@/helpers/snackbar";
 import StatCard from "@/components/StatCard.vue";
 import PageHeader from "@/components/PageHeader.vue";
@@ -121,11 +120,11 @@ import PageHeader from "@/components/PageHeader.vue";
 const snackbar = useSnackbar();
 const statsStore = useStatsStore();
 const hasStatus = ref(false);
-const stats = ref({} as IAdminStats);
+const stats = computed(() => statsStore.stats);
 
 onMounted(async () => {
   try {
-    stats.value = await statsStore.getStats();
+    await statsStore.getStats();
   } catch (error: unknown) {
     hasStatus.value = true;
     if (axios.isAxiosError(error)) {

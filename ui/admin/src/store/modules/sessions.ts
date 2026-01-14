@@ -6,6 +6,7 @@ import * as sessionsApi from "../api/sessions";
 const useSessionsStore = defineStore("adminSessions", () => {
   const sessions = ref<Array<IAdminSession>>([]);
   const sessionCount = ref<number>(0);
+  const session = ref<IAdminSession>({} as IAdminSession);
 
   const fetchSessionList = async (data: { perPage: number; page: number }) => {
     const res = await sessionsApi.fetchSessions(data.perPage, data.page);
@@ -16,12 +17,13 @@ const useSessionsStore = defineStore("adminSessions", () => {
 
   const fetchSessionById = async (uid: string) => {
     const { data } = await sessionsApi.getSession(uid);
-    return data as IAdminSession;
+    session.value = data as IAdminSession;
   };
 
   return {
     sessions,
     sessionCount,
+    session,
     fetchSessionList,
     fetchSessionById,
   };

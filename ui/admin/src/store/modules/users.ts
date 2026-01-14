@@ -6,6 +6,7 @@ import * as usersApi from "../api/users";
 const useUsersStore = defineStore("adminUsers", () => {
   const users = ref<IAdminUser[]>([]);
   const usersCount = ref<number>(0);
+  const user = ref<IAdminUser>({} as IAdminUser);
 
   const currentFilter = ref<string>("");
 
@@ -32,7 +33,7 @@ const useUsersStore = defineStore("adminUsers", () => {
 
   const fetchUserById = async (id: string) => {
     const { data } = await usersApi.getUser(id);
-    return data as IAdminUser;
+    user.value = data as IAdminUser;
   };
 
   const updateUser = async (data: IAdminUserFormData) => {
@@ -52,6 +53,7 @@ const useUsersStore = defineStore("adminUsers", () => {
   return {
     users,
     usersCount,
+    user,
     currentFilter,
     setFilter,
     fetchUsersList,

@@ -26,15 +26,21 @@ describe("Admin Stats Store", () => {
 
   afterEach(() => { mockAdminApi.reset(); });
 
+  describe("initial state", () => {
+    it("should have empty stats initially", () => {
+      expect(statsStore.stats).toEqual({} as IAdminStats);
+    });
+  });
+
   describe("getStats", () => {
     const baseUrl = "http://localhost:3000/admin/api/stats";
 
     it("should fetch stats successfully and return data", async () => {
       mockAdminApi.onGet(baseUrl).reply(200, mockStats);
 
-      const result = await statsStore.getStats();
+      await statsStore.getStats();
 
-      expect(result).toEqual(mockStats);
+      expect(statsStore.stats).toEqual(mockStats);
     });
 
     it("should throw on not found error when fetching stats", async () => {

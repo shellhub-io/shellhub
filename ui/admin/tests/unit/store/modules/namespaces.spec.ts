@@ -53,6 +53,10 @@ describe("Admin Namespaces Store", () => {
       expect(namespacesStore.namespaceCount).toBe(0);
     });
 
+    it("should have empty namespace object", () => {
+      expect(namespacesStore.namespace).toEqual({});
+    });
+
     it("should have empty current filter", () => {
       expect(namespacesStore.currentFilter).toBe("");
     });
@@ -151,9 +155,8 @@ describe("Admin Namespaces Store", () => {
     it("should fetch namespace by id successfully and return data", async () => {
       mockAdminApi.onGet(baseGetNamespaceUrl).reply(200, mockNamespaceBase);
 
-      const result = await namespacesStore.fetchNamespaceById(namespaceId);
-
-      expect(result).toEqual(mockNamespaceBase);
+      await expect(namespacesStore.fetchNamespaceById(namespaceId)).resolves.not.toThrow();
+      expect(namespacesStore.namespace).toEqual(mockNamespaceBase);
     });
 
     it("should throw on not found error when fetching namespace by id", async () => {

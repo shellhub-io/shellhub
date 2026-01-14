@@ -6,6 +6,7 @@ import * as firewallRulesApi from "../api/firewall_rules";
 const useFirewallRulesStore = defineStore("adminFirewallRules", () => {
   const firewallRules = ref<Array<IAdminFirewallRule>>([]);
   const firewallRulesCount = ref(0);
+  const firewallRule = ref<IAdminFirewallRule>({} as IAdminFirewallRule);
 
   const fetchFirewallRulesList = async (data?: { page: number; perPage: number }) => {
     const res = await firewallRulesApi.fetchFirewalls(data?.page || 1, data?.perPage || 10);
@@ -15,12 +16,13 @@ const useFirewallRulesStore = defineStore("adminFirewallRules", () => {
 
   const fetchFirewallRuleById = async (uid: string) => {
     const res = await firewallRulesApi.getFirewall(uid);
-    return res.data as IAdminFirewallRule;
+    firewallRule.value = res.data as IAdminFirewallRule;
   };
 
   return {
     firewallRules,
     firewallRulesCount,
+    firewallRule,
     fetchFirewallRulesList,
     fetchFirewallRuleById,
   };

@@ -6,6 +6,7 @@ import * as devicesApi from "../api/devices";
 const useDevicesStore = defineStore("adminDevices", () => {
   const devices = ref<IAdminDevice[]>([]);
   const deviceCount = ref(0);
+  const device = ref<IAdminDevice>({} as IAdminDevice);
 
   const currentFilter = ref<string>("");
   const currentSortField = ref<string | undefined>(undefined);
@@ -37,12 +38,13 @@ const useDevicesStore = defineStore("adminDevices", () => {
 
   const fetchDeviceById = async (uid: string) => {
     const res = await devicesApi.getDevice(uid);
-    return res.data as unknown as IAdminDevice;
+    device.value = res.data as IAdminDevice;
   };
 
   return {
     devices,
     deviceCount,
+    device,
     currentFilter,
     currentSortField,
     currentSortOrder,
