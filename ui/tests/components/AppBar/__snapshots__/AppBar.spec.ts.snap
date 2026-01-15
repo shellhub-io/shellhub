@@ -13,7 +13,7 @@ exports[`AppBar Component > Renders the component 1`] = `
         <!---->
         <!---->
       </button>
-      <div class="d-flex align-center hidden-md-and-down">
+      <div class="d-flex align-center">
         <!---->
         <!---->
         <!---->
@@ -23,12 +23,12 @@ exports[`AppBar Component > Renders the component 1`] = `
           <!---->
           <div class="v-chip__content" data-no-activator=""></div>
           <!---->
-          <!----></span><span class="text-body-1">No Namespace</span><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-x-small" aria-hidden="true"></i>
+          <!----></span><span class="text-body-1 text-truncate" style="max-width: 220px;">No Namespace</span><i class="mdi-chevron-down mdi v-icon notranslate v-theme--light v-icon--size-x-small" aria-hidden="true"></i>
       </div></span>
       <!---->
       <!----></button>
       <!---->
-      <ul class="v-breadcrumbs v-breadcrumbs--density-default pa-0 mx-4" data-test="breadcrumbs">
+      <ul class="v-breadcrumbs v-breadcrumbs--density-default pa-0 mx-4 hidden-xs" data-test="breadcrumbs">
         <li class="v-breadcrumbs__prepend">
           <!--v-if-->
         </li>
