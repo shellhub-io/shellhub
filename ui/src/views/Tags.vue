@@ -13,19 +13,6 @@
     data-test="tags-settings-card"
   >
     <template #actions>
-      <v-text-field
-        v-if="showTags"
-        v-model.trim="filter"
-        class="w-sm-50"
-        label="Search by Tag Name"
-        variant="outlined"
-        color="primary"
-        single-line
-        hide-details
-        prepend-inner-icon="mdi-magnify"
-        density="compact"
-        data-test="search-text"
-      />
       <v-btn
         v-if="showTags"
         color="primary"
@@ -40,7 +27,6 @@
   <TagList
     v-if="showTags"
     ref="tagListRef"
-    :filter
   />
 
   <NoItemsMessage
@@ -80,7 +66,6 @@ const tagsDescription = "Organize and categorize your resources with tags. "
 const tagsStore = useTagsStore();
 const tagListRef = ref<InstanceType<typeof TagList> | null>(null);
 const showCreateTagDialog = ref(false);
-const filter = ref("");
 const showTags = computed(() => tagsStore.showTags);
 
 const openCreateTagDialog = () => { showCreateTagDialog.value = true; };

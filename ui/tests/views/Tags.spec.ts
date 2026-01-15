@@ -30,11 +30,6 @@ describe("Tags View", () => {
       expect(pageHeader.text()).toContain("Organization");
     });
 
-    it("displays the search field", () => {
-      const searchField = wrapper.find('[data-test="search-text"]');
-      expect(searchField.exists()).toBe(true);
-    });
-
     it("displays the create tag button in header", () => {
       const createButton = wrapper.find('[data-test="tag-create-button"]');
       expect(createButton.exists()).toBe(true);
@@ -58,14 +53,6 @@ describe("Tags View", () => {
       const dialog = wrapper.findComponent({ name: "TagCreate" });
       expect(dialog.exists()).toBe(true);
       expect(dialog.props("modelValue")).toBe(true);
-    });
-
-    it("allows searching for tags", async () => {
-      const searchField = wrapper.find('[data-test="search-text"]').find("input");
-      await searchField.setValue("test-tag");
-      await flushPromises();
-
-      expect(searchField.element.value).toBe("test-tag");
     });
   });
 
