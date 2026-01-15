@@ -4,18 +4,24 @@ import handleError from "@/utils/handleError";
 export type TableName = "sessions" | "devices" | "containers" | "firewallRules" | "publicKeys" | "apiKeys" | "invitations" | "tags" | "connectors" | "webEndpoints" | "adminSessions" | "adminDevices" | "adminNamespaces" | "adminUsers" | "adminFirewallRules" | "adminAnnouncements";
 
 const STORAGE_KEY = "tablePreferences";
-const DEFAULT_ITEMS_PER_PAGE = 10;
+const DEFAULT_ITEMS_PER_PAGE = 10; // Default fallback value
+
+// Custom default items per page for specific tables
+const CUSTOM_DEFAULT_ITEMS_PER_PAGE_MAP: Partial<Record<TableName, number>> = {
+  tags: 100,
+};
 
 export function useTablePreference() {
   const getItemsPerPage = (tableName: TableName): number => {
+    const defaultItemsPerPage = CUSTOM_DEFAULT_ITEMS_PER_PAGE_MAP[tableName] ?? DEFAULT_ITEMS_PER_PAGE;
     try {
       const preferencesItem = localStorage.getItem(STORAGE_KEY);
-      if (!preferencesItem) return DEFAULT_ITEMS_PER_PAGE;
+      if (!preferencesItem) return defaultItemsPerPage;
 
       const preferencesObject = JSON.parse(preferencesItem) as Record<TableName, number>;
-      return preferencesObject[tableName] ?? DEFAULT_ITEMS_PER_PAGE;
+      return preferencesObject[tableName] ?? defaultItemsPerPage;
     } catch {
-      return DEFAULT_ITEMS_PER_PAGE;
+      return defaultItemsPerPage;
     }
   };
 

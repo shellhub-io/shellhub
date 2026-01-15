@@ -30,7 +30,7 @@ describe("Tag List", () => {
   localStorage.setItem("tenant", "fake-tenant-data");
 
   mockTagsApi
-    .onGet("http://localhost:3000/api/tags?page=1&per_page=10")
+    .onGet("http://localhost:3000/api/tags?page=1&per_page=100")
     .reply(200, tags, { "x-total-count": "2" });
 
   const wrapper = mount(TagList, { global: { plugins: [vuetify, router, SnackbarPlugin] } });
