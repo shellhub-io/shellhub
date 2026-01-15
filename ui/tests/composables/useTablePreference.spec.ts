@@ -22,6 +22,12 @@ describe("useTablePreference", () => {
       expect(getItemsPerPage("sessions")).toBe(10);
     });
 
+    it("should return custom default value 100 for tags when localStorage is empty", () => {
+      const { getItemsPerPage } = useTablePreference();
+
+      expect(getItemsPerPage("tags")).toBe(100);
+    });
+
     it("should return default value 10 for missing table key", () => {
       const { getItemsPerPage } = useTablePreference();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ devices: 20 }));
@@ -29,11 +35,32 @@ describe("useTablePreference", () => {
       expect(getItemsPerPage("sessions")).toBe(10);
     });
 
+    it("should return custom default value 100 for tags when key is missing", () => {
+      const { getItemsPerPage } = useTablePreference();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ devices: 20 }));
+
+      expect(getItemsPerPage("tags")).toBe(100);
+    });
+
     it("should return preferencesObject value for existing table", () => {
       const { getItemsPerPage } = useTablePreference();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ sessions: 50 }));
 
       expect(getItemsPerPage("sessions")).toBe(50);
+    });
+
+    it("should return user preference over custom default for tags", () => {
+      const { getItemsPerPage } = useTablePreference();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tags: 25 }));
+
+      expect(getItemsPerPage("tags")).toBe(25);
+    });
+
+    it("should return custom default when JSON parse errors occur for tags", () => {
+      const { getItemsPerPage } = useTablePreference();
+      localStorage.setItem(STORAGE_KEY, "invalid json{");
+
+      expect(getItemsPerPage("tags")).toBe(100);
     });
 
     it("should handle JSON parse errors gracefully", () => {
