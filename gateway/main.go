@@ -95,6 +95,10 @@ func NewGateway(config *GatewayConfig, controller *NginxController, features []s
 					g.Config.WebEndpointsDomain,
 					g.Config.WebEndpointsDNSProvider,
 					g.Config.WebEndpointsDNSProviderToken,
+					g.Config.WebEndpointsAcmeDNSURL,
+					g.Config.WebEndpointsAcmeDNSUsername,
+					g.Config.WebEndpointsAcmeDNSPassword,
+					g.Config.WebEndpointsAcmeDNSSubdomain,
 				),
 			)
 		}
