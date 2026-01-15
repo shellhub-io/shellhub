@@ -101,8 +101,6 @@ import useTagsStore from "@/store/modules/tags";
 import useSnackbar from "@/helpers/snackbar";
 import { formatShortDateTime } from "@/utils/date";
 
-const props = defineProps<{ filter: string }>();
-
 const headers = ref([
   {
     text: "Name",
@@ -121,19 +119,10 @@ const headers = ref([
 const tagsStore = useTagsStore();
 const snackbar = useSnackbar();
 const loading = ref(false);
-const itemsPerPage = ref(10);
+const itemsPerPage = ref(100);
 const page = ref(1);
 const tags = computed(() => tagsStore.tags);
 const tagCount = computed(() => tagsStore.tagCount);
-
-const encodeFilter = () => {
-  if (!props.filter) return undefined;
-  const filterObject = [{
-    type: "property",
-    params: { name: "name", operator: "contains", value: props.filter },
-  }];
-  return Buffer.from(JSON.stringify(filterObject)).toString("base64");
-};
 
 const getTags = async () => {
   loading.value = true;
@@ -141,7 +130,6 @@ const getTags = async () => {
     await tagsStore.fetchTagList({
       perPage: itemsPerPage.value,
       page: page.value,
-      filter: encodeFilter(),
     });
   } catch (error) {
     snackbar.showError("Failed to load tags.");
@@ -150,11 +138,6 @@ const getTags = async () => {
     loading.value = false;
   }
 };
-
-watch(() => props.filter, async () => {
-  page.value = 1;
-  await getTags();
-}, { immediate: true });
 
 watch([page, itemsPerPage], async () => { await getTags(); });
 
