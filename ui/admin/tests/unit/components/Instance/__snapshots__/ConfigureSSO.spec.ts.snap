@@ -286,7 +286,7 @@ exports[`Configure SSO > Renders the component 1`] = `
                 <div class="v-window v-theme--light w-100">
                   <div class="v-window__container">
                     <!-- Default buttons window -->
-                    <transition-stub name="v-window-y-transition" appear="false" persisted="false" css="true">
+                    <transition-stub name="" appear="false" persisted="false" css="true">
                       <div class="v-window-item v-window-item--active w-100">
                         <div class="d-flex align-center w-100">
                           <!-- Helper text on the left -->
@@ -304,7 +304,7 @@ exports[`Configure SSO > Renders the component 1`] = `
                         </div>
                       </div>
                     </transition-stub><!-- Alert window -->
-                    <transition-stub name="v-window-y-transition" appear="false" persisted="false" css="true">
+                    <transition-stub name="" appear="false" persisted="false" css="true">
                       <div class="v-window-item w-100" style="display: none;">
                         <!---->
                       </div>
