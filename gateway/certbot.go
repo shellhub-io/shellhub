@@ -119,6 +119,9 @@ const DigitalOceanDNSProvider = "digitalocean"
 // CloudflareDNSProvider represents the Cloudflare DNS provider.
 const CloudflareDNSProvider = "cloudflare"
 
+// AcmeDNSProvider represents the acme-dns provider for DNS-01 challenges.
+const AcmeDNSProvider = "acmedns"
+
 // Config holds the configuration for CertBot operations.
 type Config struct {
 	// RootDir is the root directory where CertBot stores its configurations
@@ -298,8 +301,16 @@ type WebEndpointsCertificate struct {
 	Domain string
 	// Provider is the DNS provider used for DNS-01 challenges.
 	Provider DNSProvider
-	// Token is the API token for the DNS provider.
+	// Token is the API token for the DNS provider (used for Cloudflare and DigitalOcean).
 	Token string
+	// AcmeDNSURL is the URL of the acme-dns server (only for acmedns provider).
+	AcmeDNSURL string
+	// AcmeDNSUsername is the username from acme-dns registration (only for acmedns provider).
+	AcmeDNSUsername string
+	// AcmeDNSPassword is the password from acme-dns registration (only for acmedns provider).
+	AcmeDNSPassword string
+	// AcmeDNSSubdomain is the subdomain from acme-dns registration (only for acmedns provider).
+	AcmeDNSSubdomain string
 
 	ex Executor
 	fs afero.Fs
@@ -307,12 +318,17 @@ type WebEndpointsCertificate struct {
 
 // NewWebEndpointsCertificate creates a new TunnelsCertificate instance for generating
 // wildcard certificates using DNS-01 challenges.
-func NewWebEndpointsCertificate(domain string, provider DNSProvider, token string) Certificate {
+func NewWebEndpointsCertificate(domain string, provider DNSProvider, token string, acmeDNSURL, acmeDNSUsername, acmeDNSPassword, acmeDNSSubdomain string) Certificate {
 	return &WebEndpointsCertificate{
 		Domain: domain,
 
 		Provider: provider,
 		Token:    token,
+
+		AcmeDNSURL:       acmeDNSURL,
+		AcmeDNSUsername:  acmeDNSUsername,
+		AcmeDNSPassword:  acmeDNSPassword,
+		AcmeDNSSubdomain: acmeDNSSubdomain,
 
 		ex: NewExecutor(),
 		fs: afero.NewOsFs(),
@@ -322,22 +338,46 @@ func NewWebEndpointsCertificate(domain string, provider DNSProvider, token strin
 // generateProviderCredentialsFile creates a credentials file for the DNS provider.
 // This file contains the API token needed for DNS-01 challenges.
 func (d *WebEndpointsCertificate) generateProviderCredentialsFile() (afero.File, error) {
-	tokenLine := fmt.Sprintf("dns_%s_token = %s", d.Provider, d.Token)
+	var content string
+	var filename string
 
-	// Certbot Cloudflare plugin expects dns_cloudflare_api_token
-	if d.Provider == CloudflareDNSProvider {
-		tokenLine = fmt.Sprintf("dns_cloudflare_api_token = %s", d.Token)
+	switch d.Provider {
+	case CloudflareDNSProvider:
+		// Certbot Cloudflare plugin expects dns_cloudflare_api_token
+		content = fmt.Sprintf("dns_cloudflare_api_token = %s", d.Token)
+		filename = "/etc/shellhub-gateway/cloudflare.ini"
+
+	case DigitalOceanDNSProvider:
+		content = fmt.Sprintf("dns_digitalocean_token = %s", d.Token)
+		filename = "/etc/shellhub-gateway/digitalocean.ini"
+
+	case AcmeDNSProvider:
+		// certbot-dns-acmedns expects a JSON file with acme-dns credentials
+		content = fmt.Sprintf(`{
+  "%s": {
+    "username": "%s",
+    "password": "%s",
+    "fulldomain": "%s",
+    "subdomain": "%s",
+    "allowfrom": []
+  }
+}`, d.Domain, d.AcmeDNSUsername, d.AcmeDNSPassword,
+			fmt.Sprintf("_acme-challenge.%s", d.Domain), d.AcmeDNSSubdomain)
+		filename = "/etc/shellhub-gateway/acmedns.json"
+
+	default:
+		return nil, fmt.Errorf("unsupported DNS provider: %s", d.Provider)
 	}
 
-	file, err := d.fs.Create(fmt.Sprintf("/etc/shellhub-gateway/%s.ini", string(d.Provider)))
+	file, err := d.fs.Create(filename)
 	if err != nil {
-		log.WithError(err).Error("failed to create shellhub-gateway file with dns provider token")
+		log.WithError(err).WithField("filename", filename).Error("failed to create credentials file")
 
 		return nil, err
 	}
 
-	if _, err := file.Write([]byte(tokenLine)); err != nil {
-		log.WithError(err).Error("failed to write the token into credentials file")
+	if _, err := file.Write([]byte(content)); err != nil {
+		log.WithError(err).Error("failed to write credentials to file")
 
 		return nil, err
 	}
@@ -354,8 +394,24 @@ func (d *WebEndpointsCertificate) Check() error {
 		return errors.New("DNS provider is required for certificate generation")
 	}
 
-	if d.Token == "" {
-		return errors.New("DNS provider token is required for certificate generation")
+	// Validate provider-specific credentials
+	switch d.Provider {
+	case CloudflareDNSProvider, DigitalOceanDNSProvider:
+		if d.Token == "" {
+			return fmt.Errorf("DNS provider token is required for %s", d.Provider)
+		}
+	case AcmeDNSProvider:
+		if d.AcmeDNSUsername == "" {
+			return errors.New("acme-dns username is required for acmedns provider")
+		}
+		if d.AcmeDNSPassword == "" {
+			return errors.New("acme-dns password is required for acmedns provider")
+		}
+		if d.AcmeDNSSubdomain == "" {
+			return errors.New("acme-dns subdomain is required for acmedns provider")
+		}
+	default:
+		return fmt.Errorf("unsupported DNS provider: %s", d.Provider)
 	}
 
 	if _, err := d.fs.Stat("/etc/shellhub-gateway"); os.IsNotExist(err) {
@@ -384,7 +440,7 @@ func (d *WebEndpointsCertificate) Generate(staging bool) error {
 	// Create the DNS provider credentials file
 	file, err := d.generateProviderCredentialsFile()
 	if err != nil {
-		log.WithError(err).Error("failed to generate INI file")
+		log.WithError(err).Error("failed to generate credentials file")
 
 		return err
 	}
@@ -397,12 +453,27 @@ func (d *WebEndpointsCertificate) Generate(staging bool) error {
 		"--register-unsafely-without-email",
 		"--cert-name",
 		fmt.Sprintf("*.%s", d.Domain),
-		fmt.Sprintf("--dns-%s", d.Provider),
-		fmt.Sprintf("--dns-%s-credentials", d.Provider),
-		file.Name(),
-		"-d",
-		fmt.Sprintf("*.%s", d.Domain),
 	}
+
+	// Add provider-specific arguments
+	if d.Provider == AcmeDNSProvider {
+		// certbot-dns-acmedns uses different flags
+		args = append(args,
+			"--dns-acmedns",
+			"--dns-acmedns-credentials",
+			file.Name(),
+		)
+	} else {
+		// Standard certbot DNS plugins (cloudflare, digitalocean)
+		args = append(args,
+			fmt.Sprintf("--dns-%s", d.Provider),
+			fmt.Sprintf("--dns-%s-credentials", d.Provider),
+			file.Name(),
+		)
+	}
+
+	// Add domain
+	args = append(args, "-d", fmt.Sprintf("*.%s", d.Domain))
 
 	if staging {
 		log.Info("running generate with staging on dns")

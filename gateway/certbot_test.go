@@ -37,6 +37,21 @@ func TestTunnelsCertificate_generateProviderCredentialsFile(t *testing.T) {
 			wantFile:    "/etc/shellhub-gateway/cloudflare.ini",
 			wantContent: "dns_cloudflare_api_token = test-cf",
 		},
+		{
+			name:     "AcmeDNS",
+			provider: AcmeDNSProvider,
+			token:    "", // Not used for acme-dns
+			wantFile: "/etc/shellhub-gateway/acmedns.json",
+			wantContent: `{
+  "localhost": {
+    "username": "test-username",
+    "password": "test-password",
+    "fulldomain": "_acme-challenge.localhost",
+    "subdomain": "test-subdomain",
+    "allowfrom": []
+  }
+}`,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -45,6 +60,14 @@ func TestTunnelsCertificate_generateProviderCredentialsFile(t *testing.T) {
 				Provider: tc.provider,
 				Token:    tc.token,
 			}
+
+			// Add acme-dns specific fields if needed
+			if tc.provider == AcmeDNSProvider {
+				cert.AcmeDNSUsername = "test-username"
+				cert.AcmeDNSPassword = "test-password"
+				cert.AcmeDNSSubdomain = "test-subdomain"
+			}
+
 			cert.fs = afero.NewMemMapFs()
 
 			file, err := cert.generateProviderCredentialsFile()
@@ -165,6 +188,35 @@ func TestTunnelsCertificate_generate(t *testing.T) {
 					"--dns-cloudflare",
 					"--dns-cloudflare-credentials",
 					"/etc/shellhub-gateway/cloudflare.ini",
+					"-d",
+					"*.localhost",
+				).Return(exec.Command("")).Once()
+
+				executorMock.On("Run", mock.AnythingOfType("*exec.Cmd")).Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			// AcmeDNS provider invocation
+			name: "acmedns provider",
+			config: WebEndpointsCertificate{
+				Domain:           "localhost",
+				Provider:         "acmedns",
+				AcmeDNSUsername:  "test-user",
+				AcmeDNSPassword:  "test-pass",
+				AcmeDNSSubdomain: "test-subdomain",
+			},
+			expectCalls: func(executorMock *gatewayMocks.Executor) {
+				executorMock.On("Command", "certbot",
+					"certonly",
+					"--non-interactive",
+					"--agree-tos",
+					"--register-unsafely-without-email",
+					"--cert-name",
+					"*.localhost",
+					"--dns-acmedns",
+					"--dns-acmedns-credentials",
+					"/etc/shellhub-gateway/acmedns.json",
 					"-d",
 					"*.localhost",
 				).Return(exec.Command("")).Once()

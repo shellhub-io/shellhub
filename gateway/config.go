@@ -17,6 +17,10 @@ type GatewayConfig struct {
 	WebEndpointsDomain           string      `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
 	WebEndpointsDNSProvider      DNSProvider `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`
 	WebEndpointsDNSProviderToken string      `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER_TOKEN"`
+	WebEndpointsAcmeDNSURL       string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_URL"`
+	WebEndpointsAcmeDNSUsername  string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_USERNAME"`
+	WebEndpointsAcmeDNSPassword  string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_PASSWORD"`
+	WebEndpointsAcmeDNSSubdomain string      `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN"`
 	WorkerProcesses              string      `env:"WORKER_PROCESSES,default=auto"`
 	MaxWorkerOpenFiles           int         `env:"MAX_WORKER_OPEN_FILES,default=0"`
 	MaxWorkerConnections         int         `env:"MAX_WORKER_CONNECTIONS,default=16384"`
