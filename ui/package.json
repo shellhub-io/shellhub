@@ -102,6 +102,7 @@
     "vite-plugin-vuetify": "^2.0.1",
     "vitest": "^2.1.8",
     "vue-cli-plugin-vuetify": "^2.5.8",
+    "vue-component-type-helpers": "^3.2.2",
     "vue-eslint-parser": "^10.2.0",
     "vue-stripe-js": "^1.0.1",
     "vue-tsc": "^3.0.0",
