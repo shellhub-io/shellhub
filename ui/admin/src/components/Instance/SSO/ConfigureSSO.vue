@@ -413,6 +413,4 @@ const populateFields = () => {
 };
 
 watch(showDialog, (newVal) => { if (newVal && instanceStore.isSamlEnabled) populateFields(); });
-
-defineExpose({ IdPMetadataURL, useMetadataUrl, showDialog, handleCertificateChange, x509CertificateErrorMessage, mappings });
 </script>
