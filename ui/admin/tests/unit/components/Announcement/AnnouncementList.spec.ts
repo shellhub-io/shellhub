@@ -1,72 +1,146 @@
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import AnnouncementList from "@admin/components/Announcement/AnnouncementList.vue";
-import routes from "@admin/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockAnnouncements } from "../../mocks";
+import { Router } from "vue-router";
 
-type AnnouncementListWrapper = VueWrapper<InstanceType<typeof AnnouncementList>>;
+describe("AnnouncementList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof AnnouncementList>>;
+  let router: Router;
+  let announcementsStore: ReturnType<typeof useAnnouncementStore>;
 
-const announcements = [
-  {
-    uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
-    title: "Announcement 1",
-    content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-    date: "2022-12-15T19:45:45.618Z",
-  },
-  {
-    uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf5b",
-    title: "Announcement 2",
-    content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-    date: "2022-12-15T19:45:45.618Z",
-  },
-];
+  const mountWrapper = (mockAnnouncementCount?: number) => {
+    router = createCleanAdminRouter();
 
-describe("Announcement List", () => {
-  const vuetify = createVuetify();
-  let wrapper: AnnouncementListWrapper;
-
-  beforeEach(() => {
-    setActivePinia(createPinia());
-
-    const announcementStore = useAnnouncementStore();
-
-    vi.spyOn(announcementStore, "fetchAnnouncementList").mockResolvedValue();
-    announcementStore.announcements = announcements;
-    announcementStore.announcementCount = 2;
-
-    wrapper = mount(AnnouncementList, {
-      global: {
-        plugins: [vuetify, routes, SnackbarPlugin],
+    wrapper = mountComponent(AnnouncementList, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        initialState: {
+          adminAnnouncement: {
+            announcements: mockAnnouncements,
+            announcementCount: mockAnnouncementCount ?? mockAnnouncements.length,
+          },
+        },
       },
+    });
+
+    announcementsStore = useAnnouncementStore();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the data table", () => {
+      expect(wrapper.find('[data-test="announcement-list"]').exists()).toBe(true);
+    });
+
+    it("displays announcement UUIDs", () => {
+      const uuids = wrapper.findAll('[data-test="announcement-uuid"]');
+      expect(uuids).toHaveLength(mockAnnouncements.length);
+      expect(uuids[0].text()).toContain(mockAnnouncements[0].uuid);
+    });
+
+    it("displays announcement titles", () => {
+      const titles = wrapper.findAll('[data-test="announcement-title"]');
+      expect(titles).toHaveLength(mockAnnouncements.length);
+      expect(titles[0].text()).toBe(mockAnnouncements[0].title);
+      expect(titles[1].text()).toBe(mockAnnouncements[1].title);
+    });
+
+    it("displays action buttons for each announcement", () => {
+      const actionCells = wrapper.findAll('[data-test="announcement-actions"]');
+      expect(actionCells).toHaveLength(mockAnnouncements.length);
+    });
+
+    it("displays edit buttons", () => {
+      const editButtons = wrapper.findAll('[data-test="edit-button"]');
+      expect(editButtons).toHaveLength(mockAnnouncements.length);
+    });
+
+    it("displays delete buttons", () => {
+      const deleteButtons = wrapper.findAll('[data-test="delete-button"]');
+      expect(deleteButtons).toHaveLength(mockAnnouncements.length);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+  describe("fetching announcements", () => {
+    it("fetches announcements on mount", () => {
+      mountWrapper();
+
+      expect(announcementsStore.fetchAnnouncementList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perPage: 10,
+          page: 1,
+          orderBy: "desc",
+        }),
+      );
+    });
+
+    it("refetches announcements when page changes", async () => {
+      mountWrapper(11); // Mock total count to 11 to enable pagination
+
+      // Click next page button
+      const nextPageBtn = wrapper.find('[data-test="pager-next"]');
+      await nextPageBtn.trigger("click");
+      await flushPromises();
+
+      expect(announcementsStore.fetchAnnouncementList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 2,
+        }),
+      );
+    });
+
+    it("refetches announcements when items per page changes", async () => {
+      mountWrapper(20);
+
+      // Change items per page via combobox
+      const ippCombo = wrapper.find('[data-test="ipp-combo"] input');
+      await ippCombo.setValue(20);
+      await flushPromises();
+
+      expect(announcementsStore.fetchAnnouncementList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perPage: 20,
+        }),
+      );
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("navigating to announcement details", () => {
+    it("navigates when clicking info icon", async () => {
+      mountWrapper();
+
+      const pushSpy = vi.spyOn(router, "push");
+      const infoIcon = wrapper.findAll('[data-test="info-button"]')[0];
+
+      await infoIcon.trigger("click");
+
+      expect(pushSpy).toHaveBeenCalledWith({
+        name: "announcementDetails",
+        params: { uuid: mockAnnouncements[0].uuid },
+      });
+    });
   });
 
-  it("Renders the correct data", () => {
-    expect(wrapper.vm.itemsPerPage).toBe(10);
-    expect(wrapper.vm.page).toBe(1);
-    expect(wrapper.vm.loading).toBe(false);
-  });
+  describe("error handling", () => {
+    it("shows error snackbar when fetching announcements fails", async () => {
+      mountWrapper();
+      vi.mocked(announcementsStore.fetchAnnouncementList).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+      await flushPromises();
 
-  it("Renders the correct computed", () => {
-    expect(wrapper.vm.announcementCount).toBe(2);
-    expect(wrapper.vm.announcements).toEqual(announcements);
-  });
-
-  it("Renders the correct HTML", () => {
-    expect(wrapper.find("[data-test='announcement-list']").exists()).toBeTruthy();
-    expect(wrapper.find("[data-test='announcement-uuid']").exists()).toBeTruthy();
-    expect(wrapper.find("[data-test='announcement-title']").exists()).toBeTruthy();
-    expect(wrapper.find("[data-test='announcement-actions']").exists()).toBeTruthy();
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to fetch announcements.");
+    });
   });
 });

@@ -1,65 +1,198 @@
-import { createVuetify } from "vuetify";
-import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import useAnnouncementStore from "@admin/store/modules/announcement";
 import AnnouncementEdit from "@admin/components/Announcement/AnnouncementEdit.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockAnnouncement, mockAnnouncementShort } from "../../mocks";
+import { createAxiosError } from "@tests/utils/axiosError";
 
 vi.mock("@tinymce/tinymce-vue", () => ({
   default: {
     name: "Editor",
-    template: '<div class="tinymce-mock"><textarea v-model="modelValue"></textarea></div>',
+    // eslint-disable-next-line vue/max-len
+    template: '<div class="tinymce-mock"><textarea :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" data-test="editor-mock"></textarea></div>',
     props: ["modelValue", "init", "apiKey"],
   },
 }));
 
-const shortAnnouncement = {
-  uuid: "eac7e18d-7127-41ca-b68b-8242dfdbaf4c",
-  title: "Announcement 1",
-  date: "2022-12-15T19:45:45.618Z",
-};
+const triggerButtonTemplate = `
+  <template #default="{ openDialog }">
+    <button 
+      data-test="trigger-button" 
+      @click="openDialog"
+    >
+      Edit
+    </button>
+  </template>
+`;
 
-const announcement = {
-  ...shortAnnouncement,
-  content: "## ShellHub new features \n - New feature 1 \n - New feature 2 \n - New feature 3",
-};
+describe("AnnouncementEdit", () => {
+  let wrapper: VueWrapper<InstanceType<typeof AnnouncementEdit>>;
+  let announcementsStore: ReturnType<typeof useAnnouncementStore>;
 
-describe("Announcement Edit", () => {
-  setActivePinia(createPinia());
-  const announcementStore = useAnnouncementStore();
+  const mountWrapper = () => {
+    wrapper = mountComponent(AnnouncementEdit, {
+      props: {
+        announcementItem: mockAnnouncementShort,
+        showTooltip: false,
+      },
+      slots: { default: triggerButtonTemplate },
+      attachTo: document.body,
+      piniaOptions: {
+        initialState: {
+          adminAnnouncement: { announcement: mockAnnouncement },
+        },
+      },
+    });
 
-  announcementStore.announcement = announcement;
-  announcementStore.fetchAnnouncement = vi.fn().mockResolvedValue(announcement);
+    announcementsStore = useAnnouncementStore();
+  };
 
-  const wrapper = mount(AnnouncementEdit, {
-    global: { plugins: [createVuetify(), SnackbarPlugin] },
-    props: { announcementItem: shortAnnouncement },
-    slots: {
-      default: '<button data-test="edit-trigger">Edit</button>',
-    },
+  const openDialog = async () => {
+    await wrapper.find('[data-test="trigger-button"]').trigger("click");
+    return new DOMWrapper(document.body).find('[role="dialog"]');
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+    document.body.innerHTML = "";
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.find('[data-test="edit-trigger"]').exists()).toBe(true);
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the slot content", () => {
+      const trigger = wrapper.find('[data-test="trigger-button"]');
+      expect(trigger.exists()).toBe(true);
+      expect(trigger.text()).toBe("Edit");
+    });
+
+    it("does not show the dialog initially", () => {
+      expect(new DOMWrapper(document.body).find('[role="dialog"]').exists()).toBe(false);
+    });
   });
 
-  it("Renders the correct data", () => {
-    expect(wrapper.vm.showDialog).toBe(false);
-    expect(wrapper.vm.announcement.uuid).toBe(shortAnnouncement.uuid);
-    expect(wrapper.vm.announcement.title).toBe(shortAnnouncement.title);
-    expect(wrapper.vm.announcement.date).toBe(shortAnnouncement.date);
-    expect(wrapper.vm.contentInHtml).toBe("");
-    expect(wrapper.vm.contentError).toBe(false);
-    expect(wrapper.vm.title).toBe(announcement.title);
+  describe("opening dialog", () => {
+    it("shows dialog and fetches announcement when clicking trigger", async () => {
+      mountWrapper();
+
+      const dialog = await openDialog();
+
+      expect(announcementsStore.fetchAnnouncement).toHaveBeenCalledWith(mockAnnouncementShort.uuid);
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.text()).toContain("Edit Announcement");
+    });
+
+    it("displays current announcement title in form", async () => {
+      mountWrapper();
+
+      const dialog = await openDialog();
+      const titleInput = dialog.find('input[type="text"]');
+      expect((titleInput.element as HTMLInputElement).value).toBe(mockAnnouncement.title);
+    });
+
+    it("renders content editor", async () => {
+      mountWrapper();
+
+      const dialog = await openDialog();
+      expect(dialog.find('[data-test="editor-mock"]').exists()).toBe(true);
+    });
   });
 
-  it("Opens the dialog when open method is called", async () => {
-    expect(wrapper.vm.showDialog).toBe(false);
+  describe("form validation", () => {
+    it("shows error when submitting with empty title", async () => {
+      mountWrapper();
 
-    await wrapper.vm.openDialog();
+      const dialog = await openDialog();
+      const titleInput = dialog.find('input[type="text"]');
+      await titleInput.setValue("");
+      await flushPromises();
 
-    expect(wrapper.vm.showDialog).toBe(true);
-    expect(announcementStore.fetchAnnouncement).toHaveBeenCalledWith(shortAnnouncement.uuid);
+      const submitBtn = dialog.find('[data-test="confirm-btn"]');
+      await submitBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Please fill in all required fields.");
+    });
+
+    it("shows error when submitting with empty content", async () => {
+      mountWrapper();
+
+      const dialog = await openDialog();
+      // Clear content via mocked editor
+      const editor = dialog.find('[data-test="editor-mock"]');
+      await editor.setValue("");
+      await flushPromises();
+
+      const submitBtn = dialog.find('[data-test="confirm-btn"]');
+      await submitBtn.trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="announcement-error"]').exists()).toBe(true);
+      expect(dialog.text()).toContain("The announcement cannot be empty!");
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Please fill in all required fields.");
+    });
+  });
+
+  describe("updating announcement", () => {
+    it("calls store action and shows success message on submit", async () => {
+      mountWrapper();
+
+      const dialog = await openDialog();
+      const titleInput = dialog.find('input[type="text"]');
+      await titleInput.setValue("Updated Title");
+
+      // Set content via mocked editor
+      const editor = dialog.find('[data-test="editor-mock"]');
+      await editor.setValue("<h2>Updated Content</h2>");
+      await flushPromises();
+
+      const submitBtn = dialog.find('[data-test="confirm-btn"]');
+      await submitBtn.trigger("click");
+      await flushPromises();
+
+      expect(announcementsStore.updateAnnouncement).toHaveBeenCalledWith(
+        mockAnnouncement.uuid,
+        expect.objectContaining({
+          title: "Updated Title",
+          content: expect.stringContaining("Updated Content"),
+        }),
+      );
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Announcement updated successfully.");
+    });
+
+    it("shows error message when update fails", async () => {
+      mountWrapper();
+      vi.mocked(announcementsStore.updateAnnouncement).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+
+      const dialog = await openDialog();
+      const editor = dialog.find('[data-test="editor-mock"]');
+      await editor.setValue("<h2>Updated Content</h2>");
+      await flushPromises();
+
+      const submitBtn = dialog.find('[data-test="confirm-btn"]');
+      await submitBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update announcement.");
+    });
+
+    it("emits update event after successful update", async () => {
+      mountWrapper();
+
+      const dialog = await openDialog();
+      const editor = dialog.find('[data-test="editor-mock"]');
+      await editor.setValue("<h2>Updated Content</h2>");
+      await flushPromises();
+
+      const submitBtn = dialog.find('[data-test="confirm-btn"]');
+      await submitBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
   });
 });

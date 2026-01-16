@@ -139,8 +139,6 @@ const onSubmit = async () => {
     snackbar.showError("Failed to update announcement.");
   }
 };
-
-defineExpose({ showDialog, announcement, contentInHtml, contentError, title, openDialog });
 </script>
 
 <style lang="scss">
