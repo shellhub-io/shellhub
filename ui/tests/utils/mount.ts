@@ -1,8 +1,9 @@
-import { Component } from "vue";
-import { mount, MountingOptions, ComponentMountingOptions } from "@vue/test-utils";
+import type { Component } from "vue";
+import { mount, type VueWrapper, type MountingOptions, type ComponentMountingOptions } from "@vue/test-utils";
+import type { ComponentProps, ComponentExposed } from "vue-component-type-helpers";
 import { vi } from "vitest";
 import { createVuetify } from "vuetify";
-import { createTestingPinia, TestingOptions } from "@pinia/testing";
+import { createTestingPinia, type TestingOptions } from "@pinia/testing";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 
 /**
@@ -19,23 +20,14 @@ export const mockSnackbar = {
 /**
  * Extended mounting options specific to ShellHub tests.
  */
-export interface ShellHubMountOptions<T> extends Omit<MountingOptions<T>, "global"> {
-  /**
-   * Options to pass to createTestingPinia.
-   * If not provided, uses createTestingPinia defaults.
-   */
-  piniaOptions?: Partial<TestingOptions>;
-
-  /**
-   * Whether to use shallow mount instead of mount. Default: false
-   */
-  shallow?: boolean;
-
-  /**
-   * Custom global configuration to merge with defaults
-   */
-  global?: MountingOptions<T>["global"];
-}
+export type ShellHubMountOptions<C extends Component>
+  = MountingOptions<ComponentProps<C>, ComponentExposed<C>> & {
+    /**
+     * Options to pass to createTestingPinia.
+     * If not provided, uses createTestingPinia defaults.
+     */
+    piniaOptions?: Partial<TestingOptions>;
+  };
 
 /**
  * Helper function to mount Vue components with common ShellHub test configurations.
@@ -69,7 +61,9 @@ export interface ShellHubMountOptions<T> extends Omit<MountingOptions<T>, "globa
  *
  * // With stubs
  * const wrapper = mountComponent(MyComponent, {
- *   stubs: { 'v-file-upload': true }
+ *   global: {
+ *     stubs: { 'v-file-upload': true }
+ *   }
  * });
  *
  * // Shallow mount
@@ -84,13 +78,12 @@ export interface ShellHubMountOptions<T> extends Omit<MountingOptions<T>, "globa
  * @param options - Mounting options including ShellHub-specific options
  * @returns VueWrapper instance
  */
-export const mountComponent = <T extends Component>(
-  component: T,
-  options: ShellHubMountOptions<T> = {},
-) => {
+export function mountComponent<C extends Component>(
+  component: C,
+  options: ShellHubMountOptions<C> = {},
+): VueWrapper<ComponentExposed<C>> {
   const {
     piniaOptions,
-    shallow = false,
     global = {},
     ...restOptions
   } = options;
@@ -116,11 +109,13 @@ export const mountComponent = <T extends Component>(
   };
 
   // Build final mounting options
-  const finalOptions: MountingOptions<T> = {
+  const finalOptions = {
     ...restOptions,
     global: finalGlobal,
-    shallow,
-  };
+  } as ComponentMountingOptions<C, ComponentProps<C>>;
 
-  return mount(component, finalOptions as ComponentMountingOptions<T>);
-};
+  return mount(
+    component,
+    finalOptions,
+  ) as VueWrapper<ComponentExposed<C>>;
+}
