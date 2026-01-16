@@ -123,6 +123,4 @@ const submitForm = async () => {
     snackbar.showError("Failed to update namespace.");
   }
 };
-
-defineExpose({ name, maxDevices, sessionRecord, submitForm });
 </script>

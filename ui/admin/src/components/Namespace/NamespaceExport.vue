@@ -29,6 +29,7 @@
         <v-radio
           label="Namespaces with more than:"
           :value="AdminNamespaceFilterOptions.MoreThan"
+          data-test="radio-more-than"
         />
         <v-text-field
           v-model="numberOfDevices"
@@ -40,14 +41,17 @@
           density="comfortable"
           :hide-details="hideNumberOfDevicesInputDetails"
           :error-messages="numberOfDevicesError"
+          data-test="number-of-devices-input"
         />
         <v-radio
           label="Namespaces with no devices"
           :value="AdminNamespaceFilterOptions.NoDevices"
+          data-test="radio-no-devices"
         />
         <v-radio
           label="Namespace with devices, but no sessions"
           :value="AdminNamespaceFilterOptions.NoSessions"
+          data-test="radio-no-sessions"
         />
       </v-radio-group>
     </v-card-text>

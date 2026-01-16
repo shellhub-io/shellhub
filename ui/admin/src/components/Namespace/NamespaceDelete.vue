@@ -16,7 +16,7 @@
   >
     <p data-test="content-text">
       This action cannot be undone. This will permanently delete
-      <strong>{{ displayOnlyTenCharacters(name) }}</strong> and its related
+      <strong>{{ name }}</strong> and its related
       data.
     </p>
   </MessageDialog>
@@ -25,7 +25,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import MessageDialog from "@/components/Dialogs/MessageDialog.vue";
@@ -61,6 +60,4 @@ const remove = async () => {
     isLoading.value = false;
   }
 };
-
-defineExpose({ isLoading });
 </script>
