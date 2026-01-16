@@ -70,6 +70,7 @@
                 v-bind="props"
                 tabindex="0"
                 icon="mdi-information"
+                data-test="info-button"
                 @click="goToFirewallRule(firewallRule.id)"
                 @keypress.enter="goToFirewallRule(firewallRule.id)"
               />
@@ -154,18 +155,5 @@ watch([itemsPerPage, page], async () => {
 
 onMounted(async () => {
   await fetchFirewallRules();
-});
-
-defineExpose({
-  headers,
-  loading,
-  itemsPerPage,
-  page,
-  firewallRules,
-  formatSourceIP,
-  formatUsername,
-  formatHostnameFilter,
-  displayOnlyTenCharacters,
-  showTag,
 });
 </script>

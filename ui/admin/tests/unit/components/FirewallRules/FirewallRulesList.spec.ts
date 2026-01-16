@@ -1,112 +1,151 @@
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useFirewallRulesStore from "@admin/store/modules/firewall_rules";
 import FirewallRulesList from "@admin/components/FirewallRules/FirewallRulesList.vue";
-import routes from "@admin/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockFirewallRules } from "../../mocks";
+import { Router } from "vue-router";
 
-type FirewallRulesListWrapper = VueWrapper<InstanceType<typeof FirewallRulesList>>;
+describe("FirewallRulesList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof FirewallRulesList>>;
+  let router: Router;
+  let firewallRulesStore: ReturnType<typeof useFirewallRulesStore>;
 
-const headers = [
-  { text: "Tenant Id", value: "tenant_id" },
-  { text: "Priority", value: "priority" },
-  { text: "Action", value: "action" },
-  { text: "Source Ip", value: "source_ip" },
-  { text: "Username", value: "username" },
-  { text: "Filter", value: "filter" },
-  { text: "Actions", value: "actions" },
-];
+  const mountWrapper = (mockFirewallRulesCount?: number) => {
+    router = createCleanAdminRouter();
 
-const firewallRules = [
-  {
-    action: "allow" as const,
-    active: true,
-    filter: {
-      tags: [
-        {
-          tenant_id: "fake-tenant-data",
-          name: "test-tag",
-          created_at: "",
-          updated_at: "",
+    wrapper = mountComponent(FirewallRulesList, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        initialState: {
+          adminFirewallRules: {
+            firewallRules: mockFirewallRules,
+            firewallRulesCount: mockFirewallRulesCount ?? mockFirewallRules.length,
+          },
         },
-      ],
-    },
-    id: "5f1996c84d2190a22d5857bb",
-    tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    priority: 4,
-    source_ip: "127.0.0.1",
-    username: "shellhub",
-  },
-];
-
-describe("Firewall Rules List", () => {
-  let wrapper: FirewallRulesListWrapper;
-
-  beforeEach(() => {
-    setActivePinia(createPinia());
-
-    const vuetify = createVuetify();
-    const firewallRulesStore = useFirewallRulesStore();
-
-    firewallRulesStore.firewallRules = firewallRules;
-    firewallRulesStore.firewallRulesCount = firewallRules.length;
-    firewallRulesStore.fetchFirewallRulesList = vi.fn();
-
-    wrapper = mount(FirewallRulesList, {
-      global: {
-        plugins: [vuetify, routes, SnackbarPlugin],
       },
+    });
+
+    firewallRulesStore = useFirewallRulesStore();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
+
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders the data table", () => {
+      expect(wrapper.find('[data-test="firewall-rules-list"]').exists()).toBe(true);
+    });
+
+    it("displays firewall rule tenant IDs", () => {
+      expect(wrapper.text()).toContain(mockFirewallRules[0].tenant_id);
+      expect(wrapper.text()).toContain(mockFirewallRules[1].tenant_id);
+    });
+
+    it("displays firewall rule priorities", () => {
+      expect(wrapper.text()).toContain(mockFirewallRules[0].priority.toString());
+      expect(wrapper.text()).toContain(mockFirewallRules[1].priority.toString());
+    });
+
+    it("displays firewall rule actions", () => {
+      expect(wrapper.text()).toContain(mockFirewallRules[0].action);
+      expect(wrapper.text()).toContain(mockFirewallRules[1].action);
+    });
+
+    it("displays firewall rule source IPs", () => {
+      expect(wrapper.text()).toContain(mockFirewallRules[0].source_ip);
+      expect(wrapper.text()).toContain(mockFirewallRules[1].source_ip);
+    });
+
+    it("displays firewall rule usernames", () => {
+      expect(wrapper.text()).toContain(mockFirewallRules[0].username);
+      expect(wrapper.text()).toContain(mockFirewallRules[1].username);
+    });
+
+    it("displays info buttons for each firewall rule", () => {
+      const infoButtons = wrapper.findAll('[data-test="info-button"]');
+      expect(infoButtons).toHaveLength(mockFirewallRules.length);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+  describe("fetching firewall rules", () => {
+    it("fetches firewall rules on mount", () => {
+      mountWrapper();
+
+      expect(firewallRulesStore.fetchFirewallRulesList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perPage: 10,
+          page: 1,
+        }),
+      );
+    });
+
+    it("refetches firewall rules when page changes", async () => {
+      mountWrapper(11); // Mock total count to 11 to enable pagination
+
+      // Click next page button
+      const nextPageBtn = wrapper.find('[data-test="pager-next"]');
+      await nextPageBtn.trigger("click");
+      await flushPromises();
+
+      expect(firewallRulesStore.fetchFirewallRulesList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 2,
+        }),
+      );
+    });
+
+    it("refetches firewall rules when items per page changes", async () => {
+      mountWrapper(20);
+
+      // Change items per page via combobox
+      const ippCombo = wrapper.find('[data-test="ipp-combo"] input');
+      await ippCombo.setValue(20);
+      await flushPromises();
+
+      expect(firewallRulesStore.fetchFirewallRulesList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perPage: 20,
+        }),
+      );
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("navigating to firewall rule details", () => {
+    it("navigates when clicking info button", async () => {
+      mountWrapper();
+
+      const pushSpy = vi.spyOn(router, "push");
+      const infoButton = wrapper.findAll('[data-test="info-button"]')[0];
+
+      await infoButton.trigger("click");
+
+      expect(pushSpy).toHaveBeenCalledWith({
+        name: "firewallRulesDetails",
+        params: { id: mockFirewallRules[0].id },
+      });
+    });
   });
 
-  it("Renders the template with data", () => {
-    const dt = wrapper.find("[data-test]");
-    expect(dt.attributes()["data-test"]).toContain("firewall-rules-list");
-    expect(wrapper.vm.headers).toEqual(headers);
-    expect(wrapper.vm.loading).toEqual(false);
-    expect(wrapper.vm.itemsPerPage).toEqual(10);
-    expect(wrapper.vm.page).toEqual(1);
-  });
+  describe("error handling", () => {
+    it("shows error snackbar when fetching firewall rules fails", async () => {
+      mountWrapper(11);
+      vi.mocked(firewallRulesStore.fetchFirewallRulesList).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
 
-  it("Renders data in the computed", () => {
-    expect(wrapper.vm.firewallRules).toEqual(firewallRules);
-  });
+      // Trigger refetch by changing page
+      const nextPageBtn = wrapper.find('[data-test="pager-next"]');
+      await nextPageBtn.trigger("click");
+      await flushPromises();
 
-  it('should show "Any Ip" when column is "source Ip" and regex is ".*"', () => {
-    expect(wrapper.vm.formatSourceIP(".*")).toEqual("Any IP");
-  });
-
-  it("should show the source ip when a rule is passed to firewall", () => {
-    expect(wrapper.vm.formatSourceIP("127.0.0.1")).toEqual("127.0.0.1");
-  });
-
-  it('should show "All Users" when column is "Username" and regex is ".*"', () => {
-    expect(wrapper.vm.formatUsername(".*")).toEqual("All users");
-  });
-
-  it('should show "All Devices" when column is "Filter" and regex is ".*"', () => {
-    expect(wrapper.vm.formatHostnameFilter({ hostname: ".*" })).toEqual("All devices");
-  });
-
-  it("must show only 10 characters in the tag when it has more than 10 characters", () => {
-    expect(wrapper.vm.displayOnlyTenCharacters("very big word in tag")).toEqual("very big w...");
-  });
-
-  it('should return "false" when the function receives a valid string and is less than 10 characters', () => {
-    expect(wrapper.vm.showTag("test tag")).toBeFalsy();
-  });
-
-  it('should return "true" when the function receives a valid string and is more than 10 characters', () => {
-    expect(wrapper.vm.showTag("very big word in tag")).toBeTruthy();
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to fetch firewall rules.");
+    });
   });
 });
