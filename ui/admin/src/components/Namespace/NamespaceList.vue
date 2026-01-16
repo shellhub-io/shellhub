@@ -29,6 +29,7 @@
             <router-link
               :to="{ name: 'userDetails', params: { id: namespace.owner } }"
               class="unstyled-link text-decoration-underline cursor-pointer"
+              data-test="owner-link"
             >
               {{ getOwnerLabel(namespace) }}
             </router-link>
@@ -45,6 +46,7 @@
                   v-bind="props"
                   tabindex="0"
                   icon="mdi-information"
+                  data-test="info-button"
                   @click="goToNamespace(namespace.tenant_id)"
                   @keypress.enter="goToNamespace(namespace.tenant_id)"
                 />

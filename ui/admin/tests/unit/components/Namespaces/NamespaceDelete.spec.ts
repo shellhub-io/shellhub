@@ -1,193 +1,156 @@
-// admin/tests/unit/components/Namespaces/NamespaceDelete/index.spec.ts
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Mock } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import NamespaceDelete from "@admin/components/Namespace/NamespaceDelete.vue";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import handleError from "@/utils/handleError";
+import { Router } from "vue-router";
 
-// --- Mocks ---
-
-const mockRouter = {
-  push: vi.fn(),
-};
-
-const mockRoute = {
-  name: "namespaceDetails" as string,
-};
-
-vi.mock("vue-router", async () => {
-  const actual = await vi.importActual<typeof import("vue-router")>("vue-router");
-  return {
-    ...actual,
-    useRouter: () => mockRouter,
-    useRoute: () => mockRoute,
-  };
-});
-
-vi.mock("@/utils/handleError", () => ({
-  __esModule: true,
-  default: vi.fn(),
-}));
-
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-// --- Test setup ---
-
-describe("Namespace Delete", () => {
+describe("NamespaceDelete", () => {
   let wrapper: VueWrapper<InstanceType<typeof NamespaceDelete>>;
   let namespacesStore: ReturnType<typeof useNamespacesStore>;
-  let updateModelValue: ReturnType<typeof vi.fn>;
-  let pinia: ReturnType<typeof createPinia>;
+  let router: Router;
+  const mockTenantId = "tenant-123";
+  const mockNamespaceName = "test-namespace";
 
-  const tenantId = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
-  const namespaceName = "namespace"; // < 10 chars → no truncation
+  const mountWrapper = async (routeName: string = "namespaceDetails") => {
+    const params = routeName === "namespaceDetails" ? { id: mockTenantId } : {};
+    router = createCleanAdminRouter();
+    await router.push({ name: routeName, params });
+    await router.isReady();
 
-  const mountComponent = () => {
-    updateModelValue = vi.fn();
-
-    wrapper = mount(NamespaceDelete, {
-      global: {
-        plugins: [createVuetify(), pinia],
-        provide: {
-          [SnackbarInjectionKey]: mockSnackbar,
-        },
-        stubs: {
-          // Stub MessageDialog to avoid dealing with v-dialog + teleport
-          MessageDialog: {
-            template: `
-              <div data-test="message-dialog">
-                <slot />
-                <button data-test="remove-btn" @click="$emit('confirm')" />
-                <button data-test="close-btn" @click="$emit('cancel')" />
-              </div>
-            `,
-            props: [
-              "modelValue",
-              "title",
-              "icon",
-              "iconColor",
-              "confirmColor",
-              "confirmText",
-              "confirmLoading",
-              "cancelText",
-              "confirmDataTest",
-              "cancelDataTest",
-            ],
-          },
-        },
-      },
+    wrapper = mountComponent(NamespaceDelete, {
+      global: { plugins: [router] },
       props: {
-        tenant: tenantId,
-        name: namespaceName,
+        tenant: mockTenantId,
+        name: mockNamespaceName,
         modelValue: true,
-        "onUpdate:modelValue": updateModelValue,
-        onUpdate: vi.fn(),
       },
+      attachTo: document.body,
     });
-  };
-
-  beforeEach(() => {
-    // Single shared Pinia instance
-    pinia = createPinia();
-    setActivePinia(pinia);
 
     namespacesStore = useNamespacesStore();
-    namespacesStore.deleteNamespace = vi.fn().mockResolvedValue(undefined);
+  };
 
-    mockRouter.push.mockReset();
-    mockRoute.name = "namespaceDetails";
+  const getDialog = () => new DOMWrapper(document.body).find('[role="dialog"]');
 
-    mockSnackbar.showSuccess.mockReset();
-    mockSnackbar.showError.mockReset();
-    (handleError as Mock).mockReset();
-
-    mountComponent();
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+    document.body.innerHTML = "";
   });
 
-  it("Renders the dialog content with the namespace name", () => {
-    const content = wrapper.get('[data-test="content-text"]');
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
 
-    expect(content.text()).toContain("This action cannot be undone.");
-    expect(content.text()).toContain(namespaceName);
+    it("shows the dialog when modelValue is true", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.text()).toContain("Namespace Deletion");
+    });
+
+    it("displays the namespace name in the content", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+      const content = dialog.find('[data-test="content-text"]');
+
+      expect(content.text()).toContain("This action cannot be undone");
+      expect(content.text()).toContain(mockNamespaceName);
+    });
+
+    it("shows remove and close buttons", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      expect(dialog.find('[data-test="remove-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    });
   });
 
-  it("Deletes namespace, shows success, redirects and closes when on namespaceDetails route", async () => {
-    const removeButton = wrapper.get('[data-test="remove-btn"]');
-    await removeButton.trigger("click");
-    await flushPromises();
+  describe("deleting namespace from details page", () => {
+    beforeEach(() => mountWrapper("namespaceDetails"));
 
-    expect(namespacesStore.deleteNamespace).toHaveBeenCalledTimes(1);
-    expect(namespacesStore.deleteNamespace).toHaveBeenCalledWith(tenantId);
+    it("calls store action, shows success, and redirects when confirm is clicked", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+      const pushSpy = vi.spyOn(router, "push");
 
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace deleted successfully.");
-    expect(mockSnackbar.showError).not.toHaveBeenCalled();
+      const confirmBtn = dialog.find('[data-test="remove-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    expect(mockRouter.push).toHaveBeenCalledWith({ name: "namespaces" });
+      expect(namespacesStore.deleteNamespace).toHaveBeenCalledWith(mockTenantId);
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace deleted successfully.");
+      expect(pushSpy).toHaveBeenCalledWith({ name: "namespaces" });
+    });
 
-    expect(updateModelValue).toHaveBeenCalledWith(false);
+    it("shows error message when delete fails", async () => {
+      await flushPromises();
+      vi.mocked(namespacesStore.deleteNamespace).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
 
-    expect(wrapper.vm.isLoading).toBe(false);
+      const dialog = getDialog();
+      const confirmBtn = dialog.find('[data-test="remove-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    expect(wrapper.emitted("update")).toBeUndefined();
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while deleting the namespace.");
+      expect(wrapper.emitted("update:modelValue")?.[0]).toBeUndefined();
+    });
   });
 
-  it("Deletes namespace, shows success and emits update when not on namespaceDetails route", async () => {
-    mockRoute.name = "namespaces";
+  describe("deleting namespace from list page", () => {
+    beforeEach(() => mountWrapper("namespaces"));
 
-    mountComponent();
+    it("calls store action, shows success, and emits update when confirm is clicked", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+      const pushSpy = vi.spyOn(router, "push");
 
-    const removeButton = wrapper.get('[data-test="remove-btn"]');
-    await removeButton.trigger("click");
-    await flushPromises();
+      const confirmBtn = dialog.find('[data-test="remove-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    expect(namespacesStore.deleteNamespace).toHaveBeenCalledTimes(1);
-    expect(namespacesStore.deleteNamespace).toHaveBeenCalledWith(tenantId);
+      expect(namespacesStore.deleteNamespace).toHaveBeenCalledWith(mockTenantId);
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace deleted successfully.");
+      expect(pushSpy).not.toHaveBeenCalled();
+      expect(wrapper.emitted("update")).toBeTruthy();
+      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+    });
 
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace deleted successfully.");
-    expect(mockSnackbar.showError).not.toHaveBeenCalled();
+    it("does not emit update when delete fails", async () => {
+      await flushPromises();
+      vi.mocked(namespacesStore.deleteNamespace).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
 
-    expect(mockRouter.push).not.toHaveBeenCalled();
+      const dialog = getDialog();
+      const confirmBtn = dialog.find('[data-test="remove-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    const updateEvents = wrapper.emitted("update");
-    expect(updateEvents).toBeTruthy();
-    expect(updateEvents?.length).toBe(1);
-
-    expect(updateModelValue).toHaveBeenCalledWith(false);
-
-    expect(wrapper.vm.isLoading).toBe(false);
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while deleting the namespace.");
+      expect(wrapper.emitted("update")).toBeUndefined();
+    });
   });
 
-  it("Shows error snackbar, calls handleError and keeps dialog open when deletion fails", async () => {
-    (namespacesStore.deleteNamespace as Mock).mockRejectedValueOnce(
-      new Error("delete failed"),
-    );
+  describe("closing dialog", () => {
+    beforeEach(() => mountWrapper());
 
-    const removeButton = wrapper.get('[data-test="remove-btn"]');
-    await removeButton.trigger("click");
-    await flushPromises();
+    it("closes dialog when cancel button is clicked", async () => {
+      await flushPromises();
+      const dialog = getDialog();
 
-    expect(namespacesStore.deleteNamespace).toHaveBeenCalledTimes(1);
+      const cancelBtn = dialog.find('[data-test="close-btn"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
 
-    expect(mockSnackbar.showError).toHaveBeenCalledWith(
-      "An error occurred while deleting the namespace.",
-    );
-    expect(mockSnackbar.showSuccess).not.toHaveBeenCalled();
-
-    expect(handleError).toHaveBeenCalledTimes(1);
-
-    expect(mockRouter.push).not.toHaveBeenCalled();
-
-    expect(wrapper.emitted("update")).toBeUndefined();
-
-    expect(updateModelValue).not.toHaveBeenCalledWith(false);
-
-    expect(wrapper.vm.isLoading).toBe(false);
+      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+      expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([false]);
+    });
   });
 });

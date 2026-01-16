@@ -1,136 +1,248 @@
-import MockAdapter from "axios-mock-adapter";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { Mock } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useNamespacesStore from "@admin/store/modules/namespaces";
 import NamespaceEdit from "@admin/components/Namespace/NamespaceEdit.vue";
-import { IAdminNamespace } from "@admin/interfaces/INamespace";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import { namespacesApi } from "@/api/http";
+import { mockNamespace } from "../../mocks";
 
-const namespace: IAdminNamespace = {
-  billing: {
-    active: true,
-    current_period_end: "",
-    customer_id: "",
-    payment_failed: null,
-    payment_method_id: "",
-    price_id: "",
-    state: "",
-    sub_item_id: "",
-    subscription_id: "",
-  },
-  created_at: "2022-04-13T11:42:49.578Z",
-  devices_accepted_count: 1,
-  devices_pending_count: 1,
-  devices_rejected_count: 0,
-  max_devices: 10,
-  members: [
-    {
-      id: "",
-      role: "owner",
-    },
-  ],
-  name: "ossystems",
-  owner: "ossystems",
-  settings: {
-    session_record: true,
-  },
-  tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-} as IAdminNamespace;
-
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-describe("Namespace Edit", () => {
+describe("NamespaceEdit", () => {
   let wrapper: VueWrapper<InstanceType<typeof NamespaceEdit>>;
   let namespacesStore: ReturnType<typeof useNamespacesStore>;
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    namespacesStore = useNamespacesStore();
-
-    namespacesStore.updateNamespace = vi.fn().mockResolvedValue(undefined);
-    namespacesStore.fetchNamespaceList = vi.fn().mockResolvedValue(undefined);
-
-    mockSnackbar.showSuccess.mockReset();
-    mockSnackbar.showError.mockReset();
-
-    wrapper = mount(NamespaceEdit, {
-      global: {
-        plugins: [createVuetify()],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
+  const mountWrapper = () => {
+    wrapper = mountComponent(NamespaceEdit, {
       props: {
-        namespace,
+        namespace: mockNamespace,
         modelValue: true,
       },
+      attachTo: document.body,
+    });
+
+    namespacesStore = useNamespacesStore();
+  };
+
+  const getDialog = () => new DOMWrapper(document.body).find('[role="dialog"]');
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+    document.body.innerHTML = "";
+  });
+
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("shows the dialog when modelValue is true", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.text()).toContain("Edit Namespace");
+    });
+
+    it("displays current namespace values in form", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      const nameInput = dialog.find('[data-test="name-text"] input');
+      expect((nameInput.element as HTMLInputElement).value).toBe(mockNamespace.name);
+
+      const maxDevicesInput = dialog.find('[data-test="maxDevices-text"] input');
+      expect((maxDevicesInput.element as HTMLInputElement).value).toBe(mockNamespace.max_devices.toString());
+    });
+
+    it("shows save and cancel buttons", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      expect(dialog.find('[data-test="confirm-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="cancel-btn"]').exists()).toBe(true);
     });
   });
 
-  it("Renders the component and dialog", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("form validation", () => {
+    beforeEach(() => mountWrapper());
 
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
-  });
+    it("shows error when name is empty", async () => {
+      await flushPromises();
+      const dialog = getDialog();
 
-  it("Has the correct initial data", () => {
-    expect(wrapper.vm.name).toBe(namespace.name);
-    expect(wrapper.vm.maxDevices).toBe(namespace.max_devices);
-    expect(wrapper.vm.sessionRecord).toBe(namespace.settings.session_record);
+      const nameInput = dialog.find('[data-test="name-text"] input');
+      await nameInput.setValue("");
+      await flushPromises();
 
-    const dialog = new DOMWrapper(document.body);
-
-    const nameInput = dialog.get<HTMLInputElement>('[data-test="name-text"] input');
-    expect(nameInput.element.value).toBe(namespace.name);
-
-    const maxDevicesInput = dialog.get<HTMLInputElement>('[data-test="maxDevices-text"] input');
-    expect(maxDevicesInput.element.value).toBe(String(namespace.max_devices));
-  });
-
-  it("Calls namespace store and snackbar on form submission with updated values", async () => {
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=30").reply(200, []);
-    wrapper.vm.name = "updated-namespace";
-    wrapper.vm.maxDevices = 42;
-    wrapper.vm.sessionRecord = false;
-
-    await wrapper.vm.submitForm();
-    await flushPromises();
-
-    expect(namespacesStore.updateNamespace).toHaveBeenCalledTimes(1);
-
-    const updateNamespaceMock = namespacesStore.updateNamespace as Mock;
-    const payload = updateNamespaceMock.mock.calls[0][0];
-
-    expect(payload).toMatchObject({
-      name: "updated-namespace",
-      max_devices: 42,
-      settings: {
-        ...namespace.settings,
-        session_record: false,
-      },
+      expect(dialog.text()).toContain("this is a required field");
     });
 
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace updated successfully.");
-    expect(mockSnackbar.showError).not.toHaveBeenCalled();
+    it("shows error when max devices is below minimum", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      const maxDevicesInput = dialog.find('[data-test="maxDevices-text"] input');
+      await maxDevicesInput.setValue("-2");
+      await flushPromises();
+
+      expect(dialog.text()).toContain("Maximum devices must be -1 (unlimited) or greater");
+    });
+
+    it("accepts -1 for unlimited devices", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      const maxDevicesInput = dialog.find('[data-test="maxDevices-text"] input');
+      await maxDevicesInput.setValue("-1");
+      await flushPromises();
+
+      expect(dialog.text()).not.toContain("Maximum devices must be -1");
+    });
+
+    it("disables save button when form has errors", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      const nameInput = dialog.find('[data-test="name-text"] input');
+      await nameInput.setValue("");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      expect(saveBtn.attributes("disabled")).toBeDefined();
+    });
   });
 
-  it("Shows error snackbar when updateNamespace fails", async () => {
-    const updateNamespaceMock = namespacesStore.updateNamespace as Mock;
-    updateNamespaceMock.mockRejectedValueOnce(new Error("update failed"));
+  describe("updating namespace", () => {
+    it("calls store action with updated values on submit", async () => {
+      mountWrapper();
+      await flushPromises();
+      const dialog = getDialog();
 
-    await wrapper.vm.submitForm();
-    await flushPromises();
+      const nameInput = dialog.find('[data-test="name-text"] input');
+      await nameInput.setValue("updated-namespace");
+      await flushPromises();
 
-    expect(namespacesStore.updateNamespace).toHaveBeenCalledTimes(1);
-    expect(namespacesStore.fetchNamespaceList).not.toHaveBeenCalled();
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update namespace.");
-    expect(mockSnackbar.showSuccess).not.toHaveBeenCalled();
+      const maxDevicesInput = dialog.find('[data-test="maxDevices-text"] input');
+      await maxDevicesInput.setValue("42");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(namespacesStore.updateNamespace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "updated-namespace",
+          max_devices: 42,
+          settings: expect.objectContaining({
+            session_record: mockNamespace.settings.session_record,
+          }),
+        }),
+      );
+    });
+
+    it("updates session record setting", async () => {
+      mountWrapper();
+      await flushPromises();
+      const dialog = getDialog();
+
+      // Find and toggle session record switch
+      const sessionRecordSwitch = dialog.find('input[type="checkbox"]');
+      const currentValue = (sessionRecordSwitch.element as HTMLInputElement).checked;
+      await sessionRecordSwitch.setValue(!currentValue);
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(namespacesStore.updateNamespace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          settings: expect.objectContaining({
+            session_record: !currentValue,
+          }),
+        }),
+      );
+    });
+
+    it("shows success message and closes dialog after successful update", async () => {
+      mountWrapper();
+      await flushPromises();
+      const dialog = getDialog();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Namespace updated successfully.");
+      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+      expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([false]);
+    });
+
+    it("emits update event after successful update", async () => {
+      mountWrapper();
+      await flushPromises();
+      const dialog = getDialog();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("shows error message when update fails", async () => {
+      mountWrapper();
+      vi.mocked(namespacesStore.updateNamespace).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+      await flushPromises();
+      const dialog = getDialog();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update namespace.");
+      expect(wrapper.emitted("update:modelValue")?.[0]).toBeUndefined();
+    });
+  });
+
+  describe("closing dialog", () => {
+    beforeEach(() => mountWrapper());
+
+    it("closes dialog when cancel button is clicked", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      const cancelBtn = dialog.find('[data-test="cancel-btn"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+      expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([false]);
+    });
+
+    it("resets form fields when dialog is closed", async () => {
+      await flushPromises();
+      const dialog = getDialog();
+
+      // Change a field
+      const nameInput = dialog.find('[data-test="name-text"] input');
+      await nameInput.setValue("changed-name");
+      await flushPromises();
+
+      // Close dialog
+      const cancelBtn = dialog.find('[data-test="cancel-btn"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
+
+      // Reopen dialog by setting modelValue to true again
+      await wrapper.setProps({ modelValue: true });
+      await flushPromises();
+
+      // Check that field is reset to original value
+      const dialogReopened = getDialog();
+      const nameInputReopened = dialogReopened.find('[data-test="name-text"] input');
+      expect((nameInputReopened.element as HTMLInputElement).value).toBe(mockNamespace.name);
+    });
   });
 });
