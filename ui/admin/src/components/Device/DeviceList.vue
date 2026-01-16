@@ -42,6 +42,7 @@
             <router-link
               :to="{ name: 'namespaceDetails', params: { id: item.tenant_id } }"
               class="hyper-link"
+              data-test="namespace-link"
             >
               {{ item.namespace }}
             </router-link>
@@ -91,6 +92,7 @@
                   v-bind="props"
                   tabindex="0"
                   icon="mdi-information"
+                  data-test="info-button"
                   @click="redirectToDevice(item.uid)"
                   @keypress.enter="redirectToDevice(item.uid)"
                 />
@@ -200,8 +202,6 @@ const redirectToDevice = async (deviceId: string) => {
 watch([itemsPerPage, page], async () => { await fetchDevices(); });
 
 onMounted(async () => { await fetchDevices(); });
-
-defineExpose({ headers, devices, loading, itemsPerPage, showTag });
 </script>
 
 <style scoped>

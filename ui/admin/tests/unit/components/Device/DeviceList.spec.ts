@@ -1,129 +1,175 @@
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useDevicesStore from "@admin/store/modules/devices";
 import DeviceList from "@admin/components/Device/DeviceList.vue";
-import routes from "@admin/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockDevices } from "../../mocks";
+import { Router } from "vue-router";
 
-type DeviceListWrapper = VueWrapper<InstanceType<typeof DeviceList>>;
+describe("DeviceList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof DeviceList>>;
+  let router: Router;
+  let devicesStore: ReturnType<typeof useDevicesStore>;
 
-const headers = [
-  { text: "Online", value: "online", sortable: true },
-  { text: "Hostname", value: "name", sortable: true },
-  { text: "Info", value: "info", sortable: true },
-  { text: "Namespace", value: "namespace", sortable: true },
-  { text: "Tags", value: "tags" },
-  { text: "Last Seen", value: "last_seen", sortable: true },
-  { text: "Status", value: "status", sortable: true },
-  { text: "Actions", value: "actions" },
-];
+  const mountWrapper = (mockDeviceCount?: number) => {
+    router = createCleanAdminRouter();
 
-const devices = [
-  {
-    uid: "a582b47a42d",
-    name: "39-5e-2a",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-      arch: "x86_64",
-      platform: "linux",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T18:58:53.276Z",
-    created_at: "2020-05-20T18:00:00.000Z",
-    status_updated_at: "2020-05-20T18:58:53.276Z",
-    online: false,
-    namespace: "user",
-    status: "accepted" as const,
-    remote_addr: "127.0.0.1",
-    position: { latitude: 0, longitude: 0 },
-    tags: [
-      {
-        tenant_id: "fake-tenant-data",
-        name: "test-tag",
-        created_at: "",
-        updated_at: "",
+    wrapper = mountComponent(DeviceList, {
+      global: { plugins: [router] },
+      piniaOptions: {
+        initialState: {
+          adminDevices: {
+            devices: mockDevices,
+            deviceCount: mockDeviceCount ?? mockDevices.length,
+          },
+        },
       },
-    ],
-  },
-  {
-    uid: "a582b47a42e",
-    name: "39-5e-2b",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-      arch: "x86_64",
-      platform: "linux",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T19:58:53.276Z",
-    status_updated_at: "2020-05-20T18:58:53.276Z",
-    created_at: "2020-05-20T18:00:00.000Z",
-    online: true,
-    namespace: "user",
-    status: "accepted" as const,
-    remote_addr: "127.0.0.1",
-    position: { latitude: 0, longitude: 0 },
-    tags: [
-      {
-        tenant_id: "fake-tenant-data",
-        name: "test-tag",
-        created_at: "",
-        updated_at: "",
-      },
-    ],
-  },
-];
+    });
 
-describe("Device List", () => {
-  let wrapper: DeviceListWrapper;
+    devicesStore = useDevicesStore();
+  };
 
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    const vuetify = createVuetify();
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
 
-    const devicesStore = useDevicesStore();
-    devicesStore.devices = devices;
-    devicesStore.deviceCount = devices.length;
-    devicesStore.fetchDeviceList = vi.fn();
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
 
-    wrapper = mount(DeviceList, {
-      global: {
-        plugins: [vuetify, routes, SnackbarPlugin],
-      },
+    it("renders the data table", () => {
+      expect(wrapper.find('[data-test="devices-list"]').exists()).toBe(true);
+    });
+
+    it("displays device names", () => {
+      expect(wrapper.text()).toContain(mockDevices[0].name);
+      expect(wrapper.text()).toContain(mockDevices[1].name);
+    });
+
+    it("displays device info", () => {
+      expect(wrapper.text()).toContain(mockDevices[0].info.pretty_name);
+      expect(wrapper.text()).toContain(mockDevices[1].info.pretty_name);
+    });
+
+    it("displays device namespaces", () => {
+      const namespaceLinks = wrapper.findAll('[data-test="namespace-link"]');
+      expect(namespaceLinks).toHaveLength(mockDevices.length);
+      expect(namespaceLinks[0].text()).toBe(mockDevices[0].namespace);
+    });
+
+    it("displays online status icons", () => {
+      const onlineIcons = wrapper.findAll('[data-test="success-icon"]');
+      const offlineIcons = wrapper.findAll('[data-test="error-icon"]');
+
+      const onlineCount = mockDevices.filter((d) => d.online).length;
+      const offlineCount = mockDevices.filter((d) => !d.online).length;
+
+      expect(onlineIcons).toHaveLength(onlineCount);
+      expect(offlineIcons).toHaveLength(offlineCount);
+    });
+
+    it("displays device status", () => {
+      expect(wrapper.text()).toContain(mockDevices[0].status);
+    });
+
+    it("displays info buttons for each device", () => {
+      const infoButtons = wrapper.findAll('[data-test="info-button"]');
+      expect(infoButtons).toHaveLength(mockDevices.length);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+  describe("fetching devices", () => {
+    it("fetches devices on mount", () => {
+      mountWrapper();
+
+      expect(devicesStore.fetchDeviceList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perPage: 10,
+          page: 1,
+        }),
+      );
+    });
+
+    it("refetches devices when page changes", async () => {
+      mountWrapper(11); // Mock total count to 11 to enable pagination
+
+      // Click next page button
+      const nextPageBtn = wrapper.find('[data-test="pager-next"]');
+      await nextPageBtn.trigger("click");
+      await flushPromises();
+
+      expect(devicesStore.fetchDeviceList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 2,
+        }),
+      );
+    });
+
+    it("refetches devices when items per page changes", async () => {
+      mountWrapper(20);
+
+      // Change items per page via combobox
+      const ippCombo = wrapper.find('[data-test="ipp-combo"] input');
+      await ippCombo.setValue(20);
+      await flushPromises();
+
+      expect(devicesStore.fetchDeviceList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          perPage: 20,
+        }),
+      );
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("navigating to device details", () => {
+    it("navigates when clicking info button", async () => {
+      mountWrapper();
+
+      const pushSpy = vi.spyOn(router, "push");
+      const infoButton = wrapper.findAll('[data-test="info-button"]')[0];
+
+      await infoButton.trigger("click");
+
+      expect(pushSpy).toHaveBeenCalledWith({
+        name: "deviceDetails",
+        params: { id: mockDevices[0].uid },
+      });
+    });
   });
 
-  it("Renders the template with data", () => {
-    const dt = wrapper.find("[data-test]");
-    expect(dt.attributes()["data-test"]).toBe("devices-list");
-    expect(wrapper.vm.headers).toEqual(headers);
-    expect(wrapper.vm.devices).toEqual(devices);
-    expect(wrapper.vm.loading).toEqual(false);
-    expect(wrapper.vm.itemsPerPage).toEqual(10);
+  describe("navigating to namespace details", () => {
+    it("navigates when clicking namespace link", async () => {
+      mountWrapper();
+
+      const pushSpy = vi.spyOn(router, "push");
+      const namespaceLink = wrapper.findAll('[data-test="namespace-link"]')[0];
+
+      await namespaceLink.trigger("click");
+
+      expect(pushSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "namespaceDetails",
+          params: { id: mockDevices[0].tenant_id },
+        }),
+      );
+    });
   });
 
-  it("Renders data in the computed", () => {
-    expect(wrapper.vm.devices).toEqual(devices);
+  describe("error handling", () => {
+    it("shows error snackbar when fetching devices fails", async () => {
+      mountWrapper(11);
+      vi.mocked(devicesStore.fetchDeviceList).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+
+      // Trigger refetch by changing page
+      const nextPageBtn = wrapper.find('[data-test="pager-next"]');
+      await nextPageBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to fetch devices.");
+    });
   });
 });
