@@ -62,6 +62,4 @@ const remove = async () => {
     snackbar.showError("Failed to delete announcement.");
   }
 };
-
-defineExpose({ showDialog, openDialog });
 </script>

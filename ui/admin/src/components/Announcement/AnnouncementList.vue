@@ -29,6 +29,7 @@
                 v-bind="props"
                 tabindex="0"
                 icon="mdi-information"
+                data-test="info-button"
                 @click="redirectToAnnouncement(announcement)"
                 @keyup.enter="redirectToAnnouncement(announcement)"
               />
@@ -135,6 +136,4 @@ watch([itemsPerPage, page], async () => {
 onMounted(async () => {
   await fetchAnnouncements();
 });
-
-defineExpose({ itemsPerPage, page, loading, announcementCount, announcements });
 </script>
