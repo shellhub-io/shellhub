@@ -30,4 +30,10 @@ describe("AppLayout", () => {
   const vuetify = createVuetify();
   const wrapper = shallowMount(AppLayout, { global: { plugins: [vuetify, routes, SnackbarPlugin] } });
   it("Renders the component", () => { expect(wrapper.html()).toMatchSnapshot(); });
+  it("Passes AppBarContent flags", () => {
+    const appBarContent = wrapper.findComponent({ name: "AppBarContent" });
+    expect(appBarContent.exists()).toBe(true);
+    expect(appBarContent.props("showMenuToggle")).toBe(true);
+    expect(appBarContent.props("showSupport")).toBe(true);
+  });
 });

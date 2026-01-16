@@ -1,24 +1,17 @@
 <template>
   <PaywallChat v-model="chatSupportPaywall" />
-  <v-app-bar
-    flat
-    floating
-    class="bg-v-theme-surface border-b-thin"
-    data-test="app-bar"
+  <AppBarContent
+    show-menu-toggle
+    show-support
+    @toggle-menu="showNavigationDrawer = !showNavigationDrawer"
+    @support-click="openShellhubHelp()"
   >
-    <v-app-bar-nav-icon
-      class="hidden-lg-and-up"
-      aria-label="Toggle Menu"
-      data-test="menu-toggle"
-      @click.stop="showNavigationDrawer = !showNavigationDrawer"
-    />
-
-    <div class="d-flex align-center hidden-md-and-down">
+    <template #left>
       <Namespace data-test="namespace-selector" />
 
       <v-breadcrumbs
         :items="breadcrumbItems"
-        class="pa-0 mx-4"
+        class="pa-0 mx-4 hidden-xs"
         data-test="breadcrumbs"
       >
         <template #prepend>
@@ -36,29 +29,9 @@
           />
         </template>
       </v-breadcrumbs>
-    </div>
+    </template>
 
-    <v-spacer />
-
-    <div class="d-flex align-center ga-4 mr-4">
-      <v-tooltip
-        location="bottom"
-        class="text-center"
-      >
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            size="medium"
-            color="primary"
-            aria-label="community-help-icon"
-            icon="mdi-help-circle"
-            data-test="support-btn"
-            @click="openShellhubHelp()"
-          />
-        </template>
-        <span>Need assistance? Click here for support.</span>
-      </v-tooltip>
-
+    <template #right>
       <DevicesDropdown
         v-if="hasNamespaces"
         v-model="showDevicesDrawer"
@@ -71,102 +44,16 @@
         @update:model-value="showDevicesDrawer = false"
       />
 
-      <v-menu
-        scrim
-        location="bottom end"
-        :offset="4"
-      >
-        <template #activator="{ props }">
-          <v-btn
-            v-bind="props"
-            size="medium"
-            color="primary"
-            icon
-            data-test="user-menu-btn"
-          >
-            <UserIcon
-              size="1.5rem"
-              :email="userEmail"
-              data-test="user-icon"
-            />
-          </v-btn>
-        </template>
-
-        <v-card
-          :width="$vuetify.display.thresholds.sm / 2"
-          border
-        >
-          <v-list class="bg-v-theme-surface pa-0">
-            <!-- User Profile Header -->
-            <div class="pa-6 text-center">
-              <UserIcon
-                size="4rem"
-                :email="userEmail"
-                class="mb-4"
-                data-test="user-icon-large"
-              />
-              <div class="text-h6 font-weight-medium mb-1">
-                {{ currentUser || userEmail }}
-              </div>
-              <div
-                v-if="currentUser"
-                class="text-body-2 text-medium-emphasis"
-              >
-                {{ userEmail }}
-              </div>
-            </div>
-
-            <v-divider />
-
-            <!-- Menu Items -->
-            <div>
-              <v-list-item
-                v-for="item in menu"
-                :key="item.title"
-                :value="item"
-                :data-test="item.title"
-                :prepend-icon="item.icon"
-                @click="triggerClick(item)"
-              >
-                <v-list-item-title class="font-weight-medium">
-                  {{ item.title }}
-                </v-list-item-title>
-              </v-list-item>
-            </div>
-
-            <v-divider />
-
-            <!-- Dark Mode Toggle -->
-            <v-list-item
-              @click="toggleDarkMode"
-            >
-              <template #prepend>
-                <v-icon
-                  :icon="isDarkMode ? 'mdi-brightness-6' : 'mdi-brightness-6'"
-                  size="small"
-                />
-              </template>
-              <v-list-item-title class="font-weight-medium">
-                {{ isDarkMode ? 'Dark Mode' : 'Light Mode' }}
-              </v-list-item-title>
-              <template #append>
-                <v-switch
-                  :model-value="isDarkMode"
-                  data-test="dark-mode-switch"
-                  color="primary"
-                  density="comfortable"
-                  false-icon="mdi-weather-sunny"
-                  true-icon="mdi-weather-night"
-                  hide-details
-                  readonly
-                />
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-menu>
-    </div>
-  </v-app-bar>
+      <UserMenu
+        :user-email="userEmail"
+        :display-name="currentUser"
+        :menu-items="menu"
+        :is-dark-mode="isDarkMode"
+        @select="handleUserMenuSelect"
+        @toggle-dark-mode="toggleDarkMode"
+      />
+    </template>
+  </AppBarContent>
 </template>
 
 <script setup lang="ts">
@@ -177,7 +64,8 @@ import {
 import { useRouter, useRoute, RouteLocationRaw, RouteLocation } from "vue-router";
 import { useChatWoot } from "@productdevbook/chatwoot/vue";
 import handleError from "@/utils/handleError";
-import UserIcon from "../User/UserIcon.vue";
+import AppBarContent from "@/components/AppBar/AppBarContent.vue";
+import UserMenu from "@/components/AppBar/UserMenu.vue";
 import DevicesDropdown from "./DevicesDropdown.vue";
 import InvitationsMenu from "@/components/Invitations/InvitationsMenu.vue";
 import PaywallChat from "../User/PaywallChat.vue";
@@ -247,6 +135,10 @@ const triggerClick = async (item: MenuItem) => {
     default:
       break;
   }
+};
+
+const handleUserMenuSelect = (item: unknown) => {
+  void triggerClick(item as MenuItem);
 };
 
 const logout = async () => {

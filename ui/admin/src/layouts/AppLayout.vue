@@ -82,73 +82,28 @@
       </template>
     </v-list>
   </v-navigation-drawer>
-  <v-app-bar
+  <AppBarContent
     :theme
-    class="bg-v-theme-surface border-b-thin"
-    data-test="app-bar"
-    flat
-    floating
+    show-menu-toggle
+    show-support
+    @toggle-menu="drawer = !drawer"
+    @support-click="openShellhubHelp"
   >
-    <v-app-bar-nav-icon
-      class="hidden-lg-and-up"
-      aria-label="Toggle Menu"
-      @click.stop="drawer = !drawer"
-    />
+    <template #left>
+      <Namespace :is-admin-context="true" />
+    </template>
 
-    <Namespace :is-admin-context="true" />
-
-    <v-spacer />
-
-    <v-menu anchor="bottom">
-      <template #activator="{ props }">
-        <v-chip
-          color="primary"
-          v-bind="props"
-          class="mr-8"
-        >
-          <UserIcon
-            size="1.5rem"
-            :email="currentUser"
-            class="mr-2"
-            data-test="user-icon"
-          />
-          {{ currentUser || "ADMIN" }}
-          <v-icon
-            right
-            icon="mdi-chevron-down"
-          />
-        </v-chip>
-      </template>
-      <v-list class="bg-v-theme-surface">
-        <v-list-item
-          v-for="item in menu"
-          :key="item.title"
-          :value="item"
-          :data-test="item.title"
-          @click="triggerClick(item)"
-        >
-          <div class="d-flex align-center">
-            <div><v-icon :icon="item.icon" /></div>
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </div>
-        </v-list-item>
-
-        <v-divider />
-
-        <v-list-item>
-          <v-switch
-            label="Dark Mode"
-            :model-value="isDarkMode"
-            data-test="dark-mode-switch"
-            color="primary"
-            inset
-            hide-details
-            @change="toggleDarkMode"
-          />
-        </v-list-item>
-      </v-list>
-    </v-menu>
-  </v-app-bar>
+    <template #right>
+      <UserMenu
+        :user-email="currentUser"
+        :display-name="displayName"
+        :menu-items="menu"
+        :is-dark-mode="isDarkMode"
+        @select="handleUserMenuSelect"
+        @toggle-dark-mode="toggleDarkMode"
+      />
+    </template>
+  </AppBarContent>
 
   <Snackbar />
 
@@ -189,7 +144,8 @@ import useLayoutStore from "@/store/modules/layout";
 import useAuthStore from "@admin/store/modules/auth";
 import useSpinnerStore from "@/store/modules/spinner";
 import Snackbar from "@/components/Snackbar/Snackbar.vue";
-import UserIcon from "@/components/User/UserIcon.vue";
+import AppBarContent from "@/components/AppBar/AppBarContent.vue";
+import UserMenu from "@/components/AppBar/UserMenu.vue";
 import Namespace from "@/components/Namespace/Namespace.vue";
 import Logo from "@/assets/logo-inverted.png";
 import { createNewAdminClient } from "@/api/http";
@@ -227,6 +183,7 @@ const expiredLicense = computed(() => licenseStore.isExpired);
 
 const hasSpinner = computed(() => spinnerStore.status);
 const currentUser = computed(() => authStore.currentUser);
+const displayName = computed(() => currentUser.value || "ADMIN");
 const currentRoute = computed(() => router.currentRoute);
 const theme = computed(() => layoutStore.theme);
 const isDarkMode = ref(theme.value === "dark");
@@ -258,9 +215,17 @@ const triggerClick = async (item: MenuItem) => {
   }
 };
 
+const handleUserMenuSelect = (item: unknown) => {
+  void triggerClick(item as MenuItem);
+};
+
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
   layoutStore.setTheme(isDarkMode.value ? "dark" : "light");
+};
+
+const openShellhubHelp = () => {
+  window.open("https://github.com/shellhub-io/shellhub/issues/new/choose", "_blank");
 };
 
 const items = reactive([

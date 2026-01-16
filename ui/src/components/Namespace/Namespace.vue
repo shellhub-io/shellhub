@@ -24,7 +24,10 @@
           />
           <template v-else>
             <NamespaceChip :name="currentNamespace.name" />
-            <span class="text-body-1">{{
+            <span
+              class="text-body-1 text-truncate"
+              :style="{ maxWidth: nameMaxWidth }"
+            >{{
               currentNamespace.name || "No Namespace"
             }}</span>
           </template>
@@ -160,7 +163,7 @@ const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
 const router = useRouter();
-const { mdAndDown, thresholds } = useDisplay();
+const { mdAndDown, smAndDown, thresholds } = useDisplay();
 
 const showAddDialog = ref(false);
 
@@ -178,6 +181,8 @@ const showAdminButton = computed(() => {
     && Boolean(authStore.isAdmin)
   );
 });
+
+const nameMaxWidth = computed(() => (smAndDown.value ? "4rem" : "220px"));
 
 const availableNamespaces = computed(() => {
   if (props.isAdminContext) return namespaceList.value;
