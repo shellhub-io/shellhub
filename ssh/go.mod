@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/ssh
 
-go 1.24.9
+go 1.25.0
 
 require (
 	github.com/Masterminds/semver v1.5.0
@@ -8,7 +8,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/hashicorp/yamux v0.1.2
-	github.com/labstack/echo-contrib v0.17.4
+	github.com/labstack/echo-contrib v0.50.0
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/pires/go-proxyproto v0.8.0
@@ -16,7 +16,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.47.0
-	golang.org/x/net v0.48.0
+	golang.org/x/net v0.49.0
 	golang.org/x/time v0.14.0
 )
 
@@ -36,10 +36,10 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-resty/resty/v2 v2.11.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hibiken/asynq v0.24.1 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/labstack/echo/v5 v5.0.0-20260118161441-9500f2745481 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
 	github.com/lufia/plan9stats v0.0.0-20240408141607-282e7b5d6b74 // indirect
@@ -64,7 +64,7 @@ require (
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
