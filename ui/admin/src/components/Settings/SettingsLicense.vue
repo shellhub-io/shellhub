@@ -11,6 +11,7 @@
     v-if="licenseAlert"
     class="my-4 pl-4 pr-4 d-flex justify-center align-center"
     variant="outlined"
+    data-test="license-alert"
     :type="licenseAlert.type"
     :text="licenseAlert.message"
   />
@@ -142,6 +143,7 @@
       />
       <v-btn
         variant="outlined"
+        data-test="upload-license-btn"
         :disabled="disableUploadButton"
         text="Upload"
         @click="uploadLicense"
@@ -237,8 +239,6 @@ onMounted(async () => {
     await licenseStore.getLicense();
   } catch { snackbar.showError("Error loading license."); }
 });
-
-defineExpose({ license });
 </script>
 
 <style scoped>
