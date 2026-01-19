@@ -43,6 +43,6 @@ export const mockSession: IAdminSession = {
 
 export const mockSessions: IAdminSession[] = [
   { ...mockSession, uid: "session-1", username: "alice" },
-  { ...mockSession, uid: "session-2", username: "bob", active: false },
+  { ...mockSession, uid: "session-2", username: "bob", active: false, authenticated: false },
   { ...mockSession, uid: "session-3", username: "charlie" },
 ];

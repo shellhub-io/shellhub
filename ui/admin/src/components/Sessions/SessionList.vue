@@ -52,6 +52,7 @@
             <span
               tabindex="0"
               class="hover"
+              data-test="device-link"
               @click="session.device?.uid && redirectToDevice(session.device.uid)"
               @keypress.enter="session.device?.uid && redirectToDevice(session.device.uid)"
             >
@@ -114,6 +115,7 @@
                   v-bind="props"
                   tabindex="0"
                   icon="mdi-information"
+                  data-test="info-button"
                   @click="session.uid && goToSession(session.uid)"
                   @keypress.enter="session.tenant_id && goToSession(session.tenant_id)"
                 />
