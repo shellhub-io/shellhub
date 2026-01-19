@@ -1,74 +1,260 @@
-import { createVuetify } from "vuetify";
-import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
-import MockAdapter from "axios-mock-adapter";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useLicenseStore from "@admin/store/modules/license";
-import License from "@admin/components/Settings/SettingsLicense.vue";
-import routes from "@admin/router";
-import { adminApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import SettingsLicense from "@admin/components/Settings/SettingsLicense.vue";
+import {
+  mockLicense,
+  mockLicenseExpired,
+  mockLicenseAboutToExpire,
+  mockLicenseGracePeriod,
+  mockLicenseRegional,
+  mockNoLicense,
+} from "../../mocks";
+import { IAdminLicense } from "@admin/interfaces/ILicense";
+import * as licenseApi from "@admin/store/api/license";
 
-const licenseMock = {
-  id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  expired: false,
-  about_to_expire: false,
-  grace_period: false,
-  issued_at: -1,
-  starts_at: -1,
-  expires_at: -1,
-  allowed_regions: [],
-  customer: {
-    id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    name: "ShellHub",
-    email: "contato@ossystems.com.br",
-    company: "O.S. Systems",
-  },
-  features: {
-    devices: -1,
-    session_recording: true,
-    firewall_rules: true,
-    billing: false,
-    reports: false,
-    login_link: false,
-  },
-};
+vi.mock("@admin/store/api/license");
 
-describe("License", () => {
-  const mockAdminApi = new MockAdapter(adminApi.getAxios());
-  setActivePinia(createPinia());
-  const licenseStore = useLicenseStore();
-  const vuetify = createVuetify();
-  licenseStore.license = licenseMock;
-  mockAdminApi.onGet("http://localhost:3000/admin/api/license").reply(200, licenseMock);
+describe("SettingsLicense", () => {
+  let wrapper: VueWrapper<InstanceType<typeof SettingsLicense>>;
+  let licenseStore: ReturnType<typeof useLicenseStore>;
 
-  const wrapper = mount(License, {
-    global: {
-      plugins: [vuetify, routes, SnackbarPlugin],
-    },
+  const mountWrapper = async (license: Partial<IAdminLicense> = mockLicense) => {
+    wrapper = mountComponent(SettingsLicense, { piniaOptions: { initialState: { adminLicense: { license } } } });
+
+    licenseStore = useLicenseStore();
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
 
-  Object.keys(licenseMock).forEach((field) => {
-    it(`Receives the field ${field} of license state from store`, () => {
-      expect(wrapper.vm.license[field]).toEqual(licenseMock[field]);
+    it("renders page header", () => {
+      const header = wrapper.find('[title-test-id="license-header"]');
+      expect(header.exists()).toBe(true);
+      expect(header.text()).toContain("License Details");
+    });
+
+    it("renders license card", () => {
+      const card = wrapper.find('[data-test="license-card"]');
+      expect(card.exists()).toBe(true);
+    });
+
+    it("displays issued at date", () => {
+      const issuedAt = wrapper.find('[data-test="issued-at-field"]');
+      expect(issuedAt.exists()).toBe(true);
+    });
+
+    it("displays starts at date", () => {
+      const startsAt = wrapper.find('[data-test="starts-at-field"]');
+      expect(startsAt.exists()).toBe(true);
+    });
+
+    it("displays expires at date", () => {
+      const expiresAt = wrapper.find('[data-test="expires-at-field"]');
+      expect(expiresAt.exists()).toBe(true);
+    });
+
+    it("displays global license badge when no regions specified", () => {
+      const globalBadge = wrapper.text();
+      expect(globalBadge).toContain("Global");
+    });
+
+    it("displays regional license badge with regions", async () => {
+      wrapper.unmount();
+      await mountWrapper(mockLicenseRegional);
+
+      const badge = wrapper.text();
+      expect(badge).toContain("Limited");
+      expect(badge).toContain("US, EU");
+    });
+
+    it("displays customer id", () => {
+      const customerId = wrapper.find('[data-test="id"]');
+      expect(customerId.exists()).toBe(true);
+    });
+
+    it("displays customer name", () => {
+      const customerName = wrapper.find('[data-test="name"]');
+      expect(customerName.exists()).toBe(true);
+    });
+
+    it("displays customer email", () => {
+      const customerEmail = wrapper.find('[data-test="email"]');
+      expect(customerEmail.exists()).toBe(true);
+    });
+
+    it("displays customer company", () => {
+      const customerCompany = wrapper.find('[data-test="company"]');
+      expect(customerCompany.exists()).toBe(true);
+    });
+
+    it("displays devices feature", () => {
+      const devices = wrapper.find('[data-test="devices"]');
+      expect(devices.exists()).toBe(true);
+    });
+
+    it("displays session_recording feature", () => {
+      const sessionRecording = wrapper.find('[data-test="session_recording"]');
+      expect(sessionRecording.exists()).toBe(true);
+    });
+
+    it("displays firewall_rules feature", () => {
+      const firewallRules = wrapper.find('[data-test="firewall_rules"]');
+      expect(firewallRules.exists()).toBe(true);
+    });
+
+    it("shows included icon for enabled boolean features", () => {
+      const includedIcons = wrapper.findAll('[data-test="included-icon"]');
+      expect(includedIcons.length).toBeGreaterThan(0);
+    });
+
+    it("shows not included icon for disabled boolean features", () => {
+      const notIncludedIcons = wrapper.findAll('[data-test="not-included-icon"]');
+      expect(notIncludedIcons.length).toBeGreaterThan(0);
     });
   });
 
-  Object.keys(licenseMock.customer).forEach((customer) => {
-    it(`Receives the customer field ${customer} in template`, () => {
-      expect(wrapper.find(`[data-test='${customer}']`).exists()).toBe(true);
+  describe("license alerts", () => {
+    it("shows no license alert when license not installed", async () => {
+      await mountWrapper(mockNoLicense);
+
+      const alert = wrapper.find('[data-test="license-alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain("You do not have an installed license");
+    });
+
+    it("shows about to expire alert", async () => {
+      await mountWrapper(mockLicenseAboutToExpire);
+
+      const alert = wrapper.find('[data-test="license-alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain("Your license is about to expire");
+    });
+
+    it("shows grace period alert when expired in grace period", async () => {
+      await mountWrapper(mockLicenseGracePeriod);
+
+      const alert = wrapper.find('[data-test="license-alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain("expired, but you are still within the grace period");
+    });
+
+    it("shows expired alert when license expired", async () => {
+      await mountWrapper(mockLicenseExpired);
+
+      const alert = wrapper.find('[data-test="license-alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain("Your license has expired!");
+    });
+
+    it("shows no alert when license is valid", async () => {
+      await mountWrapper(mockLicense);
+
+      const alert = wrapper.find('[data-test="license-alert"]');
+      expect(alert.exists()).toBe(false);
     });
   });
 
-  Object.keys(licenseMock.features).forEach((feature) => {
-    if (["reports", "login_link"].includes(feature)) return;
+  describe("initial data loading", () => {
+    it("fetches license on mount", async () => {
+      await mountWrapper();
+      expect(licenseStore.getLicense).toHaveBeenCalled();
+    });
 
-    it(`Receives the feature ${feature} in template`, () => {
-      expect(wrapper.find(`[data-test=${feature}]`).exists()).toBe(true);
+    it("shows error when license fetch fails", async () => {
+      vi.mocked(licenseApi.getLicense).mockRejectedValue(
+        createAxiosError(500, "Internal Server Error"),
+      );
+      mountComponent(SettingsLicense, { piniaOptions: { stubActions: false } });
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Error loading license.");
+    });
+  });
+
+  describe("file upload", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders file input", () => {
+      const fileInput = wrapper.find('input[type="file"]');
+      expect(fileInput.exists()).toBe(true);
+    });
+
+    it("accepts only .dat files", () => {
+      const fileInput = wrapper.find('input[type="file"]');
+      expect(fileInput.attributes("accept")).toBe(".dat");
+    });
+
+    it("has upload button disabled by default", () => {
+      const uploadBtn = wrapper.find('[data-test="upload-license-btn"]');
+      expect(uploadBtn.attributes("disabled")).toBeDefined();
+    });
+
+    it("uploads license file successfully", async () => {
+      const file = new File(["license content"], "license.dat", { type: "application/octet-stream" });
+      const fileInput = wrapper.find('input[type="file"]');
+
+      Object.defineProperty(fileInput.element, "files", {
+        value: [file],
+        writable: false,
+      });
+      await fileInput.trigger("change");
+      await flushPromises();
+
+      const uploadBtn = wrapper.find('[data-test="upload-license-btn"]');
+      await uploadBtn.trigger("click");
+      await flushPromises();
+
+      expect(licenseStore.uploadLicense).toHaveBeenCalledWith(file);
+      expect(licenseStore.getLicense).toHaveBeenCalled();
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("License uploaded successfully.");
+    });
+
+    it("shows error when upload fails", async () => {
+      vi.mocked(licenseStore.uploadLicense).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+
+      const file = new File(["license content"], "license.dat", { type: "application/octet-stream" });
+      const fileInput = wrapper.find('input[type="file"]');
+
+      Object.defineProperty(fileInput.element, "files", {
+        value: [file],
+        writable: false,
+      });
+      await fileInput.trigger("change");
+      await flushPromises();
+
+      const uploadBtn = wrapper.find('[data-test="upload-license-btn"]');
+      await uploadBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to upload the license.");
+    });
+  });
+
+  describe("conditional rendering", () => {
+    it("hides license details when no license installed", async () => {
+      await mountWrapper(mockNoLicense);
+
+      const issuedAt = wrapper.find('[data-test="issued-at-field"]');
+      expect(issuedAt.exists()).toBe(false);
+    });
+
+    it("shows license details when license installed", async () => {
+      await mountWrapper(mockLicense);
+
+      const issuedAt = wrapper.find('[data-test="issued-at-field"]');
+      expect(issuedAt.exists()).toBe(true);
     });
   });
 });

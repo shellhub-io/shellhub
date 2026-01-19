@@ -230,8 +230,6 @@ const downloadSSOCertificate = () => {
 const redirectToAuthURL = (url?: string) => { window.open(url, "_blank"); };
 
 onMounted(async () => { await instanceStore.fetchAuthenticationSettings(); });
-
-defineExpose({ showSSODialog, isSamlEnabled, certificate });
 </script>
 
 <style lang="scss" scoped>

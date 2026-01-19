@@ -5,3 +5,5 @@ export * from "./namespace";
 export * from "./announcement";
 export * from "./firewallRule";
 export * from "./stats";
+export * from "./authSettings";
+export * from "./license";

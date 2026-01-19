@@ -1,111 +1,283 @@
-import { beforeEach, describe, it, expect, vi } from "vitest";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { createPinia, setActivePinia } from "pinia";
-import MockAdapter from "axios-mock-adapter";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useInstanceStore from "@admin/store/modules/instance";
 import SettingsAuthentication from "@admin/components/Settings/SettingsAuthentication.vue";
-import routes from "@admin/router";
-import { adminApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mockAuthSettings, mockAuthSettingsLocalOnly } from "../../mocks";
 
-window.matchMedia = vi.fn().mockImplementation((query) => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addListener: vi.fn(),
-  removeListener: vi.fn(),
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
-}));
+// Mock window.open
+const mockWindowOpen = vi.fn();
+Object.defineProperty(window, "open", {
+  writable: true,
+  value: mockWindowOpen,
+});
 
-type SettingsAuthenticationWrapper = VueWrapper<InstanceType<typeof SettingsAuthentication>>;
+// Mock URL methods
+const mockCreateObjectURL = vi.fn(() => "blob:mock-url");
+const mockRevokeObjectURL = vi.fn();
+global.URL.createObjectURL = mockCreateObjectURL;
+global.URL.revokeObjectURL = mockRevokeObjectURL;
 
-const authData = {
-  local: {
-    enabled: false,
-  },
-  saml: {
-    enabled: true,
-    auth_url: "https://auth.example.com",
-    assertion_url: "http://example/api/user/saml/auth",
-    idp: {
-      entity_id: "entity-id-example",
-      binding: {
-        post: "https://example.com/signon-post",
-        redirect: "https://example.com/signon-redirect",
+// Mock document.createElement for download
+const mockClick = vi.fn();
+const mockCreateElement = document.createElement.bind(document);
+document.createElement = vi.fn((tagName: string) => {
+  const element = mockCreateElement(tagName);
+  if (tagName === "a") element.click = mockClick;
+  return element;
+});
+
+describe("SettingsAuthentication", () => {
+  let wrapper: VueWrapper<InstanceType<typeof SettingsAuthentication>>;
+  let instanceStore: ReturnType<typeof useInstanceStore>;
+
+  const mountWrapper = async (authSettings = mockAuthSettings) => {
+    wrapper = mountComponent(SettingsAuthentication, {
+      piniaOptions: {
+        initialState: {
+          adminInstance: { authenticationSettings: authSettings },
+        },
       },
-      certificates: ["certificate-string"],
-      mappings: {
-        email: "emailAddress",
-        name: "displayName",
-      },
-    },
-    sp: {
-      sign_auth_requests: true,
-      certificate: "test",
-    },
-  },
-};
+    });
 
-describe("Authentication", () => {
-  let wrapper: SettingsAuthenticationWrapper;
-  const mockAdminApi = new MockAdapter(adminApi.getAxios());
-  setActivePinia(createPinia());
-  const instanceStore = useInstanceStore();
-  const vuetify = createVuetify();
+    instanceStore = useInstanceStore();
+    await flushPromises();
+  };
 
-  beforeEach(() => {
-    mockAdminApi.onGet("http://localhost:3000/admin/api/authentication").reply(200, authData);
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+  });
 
-    vi.spyOn(instanceStore, "fetchAuthenticationSettings").mockResolvedValue(undefined);
-    vi.spyOn(instanceStore, "updateLocalAuthentication").mockResolvedValue(undefined);
-    vi.spyOn(instanceStore, "updateSamlAuthentication").mockResolvedValue(undefined);
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
 
-    instanceStore.authenticationSettings = authData;
+    it("renders page header", () => {
+      const header = wrapper.find('[title-test-id="auth-header"]');
+      expect(header.exists()).toBe(true);
+      expect(header.text()).toContain("Authentication");
+    });
 
-    wrapper = mount(SettingsAuthentication, {
-      global: {
-        plugins: [vuetify, routes, SnackbarPlugin],
-      },
+    it("renders authentication status section", () => {
+      const statusHeader = wrapper.find('[data-test="auth-status-header"]');
+      expect(statusHeader.exists()).toBe(true);
+      expect(statusHeader.text()).toBe("Authentication Status");
+    });
+
+    it("renders local authentication switch", () => {
+      const localAuthSwitch = wrapper.find('[data-test="local-auth-switch"]');
+      expect(localAuthSwitch.exists()).toBe(true);
+    });
+
+    it("renders SAML authentication switch", () => {
+      const samlAuthSwitch = wrapper.find('[data-test="saml-auth-switch"]');
+      expect(samlAuthSwitch.exists()).toBe(true);
+    });
+
+    it("shows SSO section when SAML is enabled", () => {
+      const ssoHeader = wrapper.find('[data-test="sso-header"]');
+      expect(ssoHeader.exists()).toBe(true);
+      expect(ssoHeader.text()).toBe("Single Sign-on (SSO)");
+    });
+
+    it("displays IdP SignOn POST URL", () => {
+      const postUrl = wrapper.find('[data-test="idp-signon-post-value"]');
+      expect(postUrl.exists()).toBe(true);
+      expect(postUrl.text()).toBe(mockAuthSettings.saml.idp.binding.post);
+    });
+
+    it("displays IdP SignOn Redirect URL", () => {
+      const redirectUrl = wrapper.find('[data-test="idp-signon-redirect-value"]');
+      expect(redirectUrl.exists()).toBe(true);
+      expect(redirectUrl.text()).toBe(mockAuthSettings.saml.idp.binding.redirect);
+    });
+
+    it("displays IdP Entity ID", () => {
+      const entityId = wrapper.find('[data-test="idp-entity-value"]');
+      expect(entityId.exists()).toBe(true);
+      expect(entityId.text()).toBe(mockAuthSettings.saml.idp.entity_id);
+    });
+
+    it("displays SP certificate download button when certificate exists", () => {
+      const downloadBtn = wrapper.find('[data-test="download-certificate-btn"]');
+      expect(downloadBtn.exists()).toBe(true);
+    });
+
+    it("hides SSO section when SAML is disabled", async () => {
+      wrapper.unmount();
+      await mountWrapper(mockAuthSettingsLocalOnly);
+
+      const ssoHeader = wrapper.find('[data-test="sso-header"]');
+      expect(ssoHeader.exists()).toBe(false);
     });
   });
 
-  it("is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+  describe("initial data loading", () => {
+    it("fetches authentication settings on mount", async () => {
+      await mountWrapper();
+      expect(instanceStore.fetchAuthenticationSettings).toHaveBeenCalled();
+    });
   });
 
-  it("renders correctly", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("local authentication toggle", () => {
+    beforeEach(() => mountWrapper());
+
+    it("calls updateLocalAuthentication when toggling switch", async () => {
+      const localAuthSwitch = wrapper.find('[data-test="local-auth-switch"] input');
+      await localAuthSwitch.trigger("click");
+      await flushPromises();
+
+      expect(instanceStore.updateLocalAuthentication).toHaveBeenCalledWith(false);
+    });
+
+    it("shows error when trying to disable all authentication methods", async () => {
+      vi.mocked(instanceStore.updateLocalAuthentication).mockRejectedValueOnce(
+        createAxiosError(400, "Bad Request"),
+      );
+
+      const localAuthSwitch = wrapper.find('[data-test="local-auth-switch"] input');
+      await localAuthSwitch.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith(
+        "You cannot disable all authentication methods.",
+      );
+    });
+
+    it("shows generic error for other failures", async () => {
+      vi.mocked(instanceStore.updateLocalAuthentication).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+
+      const localAuthSwitch = wrapper.find('[data-test="local-auth-switch"] input');
+      await localAuthSwitch.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith(
+        "An error occurred while updating local authentication.",
+      );
+    });
   });
 
-  it("shows the SSO dialog when 'Configure' is clicked", async () => {
-    await wrapper.find("[data-test='sso-config-btn']").trigger("click");
-    expect(wrapper.vm.showSSODialog).toBe(true);
+  describe("SAML authentication toggle", () => {
+    beforeEach(() => mountWrapper());
+
+    it("disables SAML when toggling off", async () => {
+      const samlAuthSwitch = wrapper.find('[data-test="saml-auth-switch"] input');
+      await samlAuthSwitch.trigger("click");
+      await flushPromises();
+
+      expect(instanceStore.updateSamlAuthentication).toHaveBeenCalledWith({
+        enable: false,
+        idp: {
+          entity_id: "",
+          binding: { post: "", redirect: "" },
+          certificate: "",
+        },
+        sp: { sign_requests: false },
+      });
+    });
+
+    it("opens SSO dialog when enabling SAML", async () => {
+      wrapper.unmount();
+      await mountWrapper(mockAuthSettingsLocalOnly);
+
+      const samlAuthSwitch = wrapper.find('[data-test="saml-auth-switch"] input');
+      await samlAuthSwitch.trigger("click");
+      await flushPromises();
+
+      const dialog = new DOMWrapper(document.body).find('[data-test="configure-sso-dialog"]');
+      expect(dialog.exists()).toBe(true);
+    });
+
+    it("shows error when trying to disable all authentication methods", async () => {
+      vi.mocked(instanceStore.updateSamlAuthentication).mockRejectedValueOnce(
+        createAxiosError(400, "Bad Request"),
+      );
+
+      const samlAuthSwitch = wrapper.find('[data-test="saml-auth-switch"] input');
+      await samlAuthSwitch.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith(
+        "You cannot disable all authentication methods.",
+      );
+    });
+
+    it("shows generic error for other failures", async () => {
+      vi.mocked(instanceStore.updateSamlAuthentication).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+
+      const samlAuthSwitch = wrapper.find('[data-test="saml-auth-switch"] input');
+      await samlAuthSwitch.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith(
+        "An error occurred while updating local authentication.",
+      );
+    });
   });
 
-  it("calls updateLocalAuthentication when clicking switch", async () => {
-    const spy = vi.spyOn(instanceStore, "updateLocalAuthentication");
+  describe("SSO configuration", () => {
+    beforeEach(() => mountWrapper());
 
-    await wrapper.find("[data-test='local-auth-switch']").trigger("click");
+    it("opens SSO dialog when clicking configure button", async () => {
+      const configBtn = wrapper.find('[data-test="sso-config-btn"]');
+      await configBtn.trigger("click");
+      await flushPromises();
 
-    expect(spy).toHaveBeenCalledWith(true);
+      const dialog = new DOMWrapper(document.body).find('[data-test="configure-sso-dialog"]');
+      expect(dialog.exists()).toBe(true);
+    });
+
+    it("shows 'Edit' text when SAML is enabled", () => {
+      const configBtn = wrapper.find('[data-test="sso-config-btn"]');
+      expect(configBtn.text()).toBe("Edit");
+    });
   });
 
-  it("renders SAML settings when enabled", () => {
-    expect(wrapper.find("[data-test='idp-signon-post-value']").exists()).toBe(true);
-    expect(wrapper.find("[data-test='idp-signon-redirect-value']").exists()).toBe(true);
-    expect(wrapper.find("[data-test='idp-entity-value']").exists()).toBe(true);
+  describe("SP certificate download", () => {
+    beforeEach(() => mountWrapper());
+
+    it("downloads certificate when clicking download button", async () => {
+      const downloadBtn = wrapper.find('[data-test="download-certificate-btn"]');
+      await downloadBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockCreateObjectURL).toHaveBeenCalled();
+      expect(mockClick).toHaveBeenCalled();
+      expect(mockRevokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+    });
+
+    it("shows error when no certificate is available", async () => {
+      wrapper.unmount();
+      const settingsWithoutCert = {
+        ...mockAuthSettings,
+        saml: {
+          ...mockAuthSettings.saml,
+          sp: {
+            ...mockAuthSettings.saml.sp,
+            certificate: "",
+          },
+        },
+      };
+      await mountWrapper(settingsWithoutCert);
+
+      const downloadBtn = wrapper.find('[data-test="download-certificate-btn"]');
+      expect(downloadBtn.exists()).toBe(false);
+    });
   });
 
-  it("renders SP certificate button when certificate exists", () => {
-    expect(wrapper.find("[data-test='download-certificate-btn']").exists()).toBe(true);
-  });
+  describe("authentication URL redirect", () => {
+    it("opens authentication URL in new tab when clicking test button", async () => {
+      await mountWrapper();
+      const redirectBtn = wrapper.find('[data-test="redirect-auth-btn"]');
+      await redirectBtn.trigger("click");
+      await flushPromises();
 
-  it("opens authentication URL in new tab when 'Redirect' is clicked", async () => {
-    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
-    await wrapper.find("[data-test='redirect-auth-btn']").trigger("click");
-    expect(openSpy).toHaveBeenCalledWith(authData.saml.auth_url, "_blank");
+      expect(mockWindowOpen).toHaveBeenCalledWith(mockAuthSettings.saml.auth_url, "_blank");
+    });
   });
 });
