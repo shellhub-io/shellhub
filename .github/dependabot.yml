@@ -29,6 +29,10 @@ updates:
     interval: weekly
   commit-message:
     prefix: "docker: ui"
+  ignore:
+    - dependency-name: "node"
+      update-types: ["version-update:semver-major"]
+      versions: [">=25"]
 - package-ecosystem: docker
   directory: "/agent"
   schedule:
