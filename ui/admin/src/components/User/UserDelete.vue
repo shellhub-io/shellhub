@@ -64,6 +64,4 @@ const remove = async () => {
     snackbar.showError("Failed to remove the user.");
   }
 };
-
-defineExpose({ showDialog, openDialog, remove });
 </script>

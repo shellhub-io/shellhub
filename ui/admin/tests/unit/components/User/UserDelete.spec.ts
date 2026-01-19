@@ -1,95 +1,164 @@
-import { nextTick } from "vue";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { createCleanAdminRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useUsersStore from "@admin/store/modules/users";
 import UserDelete from "@admin/components/User/UserDelete.vue";
-import routes from "@admin/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { Router } from "vue-router";
 
-describe("User Delete", () => {
+const triggerButtonTemplate = `
+  <template #default="{ openDialog }">
+    <button 
+      data-test="trigger-button" 
+      @click="openDialog"
+    >
+      Delete
+    </button>
+  </template>
+`;
+
+describe("UserDelete", () => {
   let wrapper: VueWrapper<InstanceType<typeof UserDelete>>;
-  setActivePinia(createPinia());
-  const usersStore = useUsersStore();
-  usersStore.deleteUser = vi.fn();
-  usersStore.fetchUsersList = vi.fn();
+  let usersStore: ReturnType<typeof useUsersStore>;
+  let router: Router;
+  const mockUserId = "user-123";
 
-  const createWrapper = (props = {}, slots = {}) => {
-    return mount(UserDelete, {
+  const mountWrapper = (props: { redirect?: boolean; showTooltip?: boolean } = {}) => {
+    router = createCleanAdminRouter();
+
+    wrapper = mountComponent(UserDelete, {
+      global: { plugins: [router] },
       props: {
-        id: "test-id",
+        id: mockUserId,
         ...props,
       },
-      slots: {
-        default: "<button>Delete</button>",
-        ...slots,
-      },
-      global: { plugins: [createVuetify(), routes, SnackbarPlugin] },
+      slots: { default: triggerButtonTemplate },
+      attachTo: document.body,
     });
+
+    usersStore = useUsersStore();
   };
 
-  afterEach(() => { wrapper.unmount(); });
+  const openDialog = async () => {
+    await wrapper.find('[data-test="trigger-button"]').trigger("click");
+    return new DOMWrapper(document.body).find('[role="dialog"]');
+  };
 
-  it("Exposes openDialog via slot props", () => {
-    const slotMock = vi.fn();
-    wrapper = createWrapper({}, { default: slotMock });
-
-    expect(slotMock).toHaveBeenCalled();
-    const slotProps = slotMock.mock.calls[0][0];
-    expect(slotProps.openDialog).toBeInstanceOf(Function);
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+    document.body.innerHTML = "";
   });
 
-  it("Shows tooltip text when enabled", () => {
-    wrapper = createWrapper({ showTooltip: true });
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
 
-    const tooltip = wrapper.findComponent({ name: "VTooltip" });
-    expect(tooltip.props("text")).toBe("Remove");
+    it("renders the slot content", () => {
+      const trigger = wrapper.find('[data-test="trigger-button"]');
+      expect(trigger.exists()).toBe(true);
+      expect(trigger.text()).toBe("Delete");
+    });
+
+    it("does not show the dialog initially", () => {
+      expect(new DOMWrapper(document.body).find('[role="dialog"]').exists()).toBe(false);
+    });
+
+    it("shows tooltip when showTooltip prop is true", () => {
+      wrapper.unmount();
+      mountWrapper({ showTooltip: true });
+
+      const tooltip = wrapper.findComponent({ name: "VTooltip" });
+      expect(tooltip.exists()).toBe(true);
+      expect(tooltip.props("text")).toBe("Remove");
+      expect(tooltip.props("disabled")).toBe(false);
+    });
+
+    it("disables tooltip when showTooltip prop is false", () => {
+      const tooltip = wrapper.findComponent({ name: "VTooltip" });
+      expect(tooltip.props("disabled")).toBe(true);
+    });
   });
 
-  it("Opens dialog when openDialog is called", async () => {
-    const slotMock = vi.fn();
-    wrapper = createWrapper({}, { default: slotMock });
+  describe("opening dialog", () => {
+    beforeEach(() => mountWrapper());
 
-    const slotProps = slotMock.mock.calls[0][0];
+    it("shows dialog when clicking the trigger", async () => {
+      const dialog = await openDialog();
 
-    slotProps.openDialog();
-    await nextTick();
-
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    expect(messageDialog.props("modelValue")).toBe(true);
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.text()).toContain("Are you sure?");
+      expect(dialog.text()).toContain("You are about to remove this user");
+    });
   });
 
-  it("Deletes user on confirm", async () => {
-    wrapper = createWrapper();
+  describe("deleting user without redirect", () => {
+    beforeEach(() => mountWrapper({ redirect: false }));
 
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    await messageDialog.vm.$emit("confirm");
-    await flushPromises();
+    it("calls store actions and shows success message on confirm", async () => {
+      const dialog = await openDialog();
+      const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    expect(usersStore.deleteUser).toHaveBeenCalledWith("test-id");
-    expect(usersStore.fetchUsersList).toHaveBeenCalled();
+      expect(usersStore.deleteUser).toHaveBeenCalledWith(mockUserId);
+      expect(usersStore.fetchUsersList).toHaveBeenCalled();
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("User removed successfully.");
+    });
+
+    it("emits update event after successful deletion", async () => {
+      const dialog = await openDialog();
+      const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("shows error message when delete fails", async () => {
+      vi.mocked(usersStore.deleteUser).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+
+      const dialog = await openDialog();
+      const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to remove the user.");
+      expect(wrapper.emitted("update")).toBeUndefined();
+    });
   });
 
-  it("Redirects after delete when redirect prop is true", async () => {
-    const pushSpy = vi.spyOn(routes, "push");
+  describe("deleting user with redirect", () => {
+    beforeEach(() => mountWrapper({ redirect: true }));
 
-    wrapper = createWrapper({ redirect: true });
+    it("redirects to users page after successful deletion", async () => {
+      const pushSpy = vi.spyOn(router, "push");
 
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    await messageDialog.vm.$emit("confirm");
-    await flushPromises();
+      const dialog = await openDialog();
+      const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    expect(pushSpy).toHaveBeenCalledWith("/users");
-  });
+      expect(usersStore.deleteUser).toHaveBeenCalledWith(mockUserId);
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("User removed successfully.");
+      expect(pushSpy).toHaveBeenCalledWith("/users");
+    });
 
-  it("Emits update event after successful deletion", async () => {
-    wrapper = createWrapper();
+    it("does not redirect when delete fails", async () => {
+      vi.mocked(usersStore.deleteUser).mockRejectedValueOnce(
+        createAxiosError(500, "Internal Server Error"),
+      );
+      const pushSpy = vi.spyOn(router, "push");
 
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    await messageDialog.vm.$emit("confirm");
-    await flushPromises();
+      const dialog = await openDialog();
+      const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    expect(wrapper.emitted("update")).toBeTruthy();
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to remove the user.");
+      expect(pushSpy).not.toHaveBeenCalled();
+    });
   });
 });

@@ -1,5 +1,6 @@
 <template>
   <v-btn
+    data-test="users-export-btn"
     class="mr-6"
     v-bind="$attrs"
     color="primary"
@@ -27,11 +28,13 @@
         hide-details
       >
         <v-radio
+          data-test="radio-more-than"
           class="mb-1"
           label="Users with more than:"
           :value="FilterOptions.MoreThan"
         />
         <v-radio
+          data-test="radio-exactly"
           class="mb-3"
           label="Users with exactly:"
           :value="FilterOptions.Exactly"
@@ -39,6 +42,7 @@
       </v-radio-group>
       <v-text-field
         v-model.number="numberOfNamespaces"
+        data-test="number-of-namespaces-input"
         suffix="namespaces"
         label="Number of namespaces"
         color="primary"
@@ -116,6 +120,4 @@ const handleSubmit = async () => {
 
   isLoading.value = false;
 };
-
-defineExpose({ numberOfNamespaces, showDialog, selectedFilter });
 </script>

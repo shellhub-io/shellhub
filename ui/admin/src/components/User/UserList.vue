@@ -14,14 +14,15 @@
       <tr
         v-for="(item, i) in users"
         :key="i"
+        data-test="user-row"
       >
-        <td :name-test="item.name">
+        <td data-test="name-cell">
           {{ item.name }}
         </td>
-        <td :email-test="item.email">
+        <td data-test="email-cell">
           {{ item.email }}
         </td>
-        <td :username-test="item.username">
+        <td data-test="username-cell">
           {{ item.username }}
         </td>
         <td>
@@ -35,6 +36,7 @@
           >
             <template #activator="{ props }">
               <v-icon
+                data-test="info-button"
                 tag="a"
                 dark
                 v-bind="props"
@@ -58,6 +60,7 @@
           >
             <template #activator="{ props }">
               <v-icon
+                data-test="login-button"
                 tag="a"
                 dark
                 v-bind="props"
@@ -180,6 +183,4 @@ watch([itemsPerPage, page], async () => {
 onMounted(async () => {
   await fetchUsers();
 });
-
-defineExpose({ users });
 </script>
