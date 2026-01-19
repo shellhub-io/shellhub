@@ -22,3 +22,19 @@ export const mockUsers: IAdminUser[] = [
   { ...mockUser, id: "user-2", username: "bob", email: "bob@example.com" },
   { ...mockUser, id: "user-3", username: "charlie", email: "charlie@example.com" },
 ];
+
+export const mockNotConfirmedUser: IAdminUser = {
+  ...mockUser,
+  id: "user-not-confirmed",
+  username: "notconfirmed",
+  status: "not-confirmed",
+  admin: false,
+};
+
+export const mockInvitedUser: IAdminUser = {
+  ...mockUser,
+  id: "user-invited",
+  username: "invited",
+  status: "invited",
+  admin: false,
+};

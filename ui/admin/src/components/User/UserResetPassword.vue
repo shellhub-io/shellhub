@@ -122,6 +122,4 @@ const proceedToSecondStep = async () => {
     snackbar.showError("Failed to reset user password. Please try again.");
   }
 };
-
-defineExpose({ showDialog, step });
 </script>

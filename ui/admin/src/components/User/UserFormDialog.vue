@@ -16,6 +16,7 @@
   >
     <template #activator="{ props }">
       <v-icon
+        data-test="user-edit-btn"
         tag="button"
         dark
         v-bind="props"
@@ -41,6 +42,7 @@
     <v-card-text class="pa-6">
       <v-text-field
         v-model="name"
+        data-test="name-field"
         label="Name"
         required
         :error-messages="nameError"
@@ -48,6 +50,7 @@
       />
       <v-text-field
         v-model="username"
+        data-test="username-field"
         label="Username"
         required
         :error-messages="usernameError"
@@ -55,6 +58,7 @@
       />
       <v-text-field
         v-model="email"
+        data-test="email-field"
         label="Email"
         required
         name="email"
@@ -63,6 +67,7 @@
       />
       <v-text-field
         v-model="password"
+        data-test="password-field"
         label="Password"
         :required="createUser"
         name="password"
@@ -74,6 +79,7 @@
       />
       <v-checkbox
         v-model="changeNamespaceLimit"
+        data-test="change-namespace-limit-checkbox"
         label="Change the namespace creation limit for this user"
         color="primary"
         density="compact"
@@ -83,6 +89,7 @@
       <v-checkbox
         v-if="changeNamespaceLimit"
         v-model="disableNamespaceCreation"
+        data-test="disable-namespace-creation-checkbox"
         label="Disable namespace creation"
         color="primary"
         class="mb-3"
@@ -93,6 +100,7 @@
       <v-number-input
         v-if="changeNamespaceLimit"
         v-model="maxNamespaces"
+        data-test="max-namespaces-input"
         :disabled="disableNamespaceCreation"
         label="Namespace limit"
         :min="1"
@@ -110,6 +118,7 @@
             <v-checkbox
               v-if="!createUser"
               v-model="isConfirmed"
+              data-test="is-confirmed-checkbox"
               label="User confirmed"
               :disabled="!canChangeStatus"
               density="compact"
@@ -129,6 +138,7 @@
           <div v-bind="props">
             <v-checkbox
               v-model="isAdmin"
+              data-test="is-admin-checkbox"
               label="Admin user"
               :disabled="!canChangeAdmin"
               density="compact"
@@ -178,6 +188,7 @@ const canChangeAdmin = computed(() => !(isCurrentUser.value && props.user?.admin
 const {
   value: name,
   errorMessage: nameError,
+  setErrors: setNameError,
   resetField: resetName,
 } = useField<string | undefined>("name", yup.string().required(), {
   initialValue: props.user?.name,
@@ -186,6 +197,7 @@ const {
 const {
   value: email,
   errorMessage: emailError,
+  setErrors: setEmailError,
   resetField: resetEmail,
 } = useField<string | undefined>("email", yup.string().email().required(), {
   initialValue: props.user?.email,
@@ -194,6 +206,7 @@ const {
 const {
   value: username,
   errorMessage: usernameError,
+  setErrors: setUsernameError,
   resetField: resetUsername,
 } = useField<string | undefined>("username", yup.string().required(), {
   initialValue: props.user?.username,
@@ -202,6 +215,7 @@ const {
 const {
   value: password,
   errorMessage: passwordError,
+  setErrors: setPasswordError,
   resetField: resetPassword,
 } = useField<string | undefined>("password", undefined, {
   initialValue: undefined,
@@ -245,16 +259,16 @@ const handleErrors = (error: AxiosError) => {
   errorFields.forEach((field) => {
     switch (field) {
       case "username":
-        usernameError.value = "This username is invalid!";
+        setUsernameError("This username is invalid!");
         break;
       case "name":
-        nameError.value = "This name is invalid!";
+        setNameError("This name is invalid!");
         break;
       case "email":
-        emailError.value = "This email is invalid!";
+        setEmailError("This email is invalid!");
         break;
       case "password":
-        passwordError.value = "This password is invalid!";
+        setPasswordError("This password is invalid!");
         break;
       default:
         break;
@@ -325,15 +339,5 @@ const submitForm = handleSubmit(async () => {
   } else {
     snackbar.showError("Please fill in all required fields.");
   }
-});
-
-defineExpose({
-  showDialog,
-  password,
-  name,
-  email,
-  username,
-  isConfirmed,
-  isAdmin,
 });
 </script>
