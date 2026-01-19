@@ -13,7 +13,7 @@ require (
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/pires/go-proxyproto v0.8.0
 	github.com/shellhub-io/shellhub v0.13.4
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.47.0
 	golang.org/x/net v0.48.0
