@@ -5,15 +5,15 @@
     rounded="0"
   >
     <div
-      class="d-flex align-start justify-space-between position-relative"
+      class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between position-relative"
       style="z-index: 1;"
     >
       <!-- Left side: Icon + Title + Description -->
-      <div class="d-flex align-start flex-grow-1">
+      <div class="d-flex flex-column flex-sm-row align-start flex-grow-1 min-w-0">
         <v-avatar
           :color="iconColor"
           size="48"
-          class="mr-4"
+          class="mr-sm-4 mb-3 mb-sm-0"
         >
           <v-icon size="32">{{ icon }}</v-icon>
         </v-avatar>
@@ -24,16 +24,16 @@
           >
             {{ overline }}
           </div>
-          <div class="text-h5 font-weight-bold mb-2">{{ title }}</div>
+          <div class="text-h6 text-sm-h5 font-weight-bold mb-2 text-break">{{ title }}</div>
           <div
             v-if="description"
-            class="text-body-2 text-medium-emphasis"
+            class="text-body-2 text-medium-emphasis text-break"
           >
             {{ description }}
           </div>
           <div
             v-if="$slots.description"
-            class="text-body-2 text-medium-emphasis"
+            class="text-body-2 text-medium-emphasis text-break"
           >
             <slot name="description" />
           </div>
@@ -43,7 +43,7 @@
       <!-- Right side: Actions -->
       <div
         v-if="$slots.actions"
-        class="ml-4"
+        class="mt-4 mt-sm-0 ml-sm-4"
       >
         <slot name="actions" />
       </div>

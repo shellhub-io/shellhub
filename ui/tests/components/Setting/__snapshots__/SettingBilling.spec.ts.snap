@@ -22,20 +22,20 @@ exports[`Billing Settings Free Mode > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div class="d-flex align-start justify-space-between position-relative" style="z-index: 1;">
+    <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between position-relative" style="z-index: 1;">
       <!-- Left side: Icon + Title + Description -->
-      <div class="d-flex align-start flex-grow-1">
-        <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-4" style="width: 48px; height: 48px;"><i class="mdi-credit-card mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
+      <div class="d-flex flex-column flex-sm-row align-start flex-grow-1 min-w-0">
+        <div class="v-avatar v-theme--light bg-primary v-avatar--density-default v-avatar--variant-flat mr-sm-4 mb-3 mb-sm-0" style="width: 48px; height: 48px;"><i class="mdi-credit-card mdi v-icon notranslate v-theme--light" style="font-size: 32px; height: 32px; width: 32px;" aria-hidden="true"></i>
           <!----><span class="v-avatar__underlay"></span>
         </div>
         <div>
           <div class="text-overline text-medium-emphasis mb-1">Settings</div>
-          <div class="text-h5 font-weight-bold mb-2">Billing</div>
-          <div class="text-body-2 text-medium-emphasis">Manage your subscription plan, payment methods, and billing information.</div>
+          <div class="text-h6 text-sm-h5 font-weight-bold mb-2 text-break">Billing</div>
+          <div class="text-body-2 text-medium-emphasis text-break">Manage your subscription plan, payment methods, and billing information.</div>
           <!--v-if-->
         </div>
       </div><!-- Right side: Actions -->
-      <div class="ml-4"><button data-v-d7a09f69="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="subscribe-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+      <div class="mt-4 mt-sm-0 ml-sm-4"><button data-v-d7a09f69="" type="button" class="v-btn v-btn--elevated v-theme--light bg-primary v-btn--density-default v-btn--size-default v-btn--variant-elevated align-content-lg-center text-none text-uppercase" data-test="subscribe-button"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
           <!----><span class="v-btn__content" data-no-activator=""> Subscribe </span>
           <!---->
           <!---->
