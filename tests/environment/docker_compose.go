@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
 	tc "github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type DockerCompose struct {
@@ -64,8 +65,9 @@ func (dc *DockerCompose) Service(service Service) *tc.DockerContainer {
 func (dc *DockerCompose) buildCLICommand(ctx context.Context, cmds []string) (tc.Container, error) {
 	container, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
 		ContainerRequest: tc.ContainerRequest{
-			Cmd:      cmds,
-			Networks: []string{dc.envs["SHELLHUB_NETWORK"]},
+			WaitingFor: wait.ForExit(),
+			Cmd:        cmds,
+			Networks:   []string{dc.envs["SHELLHUB_NETWORK"]},
 			FromDockerfile: tc.FromDockerfile{
 				Repo:          "cli",
 				Tag:           "test",
