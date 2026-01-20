@@ -83,7 +83,6 @@
     </v-list>
   </v-navigation-drawer>
   <AppBarContent
-    :theme
     show-menu-toggle
     show-support
     @toggle-menu="drawer = !drawer"
