@@ -1,0 +1,18 @@
+- model: User
+  rows:
+    - id: 0195cefa-aa01-7efb-8098-c9c173056250
+      created_at: 2025-01-15T10:30:00+00:00
+      updated_at: 2025-01-15T10:30:00+00:00
+      last_login: null
+      status: confirmed
+      origin: local
+      external_id: ""
+      name: Jonh Doe
+      username: john_doe
+      email: john.doe@test.com
+      security_email: jane.smith@test.com
+      password_digest: "$2y$12$VVm2ETx7AvaGlfMYqNYK9uzU2M45YZ70YnT..O.s1o2zdE1pekhq6"
+      auth_methods: [ local ]
+      namespace_ownership_limit: -1
+      email_marketing: true
+      preferred_namespace_id: null

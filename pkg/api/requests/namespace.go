@@ -20,8 +20,9 @@ type MemberParam struct {
 	MemberUID string `param:"uid" validate:"required"`
 }
 
-// NamespaceCreate is the structure to represent the request data for create namespace endpoint.
+// NamespaceList is the structure to represent the request data for list namespaces endpoint.
 type NamespaceList struct {
+	UserID string `header:"X-ID"`
 	query.Paginator
 	query.Filters
 }

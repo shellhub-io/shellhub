@@ -102,7 +102,15 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
-	namespaces, count, err := s.store.NamespaceList(ctx, s.store.Options().Match(&req.Filters), s.store.Options().Paginate(&req.Paginator))
+	opts := []store.QueryOption{s.store.Options().Match(&req.Filters), s.store.Options().Paginate(&req.Paginator)}
+	// NOTE: WithMember filters namespaces where the user is a member. In Mongo this is a no-op
+	// because the filtering is done implicitly via gateway.IDFromContext inside the store.
+	// In PostgreSQL, WithMember applies the filter explicitly.
+	if req.UserID != "" {
+		opts = append(opts, s.store.Options().WithMember(req.UserID))
+	}
+
+	namespaces, count, err := s.store.NamespaceList(ctx, opts...)
 	if err != nil {
 		return nil, 0, NewErrNamespaceList(err)
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 
@@ -10,8 +11,11 @@ import (
 	"github.com/shellhub-io/shellhub/api/routes"
 	"github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
-	"github.com/shellhub-io/shellhub/api/store/mongo/options"
+	mongooptions "github.com/shellhub-io/shellhub/api/store/mongo/options"
+	"github.com/shellhub-io/shellhub/api/store/pg"
+	pgoptions "github.com/shellhub-io/shellhub/api/store/pg/options"
 	"github.com/shellhub-io/shellhub/pkg/api/internalclient"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -22,6 +26,19 @@ import (
 )
 
 type env struct {
+	Database string `env:"DATABASE,default=mongo"`
+
+	// PostgresHost specifies the host for PostgreSQL.
+	PostgresHost string `env:"POSTGRES_HOST,default=postgres"`
+	// PostgresPort specifies the port for PostgreSQL.
+	PostgresPort string `env:"POSTGRES_PORT,default=5432"`
+	// PostgresUsername specifies the username for authenticate PostgreSQL.
+	PostgresUsername string `env:"POSTGRES_USERNAME,default=admin"`
+	// PostgresUser specifies the password for authenticate PostgreSQL.
+	PostgresPassword string `env:"POSTGRES_PASSWORD,default=admin"`
+	// PostgresDatabase especifica o nome do banco de dados PostgreSQL a ser utilizado.
+	PostgresDatabase string `env:"POSTGRES_DATABASE,default=main"`
+
 	// MongoURI specifies the connection string for MongoDB.
 	MongoURI string `env:"MONGO_URI,default=mongodb://mongo:27017/main"`
 
@@ -78,14 +95,25 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Debug("Redis cache initialized successfully")
 
-	store, err := mongo.NewStore(ctx, s.env.MongoURI, cache, options.RunMigatrions)
+	var store store.Store
+	switch s.env.Database {
+	case "mongo":
+		store, err = mongo.NewStore(ctx, s.env.MongoURI, cache, mongooptions.RunMigatrions)
+	case "postgres":
+		uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
+		store, err = pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate()) // TODO: Log envs
+	default:
+		log.WithField("database", s.env.Database).Error("invalid database")
+
+		return errors.New("invalid database")
+	}
 	if err != nil {
 		log.
 			WithError(err).
 			Fatal("failed to create the store")
 	}
 
-	log.Debug("MongoDB store connected successfully")
+	log.WithField("database", s.env.Database).Info("store connected successfully")
 
 	apiClient, err := internalclient.NewClient(nil, internalclient.WithAsynqWorker(s.env.RedisURI))
 	if err != nil {

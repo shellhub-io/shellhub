@@ -49,6 +49,15 @@ func (*queryOptions) WithDeviceStatus(status models.DeviceStatus) store.QueryOpt
 	}
 }
 
+// WithMember is a no-op in Mongo because filtering by member is done implicitly
+// via gateway.IDFromContext in NamespaceList. This method exists for interface
+// compatibility with the PostgreSQL implementation.
+func (*queryOptions) WithMember(_ string) store.QueryOption {
+	return func(_ context.Context) error {
+		return nil
+	}
+}
+
 func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 	return func(ctx context.Context) error {
 		if sorter == nil || sorter.By == "" {
