@@ -140,12 +140,6 @@ describe("NamespaceDetails", () => {
       expect(roles[0].text()).toContain("owner");
     });
 
-    it("displays member statuses with correct values", () => {
-      const statuses = wrapper.findAll('[data-test="namespace-member-status"]');
-      expect(statuses.length).toBe(mockNamespace.members.length);
-      expect(statuses[0].text()).toBe(mockNamespace.members[0].status);
-    });
-
     it("displays member ids", () => {
       const memberIds = wrapper.findAll('[data-test="namespace-member-id"]');
       expect(memberIds.length).toBe(mockNamespace.members.length);

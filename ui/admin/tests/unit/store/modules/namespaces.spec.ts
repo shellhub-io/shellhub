@@ -19,7 +19,6 @@ const mockNamespaceBase: IAdminNamespace = {
       id: "member-id-1",
       email: "admin@example.com",
       role: "owner",
-      status: "accepted",
       added_at: "2026-01-06T00:00:00.000Z",
       expires_at: "2027-01-06T00:00:00.000Z",
     },
