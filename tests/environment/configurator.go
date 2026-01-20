@@ -101,6 +101,8 @@ func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	switch dc.envs["SHELLHUB_DATABASE"] {
 	case "mongo":
 		dockerFiles = append(dockerFiles, "../docker-compose.mongo.test.yml")
+	case "postgres":
+		dockerFiles = append(dockerFiles, "../docker-compose.postgres.test.yml")
 	default:
 		panic(fmt.Sprintf("invalid database %s", dc.envs["SHELLHUB_DATABASE"]))
 	}

@@ -201,6 +201,70 @@ func TestListNamespaces(t *testing.T) {
 				err:   nil,
 			},
 		},
+		{
+			description: "success to get the namespace list with user filter",
+			req: &requests.NamespaceList{
+				UserID:    "66ffe0745a82ba5c4fe842ac",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{},
+			},
+			ctx: ctx,
+			requiredMocks: func() {
+				queryOptionsMock.
+					On("Match", &query.Filters{}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
+					Return(nil).
+					Once()
+				queryOptionsMock.
+					On("WithMember", "66ffe0745a82ba5c4fe842ac").
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceList", ctx, mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
+					Return(
+						[]models.Namespace{
+							{
+								Name:     "group1",
+								Owner:    "66ffe0745a82ba5c4fe842ac",
+								TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+								Type:     models.TypeTeam,
+								Members: []models.Member{
+									{
+										ID:    "66ffe0745a82ba5c4fe842ac",
+										Role:  authorizer.RoleOwner,
+										Email: "john.doe@test.com",
+									},
+								},
+							},
+						},
+						1,
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				namespaces: []models.Namespace{
+					{
+						Name:     "group1",
+						Owner:    "66ffe0745a82ba5c4fe842ac",
+						TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713",
+						Type:     models.TypeTeam,
+						Members: []models.Member{
+							{
+								ID:    "66ffe0745a82ba5c4fe842ac",
+								Role:  authorizer.RoleOwner,
+								Email: "john.doe@test.com",
+							},
+						},
+					},
+				},
+				count: 1,
+				err:   nil,
+			},
+		},
 	}
 
 	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
