@@ -10,6 +10,7 @@
       <v-toolbar
         color="primary"
         class="bg-v-theme-surface border-b px-4 py-2"
+        data-test="window-dialog-titlebar"
       >
         <v-avatar
           v-if="icon"
@@ -57,6 +58,7 @@
         v-if="showFooter"
         color="primary"
         class="bg-v-theme-surface border-t px-6 py-2"
+        data-test="window-dialog-footer"
       >
         <slot name="footer" />
       </v-toolbar>
