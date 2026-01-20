@@ -11,7 +11,6 @@ export const mockNamespace: IAdminNamespace = {
       email: "alice@example.com",
       added_at: "2024-01-01T00:00:00Z",
       expires_at: "0001-01-01T00:00:00Z",
-      status: "accepted" as const,
     },
     {
       id: "user-2",
@@ -19,7 +18,6 @@ export const mockNamespace: IAdminNamespace = {
       email: "bob@example.com",
       added_at: "2024-01-01T00:00:00Z",
       expires_at: "0001-01-01T00:00:00Z",
-      status: "accepted" as const,
     },
   ],
   max_devices: 10,

@@ -208,13 +208,6 @@
                 />
                 {{ getRoleLabel(member.role) }}
               </v-chip>
-              <v-chip
-                size="small"
-                class="ml-2 text-capitalize"
-                data-test="namespace-member-status"
-              >
-                {{ member.status }}
-              </v-chip>
             </v-list-item-title>
 
             <v-list-item-subtitle class="d-flex flex-column">

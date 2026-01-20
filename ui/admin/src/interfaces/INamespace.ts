@@ -1,6 +1,5 @@
-import { INamespace, INamespaceMember } from "@/interfaces/INamespace";
+import { INamespace } from "@/interfaces/INamespace";
 
-type AdminUserStatus = "accepted" | "pending";
 interface IAdminBilling {
   active: boolean;
   current_period_end: string;
@@ -13,11 +12,6 @@ interface IAdminBilling {
   subscription_id: string;
 }
 
-interface IAdminNamespaceMember extends Omit<INamespaceMember, "status"> {
-  status: AdminUserStatus
-}
-
-export interface IAdminNamespace extends Omit<INamespace, "billing" | "members"> {
+export interface IAdminNamespace extends Omit<INamespace, "billing"> {
   billing?: IAdminBilling;
-  members: IAdminNamespaceMember[];
 }
