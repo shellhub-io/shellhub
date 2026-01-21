@@ -1,20 +1,20 @@
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import { VLayout } from "vuetify/components";
-import { createPinia, setActivePinia } from "pinia";
-import { devicesApi, namespacesApi, systemApi } from "@/api/http";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
+import { createCleanRouter } from "@tests/utils/router";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import AppBar from "@/components/AppBar/AppBar.vue";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
-import useBillingStore from "@/store/modules/billing";
+import { Router } from "vue-router";
 import useSupportStore from "@/store/modules/support";
+import { envVariables } from "@/envVariables";
+import { VLayout } from "vuetify/components";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mockUser } from "@tests/mocks";
 
 const Component = {
-  template: "<v-layout><AppBar /></v-layout>",
+  template: "<v-layout><AppBar v-model=\"showNavigationDrawer\" /></v-layout>",
+  data() {
+    return { showNavigationDrawer: true };
+  },
 };
 
 vi.mock("@productdevbook/chatwoot/vue", () => ({
@@ -26,187 +26,314 @@ vi.mock("@productdevbook/chatwoot/vue", () => ({
   }),
 }));
 
-const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
-const mockSystemApi = new MockAdapter(systemApi.getAxios());
-const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+vi.mock("@/store/api/devices");
+vi.mock("@/store/api/namespaces");
+vi.mock("@/store/api/stats");
+vi.mock("@/store/api/support");
 
-const billingData = {
+const mockBilling = {
   id: "sub_test",
   active: true,
   status: "active",
   customer_id: "cus_test",
   subscription_id: "sub_test",
   current_period_end: 999999999999,
-  end_at: 999999999999,
-  created_at: "",
-  updated_at: "",
-  invoices: [],
 };
 
-const authStoreData = {
-  id: "507f1f77bcf86cd799439011",
-  username: "test",
-  email: "test@example.com",
-  tenantId: "fake-tenant-data",
-};
-
-const systemInfo = {
-  version: "v0.19.2",
-  endpoints:
-  {
-    ssh: "localhost:2222",
-    api: "localhost:8080",
-  },
-  setup: true,
-  authentication:
-  {
-    local: true,
-    saml: false,
-  },
-};
-
-// eslint-disable-next-line vue/max-len
-const mockInvitationsUrl = "http://localhost:3000/api/users/invitations?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJzdGF0dXMiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOiJwZW5kaW5nIn19XQ%3D%3D&page=1&per_page=100";
-
-describe("AppBar Component", () => {
+describe("AppBar", () => {
   let wrapper: VueWrapper<unknown>;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const billingStore = useBillingStore();
-  const supportStore = useSupportStore();
+  let appBar: VueWrapper<InstanceType<typeof AppBar>>;
+  let router: Router;
+  let supportStore: ReturnType<typeof useSupportStore>;
 
-  beforeEach(() => {
-    window.matchMedia = vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
+  const triggerSupportClick = async () => {
+    const appBarContent = appBar.findComponent({ name: "AppBarContent" });
+    await appBarContent.vm.$emit("support-click");
+    await flushPromises();
+  };
 
-    envVariables.isCloud = true;
-    localStorage.setItem("tenant", "fake-tenant-data");
+  const mountWrapper = async (isCloud = true, hasNamespaces = true) => {
+    envVariables.isCloud = isCloud;
+    envVariables.isCommunity = !isCloud;
+    localStorage.setItem("tenant", "tenant-123");
 
-    mockSystemApi.onGet("http://localhost:3000/info").reply(200, systemInfo);
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=100&status=pending").reply(200, []);
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, []);
-    mockDevicesApi.onGet("http://localhost:3000/api/stats").reply(200, {});
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=30").reply(200, []);
-    mockNamespacesApi.onGet(mockInvitationsUrl).reply(200, []);
-    authStore.$patch(authStoreData);
-    billingStore.billing = billingData;
+    router = createCleanRouter();
+    await router.push("/");
+    await router.isReady();
 
-    wrapper = mount(Component, {
+    wrapper = mountComponent(Component, {
       global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-        components: {
-          "v-layout": VLayout,
-          AppBar,
+        plugins: [router],
+        components: { AppBar, "v-layout": VLayout },
+      },
+      piniaOptions: {
+        initialState: {
+          auth: mockUser,
+          billing: { billing: mockBilling },
+          namespaces: {
+            namespaceList: hasNamespaces ? [{ name: "test-namespace", tenant_id: "tenant-123" }] : [],
+          },
+          stats: {
+            stats: {
+              registered_devices: 10,
+              online_devices: 5,
+              pending_devices: 2,
+              rejected_devices: 1,
+              active_sessions: 3,
+            },
+          },
         },
       },
     });
+    appBar = wrapper.findComponent(AppBar);
+
+    supportStore = useSupportStore();
+
+    await flushPromises();
+  };
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    wrapper?.unmount();
+    localStorage.clear();
   });
 
-  afterEach(() => { wrapper.unmount(); });
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+    it("renders the app bar", () => {
+      expect(appBar.exists()).toBe(true);
+    });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    it("displays the menu toggle button", () => {
+      const menuToggle = appBar.find('[data-test="menu-toggle"]');
+      expect(menuToggle.exists()).toBe(true);
+    });
 
-  it("Renders internal components", () => {
-    expect(wrapper.find('[data-test="app-bar"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="menu-toggle"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="breadcrumbs"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="support-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="user-menu-btn"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="user-icon"]').exists()).toBe(true);
-  });
+    it("displays the breadcrumbs", () => {
+      const breadcrumbs = appBar.find('[data-test="breadcrumbs"]');
+      expect(breadcrumbs.exists()).toBe(true);
+    });
 
-  it("Opens the ShellHub help page when the support button is clicked", async () => {
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data/support").reply(200, { identifier: "fake-identifier" });
+    it("displays the support button", () => {
+      const supportBtn = appBar.find('[data-test="support-btn"]');
+      expect(supportBtn.exists()).toBe(true);
+    });
 
-    const drawer = wrapper.findComponent(AppBar);
+    it("displays the user menu button", () => {
+      const userMenuBtn = appBar.find('[data-test="user-menu-btn"]');
+      expect(userMenuBtn.exists()).toBe(true);
+    });
 
-    const openShellhubHelpMock = vi.spyOn(drawer.vm, "openShellhubHelp");
-    openShellhubHelpMock.mockImplementation(vi.fn());
-    const supportBtn = wrapper.find('[data-test="support-btn"]');
+    it("displays the user icon", () => {
+      const userIcon = appBar.find('[data-test="user-icon"]');
+      expect(userIcon.exists()).toBe(true);
+    });
 
-    await supportBtn.trigger("click");
-    expect(openShellhubHelpMock).toHaveBeenCalled();
-  });
-
-  it("Renders the logout btn", async () => {
-    const drawer = wrapper.findComponent(AppBar);
-
-    const userMenuBtn = drawer.find('[data-test="user-menu-btn"]');
-    expect(userMenuBtn.exists()).toBe(true);
-
-    await userMenuBtn.trigger("click");
-
-    const logoutItem = drawer.findComponent('[data-test="Logout"]');
-    expect(logoutItem.exists()).toBe(true);
-  });
-
-  it("Displays the correct breadcrumb titles", () => {
-    const drawer = wrapper.findComponent(AppBar);
-
-    const breadcrumbItems = drawer.findAll('[data-test="breadcrumbs"] v-breadcrumbs-item');
-
-    const expectedBreadcrumbs = drawer.vm.breadcrumbItems;
-    breadcrumbItems.forEach((item, index) => {
-      expect(item.text()).toBe(expectedBreadcrumbs[index].title);
+    it("displays the namespace selector", () => {
+      const namespaceSelector = appBar.findComponent({ name: "Namespace" });
+      expect(namespaceSelector.exists()).toBe(true);
     });
   });
 
-  it("Opens the paywall if instance is community", async () => {
-    envVariables.isCloud = false;
-    envVariables.isCommunity = true;
-    wrapper.unmount();
-    wrapper = mount(Component, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-        components: {
-          "v-layout": VLayout,
-          AppBar,
-        },
-      },
+  describe("conditional rendering - cloud features", () => {
+    it("shows devices dropdown when in cloud and has namespaces", async () => {
+      await mountWrapper(true, true);
+      await flushPromises();
+
+      const devicesDropdown = appBar.findComponent({ name: "DevicesDropdown" });
+      expect(devicesDropdown.exists()).toBe(true);
     });
 
-    await flushPromises();
-    const drawer = wrapper.findComponent(AppBar);
+    it("hides devices dropdown when no namespaces exist", async () => {
+      await mountWrapper(true, false);
+      await flushPromises();
 
-    await drawer.vm.openShellhubHelp();
+      const devicesDropdown = appBar.findComponent({ name: "DevicesDropdown" });
+      expect(devicesDropdown.exists()).toBe(false);
+    });
 
-    await flushPromises();
+    it("shows invitations menu when in cloud environment", async () => {
+      await mountWrapper(true, true);
+      const invitationsMenu = appBar.findComponent({ name: "InvitationsMenu" });
+      expect(invitationsMenu.exists()).toBe(true);
+    });
 
-    expect(drawer.vm.chatSupportPaywall).toBeTruthy();
+    it("hides invitations menu when not in cloud environment", async () => {
+      await mountWrapper(false, true);
+      const invitationsMenu = appBar.findComponent({ name: "InvitationsMenu" });
+      expect(invitationsMenu.exists()).toBe(false);
+    });
   });
 
-  it("Uses Chatwoot if identifier is set", async () => {
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data/support").reply(200, { identifier: "fake-identifier" });
+  describe("menu toggle interactions", () => {
+    beforeEach(() => mountWrapper());
 
-    const drawer = wrapper.findComponent(AppBar);
+    it("toggles navigation drawer when menu button is clicked", async () => {
+      const initialValue = appBar.vm.showNavigationDrawer;
 
-    const supportBtn = wrapper.find('[data-test="support-btn"]');
+      const appBarContent = appBar.findComponent({ name: "AppBarContent" });
+      await appBarContent.vm.$emit("toggle-menu");
+      await flushPromises();
 
-    vi.spyOn(drawer.vm, "identifier", "get").mockReturnValue("mocked_identifier");
+      expect(appBar.vm.showNavigationDrawer).toBe(!initialValue);
+    });
 
-    const windowOpenMock = vi.spyOn(window, "open").mockImplementation(() => null);
-    const storeSpy = vi.spyOn(supportStore, "getIdentifier");
+    it("toggles drawer state multiple times correctly", async () => {
+      const appBarContent = appBar.findComponent({ name: "AppBarContent" });
+      const initialState = appBar.vm.showNavigationDrawer;
 
-    await supportBtn.trigger("click");
+      await appBarContent.vm.$emit("toggle-menu");
+      await flushPromises();
+      expect(appBar.vm.showNavigationDrawer).toBe(!initialState);
+      await appBarContent.vm.$emit("toggle-menu");
+      await flushPromises();
+      expect(appBar.vm.showNavigationDrawer).toBe(initialState);
+    });
+  });
 
-    await flushPromises();
+  describe("support button interactions", () => {
+    beforeEach(() => mountWrapper(true, true));
 
-    expect(windowOpenMock).not.toHaveBeenCalled();
-    expect(storeSpy).toHaveBeenCalledWith("fake-tenant-data");
+    it("calls openShellhubHelp when support button is clicked", async () => {
+      const openShellhubHelpSpy = vi.spyOn(appBar.vm, "openShellhubHelp");
+
+      await triggerSupportClick();
+
+      expect(openShellhubHelpSpy).toHaveBeenCalled();
+    });
+
+    it("fetches support identifier from store when support is clicked", async () => {
+      await triggerSupportClick();
+      expect(supportStore.getIdentifier).toHaveBeenCalledWith("tenant-123");
+    });
+  });
+
+  describe("breadcrumbs", () => {
+    beforeEach(async () => {
+      await mountWrapper();
+      await router.push({ name: "Devices" });
+      await flushPromises();
+    });
+
+    it("updates breadcrumbs based on current route", () => {
+      const breadcrumbs = appBar.find('[data-test="breadcrumbs"]');
+      expect(breadcrumbs.exists()).toBe(true);
+      // Breadcrumbs should reflect the current route
+      expect(appBar.vm.breadcrumbItems.length).toBeGreaterThan(0);
+    });
+
+    it("shows icon in breadcrumb when route has icon", () => {
+      const icon = appBar.find('[data-test="breadcrumb-icon"]');
+      expect(icon.exists()).toBe(true);
+    });
+  });
+
+  describe("user menu", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays user email in menu", () => {
+      const userMenu = appBar.findComponent({ name: "UserMenu" });
+      expect(userMenu.props("userEmail")).toBe(mockUser.email);
+    });
+
+    it("displays user display name in menu", () => {
+      const userMenu = appBar.findComponent({ name: "UserMenu" });
+      expect(userMenu.props("displayName")).toBe(mockUser.username);
+    });
+
+    it("passes menu items to UserMenu component", () => {
+      const userMenu = appBar.findComponent({ name: "UserMenu" });
+      expect(userMenu.props("menuItems")).toBeDefined();
+      expect(Array.isArray(userMenu.props("menuItems"))).toBe(true);
+    });
+
+    it("handles user menu selection", async () => {
+      const routerPushSpy = vi.spyOn(router, "push");
+      const userMenu = appBar.findComponent({ name: "UserMenu" });
+      const mockMenuItem = { title: "Profile", icon: "mdi-account", type: "path", path: { name: "SettingProfile" } };
+
+      await userMenu.vm.$emit("select", mockMenuItem);
+      await flushPromises();
+
+      // Should handle the menu item selection (navigate or execute method)
+      expect(routerPushSpy).toHaveBeenCalledWith({ name: "SettingProfile" });
+    });
+  });
+
+  describe("dark mode toggle", () => {
+    beforeEach(() => mountWrapper());
+
+    it("passes dark mode state to UserMenu", () => {
+      const userMenu = appBar.findComponent({ name: "UserMenu" });
+      expect(typeof userMenu.props("isDarkMode")).toBe("boolean");
+    });
+
+    it("toggles dark mode when event is emitted", async () => {
+      const userMenu = appBar.findComponent({ name: "UserMenu" });
+      const initialDarkMode = userMenu.props("isDarkMode");
+
+      await userMenu.vm.$emit("toggle-dark-mode");
+      await flushPromises();
+
+      // Dark mode should toggle
+      expect(userMenu.props("isDarkMode")).toBe(!initialDarkMode);
+    });
+  });
+
+  describe("drawer interactions", () => {
+    beforeEach(() => mountWrapper(true, true));
+
+    it("closes invitations drawer when devices drawer opens", async () => {
+      const devicesDropdown = appBar.findComponent({ name: "DevicesDropdown" });
+
+      await devicesDropdown.vm.$emit("update:modelValue", true);
+      await flushPromises();
+
+      const invitationsMenu = appBar.findComponent({ name: "InvitationsMenu" });
+      expect(invitationsMenu.props("modelValue")).toBe(false);
+    });
+
+    it("closes devices drawer when invitations drawer opens", async () => {
+      const invitationsMenu = appBar.findComponent({ name: "InvitationsMenu" });
+
+      await invitationsMenu.vm.$emit("update:modelValue", true);
+      await flushPromises();
+
+      const devicesDropdown = appBar.findComponent({ name: "DevicesDropdown" });
+      expect(devicesDropdown.props("modelValue")).toBe(false);
+    });
+  });
+
+  describe("community vs cloud behavior", () => {
+    it("shows paywall for community instance", async () => {
+      await mountWrapper(false, true);
+      vi.mocked(supportStore.getIdentifier).mockRejectedValueOnce(new Error("No identifier"));
+
+      await triggerSupportClick();
+
+      expect(appBar.vm.chatSupportPaywall).toBe(true);
+    });
+
+    it("does not show paywall for cloud instance with valid identifier", async () => {
+      await mountWrapper(true, true);
+
+      appBar.vm.chatSupportPaywall = false;
+      await triggerSupportClick();
+
+      expect(appBar.vm.chatSupportPaywall).toBe(false);
+    });
+  });
+
+  describe("error handling", () => {
+    it("shows error snackbar when support identifier fetch fails", async () => {
+      await mountWrapper(true, true);
+      vi.mocked(supportStore.getIdentifier).mockRejectedValueOnce(createAxiosError(500, "Internal server error"));
+
+      await triggerSupportClick();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith(
+        "Failed to open chat support. Please check your account's billing and try again later.");
+    });
   });
 });
