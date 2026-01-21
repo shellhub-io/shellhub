@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { mockDevice, mockSession } from '@tests/views/mocks';
+ * import { mockDevice, mockSession } from '@tests/mocks';
  *
  * const wrapper = mountComponent(MyComponent, {
  *   piniaOptions: {

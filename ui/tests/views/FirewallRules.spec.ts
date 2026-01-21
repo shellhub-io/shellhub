@@ -2,7 +2,7 @@ import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { mountComponent } from "@tests/utils/mount";
 import FirewallRules from "@/views/FirewallRules.vue";
-import { mockFirewallRules } from "@tests/views/mocks";
+import { mockFirewallRules } from "../mocks";
 
 describe("Firewall Rules View", () => {
   let wrapper: VueWrapper<InstanceType<typeof FirewallRules>>;

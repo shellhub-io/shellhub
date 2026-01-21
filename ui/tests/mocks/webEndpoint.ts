@@ -1,5 +1,5 @@
 import { IWebEndpoint } from "@/interfaces/IWebEndpoints";
-import { mockDevice } from "@tests/views/mocks/device";
+import { mockDevice } from "./device";
 
 /**
  * Mock web endpoint data for testing.

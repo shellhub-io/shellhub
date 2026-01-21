@@ -2,7 +2,7 @@ import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { mountComponent } from "@tests/utils/mount";
 import PrivateKeys from "@/views/PrivateKeys.vue";
-import { mockPrivateKeys } from "@tests/views/mocks";
+import { mockPrivateKeys } from "../mocks";
 
 describe("Private Keys View", () => {
   let wrapper: VueWrapper<InstanceType<typeof PrivateKeys>>;
