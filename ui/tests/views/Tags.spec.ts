@@ -2,7 +2,7 @@ import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { mountComponent } from "@tests/utils/mount";
 import Tags from "@/views/Tags.vue";
-import { mockTags } from "@tests/views/mocks";
+import { mockTags } from "../mocks";
 
 describe("Tags View", () => {
   let wrapper: VueWrapper<InstanceType<typeof Tags>>;

@@ -4,7 +4,7 @@ import MockAdapter from "axios-mock-adapter";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import TeamMembers from "@/views/TeamMembers.vue";
 import { namespacesApi } from "@/api/http";
-import { mockNamespace } from "./mocks/namespace";
+import { mockNamespace } from "../mocks";
 import useNamespacesStore from "@/store/modules/namespaces";
 
 describe("TeamMembers", () => {

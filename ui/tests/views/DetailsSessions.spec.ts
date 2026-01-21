@@ -6,7 +6,7 @@ import { createCleanRouter } from "@tests/utils/router";
 import DetailsSessions from "@/views/DetailsSessions.vue";
 import { ISession } from "@/interfaces/ISession";
 import { formatFullDateTime } from "@/utils/date";
-import { mockDetailedSession } from "@tests/views/mocks";
+import { mockDetailedSession } from "../mocks";
 import useSessionsStore from "@/store/modules/sessions";
 import { createAxiosError } from "@tests/utils/axiosError";
 
