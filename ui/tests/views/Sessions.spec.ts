@@ -3,7 +3,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import { createCleanRouter } from "@tests/utils/router";
 import Sessions from "@/views/Sessions.vue";
-import { mockSession } from "@tests/views/mocks";
+import { mockSession } from "../mocks";
 import useSessionsStore from "@/store/modules/sessions";
 import { createAxiosError } from "@tests/utils/axiosError";
 

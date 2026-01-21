@@ -2,7 +2,7 @@ import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { mountComponent } from "@tests/utils/mount";
 import Home from "@/views/Home.vue";
-import { mockNamespace } from "@tests/views/mocks";
+import { mockNamespace } from "../mocks";
 
 describe("Home View", () => {
   let wrapper: VueWrapper<InstanceType<typeof Home>>;

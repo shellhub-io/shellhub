@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { ref } from "vue";
 import Namespace from "@/components/Namespace/Namespace.vue";
 import { mountComponent } from "@tests/utils/mount";
-import { mockNamespace } from "@tests/views/mocks/namespace";
+import { mockNamespace } from "@tests/mocks/namespace";
 
 const displayState = {
   smAndDown: ref(false),
