@@ -1,7 +1,7 @@
 import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 import ForgotPassword from "@/views/ForgotPassword.vue";
 import useUsersStore from "@/store/modules/users";
 import { createAxiosError } from "@tests/utils/axiosError";

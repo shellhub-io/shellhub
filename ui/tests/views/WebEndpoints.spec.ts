@@ -4,7 +4,7 @@ import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import WebEndpoints from "@/views/WebEndpoints.vue";
 import useWebEndpointsStore from "@/store/modules/web_endpoints";
 import { createAxiosError } from "@tests/utils/axiosError";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 
 vi.mock("@/store/api/web_endpoints");
 vi.mock("@/store/api/devices", () => ({

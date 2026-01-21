@@ -1,7 +1,7 @@
 import { vi, expect, describe, it } from "vitest";
 import { mountComponent } from "@tests/utils/mount";
 import NotFound from "@/views/NotFound.vue";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 
 describe("Not Found Page", () => {
   const router = createCleanRouter();

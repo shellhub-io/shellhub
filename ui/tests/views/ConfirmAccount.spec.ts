@@ -4,7 +4,7 @@ import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import ConfirmAccount from "@/views/ConfirmAccount.vue";
 import useUsersStore from "@/store/modules/users";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 import { createAxiosError } from "@tests/utils/axiosError";
 
 vi.mock("@/store/api/users");

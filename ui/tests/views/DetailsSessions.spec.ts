@@ -2,7 +2,7 @@ import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { Router } from "vue-router";
 import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 import DetailsSessions from "@/views/DetailsSessions.vue";
 import { ISession } from "@/interfaces/ISession";
 import { formatFullDateTime } from "@/utils/date";

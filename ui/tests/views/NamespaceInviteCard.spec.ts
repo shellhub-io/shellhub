@@ -1,7 +1,7 @@
 import { VueWrapper } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { mountComponent } from "@tests/utils/mount";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 import NamespaceInviteCard from "@/views/NamespaceInviteCard.vue";
 import { routes } from "@/router";
 
