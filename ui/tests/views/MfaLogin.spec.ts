@@ -2,7 +2,7 @@ import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RouteLocationAsRelativeGeneric, Router } from "vue-router";
 import { mountComponent } from "@tests/utils/mount";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 import { createAxiosError } from "@tests/utils/axiosError";
 import MfaLogin from "@/views/MfaLogin.vue";
 import useAuthStore from "@/store/modules/auth";

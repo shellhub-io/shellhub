@@ -2,7 +2,7 @@ import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { Router } from "vue-router";
 import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 import ValidationAccount from "@/views/ValidationAccount.vue";
 import useUsersStore from "@/store/modules/users";
 import { createAxiosError } from "@tests/utils/axiosError";

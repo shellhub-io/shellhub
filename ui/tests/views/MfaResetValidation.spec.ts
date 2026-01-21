@@ -1,7 +1,7 @@
 import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { mountComponent } from "@tests/utils/mount";
-import createCleanRouter from "@tests/utils/router";
+import { createCleanRouter } from "@tests/utils/router";
 import MfaResetValidation from "@/views/MfaResetValidation.vue";
 import useAuthStore from "@/store/modules/auth";
 import { createAxiosError } from "@tests/utils/axiosError";

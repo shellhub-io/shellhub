@@ -38,7 +38,7 @@ import { routes as adminRoutes } from "@admin/router";
  * });
  * expect(router.currentRoute.value.path).toBe('/devices');
  */
-const createCleanRouter = (routes = appRoutes) => createRouter({
+export const createCleanRouter = (routes = appRoutes) => createRouter({
   history: createWebHistory(),
   routes,
 });
@@ -64,5 +64,3 @@ export const createCleanAdminRouter = (routes = adminRoutes) => createRouter({
   history: createWebHistory("/admin/"),
   routes,
 });
-
-export default createCleanRouter;
