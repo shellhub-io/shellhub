@@ -11,21 +11,19 @@
 
   <v-tooltip
     v-else
-    bottom
-    anchor="bottom"
+    location="bottom"
+    text="Edit"
   >
     <template #activator="{ props }">
       <v-icon
         data-test="user-edit-btn"
         tag="button"
-        dark
         v-bind="props"
         tabindex="0"
         icon="mdi-pencil"
         @click="showDialog = true"
       />
     </template>
-    <span>Edit</span>
   </v-tooltip>
 
   <FormDialog
@@ -34,6 +32,7 @@
     icon="mdi-account"
     icon-color="primary"
     :confirm-text="createUser ? 'Create' : 'Update'"
+    :confirm-disabled="hasValidationErrors()"
     cancel-text="Cancel"
     @confirm="submitForm"
     @cancel="close"
@@ -100,6 +99,7 @@
       <v-number-input
         v-if="changeNamespaceLimit"
         v-model="maxNamespaces"
+        :error-messages="maxNamespacesError"
         data-test="max-namespaces-input"
         :disabled="disableNamespaceCreation"
         label="Namespace limit"
@@ -172,7 +172,6 @@ const showDialog = ref(false);
 const showPassword = ref(false);
 const changeNamespaceLimit = ref(props.user?.max_namespaces !== -1);
 const disableNamespaceCreation = ref(props.user?.max_namespaces === 0);
-const maxNamespaces = ref(props.user?.max_namespaces || 0);
 const canChangeStatus = props.user?.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
 const snackbar = useSnackbar();
 const usersStore = useUsersStore();
@@ -217,19 +216,21 @@ const {
   errorMessage: passwordError,
   setErrors: setPasswordError,
   resetField: resetPassword,
-} = useField<string | undefined>("password", undefined, {
-  initialValue: undefined,
+} = useField<string | undefined>("password", yup.string().min(6, "Password must be at least 6 characters"));
+
+const {
+  value: maxNamespaces,
+  resetField: resetMaxNamespaces,
+  errorMessage: maxNamespacesError,
+} = useField<number>("max_namespaces", yup.number().integer().required("This field is required"), {
+  initialValue: props.user?.max_namespaces || 0,
 });
 
-const { value: isConfirmed, resetField: resetIsConfirmed } = useField<
-  boolean | undefined
->("isConfirmed", undefined, {
+const { value: isConfirmed, resetField: resetIsConfirmed } = useField<boolean>("isConfirmed", undefined, {
   initialValue: props.user?.status === "confirmed",
 });
 
-const { value: isAdmin, resetField: resetIsAdmin } = useField<
-  boolean | undefined
->("isAdmin", undefined, {
+const { value: isAdmin, resetField: resetIsAdmin } = useField<boolean>("isAdmin", undefined, {
   initialValue: props.user?.admin || false,
 });
 
@@ -238,17 +239,14 @@ const resetFormFields = () => {
   resetEmail();
   resetUsername();
   resetPassword();
+  resetMaxNamespaces();
   resetIsConfirmed();
   resetIsAdmin();
 };
 
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
+const togglePasswordVisibility = () => { showPassword.value = !showPassword.value; };
 
-const setMaxNamespaces = () => {
-  maxNamespaces.value = disableNamespaceCreation.value ? 0 : 1;
-};
+const setMaxNamespaces = () => { maxNamespaces.value = disableNamespaceCreation.value ? 0 : 1; };
 
 const { handleSubmit } = useForm<IAdminUser>();
 
@@ -270,8 +268,7 @@ const handleErrors = (error: AxiosError) => {
       case "password":
         setPasswordError("This password is invalid!");
         break;
-      default:
-        break;
+      default: break;
     }
   });
 };
@@ -291,16 +288,12 @@ const submitUser = async (
       : usersStore.updateUser;
     await usersStoreAction(userData);
 
-    snackbar.showSuccess(
-      `User ${isCreating ? "added" : "updated"} successfully.`,
-    );
+    snackbar.showSuccess(`User ${isCreating ? "added" : "updated"} successfully.`);
 
     await usersStore.fetchUsersList();
     close();
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      handleErrors(error as AxiosError);
-    }
+    if (axios.isAxiosError(error)) handleErrors(error as AxiosError);
     snackbar.showError("Failed to submit the user data.");
   }
 };
@@ -308,9 +301,7 @@ const submitUser = async (
 const getStatus = () => {
   if (props.createUser) return undefined;
 
-  if (canChangeStatus) {
-    return isConfirmed.value ? "confirmed" : "not-confirmed";
-  }
+  if (canChangeStatus) return isConfirmed.value ? "confirmed" : "not-confirmed";
 
   return props.user?.status;
 };
@@ -321,23 +312,27 @@ const prepareUserData = () =>
     email: email.value,
     username: username.value,
     password: password.value || "",
-    max_namespaces: changeNamespaceLimit.value
-      ? maxNamespaces.value
-      : undefined,
+    max_namespaces: changeNamespaceLimit.value ? maxNamespaces.value : undefined,
     status: getStatus(),
     id: !props.createUser ? props.user?.id : undefined,
     admin: isAdmin.value,
   }) as IAdminUserFormData;
 
-const validateErrors = (): boolean =>
-  !nameError.value && !emailError.value && !usernameError.value;
+const hasValidationErrors = () =>
+  (!!nameError.value || !name.value)
+  || (!!emailError.value || !email.value)
+  || (!!usernameError.value || !username.value)
+  || (!!maxNamespacesError.value || (changeNamespaceLimit.value && maxNamespaces.value === undefined))
+  || (!!passwordError.value)
+  || (props.createUser && (!!passwordError.value || !password.value));
 
 const submitForm = handleSubmit(async () => {
-  if (validateErrors()) {
-    const userData = prepareUserData();
-    await submitUser(!!props.createUser, userData);
-  } else {
+  if (hasValidationErrors()) {
     snackbar.showError("Please fill in all required fields.");
+    return;
   }
+
+  const userData = prepareUserData();
+  await submitUser(!!props.createUser, userData);
 });
 </script>
