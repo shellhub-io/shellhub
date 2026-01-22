@@ -118,6 +118,61 @@ describe("UserFormDialog", () => {
 
         expect(dialog.text()).not.toContain("this must be a valid email");
       });
+
+      it("shows error when username is empty", async () => {
+        const dialog = getDialog();
+        const usernameInput = dialog.find('[data-test="username-field"] input');
+        await usernameInput.setValue("");
+        await usernameInput.trigger("blur");
+        await flushPromises();
+
+        expect(dialog.text()).toContain("this is a required field");
+      });
+
+      it("shows error when password is empty in create mode", async () => {
+        const dialog = getDialog();
+        const passwordInput = dialog.find('[data-test="password-field"] input');
+        await passwordInput.setValue("");
+        await passwordInput.trigger("blur");
+        await flushPromises();
+
+        const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+        expect(confirmBtn.attributes("disabled")).toBeDefined();
+      });
+
+      it("shows error when password is less than 6 characters", async () => {
+        const dialog = getDialog();
+        const passwordInput = dialog.find('[data-test="password-field"] input');
+        await passwordInput.setValue("12345");
+        await passwordInput.trigger("blur");
+        await flushPromises();
+
+        expect(dialog.text()).toContain("Password must be at least 6 characters");
+      });
+
+      it("accepts password with 6 or more characters", async () => {
+        const dialog = getDialog();
+        const passwordInput = dialog.find('[data-test="password-field"] input');
+        await passwordInput.setValue("123456");
+        await passwordInput.trigger("blur");
+        await flushPromises();
+
+        expect(dialog.text()).not.toContain("Password must be at least 6 characters");
+      });
+
+      it("shows error when max namespaces field is empty", async () => {
+        const dialog = getDialog();
+        const changeLimitCheckbox = dialog.find('[data-test="change-namespace-limit-checkbox"] input');
+        await changeLimitCheckbox.setValue(true);
+        await flushPromises();
+
+        const numberInput = dialog.find('[data-test="max-namespaces-input"] input');
+        await numberInput.setValue("");
+        await numberInput.trigger("blur");
+        await flushPromises();
+
+        expect(dialog.text()).toContain("This field is required");
+      });
     });
 
     describe("password visibility", () => {
@@ -467,6 +522,25 @@ describe("UserFormDialog", () => {
       beforeEach(async () => {
         mountWrapper();
         await openDialog();
+      });
+
+      it("allows updating user without changing password", async () => {
+        const dialog = getDialog();
+        await dialog.find('[data-test="name-field"] input').setValue("Updated Name");
+        await flushPromises();
+
+        const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+        expect(confirmBtn.attributes("disabled")).toBeUndefined();
+      });
+
+      it("validates password minimum length when password is changed", async () => {
+        const dialog = getDialog();
+        const passwordInput = dialog.find('[data-test="password-field"] input');
+        await passwordInput.setValue("12345");
+        await passwordInput.trigger("blur");
+        await flushPromises();
+
+        expect(dialog.text()).toContain("Password must be at least 6 characters");
       });
 
       it("calls store action with updated data", async () => {
