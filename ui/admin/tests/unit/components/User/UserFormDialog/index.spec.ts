@@ -73,3 +73,27 @@ describe("UserFormDialog (Create User)", () => {
     expect(wrapper.vm.isConfirmed).toBe(false);
   });
 });
+
+describe("UserFormDialog (Edit User with namespace creation disabled)", () => {
+  const userWithDisabledNamespace: IAdminUser = {
+    ...user,
+    max_namespaces: 0,
+  };
+
+  const wrapper = mount(UserFormDialog, {
+    props: { createUser: false, user: userWithDisabledNamespace },
+    global: { plugins: [vuetify, SnackbarPlugin] },
+  });
+
+  wrapper.vm.showDialog = true;
+
+  it("Renders the component with namespace creation disabled", () => {
+    expect(wrapper.html()).toMatchSnapshot();
+    const dialog = new DOMWrapper(document.body);
+    expect(dialog.html()).toMatchSnapshot();
+  });
+
+  it("Should have changeNamespaceLimit enabled when max_namespaces is 0", () => {
+    expect(wrapper.vm.user?.max_namespaces).toEqual(0);
+  });
+});

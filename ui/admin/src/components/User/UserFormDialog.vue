@@ -161,7 +161,7 @@ const props = defineProps<{
 const showDialog = ref(false);
 const showPassword = ref(false);
 const changeNamespaceLimit = ref(props.user?.max_namespaces !== -1);
-const disableNamespaceCreation = ref(false);
+const disableNamespaceCreation = ref(props.user?.max_namespaces === 0);
 const maxNamespaces = ref(props.user?.max_namespaces || 0);
 const canChangeStatus = props.user?.status === "not-confirmed"; // Only allow changing status if the user is not confirmed
 const snackbar = useSnackbar();
