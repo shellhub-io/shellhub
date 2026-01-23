@@ -221,6 +221,4 @@ const close = () => {
   showAlert.value = false;
   el.value = 1;
 };
-
-defineExpose({ el, showDialog });
 </script>
