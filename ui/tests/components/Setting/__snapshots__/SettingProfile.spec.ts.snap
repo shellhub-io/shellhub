@@ -63,69 +63,71 @@ exports[`Settings Namespace > Renders the component 1`] = `
     </div>
     <!---->
     <!---->
-    <div data-v-b3fa301d="" class="v-card-text pt-0">
-      <div data-v-b3fa301d="" class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="list" data-test="profile-details-list">
-        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
-          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-badge-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-          <div class="v-card-item__content">
-            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="name-field">Name</span></div>
-            <!---->
-            <!---->
+    <div class="v-card-text pt-0">
+      <div class="v-list v-theme--light v-list--border v-list--density-default v-list--one-line v-list--rounded bg-background pa-0" tabindex="0" role="list" data-test="profile-details-list">
+        <div data-v-b3fa301d="" class="v-row ma-0 px-3 align-center">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 d-flex ga-3 align-center align-sm-start justify-center justify-sm-start text-center text-sm-start">
+            <div class="text-center text-sm-start">
+              <div class="text-subtitle-1" data-test="name-field"><i class="mdi-badge-account mdi v-icon notranslate v-theme--light v-icon--size-default mr-3" aria-hidden="true"></i>Name</div>
+              <!--v-if-->
+            </div>
           </div>
-          <div class="v-card-item__append">
-            <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="name-input">
-              <!---->
-              <div class="v-input__control">
-                <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
-                  <div class="v-field__overlay"></div>
-                  <div class="v-field__loader">
-                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 px-0 d-flex align-center justify-center justify-sm-end">
+            <div class="w-100 d-flex justify-center justify-sm-end">
+              <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="name-input">
+                <!---->
+                <div class="v-input__control">
+                  <div class="v-field v-field--disabled v-field--reverse v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                    <div class="v-field__overlay"></div>
+                    <div class="v-field__loader">
+                      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                        <!---->
+                        <div class="v-progress-linear__background"></div>
+                        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                          <div class="v-progress-linear__indeterminate">
+                            <div class="v-progress-linear__indeterminate long"></div>
+                            <div class="v-progress-linear__indeterminate short"></div>
+                          </div>
+                        </transition-stub>
+                        <!---->
+                      </div>
+                    </div>
+                    <!---->
+                    <div class="v-field__field" data-no-activator="">
                       <!---->
-                      <div class="v-progress-linear__background"></div>
-                      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                        <div class="v-progress-linear__indeterminate">
-                          <div class="v-progress-linear__indeterminate long"></div>
-                          <div class="v-progress-linear__indeterminate short"></div>
-                        </div>
-                      </transition-stub>
+                      <!---->
+                      <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" required="" class="v-field__input" value="">
+                      <!---->
+                    </div>
+                    <!---->
+                    <!---->
+                    <div class="v-field__outline">
+                      <!---->
                       <!---->
                     </div>
                   </div>
-                  <!---->
-                  <div class="v-field__field" data-no-activator="">
-                    <!---->
-                    <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-2-label" id="input-v-2" required="" class="v-field__input" value="">
-                    <!---->
-                  </div>
-                  <!---->
-                  <!---->
-                  <div class="v-field__outline">
-                    <!---->
-                    <!---->
-                  </div>
                 </div>
+                <!---->
+                <!---->
               </div>
-              <!---->
-              <!---->
             </div>
           </div>
         </div>
         <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
-        <div data-v-b3fa301d="">
-          <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
-            <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-            <div class="v-card-item__content">
-              <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="username-field">Username</span></div>
-              <!---->
-              <!---->
+        <div data-v-b3fa301d="" class="v-row ma-0 px-3 align-center">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 d-flex ga-3 align-center align-sm-start justify-center justify-sm-start text-center text-sm-start">
+            <div class="text-center text-sm-start">
+              <div class="text-subtitle-1" data-test="username-field"><i class="mdi-account mdi v-icon notranslate v-theme--light v-icon--size-default mr-3" aria-hidden="true"></i>Username</div>
+              <!--v-if-->
             </div>
-            <div class="v-card-item__append">
+          </div>
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 px-0 d-flex align-center justify-center justify-sm-end">
+            <div class="w-100 d-flex justify-center justify-sm-end">
               <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="username-input">
                 <!---->
                 <div class="v-input__control">
-                  <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                  <div class="v-field v-field--disabled v-field--reverse v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
                     <div class="v-field__overlay"></div>
                     <div class="v-field__loader">
                       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -161,69 +163,71 @@ exports[`Settings Namespace > Renders the component 1`] = `
               </div>
             </div>
           </div>
-          <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
         </div>
-        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
-          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-          <div class="v-card-item__content">
-            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="email-field">Email</span></div>
-            <!---->
-            <!---->
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-row ma-0 px-3 align-center">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 d-flex ga-3 align-center align-sm-start justify-center justify-sm-start text-center text-sm-start">
+            <div class="text-center text-sm-start">
+              <div class="text-subtitle-1" data-test="email-field"><i class="mdi-email mdi v-icon notranslate v-theme--light v-icon--size-default mr-3" aria-hidden="true"></i>Email</div>
+              <!--v-if-->
+            </div>
           </div>
-          <div class="v-card-item__append">
-            <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="email-input">
-              <!---->
-              <div class="v-input__control">
-                <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
-                  <div class="v-field__overlay"></div>
-                  <div class="v-field__loader">
-                    <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 px-0 d-flex align-center justify-center justify-sm-end">
+            <div class="w-100 d-flex justify-center justify-sm-end">
+              <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="email-input">
+                <!---->
+                <div class="v-input__control">
+                  <div class="v-field v-field--disabled v-field--reverse v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                    <div class="v-field__overlay"></div>
+                    <div class="v-field__loader">
+                      <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
+                        <!---->
+                        <div class="v-progress-linear__background"></div>
+                        <div class="v-progress-linear__buffer" style="width: 0%;"></div>
+                        <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
+                          <div class="v-progress-linear__indeterminate">
+                            <div class="v-progress-linear__indeterminate long"></div>
+                            <div class="v-progress-linear__indeterminate short"></div>
+                          </div>
+                        </transition-stub>
+                        <!---->
+                      </div>
+                    </div>
+                    <!---->
+                    <div class="v-field__field" data-no-activator="">
                       <!---->
-                      <div class="v-progress-linear__background"></div>
-                      <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                      <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                        <div class="v-progress-linear__indeterminate">
-                          <div class="v-progress-linear__indeterminate long"></div>
-                          <div class="v-progress-linear__indeterminate short"></div>
-                        </div>
-                      </transition-stub>
+                      <!---->
+                      <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" required="" class="v-field__input" value="">
+                      <!---->
+                    </div>
+                    <!---->
+                    <!---->
+                    <div class="v-field__outline">
+                      <!---->
                       <!---->
                     </div>
                   </div>
-                  <!---->
-                  <div class="v-field__field" data-no-activator="">
-                    <!---->
-                    <!---->
-                    <!----><input readonly="" disabled="" size="1" type="text" aria-labelledby="input-v-8-label" id="input-v-8" required="" class="v-field__input" value="">
-                    <!---->
-                  </div>
-                  <!---->
-                  <!---->
-                  <div class="v-field__outline">
-                    <!---->
-                    <!---->
-                  </div>
                 </div>
+                <!---->
+                <!---->
               </div>
-              <!---->
-              <!---->
             </div>
           </div>
         </div>
         <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
-        <div data-v-b3fa301d="">
-          <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
-            <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-email-lock mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-            <div class="v-card-item__content">
-              <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="recovery-email-field">Recovery Email</span></div>
-              <!---->
-              <!---->
+        <div data-v-b3fa301d="" class="v-row ma-0 px-3 align-center">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 d-flex ga-3 align-center align-sm-start justify-center justify-sm-start text-center text-sm-start">
+            <div class="text-center text-sm-start">
+              <div class="text-subtitle-1" data-test="recovery-email-field"><i class="mdi-email-lock mdi v-icon notranslate v-theme--light v-icon--size-default mr-3" aria-hidden="true"></i>Recovery Email</div>
+              <!--v-if-->
             </div>
-            <div class="v-card-item__append">
+          </div>
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 px-0 d-flex align-center justify-center justify-sm-end">
+            <div class="w-100 d-flex justify-center justify-sm-end">
               <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--density-compact v-theme--light v-locale--is-ltr v-input--disabled v-input--readonly v-text-field v-input--plain-underlined" data-test="recovery-email-input">
                 <!---->
                 <div class="v-input__control">
-                  <div class="v-field v-field--disabled v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
+                  <div class="v-field v-field--disabled v-field--reverse v-field--no-label v-field--variant-plain v-theme--light v-locale--is-ltr">
                     <div class="v-field__overlay"></div>
                     <div class="v-field__loader">
                       <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
@@ -259,15 +263,17 @@ exports[`Settings Namespace > Renders the component 1`] = `
               </div>
             </div>
           </div>
-          <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
-          <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
-            <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-            <div class="v-card-item__content">
-              <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1">Password</span></div>
-              <!---->
-              <!---->
+        </div>
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-row ma-0 px-3 align-center">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 d-flex ga-3 align-center align-sm-start justify-center justify-sm-start text-center text-sm-start">
+            <div class="text-center text-sm-start">
+              <div class="text-subtitle-1"><i class="mdi-key mdi v-icon notranslate v-theme--light v-icon--size-default mr-3" aria-hidden="true"></i>Password</div>
+              <!--v-if-->
             </div>
-            <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+          </div>
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 px-0 d-flex align-center justify-center justify-sm-end">
+            <div class="w-100 d-flex justify-center justify-sm-end"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-primary v-btn--density-default v-btn--size-default v-btn--variant-text"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
                 <!----><span class="v-btn__content" data-no-activator=""> Change Password </span>
                 <!---->
                 <!---->
@@ -276,90 +282,67 @@ exports[`Settings Namespace > Renders the component 1`] = `
               <!---->
             </div>
           </div>
-          <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
-          <div data-v-b3fa301d="" class="d-flex align-center justify-space-between pr-4">
-            <div data-v-b3fa301d="" tabindex="-1" class="v-card v-card--disabled v-card--flat v-theme--light v-card--density-default v-card--variant-elevated bg-background w-75" data-test="mfa-card">
-              <!---->
-              <div class="v-card__loader">
-                <div class="v-progress-linear v-theme--light v-locale--is-ltr" style="top: 0px; height: 0px; --v-progress-linear-height: 2px;" role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuemax="100">
-                  <!---->
-                  <div class="v-progress-linear__background"></div>
-                  <div class="v-progress-linear__buffer" style="width: 0%;"></div>
-                  <transition-stub name="fade-transition" appear="false" persisted="false" css="true">
-                    <div class="v-progress-linear__indeterminate">
-                      <div class="v-progress-linear__indeterminate long"></div>
-                      <div class="v-progress-linear__indeterminate short"></div>
-                    </div>
-                  </transition-stub>
-                  <!---->
-                </div>
-              </div>
-              <div class="v-card-item">
-                <div class="v-card-item__prepend">
-                  <!----><i class="mdi-fingerprint mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" density="default"></i>
-                </div>
-                <div class="v-card-item__content">
-                  <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1">Multi-factor Authentication</span></div>
-                  <!---->
-                  <!---->
-                </div>
-                <!---->
-              </div>
-              <!---->
-              <div data-v-b3fa301d="" class="d-flex flex-no-wrap justify-space-between">
-                <div data-v-b3fa301d="">
-                  <div data-v-b3fa301d="" class="v-card-text pt-0 text-justify" data-test="mfa-text"> Enable multi-factor authentication (MFA) to add an extra layer of security to your account. You'll need to enter a one-time verification code from your preferred TOTP provider to log in. </div>
-                </div>
-              </div>
-              <!---->
-              <!----><span class="v-card__underlay"></span>
+        </div>
+        <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
+        <div data-v-b3fa301d="" class="v-row ma-0 px-3 align-center" data-test="mfa-card">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 d-flex ga-3 align-center align-sm-start justify-center justify-sm-start text-center text-sm-start">
+            <div class="text-center text-sm-start">
+              <div class="text-subtitle-1"><i class="mdi-fingerprint mdi v-icon notranslate v-theme--light v-icon--size-default mr-3" aria-hidden="true"></i>Multi-factor Authentication</div>
+              <div class="text-body-2 mt-1" data-test="mfa-text">Enable multi-factor authentication (MFA) to add an extra layer of security to your account.
+                You'll need to enter a one-time verification code from your preferred TOTP provider to log in.</div>
             </div>
-            <div data-v-b3fa301d="" aria-describedby="v-tooltip-v-14" class="d-flex align-center bg-background">
-              <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-switch v-switch--inset" data-test="switch-mfa">
-                <!---->
-                <div class="v-input__control">
-                  <div class="v-selection-control v-selection-control--disabled v-selection-control--density-default">
-                    <div class="v-selection-control__wrapper">
-                      <div class="v-switch__track">
-                        <!---->
-                        <!---->
-                      </div>
-                      <div class="v-selection-control__input"><input disabled="" id="switch-v-15" aria-disabled="true" type="checkbox" value="true">
-                        <div class="v-switch__thumb">
-                          <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
-                            <!---->
-                          </transition-stub>
+          </div>
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 px-0 d-flex align-center justify-center justify-sm-end">
+            <div class="w-100 d-flex justify-center justify-sm-end">
+              <div data-v-b3fa301d="" aria-describedby="v-tooltip-v-14" class="d-flex align-center">
+                <div data-v-b3fa301d="" class="v-input v-input--horizontal v-input--center-affix v-input--density-default v-theme--light v-locale--is-ltr v-input--dirty v-input--disabled v-switch v-switch--inset mr-sm-4" data-test="switch-mfa">
+                  <!---->
+                  <div class="v-input__control">
+                    <div class="v-selection-control v-selection-control--disabled v-selection-control--density-default">
+                      <div class="v-selection-control__wrapper">
+                        <div class="v-switch__track">
+                          <!---->
+                          <!---->
+                        </div>
+                        <div class="v-selection-control__input"><input disabled="" id="switch-v-15" aria-disabled="true" type="checkbox" value="true">
+                          <div class="v-switch__thumb">
+                            <transition-stub name="scale-transition" appear="false" persisted="false" css="true">
+                              <!---->
+                            </transition-stub>
+                          </div>
                         </div>
                       </div>
+                      <!---->
                     </div>
-                    <!---->
                   </div>
+                  <!---->
+                  <!---->
                 </div>
                 <!---->
                 <!---->
+                <!---->
+                <!---->
               </div>
-              <!---->
-              <!---->
-              <!---->
-              <!---->
+              <!--teleport start-->
+              <!--teleport end-->
             </div>
-            <!--teleport start-->
-            <!--teleport end-->
           </div>
         </div>
         <hr data-v-b3fa301d="" class="v-divider v-theme--light" style="border-style: solid;" aria-orientation="horizontal" role="separator">
-        <div data-v-b3fa301d="" class="v-card-item" style="grid-template-columns: max-content 1.5fr 2fr;">
-          <div class="v-card-item__prepend"><i data-v-b3fa301d="" class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
-          <div class="v-card-item__content">
-            <div class="v-card-title"><span data-v-b3fa301d="" class="text-subtitle-1" data-test="delete-account">Delete Account</span></div>
-            <!---->
-            <!---->
+        <div data-v-b3fa301d="" class="v-row ma-0 px-3 align-center">
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 d-flex ga-3 align-center align-sm-start justify-center justify-sm-start text-center text-sm-start">
+            <div class="text-center text-sm-start">
+              <div class="text-subtitle-1" data-test="delete-account"><i class="mdi-delete mdi v-icon notranslate v-theme--light v-icon--size-default mr-3" aria-hidden="true"></i>Delete Account</div>
+              <!--v-if-->
+            </div>
           </div>
-          <div class="v-card-item__append"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="delete-account-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
-              <!----><span class="v-btn__content" data-no-activator=""> Delete </span>
-              <!---->
-              <!---->
-            </button></div>
+          <div class="v-col-sm-6 v-col-md-6 v-col-12 px-0 d-flex align-center justify-center justify-sm-end">
+            <div class="w-100 d-flex justify-center justify-sm-end"><button data-v-b3fa301d="" type="button" class="v-btn v-theme--light text-error v-btn--density-default v-btn--size-default v-btn--variant-text" data-test="delete-account-btn"><span class="v-btn__overlay"></span><span class="v-btn__underlay"></span>
+                <!----><span class="v-btn__content" data-no-activator=""> Delete </span>
+                <!---->
+                <!---->
+              </button></div>
+          </div>
         </div>
       </div>
     </div>
