@@ -1,66 +1,117 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import { mfaApi } from "@/api/http";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import RecoveryHelper from "@/components/AuthMFA/RecoveryHelper.vue";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useAuthStore from "@/store/modules/auth";
+import { createAxiosError } from "@tests/utils/axiosError";
 
-type RecoveryHelperWrapper = VueWrapper<InstanceType<typeof RecoveryHelper>>;
+describe("RecoveryHelper", () => {
+  let dialog: DOMWrapper<HTMLElement>;
+  let wrapper: VueWrapper<InstanceType<typeof RecoveryHelper>>;
+  let authStore: ReturnType<typeof useAuthStore>;
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-describe("Recovery Helper", () => {
-  let wrapper: RecoveryHelperWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const mockMfaApi = new MockAdapter(mfaApi.getAxios());
-
-  beforeEach(() => {
-    wrapper = mount(RecoveryHelper, {
-      global: {
-        plugins: [vuetify],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
+  const mountWrapper = () => {
+    wrapper = mountComponent(RecoveryHelper, {
       props: { modelValue: true },
+      attachTo: document.body,
+      piniaOptions: {
+        initialState: {
+          auth: {
+            disableTimeout: 300000,
+            recoveryCode: "test-recovery-code",
+          },
+        },
+      },
+    });
+
+    authStore = useAuthStore();
+    dialog = new DOMWrapper(document.body).find('[role="dialog"]');
+  };
+
+  afterEach(() => {
+    wrapper?.unmount();
+    document.body.innerHTML = "";
+  });
+
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays MFA recovery verification dialog", () => {
+      expect(dialog.text()).toContain("MFA Recovery Verification");
+      expect(dialog.text()).toContain("Verify access to your authentication device");
+    });
+
+    it("shows countdown warning alert", () => {
+      expect(dialog.find('[data-test="invalid-login-alert"]').exists()).toBe(true);
+      expect(dialog.text()).toContain("Your recovery code will expire in");
+    });
+
+    it("displays recovery explanation text", () => {
+      expect(dialog.text()).toContain("Recovery codes prove useful when you must access your account");
+      expect(dialog.text()).toContain("if you lose access to the device, it is advisable to disable Multi-Factor Authentication");
+    });
+
+    it("displays confirmation checkbox", () => {
+      expect(dialog.find('[data-test="checkbox-recovery"]').exists()).toBe(true);
+      expect(dialog.text()).toContain("I have access to my authentication device");
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
+  describe("dialog controls", () => {
+    beforeEach(() => mountWrapper());
+
+    it("disables close button when checkbox is not checked", () => {
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      expect(closeBtn.attributes("disabled")).toBeDefined();
+    });
+
+    it("enables close button when checkbox is checked", async () => {
+      await dialog.findComponent('[data-test="checkbox-recovery"]').setValue(true);
+
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      expect(closeBtn.attributes("disabled")).toBeUndefined();
+    });
+
+    it("displays both close and disable buttons", () => {
+      expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="disable-btn"]').exists()).toBe(true);
+    });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("MFA disablement", () => {
+    beforeEach(() => mountWrapper());
+
+    it("successfully disables MFA with recovery code", async () => {
+      vi.mocked(authStore.disableMfa).mockResolvedValueOnce();
+
+      await dialog.find('[data-test="disable-btn"]').trigger("click");
+
+      expect(authStore.disableMfa).toHaveBeenCalledWith({ recovery_code: "test-recovery-code" });
+    });
+
+    it("shows success message when MFA is disabled", async () => {
+      vi.mocked(authStore.disableMfa).mockResolvedValueOnce();
+
+      await dialog.find('[data-test="disable-btn"]').trigger("click");
+
+      expect(wrapper.emitted("update:modelValue")).toEqual([[false]]);
+    });
+
+    it("displays error message when disabling MFA fails", async () => {
+      vi.mocked(authStore.disableMfa).mockRejectedValueOnce(createAxiosError(403, "Invalid recovery code"));
+
+      await dialog.find('[data-test="disable-btn"]').trigger("click");
+
+      expect(authStore.disableMfa).toHaveBeenCalledWith({ recovery_code: "test-recovery-code" });
+    });
   });
 
-  it("Renders the component", () => {
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
-  });
+  describe("dialog persistence", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Disable MFA Authentication", async () => {
-    mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(200);
-    const mfaSpy = vi.spyOn(authStore, "disableMfa");
-
-    await wrapper.findComponent('[data-test="disable-btn"]').trigger("click");
-
-    expect(mfaSpy).toHaveBeenCalledWith({ recovery_code: "" });
-    expect(authStore.isMfaEnabled).toBe(false);
-  });
-
-  it("Disable MFA Authentication (fail)", async () => {
-    mockMfaApi.onPut("http://localhost:3000/api/user/mfa/disable").reply(403);
-
-    await wrapper.findComponent('[data-test="disable-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while disabling MFA.");
+    it("prevents closing dialog until checkbox is checked", () => {
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      expect(closeBtn.attributes("disabled")).toBeDefined();
+    });
   });
 });

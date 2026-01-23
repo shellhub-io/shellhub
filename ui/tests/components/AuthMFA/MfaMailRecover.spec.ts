@@ -1,38 +1,39 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
 import MfaMailRecover from "@/components/AuthMFA/MfaMailRecover.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { createCleanRouter } from "@tests/utils/router";
 
-type MfaMailRecoverWrapper = VueWrapper<InstanceType<typeof MfaMailRecover>>;
+describe("MfaMailRecover", () => {
+  const wrapper = mountComponent(MfaMailRecover, { global: { plugins: [createCleanRouter()] } });
 
-describe("Mfa Mail Recover ", () => {
-  let wrapper: MfaMailRecoverWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
+  describe("rendering", () => {
+    it("displays MFA mail recovery confirmation", () => {
+      expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="title"]').text()).toContain("Multi-factor Authentication");
+    });
 
-  beforeEach(() => {
-    wrapper = mount(MfaMailRecover, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+    it("shows email sent confirmation message", () => {
+      expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain("An email has been sent to the primary and recovery mail");
+      expect(wrapper.text()).toContain("Please check your inbox and click the link we've provided to disable the MFA");
+    });
+
+    it("displays back to login link", () => {
+      expect(wrapper.find('[data-test="back-to-login"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain("Back to");
+    });
+
+    it("displays login navigation link", () => {
+      const loginLink = wrapper.find('[data-test="login-btn"]');
+      expect(loginLink.exists()).toBe(true);
+      expect(loginLink.text()).toBe("Login");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the components", () => {
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="back-to-login"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="login-btn"]').exists()).toBe(true);
+  describe("navigation", () => {
+    it("links to login page", () => {
+      const loginLink = wrapper.find('[data-test="login-btn"]');
+      expect(loginLink.attributes("href")).toBe("/login");
+    });
   });
 });

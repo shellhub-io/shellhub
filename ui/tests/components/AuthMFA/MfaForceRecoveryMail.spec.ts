@@ -1,89 +1,122 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { DOMWrapper, flushPromises, VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import MfaForceRecoveryMail from "@/components/AuthMFA/MfaForceRecoveryMail.vue";
-import { usersApi } from "@/api/http";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useUsersStore from "@/store/modules/users";
 
-type MfaForceRecoveryMailWrapper = VueWrapper<InstanceType<typeof MfaForceRecoveryMail>>;
+describe("MfaForceRecoveryMail", () => {
+  let dialog: DOMWrapper<HTMLElement>;
+  let wrapper: VueWrapper<InstanceType<typeof MfaForceRecoveryMail>>;
+  let usersStore: ReturnType<typeof useUsersStore>;
 
-describe("Force Adding a Recovery Mail", () => {
-  let wrapper: MfaForceRecoveryMailWrapper;
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const usersStore = useUsersStore();
-  const vuetify = createVuetify();
+  const mountWrapper = () => {
+    wrapper = mountComponent(MfaForceRecoveryMail, {
+      props: { modelValue: true },
+      attachTo: document.body,
+      piniaOptions: {
+        initialState: {
+          auth: {
+            email: "test@test.com",
+            recoveryEmail: null,
+          },
+        },
+      },
+    });
 
-  const mockUsersApi = new MockAdapter(usersApi.getAxios());
-
-  const authData = {
-    token: "",
-    username: "test",
-    name: "test",
-    tenantId: "fake-tenant-data",
-    email: "test@test.com",
-    id: "xxxxxxxx",
-    recoveryEmail: "recover@mail.com",
-    role: "owner",
-    mfa: true,
+    usersStore = useUsersStore();
+    dialog = new DOMWrapper(document.body).find('[role="dialog"]');
   };
 
-  beforeEach(() => {
-    authStore.$patch(authData);
+  afterEach(() => {
+    wrapper?.unmount();
+    document.body.innerHTML = "";
+    vi.clearAllMocks();
+  });
 
-    wrapper = mount(MfaForceRecoveryMail, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-      props: { modelValue: true },
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays MFA recovery email setup dialog", () => {
+      expect(dialog.text()).toContain("Multi-Factor Authentication Enabled");
+      expect(dialog.text()).toContain("Add a recovery email to secure your account access");
+    });
+
+    it("shows recovery email explanation", () => {
+      expect(dialog.text()).toContain("In case you lose access to all your MFA credentials");
+      expect(dialog.text()).toContain("we'll need a recovery email to verify your identity");
+    });
+
+    it("displays recovery email input field", () => {
+      expect(dialog.find('[data-test="recovery-email-text"]').exists()).toBe(true);
+    });
+
+    it("displays save button", () => {
+      expect(dialog.find('[data-test="save-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="save-btn"]').text()).toBe("Save Recovery Email");
+    });
+
+    it("is a persistent dialog without close button", () => {
+      expect(dialog.find('[data-test="close-btn"]').exists()).toBe(false);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("form validation", () => {
+    beforeEach(() => mountWrapper());
+
+    it("disables save button when email is empty", () => {
+      const saveBtn = dialog.find('[data-test="save-btn"]');
+      expect(saveBtn.attributes("disabled")).toBeDefined();
+    });
+
+    it("validates email format", async () => {
+      await dialog.findComponent('[data-test="recovery-email-text"]').setValue("invalid-email");
+      await flushPromises();
+      expect(dialog.text()).toContain("Please enter a valid email address");
+    });
+
+    it("validates recovery email is not same as current email", async () => {
+      await dialog.findComponent('[data-test="recovery-email-text"]').setValue("test@test.com");
+      await flushPromises();
+      expect(dialog.text()).toContain("Recovery email must not be the same as your current email");
+    });
+
+    it("enables save button with valid email", async () => {
+      await dialog.findComponent('[data-test="recovery-email-text"]').setValue("recovery@test.com");
+
+      const saveBtn = dialog.find('[data-test="save-btn"]');
+      expect(saveBtn.attributes("disabled")).toBeUndefined();
+    });
   });
 
-  it("Renders the component", async () => {
-    await flushPromises();
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
-  });
+  describe("email submission", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Adds a recovery mail", async () => {
-    await flushPromises();
-    const storeSpy = vi.spyOn(usersStore, "patchData");
-    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(200);
-    await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test2@test.com");
-    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
-    await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith({ recovery_email: "test2@test.com" });
-    expect(wrapper.vm.recoveryEmailError).toBe(undefined);
-  });
+    it("successfully saves recovery email", async () => {
+      vi.mocked(usersStore.patchData).mockResolvedValueOnce();
 
-  it("Adds a recovery mail (Fail)", async () => {
-    await flushPromises();
-    const storeSpy = vi.spyOn(usersStore, "patchData");
-    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(400);
-    await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test");
-    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
-    await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith({ recovery_email: "test" });
-    expect(wrapper.vm.recoveryEmailError).toBe("This recovery email is invalid");
-  });
+      await dialog.findComponent('[data-test="recovery-email-text"]').setValue("recovery@test.com");
+      await dialog.find('[data-test="save-btn"]').trigger("click");
 
-  it("Adds a recovery mail (Fail, Same Email)", async () => {
-    await flushPromises();
-    const storeSpy = vi.spyOn(usersStore, "patchData");
-    mockUsersApi.onPatch("http://localhost:3000/api/users").reply(409);
-    await wrapper.findComponent('[data-test="recovery-email-text"]').setValue("test@test.com");
-    await wrapper.findComponent('[data-test="save-btn"]').trigger("click");
-    await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith({ recovery_email: "test@test.com" });
-    expect(wrapper.vm.recoveryEmailError).toBe("This recovery email is already in use");
+      expect(usersStore.patchData).toHaveBeenCalledWith({ recovery_email: "recovery@test.com" });
+    });
+
+    it("displays error when recovery email is already in use", async () => {
+      vi.mocked(usersStore.patchData).mockRejectedValueOnce(createAxiosError(409, "Conflict"));
+
+      await dialog.findComponent('[data-test="recovery-email-text"]').setValue("taken@test.com");
+      await dialog.find('[data-test="save-btn"]').trigger("click");
+
+      expect(dialog.text()).toContain("This recovery email is already in use");
+    });
+
+    it("displays error when recovery email is invalid", async () => {
+      vi.mocked(usersStore.patchData).mockRejectedValueOnce(createAxiosError(400, "Bad Request"));
+
+      await dialog.findComponent('[data-test="recovery-email-text"]').setValue("bad@test.com");
+      await dialog.find('[data-test="save-btn"]').trigger("click");
+
+      expect(dialog.text()).toContain("This recovery email is invalid");
+    });
   });
 });

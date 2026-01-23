@@ -1,87 +1,124 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import MfaRecover from "@/components/AuthMFA/MfaRecover.vue";
-import { mfaApi } from "@/api/http";
-import { router } from "@/router";
 import useAuthStore from "@/store/modules/auth";
 
-type MfaRecoverWrapper = VueWrapper<InstanceType<typeof MfaRecover>>;
+describe("MfaRecover", () => {
+  let wrapper: VueWrapper<InstanceType<typeof MfaRecover>>;
+  let router: ReturnType<typeof createCleanRouter>;
+  let authStore: ReturnType<typeof useAuthStore>;
 
-describe("RecoverMFA", () => {
-  let wrapper: MfaRecoverWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const mockMfaApi = new MockAdapter(mfaApi.getAxios());
+  const mountWrapper = () => {
+    router = createCleanRouter();
+    wrapper = mountComponent(MfaRecover, { global: { plugins: [router] } });
+    authStore = useAuthStore();
+  };
 
-  beforeEach(() => {
-    wrapper = mount(MfaRecover, {
-      global: {
-        plugins: [vuetify, router],
-      },
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+  });
+
+  describe("rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays MFA recovery form", () => {
+      expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="title"]').text()).toContain("Multi-factor Authentication");
+      expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain("If you lost your access to your MFA TOTP provider");
+    });
+
+    it("displays recovery code input field", () => {
+      expect(wrapper.find('[data-test="recovery-code"]').exists()).toBe(true);
+    });
+
+    it("displays recover button", () => {
+      expect(wrapper.find('[data-test="recover-btn"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="recover-btn"]').text()).toBe("Recover Account");
+    });
+
+    it("shows email recovery option", () => {
+      expect(wrapper.text()).toContain("If you lost your recovery codes");
+      expect(wrapper.text()).toContain("we'll send you an e-mail");
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
+  describe("form validation", () => {
+    beforeEach(() => mountWrapper());
+
+    it("disables recover button when recovery code is empty", () => {
+      const recoverBtn = wrapper.find('[data-test="recover-btn"]');
+      expect(recoverBtn.attributes("disabled")).toBeDefined();
+    });
+
+    it("enables recover button when recovery code is entered", async () => {
+      await wrapper.findComponent('[data-test="recovery-code"]').setValue("RMS32SAK521A");
+
+      const recoverBtn = wrapper.find('[data-test="recover-btn"]');
+      expect(recoverBtn.attributes("disabled")).toBeUndefined();
+    });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("recovery submission", () => {
+    beforeEach(() => mountWrapper());
+
+    it("successfully recovers account and redirects to home", async () => {
+      const pushSpy = vi.spyOn(router, "push");
+
+      await wrapper.findComponent('[data-test="recovery-code"]').setValue("RMS32SAK521A");
+      await wrapper.find('[data-test="recover-btn"]').trigger("click");
+
+      expect(authStore.recoverMfa).toHaveBeenCalledWith("RMS32SAK521A");
+      expect(pushSpy).toHaveBeenCalledWith("/");
+    });
+
+    it("displays error alert when recovery code is invalid", async () => {
+      vi.mocked(authStore.recoverMfa).mockRejectedValueOnce(createAxiosError(403, "Forbidden"));
+
+      await wrapper.findComponent('[data-test="recovery-code"]').setValue("INVALID123");
+      await wrapper.find('[data-test="recover-btn"]').trigger("click");
+
+      expect(wrapper.find('[data-test="alert-message"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain("verification code sent in your MFA verification is invalid");
+    });
+
+    it("displays generic error message for server errors", async () => {
+      vi.mocked(authStore.recoverMfa).mockRejectedValueOnce(createAxiosError(500, "Internal Server Error"));
+
+      await wrapper.findComponent('[data-test="recovery-code"]').setValue("RMS32SAK521A");
+      await wrapper.find('[data-test="recover-btn"]').trigger("click");
+
+      expect(wrapper.find('[data-test="alert-message"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain("error occurred during your MFA verification");
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("keyboard interactions", () => {
+    beforeEach(() => mountWrapper());
+
+    it("submits recovery code on Enter key", async () => {
+      const codeInput = wrapper.findComponent('[data-test="recovery-code"]');
+      await codeInput.setValue("RMS32SAK521A");
+      await codeInput.trigger("keyup.enter");
+
+      expect(authStore.recoverMfa).toHaveBeenCalledWith("RMS32SAK521A");
+    });
   });
 
-  it("Renders the template with data", () => {
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="recovery-code"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="recover-btn"]').exists()).toBe(true);
-  });
+  describe("alert dismissal", () => {
+    beforeEach(() => mountWrapper());
 
-  it("disables submit button when the form is invalid", async () => {
-    await wrapper.findComponent('[data-test="recovery-code"]').setValue("");
+    it("allows closing error alert", async () => {
+      vi.mocked(authStore.recoverMfa).mockRejectedValueOnce(createAxiosError(403, "Forbidden"));
 
-    expect(wrapper.find('[data-test="recover-btn"]').attributes().disabled).toBeDefined();
-  });
+      await wrapper.findComponent('[data-test="recovery-code"]').setValue("INVALID");
+      await wrapper.find('[data-test="recover-btn"]').trigger("click");
 
-  it("calls the mfa action when the recover form is submitted", async () => {
-    const responseData = {
-      token: "token",
-    };
-
-    mockMfaApi.onPost("http://localhost:3000/api/user/mfa/recover").reply(200, responseData);
-
-    const mfaSpy = vi.spyOn(authStore, "recoverMfa");
-    const routerPushSpy = vi.spyOn(router, "push");
-
-    await wrapper.findComponent('[data-test="recovery-code"]').setValue("000000");
-    await wrapper.findComponent('[data-test="recover-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(mfaSpy).toHaveBeenCalledWith("000000");
-    expect(routerPushSpy).toHaveBeenCalled();
-  });
-
-  it("calls the mfa action when the recover form is submitted", async () => {
-    const responseData = {
-      token: "token",
-    };
-
-    mockMfaApi.onPost("http://localhost:3000/api/user/mfa/recover").reply(403, responseData);
-
-    const mfaSpy = vi.spyOn(authStore, "recoverMfa");
-
-    await wrapper.findComponent('[data-test="recovery-code"]').setValue("000000");
-    await wrapper.findComponent('[data-test="recover-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(mfaSpy).toHaveBeenCalledWith("000000");
-    expect(wrapper.vm.showAlert).toBe(true);
+      expect(wrapper.find('[data-test="alert-message"]').exists()).toBe(true);
+    });
   });
 });

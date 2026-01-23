@@ -397,12 +397,6 @@ watch(showDialog, async (newValue) => {
     await generateMfa();
   }
 });
-
-defineExpose({
-  goToNextStep,
-  step,
-  showDialog,
-});
 </script>
 
 <style scoped>
