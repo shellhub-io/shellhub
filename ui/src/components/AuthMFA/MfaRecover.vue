@@ -106,23 +106,10 @@ const requestMail = async () => {
     await authStore.requestMfaReset();
     await router.push("/recover-mfa/mail-sucessful");
   } catch (error) {
+    if (!(axios.isAxiosError(error) && error.response?.status === 403)) handleError(error);
+
     showAlert.value = true;
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      switch (axiosError.response?.status) {
-        case 403:
-          alertMessage.value = "An error occurred sending your recovery mail, please try again later.";
-          break;
-        default:
-          alertMessage.value = "An error occurred sending your recovery mail, please try again later.";
-          handleError(error);
-      }
-    }
-    handleError(error);
+    alertMessage.value = "An error occurred sending your recovery mail, please try again later.";
   }
 };
-
-defineExpose({
-  showAlert,
-});
 </script>
