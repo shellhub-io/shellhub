@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/max-len -->
 <template>
   <v-container fluid>
     <NamespaceDelete
@@ -54,246 +55,146 @@
         </template>
       </template>
     </PageHeader>
-    <v-card
-      variant="flat"
-      class="bg-transparent"
-    >
-      <v-card-text class="pt-0">
-        <v-list
-          border
-          rounded
-          class="bg-background pa-0"
-          data-test="profile-details-list"
+    <SettingsSection data-test="profile-details-list">
+      <SettingsRow
+        icon="mdi-cloud-braces"
+        icon-test-id="name-icon"
+        title="Name"
+        title-test-id="name-title"
+        data-test="profile-details-item"
+      >
+        <v-text-field
+          v-model="name"
+          :error-messages="nameError"
+          :disabled="!editDataStatus"
+          :readonly="!editDataStatus"
+          required
+          :reverse="smAndUp"
+          :hide-details="!nameError"
+          density="compact"
+          :variant="editDataStatus ? 'outlined' : 'plain'"
+          data-test="name-input"
+        />
+      </SettingsRow>
+      <v-divider />
+      <SettingsRow
+        icon="mdi-shape-outline"
+        icon-test-id="type-icon"
+        title="Type"
+        title-test-id="type-title"
+        data-test="type-details-item"
+      >
+        <v-chip
+          class="text-capitalize"
+          data-test="type-chip"
         >
-          <v-card-item
-            style="grid-template-columns: max-content 1.5fr 2fr"
-            data-test="profile-details-item"
-          >
-            <template #prepend>
-              <v-icon data-test="name-icon">
-                mdi-cloud-braces
-              </v-icon>
+          <v-icon
+            size="small"
+            class="mr-1"
+            :icon="namespaceTypeIcon"
+          />
+          {{ namespace.type || "team" }}
+        </v-chip>
+      </SettingsRow>
+      <v-divider />
+      <SettingsRow
+        icon="mdi-identifier"
+        icon-test-id="tenant-icon"
+        title="Tenant ID"
+        title-test-id="tenant-title"
+        data-test="tenant-details-item"
+      >
+        <v-chip>
+          <v-tooltip location="top">
+            <template #activator="props">
+              <CopyWarning :copied-item="'Tenant ID'">
+                <template #default="{ copyText }">
+                  <span
+                    v-bind="props"
+                    class="hover-text"
+                    data-test="tenant-copy-btn"
+                    @click="copyText(tenantId)"
+                    @keypress="copyText(tenantId)"
+                  >
+                    {{ tenantId }}
+                    <v-icon icon="mdi-content-copy" />
+                  </span>
+                </template>
+              </CopyWarning>
             </template>
-            <template #title>
-              <span
-                class="text-subtitle-1"
-                data-test="name-title"
-              >Name</span>
-            </template>
-            <template #append>
-              <v-text-field
-                v-model="name"
-                :error-messages="nameError"
-                :disabled="!editDataStatus"
-                :readonly="!editDataStatus"
-                required
-                :hide-details="!nameError"
-                density="compact"
-                :variant="editDataStatus ? 'outlined' : 'plain'"
-                data-test="name-input"
-              />
-            </template>
-          </v-card-item>
-          <v-divider />
-          <v-card-item
-            style="grid-template-columns: max-content 1.5fr 2fr"
-            data-test="type-details-item"
-          >
-            <template #prepend>
-              <v-icon data-test="type-icon">
-                mdi-shape-outline
-              </v-icon>
-            </template>
-            <template #title>
-              <span
-                class="text-subtitle-1"
-                data-test="type-title"
-              >Type</span>
-            </template>
-            <template #append>
-              <v-chip
-                class="ml-1 text-capitalize"
-                data-test="type-chip"
-              >
-                <v-icon
-                  size="small"
-                  class="mr-1"
-                  :icon="namespaceTypeIcon"
-                />
-                {{ namespace.type || "team" }}
-              </v-chip>
-            </template>
-          </v-card-item>
-          <v-divider />
-          <v-card-item
-            style="grid-template-columns: max-content 1.5fr 2fr"
-            data-test="tenant-details-item"
-          >
-            <template #prepend>
-              <v-icon data-test="tenant-icon">
-                mdi-identifier
-              </v-icon>
-            </template>
-            <template #title>
-              <span
-                class="text-subtitle-1"
-                data-test="tenant-title"
-              >Tenant ID</span>
-            </template>
-            <template #append>
-              <v-chip class="ml-1">
-                <v-tooltip location="top">
-                  <template #activator="props">
-                    <CopyWarning :copied-item="'Tenant ID'">
-                      <template #default="{ copyText }">
-                        <span
-                          v-bind="props"
-                          class="hover-text"
-                          data-test="tenant-copy-btn"
-                          @click="copyText(tenantId)"
-                          @keypress="copyText(tenantId)"
-                        >
-                          {{ tenantId }}
-                          <v-icon icon="mdi-content-copy" />
-                        </span>
-                      </template>
-                    </CopyWarning>
-                  </template>
-                  <span data-test="tenant-tooltip">Copy ID</span>
-                </v-tooltip>
-              </v-chip>
-            </template>
-          </v-card-item>
-          <v-divider />
-          <v-card-item
-            style="grid-template-columns: max-content 1.5fr 2fr"
-            data-test="announcement-item"
-          >
-            <template #title>
-              <v-icon
-                data-test="announcement-icon"
-                size="18"
-                class="pl-1 mr-3"
-              >
-                mdi-bullhorn-variant-outline
-              </v-icon>
-              <span
-                class="text-subtitle-1"
-                data-test="announcement-title"
-              >Connection Announcement</span>
-            </template>
-            <v-card-text class="pt-1 pl-0">
-              <span data-test="announcement-subtitle">A connection announcement is a custom message written
-                during a session when a connection is established on a device
-                within the namespace.</span>
-            </v-card-text>
-            <template #append>
-              <v-btn
-                class="ml-4"
-                variant="text"
-                color="primary"
-                data-test="edit-announcement-btn"
-                @click="editAnnouncement = true"
-              >
-                Edit Announcement
-              </v-btn>
-            </template>
-          </v-card-item>
-          <v-divider />
-          <v-row class="ma-0">
-            <v-card
-              flat
-              class="bg-background"
-              data-test="record-item"
-            >
-              <template #title>
-                <v-icon
-                  data-test="record-icon"
-                  size="18"
-                  class="pl-1 mr-3"
-                >
-                  mdi-play-box-outline
-                </v-icon>
-                <span
-                  class="text-subtitle-1"
-                  data-test="record-title"
-                >Session Record</span>
-                <v-card-text
-                  class="pl-0 pt-1"
-                  data-test="record-description"
-                >
-                  Session record is a feature that allows you to check logged activity
-                  when connecting to a device.
-                </v-card-text>
-              </template>
-            </v-card>
-            <v-col class="d-flex align-center justify-end bg-background">
-              <SettingSessionRecording
-                :tenant-id
-                data-test="session-recording-setting-component"
-              />
-            </v-col>
-          </v-row>
-          <v-divider />
-          <v-card-item
-            style="grid-template-columns: max-content 1.5fr 2fr"
-            data-test="delete-leave-item"
-          >
-            <template #title>
-              <v-icon
-                data-test="delete-leave-icon"
-                size="18"
-                class="pl-1 mr-3"
-              >
-                mdi-delete
-              </v-icon>
-              <span
-                v-if="isOwner"
-                class="text-subtitle-1"
-                data-test="delete-leave-title"
-              >Delete Namespace</span>
-              <span
-                v-else
-                class="text-subtitle-1"
-                data-test="delete-leave-title"
-              >Leave Namespace</span>
-            </template>
-            <v-card-text class="pt-1 pl-0">
-              <span
-                v-if="isOwner"
-                data-test="delete-description"
-              >After deleting a namespace, there is no going back. Be sure. </span>
-              <span
-                v-else
-                data-test="leave-description"
-              >After leaving a namespace, you will need to be invited again to access it.</span>
-            </v-card-text>
-            <template #append>
-              <v-btn
-                v-if="isOwner"
-                class="ml-4"
-                variant="text"
-                color="error"
-                :disabled="billingInDebt"
-                data-test="delete-namespace-btn"
-                @click="namespaceDelete = true"
-              >
-                Delete
-              </v-btn>
-              <v-btn
-                v-else
-                variant="text"
-                color="error"
-                data-test="leave-namespace-btn"
-                @click="namespaceLeave = true"
-              >
-                Leave
-              </v-btn>
-            </template>
-          </v-card-item>
-        </v-list>
-      </v-card-text>
-    </v-card>
+            <span data-test="tenant-tooltip">Copy ID</span>
+          </v-tooltip>
+        </v-chip>
+      </SettingsRow>
+      <v-divider />
+      <SettingsRow
+        icon="mdi-bullhorn-variant-outline"
+        icon-test-id="announcement-icon"
+        title="Connection Announcement"
+        title-test-id="announcement-title"
+        subtitle="A connection announcement is a custom message written during a
+         session when a connection is established on a device within the namespace."
+        subtitle-test-id="announcement-subtitle"
+        data-test="announcement-item"
+      >
+        <v-btn
+          class="ml-4"
+          variant="text"
+          color="primary"
+          data-test="edit-announcement-btn"
+          @click="editAnnouncement = true"
+        >
+          Edit Announcement
+        </v-btn>
+      </SettingsRow>
+      <v-divider />
+      <SettingsRow
+        icon="mdi-play-box-outline"
+        icon-test-id="record-icon"
+        title="Session Record"
+        title-test-id="record-title"
+        subtitle="Session record is a feature that allows you to check logged activity when connecting to a device."
+        subtitle-test-id="record-description"
+        data-test="record-item"
+      >
+        <SettingSessionRecording
+          :tenant-id
+          class="mr-sm-4"
+          data-test="session-recording-setting-component"
+        />
+      </SettingsRow>
+      <v-divider />
+      <SettingsRow
+        icon="mdi-delete"
+        icon-test-id="delete-leave-icon"
+        :title="isOwner ? 'Delete Namespace' : 'Leave Namespace'"
+        title-test-id="delete-leave-title"
+        :subtitle="isOwner ? 'After deleting a namespace, there is no going back. Be sure.' : 'After leaving a namespace, you will need to be invited again to access it.'"
+        :subtitle-test-id="isOwner ? 'delete-description' : 'leave-description'"
+        data-test="delete-leave-item"
+      >
+        <v-btn
+          v-if="isOwner"
+          class="ml-4"
+          variant="text"
+          color="error"
+          :disabled="billingInDebt"
+          data-test="delete-namespace-btn"
+          @click="namespaceDelete = true"
+        >
+          Delete
+        </v-btn>
+        <v-btn
+          v-else
+          variant="text"
+          color="error"
+          data-test="leave-namespace-btn"
+          @click="namespaceLeave = true"
+        >
+          Leave
+        </v-btn>
+      </SettingsRow>
+    </SettingsSection>
   </v-container>
 </template>
 
@@ -302,6 +203,7 @@ import { onMounted, computed, ref } from "vue";
 import axios, { AxiosError } from "axios";
 import * as yup from "yup";
 import { useField } from "vee-validate";
+import { useDisplay } from "vuetify";
 import hasPermission from "@/utils/permission";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
@@ -309,6 +211,8 @@ import ConnectionAnnouncementEdit from "../Namespace/ConnectionAnnouncementEdit.
 import PageHeader from "../PageHeader.vue";
 import handleError from "@/utils/handleError";
 import NamespaceLeave from "../Namespace/NamespaceLeave.vue";
+import SettingsRow from "./SettingsRow.vue";
+import SettingsSection from "./SettingsSection.vue";
 import useSnackbar from "@/helpers/snackbar";
 import CopyWarning from "@/components/User/CopyWarning.vue";
 import useAuthStore from "@/store/modules/auth";
@@ -317,6 +221,7 @@ import useNamespacesStore from "@/store/modules/namespaces";
 const authStore = useAuthStore();
 const namespacesStore = useNamespacesStore();
 const snackbar = useSnackbar();
+const { smAndUp } = useDisplay();
 const namespace = computed(() => namespacesStore.currentNamespace);
 const isOwner = computed(() => namespace.value.owner === localStorage.getItem("id"));
 const { tenantId } = authStore;
@@ -424,4 +329,11 @@ onMounted(async () => {
   --v-field-padding-end: 16px;
   --v-field-padding-bottom: 8px;
 }
+
+@media (max-width: 600px) {
+  :deep(.v-text-field .v-field__input) {
+    text-align: center;
+  }
+}
+
 </style>
