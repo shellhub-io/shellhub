@@ -1,68 +1,47 @@
-import { setActivePinia, createPinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
-import BillingCheckout from "@/components/Billing/BillingCheckout.vue";
-import { billingApi } from "@/api/http";
+import { describe, expect, it, afterEach, beforeEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import useCustomerStore from "@/store/modules/customer";
+import BillingCheckout from "@/components/Billing/BillingCheckout.vue";
+import { mockCustomer } from "@tests/mocks/customer";
 
-describe("Billing Checkout", () => {
+describe("BillingCheckout", () => {
   let wrapper: VueWrapper<InstanceType<typeof BillingCheckout>>;
-  setActivePinia(createPinia());
-  const customerStore = useCustomerStore();
-  const vuetify = createVuetify();
-  const mockBillingApi = new MockAdapter(billingApi.getAxios());
+  let customerStore: ReturnType<typeof useCustomerStore>;
 
-  const customerData = {
-    id: "cus_test123",
-    name: "testuser",
-    email: "test@test.com",
-    payment_methods: [
-      {
-        id: "pm_test123",
-        number: "**** **** **** 1234",
-        brand: "visa",
-        exp_month: 12,
-        exp_year: 2024,
-        cvc: "***",
-        default: true,
-      },
-      {
-        id: "pm_test456",
-        number: "**** **** **** 5678",
-        brand: "mastercard",
-        exp_month: 9,
-        exp_year: 2023,
-        cvc: "***",
-        default: false,
-      },
-    ],
-  };
-  beforeEach(() => {
-    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-    customerStore.customer = customerData;
+  beforeEach(async () => {
+    wrapper = mountComponent(BillingCheckout, { piniaOptions: {
+      initialState: { customer: { customer: mockCustomer } },
+    } });
+    customerStore = useCustomerStore();
+    await flushPromises();
+  });
 
-    wrapper = mount(BillingCheckout, {
-      global: {
-        plugins: [vuetify],
-      },
+  afterEach(() => { wrapper?.unmount(); });
+
+  describe("customer data fetching", () => {
+    it("fetches customer on mount", () => {
+      expect(customerStore.fetchCustomer).toHaveBeenCalled();
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("rendering", () => {
+    it("displays title and subtitle", () => {
+      expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
+    });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    it("displays payment card", () => {
+      expect(wrapper.find('[data-test="card"]').exists()).toBe(true);
+    });
 
-  it("renders the correct html", () => {
-    expect(wrapper.find('[data-test="title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="sub-title"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="card"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="additional-information"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="additional-information-list"]').exists()).toBe(true);
+    it("displays billing icon", () => {
+      expect(wrapper.findComponent({ name: "BillingIcon" }).exists()).toBe(true);
+    });
+
+    it("displays additional information section", () => {
+      expect(wrapper.find('[data-test="additional-information"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="additional-information-list"]').exists()).toBe(true);
+    });
   });
 });
