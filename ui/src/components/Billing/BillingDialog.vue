@@ -30,7 +30,10 @@
           />
         </v-window-item>
         <v-window-item :value="3">
-          <BillingCheckout :key="componentKey" />
+          <BillingCheckout
+            :key="componentKey"
+            data-test="billing-checkout"
+          />
           <v-alert
             v-if="alertRender"
             icon="$error"
@@ -174,10 +177,4 @@ const subscribe = async () => {
 };
 
 const emit = defineEmits(["reload"]);
-
-defineExpose({
-  showCheckoutDialog,
-  resetDialog,
-  el,
-});
 </script>
