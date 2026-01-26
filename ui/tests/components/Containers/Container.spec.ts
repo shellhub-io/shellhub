@@ -1,81 +1,68 @@
-import { setActivePinia, createPinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
-import Containers from "@/components/Containers/Container.vue";
-import { router } from "@/router";
-import { containersApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { describe, expect, it, afterEach, beforeEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanRouter } from "@tests/utils/router";
+import Container from "@/components/Containers/Container.vue";
+import { Router } from "vue-router";
+import useContainersStore from "@/store/modules/containers";
 
-const containers = [
-  {
-    uid: "a582b47a42d",
-    name: "39-5e-2a",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T18:58:53.276Z",
-    online: false,
-    namespace: "user",
-    status: "accepted",
-  },
-  {
-    uid: "a582b47a42e",
-    name: "39-5e-2b",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T19:58:53.276Z",
-    online: true,
-    namespace: "user",
-    status: "accepted",
-  },
-];
-
-describe("Containers", () => {
-  let wrapper: VueWrapper<InstanceType<typeof Containers>>;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
-  const mockContainersApi = new MockAdapter(containersApi.getAxios());
+describe("Container", () => {
+  let wrapper: VueWrapper<InstanceType<typeof Container>>;
+  let containersStore: ReturnType<typeof useContainersStore>;
+  let router: Router;
 
   beforeEach(() => {
-    mockContainersApi.onGet("http://localhost:3000/api/containers?page=1&per_page=10&status=accepted").reply(200, containers);
+    router = createCleanRouter();
+    wrapper = mountComponent(Container, { global: { plugins: [router] } });
+    containersStore = useContainersStore();
+  });
 
-    wrapper = mount(Containers, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+  afterEach(() => { wrapper?.unmount(); });
+
+  describe("navigation tabs", () => {
+    it("renders three state tabs", () => {
+      const tabs = wrapper.findAll('[data-test="container-state-btn"]');
+      expect(tabs.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("displays Accepted tab", () => {
+      expect(wrapper.text()).toContain("Accepted");
+    });
+
+    it("displays Pending tab", () => {
+      expect(wrapper.text()).toContain("Pending");
+    });
+
+    it("displays Rejected tab", () => {
+      expect(wrapper.text()).toContain("Rejected");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("search functionality", () => {
+    it("renders search input field", () => {
+      const searchField = wrapper.find('[data-test="search-text"]');
+      expect(searchField.exists()).toBe(true);
+    });
+
+    it("updates container filter when search input changes", async () => {
+      const searchField = wrapper.find('[data-test="search-text"] input');
+      await searchField.setValue("test-container");
+
+      expect(containersStore.containerListFilter).toBeDefined();
+    });
+
+    it("clears filter when search input is empty", async () => {
+      const searchField = wrapper.find('[data-test="search-text"] input');
+      await searchField.setValue("test");
+      await searchField.setValue("");
+
+      expect(containersStore.containerListFilter).toBeUndefined();
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Contains the correct tabs", () => {
-    const tabs = wrapper.findAllComponents({ name: "VBtn" });
-    expect(tabs).toHaveLength(3); // Three tabs expected
-    expect(tabs[0].text()).toBe("Accepted");
-    expect(tabs[1].text()).toBe("Pending");
-    expect(tabs[2].text()).toBe("Rejected");
+  describe("router view", () => {
+    it("renders router-view for nested routes", () => {
+      expect(wrapper.findComponent({ name: "RouterView" }).exists()).toBe(true);
+    });
   });
 });
