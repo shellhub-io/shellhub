@@ -1,36 +1,74 @@
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach } from "vitest";
+import { describe, expect, it, afterEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import BillingIcon from "@/components/Billing/BillingIcon.vue";
 
-describe("Billing Icon", () => {
+describe("BillingIcon", () => {
   let wrapper: VueWrapper<InstanceType<typeof BillingIcon>>;
-  const vuetify = createVuetify();
 
-  beforeEach(() => {
-    wrapper = mount(BillingIcon, {
-      global: {
-        plugins: [vuetify],
-      },
-      props: {
-        iconName: "",
-      },
+  const mountWrapper = (iconName = "") => {
+    wrapper = mountComponent(BillingIcon, { props: { iconName } });
+  };
+
+  afterEach(() => { wrapper?.unmount(); });
+
+  describe("default icon", () => {
+    it("renders default credit card icon when no brand specified", () => {
+      mountWrapper();
+
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(false);
+    });
+
+    it("renders default icon for unknown card brand", () => {
+      mountWrapper("unknown-brand");
+
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(false);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("brand-specific icons", () => {
+    it("renders visa icon", () => {
+      mountWrapper("visa");
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(false);
+    });
 
-  it("renders the default icon", () => {
-    expect(wrapper.findComponent('[data-test="default-icon"]').exists()).toBe(true);
-  });
+    it("renders mastercard icon", () => {
+      mountWrapper("mastercard");
 
-  it("renders the responsive icon", () => {
-    expect(wrapper.findComponent('[data-test="type-icon"]').exists()).toBe(false);
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(false);
+    });
+
+    it("renders amex icon", () => {
+      mountWrapper("amex");
+
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(false);
+    });
+
+    it("renders diners-club icon", () => {
+      mountWrapper("diners-club");
+
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(false);
+    });
+
+    it("renders discover icon", () => {
+      mountWrapper("discover");
+
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(false);
+    });
+
+    it("renders jcb icon", () => {
+      mountWrapper("jcb");
+
+      expect(wrapper.find('[data-test="type-icon"]').exists()).toBe(true);
+      expect(wrapper.find('[data-test="default-icon"]').exists()).toBe(false);
+    });
   });
 });

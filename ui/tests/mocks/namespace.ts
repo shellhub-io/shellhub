@@ -35,3 +35,14 @@ export const mockNamespace: INamespace = {
   created_at: "",
   type: "personal",
 };
+
+export const mockNamespaceWithBilling: INamespace = {
+  ...mockNamespace,
+  billing: {
+    customer_id: "cust_123",
+    subscription_id: "sub_123",
+    status: "active",
+    current_period_end: 1707856000,
+    active: true,
+  },
+};
