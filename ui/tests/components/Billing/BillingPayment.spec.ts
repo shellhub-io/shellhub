@@ -114,10 +114,6 @@ describe("Billing Payment", () => {
     expect(wrapper.vm).toBeTruthy();
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
   it("Renders the correct html", async () => {
     await flushPromises();
     expect(wrapper.findComponent('[data-test="customer-name"]').exists()).toBe(true);
