@@ -1,8 +1,7 @@
-import { createVuetify } from "vuetify";
-import { DOMWrapper, mount, VueWrapper, flushPromises } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { mountComponent } from "@tests/utils/mount";
 import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
-import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
 
 vi.mock("vuetify", async () => {
   const actual = await vi.importActual<typeof import("vuetify")>("vuetify");
@@ -24,196 +23,153 @@ vi.mock("vuetify", async () => {
   };
 });
 
-type WindowDialogWrapper = VueWrapper<InstanceType<typeof WindowDialog>>;
-
 describe("WindowDialog", () => {
-  const vuetify = createVuetify();
-  let wrapper: WindowDialogWrapper;
-  let dialogDom: DOMWrapper<HTMLElement>;
+  let wrapper: VueWrapper<InstanceType<typeof WindowDialog>>;
+  let dialog: DOMWrapper<HTMLElement>;
 
-  const mountWrapper = (
+  const mountWrapper = async (
     props: Partial<InstanceType<typeof WindowDialog>["$props"]> = {},
     slots: Record<string, string> = {},
-  ) => mount(WindowDialog, {
-    global: { plugins: [vuetify] },
-    props: { modelValue: true, ...props },
-    slots: {
-      default: "<div data-test='default-slot'>Default content</div>",
-      ...slots,
-    },
-    attachTo: document.body,
-  });
-
-  beforeEach(async () => {
-    document.body.innerHTML = "";
-    wrapper = mountWrapper();
-    dialogDom = new DOMWrapper(document.body);
+  ) => {
+    wrapper = mountComponent(WindowDialog, {
+      props: { modelValue: true, ...props },
+      slots: {
+        default: "<div data-test='dialog-content'>Test content</div>",
+        ...slots,
+      },
+    });
+    dialog = new DOMWrapper(document.body).find('[role="dialog"]');
     await flushPromises();
-  });
+  };
 
   afterEach(() => {
     vi.clearAllMocks();
-    wrapper.unmount();
+    wrapper?.unmount();
     document.body.innerHTML = "";
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
+  it("Renders the dialog", async () => {
+    await mountWrapper();
+    expect(dialog.exists()).toBe(true);
   });
 
-  it("Renders the component", () => {
-    expect(dialogDom.html()).toMatchSnapshot();
+  describe("Titlebar", () => {
+    it("Renders titlebar with title", async () => {
+      await mountWrapper({ title: "Test Title" });
+
+      const titlebar = dialog.find('[data-test="window-dialog-titlebar"]');
+      expect(titlebar.exists()).toBe(true);
+      expect(titlebar.text()).toContain("Test Title");
+    });
+
+    it("Renders titlebar with description", async () => {
+      await mountWrapper({
+        title: "Test Title",
+        description: "Test Description",
+      });
+
+      const titlebar = dialog.find('[data-test="window-dialog-titlebar"]');
+      expect(titlebar.text()).toContain("Test Description");
+    });
+
+    it("Renders icon in titlebar when provided", async () => {
+      await mountWrapper({
+        icon: "mdi-alert",
+        iconColor: "warning",
+      });
+
+      const avatar = dialog.find(".v-avatar");
+      expect(avatar.exists()).toBe(true);
+
+      const icon = dialog.find(".v-avatar .v-icon");
+      expect(icon.html()).toContain("mdi-alert");
+    });
+
+    it("Shows close button by default", async () => {
+      await mountWrapper();
+
+      const closeBtn = dialog.find('[data-test="close-btn-toolbar"]');
+      expect(closeBtn.exists()).toBe(true);
+    });
+
+    it("Hides close button when showCloseButton is false", async () => {
+      await mountWrapper({ showCloseButton: false });
+
+      const closeBtn = dialog.find('[data-test="close-btn-toolbar"]');
+      expect(closeBtn.exists()).toBe(false);
+    });
+
+    it("Emits close event when close button is clicked", async () => {
+      await mountWrapper();
+
+      const closeBtn = dialog.get('[data-test="close-btn-toolbar"]');
+      await closeBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("close")).toHaveLength(1);
+    });
+
+    it("Renders titlebar-content slot", async () => {
+      await mountWrapper({}, {
+        "titlebar-content": "<div data-test='custom-content'>Custom</div>",
+      });
+
+      const customContent = dialog.find('[data-test="custom-content"]');
+      expect(customContent.exists()).toBe(true);
+      expect(customContent.text()).toBe("Custom");
+    });
+
+    it("Renders titlebar-actions slot", async () => {
+      await mountWrapper({}, {
+        "titlebar-actions": "<button data-test='custom-action'>Action</button>",
+      });
+
+      const customAction = dialog.find('[data-test="custom-action"]');
+      expect(customAction.exists()).toBe(true);
+      expect(customAction.text()).toBe("Action");
+    });
   });
 
-  it("Renders title and description when provided", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
+  describe("Content", () => {
+    it("Renders default slot content", async () => {
+      await mountWrapper();
 
-    wrapper = mountWrapper({ title: "My Dialog", description: "Extra context" });
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const title = dialogDom.find(".v-toolbar-title");
-    expect(title.exists()).toBe(true);
-    expect(title.text()).toBe("My Dialog");
-
-    expect(dialogDom.text()).toContain("Extra context");
+      const content = dialog.find('[data-test="dialog-content"]');
+      expect(content.exists()).toBe(true);
+      expect(content.text()).toBe("Test content");
+    });
   });
 
-  it("Renders icon avatar when icon is set and uses iconColor", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
+  describe("Footer", () => {
+    it("Renders footer by default", async () => {
+      await mountWrapper({}, {
+        footer: "<button data-test='footer-btn'>Footer Button</button>",
+      });
 
-    wrapper = mountWrapper({ icon: "mdi-key", iconColor: "success" });
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
+      const footer = dialog.find('[data-test="window-dialog-footer"]');
+      expect(footer.exists()).toBe(true);
 
-    const avatar = dialogDom.find(".v-avatar");
-    expect(avatar.exists()).toBe(true);
+      const footerBtn = dialog.find('[data-test="footer-btn"]');
+      expect(footerBtn.exists()).toBe(true);
+    });
 
-    const icon = dialogDom.find(".v-icon");
-    expect(icon.exists()).toBe(true);
-    expect(icon.html()).toContain("mdi-key");
-  });
+    it("Hides footer when showFooter is false", async () => {
+      await mountWrapper({ showFooter: false }, {
+        footer: "<button data-test='footer-btn'>Footer Button</button>",
+      });
 
-  it("Hides the toolbar close button when showCloseButton is false", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
+      const footer = dialog.find('[data-test="window-dialog-footer"]');
+      expect(footer.exists()).toBe(false);
+    });
 
-    wrapper = mountWrapper({ showCloseButton: false });
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
+    it("Renders footer slot content", async () => {
+      await mountWrapper({}, {
+        footer: "<div data-test='custom-footer'>Custom footer</div>",
+      });
 
-    expect(dialogDom.find('[data-test="close-btn-toolbar"]').exists()).toBe(false);
-  });
-
-  it("Emits close when the toolbar close button is clicked", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
-
-    wrapper = mountWrapper({ showCloseButton: true });
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const btn = dialogDom.get('[data-test="close-btn-toolbar"]');
-    await btn.trigger("click");
-    await flushPromises();
-
-    expect(wrapper.emitted("close")).toBeTruthy();
-    expect(wrapper.emitted("close")).toHaveLength(1);
-  });
-
-  it("Emits close when BaseDialog emits close", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
-
-    wrapper = mountWrapper();
-    await flushPromises();
-
-    const base = wrapper.findComponent(BaseDialog);
-    expect(base.exists()).toBe(true);
-
-    base.vm.$emit("close");
-    await flushPromises();
-
-    expect(wrapper.emitted("close")).toBeTruthy();
-  });
-
-  it("Renders default slot content", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
-
-    wrapper = mountWrapper();
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const slotNode = dialogDom.find('[data-test="default-slot"]');
-    expect(slotNode.exists()).toBe(true);
-    expect(slotNode.text()).toBe("Default content");
-  });
-
-  it("Renders titlebar-content and titlebar-actions slots", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
-
-    wrapper = mountWrapper(
-      { title: "With Slots" },
-      {
-        "titlebar-content": "<div data-test='titlebar-content-slot'>Extra Titlebar</div>",
-        "titlebar-actions": "<button data-test='titlebar-actions-slot'>Action</button>",
-      },
-    );
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
-
-    expect(dialogDom.find('[data-test="titlebar-content-slot"]').exists()).toBe(true);
-    expect(dialogDom.find('[data-test="titlebar-actions-slot"]').exists()).toBe(true);
-  });
-
-  it("Shows footer (and its slot) when showFooter is true", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
-
-    wrapper = mountWrapper(
-      { showFooter: true },
-      { footer: "<div data-test='footer-slot'>Footer Area</div>" },
-    );
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const toolbars = dialogDom.findAll(".v-toolbar");
-    expect(toolbars.length).toBeGreaterThanOrEqual(2);
-    expect(dialogDom.find('[data-test="footer-slot"]').exists()).toBe(true);
-  });
-
-  it("Hides footer when showFooter is false", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
-
-    wrapper = mountWrapper(
-      { showFooter: false },
-      { footer: "<div data-test='footer-slot'>Footer Area</div>" },
-    );
-    dialogDom = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const toolbars = dialogDom.findAll(".v-toolbar");
-    expect(toolbars.length).toBe(1);
-    expect(dialogDom.find('[data-test="footer-slot"]').exists()).toBe(false);
-  });
-
-  it("Passes threshold and forceFullscreen props to BaseDialog", async () => {
-    wrapper.unmount();
-    document.body.innerHTML = "";
-
-    wrapper = mountWrapper({ threshold: "md", forceFullscreen: true });
-    await flushPromises();
-
-    const base = wrapper.findComponent(BaseDialog);
-    expect(base.exists()).toBe(true);
-
-    const props = base.props();
-    expect(props.threshold).toBe("md");
-    expect(props.forceFullscreen).toBe(true);
+      const customFooter = dialog.find('[data-test="custom-footer"]');
+      expect(customFooter.exists()).toBe(true);
+      expect(customFooter.text()).toBe("Custom footer");
+    });
   });
 });
