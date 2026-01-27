@@ -23,6 +23,7 @@
               v-model="selectedDevices"
               class="mt-5 ml-5"
               density="compact"
+              data-test="device-selection-checkbox"
               :value="item"
             />
           </td>

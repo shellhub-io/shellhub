@@ -22,7 +22,7 @@
   <MessageDialog
     v-model="showDialog"
     title="Are you sure?"
-    :description="`You are about to remove this ${variant}. After confirming this action cannot be redone.`"
+    :description="`You are about to remove this ${variant}. After confirming this action cannot be undone.`"
     icon="mdi-alert"
     icon-color="error"
     confirm-text="Remove"
@@ -73,6 +73,4 @@ const removeDevice = async (): Promise<void> => {
 
   showDialog.value = false;
 };
-
-defineExpose({ removeDevice });
 </script>

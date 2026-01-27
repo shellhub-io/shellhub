@@ -2,9 +2,10 @@
   <v-btn
     class="text-none border rounded bg-v-theme-background"
     prepend-icon="mdi-developer-board"
+    data-test="device-link-button"
     density="default"
     size="default"
-    @click="redirectToDeviceDetails()"
+    @click="redirectToDeviceDetails"
   >
     {{ deviceName }}
   </v-btn>
