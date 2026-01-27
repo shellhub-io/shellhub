@@ -11,6 +11,7 @@
         v-if="showTitlebar"
         color="primary"
         class="bg-v-theme-surface border-b px-4 py-2"
+        data-test="titlebar"
       >
         <v-avatar
           v-if="icon"
@@ -83,6 +84,7 @@
         v-if="showFooter"
         color="primary"
         class="bg-v-theme-surface border-t px-6 py-2"
+        data-test="footer"
       >
         <!-- Block Layout: Full width buttons -->
         <v-row class="ma-0 ga-3">
