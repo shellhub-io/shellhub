@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
-import CopyCommandField from "@/components/CopyCommandField.vue";
+import CopyCommandField from "@/components/Fields/CopyCommandField.vue";
 
 interface Props {
   sshid: string;

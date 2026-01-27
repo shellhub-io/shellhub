@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import CopyCommandField from "@/components/CopyCommandField.vue";
+import CopyCommandField from "@/components/Fields/CopyCommandField.vue";
 import useAuthStore from "@/store/modules/auth";
 
 const { tenantId } = useAuthStore();
