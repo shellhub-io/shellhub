@@ -40,8 +40,6 @@ const fullscreen = computed(() => props.forceFullscreen || smAndDown.value);
 const maxWidth = computed(() => fullscreen.value ? undefined : thresholds.value[props.threshold || "sm"]);
 
 const handleModelValueChange = (value: boolean) => { if (!value) emit("close"); };
-
-defineExpose({ fullscreen, maxWidth });
 </script>
 
 <style scoped>

@@ -1,7 +1,8 @@
-import { createVuetify } from "vuetify";
-import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { DOMWrapper, VueWrapper } from "@vue/test-utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { flushPromises } from "@vue/test-utils";
 import BaseDialog from "@/components/Dialogs/BaseDialog.vue";
+import { mountComponent } from "@tests/utils/mount";
 
 vi.mock("vuetify", async () => {
   const actual = await vi.importActual<typeof import("vuetify")>("vuetify");
@@ -23,68 +24,90 @@ vi.mock("vuetify", async () => {
   };
 });
 
-type BaseDialogWrapper = VueWrapper<InstanceType<typeof BaseDialog>>;
-
 describe("BaseDialog", () => {
-  const vuetify = createVuetify();
+  let wrapper: VueWrapper<InstanceType<typeof BaseDialog>>;
   let dialog: DOMWrapper<HTMLElement>;
-  let wrapper: BaseDialogWrapper;
 
-  const thresholdTests = [
-    { threshold: "sm", expectedWidth: 600 },
-    { threshold: "md", expectedWidth: 960 },
-    { threshold: "lg", expectedWidth: 1280 },
-    { threshold: "xl", expectedWidth: 1920 },
-    { threshold: "xxl", expectedWidth: 2560 },
-  ] as const;
+  const getDialogContent = () => dialog.find(".v-overlay__content");
 
-  const slotContent = "<div>Test content</div>";
+  const mountWrapper = async (props = {}, slots = {}) => {
+    wrapper = mountComponent(BaseDialog, {
+      slots: {
+        default: "<div>Test content</div>",
+        ...slots,
+      },
+      props: {
+        modelValue: true,
+        ...props,
+      },
+    });
 
-  const mountWrapper = (props: { forceFullscreen?: boolean; threshold?: "sm" | "md" | "lg" | "xl" | "xxl" } = {}) => mount(BaseDialog, {
-    global: { plugins: [vuetify] },
-    slots: { default: slotContent },
-    props: { modelValue: true, ...props },
-  });
-
-  beforeEach(() => {
-    wrapper = mountWrapper();
-    dialog = new DOMWrapper(document.body);
-  });
+    await flushPromises();
+    dialog = new DOMWrapper(document.body).find('[role="dialog"]');
+  };
 
   afterEach(() => {
-    vi.clearAllMocks();
-    wrapper.unmount();
+    wrapper?.unmount();
+    document.body.innerHTML = "";
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.exists()).toBe(true);
-  });
+  it("Renders slot content", async () => {
+    await mountWrapper();
 
-  it("Renders the component", () => {
-    expect(dialog.html()).toMatchSnapshot();
-  });
-
-  it("Renders slot content", () => {
     expect(dialog.html()).toContain("Test content");
   });
 
-  it("Uses default sm threshold (600px) when no threshold is specified", () => {
-    expect(wrapper.vm.maxWidth).toBe(600);
-    expect(wrapper.vm.fullscreen).toBe(false);
+  it("Renders the dialog with default sm threshold", async () => {
+    await mountWrapper();
+    const dialogContent = getDialogContent();
+    expect(dialogContent.attributes("style")).toContain("max-width: 600px");
   });
 
-  it("Uses fullscreen mode when forceFullscreen is true", () => {
-    wrapper = mountWrapper({ forceFullscreen: true });
-    expect(wrapper.vm.maxWidth).toBeUndefined();
-    expect(wrapper.vm.fullscreen).toBe(true);
+  it("Applies fullscreen mode when forceFullscreen is true", async () => {
+    await mountWrapper({ forceFullscreen: true });
+
+    expect(dialog.classes()).toContain("v-dialog--fullscreen");
   });
 
-  thresholdTests.forEach(({ threshold, expectedWidth }) => {
-    it(`Uses correct width for ${threshold} threshold (${expectedWidth}px)`, () => {
-      wrapper = mountWrapper({ threshold });
+  it("Applies correct max-width for md threshold", async () => {
+    await mountWrapper({ threshold: "md" });
 
-      expect(wrapper.vm.maxWidth).toBe(expectedWidth);
-      expect(wrapper.vm.fullscreen).toBe(false);
-    });
+    const dialogContent = getDialogContent();
+    expect(dialogContent.attributes("style")).toContain("max-width: 960px");
+  });
+
+  it("Applies correct max-width for lg threshold", async () => {
+    await mountWrapper({ threshold: "lg" });
+
+    const dialogContent = getDialogContent();
+    expect(dialogContent.attributes("style")).toContain("max-width: 1280px");
+  });
+
+  it("Applies correct max-width for xl threshold", async () => {
+    await mountWrapper({ threshold: "xl" });
+
+    const dialogContent = getDialogContent();
+    expect(dialogContent.attributes("style")).toContain("max-width: 1920px");
+  });
+
+  it("Applies correct max-width for xxl threshold", async () => {
+    await mountWrapper({ threshold: "xxl" });
+
+    const dialogContent = getDialogContent();
+    expect(dialogContent.attributes("style")).toContain("max-width: 2560px");
+  });
+
+  it("Hides dialog when modelValue is false", async () => {
+    await mountWrapper({ modelValue: false });
+
+    expect(dialog.exists()).toBe(false);
+  });
+
+  it("Renders content slot when provided", async () => {
+    await mountWrapper({}, { content: "<div data-test='content-slot'>Content slot</div>" });
+
+    const contentSlot = dialog.find('[data-test="content-slot"]');
+    expect(contentSlot.exists()).toBe(true);
+    expect(contentSlot.text()).toBe("Content slot");
   });
 });

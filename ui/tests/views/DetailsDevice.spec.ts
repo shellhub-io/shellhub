@@ -89,7 +89,7 @@ describe("Details Device View", () => {
 
     it("displays device action menu items", () => {
       const actionsList = wrapper.findComponent({ name: "VList" });
-      expect(actionsList.find('[data-test="device-rename-component"]').exists()).toBe(true);
+      expect(actionsList.find('[data-test="rename-device-button"]').exists()).toBe(true);
       expect(actionsList.find('[data-test="open-tags-btn"]').exists()).toBe(true);
       expect(actionsList.find('[data-test="device-delete-item"]').exists()).toBe(true);
     });
