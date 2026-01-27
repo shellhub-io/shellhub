@@ -1,39 +1,66 @@
-import { setActivePinia, createPinia } from "pinia";
-import { mount } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { expect, describe, it } from "vitest";
+import { describe, expect, it, afterEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import DeviceIcon from "@/components/Devices/DeviceIcon.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
-describe("Device Icon", () => {
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
+describe("DeviceIcon", () => {
+  let wrapper: VueWrapper<InstanceType<typeof DeviceIcon>>;
 
-  const wrapper = mount(DeviceIcon, {
-    global: { plugins: [vuetify, router, SnackbarPlugin] },
-    props: { icon: "" },
+  const mountWrapper = (icon = "") => {
+    wrapper = mountComponent(DeviceIcon, { props: { icon } });
+  };
+
+  afterEach(() => { wrapper?.unmount(); });
+
+  describe("default icon", () => {
+    it("renders default tux icon when no icon specified", () => {
+      mountWrapper();
+
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-tux");
+    });
+
+    it("renders default icon for unknown operating system", () => {
+      mountWrapper("unknown-os");
+
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-tux");
+    });
   });
 
-  it("Renders the default icon when no icon prop is provided", () => {
-    expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-tux");
-  });
+  describe("specific OS icons", () => {
+    it("renders ubuntu icon", () => {
+      mountWrapper("ubuntu");
 
-  it("Renders a specific icon based on the icon prop", async () => {
-    const iconProp = "ubuntu";
-    const expectedIconClass = "fl-ubuntu";
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-ubuntu");
+    });
 
-    await wrapper.setProps({ icon: iconProp });
+    it("renders debian icon", () => {
+      mountWrapper("debian");
 
-    expect(wrapper.find('[data-test="device-icon"]').classes()).toContain(expectedIconClass);
-  });
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-debian");
+    });
 
-  it("Renders the default icon when an unknown icon prop is provided", async () => {
-    const unknownIconProp = "unknown-icon";
-    const defaultIconClass = "fl-tux";
+    it("renders fedora icon", () => {
+      mountWrapper("fedora");
 
-    await wrapper.setProps({ icon: unknownIconProp });
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-fedora");
+    });
 
-    expect(wrapper.find('[data-test="device-icon"]').classes()).toContain(defaultIconClass);
+    it("renders arch icon", () => {
+      mountWrapper("arch");
+
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-archlinux");
+    });
+
+    it("renders docker icon", () => {
+      mountWrapper("docker");
+
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-docker");
+    });
+
+    it("renders raspberry-pi icon for raspbian", () => {
+      mountWrapper("raspbian");
+
+      expect(wrapper.find('[data-test="device-icon"]').classes()).toContain("fl-raspberry-pi");
+    });
   });
 });
