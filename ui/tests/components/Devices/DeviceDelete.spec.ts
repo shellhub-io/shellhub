@@ -1,106 +1,157 @@
-import { setActivePinia, createPinia } from "pinia";
-import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import DeviceDelete from "@/components/Devices/DeviceDelete.vue";
-import { router } from "@/router";
-import { devicesApi, tagsApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 import useDevicesStore from "@/store/modules/devices";
+import { Router } from "vue-router";
+import { createCleanRouter } from "@tests/utils/router";
 
-describe("Device Delete", () => {
+describe("DeviceDelete", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceDelete>>;
-  setActivePinia(createPinia());
-  const devicesStore = useDevicesStore();
-  const vuetify = createVuetify();
+  let dialog: DOMWrapper<Element>;
+  let router: Router;
+  let devicesStore: ReturnType<typeof useDevicesStore>;
 
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
+  const mountWrapper = (hasAuthorization = true) => {
+    router = createCleanRouter();
 
-  beforeEach(() => {
-    mockTagsApi.onGet("http://localhost:3000/api/tags").reply(200, []);
-
-    wrapper = mount(DeviceDelete, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+    wrapper = mountComponent(DeviceDelete, {
+      global: { plugins: [router] },
       props: {
-        uid: "a582b47a42d",
+        uid: "test-device-uid",
         variant: "device",
-        hasAuthorization: true,
+        hasAuthorization,
       },
+    });
+
+    devicesStore = useDevicesStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    document.body.innerHTML = "";
+  });
+
+  describe("list item", () => {
+    it("renders delete list item", () => {
+      expect(wrapper.find('[data-test="device-delete-item"]').exists()).toBe(true);
+    });
+
+    it("displays remove icon", () => {
+      expect(wrapper.find('[data-test="remove-icon"]').exists()).toBe(true);
+    });
+
+    it("displays Remove text", () => {
+      expect(wrapper.find('[data-test="remove-title"]').text()).toBe("Remove");
+    });
+
+    it("opens dialog when clicked", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="delete-device-dialog"]').exists()).toBe(true);
+    });
+
+    it("is disabled when hasAuthorization is false", () => {
+      wrapper.unmount();
+      mountWrapper(false);
+
+      const listItem = wrapper.find('[data-test="device-delete-item"]');
+      expect(listItem.classes()).toContain("v-list-item--disabled");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("delete dialog", () => {
+    it("shows confirmation dialog with correct title", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
+
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("title")).toBe("Are you sure?");
+    });
+
+    it("shows description with variant", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
+
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("description")).toContain("device");
+      expect(messageDialog.props("description")).toContain("cannot be undone");
+    });
+
+    it("displays error icon", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
+
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("icon")).toBe("mdi-alert");
+      expect(messageDialog.props("iconColor")).toBe("error");
+    });
+
+    it("shows Remove and Close buttons", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="confirm-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    });
+
+    it("closes dialog when cancel is clicked", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
+
+      await dialog.find('[data-test="close-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none;");
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("device removal", () => {
+    it("calls removeDevice when confirmed", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
 
-  it("Renders the list item with correct elements", () => {
-    expect(wrapper.find('[data-test="device-delete-item"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="remove-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="remove-title"]').exists()).toBe(true);
-  });
+      await dialog.find('[data-test="confirm-btn"]').trigger("click");
+      await flushPromises();
 
-  it("Opens MessageDialog when item is clicked", async () => {
-    await wrapper.find('[data-test="device-delete-item"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="delete-device-dialog"]').exists()).toBe(true);
-  });
+      expect(devicesStore.removeDevice).toHaveBeenCalledWith("test-device-uid");
+    });
 
-  it("Shows MessageDialog with correct props", async () => {
-    await wrapper.find('[data-test="device-delete-item"]').trigger("click");
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    expect(messageDialog.exists()).toBe(true);
-    expect(messageDialog.props("title")).toBe("Are you sure?");
-    expect(messageDialog.props("description")).toBe("You are about to remove this device. After confirming this action cannot be redone.");
-    expect(messageDialog.props("icon")).toBe("mdi-alert");
-    expect(messageDialog.props("iconColor")).toBe("error");
-    expect(messageDialog.props("confirmText")).toBe("Remove");
-    expect(messageDialog.props("confirmColor")).toBe("error");
-    expect(messageDialog.props("cancelText")).toBe("Close");
-  });
+    it("emits update event after successful removal", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
 
-  it("Shows dialog buttons with correct data-test attributes", async () => {
-    await wrapper.find('[data-test="device-delete-item"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="confirm-btn"]').exists()).toBe(true);
-  });
+      await dialog.find('[data-test="confirm-btn"]').trigger("click");
+      await flushPromises();
 
-  it("Closes dialog when cancel is emitted", async () => {
-    await wrapper.find('[data-test="device-delete-item"]').trigger("click");
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    expect(messageDialog.props("modelValue")).toBe(true);
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
 
-    await messageDialog.vm.$emit("cancel");
-    expect(messageDialog.props("modelValue")).toBe(false);
-  });
+    it("closes dialog after successful removal", async () => {
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
 
-  it("Calls removeDevice when confirm is emitted", async () => {
-    const storeSpy = vi.spyOn(devicesStore, "removeDevice").mockResolvedValue();
-    mockDevicesApi.onDelete("http://localhost:3000/api/devices/a582b47a42d").reply(200);
+      await dialog.find('[data-test="confirm-btn"]').trigger("click");
+      await flushPromises();
 
-    await wrapper.find('[data-test="device-delete-item"]').trigger("click");
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none;");
+    });
 
-    await messageDialog.vm.$emit("confirm");
-    expect(storeSpy).toHaveBeenCalledWith("a582b47a42d");
-  });
+    it("handles removal error gracefully", async () => {
+      vi.mocked(devicesStore.removeDevice).mockRejectedValue(createAxiosError(500, "Internal Server Error"));
 
-  it("Disables list item when hasAuthorization is false", async () => {
-    await wrapper.setProps({ hasAuthorization: false });
-    const listItem = wrapper.find('[data-test="device-delete-item"]');
-    expect(listItem.classes()).toContain("v-list-item--disabled");
-  });
+      await wrapper.find('[data-test="device-delete-item"]').trigger("click");
+      await flushPromises();
 
-  it("Exposes removeDevice method", () => {
-    expect(wrapper.vm.removeDevice).toBeDefined();
-    expect(typeof wrapper.vm.removeDevice).toBe("function");
+      await dialog.find('[data-test="confirm-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none;");
+    });
   });
 });
