@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
-import CopyCommandField from "@/components/CopyCommandField.vue";
+import CopyCommandField from "@/components/Fields/CopyCommandField.vue";
 import useAuthStore from "@/store/modules/auth";
 import { envVariables } from "@/envVariables";
 

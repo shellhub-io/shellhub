@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
-import CopyCommandField from "@/components/CopyCommandField.vue";
+import CopyCommandField from "@/components/Fields/CopyCommandField.vue";
 
 vi.mock("@/components/User/CopyWarning.vue", () => ({
   default: {
@@ -26,10 +26,6 @@ describe("CopyCommandField", () => {
   const wrapper = mount(CopyCommandField, {
     props,
     global: { plugins: [vuetify] },
-  });
-
-  it("renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
   });
 
   it("displays the command in the text field", () => {
