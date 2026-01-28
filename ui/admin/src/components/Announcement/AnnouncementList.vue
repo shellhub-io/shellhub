@@ -1,5 +1,6 @@
 <template>
   <DataTable
+    v-if="loading || announcements.length"
     v-model:items-per-page="itemsPerPage"
     v-model:page="page"
     :headers
@@ -67,6 +68,14 @@
       </tr>
     </template>
   </DataTable>
+
+  <NoItemsMessage
+    v-else
+    class="mt-2"
+    item="Announcements"
+    icon="mdi-bullhorn"
+    data-test="announcements-empty-state"
+  />
 </template>
 
 <script setup lang="ts">
@@ -80,6 +89,7 @@ import DataTable from "@/components/Tables/DataTable.vue";
 import AnnouncementDelete from "./AnnouncementDelete.vue";
 import AnnouncementEdit from "./AnnouncementEdit.vue";
 import handleError from "@/utils/handleError";
+import NoItemsMessage from "@/components/NoItemsMessage.vue";
 
 const router = useRouter();
 const announcementStore = useAnnouncementStore();

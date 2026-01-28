@@ -1,6 +1,7 @@
 <template>
   <div>
     <DataTable
+      v-if="loading || devices.length"
       v-model:items-per-page="itemsPerPage"
       v-model:page="page"
       :headers
@@ -103,6 +104,14 @@
         </tr>
       </template>
     </DataTable>
+
+    <NoItemsMessage
+      v-else
+      class="mt-2"
+      item="Devices"
+      icon="mdi-developer-board"
+      data-test="devices-empty-state"
+    />
   </div>
 </template>
 
@@ -117,6 +126,7 @@ import { formatFullDateTime } from "@/utils/date";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import showTag from "@/utils/tag";
 import handleError from "@/utils/handleError";
+import NoItemsMessage from "@/components/NoItemsMessage.vue";
 
 const router = useRouter();
 const snackbar = useSnackbar();

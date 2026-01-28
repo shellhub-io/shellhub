@@ -92,7 +92,7 @@ describe("SessionList", () => {
       await mountWrapper(0);
       await flushPromises();
 
-      const emptyState = wrapper.find('[data-test="empty-state"]');
+      const emptyState = wrapper.find('[data-test="sessions-empty-state"]');
       expect(emptyState.exists()).toBe(true);
     });
   });

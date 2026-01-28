@@ -40,7 +40,9 @@ describe("Announcements", () => {
   });
 
   it("displays the announcement list component", () => {
-    expect(wrapper.find('[data-test="announcement-list"]').exists()).toBe(true);
+    const list = wrapper.find('[data-test="announcement-list"]');
+    const emptyState = wrapper.find('[data-test="announcements-empty-state"]');
+    expect(list.exists() || emptyState.exists()).toBe(true);
   });
 
   it("navigates to new announcement page when button is clicked", async () => {

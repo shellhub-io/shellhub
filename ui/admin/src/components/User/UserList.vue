@@ -1,5 +1,6 @@
 <template>
   <DataTable
+    v-if="loading || users.length"
     v-model:items-per-page="itemsPerPage"
     v-model:page="page"
     :headers
@@ -94,6 +95,14 @@
       </tr>
     </template>
   </DataTable>
+
+  <NoItemsMessage
+    v-else
+    class="mt-2"
+    item="Users"
+    icon="mdi-account-multiple"
+    data-test="users-empty-state"
+  />
 </template>
 
 <script setup lang="ts">
@@ -109,6 +118,7 @@ import UserFormDialog from "./UserFormDialog.vue";
 import UserDelete from "./UserDelete.vue";
 import UserResetPassword from "./UserResetPassword.vue";
 import handleError from "@/utils/handleError";
+import NoItemsMessage from "@/components/NoItemsMessage.vue";
 
 const router = useRouter();
 const snackbar = useSnackbar();

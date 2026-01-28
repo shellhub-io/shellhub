@@ -1,5 +1,6 @@
 <template>
   <DataTable
+    v-if="loading || firewallRules.length"
     v-model:items-per-page="itemsPerPage"
     v-model:page="page"
     :headers
@@ -81,6 +82,14 @@
       </tr>
     </template>
   </DataTable>
+
+  <NoItemsMessage
+    v-else
+    class="mt-2"
+    item="Firewall Rules"
+    icon="mdi-shield-lock"
+    data-test="firewall-rules-empty-state"
+  />
 </template>
 
 <script setup lang="ts">
@@ -93,6 +102,7 @@ import DataTable from "@/components/Tables/DataTable.vue";
 import showTag from "@/utils/tag";
 import { displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import handleError from "@/utils/handleError";
+import NoItemsMessage from "@/components/NoItemsMessage.vue";
 
 const router = useRouter();
 const snackbar = useSnackbar();

@@ -1,6 +1,7 @@
 <template>
   <div>
     <DataTable
+      v-if="loading || namespaces.length"
       v-model:items-per-page="itemsPerPage"
       v-model:page="page"
       :headers="headers"
@@ -96,6 +97,14 @@
       </template>
     </DataTable>
 
+    <NoItemsMessage
+      v-else
+      class="mt-2"
+      item="Namespaces"
+      icon="mdi-domain"
+      data-test="namespaces-empty-state"
+    />
+
     <NamespaceEdit
       v-if="selectedNamespace"
       :key="selectedNamespace.tenant_id"
@@ -124,6 +133,7 @@ import DataTable from "@/components/Tables/DataTable.vue";
 import NamespaceEdit from "@admin/components/Namespace/NamespaceEdit.vue";
 import NamespaceDelete from "@admin/components/Namespace/NamespaceDelete.vue";
 import handleError from "@/utils/handleError";
+import NoItemsMessage from "@/components/NoItemsMessage.vue";
 
 const snackbar = useSnackbar();
 const namespacesStore = useNamespacesStore();
