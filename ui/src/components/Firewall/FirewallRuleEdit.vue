@@ -355,5 +355,11 @@ const editFirewallRule = async () => {
   }
 };
 
-defineExpose({ selectedIPOption, selectedFilterOption, selectedUsernameOption });
+defineExpose({
+  action,
+  selectedIPOption, handleSourceIpUpdate,
+  selectedUsernameOption, handleUsernameUpdate,
+  selectedFilterOption, handleFilterUpdate,
+  selectedTags, selectedTagsError,
+});
 </script>

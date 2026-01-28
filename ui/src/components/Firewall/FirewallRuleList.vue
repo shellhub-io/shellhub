@@ -149,7 +149,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import isHostname from "@/utils/isHostname";
 import { capitalizeText, displayOnlyTenCharacters, formatHostnameFilter, formatSourceIP, formatUsername } from "@/utils/string";
 import showTag from "@/utils/tag";
@@ -208,16 +208,11 @@ const getFirewalls = async () => {
       page: page.value,
     });
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("You don't have permission to access this resource.");
-        handleError(error);
-      }
-    } else {
-      snackbar.showError("An error occurred while loading the firewall rules.");
-      handleError(error);
-    }
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You don't have permission to access this resource.");
+    } else snackbar.showError("An error occurred while loading the firewall rules.");
+
+    handleError(error);
   } finally {
     loading.value = false;
   }

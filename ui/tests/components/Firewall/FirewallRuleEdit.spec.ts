@@ -1,157 +1,312 @@
-import { setActivePinia, createPinia } from "pinia";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
-import { nextTick } from "vue";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mockSnackbar, mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import FirewallRuleEdit from "@/components/Firewall/FirewallRuleEdit.vue";
-import { rulesApi, tagsApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import { IFirewallRule } from "@/interfaces/IFirewallRule";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
-import { ITag } from "@/interfaces/ITags";
+import { IFirewallRule } from "@/interfaces/IFirewallRule";
+import { mockFirewallRule, mockTags } from "@tests/mocks";
+import handleError from "@/utils/handleError";
 
-type FirewallRuleEditWrapper = VueWrapper<InstanceType<typeof FirewallRuleEdit>>;
+describe("FirewallRuleEdit", () => {
+  let wrapper: VueWrapper<InstanceType<typeof FirewallRuleEdit>>;
+  let dialog: DOMWrapper<Element>;
+  let firewallRulesStore: ReturnType<typeof useFirewallRulesStore>;
 
-const firewallRule = {
-  id: "1000",
-  tenant_id: "fake-tenant-data",
-  priority: 1,
-  action: "allow" as const,
-  active: true,
-  source_ip: ".*",
-  username: ".*",
-  status: "active",
-  filter: {
-    hostname: ".*",
-  },
-};
-
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-describe("Firewall Rule Edit", () => {
-  let wrapper: FirewallRuleEditWrapper;
-  const vuetify = createVuetify();
-  localStorage.setItem("tenant", "fake-tenant-data");
-
-  setActivePinia(createPinia());
-  const firewallRulesStore = useFirewallRulesStore();
-  const mountWrapper = (firewallRuleProp: IFirewallRule = firewallRule) => mount(FirewallRuleEdit, {
-    global: {
-      plugins: [vuetify],
-      provide: { [SnackbarInjectionKey]: mockSnackbar },
-    },
-    props: {
-      firewallRule: firewallRuleProp,
-      hasAuthorization: true,
-    },
-  });
-
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
-  const mockRulesApi = new MockAdapter(rulesApi.getAxios());
-
-  beforeEach(() => {
-    mockTagsApi
-      .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
-      .reply(200, [{ name: "1" }, { name: "2" }]);
-
-    wrapper = mountWrapper();
-  });
-
-  afterEach(() => {
-    wrapper.unmount();
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the dialog open button and other key elements", async () => {
-    expect(wrapper.find('[data-test="firewall-edit-rule-btn"]').exists()).toBe(true);
-
-    await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
-
-    const formDialog = wrapper.findComponent({ name: "FormDialog" });
-    expect(formDialog.exists()).toBe(true);
-    expect(formDialog.props("title")).toBe("Edit Firewall Rule");
-    expect(formDialog.props("icon")).toBe("mdi-shield-check");
-    expect(formDialog.props("confirmText")).toBe("Edit");
-    expect(formDialog.props("cancelText")).toBe("Cancel");
-
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="firewall-rule-status"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="firewall-rule-priority"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="firewall-rule-policy"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="firewall-rule-source-ip-select"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="username-field"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="filter-select"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="firewall-rule-cancel"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="firewall-rule-edit-btn"]').exists()).toBe(true);
-  });
-
-  it("Conditional rendering components", async () => {
-    wrapper = mountWrapper({
-      ...firewallRule,
-      source_ip: "127.0.0.1",
-      username: "ossystems",
-      filter: { tags: [{ name: "tag1" }, { name: "tag2" }] as ITag[] },
-    });
-
-    const dialog = new DOMWrapper(document.body);
-    await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
-    await nextTick();
-
-    expect(dialog.find('[data-test="firewall-rule-source-ip"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="firewall-rule-username-restriction"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="tags-selector"]').exists()).toBe(true);
-  });
-
-  it("Conditional rendering components (Hostname)", async () => {
-    wrapper = mountWrapper({ ...firewallRule, filter: { hostname: "host" } });
-
-    const dialog = new DOMWrapper(document.body);
-    await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
-    await nextTick();
-    expect(dialog.find('[data-test="firewall-rule-hostname-restriction"]').exists()).toBe(true);
-  });
-
-  it("Successful on editing firewall rules", async () => {
-    const storeSpy = vi.spyOn(firewallRulesStore, "updateFirewallRule");
-
-    mockRulesApi.onPut("http://localhost:3000/api/firewall/rules/1000").reply(200);
-
-    await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="firewall-rule-edit-btn"]').trigger("click");
-
-    expect(storeSpy).toBeCalledWith({
-      id: "1000",
-      action: "allow",
-      priority: 1,
-      active: true,
-      source_ip: ".*",
-      username: ".*",
-      filter: {
-        hostname: ".*",
+  const mountWrapper = (rule: IFirewallRule = mockFirewallRule, hasAuthorization = true) => {
+    wrapper = mountComponent(FirewallRuleEdit, {
+      props: {
+        firewallRule: rule,
+        hasAuthorization,
       },
     });
+
+    firewallRulesStore = useFirewallRulesStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
   });
 
-  it("Fails on editing firewall rules", async () => {
-    mockRulesApi.onPut("http://localhost:3000/api/firewall/rules/1000").reply(403);
+  describe("List item", () => {
+    it("Renders edit list item", () => {
+      expect(wrapper.find('[data-test="firewall-edit-rule-btn"]').exists()).toBe(true);
+    });
 
-    await wrapper.findComponent('[data-test="firewall-edit-rule-btn"]').trigger("click");
+    it("Displays Edit text", () => {
+      expect(wrapper.find('[data-test="mdi-information-list-item"]').text()).toBe("Edit");
+    });
 
-    await wrapper.findComponent('[data-test="firewall-rule-edit-btn"]').trigger("click");
-    await flushPromises();
+    it("Opens dialog when clicked", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
 
-    expect(mockSnackbar.showError).toBeCalledWith("Error while updating firewall rule.");
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("modelValue")).toBe(true);
+    });
+
+    it("Is disabled when hasAuthorization is false", () => {
+      wrapper.unmount();
+      mountWrapper(mockFirewallRule, false);
+
+      const listItem = wrapper.find('[data-test="firewall-edit-rule-btn"]');
+      expect(listItem.classes()).toContain("v-list-item--disabled");
+    });
+  });
+
+  describe("Edit dialog", () => {
+    beforeEach(async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+    });
+
+    it("Shows FormDialog with correct props", () => {
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("title")).toBe("Edit Firewall Rule");
+      expect(formDialog.props("icon")).toBe("mdi-shield-check");
+      expect(formDialog.props("confirmText")).toBe("Edit");
+      expect(formDialog.props("cancelText")).toBe("Cancel");
+    });
+
+    it("Renders all form fields", () => {
+      expect(dialog.find('[data-test="firewall-rule-status"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="firewall-rule-priority"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="firewall-rule-policy"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="firewall-rule-source-ip-select"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="username-field"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="filter-select"]').exists()).toBe(true);
+    });
+
+    it("Renders action buttons", () => {
+      expect(dialog.find('[data-test="firewall-rule-edit-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="firewall-rule-cancel"]').exists()).toBe(true);
+    });
+  });
+
+  describe("Form fields - populated values", () => {
+    it("Populates priority from firewall rule", async () => {
+      wrapper.unmount();
+      mountWrapper({ ...mockFirewallRule, priority: 5 });
+
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="firewall-rule-priority"] input').element as HTMLInputElement;
+      expect(input.value).toBe("5");
+    });
+
+    it("Populates action from firewall rule", async () => {
+      wrapper.unmount();
+      mountWrapper({ ...mockFirewallRule, action: "deny" });
+
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const select = dialog.find('[data-test="firewall-rule-policy"]');
+      expect(select.text()).toContain("Deny");
+    });
+
+    it("Populates status from firewall rule", async () => {
+      wrapper.unmount();
+      mountWrapper({ ...mockFirewallRule, active: false });
+
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const select = dialog.find('[data-test="firewall-rule-status"]');
+      expect(select.text()).toContain("Inactive");
+    });
+  });
+
+  describe("Conditional field rendering - Source IP", () => {
+    it("Shows source IP field when rule has restricted source IP", async () => {
+      wrapper.unmount();
+      mountWrapper({ ...mockFirewallRule, source_ip: "192.168.1.0/24" });
+
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="firewall-rule-source-ip"]').exists()).toBe(true);
+      const input = dialog.find('[data-test="firewall-rule-source-ip"] input').element as HTMLInputElement;
+      expect(input.value).toBe("192.168.1.0/24");
+    });
+
+    it("Does not show source IP field when rule has .* source IP", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="firewall-rule-source-ip"]').exists()).toBe(false);
+    });
+  });
+
+  describe("Conditional field rendering - Username", () => {
+    it("Shows username field when rule has restricted username", async () => {
+      wrapper.unmount();
+      mountWrapper({ ...mockFirewallRule, username: "testuser" });
+
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="firewall-rule-username-restriction"]').exists()).toBe(true);
+      const input = dialog.find('[data-test="firewall-rule-username-restriction"] input').element as HTMLInputElement;
+      expect(input.value).toBe("testuser");
+    });
+
+    it("Does not show username field when rule has .* username", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="firewall-rule-username-restriction"]').exists()).toBe(false);
+    });
+  });
+
+  describe("Conditional field rendering - Device filter", () => {
+    it("Shows hostname field when filter is hostname", async () => {
+      wrapper.unmount();
+      mountWrapper({ ...mockFirewallRule, filter: { hostname: "test-host" } });
+
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="firewall-rule-hostname-restriction"]').exists()).toBe(true);
+      const input = dialog.find('[data-test="firewall-rule-hostname-restriction"] input').element as HTMLInputElement;
+      expect(input.value).toBe("test-host");
+    });
+
+    it("Shows tags selector when filter is tags", async () => {
+      wrapper.unmount();
+      mountWrapper({
+        ...mockFirewallRule,
+        filter: { tags: mockTags },
+      });
+
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="tags-selector"]').exists()).toBe(true);
+    });
+  });
+
+  describe("Form validation", () => {
+    beforeEach(async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+    });
+
+    it("Shows error when priority is empty", async () => {
+      const input = dialog.find('[data-test="firewall-rule-priority"] input');
+      await input.setValue("");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="firewall-rule-priority"]').text()).toContain("This must be a valid integer");
+    });
+
+    it("Shows error when priority is zero", async () => {
+      const input = dialog.find('[data-test="firewall-rule-priority"] input');
+      await input.setValue("0");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="firewall-rule-priority"]').text()).toContain("cannot be zero");
+    });
+  });
+
+  describe("Firewall rule update", () => {
+    it("Calls updateFirewallRule with current values", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const editBtn = dialog.find('[data-test="firewall-rule-edit-btn"]');
+      await editBtn.trigger("click");
+      await flushPromises();
+
+      expect(firewallRulesStore.updateFirewallRule).toHaveBeenCalledWith({
+        id: "rule-1",
+        action: "allow",
+        priority: 1,
+        active: true,
+        source_ip: ".*",
+        username: ".*",
+        filter: { hostname: ".*" },
+      });
+    });
+
+    it("Calls updateFirewallRule with modified priority", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const priorityInput = dialog.find('[data-test="firewall-rule-priority"] input');
+      await priorityInput.setValue("10");
+      await flushPromises();
+
+      const editBtn = dialog.find('[data-test="firewall-rule-edit-btn"]');
+      await editBtn.trigger("click");
+      await flushPromises();
+
+      expect(firewallRulesStore.updateFirewallRule).toHaveBeenCalledWith(
+        expect.objectContaining({
+          priority: 10,
+        }),
+      );
+    });
+
+    it("Emits update event after successful edit", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const editBtn = dialog.find('[data-test="firewall-rule-edit-btn"]');
+      await editBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("Closes dialog after successful edit", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const editBtn = dialog.find('[data-test="firewall-rule-edit-btn"]');
+      await editBtn.trigger("click");
+      await flushPromises();
+
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("modelValue")).toBe(false);
+    });
+  });
+
+  describe("Dialog actions", () => {
+    it("Closes dialog when Cancel is clicked", async () => {
+      await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+      await flushPromises();
+
+      const cancelBtn = dialog.find('[data-test="firewall-rule-cancel"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
+
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("modelValue")).toBe(false);
+    });
+
+    describe("Error handling", () => {
+      it("Handles generic server error", async () => {
+        const error = createAxiosError(500, "Internal Server Error");
+        vi.mocked(firewallRulesStore.updateFirewallRule).mockRejectedValueOnce(error);
+
+        await wrapper.find('[data-test="firewall-edit-rule-btn"]').trigger("click");
+        await flushPromises();
+
+        const editBtn = dialog.find('[data-test="firewall-rule-edit-btn"]');
+        await editBtn.trigger("click");
+        await flushPromises();
+
+        expect(firewallRulesStore.updateFirewallRule).toHaveBeenCalled();
+        expect(mockSnackbar.showError).toHaveBeenCalledWith("Error while updating firewall rule.");
+        expect(handleError).toHaveBeenCalledWith(error);
+      });
+    });
   });
 });
