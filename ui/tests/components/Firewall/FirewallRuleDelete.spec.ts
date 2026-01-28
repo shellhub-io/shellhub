@@ -3,7 +3,7 @@ import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import FirewallRuleDelete from "@/components/firewall/FirewallRuleDelete.vue";
+import FirewallRuleDelete from "@/components/Firewall/FirewallRuleDelete.vue";
 import { router } from "@/router";
 import { rulesApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";

@@ -4,7 +4,7 @@ import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
 import { nextTick } from "vue";
-import FirewallRuleEdit from "@/components/firewall/FirewallRuleEdit.vue";
+import FirewallRuleEdit from "@/components/Firewall/FirewallRuleEdit.vue";
 import { rulesApi, tagsApi } from "@/api/http";
 import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";

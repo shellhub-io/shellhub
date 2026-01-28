@@ -3,7 +3,7 @@ import { mount, VueWrapper } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import MockAdapter from "axios-mock-adapter";
 import { expect, describe, it, beforeEach } from "vitest";
-import FirewallRuleList from "@/components/firewall/FirewallRuleList.vue";
+import FirewallRuleList from "@/components/Firewall/FirewallRuleList.vue";
 import { rulesApi } from "@/api/http";
 import { SnackbarPlugin } from "@/plugins/snackbar";
 import useFirewallRulesStore from "@/store/modules/firewall_rules";
