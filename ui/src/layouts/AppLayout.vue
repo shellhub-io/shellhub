@@ -3,7 +3,6 @@
     v-model="showNavigationDrawer"
     :theme="theme"
     :permanent="permanent"
-    absolute
     app
     class="bg-v-theme-surface"
     data-test="navigation-drawer"
