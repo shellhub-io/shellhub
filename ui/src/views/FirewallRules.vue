@@ -47,8 +47,8 @@
 import { computed, onMounted } from "vue";
 import NoItemsMessage from "../components/NoItemsMessage.vue";
 import { envVariables } from "../envVariables";
-import FirewallRuleList from "../components/firewall/FirewallRuleList.vue";
-import FirewallRuleAdd from "../components/firewall/FirewallRuleAdd.vue";
+import FirewallRuleList from "../components/Firewall/FirewallRuleList.vue";
+import FirewallRuleAdd from "../components/Firewall/FirewallRuleAdd.vue";
 import PageHeader from "../components/PageHeader.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
