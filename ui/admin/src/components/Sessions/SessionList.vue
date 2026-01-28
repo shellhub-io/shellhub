@@ -1,6 +1,7 @@
 <template>
   <div>
     <DataTable
+      v-if="loading || sessions.length"
       v-model:items-per-page="itemsPerPage"
       v-model:page="page"
       :headers
@@ -126,6 +127,14 @@
         </tr>
       </template>
     </DataTable>
+
+    <NoItemsMessage
+      v-else
+      class="mt-2"
+      item="Sessions"
+      icon="mdi-console"
+      data-test="sessions-empty-state"
+    />
   </div>
 </template>
 
@@ -138,6 +147,7 @@ import DataTable from "@/components/Tables/DataTable.vue";
 import { getTimeFromNow, formatFullDateTime } from "@/utils/date";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
+import NoItemsMessage from "@/components/NoItemsMessage.vue";
 
 const router = useRouter();
 const snackbar = useSnackbar();

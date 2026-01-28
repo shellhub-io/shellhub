@@ -24,6 +24,8 @@ describe("Sessions", () => {
   });
 
   it("renders the session list component", () => {
-    expect(wrapper.find('[data-test="session-list"]').exists()).toBe(true);
+    const list = wrapper.find('[data-test="session-list"]');
+    const emptyState = wrapper.find('[data-test="sessions-empty-state"]');
+    expect(list.exists() || emptyState.exists()).toBe(true);
   });
 });
