@@ -90,6 +90,4 @@ const getRoleLabel = (role: Role): string => roleConfig[role]?.label || role;
 const getRoleIcon = (role: Role): string => roleConfig[role]?.icon || "mdi-account";
 
 const handleSuccess = () => { emit("update"); };
-
-defineExpose({ handleSuccess });
 </script>

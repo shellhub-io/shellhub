@@ -1,10 +1,10 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, afterEach, vi, beforeEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { VLayout } from "vuetify/components";
+import { mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mockInvitations } from "@tests/mocks";
 import InvitationsMenu from "@/components/Invitations/InvitationsMenu.vue";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useInvitationsStore from "@/store/modules/invitations";
 import { IInvitation } from "@/interfaces/IInvitation";
 
@@ -16,71 +16,124 @@ const Component = {
   }),
 };
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-const mockInvitations: IInvitation[] = [
-  {
-    status: "pending",
-    role: "operator",
-    invited_by: "admin",
-    expires_at: "2025-12-31T23:59:59Z",
-    created_at: "2025-12-01T00:00:00Z",
-    updated_at: "2025-12-01T00:00:00Z",
-    status_updated_at: "2025-12-01T00:00:00Z",
-    namespace: {
-      tenant_id: "tenant1",
-      name: "Namespace 1",
-    },
-    user: {
-      id: "user1",
-      email: "user@example.com",
-    },
-  },
-];
-
-const vuetify = createVuetify();
-
-const mountWrapper = () => mount(Component, {
-  global: {
-    plugins: [vuetify],
-    provide: { [SnackbarInjectionKey]: mockSnackbar },
-    components: { "v-layout": VLayout, InvitationsMenu },
-    stubs: { teleport: true },
-  },
-  props: { modelValue: true },
-  attachTo: document.body,
-});
-
 describe("InvitationsMenu", () => {
   let wrapper: VueWrapper<unknown>;
-  let menu: VueWrapper<InstanceType<typeof InvitationsMenu>>;
+  let invitationsStore: ReturnType<typeof useInvitationsStore>;
 
-  setActivePinia(createPinia());
-  const invitationsStore = useInvitationsStore();
-  invitationsStore.fetchUserPendingInvitationList = vi.fn().mockResolvedValue(Promise.resolve(mockInvitations));
+  const mountWrapper = (invitations: IInvitation[] = mockInvitations) => {
+    wrapper = mountComponent(Component, {
+      global: {
+        components: { "v-layout": VLayout, InvitationsMenu },
+        stubs: { teleport: true },
+      },
+      props: { modelValue: true },
+      attachTo: document.body,
+      piniaOptions: { initialState: { invitations: { pendingInvitations: invitations } } },
+    });
 
-  it("Opens drawer when icon is clicked", async () => {
-    wrapper = mountWrapper();
-    await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
-    menu = wrapper.findComponent(InvitationsMenu);
-    menu.vm.isDrawerOpen = false;
-    const icon = wrapper.find('[data-test="invitations-menu-icon"]');
-    await icon.trigger("click");
-    await flushPromises();
+    invitationsStore = useInvitationsStore();
+  };
 
-    expect(menu.vm.isDrawerOpen).toBe(true);
-    const drawerComponent = wrapper.find('[data-test="invitations-drawer"]');
-    expect(drawerComponent.exists()).toBe(true);
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
   });
 
-  it("Fetches invitations on mount", async () => {
-    const storeSpy = vi.spyOn(invitationsStore, "fetchUserPendingInvitationList");
-    wrapper.unmount();
-    wrapper = mountWrapper();
-    await flushPromises();
-    expect(storeSpy).toHaveBeenCalled();
+  describe("Badge and icon", () => {
+    it("Renders invitations menu icon", () => {
+      mountWrapper();
+
+      expect(wrapper.find('[data-test="invitations-menu-icon"]').exists()).toBe(true);
+    });
+
+    it("Shows badge when there are pending invitations", () => {
+      mountWrapper();
+
+      const badge = wrapper.find('[data-test="invitations-menu-badge"]');
+      expect(badge.exists()).toBe(true);
+      expect(badge.text()).toBe("2");
+    });
+
+    it("Does not show badge when there are no pending invitations", () => {
+      mountWrapper([]);
+
+      const badge = wrapper.find('[data-test="invitations-menu-badge"] .v-badge__badge');
+      expect(badge.attributes("style")).toContain("display: none;");
+    });
+  });
+
+  describe("Drawer toggle", () => {
+    beforeEach(() => mountWrapper());
+
+    it("Opens drawer when icon is clicked", async () => {
+      await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="invitations-drawer"]').exists()).toBe(true);
+    });
+
+    it("Fetches invitations when drawer is opened", async () => {
+      await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
+      await flushPromises();
+
+      expect(invitationsStore.fetchUserPendingInvitationList).toHaveBeenCalled();
+    });
+  });
+
+  describe("Invitations list", () => {
+    beforeEach(() => mountWrapper());
+
+    it("Displays invitations list when there are pending invitations", async () => {
+      await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="invitations-list"]').exists()).toBe(true);
+    });
+
+    it("Renders invitation items", async () => {
+      await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
+      await flushPromises();
+
+      const items = wrapper.findAllComponents({ name: "InvitationsMenuItem" });
+      expect(items).toHaveLength(2);
+    });
+  });
+
+  describe("Empty state", () => {
+    it("Shows empty state when there are no pending invitations", async () => {
+      mountWrapper([]);
+
+      await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="empty-state"]').exists()).toBe(true);
+      expect(wrapper.text()).toContain("No pending invitations");
+    });
+  });
+
+  describe("Error handling", () => {
+    beforeEach(() => mountWrapper());
+    it("Handles fetch error", async () => {
+      vi.mocked(invitationsStore.fetchUserPendingInvitationList).mockRejectedValueOnce(
+        createAxiosError(500, "Internal server error"),
+      );
+
+      await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
+      await flushPromises();
+
+      expect(invitationsStore.fetchUserPendingInvitationList).toHaveBeenCalled();
+    });
+
+    it("Handles 403 permission error", async () => {
+      vi.mocked(invitationsStore.fetchUserPendingInvitationList).mockRejectedValueOnce(
+        createAxiosError(403, "Permission denied"),
+      );
+
+      await wrapper.find('[data-test="invitations-menu-icon"]').trigger("click");
+      await flushPromises();
+
+      expect(invitationsStore.fetchUserPendingInvitationList).toHaveBeenCalled();
+    });
   });
 });
