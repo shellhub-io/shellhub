@@ -28,3 +28,4 @@ export * from "./firewallRule";
 export * from "./webEndpoint";
 export * from "./namespace";
 export * from "./user";
+export * from "./invitation";

@@ -64,6 +64,4 @@ const handleAccept = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ openDialog });
 </script>

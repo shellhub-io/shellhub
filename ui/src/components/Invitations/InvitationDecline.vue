@@ -56,6 +56,4 @@ const handleDecline = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ openDialog });
 </script>
