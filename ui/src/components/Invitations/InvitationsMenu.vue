@@ -117,12 +117,4 @@ const fetchInvitations = async () => {
 onBeforeMount(async () => {
   await fetchInvitations();
 });
-
-defineExpose({
-  isDrawerOpen,
-  pendingInvitationsList,
-  isLoading,
-  toggleDrawer,
-  fetchInvitations,
-});
 </script>
