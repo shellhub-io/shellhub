@@ -33,6 +33,7 @@ setActivePinia(createPinia());
 Object.defineProperty(window, "location", {
   value: {
     ...window.location,
+    reload: vi.fn(),
     assign: vi.fn(),
   },
   writable: true,

@@ -15,6 +15,7 @@
         :class="['text-none p-2 border-e-thin', { 'border-s-thin': mdAndDown }]"
         density="comfortable"
         size="x-large"
+        data-test="open-namespace-menu-btn"
         stacked
       >
         <div class="d-flex align-center ga-2">
@@ -23,7 +24,10 @@
             compact
           />
           <template v-else>
-            <NamespaceChip :name="currentNamespace.name" />
+            <NamespaceChip
+              :name="currentNamespace.name"
+              data-test="menu-namespace-chip"
+            />
             <span
               class="text-body-1 text-truncate"
               :style="{ maxWidth: nameMaxWidth }"
@@ -52,10 +56,10 @@
               variant="text"
               size="small"
               prepend-icon="mdi-cog"
+              data-test="namespace-settings-btn"
+              text="Settings"
               @click="navigateToNamespaceSettings"
-            >
-              Settings
-            </v-btn>
+            />
           </div>
           <NamespaceListItem
             :namespace="currentNamespace"
@@ -126,6 +130,7 @@
               color="primary"
               prepend-icon="mdi-plus-circle"
               block
+              data-test="create-namespace-btn"
               text="Create Namespace"
               @click="showAddDialog = true"
             />

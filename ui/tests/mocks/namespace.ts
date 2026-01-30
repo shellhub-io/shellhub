@@ -3,15 +3,20 @@ import { INamespace } from "@/interfaces/INamespace";
 /**
  * Mock namespace members for testing.
  */
+export const mockMember = {
+  id: "user-1",
+  role: "owner" as const,
+  email: "user1@example.com",
+  status: "accepted" as const,
+  added_at: "2026-01-30T00:00:00Z",
+  expires_at: "2027-01-30T00:00:00Z",
+};
+
 export const mockMembers = [
-  {
-    id: "xxxxxxxx",
-    role: "owner" as const,
-    email: "test@example.com",
-    status: "accepted" as const,
-    added_at: "2024-01-01T00:00:00Z",
-    expires_at: "2025-01-01T00:00:00Z",
-  },
+  mockMember,
+  { ...mockMember, id: "user-2", email: "user2@example.com", role: "administrator" as const },
+  { ...mockMember, id: "user-3", email: "user3@example.com", role: "operator" as const },
+  { ...mockMember, id: "user-4", email: "user4@example.com", role: "observer" as const },
 ];
 
 /**

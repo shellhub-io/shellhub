@@ -1,112 +1,99 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { describe, expect, it, afterEach, vi, beforeEach } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mockSnackbar, mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mockNamespace } from "@tests/mocks";
 import NamespaceLeave from "@/components/Namespace/NamespaceLeave.vue";
-import { namespacesApi } from "@/api/http";
-import { router } from "@/router";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useNamespacesStore from "@/store/modules/namespaces";
-import { INamespaceMember } from "@/interfaces/INamespace";
+import { Router } from "vue-router";
+import { createCleanRouter } from "@tests/utils/router";
+import handleError from "@/utils/handleError";
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
+describe("NamespaceLeave", () => {
+  let wrapper: VueWrapper<InstanceType<typeof NamespaceLeave>>;
+  let dialog: DOMWrapper<Element>;
+  let namespacesStore: ReturnType<typeof useNamespacesStore>;
+  let router: Router;
 
-type NamespaceLeaveWrapper = VueWrapper<InstanceType<typeof NamespaceLeave>>;
+  const mountWrapper = () => {
+    localStorage.setItem("tenant", mockNamespace.tenant_id);
+    router = createCleanRouter();
+    vi.spyOn(router, "go").mockImplementation(() => {});
+    wrapper = mountComponent(NamespaceLeave, {
+      global: { plugins: [router] },
+      props: { modelValue: true },
+      attachTo: document.body,
+    });
 
-describe("Namespace Leave", () => {
-  let wrapper: NamespaceLeaveWrapper;
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const namespacesStore = useNamespacesStore();
-  const vuetify = createVuetify();
-
-  let mockNamespace: MockAdapter;
-
-  const members = [
-    {
-      id: "507f1f77bcf86cd799439011",
-      role: "administrator" as const,
-    },
-  ] as INamespaceMember[];
-
-  const namespaceData = {
-    billing: null,
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_accepted_count: 3,
-    devices_rejected_count: 0,
-    devices_pending_count: 0,
-    created_at: "",
-    type: "team" as const,
+    namespacesStore = useNamespacesStore();
+    dialog = new DOMWrapper(document.body);
   };
 
-  beforeEach(() => {
-    localStorage.setItem("tenant", "fake-tenant");
-    mockNamespace = new MockAdapter(namespacesApi.getAxios());
-    mockNamespace.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
+  beforeEach(() => mountWrapper());
 
-    authStore.role = "administrator";
-    namespacesStore.currentNamespace = namespaceData;
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
 
-    wrapper = mount(NamespaceLeave, {
-      global: {
-        plugins: [vuetify, router],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: { modelValue: true },
+  describe("Dialog display", () => {
+    it("Renders MessageDialog component", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.exists()).toBe(true);
+    });
+
+    it("Shows correct title", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("title")).toBe("Leave Namespace");
+    });
+
+    it("Shows warning icon", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("icon")).toBe("mdi-exit-to-app");
+      expect(messageDialog.props("iconColor")).toBe("warning");
+    });
+
+    it("Shows Leave and Close buttons", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("confirmText")).toBe("Leave");
+      expect(messageDialog.props("confirmColor")).toBe("error");
+      expect(messageDialog.props("cancelText")).toBe("Close");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("Leave namespace", () => {
+    it("Calls leaveNamespace when confirmed", async () => {
+      const confirmBtn = dialog.find('[data-test="leave-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(namespacesStore.leaveNamespace).toHaveBeenCalledWith(mockNamespace.tenant_id);
+    });
+
+    it("Reloads page after successful leave", async () => {
+      const routerGoSpy = vi.spyOn(router, "go").mockImplementation(() => {});
+
+      const confirmBtn = dialog.find('[data-test="leave-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(routerGoSpy).toHaveBeenCalledWith(0);
+    });
   });
 
-  it("Renders the component", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
-  });
+  describe("Error handling", () => {
+    it("Handles server error", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      vi.mocked(namespacesStore.leaveNamespace).mockRejectedValueOnce(error);
 
-  it("Successfully leaves namespace", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
+      const confirmBtn = dialog.find('[data-test="leave-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    mockNamespace.onDelete("http://localhost:3000/api/namespaces/fake-tenant/members").reply(200, { token: "fake-token" });
-
-    const storeSpy = vi.spyOn(namespacesStore, "leaveNamespace");
-    const routerSpy = vi.spyOn(router, "go").mockImplementation(vi.fn());
-
-    await wrapper.findComponent('[data-test="leave-btn"]').trigger("click");
-
-    await flushPromises();
-
-    expect(storeSpy).toHaveBeenCalledWith("fake-tenant");
-    expect(routerSpy).toHaveBeenCalledWith(0);
-  });
-
-  it("Fails to Edit Api Key", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-
-    mockNamespace.onDelete("http://localhost:3000/api/namespaces/fake-tenant/members").reply(400);
-
-    await wrapper.findComponent('[data-test="leave-btn"]').trigger("click");
-
-    await flushPromises();
-
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to leave the namespace.");
+      expect(namespacesStore.leaveNamespace).toHaveBeenCalled();
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to leave the namespace.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 });
