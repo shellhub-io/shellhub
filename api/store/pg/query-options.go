@@ -21,12 +21,16 @@ func (pg *Pg) Options() store.QueryOptions {
 
 func (*queryOptions) Paginate(page *query.Paginator) store.QueryOption {
 	return func(ctx context.Context) error {
-		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		if page == nil || page.Page < 1 || page.PerPage < 1 {
+			return nil
+		}
+
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
 		}
 
-		query = query.Offset(page.PerPage * (page.Page - 1)).Limit(page.PerPage) //nolint:staticcheck
+		wrapper.query = wrapper.query.Offset(page.PerPage * (page.Page - 1)).Limit(page.PerPage)
 
 		return nil
 	}
@@ -38,12 +42,12 @@ func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 			return nil
 		}
 
-		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
 		}
 
-		query = query.OrderExpr("? ?", bun.Ident(sorter.By), bun.Safe(strings.ToUpper(sorter.Order))) //nolint:staticcheck
+		wrapper.query = wrapper.query.OrderExpr("? ?", bun.Ident(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)))
 
 		return nil
 	}
@@ -55,13 +59,13 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 			return nil
 		}
 
-		bunQuery, ok := ctx.Value("query").(*bun.SelectQuery)
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
 		}
 
 		var filterErr error
-		bunQuery = bunQuery.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery { //nolint:staticcheck
+		wrapper.query = wrapper.query.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
 			currentOperator := "OR" //nolint:staticcheck
 			firstCondition := true
 
@@ -119,12 +123,12 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 
 func (*queryOptions) WithMember(userID string) store.QueryOption {
 	return func(ctx context.Context) error {
-		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
 		}
 
-		query = query.Where("EXISTS (SELECT 1 FROM memberships WHERE memberships.namespace_id = namespace.id AND memberships.user_id = ?)", userID) //nolint:staticcheck
+		wrapper.query = wrapper.query.Where("EXISTS (SELECT 1 FROM memberships WHERE memberships.namespace_id = namespace.id AND memberships.user_id = ?)", userID)
 
 		return nil
 	}
@@ -132,12 +136,12 @@ func (*queryOptions) WithMember(userID string) store.QueryOption {
 
 func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
 	return func(ctx context.Context) error {
-		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
 		}
 
-		query = query.Where("namespace_id = ?", namespaceID) //nolint:staticcheck
+		wrapper.query = wrapper.query.Where("namespace_id = ?", namespaceID)
 
 		return nil
 	}
@@ -145,12 +149,12 @@ func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
 
 func (*queryOptions) WithDeviceStatus(status models.DeviceStatus) store.QueryOption {
 	return func(ctx context.Context) error {
-		query, ok := ctx.Value("query").(*bun.SelectQuery)
+		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
 		}
 
-		query = query.Where("status = ?", string(status)) //nolint:staticcheck
+		wrapper.query = wrapper.query.Where("status = ?", string(status))
 
 		return nil
 	}

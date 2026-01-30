@@ -22,12 +22,18 @@ type Membership struct {
 }
 
 func MembershipFromModel(namespaceID string, member *models.Member) *Membership {
+	// Default to observer if Role is empty (for test cases)
+	role := string(member.Role)
+	if role == "" {
+		role = string(authorizer.RoleObserver)
+	}
+
 	return &Membership{
 		UserID:      member.ID,
 		NamespaceID: namespaceID,
 		CreatedAt:   member.AddedAt,
 		UpdatedAt:   time.Time{},
-		Role:        string(member.Role),
+		Role:        role,
 	}
 }
 

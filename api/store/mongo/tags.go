@@ -184,7 +184,6 @@ func (s *Store) TagPushToTarget(ctx context.Context, id string, target store.Tag
 	res, err := s.db.
 		Collection(collection).
 		UpdateOne(ctx, bson.M{filter: targetID}, bson.M{"$addToSet": bson.M{attribute: tagID}})
-
 	if err != nil {
 		return FromMongoError(err)
 	}

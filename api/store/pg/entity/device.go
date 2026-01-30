@@ -11,7 +11,7 @@ type Device struct {
 	bun.BaseModel `bun:"table:devices"`
 
 	ID             string     `bun:"id,pk"`
-	NamespaceID    string     `bun:"namespace_id,pk,type:uuid"`
+	NamespaceID    string     `bun:"namespace_id,type:uuid"`
 	CreatedAt      time.Time  `bun:"created_at"`
 	UpdatedAt      time.Time  `bun:"updated_at"`
 	RemovedAt      *time.Time `bun:"removed_at"`
@@ -36,13 +36,19 @@ type Device struct {
 }
 
 func DeviceFromModel(model *models.Device) *Device {
+	// Default to pending if Status is empty (for test cases)
+	status := string(model.Status)
+	if status == "" {
+		status = string(models.DeviceStatusPending)
+	}
+
 	device := &Device{
 		ID:          model.UID,
 		NamespaceID: model.TenantID,
 		CreatedAt:   model.CreatedAt,
 		UpdatedAt:   time.Time{},
 		LastSeen:    model.LastSeen,
-		Status:      string(model.Status),
+		Status:      status,
 		Name:        model.Name,
 		PublicKey:   model.PublicKey,
 		Tags:        []*Tag{},

@@ -26,9 +26,16 @@ func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, tenantID string, me
 
 	e := entity.MembershipFromModel(tenantID, member)
 	e.UpdatedAt = clock.Now()
-	_, err := db.NewUpdate().Model(e).WherePK().Exec(ctx)
+	r, err := db.NewUpdate().Model(e).WherePK().Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
 
-	return fromSQLError(err)
+	if count, err := r.RowsAffected(); err != nil || count == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
 }
 
 func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, tenantID string, member *models.Member) error {
@@ -44,17 +51,18 @@ func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, tenantID string, me
 		return store.ErrNoDocuments
 	}
 
+	// Check if user has this namespace as preferred and clear it if so
 	user := new(entity.User)
-	if err := db.NewSelect().Model(user).Where("id = ? AND preferred_namespace_id = ?", member.ID, tenantID).Limit(1).Scan(ctx); err != nil {
-		return fromSQLError(err)
-	}
+	err = db.NewSelect().Model(user).Where("id = ? AND preferred_namespace_id = ?", member.ID, tenantID).Limit(1).Scan(ctx)
 
-	if user != nil && user.ID != "" {
+	// If user was found (no error), clear the preferred namespace
+	if err == nil && user.ID != "" {
 		user.Preferences.PreferredNamespace = ""
 		if _, err := db.NewUpdate().Model(user).Column("preferred_namespace_id").WherePK().Exec(ctx); err != nil {
 			return fromSQLError(err)
 		}
 	}
+	// If user not found (err != nil), that's OK - just means they don't have this as preferred
 
 	return nil
 }

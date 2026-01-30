@@ -14,13 +14,14 @@ func init() {
 
 func migration007Up(ctx context.Context, db *bun.DB) error {
 	table := &struct {
-		bun.BaseModel `bun:"table:public_keys"`
-		Fingerprint   string    `bun:"fingerprint,type:char(47),pk"`
-		NamespaceID   string    `bun:"namespace_id,type:uuid,notnull"`
-		CreatedAt     time.Time `bun:"created_at,type:timestamptz,notnull"`
-		UpdatedAt     time.Time `bun:"updated_at,type:timestamptz,notnull"`
-		Name          string    `bun:"name,type:varchar,notnull"`
-		Data          []byte    `bun:"data,type:bytea,nullzero"`
+		bun.BaseModel  `bun:"table:public_keys"`
+		Fingerprint    string    `bun:"fingerprint,type:char(47),pk"`
+		NamespaceID    string    `bun:"namespace_id,type:uuid,notnull"`
+		CreatedAt      time.Time `bun:"created_at,type:timestamptz,notnull"`
+		UpdatedAt      time.Time `bun:"updated_at,type:timestamptz,notnull"`
+		Name           string    `bun:"name,type:varchar,notnull"`
+		Data           []byte    `bun:"data,type:bytea,nullzero"`
+		FilterHostname string    `bun:"filter_hostname,type:varchar,default:''"`
 	}{}
 
 	if _, err := db.NewCreateTable().

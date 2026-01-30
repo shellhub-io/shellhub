@@ -18,7 +18,7 @@ func migration002Up(ctx context.Context, db *bun.DB) error {
 		CREATE TYPE user_origin AS ENUM ('local', 'saml');
 
 		DROP TYPE IF EXISTS user_status;
-		CREATE TYPE user_status AS ENUM ('invited', 'pending', 'confirmed');
+		CREATE TYPE user_status AS ENUM ('not-confirmed', 'confirmed');
 
 		DROP TYPE IF EXISTS user_auth_method;
 		CREATE TYPE user_auth_method AS ENUM ('local', 'saml');

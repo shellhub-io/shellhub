@@ -29,6 +29,6 @@ func PrivateKeyToModel(entity *PrivateKey) *models.PrivateKey {
 	return &models.PrivateKey{
 		Fingerprint: entity.Fingerprint,
 		Data:        entity.Data,
-		CreatedAt:   entity.CreatedAt,
+		CreatedAt:   entity.CreatedAt.UTC(),
 	}
 }

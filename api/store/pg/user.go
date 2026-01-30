@@ -30,7 +30,7 @@ func (pg *Pg) UserConflicts(ctx context.Context, target *models.UserConflicts) (
 	db := pg.getConnection(ctx)
 
 	if target.Email == "" && target.Username == "" {
-		return nil, false, nil
+		return []string{}, false, nil
 	}
 
 	users := make([]entity.User, 0)
@@ -79,8 +79,10 @@ func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models
 	query := db.NewSelect().Model(&entities).
 		ColumnExpr(`"user".*`).
 		ColumnExpr(userExprNamespaces())
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.ScanAndCount(ctx)
@@ -110,11 +112,12 @@ func (pg *Pg) UserResolve(ctx context.Context, resolver store.UserResolver, val 
 		ColumnExpr(userExprNamespaces()).
 		Where("? = ?", bun.Ident(column), val)
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, fromSQLError(err)
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := query.Scan(ctx); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 

@@ -29,7 +29,7 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflict
 	db := pg.getConnection(ctx)
 
 	if target.Name == "" {
-		return nil, false, nil
+		return []string{}, false, nil
 	}
 
 	devices := make([]entity.Device, 0)
@@ -79,8 +79,10 @@ func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable,
 		ColumnExpr(onlineExpr, onlineThreshold).
 		ColumnExpr(deviceExprAcceptable(acceptable))
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.ScanAndCount(ctx)
@@ -116,11 +118,12 @@ func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, 
 		Relation("Tags").
 		ColumnExpr(onlineExpr, onlineThreshold)
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, fromSQLError(err)
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := query.Scan(ctx); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 

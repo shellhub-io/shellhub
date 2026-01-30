@@ -29,13 +29,20 @@ func fromSQLError(err error) error {
 	}
 }
 
-func applyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.QueryOption) error {
-	ctxWithQuery := context.WithValue(ctx, "query", query)
+// queryWrapper wraps a SelectQuery pointer to allow mutations
+type queryWrapper struct {
+	query *bun.SelectQuery
+}
+
+func applyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.QueryOption) (*bun.SelectQuery, error) {
+	wrapper := &queryWrapper{query: query}
+	ctxWithQuery := context.WithValue(ctx, "query", wrapper)
+
 	for _, opt := range opts {
 		if err := opt(ctxWithQuery); err != nil {
-			return fromSQLError(err)
+			return wrapper.query, fromSQLError(err)
 		}
 	}
 
-	return nil
+	return wrapper.query, nil
 }

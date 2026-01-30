@@ -29,8 +29,10 @@ func (pg *Pg) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]m
 	entities := make([]entity.PublicKey, 0)
 
 	query := db.NewSelect().Model(&entities).Relation("Tags")
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.ScanAndCount(ctx)
@@ -51,7 +53,13 @@ func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) 
 
 	a := entity.PublicKeyFromModel(publicKey)
 	a.UpdatedAt = clock.Now()
-	r, err := db.NewUpdate().Model(a).WherePK().Exec(ctx)
+
+	// Filter by both fingerprint and namespace_id to match MongoDB behavior
+	r, err := db.NewUpdate().
+		Model(a).
+		Where("fingerprint = ?", publicKey.Fingerprint).
+		Where("namespace_id = ?", publicKey.TenantID).
+		Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}
@@ -75,11 +83,12 @@ func (pg *Pg) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyReso
 	query := db.NewSelect().Model(a).
 		Relation("Tags").
 		Where("? = ?", bun.Ident(column), value)
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, fromSQLError(err)
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := query.Scan(ctx); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 
@@ -90,7 +99,13 @@ func (pg *Pg) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) 
 	db := pg.getConnection(ctx)
 
 	a := entity.PublicKeyFromModel(publicKey)
-	r, err := db.NewDelete().Model(a).WherePK().Exec(ctx)
+
+	// Filter by both fingerprint and namespace_id to match MongoDB behavior
+	r, err := db.NewDelete().
+		Model(a).
+		Where("fingerprint = ?", publicKey.Fingerprint).
+		Where("namespace_id = ?", publicKey.TenantID).
+		Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}

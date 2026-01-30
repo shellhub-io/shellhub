@@ -6,6 +6,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -195,7 +196,19 @@ func (s *Store) SessionResolve(ctx context.Context, resolver store.SessionResolv
 }
 
 func (s *Store) SessionUpdate(ctx context.Context, session *models.Session) error {
-	r, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": session})
+	// Convert to bson.M omitting zero values (mimics PostgreSQL's OmitZero)
+	update := toBSONOmitZero(session)
+
+	// Remove UID from update as it's used in the filter
+	delete(update, "uid")
+
+	// Special handling for booleans: they should always be included even if false
+	// because false is a valid intentional value, not a zero-value to omit
+	update["closed"] = session.Closed
+	update["authenticated"] = session.Authenticated
+	update["recorded"] = session.Recorded
+
+	r, err := s.db.Collection("sessions").UpdateOne(ctx, bson.M{"uid": session.UID}, bson.M{"$set": update})
 	if err != nil {
 		return FromMongoError(err)
 	}
@@ -211,6 +224,10 @@ func (s *Store) SessionCreate(ctx context.Context, session models.Session) (stri
 	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
+
+	if session.UID == "" {
+		session.UID = uuid.Generate()
+	}
 
 	device, err := s.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {

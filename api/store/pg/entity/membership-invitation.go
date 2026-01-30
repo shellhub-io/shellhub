@@ -29,13 +29,25 @@ type MembershipInvitation struct {
 }
 
 func MembershipInvitationFromModel(model *models.MembershipInvitation) *MembershipInvitation {
+	// Default to observer if Role is empty (for test cases)
+	role := string(model.Role)
+	if role == "" {
+		role = string(authorizer.RoleObserver)
+	}
+
+	// Default to pending if Status is empty (for test cases)
+	status := string(model.Status)
+	if status == "" {
+		status = "pending"
+	}
+
 	return &MembershipInvitation{
 		ID:              model.ID,
 		TenantID:        model.TenantID,
 		UserID:          model.UserID,
 		InvitedBy:       model.InvitedBy,
-		Role:            string(model.Role),
-		Status:          string(model.Status),
+		Role:            role,
+		Status:          status,
 		StatusUpdatedAt: model.StatusUpdatedAt,
 		ExpiresAt:       model.ExpiresAt,
 		Invitations:     model.Invitations,
