@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import hasPermission from "@/utils/permission";
 import { displayOnlyTenCharacters } from "@/utils/string";
 import handleError from "@/utils/handleError";
@@ -80,16 +80,7 @@ const remove = async () => {
     await router.push({ name: "Login" });
     showDialog.value = false;
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      switch (axiosError.response?.status) {
-        case 402:
-          emit("billing-in-debt");
-          break;
-        default:
-          break;
-      }
-    }
+    if (axios.isAxiosError(error) && error.response?.status === 402) emit("billing-in-debt");
     snackbar.showError("An error occurred while deleting the namespace.");
     handleError(error);
   } finally {
