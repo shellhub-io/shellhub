@@ -10,25 +10,27 @@ import (
 type PublicKey struct {
 	bun.BaseModel `bun:"table:public_keys"`
 
-	Fingerprint string    `bun:"fingerprint,type:char(47),pk"`
-	NamespaceID string    `bun:"namespace_id"`
-	CreatedAt   time.Time `bun:"created_at"`
-	UpdatedAt   time.Time `bun:"updated_at"`
-	Name        string    `bun:"name"`
-	Data        []byte    `bun:"data,type:bytea"`
+	Fingerprint    string    `bun:"fingerprint,type:char(47),pk"`
+	NamespaceID    string    `bun:"namespace_id"`
+	CreatedAt      time.Time `bun:"created_at"`
+	UpdatedAt      time.Time `bun:"updated_at"`
+	Name           string    `bun:"name"`
+	Data           []byte    `bun:"data,type:bytea"`
+	FilterHostname string    `bun:"filter_hostname"`
 
 	Tags []*Tag `bun:"m2m:public_key_tags,join:PublicKey=Tag"`
 }
 
 func PublicKeyFromModel(model *models.PublicKey) *PublicKey {
 	publicKey := &PublicKey{
-		NamespaceID: model.TenantID,
-		Fingerprint: model.Fingerprint,
-		CreatedAt:   model.CreatedAt,
-		UpdatedAt:   time.Time{},
-		Name:        model.PublicKeyFields.Name,
-		Data:        model.Data,
-		Tags:        []*Tag{},
+		NamespaceID:    model.TenantID,
+		Fingerprint:    model.Fingerprint,
+		CreatedAt:      model.CreatedAt,
+		UpdatedAt:      time.Time{},
+		Name:           model.PublicKeyFields.Name,
+		Data:           model.Data,
+		FilterHostname: model.Filter.Hostname,
+		Tags:           []*Tag{},
 	}
 
 	if len(model.Filter.Tags) > 0 {
@@ -51,7 +53,7 @@ func PublicKeyToModel(entity *PublicKey) *models.PublicKey {
 			Name:     entity.Name,
 			Username: "",
 			Filter: models.PublicKeyFilter{
-				Hostname: "",
+				Hostname: entity.FilterHostname,
 				Taggable: models.Taggable{
 					Tags: []models.Tag{},
 				},

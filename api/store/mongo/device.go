@@ -211,7 +211,22 @@ func (s *Store) DeviceResolve(ctx context.Context, resolver store.DeviceResolver
 }
 
 func (s *Store) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
-	if _, err := s.db.Collection("devices").InsertOne(ctx, device); err != nil {
+	// Convert device to bson.M to add MongoDB-specific fields
+	deviceBSON, err := bson.Marshal(device)
+	if err != nil {
+		return "", err
+	}
+
+	var doc bson.M
+	if err := bson.Unmarshal(deviceBSON, &doc); err != nil {
+		return "", err
+	}
+
+	// Always initialize tag_ids as empty array for MongoDB compatibility
+	// This prevents errors when using $addToSet on tags
+	doc["tag_ids"] = []interface{}{}
+
+	if _, err := s.db.Collection("devices").InsertOne(ctx, doc); err != nil {
 		return "", FromMongoError(err)
 	}
 

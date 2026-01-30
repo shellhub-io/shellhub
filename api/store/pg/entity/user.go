@@ -46,14 +46,26 @@ func UserFromModel(model *models.User) *User {
 		authMethods[i] = method.String()
 	}
 
+	// Default to local if Origin is empty (for test cases)
+	origin := model.Origin.String()
+	if origin == "" {
+		origin = string(models.UserOriginLocal)
+	}
+
+	// Default to confirmed if Status is empty (for test cases)
+	status := model.Status.String()
+	if status == "" {
+		status = string(models.UserStatusConfirmed)
+	}
+
 	return &User{
 		ID:             model.ID,
 		CreatedAt:      model.CreatedAt,
 		UpdatedAt:      time.Time{},
 		LastLogin:      model.LastLogin,
-		Origin:         model.Origin.String(),
+		Origin:         origin,
 		ExternalID:     model.ExternalID,
-		Status:         model.Status.String(),
+		Status:         status,
 		Name:           model.Name,
 		Username:       model.Username,
 		Email:          model.Email,

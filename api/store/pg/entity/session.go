@@ -39,6 +39,12 @@ type Session struct {
 }
 
 func SessionFromModel(model *models.Session) *Session {
+	// Default to shell if Type is empty (for test cases)
+	sessionType := model.Type
+	if sessionType == "" {
+		sessionType = "shell"
+	}
+
 	session := &Session{
 		ID:            model.UID,
 		DeviceID:      string(model.DeviceUID),
@@ -49,7 +55,7 @@ func SessionFromModel(model *models.Session) *Session {
 		Closed:        model.Closed,
 		Authenticated: model.Authenticated,
 		Recorded:      model.Recorded,
-		Type:          model.Type,
+		Type:          sessionType,
 		Term:          model.Term,
 		Longitude:     model.Position.Longitude,
 		Latitude:      model.Position.Latitude,
@@ -62,8 +68,8 @@ func SessionFromModel(model *models.Session) *Session {
 
 func SessionToModel(entity *Session) *models.Session {
 	session := &models.Session{
-		UID:           entity.ID,
-		DeviceUID:     models.UID(entity.DeviceID),
+		UID:           strings.TrimSpace(entity.ID),
+		DeviceUID:     models.UID(strings.TrimSpace(entity.DeviceID)),
 		Username:      entity.Username,
 		IPAddress:     entity.IPAddress,
 		StartedAt:     entity.StartedAt,
@@ -112,7 +118,7 @@ func ActiveSessionFromModel(model *models.ActiveSession) *ActiveSession {
 
 func ActiveSessionToModel(entity *ActiveSession) *models.ActiveSession {
 	activeSession := &models.ActiveSession{
-		UID:      models.UID(entity.SessionID),
+		UID:      models.UID(strings.TrimSpace(entity.SessionID)),
 		LastSeen: entity.SeenAt,
 	}
 

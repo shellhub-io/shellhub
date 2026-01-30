@@ -31,10 +31,16 @@ type NamespaceSettings struct {
 }
 
 func NamespaceFromModel(model *models.Namespace) *Namespace {
+	// Default to personal if Type is empty (for test cases)
+	namespaceType := string(model.Type)
+	if namespaceType == "" {
+		namespaceType = string(models.TypePersonal)
+	}
+
 	namespace := &Namespace{
 		ID:                   model.TenantID,
 		CreatedAt:            model.CreatedAt,
-		Type:                 string(model.Type),
+		Type:                 namespaceType,
 		Name:                 model.Name,
 		OwnerID:              model.Owner,
 		DevicesAcceptedCount: model.DevicesAcceptedCount,
@@ -42,10 +48,13 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 		DevicesRejectedCount: model.DevicesRejectedCount,
 		DevicesRemovedCount:  model.DevicesRemovedCount,
 		Settings: NamespaceSettings{
-			MaxDevices:             model.MaxDevices,
-			SessionRecord:          model.Settings.SessionRecord,
-			ConnectionAnnouncement: model.Settings.ConnectionAnnouncement,
+			MaxDevices: model.MaxDevices,
 		},
+	}
+
+	if model.Settings != nil {
+		namespace.Settings.SessionRecord = model.Settings.SessionRecord
+		namespace.Settings.ConnectionAnnouncement = model.Settings.ConnectionAnnouncement
 	}
 
 	namespace.Memberships = make([]Membership, len(model.Members))

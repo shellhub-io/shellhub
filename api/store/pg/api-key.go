@@ -26,25 +26,23 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, tenantID string, target *mode
 	db := pg.getConnection(ctx)
 
 	if target.ID == "" && target.Name == "" {
-		return nil, false, nil
+		return []string{}, false, nil
 	}
 
 	apiKeys := make([]entity.APIKey, 0)
 	query := db.NewSelect().
 		Model(&apiKeys).
 		Column("key_digest", "name").
-		Where("namespace_id = ?", tenantID).
-		WhereGroup(" OR ", func(q *bun.SelectQuery) *bun.SelectQuery {
-			if target.ID != "" {
-				q = q.Where("key_digest = ?", target.ID)
-			}
+		Where("namespace_id = ?", tenantID)
 
-			if target.Name != "" {
-				q = q.Where("name = ?", target.Name)
-			}
-
-			return q
-		})
+	// Add OR conditions for ID and Name within the same tenant
+	if target.ID != "" && target.Name != "" {
+		query = query.Where("key_digest = ? OR name = ?", target.ID, target.Name)
+	} else if target.ID != "" {
+		query = query.Where("key_digest = ?", target.ID)
+	} else if target.Name != "" {
+		query = query.Where("name = ?", target.Name)
+	}
 
 	if err := query.Scan(ctx); err != nil {
 		return nil, false, fromSQLError(err)
@@ -75,8 +73,10 @@ func (pg *Pg) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]mode
 	entities := make([]entity.APIKey, 0)
 
 	query := db.NewSelect().Model(&entities)
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.ScanAndCount(ctx)
@@ -102,11 +102,12 @@ func (pg *Pg) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, 
 
 	apKey := new(entity.APIKey)
 	query := db.NewSelect().Model(apKey).Where("? = ?", bun.Ident(column), val)
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, fromSQLError(err)
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := query.Scan(ctx); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 
@@ -118,7 +119,7 @@ func (pg *Pg) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
 
 	a := entity.APIKeyFromModel(apiKey)
 	a.UpdatedAt = clock.Now()
-	r, err := db.NewUpdate().Model(a).WherePK().Exec(ctx)
+	r, err := db.NewUpdate().Model(a).OmitZero().WherePK().Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}
@@ -149,7 +150,7 @@ func (pg *Pg) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
 func APIKeyResolverToString(resolver store.APIKeyResolver) (string, error) {
 	switch resolver {
 	case store.APIKeyIDResolver:
-		return "id", nil
+		return "key_digest", nil
 	case store.APIKeyNameResolver:
 		return "name", nil
 	default:

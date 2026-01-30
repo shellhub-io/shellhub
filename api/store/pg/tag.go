@@ -37,21 +37,18 @@ func (pg *Pg) TagConflicts(ctx context.Context, tenantID string, target *models.
 	db := pg.getConnection(ctx)
 
 	if target.Name == "" {
-		return nil, false, nil
+		return []string{}, false, nil
 	}
 
 	tags := make([]entity.Tag, 0)
 	query := db.NewSelect().
 		Model(&tags).
-		Column("name").
-		Where("namespace_id = ?", tenantID).
-		WhereGroup(" OR ", func(q *bun.SelectQuery) *bun.SelectQuery {
-			if target.Name != "" {
-				q = q.Where("name = ?", target.Name)
-			}
+		Column("name", "namespace_id").
+		Where("namespace_id = ?", tenantID)
 
-			return q
-		})
+	if target.Name != "" {
+		query = query.Where("name = ?", target.Name)
+	}
 
 	if err := query.Scan(ctx); err != nil {
 		return nil, false, fromSQLError(err)
@@ -77,8 +74,10 @@ func (pg *Pg) TagList(ctx context.Context, opts ...store.QueryOption) ([]models.
 
 	entities := make([]entity.Tag, 0)
 	query := db.NewSelect().Model(&entities).Column("tag.*")
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.ScanAndCount(ctx)
@@ -105,11 +104,12 @@ func (pg *Pg) TagResolve(ctx context.Context, resolver store.TagResolver, value 
 	tag := new(entity.Tag)
 	query := db.NewSelect().Model(tag).Column("tag.*").Relation("Namespace").Where("tag.? = ?", bun.Ident(column), value)
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, fromSQLError(err)
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := query.Scan(ctx); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 
@@ -144,6 +144,15 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 
 	switch target {
 	case store.TagTargetDevice:
+		// Check if device exists
+		exists, err := db.NewSelect().Model((*entity.Device)(nil)).Where("id = ?", targetID).Exists(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
+		if !exists {
+			return store.ErrNoDocuments
+		}
+
 		deviceTag := entity.NewDeviceTag(tag.ID, targetID)
 		deviceTag.CreatedAt = clock.Now()
 
@@ -151,6 +160,15 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 			return fromSQLError(err)
 		}
 	case store.TagTargetPublicKey:
+		// Check if public key exists
+		exists, err := db.NewSelect().Model((*entity.PublicKey)(nil)).Where("fingerprint = ?", targetID).Exists(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
+		if !exists {
+			return store.ErrNoDocuments
+		}
+
 		publickeyTag := entity.NewPublicKeyTag(tag.ID, targetID)
 		publickeyTag.CreatedAt = clock.Now()
 
@@ -177,8 +195,16 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 			query = query.Where("device_id IN (?)", bun.In(targetIDs))
 		}
 
-		if _, err := query.Exec(ctx); err != nil {
+		r, err := query.Exec(ctx)
+		if err != nil {
 			return fromSQLError(err)
+		}
+
+		// Only check if specific targets were provided
+		if len(targetIDs) > 0 {
+			if count, err := r.RowsAffected(); err != nil || count == 0 {
+				return store.ErrNoDocuments
+			}
 		}
 	case store.TagTargetPublicKey:
 		query := db.NewDelete().Model((*entity.PublicKeyTag)(nil)).Where("tag_id = ?", id)
@@ -186,8 +212,16 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 			query = query.Where("public_key_id IN (?)", bun.In(targetIDs))
 		}
 
-		if _, err := query.Exec(ctx); err != nil {
+		r, err := query.Exec(ctx)
+		if err != nil {
 			return fromSQLError(err)
+		}
+
+		// Only check if specific targets were provided
+		if len(targetIDs) > 0 {
+			if count, err := r.RowsAffected(); err != nil || count == 0 {
+				return store.ErrNoDocuments
+			}
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -316,6 +317,10 @@ func (s *Store) NamespaceGetPreferred(ctx context.Context, userID string) (*mode
 
 func (s *Store) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
 	namespace.CreatedAt = clock.Now()
+	if namespace.TenantID == "" {
+		namespace.TenantID = uuid.Generate()
+	}
+
 	if _, err := s.db.Collection("namespaces").InsertOne(ctx, namespace); err != nil {
 		return "", err
 	}

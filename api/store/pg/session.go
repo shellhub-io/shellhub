@@ -19,8 +19,10 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 		Relation("Device").
 		Relation("Device.Namespace")
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.Count(ctx)
@@ -48,11 +50,12 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 			GROUP BY session_id
 		) event_seats ON session.id = event_seats.session_id`)
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
-	if err := query.Scan(ctx); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return nil, 0, fromSQLError(err)
 	}
 
@@ -99,11 +102,13 @@ func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver
 		) event_seats ON session.id = event_seats.session_id`, sessionID).
 		Where("session.id = ?", sessionID)
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := query.Scan(ctx); err != nil {
+	if err = query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
 
@@ -116,6 +121,10 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
 	session.Recorded = false
+
+	if session.UID == "" {
+		session.UID = uuid.Generate()
+	}
 
 	device, err := pg.DeviceResolve(ctx, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {
@@ -136,7 +145,7 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 	db := pg.getConnection(ctx)
 
 	e := entity.SessionFromModel(session)
-	result, err := db.NewUpdate().Model(e).Where("id = ?", e.ID).Exec(ctx)
+	result, err := db.NewUpdate().Model(e).OmitZero().Where("id = ?", e.ID).Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}
@@ -258,8 +267,10 @@ func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, e
 		Where("type = ?", string(event)).
 		Order("created_at ASC")
 
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.Count(ctx)

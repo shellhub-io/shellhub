@@ -24,16 +24,17 @@ func (pg *Pg) UserInvitationsUpsert(ctx context.Context, email string) (string, 
 		UpdatedAt:   now,
 	}
 
-	_, err := db.NewInsert().
+	result := &entity.UserInvitation{}
+	err := db.NewInsert().
 		Model(invitation).
 		On("CONFLICT (email) DO UPDATE").
-		Set("invitations = user_invitations.invitations + 1").
+		Set("invitations = user_invitation.invitations + 1").
 		Set("updated_at = EXCLUDED.updated_at").
-		Returning("id").
-		Exec(ctx)
+		Returning("*").
+		Scan(ctx, result)
 	if err != nil {
 		return "", fromSQLError(err)
 	}
 
-	return invitation.ID, nil
+	return result.ID, nil
 }

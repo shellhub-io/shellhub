@@ -37,7 +37,7 @@ func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceCo
 	db := pg.getConnection(ctx)
 
 	if target.Name == "" {
-		return nil, false, nil
+		return []string{}, false, nil
 	}
 
 	namespaces := make([]entity.Namespace, 0)
@@ -75,9 +75,12 @@ func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 	db := pg.getConnection(ctx)
 
 	entities := make([]entity.Namespace, 0)
-	query := db.NewSelect().Model(&entities).Relation("Memberships.User")
-	if err := applyOptions(ctx, query, opts...); err != nil {
-		return nil, 0, fromSQLError(err)
+	query := db.NewSelect().Model(&entities)
+
+	var err error
+	query, err = applyOptions(ctx, query, opts...)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	count, err := query.ScanAndCount(ctx)
@@ -131,6 +134,15 @@ func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models
 
 func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error {
 	db := pg.getConnection(ctx)
+
+	// First check if namespace exists
+	exists, err := db.NewSelect().Model((*entity.Namespace)(nil)).Where("id = ?", namespace.TenantID).Exists(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+	if !exists {
+		return store.ErrNoDocuments
+	}
 
 	n := entity.NamespaceFromModel(namespace)
 	n.UpdatedAt = clock.Now()
