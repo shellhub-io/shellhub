@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -94,7 +95,9 @@ func (s *Store) NamespaceDeleteMembership(ctx context.Context, tenantID string, 
 
 		objID, err := primitive.ObjectIDFromHex(member.ID)
 		if err != nil {
-			return nil, err
+			// Invalid ObjectID format will never exist in database
+			// Wrap as ErrNoDocuments while preserving original error details
+			return nil, fmt.Errorf("%w: %v", store.ErrNoDocuments, err)
 		}
 
 		_, err = s.db.
