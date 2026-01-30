@@ -1,0 +1,39 @@
+# Memberships for namespace-1
+- namespace_id: "00000000-0000-4000-0000-000000000000"
+  user_id: "00000000-0000-4000-8000-000000000001"
+  role: "owner"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"
+
+- namespace_id: "00000000-0000-4000-0000-000000000000"
+  user_id: "00000000-0000-4000-8000-000000000005"
+  role: "observer"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"
+
+# Memberships for namespace-2
+- namespace_id: "00000000-0000-4001-0000-000000000000"
+  user_id: "00000000-0000-4000-8000-000000000005"
+  role: "owner"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"
+
+- namespace_id: "00000000-0000-4001-0000-000000000000"
+  user_id: "00000000-0000-4000-8000-000000000006"
+  role: "operator"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"
+
+# Memberships for namespace-3
+- namespace_id: "00000000-0000-4002-0000-000000000000"
+  user_id: "00000000-0000-4000-8000-000000000007"
+  role: "owner"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"
+
+# Memberships for namespace-4
+- namespace_id: "00000000-0000-4003-0000-000000000000"
+  user_id: "00000000-0000-4000-8000-000000000008"
+  role: "owner"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"

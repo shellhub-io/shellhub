@@ -1,0 +1,112 @@
+- id: 00000000-0000-4000-8000-000000000001
+  username: john_doe
+  name: john doe
+  email: john.doe@test.com
+  password_digest: fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4
+  status: confirmed
+  email_marketing: true
+  created_at: '2023-01-01T12:00:00Z'
+  updated_at: '2023-01-01T12:00:00Z'
+  last_login: '2023-01-01T12:00:00Z'
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3
+- id: 00000000-0000-4000-8000-000000000002
+  username: jane_smith
+  name: Jane Smith
+  email: jane.smith@test.com
+  password_digest: a0b8c29f4c8d57e542f5e81d35ebe801fd27f569f116fe670e8962d798512a1d
+  status: confirmed
+  email_marketing: true
+  created_at: '2023-01-02T12:00:00Z'
+  updated_at: '2023-01-02T12:00:00Z'
+  last_login: '2023-01-02T12:00:00Z'
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3
+- id: 00000000-0000-4000-8000-000000000003
+  username: bob_johnson
+  name: Bob Johnson
+  email: bob.johnson@test.com
+  password_digest: 5f3b3956a1a150b73e6b27e674f27d7aeb01ab1a40c179c3e1aa6026a36655a2
+  status: confirmed
+  email_marketing: true
+  created_at: '2023-01-03T12:00:00Z'
+  updated_at: '2023-01-03T12:00:00Z'
+  last_login: '2023-01-03T12:00:00Z'
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3
+- id: 00000000-0000-4000-8000-000000000004
+  username: alex_rodriguez
+  name: Alex Rodriguez
+  email: alex.rodriguez@test.com
+  password_digest: c5093eb98678c7a3324825b84c6b67c1127b93786482ddbbd356e67e29b2763f
+  status: not-confirmed
+  email_marketing: false
+  created_at: '2023-01-04T12:00:00Z'
+  updated_at: '2023-01-04T12:00:00Z'
+  last_login: null
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3
+- id: 00000000-0000-4000-8000-000000000005
+  username: maria_garcia
+  name: Maria Garcia
+  email: maria.garcia@test.com
+  password_digest: c2301b2b7e872843b473d2c301e4fb2e6e9f27f2e7a1b6ad44a3b2c97f1670b3
+  status: confirmed
+  email_marketing: true
+  created_at: '2023-01-05T12:00:00Z'
+  updated_at: '2023-01-05T12:00:00Z'
+  last_login: '2023-01-05T12:00:00Z'
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3
+- id: 00000000-0000-4000-8000-000000000006
+  username: operator_user
+  name: Operator User
+  email: operator@test.com
+  password_digest: fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4
+  status: confirmed
+  email_marketing: false
+  created_at: '2023-01-01T12:00:00Z'
+  updated_at: '2023-01-01T12:00:00Z'
+  last_login: '2023-01-01T12:00:00Z'
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3
+- id: 00000000-0000-4000-8000-000000000007
+  username: namespace3_owner
+  name: Namespace 3 Owner
+  email: ns3owner@test.com
+  password_digest: fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4
+  status: confirmed
+  email_marketing: false
+  created_at: '2023-01-01T12:00:00Z'
+  updated_at: '2023-01-01T12:00:00Z'
+  last_login: '2023-01-01T12:00:00Z'
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3
+- id: 00000000-0000-4000-8000-000000000008
+  username: namespace4_owner
+  name: Namespace 4 Owner
+  email: ns4owner@test.com
+  password_digest: fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4
+  status: confirmed
+  email_marketing: false
+  created_at: '2023-01-01T12:00:00Z'
+  updated_at: '2023-01-01T12:00:00Z'
+  last_login: '2023-01-01T12:00:00Z'
+  origin: local
+  auth_methods:
+  - local
+  namespace_ownership_limit: 3

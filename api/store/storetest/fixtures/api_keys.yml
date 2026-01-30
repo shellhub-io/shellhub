@@ -1,0 +1,17 @@
+- key_digest: "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a"
+  name: "dev"
+  user_id: "00000000-0000-4000-8000-000000000001"
+  namespace_id: "00000000-0000-4000-0000-000000000000"
+  role: "administrator"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"
+  expires_in: 0
+
+- key_digest: "a1b2c73ea41f70870c035283336d72228118213ed03ec78043ffee48d827af11"
+  name: "prod"
+  user_id: "00000000-0000-4000-8000-000000000001"
+  namespace_id: "00000000-0000-4000-0000-000000000000"
+  role: "operator"
+  created_at: "2023-01-02T12:00:00Z"
+  updated_at: "2023-01-02T12:00:00Z"
+  expires_in: 10

@@ -1,0 +1,7 @@
+- fingerprint: "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
+  namespace_id: "00000000-0000-4000-0000-000000000000"
+  name: "public_key"
+  data: "test"
+  filter_hostname: ".*"
+  created_at: "2023-01-01T12:00:00Z"
+  updated_at: "2023-01-01T12:00:00Z"
