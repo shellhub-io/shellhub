@@ -1,16 +1,16 @@
-package mongo_test
+package pg_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store/storetest"
-	"github.com/shellhub-io/shellhub/api/store/storetest/mongoprovider"
+	"github.com/shellhub-io/shellhub/api/store/storetest/pgprovider"
 )
 
-// TestMongoStore runs all store tests against MongoDB
-// Each sub-suite gets a fresh database to prevent test pollution
-func TestMongoStore(t *testing.T) {
+// TestPgStore runs all store tests against PostgreSQL
+// Each sub-suite gets a fresh database with migrations to prevent test pollution
+func TestPgStore(t *testing.T) {
 	// Run each store interface test suite with its own isolated database
 	// This prevents data leakage between test suites and ensures clean state
 
@@ -111,15 +111,15 @@ func TestMongoStore(t *testing.T) {
 	})
 }
 
-// runSubSuite creates a fresh MongoDB database for each sub-suite
+// runSubSuite creates a fresh PostgreSQL database for each sub-suite
 // This ensures complete isolation between test suites
 func runSubSuite(t *testing.T, name string, testFunc func(*storetest.Suite, *testing.T)) {
 	t.Run(name, func(t *testing.T) {
-		// Create fresh provider with new database
+		// Create fresh provider with new database + migrations
 		ctx := context.Background()
-		provider, err := mongoprovider.NewProvider(ctx)
+		provider, err := pgprovider.NewProvider(ctx)
 		if err != nil {
-			t.Fatalf("Failed to create MongoDB provider for %s: %v", name, err)
+			t.Fatalf("Failed to create PostgreSQL provider for %s: %v", name, err)
 		}
 		defer provider.Close(t)
 
