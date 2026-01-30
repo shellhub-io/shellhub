@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -109,7 +110,9 @@ func (s *Store) TagResolve(ctx context.Context, resolver store.TagResolver, valu
 	case store.TagIDResolver:
 		objID, err := primitive.ObjectIDFromHex(value)
 		if err != nil {
-			return nil, err
+			// Invalid ObjectID format will never exist in database
+			// Wrap as ErrNoDocuments while preserving original error details
+			return nil, fmt.Errorf("%w: %v", store.ErrNoDocuments, err)
 		}
 
 		query = append(query, bson.M{"$match": bson.M{"_id": objID}})
@@ -182,11 +185,15 @@ func (s *Store) TagPushToTarget(ctx context.Context, id string, target store.Tag
 		Collection(collection).
 		UpdateOne(ctx, bson.M{filter: targetID}, bson.M{"$addToSet": bson.M{attribute: tagID}})
 
+	if err != nil {
+		return FromMongoError(err)
+	}
+
 	if res.MatchedCount < 1 {
 		return store.ErrNoDocuments
 	}
 
-	return FromMongoError(err)
+	return nil
 }
 
 func (s *Store) TagPullFromTarget(ctx context.Context, id string, target store.TagTarget, targetIDs ...string) error {
@@ -231,7 +238,9 @@ func (s *Store) TagDelete(ctx context.Context, tag *models.Tag) error {
 	sessionCallback := func(sessCtx mongo.SessionContext) (any, error) {
 		objID, err := primitive.ObjectIDFromHex(tag.ID)
 		if err != nil {
-			return nil, FromMongoError(err)
+			// Invalid ObjectID format will never exist in database
+			// Wrap as ErrNoDocuments while preserving original error details
+			return nil, fmt.Errorf("%w: %v", store.ErrNoDocuments, err)
 		}
 
 		r, err := s.db.Collection("tags").DeleteOne(sessCtx, bson.M{"_id": objID})

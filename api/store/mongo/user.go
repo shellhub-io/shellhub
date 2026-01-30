@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
@@ -101,7 +102,9 @@ func (s *Store) UserResolve(ctx context.Context, resolver store.UserResolver, va
 	case store.UserIDResolver:
 		objID, err := primitive.ObjectIDFromHex(value)
 		if err != nil {
-			return nil, err
+			// Invalid ObjectID format will never exist in database
+			// Wrap as ErrNoDocuments while preserving original error details
+			return nil, fmt.Errorf("%w: %v", store.ErrNoDocuments, err)
 		}
 
 		matchStage["_id"] = objID
