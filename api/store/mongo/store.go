@@ -35,8 +35,15 @@ func (s *Store) GetDB() *mongo.Database {
 	return s.db
 }
 
-func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, error) {
-	client, err := mongo.Connect(ctx, mongooptions.Client().ApplyURI(uri))
+func Connect(ctx context.Context, uri string, clientOpts ...*mongooptions.ClientOptions) (*mongo.Client, *mongo.Database, error) {
+	clientOptions := mongooptions.Client().ApplyURI(uri)
+
+	// Merge any additional client options (e.g., for testing with specific write concerns)
+	if len(clientOpts) > 0 && clientOpts[0] != nil {
+		clientOptions = clientOpts[0].ApplyURI(uri)
+	}
+
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, nil, errors.Join(ErrStoreConnect, err)
 	}
@@ -54,7 +61,13 @@ func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 }
 
 func NewStore(ctx context.Context, uri string, cache cache.Cache, opts ...options.DatabaseOpt) (store.Store, error) {
-	_, db, err := Connect(ctx, uri)
+	return NewStoreWithClientOpts(ctx, uri, cache, nil, opts...)
+}
+
+// NewStoreWithClientOpts creates a new store with custom MongoDB client options.
+// This is primarily used for testing to configure write concerns and read preferences.
+func NewStoreWithClientOpts(ctx context.Context, uri string, cache cache.Cache, clientOpts *mongooptions.ClientOptions, opts ...options.DatabaseOpt) (store.Store, error) {
+	_, db, err := Connect(ctx, uri, clientOpts)
 	if err != nil {
 		return nil, err
 	}
