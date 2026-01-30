@@ -10,13 +10,14 @@ on:
 
 jobs:
   validate:
-    name: validate
+    name: validate (${{ matrix.project }}${{ matrix.database && format(' - {0}', matrix.database) || '' }})
     if: ${{ github.event.pull_request.draft == false }}
 
     strategy:
       fail-fast: false
       matrix:
         project: [api, agent, pkg, ssh, ui, cli]
+        database: ['']  # Empty by default
         include:
           - project: api
             extra_args: ""
@@ -36,9 +37,16 @@ jobs:
           - project: cli
             extra_args: ""
             lint_args: ""
+          # Integration tests with MongoDB
           - project: tests
             extra_args: ""
             lint_args: ""
+            database: mongo
+          # Integration tests with PostgreSQL
+          - project: tests
+            extra_args: ""
+            lint_args: ""
+            database: postgres
 
     runs-on: ubuntu-latest
 
@@ -103,6 +111,13 @@ jobs:
           args: --timeout 2m ${{ matrix.lint_args }} ./...
           skip-cache: true
 
+      - name: Set SHELLHUB_DATABASE for integration tests
+        if: matrix.project == 'tests' && matrix.database != '' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        run: |
+          # Update .env file with the correct database backend
+          sed -i 's/^SHELLHUB_DATABASE=.*/SHELLHUB_DATABASE=${{ matrix.database }}/' .env
+          echo "Running integration tests with database: ${{ matrix.database }}"
+
       - name: Unit test [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
@@ -146,4 +161,4 @@ jobs:
       - name: Build [UI]
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
-        run: npm run build  
+        run: npm run build
