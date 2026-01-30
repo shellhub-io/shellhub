@@ -8,7 +8,7 @@
     :confirm-disabled="!!connectionAnnouncementError"
     :confirm-loading="isLoading"
     cancel-text="Cancel"
-    confirm-data-test="change-connection-btn"
+    confirm-data-test="change-connection-announcement-btn"
     cancel-data-test="close-btn"
     @close="close"
     @confirm="updateAnnouncement"
@@ -81,22 +81,12 @@ onMounted(async () => {
 });
 
 const handleUpdateAnnouncementError = (error: unknown): void => {
-  if (axios.isAxiosError(error)) {
-    switch (error.response?.status) {
-      case 400:
-        setConnectionAnnouncementError("This message is not valid");
-        break;
-      default:
-        snackbar.showError(
-          "An error occurred while updating the connection announcement.",
-        );
-        handleError(error);
-    }
+  if (axios.isAxiosError(error) && error.response?.status === 400) {
+    setConnectionAnnouncementError("This message is not valid");
+    return;
   }
 
-  snackbar.showError(
-    "An error occurred while updating the connection announcement.",
-  );
+  snackbar.showError("An error occurred while updating the connection announcement.");
   handleError(error);
 };
 
@@ -122,8 +112,6 @@ const updateAnnouncement = async () => {
     isLoading.value = false;
   }
 };
-
-defineExpose({ showDialog });
 </script>
 
 <style scoped lang="scss">
