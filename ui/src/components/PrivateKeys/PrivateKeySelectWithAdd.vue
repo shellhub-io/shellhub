@@ -57,6 +57,4 @@ const handlePrivateKeyAdded = () => {
     emit("key-added");
   }
 };
-
-defineExpose({ selectedPrivateKeyName });
 </script>

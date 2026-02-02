@@ -1,17 +1,17 @@
 <template>
   <div>
     <v-list-item
-      data-test="privatekey-edit-btn"
+      data-test="private-key-edit-btn"
       @click="open"
     >
       <div class="d-flex align-center">
         <div
-          data-test="privatekey-icon"
+          data-test="private-key-icon"
           class="mr-2"
         >
           <v-icon>mdi-pencil</v-icon>
         </div>
-        <v-list-item-title data-test="privatekey-title">
+        <v-list-item-title data-test="private-key-title">
           Edit
         </v-list-item-title>
       </div>
@@ -24,8 +24,8 @@
       confirm-text="Save"
       cancel-text="Cancel"
       :confirm-disabled="confirmDisabled"
-      confirm-data-test="pk-edit-save-btn"
-      cancel-data-test="pk-edit-cancel-btn"
+      confirm-data-test="private-key-save-btn"
+      cancel-data-test="private-key-cancel-btn"
       data-test="private-key-edit-dialog"
       @close="close"
       @cancel="close"
@@ -316,12 +316,4 @@ const edit = () => {
     }
   }
 };
-
-defineExpose({
-  privateKeyData,
-  privateKeyDataError,
-  name,
-  nameError,
-  showDialog,
-});
 </script>

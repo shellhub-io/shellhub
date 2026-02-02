@@ -1,17 +1,17 @@
 <template>
   <v-list-item
-    data-test="privatekey-delete-btn"
+    data-test="private-key-delete-btn"
     @click="showDialog = true"
   >
     <div class="d-flex align-center">
       <div
-        data-test="privatekey-delete-icon"
+        data-test="private-key-delete-icon"
         class="mr-2"
       >
         <v-icon> mdi-delete </v-icon>
       </div>
 
-      <v-list-item-title data-test="privatekey-delete-btn-title">
+      <v-list-item-title data-test="private-key-delete-btn-title">
         Remove
       </v-list-item-title>
     </div>
@@ -49,12 +49,9 @@ const showDialog = ref(false);
 const privateKeysStore = usePrivateKeysStore();
 
 const remove = () => {
-  try {
-    privateKeysStore.deletePrivateKey(props.id);
-    snackbar.showSuccess("The private key was removed successfully");
-    emit("update");
-  } finally {
-    showDialog.value = false;
-  }
+  privateKeysStore.deletePrivateKey(props.id);
+  snackbar.showSuccess("The private key was removed successfully");
+  emit("update");
+  showDialog.value = false;
 };
 </script>
