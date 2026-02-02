@@ -1,57 +1,126 @@
-import { setActivePinia, createPinia } from "pinia";
-import { beforeEach, describe, expect, it } from "vitest";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { mockPrivateKey, mockPrivateKeys } from "@tests/mocks";
 import PrivateKeyList from "@/components/PrivateKeys/PrivateKeyList.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 import usePrivateKeysStore from "@/store/modules/private_keys";
 
-type PrivateKeyListWrapper = VueWrapper<InstanceType<typeof PrivateKeyList>>;
+describe("PrivateKeyList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof PrivateKeyList>>;
+  let privateKeysStore: ReturnType<typeof usePrivateKeysStore>;
 
-const mockPrivateKeys = [
-  { id: 1, name: "test-key-1", data: "private-key-data-1", hasPassphrase: true, fingerprint: "aa:bb:cc:dd:ee:ff" },
-  { id: 2, name: "test-key-2", data: "private-key-data-2", hasPassphrase: false, fingerprint: "11:22:33:44:55:66" },
-  { id: 3, name: "test-key-3", data: "private-key-data-3", hasPassphrase: false, fingerprint: "77:88:99:aa:bb:cc" },
-];
-
-describe("Private Key List", () => {
-  let wrapper: PrivateKeyListWrapper;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const privateKeysStore = usePrivateKeysStore();
-
-  beforeEach(() => {
-    wrapper = mount(PrivateKeyList, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
+  const mountWrapper = (privateKeys = mockPrivateKeys) => {
+    wrapper = mountComponent(PrivateKeyList, {
+      piniaOptions: { initialState: { privateKeys: { privateKeys } } },
     });
-    privateKeysStore.$patch({ privateKeys: mockPrivateKeys });
+
+    privateKeysStore = usePrivateKeysStore();
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
   });
 
-  it("Renders all private key items", () => {
-    const items = wrapper.findAll('[data-test="private-key-item"]');
-    expect(items).toHaveLength(mockPrivateKeys.length);
+  describe("Table rendering", () => {
+    it("Renders DataTable component", () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      expect(dataTable.exists()).toBe(true);
+    });
+
+    it("Renders private key items", () => {
+      const items = wrapper.findAll('[data-test="private-key-item"]');
+      expect(items.length).toBe(mockPrivateKeys.length);
+    });
+
+    it("Displays private key name", () => {
+      const nameCell = wrapper.find('[data-test="private-key-name"]');
+      expect(nameCell.text()).toBe(mockPrivateKey.name);
+    });
+
+    it("Displays private key fingerprint", () => {
+      const fingerprintCell = wrapper.find('[data-test="private-key-fingerprint"]');
+      expect(fingerprintCell.text()).toBe(mockPrivateKey.fingerprint);
+    });
+
+    it("Displays actions column", () => {
+      const actionsCell = wrapper.find('[data-test="private-key-actions"]');
+      expect(actionsCell.exists()).toBe(true);
+    });
   });
 
-  it("Displays private key names", () => {
-    const names = wrapper.findAll('[data-test="private-key-name"]');
-    expect(names).toHaveLength(mockPrivateKeys.length);
-    expect(names[0].text()).toBe("test-key-1");
-    expect(names[1].text()).toBe("test-key-2");
-    expect(names[2].text()).toBe("test-key-3");
+  describe("Actions menu", () => {
+    it("Renders action button for each private key", () => {
+      const actionButtons = wrapper.findAll('[data-test="private-key-actions"] button');
+      expect(actionButtons.length).toBe(mockPrivateKeys.length);
+    });
+
+    it("Opens actions menu when button is clicked", async () => {
+      const actionButton = wrapper.find('[data-test="private-key-actions"] button');
+      await actionButton.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.findComponent({ name: "PrivateKeyEdit" }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: "PrivateKeyDelete" }).exists()).toBe(true);
+    });
   });
 
-  it("Displays private key fingerprints", () => {
-    const fingerprints = wrapper.findAll('[data-test="private-key-fingerprint"]');
-    expect(fingerprints).toHaveLength(mockPrivateKeys.length);
-    expect(fingerprints[0].text()).toBe("aa:bb:cc:dd:ee:ff");
-    expect(fingerprints[1].text()).toBe("11:22:33:44:55:66");
-    expect(fingerprints[2].text()).toBe("77:88:99:aa:bb:cc");
+  describe("Empty state", () => {
+    it("Shows no data when private keys list is empty", () => {
+      wrapper.unmount();
+      mountWrapper([]);
+      const items = wrapper.findAll('[data-test="private-key-item"]');
+      expect(items.length).toBe(0);
+    });
   });
 
-  it("Renders action buttons for each private key", () => {
-    const actionButtons = wrapper.findAll('[data-test="private-key-actions"]');
-    expect(actionButtons).toHaveLength(mockPrivateKeys.length);
+  describe("Data fetching", () => {
+    it("Fetches private keys on mount", () => {
+      expect(privateKeysStore.getPrivateKeyList).toHaveBeenCalled();
+    });
+
+    it("Refetches when page changes", async () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      dataTable.vm.$emit("update:page", 2);
+      await flushPromises();
+
+      expect(privateKeysStore.getPrivateKeyList).toHaveBeenCalled();
+    });
+
+    it("Refetches when items per page changes", async () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      dataTable.vm.$emit("update:itemsPerPage", 20);
+      await flushPromises();
+
+      expect(privateKeysStore.getPrivateKeyList).toHaveBeenCalled();
+    });
+  });
+
+  describe("Update handling", () => {
+    it("Calls getPrivateKeysList when PrivateKeyEdit emits update", async () => {
+      const actionButton = wrapper.find('[data-test="private-key-actions"] button');
+      await actionButton.trigger("click");
+      await flushPromises();
+
+      const editComponent = wrapper.findComponent({ name: "PrivateKeyEdit" });
+      editComponent.vm.$emit("update");
+      await flushPromises();
+
+      expect(privateKeysStore.getPrivateKeyList).toHaveBeenCalled();
+    });
+
+    it("Calls getPrivateKeysList when PrivateKeyDelete emits update", async () => {
+      const actionButton = wrapper.find('[data-test="private-key-actions"] button');
+      await actionButton.trigger("click");
+      await flushPromises();
+
+      const deleteComponent = wrapper.findComponent({ name: "PrivateKeyDelete" });
+      deleteComponent.vm.$emit("update");
+      await flushPromises();
+
+      expect(privateKeysStore.getPrivateKeyList).toHaveBeenCalled();
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
+import { generateKeyPairSync } from "crypto";
 
 /**
  * Mock private key data for testing.
@@ -7,7 +8,10 @@ import { IPrivateKey } from "@/interfaces/IPrivateKey";
 export const mockPrivateKey: IPrivateKey = {
   id: 1,
   name: "test-key",
-  data: "fake-data",
+  data: generateKeyPairSync("ed25519").privateKey.export({
+    type: "pkcs8",
+    format: "pem",
+  }) as string,
   hasPassphrase: false,
   fingerprint: "aa:bb:cc:dd",
 };

@@ -296,6 +296,4 @@ const create = () => {
     handleCreationError(error as Error);
   }
 };
-
-defineExpose({ privateKeyDataError, nameError, showDialog });
 </script>
