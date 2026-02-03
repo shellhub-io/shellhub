@@ -5,7 +5,7 @@ go 1.24.9
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/gliderlabs/ssh v0.3.8
-	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/hashicorp/yamux v0.1.2
 	github.com/labstack/echo-contrib v0.17.4
