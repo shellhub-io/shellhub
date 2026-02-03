@@ -304,3 +304,283 @@ func (s *Suite) TestActiveSessionUpdate(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+// TestSessionEventsCreate tests session event creation
+func (s *Suite) TestSessionEventsCreate(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("succeeds when creating a session event", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create session event
+		event := &models.SessionEvent{
+			Session:   string(sessionUID),
+			Type:      models.SessionEventTypePtyOutput,
+			Timestamp: time.Now(),
+			Data:      map[string]interface{}{"output": "test output"},
+			Seat:      1,
+		}
+
+		err := st.SessionEventsCreate(ctx, event)
+		require.NoError(t, err)
+	})
+
+	t.Run("succeeds when creating multiple events for same session", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create multiple events
+		for i := 0; i < 3; i++ {
+			event := &models.SessionEvent{
+				Session:   string(sessionUID),
+				Type:      models.SessionEventTypePtyOutput,
+				Timestamp: time.Now(),
+				Data:      map[string]interface{}{"output": "test output"},
+				Seat:      i,
+			}
+
+			err := st.SessionEventsCreate(ctx, event)
+			require.NoError(t, err)
+		}
+	})
+}
+
+// TestSessionEventsList tests session events listing
+func (s *Suite) TestSessionEventsList(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("succeeds when no events found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		events, count, err := st.SessionEventsList(ctx, "nonexistent", 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Empty(t, events)
+		assert.Equal(t, 0, count)
+	})
+
+	t.Run("succeeds when events are found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create events
+		for i := 0; i < 3; i++ {
+			event := &models.SessionEvent{
+				Session:   string(sessionUID),
+				Type:      models.SessionEventTypePtyOutput,
+				Timestamp: time.Now(),
+				Data:      map[string]interface{}{"output": "test output"},
+				Seat:      1,
+			}
+
+			err := st.SessionEventsCreate(ctx, event)
+			require.NoError(t, err)
+		}
+
+		// List events
+		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
+		assert.Len(t, events, 3)
+	})
+
+	t.Run("succeeds filtering by seat", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create events with different seats
+		for seat := 1; seat <= 2; seat++ {
+			for i := 0; i < 2; i++ {
+				event := &models.SessionEvent{
+					Session:   string(sessionUID),
+					Type:      models.SessionEventTypePtyOutput,
+					Timestamp: time.Now(),
+					Data:      map[string]interface{}{"output": "test output"},
+					Seat:      seat,
+				}
+
+				err := st.SessionEventsCreate(ctx, event)
+				require.NoError(t, err)
+			}
+		}
+
+		// List events for seat 1
+		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+		assert.Len(t, events, 2)
+	})
+
+	t.Run("succeeds filtering by event type", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create events with different types
+		event1 := &models.SessionEvent{
+			Session:   string(sessionUID),
+			Type:      models.SessionEventTypePtyOutput,
+			Timestamp: time.Now(),
+			Data:      map[string]interface{}{"output": "test output"},
+			Seat:      1,
+		}
+
+		event2 := &models.SessionEvent{
+			Session:   string(sessionUID),
+			Type:      models.SessionEventTypePtyRequest,
+			Timestamp: time.Now(),
+			Data:      map[string]interface{}{"request": "test request"},
+			Seat:      1,
+		}
+
+		err := st.SessionEventsCreate(ctx, event1)
+		require.NoError(t, err)
+
+		err = st.SessionEventsCreate(ctx, event2)
+		require.NoError(t, err)
+
+		// List only PtyOutput events
+		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		assert.Len(t, events, 1)
+	})
+}
+
+// TestSessionEventsDelete tests session events deletion
+func (s *Suite) TestSessionEventsDelete(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("succeeds when no events exist", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.SessionEventsDelete(ctx, "nonexistent", 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+	})
+
+	t.Run("succeeds when deleting events", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create events
+		for i := 0; i < 3; i++ {
+			event := &models.SessionEvent{
+				Session:   string(sessionUID),
+				Type:      models.SessionEventTypePtyOutput,
+				Timestamp: time.Now(),
+				Data:      map[string]interface{}{"output": "test output"},
+				Seat:      1,
+			}
+
+			err := st.SessionEventsCreate(ctx, event)
+			require.NoError(t, err)
+		}
+
+		// Delete events
+		err := st.SessionEventsDelete(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+
+		// Verify deletion
+		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+		assert.Empty(t, events)
+	})
+
+	t.Run("succeeds deleting only matching seat", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create events with different seats
+		for seat := 1; seat <= 2; seat++ {
+			event := &models.SessionEvent{
+				Session:   string(sessionUID),
+				Type:      models.SessionEventTypePtyOutput,
+				Timestamp: time.Now(),
+				Data:      map[string]interface{}{"output": "test output"},
+				Seat:      seat,
+			}
+
+			err := st.SessionEventsCreate(ctx, event)
+			require.NoError(t, err)
+		}
+
+		// Delete events for seat 1 only
+		err := st.SessionEventsDelete(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+
+		// Verify seat 1 events are deleted
+		events1, count1, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count1)
+		assert.Empty(t, events1)
+
+		// Verify seat 2 events still exist
+		events2, count2, err := st.SessionEventsList(ctx, sessionUID, 2, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count2)
+		assert.Len(t, events2, 1)
+	})
+
+	t.Run("succeeds deleting only matching event type", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create session
+		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
+
+		// Create events with different types
+		event1 := &models.SessionEvent{
+			Session:   string(sessionUID),
+			Type:      models.SessionEventTypePtyOutput,
+			Timestamp: time.Now(),
+			Data:      map[string]interface{}{"output": "test output"},
+			Seat:      1,
+		}
+
+		event2 := &models.SessionEvent{
+			Session:   string(sessionUID),
+			Type:      models.SessionEventTypePtyRequest,
+			Timestamp: time.Now(),
+			Data:      map[string]interface{}{"request": "test request"},
+			Seat:      1,
+		}
+
+		err := st.SessionEventsCreate(ctx, event1)
+		require.NoError(t, err)
+
+		err = st.SessionEventsCreate(ctx, event2)
+		require.NoError(t, err)
+
+		// Delete only PtyOutput events
+		err = st.SessionEventsDelete(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+
+		// Verify PtyOutput events are deleted
+		events1, count1, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count1)
+		assert.Empty(t, events1)
+
+		// Verify PtyRequest events still exist
+		events2, count2, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyRequest)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count2)
+		assert.Len(t, events2, 1)
+	})
+}

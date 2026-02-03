@@ -21,6 +21,7 @@ func TestPgStore(t *testing.T) {
 		suite.TestUserConflicts(t)
 		suite.TestUserUpdate(t)
 		suite.TestUserDelete(t)
+		suite.TestUserGetInfo(t)
 	})
 
 	runSubSuite(t, "NamespaceStore", func(suite *storetest.Suite, t *testing.T) {
@@ -55,6 +56,9 @@ func TestPgStore(t *testing.T) {
 		suite.TestActiveSessionDelete(t)
 		suite.TestActiveSessionResolve(t)
 		suite.TestActiveSessionUpdate(t)
+		suite.TestSessionEventsCreate(t)
+		suite.TestSessionEventsList(t)
+		suite.TestSessionEventsDelete(t)
 	})
 
 	runSubSuite(t, "TagStore", func(suite *storetest.Suite, t *testing.T) {
@@ -108,6 +112,15 @@ func TestPgStore(t *testing.T) {
 		suite.TestMembershipInvitationCreate(t)
 		suite.TestMembershipInvitationResolve(t)
 		suite.TestMembershipInvitationUpdate(t)
+	})
+
+	runSubSuite(t, "SystemStore", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestSystemGet(t)
+		suite.TestSystemSet(t)
+	})
+
+	runSubSuite(t, "TunnelStore", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestTunnelUpdateDeviceUID(t)
 	})
 }
 
