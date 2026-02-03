@@ -464,4 +464,87 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, string(uid3), device.UID)
 	})
+
+	t.Run("deletes related sessions in cascade", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create devices with sessions
+		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
+		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
+		uid3 := s.CreateDevice(t, WithDeviceName("device-3"))
+
+		// Create sessions for each device
+		session1UID := s.CreateSession(t, WithSessionDevice(uid1))
+		session2UID := s.CreateSession(t, WithSessionDevice(uid2))
+		session3UID := s.CreateSession(t, WithSessionDevice(uid3))
+
+		// Delete first two devices
+		uids := []string{string(uid1), string(uid2)}
+		deletedCount, err := st.DeviceDeleteMany(ctx, uids)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), deletedCount)
+
+		// Verify sessions of deleted devices are gone
+		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session1UID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session2UID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+
+		// Verify session of remaining device still exists
+		session3, err := st.SessionResolve(ctx, store.SessionUIDResolver, string(session3UID))
+		require.NoError(t, err)
+		assert.Equal(t, string(session3UID), session3.UID)
+	})
+
+	t.Run("succeeds with mix of existing and non-existing UIDs", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create some devices
+		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
+		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
+
+		// Mix existing and non-existing UIDs
+		uids := []string{
+			string(uid1),
+			"non-existent-uid-1",
+			string(uid2),
+			"non-existent-uid-2",
+		}
+
+		// Should only delete existing devices
+		deletedCount, err := st.DeviceDeleteMany(ctx, uids)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), deletedCount)
+
+		// Verify devices are deleted
+		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid1))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid2))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("succeeds with devices that have multiple sessions", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create device
+		deviceUID := s.CreateDevice(t, WithDeviceName("busy-device"))
+
+		// Create multiple sessions for the same device
+		session1UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user1"))
+		session2UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user2"))
+		session3UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user3"))
+
+		// Delete device
+		deletedCount, err := st.DeviceDeleteMany(ctx, []string{string(deviceUID)})
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), deletedCount)
+
+		// Verify all sessions are deleted
+		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session1UID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session2UID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(session3UID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
 }
