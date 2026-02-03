@@ -20,6 +20,23 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 		return "", fromSQLError(err)
 	}
 
+	// Handle many-to-many tag relationships if tags are provided
+	if len(e.Tags) > 0 {
+		// Insert relationships into the junction table
+		now := clock.Now()
+		for _, tag := range e.Tags {
+			pkTag := entity.NewPublicKeyTag(tag.ID, e.Fingerprint)
+			pkTag.CreatedAt = now
+
+			if _, err := db.NewInsert().
+				Model(pkTag).
+				On("CONFLICT (public_key_fingerprint, tag_id) DO NOTHING").
+				Exec(ctx); err != nil {
+				return "", fromSQLError(err)
+			}
+		}
+	}
+
 	return e.Fingerprint, nil
 }
 
