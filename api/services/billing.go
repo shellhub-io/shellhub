@@ -44,8 +44,9 @@ func (s *service) BillingReport(ctx context.Context, tenant string, action strin
 	}
 
 	if err := s.billingService.Report(ctx, tenant, action); err != nil {
-		// TODO: Map specific billing errors to appropriate error types
-		return ErrReport
+		// The adapter already maps billing errors to appropriate types
+		// (ErrPaymentRequired for subscription issues, ErrReport for others)
+		return err
 	}
 
 	return nil
