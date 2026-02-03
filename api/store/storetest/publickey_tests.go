@@ -82,11 +82,69 @@ func (s *Suite) TestPublicKeyList(t *testing.T) {
 }
 
 func (s *Suite) TestPublicKeyCreate(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
 	t.Run("succeeds when data is valid", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("public_key"))
 		assert.NotEmpty(t, fingerprint)
+	})
+
+	t.Run("succeeds with tag filters", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create tenant and tags first
+		tenantID := s.CreateNamespace(t)
+		tagID1 := s.CreateTag(t, WithTagName("tag1"), WithTagTenant(tenantID))
+		tagID2 := s.CreateTag(t, WithTagName("tag2"), WithTagTenant(tenantID))
+
+		// Create public key with tag filters
+		fingerprint := s.CreatePublicKey(t,
+			WithPublicKeyName("key-with-tags"),
+			WithPublicKeyTenant(tenantID),
+			WithPublicKeyTags([]string{tagID1, tagID2}),
+		)
+		assert.NotEmpty(t, fingerprint)
+
+		// Verify the key was created with tags
+		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		require.NoError(t, err)
+		assert.Len(t, pubKey.Filter.TagIDs, 2)
+	})
+
+	t.Run("succeeds with empty tag filter", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create public key with explicitly empty tags
+		fingerprint := s.CreatePublicKey(t,
+			WithPublicKeyName("key-no-tags"),
+			WithPublicKeyTags([]string{}),
+		)
+		assert.NotEmpty(t, fingerprint)
+	})
+
+	t.Run("succeeds with single tag", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create tenant and a single tag
+		tenantID := s.CreateNamespace(t)
+		tagID := s.CreateTag(t, WithTagName("single-tag"), WithTagTenant(tenantID))
+
+		// Create public key with single tag filter
+		fingerprint := s.CreatePublicKey(t,
+			WithPublicKeyName("key-with-single-tag"),
+			WithPublicKeyTenant(tenantID),
+			WithPublicKeyTags([]string{tagID}),
+		)
+		assert.NotEmpty(t, fingerprint)
+
+		// Verify the key was created
+		pubKey, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, fingerprint, st.Options().InNamespace(tenantID))
+		require.NoError(t, err)
+		assert.Len(t, pubKey.Filter.TagIDs, 1)
+		assert.Contains(t, pubKey.Filter.TagIDs, tagID)
 	})
 }
 
