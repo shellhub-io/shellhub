@@ -33,10 +33,18 @@ func PublicKeyFromModel(model *models.PublicKey) *PublicKey {
 		Tags:           []*Tag{},
 	}
 
+	// Handle Tags if fully populated (e.g., from API requests)
 	if len(model.Filter.Tags) > 0 {
 		publicKey.Tags = make([]*Tag, len(model.Filter.Tags))
 		for i, t := range model.Filter.Tags {
 			publicKey.Tags[i] = TagFromModel(&t)
+		}
+	} else if len(model.Filter.TagIDs) > 0 {
+		// Handle TagIDs if only IDs are provided (e.g., from tests or internal operations)
+		// Create minimal Tag entities with just ID for many-to-many relationship
+		publicKey.Tags = make([]*Tag, len(model.Filter.TagIDs))
+		for i, tagID := range model.Filter.TagIDs {
+			publicKey.Tags[i] = &Tag{ID: tagID}
 		}
 	}
 
@@ -63,8 +71,10 @@ func PublicKeyToModel(entity *PublicKey) *models.PublicKey {
 
 	if len(entity.Tags) > 0 {
 		publicKey.Filter.Tags = make([]models.Tag, len(entity.Tags))
+		publicKey.Filter.TagIDs = make([]string, len(entity.Tags))
 		for i, t := range entity.Tags {
 			publicKey.Filter.Tags[i] = *TagToModel(t)
+			publicKey.Filter.TagIDs[i] = t.ID
 		}
 	}
 

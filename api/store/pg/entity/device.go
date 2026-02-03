@@ -75,10 +75,18 @@ func DeviceFromModel(model *models.Device) *Device {
 		device.Platform = model.Info.Platform
 	}
 
+	// Handle Tags if fully populated (e.g., from API requests)
 	if len(model.Tags) > 0 {
 		device.Tags = make([]*Tag, len(model.Tags))
 		for i, t := range model.Tags {
 			device.Tags[i] = TagFromModel(&t)
+		}
+	} else if len(model.TagIDs) > 0 {
+		// Handle TagIDs if only IDs are provided (e.g., from tests or internal operations)
+		// Create minimal Tag entities with just ID for many-to-many relationship
+		device.Tags = make([]*Tag, len(model.TagIDs))
+		for i, tagID := range model.TagIDs {
+			device.Tags[i] = &Tag{ID: tagID}
 		}
 	}
 
@@ -125,8 +133,10 @@ func DeviceToModel(entity *Device) *models.Device {
 
 	if len(entity.Tags) > 0 {
 		device.Tags = make([]models.Tag, len(entity.Tags))
+		device.TagIDs = make([]string, len(entity.Tags))
 		for i, t := range entity.Tags {
 			device.Tags[i] = *TagToModel(t)
+			device.TagIDs[i] = t.ID
 		}
 	}
 
