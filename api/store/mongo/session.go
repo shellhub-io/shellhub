@@ -364,7 +364,7 @@ func (s *Store) SessionEventsList(ctx context.Context, uid models.UID, seat int,
 	}
 
 	events := make([]models.SessionEvent, 0)
-	if err := cursosr.All(ctx, events); err != nil {
+	if err := cursosr.All(ctx, &events); err != nil {
 		return nil, 0, FromMongoError(err)
 	}
 
