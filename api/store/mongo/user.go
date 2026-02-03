@@ -236,7 +236,10 @@ func (s *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, e
 	}
 	defer cursor.Close(ctx)
 
-	userInfo := &models.UserInfo{}
+	userInfo := &models.UserInfo{
+		OwnedNamespaces:      make([]models.Namespace, 0),
+		AssociatedNamespaces: make([]models.Namespace, 0),
+	}
 
 	for cursor.Next(ctx) {
 		ns := new(models.Namespace)
