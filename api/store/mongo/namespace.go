@@ -420,7 +420,7 @@ func (s *Store) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (in
 
 		_, err = s.db.
 			Collection("users").
-			UpdateMany(ctx, bson.M{"preferred_namespace": bson.M{"$in": tenantIDs}}, bson.M{"$set": bson.M{"preferred_namespace": ""}})
+			UpdateMany(sessCtx, bson.M{"preferences.preferred_namespace": bson.M{"$in": tenantIDs}}, bson.M{"$set": bson.M{"preferences.preferred_namespace": ""}})
 		if err != nil {
 			return 0, FromMongoError(err)
 		}
