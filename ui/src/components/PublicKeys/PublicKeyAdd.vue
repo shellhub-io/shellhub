@@ -258,6 +258,4 @@ const create = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ nameError, usernameError, hostnameError });
 </script>

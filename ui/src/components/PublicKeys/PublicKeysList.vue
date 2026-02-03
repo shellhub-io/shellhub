@@ -219,6 +219,4 @@ watch([page, itemsPerPage], async () => {
 const refreshPublicKeys = async () => {
   await getPublicKeysList();
 };
-
-defineExpose({ publicKeys, canEditPublicKey, canRemovePublicKey });
 </script>

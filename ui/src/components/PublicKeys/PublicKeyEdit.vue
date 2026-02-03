@@ -243,5 +243,4 @@ const edit = async () => {
   }
 };
 
-defineExpose({ nameError, usernameError, hostnameError, selectedTags, tagSelectorErrorMessage });
 </script>
