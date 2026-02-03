@@ -41,6 +41,11 @@ type Service interface {
 	SetupService
 	SystemService
 	APIKeyService
+
+	// Store returns the underlying store instance.
+	// This is used by route extensions (enterprise/cloud) to access the same
+	// database connection and create their own services using the shared store.
+	Store() store.Store
 }
 
 type Option func(service *APIService)
@@ -77,4 +82,10 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 	}
 
 	return service
+}
+
+// Store returns the underlying store instance.
+// This allows route extensions (enterprise/cloud) to access the same database connection.
+func (s *APIService) Store() store.Store {
+	return s.store
 }
