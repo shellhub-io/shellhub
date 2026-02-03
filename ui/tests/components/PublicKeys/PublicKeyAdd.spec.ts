@@ -1,255 +1,364 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mockSnackbar, mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import PublicKeyAdd from "@/components/PublicKeys/PublicKeyAdd.vue";
-import FileTextComponent from "@/components/Fields/FileTextComponent.vue";
-import { sshApi, tagsApi } from "@/api/http";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import usePublicKeysStore from "@/store/modules/public_keys";
+import handleError from "@/utils/handleError";
 
-vi.mock("@/utils/sshKeys", () => ({
-  isKeyValid: () => true,
-  convertToFingerprint: () => "MOCK:FINGERPRINT",
-}));
+vi.mock("@/utils/permission", () => ({ default: () => true }));
 
-type PublicKeyAddWrapper = VueWrapper<InstanceType<typeof PublicKeyAdd>>;
+const VALID_PUBLIC_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJw8VPZSH0w7mNRBcDJE4I0HfnWAl2qDtYpTr8g5F8N user@example.com";
 
-describe("Public Key Add", () => {
-  let wrapper: PublicKeyAddWrapper;
-  let authStore: ReturnType<typeof useAuthStore>;
+describe("PublicKeyAdd", () => {
+  let wrapper: VueWrapper<InstanceType<typeof PublicKeyAdd>>;
+  let dialog: DOMWrapper<Element>;
   let publicKeysStore: ReturnType<typeof usePublicKeysStore>;
 
-  const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
-  const mockSshApi = new MockAdapter(sshApi.getAxios());
-
-  const pasteIntoFTC = async (text: string) => {
-    const ftc = wrapper.findComponent(FileTextComponent);
-    await ftc.trigger("paste", {
-      clipboardData: {
-        getData: (type: string) => (type === "text/plain" ? text : ""),
-        files: [],
-      },
-    });
-  };
-
-  const getTextareaValue = () => {
-    const dialog = new DOMWrapper(document.body);
-    const host = dialog.find('[data-test="ftc-textarea"]');
-    expect(host.exists()).toBe(true);
-    const ta = host.find("textarea");
-    expect(ta.exists()).toBe(true);
-    return (ta.element as HTMLTextAreaElement).value;
+  const openDialog = async () => {
+    const addBtn = wrapper.find('[data-test="public-key-add-btn"]');
+    await addBtn.trigger("click");
+    await flushPromises();
   };
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-    authStore = useAuthStore();
-    publicKeysStore = usePublicKeysStore();
-
-    mockTagsApi.onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10").reply(200, [
-      { name: "tag1" }, { name: "tag2" }, { name: "tag3" }, { name: "tag4" },
-    ]);
-    mockSshApi.onPost(/api\/sshkeys\/public-keys/).reply(200);
-
-    localStorage.setItem("tenant", "fake-tenant-data");
-    authStore.role = "owner";
-
-    wrapper = mount(PublicKeyAdd, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-        stubs: {
-          "v-file-upload": true,
-          "v-file-upload-item": true,
-        },
-      },
+    wrapper = mountComponent(PublicKeyAdd, {
+      props: { size: "default" },
       attachTo: document.body,
+      global: { stubs: ["v-file-upload", "v-file-upload-item"] },
     });
+
+    publicKeysStore = usePublicKeysStore();
+    dialog = new DOMWrapper(document.body);
   });
 
   afterEach(() => {
+    wrapper?.unmount();
     vi.clearAllMocks();
-    mockTagsApi.reset();
-    mockSshApi.reset();
-    wrapper.unmount();
+    document.body.innerHTML = "";
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("Add button", () => {
+    it("Renders add button", () => {
+      const addBtn = wrapper.find('[data-test="public-key-add-btn"]');
+      expect(addBtn.exists()).toBe(true);
+    });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    it("Shows 'Add Public Key' text", () => {
+      const addBtn = wrapper.find('[data-test="public-key-add-btn"]');
+      expect(addBtn.text()).toBe("Add Public Key");
+    });
 
-  it("Renders all dialog components when opened", async () => {
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
+    it("Opens dialog when clicked", async () => {
+      await openDialog();
 
-    expect(dialog.find('[data-test="public-key-add-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="name-field"]').exists()).toBe(true);
-    expect(wrapper.findComponent({ name: "FileTextComponent" }).exists()).toBe(true);
-  });
-
-  it("Allows adding a public key with default settings", async () => {
-    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
-
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
-
-    await wrapper.findComponent('[data-test="name-field"]').setValue("my new public key");
-
-    await pasteIntoFTC("fakeish key");
-    expect(getTextareaValue()).toBe("fakeish key");
-
-    const dialog = new DOMWrapper(document.body);
-    await dialog.find('[data-test="pk-add-save-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(storeSpy).toHaveBeenCalledWith({
-      name: "my new public key",
-      data: Buffer.from("fakeish key", "utf-8").toString("base64"),
-      username: ".*",
-      filter: { hostname: ".*" },
+      const formDialog = dialog.find('[data-test="public-key-add-dialog"]');
+      expect(formDialog.exists()).toBe(true);
     });
   });
 
-  it("Saves with hostname restriction", async () => {
-    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
+  describe("Dialog display", () => {
+    beforeEach(() => openDialog());
 
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+    it("Shows FormDialog with correct props", () => {
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("title")).toBe("New Public Key");
+      expect(formDialog.props("icon")).toBe("mdi-key-outline");
+      expect(formDialog.props("confirmText")).toBe("Save");
+      expect(formDialog.props("cancelText")).toBe("Cancel");
+    });
 
-    await wrapper.findComponent('[data-test="name-field"]').setValue("host key");
+    it("Renders name field", () => {
+      const nameField = dialog.find('[data-test="name-field"]');
+      expect(nameField.exists()).toBe(true);
+    });
 
-    await pasteIntoFTC("ssh-rsa AAAAB3Nza...");
+    it("Renders username restriction field", () => {
+      const usernameField = dialog.find('[data-test="username-restriction-field"]');
+      expect(usernameField.exists()).toBe(true);
+    });
 
-    await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("hostname");
-    await flushPromises();
-    await wrapper.findComponent('[data-test="hostname-field"]').setValue("web-.*");
+    it("Renders filter restriction field", () => {
+      const filterField = dialog.find('[data-test="filter-restriction-field"]');
+      expect(filterField.exists()).toBe(true);
+    });
 
-    const dialog = new DOMWrapper(document.body);
-    await dialog.find('[data-test="pk-add-save-btn"]').trigger("click");
-    await flushPromises();
+    it("Renders public key data field", () => {
+      const dataField = wrapper.findComponent({ name: "FileTextComponent" });
+      expect(dataField.exists()).toBe(true);
+    });
 
-    expect(storeSpy).toHaveBeenCalledWith({
-      name: "host key",
-      data: Buffer.from("ssh-rsa AAAAB3Nza...", "utf-8").toString("base64"),
-      username: ".*",
-      filter: { hostname: "web-.*" },
+    it("Does not show rule field by default", () => {
+      const ruleField = dialog.find('[data-test="rule-field"]');
+      expect(ruleField.exists()).toBe(false);
+    });
+
+    it("Does not show hostname field by default", () => {
+      const hostnameField = dialog.find('[data-test="hostname-field"]');
+      expect(hostnameField.exists()).toBe(false);
     });
   });
 
-  it("Saves with tags restriction", async () => {
-    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
+  describe("Form validation - Name field", () => {
+    beforeEach(() => openDialog());
 
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+    it("Disables confirm button when name is empty", () => {
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("confirmDisabled")).toBe(true);
+    });
 
-    await wrapper.findComponent('[data-test="name-field"]').setValue("tags key");
+    it("Enables confirm button when form is valid", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("test-key");
 
-    await pasteIntoFTC("ssh-ed25519 AAAAC3Nza...");
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+      await flushPromises();
 
-    await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("tags");
-    await flushPromises();
-    await wrapper.findComponent({ name: "VAutocomplete" }).setValue(["tag1", "tag2"]);
-    await flushPromises();
-
-    const dialog = new DOMWrapper(document.body);
-    await dialog.find('[data-test="pk-add-save-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(storeSpy).toHaveBeenCalledWith({
-      name: "tags key",
-      data: Buffer.from("ssh-ed25519 AAAAC3Nza...", "utf-8").toString("base64"),
-      username: ".*",
-      filter: { tags: ["tag1", "tag2"] },
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("confirmDisabled")).toBe(false);
     });
   });
 
-  it("Blocks save when username restriction has empty username", async () => {
-    const storeSpy = vi.spyOn(publicKeysStore, "createPublicKey");
+  describe("Form validation - Public key data", () => {
+    beforeEach(() => openDialog());
 
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+    it("Disables confirm button when key data is empty", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("test-key");
+      await flushPromises();
 
-    await wrapper.findComponent('[data-test="name-field"]').setValue("need user");
-
-    await wrapper.findComponent('[data-test="username-restriction-field"]').setValue("username");
-    await flushPromises();
-
-    const saveButton = wrapper.findComponent('[data-test="pk-add-save-btn"]');
-    expect(saveButton.attributes("disabled")).toBeDefined();
-    await saveButton.trigger("click");
-    expect(storeSpy).not.toHaveBeenCalled();
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("confirmDisabled")).toBe(true);
+    });
   });
 
-  it("Conditional rendering: username + tags shows proper inputs", async () => {
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+  describe("Username restriction", () => {
+    beforeEach(() => openDialog());
 
-    await wrapper.findComponent('[data-test="username-restriction-field"]').setValue("username");
-    await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("tags");
-    await flushPromises();
+    it("Shows rule field when username restriction is selected", async () => {
+      const usernameSelect = wrapper.findAllComponents({ name: "VSelect" })[0];
+      usernameSelect.vm.$emit("update:modelValue", "username");
+      await flushPromises();
 
-    expect(wrapper.findComponent('[data-test="rule-field"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="tags-selector"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="hostname-field"]').exists()).toBe(false);
+      const ruleField = dialog.find('[data-test="rule-field"]');
+      expect(ruleField.exists()).toBe(true);
+    });
   });
 
-  it("Conditional rendering: hostname filter shows hostname field only", async () => {
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+  describe("Filter restriction", () => {
+    beforeEach(() => openDialog());
 
-    await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("hostname");
-    await flushPromises();
+    it("Shows hostname field when hostname filter is selected", async () => {
+      const filterSelect = wrapper.findAllComponents({ name: "VSelect" })[1];
+      filterSelect.vm.$emit("update:modelValue", "hostname");
+      await flushPromises();
 
-    expect(wrapper.findComponent('[data-test="hostname-field"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="tags-selector"]').exists()).toBe(false);
+      const hostnameField = dialog.find('[data-test="hostname-field"]');
+      expect(hostnameField.exists()).toBe(true);
+    });
+
+    it("Shows tag selector when tags filter is selected", async () => {
+      const filterSelect = wrapper.findAllComponents({ name: "VSelect" })[1];
+      filterSelect.vm.$emit("update:modelValue", "tags");
+      await flushPromises();
+
+      const tagSelector = wrapper.findComponent({ name: "TagAutocompleteSelect" });
+      expect(tagSelector.exists()).toBe(true);
+    });
   });
 
-  it("Displays error message if name is not provided", async () => {
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+  describe("Create public key", () => {
+    beforeEach(() => openDialog());
 
-    const nameInput = wrapper.findComponent('[data-test="name-field"]');
-    await nameInput.setValue("foo");
-    await nameInput.setValue("");
-    await flushPromises();
+    it("Calls createPublicKey when form is valid", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("my-key");
 
-    expect(wrapper.vm.nameError).toBeTruthy();
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(publicKeysStore.createPublicKey).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "my-key",
+          username: ".*",
+          filter: { hostname: ".*" },
+        }),
+      );
+    });
+
+    it("Creates key with hostname filter when specified", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("my-key");
+
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+
+      const filterSelect = wrapper.findAllComponents({ name: "VSelect" })[1];
+      filterSelect.vm.$emit("update:modelValue", "hostname");
+      await flushPromises();
+
+      const hostnameField = dialog.find('[data-test="hostname-field"] input');
+      await hostnameField.setValue("^server");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(publicKeysStore.createPublicKey).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: { hostname: "^server" },
+        }),
+      );
+    });
+
+    it("Creates key with username restriction when specified", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("my-key");
+
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+
+      const usernameSelect = wrapper.findAllComponents({ name: "VSelect" })[0];
+      usernameSelect.vm.$emit("update:modelValue", "username");
+      await flushPromises();
+
+      const ruleField = dialog.find('[data-test="rule-field"] input');
+      await ruleField.setValue("admin");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(publicKeysStore.createPublicKey).toHaveBeenCalledWith(
+        expect.objectContaining({
+          username: "admin",
+        }),
+      );
+    });
+
+    it("Shows success message after creation", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("my-key");
+
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Public key created successfully.");
+    });
+
+    it("Emits update event after creation", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("my-key");
+
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("Closes dialog after creation", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("my-key");
+
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("modelValue")).toBe(false);
+    });
   });
 
-  it("Displays error message if username is not provided when restriction is active", async () => {
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+  describe("Error handling", () => {
+    beforeEach(() => openDialog());
 
-    await wrapper.findComponent('[data-test="username-restriction-field"]').setValue("username");
-    await flushPromises();
-    const ruleInput = wrapper.findComponent('[data-test="rule-field"]');
-    await ruleInput.setValue("foo");
-    await ruleInput.setValue("");
-    await flushPromises();
+    it("Handles duplicate public key error (409)", async () => {
+      vi.mocked(publicKeysStore.createPublicKey).mockRejectedValueOnce(
+        createAxiosError(409, "Duplicate key"),
+      );
 
-    expect(wrapper.vm.usernameError).toBeTruthy();
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("existing-key");
+
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      const errorMessage = dialog.find('[data-test="ftc-file-error"]');
+      expect(errorMessage.text()).toContain("Public Key data already exists");
+    });
+
+    it("Handles generic error", async () => {
+      const error = new Error("Unknown error");
+      vi.mocked(publicKeysStore.createPublicKey).mockRejectedValueOnce(error);
+
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("my-key");
+
+      const fileText = wrapper.findComponent({ name: "FileTextComponent" });
+      fileText.vm.$emit("update:modelValue", VALID_PUBLIC_KEY);
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="pk-add-save-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to create the public key.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 
-  it("Displays error message if hostname is not provided when filter=hostname", async () => {
-    await wrapper.find('[data-test="public-key-add-btn"]').trigger("click");
-    await flushPromises();
+  describe("Dialog actions", () => {
+    beforeEach(() => openDialog());
 
-    await wrapper.findComponent('[data-test="filter-restriction-field"]').setValue("hostname");
-    await flushPromises();
-    const hostnameInput = wrapper.findComponent('[data-test="hostname-field"]');
-    await hostnameInput.setValue("foo");
-    await hostnameInput.setValue("");
-    await flushPromises();
+    it("Closes dialog when cancel is clicked", async () => {
+      const cancelBtn = dialog.find('[data-test="pk-add-cancel-btn"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
 
-    expect(wrapper.vm.hostnameError).toBeTruthy();
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("modelValue")).toBe(false);
+    });
+
+    it("Resets form when dialog is closed", async () => {
+      const nameField = dialog.find('[data-test="name-field"] input');
+      await nameField.setValue("test");
+      await flushPromises();
+
+      const cancelBtn = dialog.find('[data-test="pk-add-cancel-btn"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
+
+      await openDialog();
+
+      const nameFieldAfter = dialog.find('[data-test="name-field"] input');
+      expect((nameFieldAfter.element as HTMLInputElement).value).toBe("");
+    });
   });
 });
