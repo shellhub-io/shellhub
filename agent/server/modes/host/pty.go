@@ -51,7 +51,22 @@ func startPty(c *exec.Cmd, out io.ReadWriter, winCh <-chan glidderssh.Window) (*
 	}
 
 	go func() {
+		// NOTE: Eagerly consume window changes to prevent blocking the gliderlabs/ssh handler.
+		// The winCh has a buffer of 1, and gliderlabs/ssh immediately sends the initial size.
+		// If we don't consume fast enough, window-change requests will block indefinitely.
 		for win := range winCh {
+			// Drain any pending window changes and only apply the latest one.
+			// This prevents blocking and ensures we always use the most recent dimensions.
+		drainLoop:
+			for {
+				select {
+				case latest := <-winCh:
+					win = latest
+				default:
+					break drainLoop
+				}
+			}
+
 			_ = creackpty.Setsize(f, &creackpty.Winsize{Rows: uint16(win.Height), Cols: uint16(win.Width), X: 0, Y: 0}) //nolint:gosec
 		}
 	}()
@@ -99,7 +114,22 @@ func initPty(c *exec.Cmd, sess io.ReadWriter, winCh <-chan glidderssh.Window) (*
 
 	// listen for window size changes from the SSH client and update the PTY's dimensions.
 	go func() {
+		// NOTE: Eagerly consume window changes to prevent blocking the gliderlabs/ssh handler.
+		// The winCh has a buffer of 1, and gliderlabs/ssh immediately sends the initial size.
+		// If we don't consume fast enough, window-change requests will block indefinitely.
 		for win := range winCh {
+			// Drain any pending window changes and only apply the latest one.
+			// This prevents blocking and ensures we always use the most recent dimensions.
+		drainLoop:
+			for {
+				select {
+				case latest := <-winCh:
+					win = latest
+				default:
+					break drainLoop
+				}
+			}
+
 			_ = creackpty.Setsize(pty, &creackpty.Winsize{Rows: uint16(win.Height), Cols: uint16(win.Width), X: 0, Y: 0}) //nolint:gosec
 		}
 	}()

@@ -937,13 +937,21 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					}
 				}
 
-				_, err = fmt.Fprintln(stdin, "stty size")
+				_, err = fmt.Fprintln(stdin, "echo SIZE_CHECK && stty size")
 				require.NoError(t, err)
 
-				// NOTE: Read and discard the command echo line.
-				reader.ReadString('\n')
+				// NOTE: Wait for the marker, then read the size
+				for {
+					line, err := reader.ReadString('\n')
+					require.NoError(t, err)
 
-				initialSizeOutput, err := reader.ReadString('\n') // Read line
+					if strings.TrimSpace(line) == "SIZE_CHECK" {
+						break
+					}
+				}
+
+				// Now read the actual size output
+				initialSizeOutput, err := reader.ReadString('\n')
 				require.NoError(t, err)
 
 				assert.Equal(t, fmt.Sprintf("%d %d", initialHeight, initialWidth), strings.TrimSpace(initialSizeOutput))
@@ -952,13 +960,21 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				err = sess.WindowChange(newHeight, newWidth)
 				require.NoError(t, err)
 
-				_, err = fmt.Fprintln(stdin, "stty size")
+				_, err = fmt.Fprintln(stdin, "echo SIZE_CHECK && stty size")
 				require.NoError(t, err)
 
-				// NOTE: Read and discard the command echo line.
-				reader.ReadString('\n')
+				// NOTE: Wait for the marker, then read the size
+				for {
+					line, err := reader.ReadString('\n')
+					require.NoError(t, err)
 
-				newSizeOutput, err := reader.ReadString('\n') // Read line
+					if strings.TrimSpace(line) == "SIZE_CHECK" {
+						break
+					}
+				}
+
+				// Now read the actual size output
+				newSizeOutput, err := reader.ReadString('\n')
 				require.NoError(t, err)
 
 				assert.Equal(t, fmt.Sprintf("%d %d", newHeight, newWidth), strings.TrimSpace(newSizeOutput))
