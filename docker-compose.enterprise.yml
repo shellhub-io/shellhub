@@ -24,11 +24,20 @@ services:
     image: registry.infra.ossystems.io/shellhub/cloud:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
+      # Database and Cache connections
+      - MONGO_URI=mongodb://mongo:27017/main
+      - REDIS_URI=redis://redis:6379
+      # Keys paths (mounted via secrets)
+      - ADMIN_API_PRIVATE_KEY=/run/secrets/api_private_key
+      - ADMIN_API_PUBLIC_KEY=/run/secrets/api_public_key
+      # Domain and SSL
       - DOMAIN=${SHELLHUB_DOMAIN}
       - AUTO_SSL=${SHELLHUB_AUTO_SSL}
+      # Email configuration
       - EMAIL_API_KEY=${SHELLHUB_EMAIL_API_KEY-}
       - EMAIL_FROM_NAME=${SHELLHUB_EMAIL_FROM_NAME-}
       - EMAIL_FROM_ADDRESS=${SHELLHUB_EMAIL_FROM_ADDRESS-}
+      # SAML
       - SAML_SECRET=${SHELLHUB_SAML_SECRET}
       - SHELLHUB_WEB_ENDPOINTS=${SHELLHUB_WEB_ENDPOINTS}
       - SHELLHUB_WEB_ENDPOINTS_DOMAIN=${SHELLHUB_WEB_ENDPOINTS_DOMAIN}

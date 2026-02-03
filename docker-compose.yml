@@ -1,3 +1,5 @@
+name: shellhub
+
 services:
   ssh:
     image: shellhubio/ssh:${SHELLHUB_VERSION}
