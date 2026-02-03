@@ -34,6 +34,9 @@ type GatewayConfig struct {
 	APIRateLimitZoneSize         string      `env:"SHELLHUB_API_RATE_LIMIT_ZONE_SIZE,default=10m"`
 	APIBurstSize                 string      `env:"SHELLHUB_API_BURST_SIZE,default=1"`
 	APIBurstDelay                string      `env:"SHELLHUB_API_BURST_DELAY,default=nodelay"`
+	// APIBackend is the backend service to use for API requests (api:8080 or cloud:8080)
+	// Set dynamically based on EnableCloud/EnableEnterprise
+	APIBackend string
 }
 
 var validate = validator.New()
@@ -72,4 +75,13 @@ func (gc *GatewayConfig) applyDefaults() {
 	}
 
 	gc.BacklogSize = getSysctl("net.core.somaxconn")
+
+	// Set APIBackend based on cloud/enterprise mode
+	// When cloud or enterprise is enabled, route to cloud service
+	// Otherwise, route to community api service
+	if gc.EnableCloud || gc.EnableEnterprise {
+		gc.APIBackend = "cloud:8080"
+	} else {
+		gc.APIBackend = "api:8080"
+	}
 }
