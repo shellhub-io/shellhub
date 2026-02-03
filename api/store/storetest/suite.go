@@ -46,6 +46,7 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestUserConflicts(t)
 		s.TestUserUpdate(t)
 		s.TestUserDelete(t)
+		s.TestUserGetInfo(t)
 	})
 
 	t.Run("SessionStore", func(t *testing.T) {
@@ -57,6 +58,9 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestActiveSessionDelete(t)
 		s.TestActiveSessionResolve(t)
 		s.TestActiveSessionUpdate(t)
+		s.TestSessionEventsCreate(t)
+		s.TestSessionEventsList(t)
+		s.TestSessionEventsDelete(t)
 	})
 
 	t.Run("TagStore", func(t *testing.T) {
@@ -110,5 +114,14 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestMembershipInvitationCreate(t)
 		s.TestMembershipInvitationResolve(t)
 		s.TestMembershipInvitationUpdate(t)
+	})
+
+	t.Run("SystemStore", func(t *testing.T) {
+		s.TestSystemGet(t)
+		s.TestSystemSet(t)
+	})
+
+	t.Run("TunnelStore", func(t *testing.T) {
+		s.TestTunnelUpdateDeviceUID(t)
 	})
 }
