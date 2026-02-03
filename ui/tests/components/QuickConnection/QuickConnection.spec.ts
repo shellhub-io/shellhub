@@ -1,126 +1,191 @@
-import { createPinia, setActivePinia } from "pinia";
-import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import QuickConnection from "@/components/QuickConnection/QuickConnection.vue";
-import { router } from "@/router";
-import { devicesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { createCleanRouter } from "@tests/utils/router";
 
-type QuickConnectionWrapper = VueWrapper<InstanceType<typeof QuickConnection>>;
+describe("QuickConnection", () => {
+  let wrapper: VueWrapper<InstanceType<typeof QuickConnection>>;
+  let dialog: DOMWrapper<Element>;
 
-describe("Quick Connection", () => {
-  let wrapper: QuickConnectionWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+  const mountWrapper = (disabled = false) => {
+    wrapper = mountComponent(QuickConnection, {
+      global: { plugins: [createCleanRouter()] },
+      props: { disabled },
+      attachTo: document.body,
+    });
+    dialog = new DOMWrapper(document.body);
+  };
 
-  const devices = [
-    {
-      uid: "a582b47a42d",
-      name: "39-5e-2a",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
-      info: {
-        id: "linuxmint",
-        pretty_name: "Linux Mint 19.3",
-        version: "",
-      },
-      public_key: "----- PUBLIC KEY -----",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2020-05-20T18:58:53.276Z",
-      online: true,
-      namespace: "user",
-      status: "accepted",
-      tags: [{
-        tenant_id: "fake-tenant-data",
-        name: "test-tag",
-        created_at: "",
-        updated_at: "",
-      }],
-    },
-    {
-      uid: "a582b47a42e",
-      name: "39-5e-2b",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
-      info: {
-        id: "linuxmint",
-        pretty_name: "Linux Mint 19.3",
-        version: "",
-      },
-      public_key: "----- PUBLIC KEY -----",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2020-05-20T19:58:53.276Z",
-      online: true,
-      namespace: "user",
-      status: "accepted",
-      tags: [],
-    },
-  ];
+  beforeEach(() => mountWrapper());
 
-  beforeEach(() => {
-    mockDevicesApi
-      // eslint-disable-next-line vue/max-len
-      .onGet("http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fSx7InR5cGUiOiJwcm9wZXJ0eSIsInBhcmFtcyI6eyJuYW1lIjoibmFtZSIsIm9wZXJhdG9yIjoiY29udGFpbnMiLCJ2YWx1ZSI6IiJ9fSx7InR5cGUiOiJvcGVyYXRvciIsInBhcmFtcyI6eyJuYW1lIjoiYW5kIn19XQ%3D%3D&page=1&per_page=10&status=accepted")
-      .reply(200, devices);
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
 
-    wrapper = mount(QuickConnection, {
-      global: { plugins: [vuetify, router, SnackbarPlugin] },
-      props: { disabled: false },
+  describe("Quick Connect button", () => {
+    it("Renders quick connect button", () => {
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      expect(btn.exists()).toBe(true);
+    });
+
+    it("Shows 'Quick Connect' text", () => {
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      expect(btn.text()).toBe("Quick Connect");
+    });
+
+    it("Shows console icon", () => {
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      const icon = btn.find(".mdi-console");
+      expect(icon.exists()).toBe(true);
+    });
+
+    it("Opens dialog when clicked", async () => {
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      await btn.trigger("click");
+      await flushPromises();
+
+      const windowDialog = wrapper.findComponent({ name: "WindowDialog" });
+      expect(windowDialog.props("modelValue")).toBe(true);
+    });
+
+    it("Is disabled when disabled prop is true", () => {
+      wrapper.unmount();
+      mountWrapper(true);
+
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      expect(btn.attributes("disabled")).toBeDefined();
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("Instructions", () => {
+    it("Shows keyboard shortcut instructions when not disabled", () => {
+      const instructions = wrapper.find('[data-test="quick-connect-instructions"]');
+      expect(instructions.exists()).toBe(true);
+      expect(instructions.text()).toContain("Press");
+      expect(instructions.text()).toContain("Ctrl+K");
+      expect(instructions.text()).toContain("to Quick Connect!");
+    });
+
+    it("Hides instructions when disabled", () => {
+      wrapper.unmount();
+      mountWrapper(true);
+
+      const instructions = wrapper.find('[data-test="quick-connect-instructions"]');
+      expect(instructions.exists()).toBe(false);
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("Dialog display", () => {
+    beforeEach(async () => {
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      await btn.trigger("click");
+      await flushPromises();
+    });
+
+    it("Shows WindowDialog with correct props", () => {
+      const windowDialog = wrapper.findComponent({ name: "WindowDialog" });
+      expect(windowDialog.props("title")).toBe("Quick Connect");
+      expect(windowDialog.props("description")).toBe("Search and connect to your online devices");
+      expect(windowDialog.props("icon")).toBe("mdi-console");
+      expect(windowDialog.props("iconColor")).toBe("primary");
+      expect(windowDialog.props("showFooter")).toBe(true);
+    });
+
+    it("Renders search text field", () => {
+      const searchField = dialog.find('[data-test="search-text"]');
+      expect(searchField.exists()).toBe(true);
+    });
+
+    it("Shows correct column headers", () => {
+      const hostnameHeader = dialog.find('[data-test="hostname-header"]');
+      const osHeader = dialog.find('[data-test="operating-system-header"]');
+      const sshidHeader = dialog.find('[data-test="sshid-header"]');
+      const tagsHeader = dialog.find('[data-test="tags-header"]');
+
+      expect(hostnameHeader.text()).toBe("Hostname");
+      expect(osHeader.exists()).toBe(true);
+      expect(sshidHeader.text()).toBe("SSHID");
+      expect(tagsHeader.text()).toBe("Tags");
+    });
+
+    it("Renders QuickConnectionList component", () => {
+      const list = wrapper.findComponent({ name: "QuickConnectionList" });
+      expect(list.exists()).toBe(true);
+    });
+
+    it("Passes filter prop to QuickConnectionList", async () => {
+      const searchField = dialog.find('[data-test="search-text"] input');
+      await searchField.setValue("test-device");
+      await flushPromises();
+
+      const list = wrapper.findComponent({ name: "QuickConnectionList" });
+      expect(list.props("filter")).toBe("test-device");
+    });
   });
 
-  it("Renders the dialog open button and other key elements", async () => {
-    const dialog = new DOMWrapper(document.body);
+  describe("Dialog footer", () => {
+    beforeEach(async () => {
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      await btn.trigger("click");
+      await flushPromises();
+    });
 
-    expect(wrapper.find('[data-test="quick-connection-open-btn"]').exists()).toBe(true);
+    it("Shows keyboard instructions in footer", () => {
+      const connectIcon = dialog.find('[data-test="connect-icon"]');
+      const navigateUpIcon = dialog.find('[data-test="navigate-up-icon"]');
+      const navigateDownIcon = dialog.find('[data-test="navigate-down-icon"]');
+      const copyInstructions = dialog.find('[data-test="copy-sshid-instructions"]');
 
-    await wrapper.findComponent('[data-test="quick-connection-open-btn"]').trigger("click");
+      expect(connectIcon.exists()).toBe(true);
+      expect(navigateUpIcon.exists()).toBe(true);
+      expect(navigateDownIcon.exists()).toBe(true);
+      expect(copyInstructions.exists()).toBe(true);
+      expect(copyInstructions.text()).toContain("Ctrl + C");
+      expect(copyInstructions.text()).toContain("To copy SSHID");
+    });
 
-    expect(dialog.find('[data-test="search-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="hostname-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="operating-system-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="sshid-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="tags-header"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="connect-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="copy-sshid-instructions"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="connect-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="navigate-up-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="navigate-down-icon"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    it("Shows close button", () => {
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      expect(closeBtn.exists()).toBe(true);
+      expect(closeBtn.text()).toBe("Close");
+    });
+
+    it("Closes dialog when close button is clicked", async () => {
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      await closeBtn.trigger("click");
+      await flushPromises();
+
+      const windowDialog = wrapper.findComponent({ name: "WindowDialog" });
+      expect(windowDialog.props("modelValue")).toBe(false);
+    });
   });
 
-  it("keyboardMacros function toggles dialog value on Ctrl + K keydown", () => {
-    const event = new KeyboardEvent("keydown", { ctrlKey: true, key: "k" });
+  describe("Search functionality", () => {
+    beforeEach(async () => {
+      const btn = wrapper.find('[data-test="quick-connection-open-btn"]');
+      await btn.trigger("click");
+      await flushPromises();
+    });
 
-    dispatchEvent(event);
+    it("Updates filter when search text changes", async () => {
+      const searchField = dialog.find('[data-test="search-text"] input');
+      await searchField.setValue("my-device");
+      await flushPromises();
 
-    expect(wrapper.vm.showDialog).toBe(true);
-  });
+      const list = wrapper.findComponent({ name: "QuickConnectionList" });
+      expect(list.props("filter")).toBe("my-device");
+    });
 
-  it("Disables the button when disabled prop is true", async () => {
-    await wrapper.setProps({ disabled: true });
-    expect(wrapper.find('[data-test="quick-connection-open-btn"]').attributes("disabled")).toBeDefined();
-  });
+    it("Trims search text", async () => {
+      const searchField = dialog.find('[data-test="search-text"] input');
+      await searchField.setValue("  device-name  ");
+      await flushPromises();
 
-  it("Ignores Ctrl + K keydown when disabled prop is true", async () => {
-    await wrapper.setProps({ disabled: true });
-    const event = new KeyboardEvent("keydown", { ctrlKey: true, key: "k" });
-
-    dispatchEvent(event);
-
-    expect(wrapper.vm.showDialog).toBe(false);
+      const list = wrapper.findComponent({ name: "QuickConnectionList" });
+      expect(list.props("filter")).toBe("device-name");
+    });
   });
 });

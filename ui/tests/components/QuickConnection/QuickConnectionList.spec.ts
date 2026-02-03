@@ -1,131 +1,231 @@
-import { createPinia, setActivePinia } from "pinia";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi, afterEach } from "vitest";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { mockSnackbar, mountComponent } from "@tests/utils/mount";
+import { mockDevice } from "@tests/mocks/device";
 import QuickConnectionList from "@/components/QuickConnection/QuickConnectionList.vue";
-import { router } from "@/router";
-import { devicesApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import useDevicesStore from "@/store/modules/devices";
+import handleError from "@/utils/handleError";
+import { createCleanRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 
-type QuickConnectionListWrapper = VueWrapper<InstanceType<typeof QuickConnectionList>>;
-
-const mockSnackbar = {
-  showError: vi.fn(),
+const onlineDevice = {
+  ...mockDevice,
+  online: true,
+  namespace: "user",
+  name: "test-device",
 };
 
-const devices = [
-  {
-    uid: "a582b47a42d",
-    name: "39-5e-2a",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T18:58:53.276Z",
-    online: true,
-    namespace: "user",
-    status: "accepted",
-    tags: [{
-      tenant_id: "fake-tenant-data",
-      name: "test-tag",
-      created_at: "",
-      updated_at: "",
-    }],
-  },
-  {
-    uid: "a582b47a42e",
-    name: "39-5e-2b",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T19:58:53.276Z",
-    online: true,
-    namespace: "user",
-    status: "accepted",
-    tags: [],
-  },
-];
+const onlineDeviceWithoutTags = {
+  ...mockDevice,
+  online: true,
+  namespace: "admin",
+  name: "no-tags-device",
+  tags: [],
+};
 
-// eslint-disable-next-line vue/max-len
-const mockDeviceApiUrl = "http://localhost:3000/api/devices?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJvbmxpbmUiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOnRydWV9fSx7InR5cGUiOiJwcm9wZXJ0eSIsInBhcmFtcyI6eyJuYW1lIjoibmFtZSIsIm9wZXJhdG9yIjoiY29udGFpbnMifX0seyJ0eXBlIjoib3BlcmF0b3IiLCJwYXJhbXMiOnsibmFtZSI6ImFuZCJ9fV0%3D&page=1&per_page=10&status=accepted";
+describe("QuickConnectionList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof QuickConnectionList>>;
+  let devicesStore: ReturnType<typeof useDevicesStore>;
 
-describe("Quick Connection List", () => {
-  let wrapper: QuickConnectionListWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
-
-  beforeEach(() => {
-    mockDevicesApi.onGet(mockDeviceApiUrl).reply(200, devices);
-
-    wrapper = mount(QuickConnectionList, {
-      global: {
-        plugins: [vuetify, router],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
+  const mountWrapper = (filter = "", onlineDevices = [onlineDevice, onlineDeviceWithoutTags]) => {
+    wrapper = mountComponent(QuickConnectionList, {
+      global: { plugins: [createCleanRouter()] },
+      props: { filter },
+      piniaOptions: {
+        initialState: { devices: { onlineDevices } },
       },
+    });
+
+    devicesStore = useDevicesStore();
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+  });
+
+  describe("Device list rendering", () => {
+    it("Renders devices list", () => {
+      const list = wrapper.find('[data-test="devices-list"]');
+      expect(list.exists()).toBe(true);
+    });
+
+    it("Displays all online devices", () => {
+      const items = wrapper.findAll('[data-test="device-list-item"]');
+      expect(items).toHaveLength(2);
+    });
+
+    it("Shows device name", () => {
+      const name = wrapper.findAll('[data-test="device-name"]')[0];
+      expect(name.text()).toBe(onlineDevice.name);
+    });
+
+    it("Shows device info with icon and OS name", () => {
+      const info = wrapper.findAll('[data-test="device-info"]')[0];
+      expect(info.text()).toContain(onlineDevice.info.pretty_name);
+    });
+
+    it("Renders DeviceIcon component", () => {
+      const deviceIcon = wrapper.findComponent({ name: "DeviceIcon" });
+      expect(deviceIcon.exists()).toBe(true);
+      expect(deviceIcon.props("icon")).toBe(onlineDevice.info.id);
+    });
+
+    it("Shows device SSHID", () => {
+      const sshid = wrapper.findAll('[data-test="device-ssh-id"]')[0];
+      const expectedSshid = `${onlineDevice.namespace}.${onlineDevice.name}@${window.location.hostname}`;
+      expect(sshid.text()).toContain(expectedSshid);
+    });
+
+    it("Shows device tags", () => {
+      const tags = wrapper.findAll('[data-test="device-tags"]')[0];
+      const tagChip = tags.find('[data-test="tag-chip"]');
+      expect(tagChip.exists()).toBe(true);
+      expect(tagChip.text()).toBe(onlineDevice.tags[0].name);
+    });
+
+    it("Shows 'No tags' when device has no tags", () => {
+      const tags = wrapper.findAll('[data-test="device-tags"]')[1];
+      const noTagsChip = tags.find('[data-test="no-tags-chip"]');
+      expect(noTagsChip.exists()).toBe(true);
+      expect(noTagsChip.text()).toBe("No tags");
+    });
+
+    it("Shows tag tooltip for tags with full name", () => {
+      const tagName = new DOMWrapper(document.body).find('[data-test="tag-name"]');
+      expect(tagName.text()).toBe(onlineDevice.tags[0].name);
     });
   });
 
-  afterEach(() => { wrapper.unmount(); });
+  describe("Empty state", () => {
+    beforeEach(() => {
+      wrapper.unmount();
+      mountWrapper("", []);
+    });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+    it("Shows empty state when no devices are online", () => {
+      const emptyState = wrapper.find('[data-test="no-online-devices"]');
+      expect(emptyState.exists()).toBe(true);
+    });
+
+    it("Shows offline icon in empty state", () => {
+      const icon = wrapper.find('[data-test="no-online-devices-icon"]');
+      expect(icon.exists()).toBe(true);
+      expect(icon.classes()).toContain("mdi-laptop-off");
+    });
+
+    it("Shows empty state message", () => {
+      const message = wrapper.find('[data-test="no-online-devices-message"]');
+      expect(message.text()).toBe("There are currently no devices online.");
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("Device interactions", () => {
+    it("Shows copy SSHID button", () => {
+      const copyBtn = wrapper.findAll('[data-test="copy-id-button"]')[0];
+      expect(copyBtn.exists()).toBe(true);
+    });
+
+    it("Shows SSHID help button", () => {
+      const helpBtn = wrapper.findAll('[data-test="sshid-help-btn"]')[0];
+      expect(helpBtn.exists()).toBe(true);
+    });
+
+    it("Opens terminal dialog when device is clicked", async () => {
+      const deviceItem = wrapper.findAll('[data-test="device-list-item"]')[0];
+      await deviceItem.trigger("click");
+      await flushPromises();
+
+      const terminalDialog = wrapper.findComponent({ name: "TerminalDialog" });
+      expect(terminalDialog.props("modelValue")).toBe(true);
+      expect(terminalDialog.props("deviceUid")).toBe(onlineDevice.uid);
+      expect(terminalDialog.props("deviceName")).toBe(onlineDevice.name);
+    });
+
+    it("Opens SSHID helper when help button is clicked", async () => {
+      const helpBtn = wrapper.findAll('[data-test="sshid-help-btn"]')[0];
+      await helpBtn.trigger("click");
+      await flushPromises();
+
+      const sshidHelper = wrapper.findComponent({ name: "SSHIDHelper" });
+      expect(sshidHelper.props("modelValue")).toBe(true);
+      expect(sshidHelper.props("sshid")).toContain(onlineDevice.name);
+    });
   });
 
-  it("Renders the devices list", () => {
-    expect(wrapper.find('[data-test="devices-list"]').exists()).toBe(true);
+  describe("Data fetching", () => {
+    it("Calls fetchOnlineDevices on mount", () => {
+      expect(devicesStore.fetchOnlineDevices).toHaveBeenCalled();
+    });
+
+    it("Fetches with correct filter", () => {
+      const calls = vi.mocked(devicesStore.fetchOnlineDevices).mock.calls;
+      const lastCall = calls[calls.length - 1];
+
+      // The filter is base64 encoded JSON, so we decode it
+      const filterParam = lastCall[0];
+      const decodedFilter = JSON.parse(Buffer.from(filterParam as string, "base64").toString("utf-8"));
+
+      expect(decodedFilter).toEqual([
+        {
+          type: "property",
+          params: { name: "online", operator: "eq", value: true },
+        },
+        {
+          type: "property",
+          params: { name: "name", operator: "contains", value: "" },
+        },
+        { type: "operator", params: { name: "and" } },
+      ]);
+    });
+
+    it("Refetches when filter prop changes", async () => {
+      wrapper.unmount();
+      mountWrapper("test-filter");
+      await flushPromises();
+
+      expect(devicesStore.fetchOnlineDevices).toHaveBeenCalled();
+
+      const calls = vi.mocked(devicesStore.fetchOnlineDevices).mock.calls;
+      const lastCall = calls[calls.length - 1];
+      const filterParam = lastCall[0];
+      const decodedFilter = JSON.parse(Buffer.from(filterParam as string, "base64").toString("utf-8"));
+
+      // Check that the filter includes the search term
+      expect(decodedFilter[1].params.value).toBe("test-filter");
+    });
   });
 
-  it("Renders each device card", () => {
-    expect(wrapper.find('[data-test="device-list-item"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-name"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-info"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-ssh-id"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="device-tags"]').exists()).toBe(true);
+  describe("Error handling", () => {
+    it("Handles fetch error", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      vi.mocked(devicesStore.fetchOnlineDevices).mockRejectedValue(error);
+
+      await wrapper.setProps({ filter: "trigger-refetch" });
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while loading devices.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 
-  it("Renders the copy ID button", () => {
-    expect(wrapper.find('[data-test="copy-id-button"]').exists()).toBe(true);
-  });
+  describe("CopyWarning component", () => {
+    it("Renders CopyWarning component for each device", () => {
+      const copyWarnings = wrapper.findAllComponents({ name: "CopyWarning" });
+      expect(copyWarnings.length).toBeGreaterThan(0);
+    });
 
-  it("Renders the tag chips", () => {
-    expect(wrapper.find('[data-test="tag-chip"]').exists()).toBe(true);
-  });
+    it("Passes correct SSHID to CopyWarning", () => {
+      const copyWarning = wrapper.findAllComponents({ name: "CopyWarning" })[0];
+      const expectedSshid = `${onlineDevice.namespace}.${onlineDevice.name}@${window.location.hostname}`;
+      expect(copyWarning.props("macro")).toBe(expectedSshid);
+    });
 
-  it("Renders the no tags chip", async () => {
-    await flushPromises();
-    expect(wrapper.find('[data-test="no-tags-chip"]').exists()).toBe(true);
-  });
-
-  it("Renders the no online devices message", async () => {
-    mockDevicesApi.onGet(mockDeviceApiUrl).reply(200, []);
-    await flushPromises();
-    expect(wrapper.find('[data-test="no-online-devices"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-online-devices-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="no-online-devices-message"]').exists()).toBe(true);
-  });
-
-  it("Checks if the fetch function handles error on failure", async () => {
-    mockDevicesApi.onGet(mockDeviceApiUrl).reply(403);
-    await flushPromises();
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while loading devices.");
+    it("Passes correct copied item label", () => {
+      const copyWarning = wrapper.findAllComponents({ name: "CopyWarning" })[0];
+      expect(copyWarning.props("copiedItem")).toBe("Device SSHID");
+    });
   });
 });
