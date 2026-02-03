@@ -17,13 +17,14 @@ type APIService struct {
 var _ Service = (*APIService)(nil)
 
 type service struct {
-	store     store.Store
-	privKey   *rsa.PrivateKey
-	pubKey    *rsa.PublicKey
-	cache     cache.Cache
-	client    internalclient.Client
-	locator   geoip.Locator
-	validator *validator.Validator
+	store          store.Store
+	privKey        *rsa.PrivateKey
+	pubKey         *rsa.PublicKey
+	cache          cache.Cache
+	client         internalclient.Client
+	locator        geoip.Locator
+	validator      *validator.Validator
+	billingService BillingService
 }
 
 //go:generate mockery --name Service --filename services.go
@@ -56,6 +57,12 @@ func WithLocator(locator geoip.Locator) Option {
 	}
 }
 
+func WithBillingService(billing BillingService) Option {
+	return func(service *APIService) {
+		service.billingService = billing
+	}
+}
+
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, c internalclient.Client, options ...Option) *APIService {
 	if privKey == nil || pubKey == nil {
 		var err error
@@ -74,6 +81,7 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 			c,
 			geoip.NewNullGeoLite(),
 			validator.New(),
+			nil, // billingService (injected via WithBillingService option)
 		},
 	}
 

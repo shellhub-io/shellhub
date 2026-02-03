@@ -434,11 +434,11 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 // This function has side effects: it may delete removed devices and report to billing.
 func (s *service) handleCloudBilling(ctx context.Context, namespace *models.Namespace) error {
 	if namespace.Billing.IsActive() {
-		if err := s.BillingReport(ctx, s.client, namespace.TenantID, ReportDeviceAccept); err != nil {
+		if err := s.BillingReport(ctx, namespace.TenantID, ReportDeviceAccept); err != nil {
 			return NewErrBillingReportNamespaceDelete(err)
 		}
 	} else {
-		ok, err := s.BillingEvaluate(ctx, s.client, namespace.TenantID)
+		ok, err := s.BillingEvaluate(ctx, namespace.TenantID)
 		switch {
 		case err != nil:
 			return NewErrBillingEvaluate(err)
