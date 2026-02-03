@@ -5,7 +5,7 @@ import { IPublicKey } from "@/interfaces/IPublicKey";
  * Provides a complete public key object with all required fields.
  */
 export const mockPublicKey: IPublicKey = {
-  data: "",
+  data: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGJw8VPZSH0w7mNRBcDJE4I0HfnWAl2qDtYpTr8g5F8N user@example.com",
   fingerprint: "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:01",
   created_at: "2025-01-01T00:00:00.000Z",
   tenant_id: "00000000-0000-4000-0000-000000000000",
