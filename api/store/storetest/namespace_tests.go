@@ -366,6 +366,100 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
+
+	t.Run("fails when namespace does not exist", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Try to delete non-existent namespace
+		fakeNs := &models.Namespace{TenantID: "00000000-0000-0000-0000-000000000000"}
+		err := st.NamespaceDelete(ctx, fakeNs)
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("deletes namespace with devices and sessions", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create namespace with devices and sessions
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
+		sessionUID := s.CreateSession(t, WithSessionDevice(deviceUID))
+
+		// Verify resources exist
+		_, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(sessionUID))
+		require.NoError(t, err)
+
+		// Delete namespace
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		err = st.NamespaceDelete(ctx, ns)
+		require.NoError(t, err)
+
+		// Verify cascade deletion
+		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.SessionResolve(ctx, store.SessionUIDResolver, string(sessionUID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("deletes namespace with public keys and API keys", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create namespace with public key and API key
+		tenantID := s.CreateNamespace(t)
+		pkFingerprint := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
+		apiKeyID := s.CreateAPIKey(t, WithAPIKeyTenant(tenantID))
+
+		// Verify resources exist
+		_, err := st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, pkFingerprint, st.Options().InNamespace(tenantID))
+		require.NoError(t, err)
+		_, err = st.APIKeyResolve(ctx, store.APIKeyIDResolver, apiKeyID, st.Options().InNamespace(tenantID))
+		require.NoError(t, err)
+
+		// Delete namespace
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		err = st.NamespaceDelete(ctx, ns)
+		require.NoError(t, err)
+
+		// Verify cascade deletion
+		_, err = st.PublicKeyResolve(ctx, store.PublicKeyFingerprintResolver, pkFingerprint, st.Options().InNamespace(tenantID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.APIKeyResolve(ctx, store.APIKeyIDResolver, apiKeyID, st.Options().InNamespace(tenantID))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("clears user preferred namespace when deleted", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create user with preferred namespace
+		tenantID := s.CreateNamespace(t)
+		userID := s.CreateUser(t)
+
+		// Set preferred namespace
+		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		user.Preferences.PreferredNamespace = tenantID
+		err = st.UserUpdate(ctx, user)
+		require.NoError(t, err)
+
+		// Verify preferred namespace is set
+		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, tenantID, user.Preferences.PreferredNamespace)
+
+		// Delete namespace
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		err = st.NamespaceDelete(ctx, ns)
+		require.NoError(t, err)
+
+		// Verify preferred namespace is cleared
+		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Empty(t, user.Preferences.PreferredNamespace)
+	})
 }
 
 // TestNamespaceDeleteMany tests bulk namespace deletion
