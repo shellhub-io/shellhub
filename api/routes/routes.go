@@ -24,6 +24,30 @@ type DefaultHTTPHandlerConfig struct {
 	Reporter *sentry.Client
 }
 
+// ExtensionFunc is a function that can extend the router with additional routes.
+// This is the extension point for enterprise/cloud features.
+// It receives the echo instance and the core service to allow registering additional routes
+// that can use the same store connection and other core infrastructure.
+type ExtensionFunc func(e *echo.Echo, service services.Service) error
+
+// extensions holds all registered route extensions.
+// Extensions are registered via RegisterExtension before NewRouter is called.
+var extensions []ExtensionFunc
+
+// RegisterExtension registers a route extension function.
+// This must be called before NewRouter() is invoked, typically in the main function
+// of enterprise/cloud builds.
+//
+// Example:
+//
+//	func main() {
+//	    routes.RegisterExtension(cloudroutes.RegisterEnterpriseRoutes)
+//	    router := routes.NewRouter(service)
+//	}
+func RegisterExtension(fn ExtensionFunc) {
+	extensions = append(extensions, fn)
+}
+
 // DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v4] package, with the default
 // configuration required by ShellHub's services, loading the [github.com/shellhub-io/shellhub/api/pkg/gateway] into
 // the context, and the service layer. The configuration received controls the error reporter and more.
@@ -187,6 +211,14 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	if !envs.IsCloud() {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
+	}
+
+	// Apply route extensions (enterprise/cloud features)
+	// Extensions are registered via RegisterExtension before NewRouter is called
+	for _, ext := range extensions {
+		if err := ext(router, service); err != nil {
+			logrus.WithError(err).Error("failed to register route extension")
+		}
 	}
 
 	// NOTE: Rewrite requests to containers to devices, as they are the same thing under the hood, using it as an alias.
