@@ -67,12 +67,12 @@ jobs:
         if: "contains(github.ref, 'refs/tags/v')"
         run: |
           mkdir -p rootfs
-          for arch in amd64 arm64v8 armv7 armv6 i386; do
+          for arch in amd64 arm64v8 arm32v7 arm32v6 i386; do
             case $arch in
               amd64) platform="linux/amd64" ;;
               arm64v8) platform="linux/arm64/v8" ;;
-              armv7) platform="linux/arm/v7" ;;
-              armv6) platform="linux/arm/v6" ;;
+              arm32v7) platform="linux/arm/v7" ;;
+              arm32v6) platform="linux/arm/v6" ;;
               i386) platform="linux/386" ;;
             esac
 
