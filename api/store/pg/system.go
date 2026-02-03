@@ -40,18 +40,25 @@ func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 }
 
 func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
-	systemEntity := entity.SystemFromModel(system)
-	if systemEntity.ID == "" {
-		systemEntity.ID = uuid.Generate()
-	}
-
 	db := pg.getConnection(ctx)
-	exists, err := db.NewSelect().Model((*entity.System)(nil)).Where("id = ?", systemEntity.ID).Exists(ctx)
+
+	// Get existing system (should be only one)
+	existingSystem := new(entity.System)
+	err := db.NewSelect().Model(existingSystem).Limit(1).Scan(ctx)
+
+	systemEntity := entity.SystemFromModel(system)
+
 	switch {
-	case err == nil && !exists:
+	case errors.Is(err, sql.ErrNoRows):
+		// No system exists, create new one
+		if systemEntity.ID == "" {
+			systemEntity.ID = uuid.Generate()
+		}
 		_, err = pg.driver.NewInsert().Model(systemEntity).Exec(ctx)
-	case err == nil && exists:
-		_, err = pg.driver.NewUpdate().Model(systemEntity).Where("id = ?", systemEntity.ID).Exec(ctx)
+	case err == nil:
+		// System exists, update it (use existing ID)
+		systemEntity.ID = existingSystem.ID
+		_, err = pg.driver.NewUpdate().Model(systemEntity).WherePK().Exec(ctx)
 	}
 
 	return err
