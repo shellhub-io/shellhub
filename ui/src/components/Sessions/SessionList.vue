@@ -63,7 +63,10 @@
             <span v-if="session.authenticated">{{ session.username }}</span>
           </td>
 
-          <td class="text-center">
+          <td
+            class="text-center"
+            data-test="authenticated-icon"
+          >
             <v-tooltip
               v-if="session.authenticated"
               location="bottom"
@@ -171,7 +174,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { useRouter } from "vue-router";
 import hasPermission from "@/utils/permission";
 import { formatShortDateTime } from "@/utils/date";
@@ -236,15 +239,12 @@ const getSessions = async () => {
       perPage: itemsPerPage.value,
     });
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("You don't have permission to access this resource.");
-      }
-    } else {
-      snackbar.showError("Failed to load the session list.");
-      handleError(error);
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You don't have permission to access this resource.");
+      return;
     }
+    snackbar.showError("Failed to load the session list.");
+    handleError(error);
   } finally {
     loading.value = false;
   }
