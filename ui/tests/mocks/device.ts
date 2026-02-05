@@ -66,3 +66,90 @@ export const mockDeviceForSession: IDevice = {
   position: { latitude: 0, longitude: 0 },
   tags: [],
 };
+
+/**
+ * Mock device with online status and multiple tags.
+ * Provides an Ubuntu device with production tags.
+ */
+export const mockDeviceOnlineWithTags: IDevice = {
+  uid: "device-1",
+  name: "device-one",
+  namespace: "user-ns",
+  identity: { mac: "00:00:00:00:00:01" },
+  info: {
+    id: "ubuntu",
+    pretty_name: "Ubuntu 22.04",
+    version: "22.04",
+    arch: "x86_64",
+    platform: "linux",
+  },
+  public_key: "---- PUBLIC KEY ----",
+  tenant_id: "tenant-1",
+  last_seen: "2025-01-15T10:00:00.000Z",
+  online: true,
+  status: "accepted",
+  status_updated_at: "2025-01-15T10:00:00.000Z",
+  tags: [
+    { name: "production", tenant_id: "tenant-1", created_at: "2025-01-01T00:00:00.000Z", updated_at: "2025-01-01T00:00:00.000Z" },
+    { name: "web-server", tenant_id: "tenant-1", created_at: "2025-01-01T00:00:00.000Z", updated_at: "2025-01-01T00:00:00.000Z" },
+  ],
+  created_at: "2025-01-01T00:00:00.000Z",
+  position: { latitude: 0, longitude: 0 },
+  remote_addr: "192.168.1.1",
+};
+
+/**
+ * Mock device with offline status and no tags.
+ * Provides an Alpine Linux device in offline state.
+ */
+export const mockDeviceOfflineNoTags: IDevice = {
+  uid: "device-2",
+  name: "device-two",
+  namespace: "user-ns",
+  identity: { mac: "00:00:00:00:00:02" },
+  info: {
+    id: "alpine",
+    pretty_name: "Alpine Linux",
+    version: "3.18",
+    arch: "x86_64",
+    platform: "linux",
+  },
+  public_key: "---- PUBLIC KEY ----",
+  tenant_id: "tenant-1",
+  last_seen: "2025-01-14T10:00:00.000Z",
+  online: false,
+  status: "accepted",
+  status_updated_at: "2025-01-14T10:00:00.000Z",
+  tags: [],
+  created_at: "2025-01-01T00:00:00.000Z",
+  position: { latitude: 0, longitude: 0 },
+  remote_addr: "192.168.1.2",
+};
+
+/**
+ * Mock device with pending status.
+ * Provides a Debian device awaiting acceptance.
+ */
+export const mockDevicePending: IDevice = {
+  uid: "device-3",
+  name: "device-three",
+  namespace: "user-ns",
+  identity: { mac: "00:00:00:00:00:03" },
+  info: {
+    id: "debian",
+    pretty_name: "Debian 12",
+    version: "12",
+    arch: "x86_64",
+    platform: "linux",
+  },
+  public_key: "---- PUBLIC KEY ----",
+  tenant_id: "tenant-1",
+  last_seen: "2025-01-16T10:00:00.000Z",
+  online: true,
+  status: "pending",
+  status_updated_at: "2025-01-16T10:00:00.000Z",
+  tags: [],
+  created_at: "2025-01-16T10:00:00.000Z",
+  position: { latitude: 0, longitude: 0 },
+  remote_addr: "192.168.1.3",
+};

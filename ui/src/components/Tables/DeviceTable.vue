@@ -124,6 +124,7 @@
                   class="border rounded bg-v-theme-background"
                   density="comfortable"
                   size="default"
+                  data-test="open-actions-menu-btn"
                   icon="mdi-format-list-bulleted"
                 />
               </template>
@@ -440,8 +441,6 @@ watch([page, itemsPerPage], async () => {
 onMounted(async () => {
   await getDevices();
 });
-
-defineExpose({ page, showTerminalHelper, openTerminalHelper });
 </script>
 
 <style scoped>
