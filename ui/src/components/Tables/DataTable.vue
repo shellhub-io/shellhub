@@ -1,8 +1,8 @@
 <template>
-  <div data-test="datatable-root">
+  <div data-test="data-table-root">
     <v-table
       class="bg-background border rounded text-center"
-      data-test="datatable"
+      data-test="data-table"
     >
       <thead class="bg-v-theme-background">
         <tr>
@@ -10,7 +10,7 @@
             v-for="(header, i) in headers"
             :key="i"
             class="text-center"
-            :data-test="`th-${header.value}`"
+            :data-test="`${header.value}-header`"
           >
             <span
               v-if="header.sortable"
@@ -28,7 +28,7 @@
             </span>
             <span
               v-else
-              data-test="th-label"
+              data-test="header-label"
             >{{ header.text }}</span>
           </th>
         </tr>
