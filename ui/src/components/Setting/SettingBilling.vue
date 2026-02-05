@@ -222,7 +222,6 @@ const billingStore = useBillingStore();
 const namespacesStore = useNamespacesStore();
 const { billing: billingInfo, isActive: isBillingActive, status: billingStatus } = storeToRefs(billingStore);
 const namespace = computed(() => namespacesStore.currentNamespace);
-const el = ref<number>(1);
 const dialogCheckout = ref(false);
 const noCustomer = reactive({ value: false });
 const message = ref("");
@@ -300,11 +299,6 @@ const openBillingPortal = async () => {
 const reload = () => {
   window.location.reload();
 };
-
-defineExpose({
-  dialogCheckout,
-  el,
-});
 </script>
 
 <style scoped>

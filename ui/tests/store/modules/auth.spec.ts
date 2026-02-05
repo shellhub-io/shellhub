@@ -240,7 +240,7 @@ describe("Auth Store", () => {
         role: "administrator",
         mfa: true,
         recovery_email: "recovery@example.com",
-        auth_methods: ["local", "oauth"],
+        auth_methods: ["local", "saml"],
       };
 
       mockUsersApi

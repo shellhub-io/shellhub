@@ -29,3 +29,5 @@ export * from "./webEndpoint";
 export * from "./namespace";
 export * from "./user";
 export * from "./invitation";
+export * from "./customer";
+export * from "./billing";
