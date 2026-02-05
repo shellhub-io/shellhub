@@ -1,247 +1,318 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper, flushPromises } from "@vue/test-utils";
-import { beforeEach, afterEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import { nextTick } from "vue";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import SettingBilling from "@/components/Setting/SettingBilling.vue";
-import { billingApi, namespacesApi } from "@/api/http";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useBillingStore from "@/store/modules/billing";
+import useNamespacesStore from "@/store/modules/namespaces";
+import handleError from "@/utils/handleError";
+import {
+  mockBilling, mockBillingInactive, mockBillingToCancelAtEndOfPeriod, mockBillingPastDue,
+  mockBillingUnpaid, mockBillingCanceled, mockNamespace,
+} from "@tests/mocks";
+import { INamespace } from "@/interfaces/INamespace";
+import * as hasPermissionModule from "@/utils/permission";
 
-type SettingBillingWrapper = VueWrapper<InstanceType<typeof SettingBilling>>;
+describe("SettingBilling", () => {
+  let wrapper: VueWrapper<InstanceType<typeof SettingBilling>>;
+  let billingStore: ReturnType<typeof useBillingStore>;
+  let namespacesStore: ReturnType<typeof useNamespacesStore>;
 
-setActivePinia(createPinia());
-const authStore = useAuthStore();
-const billingStore = useBillingStore();
-const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
-const mockBillingApi = new MockAdapter(billingApi.getAxios());
-const vuetify = createVuetify();
-
-const members = [
-  {
-    id: "xxxxxxxx",
-    username: "test",
-    role: "owner",
-  },
-];
-
-const billingData = {
-  active: false,
-  status: "inactive",
-  customer_id: "cus_test",
-  subscription_id: "sub_test",
-  current_period_end: 2068385820,
-  created_at: "",
-  updated_at: "",
-  invoices: [],
-};
-
-const namespaceData = {
-  name: "test",
-  owner: "test",
-  tenant_id: "fake-tenant-data",
-  members,
-  max_devices: 3,
-  devices_count: 3,
-  created_at: "",
-  billing: billingData,
-};
-
-const customerData = {
-  id: "cus_test",
-  name: "test",
-  email: "test@test.com",
-  payment_methods: [
-    {
-      id: "test_id",
-      number: "xxxxxxxxxxxx4242",
-      brand: "visa",
-      exp_month: 3,
-      exp_year: 2029,
-      cvc: "",
-      default: true,
-    },
-  ],
-};
-
-describe("Billing Settings Free Mode", () => {
-  let wrapper: SettingBillingWrapper;
-
-  beforeEach(() => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
-
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-    mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-
-    authStore.role = "owner";
-    wrapper = mount(SettingBilling, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-  });
-
-  afterEach(() => {
-    wrapper.unmount();
-  });
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders the free plan section", () => {
-    expect(wrapper.find('[data-test="billing-card"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="subscribe-button"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-details-list"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-portal-section"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-portal-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-portal-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-portal-description"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-portal-button"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-divider"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-plan-section"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-plan-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-plan-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-plan-description-free"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-plan-description-premium"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-plan-free"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-plan-premium"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-active-section"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-status-section"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-status-icon"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-status-title"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-status-message"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-total-section"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-total-icon"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-total-title"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-total-amount"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-end-date-section"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-end-date-icon"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-end-date-title"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-end-date"]').exists()).toBe(false);
-  });
-});
-
-describe("Billing Settings Premium Usage", () => {
-  let wrapper: SettingBillingWrapper;
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
-
-  const billingData = {
-    id: "sub_test",
-    active: true,
-    status: "active",
-    customer_id: "cus_test",
-    subscription_id: "sub_test",
-    current_period_end: 2068385820,
-    end_at: 2068385820,
-    created_at: "",
-    updated_at: "",
-    invoices: [
-      {
-        id: "xxxxx",
-        status: "open" as const,
-        currency: "brl" as const,
-        amount: 12,
-      },
-    ],
+  const namespaceWithBilling = {
+    ...mockNamespace,
+    billing: { customer_id: "cus_123" },
   };
 
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
-    billing: billingData,
-  };
+  const mountWrapper = ({
+    hasPermission = true,
+    billing = mockBilling,
+    namespace = namespaceWithBilling as INamespace,
+  } = {}) => {
+    vi.spyOn(hasPermissionModule, "default").mockReturnValue(hasPermission);
 
-  beforeEach(() => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-    envVariables.isCloud = true;
+    localStorage.setItem("tenant", namespace.tenant_id);
 
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-    mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-
-    billingStore.billing = billingData;
-    authStore.role = "owner";
-    wrapper = mount(SettingBilling, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-  });
-
-  afterEach(() => {
-    wrapper.unmount();
-  });
-
-  it("Does not render free mode component", () => {
-    expect(wrapper.find('[data-test="billing-plan-description-free"]').exists()).toBe(false);
-    expect(wrapper.find('[data-test="billing-plan-free"]').exists()).toBe(false);
-  });
-
-  it("Render premium usage component", () => {
-    expect(wrapper.find('[data-test="billing-plan-description-premium"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-plan-premium"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-active-section"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-status-section"]').exists());
-    expect(wrapper.find('[data-test="billing-status-icon"]').exists());
-    expect(wrapper.find('[data-test="billing-status-title"]').exists());
-    expect(wrapper.find('[data-test="billing-status-message"]').exists());
-    expect(wrapper.find('[data-test="billing-total-section"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-total-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-total-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-total-amount"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-end-date-section"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-end-date-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-end-date-title"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="billing-end-date"]').exists()).toBe(true);
-  });
-
-  it("Render alerts for status", async () => {
-    const billingData = {
-      id: "sub_test",
-      active: true,
-      status: "to_cancel_at_end_of_period",
-      customer_id: "cus_test",
-      subscription_id: "sub_test",
-      current_period_end: 2068385820,
-      end_at: 2068385820,
-      created_at: "",
-      updated_at: "",
-      invoices: [
-        {
-          id: "xxxxx",
-          status: "open" as const,
-          currency: "brl" as const,
-          amount: 12,
+    wrapper = mountComponent(SettingBilling, {
+      piniaOptions: {
+        initialState: {
+          billing: {
+            billing,
+            invoices: billing.invoices,
+            isActive: billing.active,
+            status: billing.status,
+          },
+          namespaces: {
+            namespaces: [namespace],
+            currentNamespace: namespace,
+          },
         },
-      ],
-    };
-    mockBillingApi.onGet("http://localhost:3000/api/billing/subscription").reply(200, billingData);
-    billingStore.billing = billingData;
-    await nextTick();
-    await flushPromises();
-    expect(wrapper.find('[data-test="billing-status-message"]')).toBeTruthy();
+      },
+    });
+
+    billingStore = useBillingStore();
+    namespacesStore = useNamespacesStore();
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+  });
+
+  describe("Permission check", () => {
+    it("Shows SettingOwnerInfo when user cannot subscribe", () => {
+      wrapper.unmount();
+      mountWrapper({ hasPermission: false });
+
+      const ownerInfo = wrapper.find('[data-test="settings-owner-info-component"]');
+      expect(ownerInfo.exists()).toBe(true);
+    });
+
+    it("Shows billing content when user can subscribe", () => {
+      const billingCard = wrapper.find('[data-test="billing-card"]');
+      expect(billingCard.exists()).toBe(true);
+    });
+  });
+
+  describe("Page header", () => {
+    it("Renders page header with correct props", () => {
+      const header = wrapper.findComponent({ name: "PageHeader" });
+      expect(header.exists()).toBe(true);
+      expect(header.props("icon")).toBe("mdi-credit-card");
+      expect(header.props("title")).toBe("Billing");
+      expect(header.props("overline")).toBe("Settings");
+    });
+
+    it("Renders subscribe button", () => {
+      const subscribeBtn = wrapper.find('[data-test="subscribe-button"]');
+      expect(subscribeBtn.exists()).toBe(true);
+      expect(subscribeBtn.text()).toContain("Subscribe");
+    });
+
+    it("Opens billing dialog when subscribe button is clicked", async () => {
+      const subscribeBtn = wrapper.find('[data-test="subscribe-button"]');
+      await subscribeBtn.trigger("click");
+
+      const dialog = wrapper.findComponent({ name: "BillingDialog" });
+      expect(dialog.props("modelValue")).toBe(true);
+    });
+  });
+
+  describe("Billing portal section", () => {
+    it("Renders billing portal section", () => {
+      const portalSection = wrapper.find('[data-test="billing-portal-section"]');
+      expect(portalSection.exists()).toBe(true);
+    });
+
+    it("Renders billing portal icon", () => {
+      const icon = wrapper.find('[data-test="billing-portal-icon"]');
+      expect(icon.exists()).toBe(true);
+      expect(icon.classes().join(" ")).toContain("mdi-account");
+    });
+
+    it("Renders billing portal title", () => {
+      const title = wrapper.find('[data-test="billing-portal-title"]');
+      expect(title.exists()).toBe(true);
+      expect(title.text()).toBe("Billing Portal");
+    });
+
+    it("Renders billing portal description", () => {
+      const description = wrapper.find('[data-test="billing-portal-description"]');
+      expect(description.exists()).toBe(true);
+      expect(description.text()).toContain("Update your ShellHub payment method");
+    });
+
+    it("Renders billing portal button", () => {
+      const button = wrapper.find('[data-test="billing-portal-button"]');
+      expect(button.exists()).toBe(true);
+      expect(button.text()).toContain("Open Billing Portal");
+    });
+
+    it("Disables portal button when no customer", async () => {
+      wrapper.unmount();
+      mountWrapper({ namespace: mockNamespace });
+      await flushPromises();
+
+      const button = wrapper.find('[data-test="billing-portal-button"]');
+      expect(button.attributes("disabled")).toBeDefined();
+    });
+
+    it("Opens billing portal when button is clicked", async () => {
+      const button = wrapper.find('[data-test="billing-portal-button"]');
+      await button.trigger("click");
+      await flushPromises();
+
+      expect(billingStore.openBillingPortal).toHaveBeenCalled();
+    });
+
+    it("Shows error when opening billing portal fails", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      vi.mocked(billingStore.openBillingPortal).mockRejectedValueOnce(error);
+
+      const button = wrapper.find('[data-test="billing-portal-button"]');
+      await button.trigger("click");
+      await flushPromises();
+
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe("Billing plan section", () => {
+    it("Renders billing plan section", () => {
+      const planSection = wrapper.find('[data-test="billing-plan-section"]');
+      expect(planSection.exists()).toBe(true);
+    });
+
+    it("Renders plan icon", () => {
+      const icon = wrapper.find('[data-test="billing-plan-icon"]');
+      expect(icon.exists()).toBe(true);
+      expect(icon.classes().join(" ")).toContain("mdi-credit-card");
+    });
+
+    it("Renders plan title", () => {
+      const title = wrapper.find('[data-test="billing-plan-title"]');
+      expect(title.exists()).toBe(true);
+      expect(title.text()).toBe("Plan");
+    });
+
+    it("Shows free plan when billing is not active", async () => {
+      wrapper.unmount();
+      mountWrapper({ billing: mockBillingInactive });
+      await flushPromises();
+
+      const description = wrapper.find('[data-test="billing-plan-description-free"]');
+      expect(description.exists()).toBe(true);
+      expect(description.text()).toContain("You can add up to 3 devices");
+
+      const plan = wrapper.find('[data-test="billing-plan-free"]');
+      expect(plan.exists()).toBe(true);
+      expect(plan.text()).toBe("Free");
+    });
+
+    it("Shows premium plan when billing is active", () => {
+      const description = wrapper.find('[data-test="billing-plan-description-premium"]');
+      expect(description.exists()).toBe(true);
+      expect(description.text()).toContain("the amount is charged according to the number of devices");
+
+      const plan = wrapper.find('[data-test="billing-plan-premium"]');
+      expect(plan.exists()).toBe(true);
+      expect(plan.text()).toBe("Premium usage");
+    });
+  });
+
+  describe("Billing active section", () => {
+    it("Shows billing active section when billing is active", () => {
+      const activeSection = wrapper.find('[data-test="billing-active-section"]');
+      expect(activeSection.exists()).toBe(true);
+    });
+
+    it("Does not show billing active section when billing is not active", async () => {
+      wrapper.unmount();
+      mountWrapper({ billing: mockBillingInactive });
+      await flushPromises();
+
+      const activeSection = wrapper.find('[data-test="billing-active-section"]');
+      expect(activeSection.exists()).toBe(false);
+    });
+
+    it("Shows billing total section", () => {
+      const totalSection = wrapper.find('[data-test="billing-total-section"]');
+      expect(totalSection.exists()).toBe(true);
+
+      const totalIcon = wrapper.find('[data-test="billing-total-icon"]');
+      expect(totalIcon.exists()).toBe(true);
+
+      const totalTitle = wrapper.find('[data-test="billing-total-title"]');
+      expect(totalTitle.exists()).toBe(true);
+      expect(totalTitle.text()).toBe("Billing estimated total");
+
+      const totalAmount = wrapper.find('[data-test="billing-total-amount"]');
+      expect(totalAmount.exists()).toBe(true);
+    });
+
+    it("Shows billing end date section", () => {
+      const endDateSection = wrapper.find('[data-test="billing-end-date-section"]');
+      expect(endDateSection.exists()).toBe(true);
+
+      const endDateIcon = wrapper.find('[data-test="billing-end-date-icon"]');
+      expect(endDateIcon.exists()).toBe(true);
+
+      const endDateTitle = wrapper.find('[data-test="billing-end-date-title"]');
+      expect(endDateTitle.exists()).toBe(true);
+      expect(endDateTitle.text()).toBe("Current billing ends at");
+
+      const endDate = wrapper.find('[data-test="billing-end-date"]');
+      expect(endDate.exists()).toBe(true);
+    });
+  });
+
+  describe("Billing status messages", () => {
+    it("Shows warning message for to_cancel_at_end_of_period status", async () => {
+      wrapper.unmount();
+      mountWrapper({ billing: mockBillingToCancelAtEndOfPeriod });
+      await flushPromises();
+
+      const statusSection = wrapper.find('[data-test="billing-status-section"]');
+      expect(statusSection.exists()).toBe(true);
+
+      const message = wrapper.find('[data-test="billing-status-message"]');
+      expect(message.exists()).toBe(true);
+      expect(message.classes()).toContain("text-warning");
+      expect(message.text()).toContain("will be canceled");
+    });
+
+    it("Shows warning message for past_due status", async () => {
+      wrapper.unmount();
+      mountWrapper({ billing: mockBillingPastDue });
+      await flushPromises();
+
+      const message = wrapper.find('[data-test="billing-status-message"]');
+      expect(message.classes()).toContain("text-warning");
+      expect(message.text()).toContain("payment method has failed");
+    });
+
+    it("Shows error message for unpaid status", async () => {
+      wrapper.unmount();
+      mountWrapper({ billing: mockBillingUnpaid });
+      await flushPromises();
+
+      const message = wrapper.find('[data-test="billing-status-message"]');
+      expect(message.classes()).toContain("text-error");
+      expect(message.text()).toContain("unpaid invoices");
+    });
+
+    it("Shows error message for canceled status", async () => {
+      wrapper.unmount();
+      mountWrapper({ billing: mockBillingCanceled });
+      await flushPromises();
+
+      const message = wrapper.find('[data-test="billing-status-message"]');
+      expect(message.classes()).toContain("text-error");
+      expect(message.text()).toContain("subscription was canceled");
+    });
+  });
+
+  describe("Subscription info fetching", () => {
+    it("Fetches namespace on mount", async () => {
+      await flushPromises();
+      expect(namespacesStore.fetchNamespace).toHaveBeenCalledWith("fake-tenant-data");
+    });
+
+    it("Fetches subscription info on mount", async () => {
+      await flushPromises();
+      expect(billingStore.getSubscriptionInfo).toHaveBeenCalled();
+    });
+
+    it("Shows error when fetching subscription info fails", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+
+      wrapper.unmount();
+      mountWrapper();
+      vi.mocked(billingStore.getSubscriptionInfo).mockRejectedValueOnce(error);
+      await flushPromises();
+
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 });

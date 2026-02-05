@@ -200,7 +200,7 @@
 
 <script setup lang="ts">
 import { onMounted, computed, ref } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import { useDisplay } from "vuetify";
@@ -257,32 +257,29 @@ const getNamespace = async () => {
   try {
     await namespacesStore.fetchNamespace(tenantId);
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("You are not authorized to access this resource.");
-      }
-    } else {
-      snackbar.showError("Failed to load namespace.");
-      handleError(error);
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You are not authorized to access this resource.");
+      return;
     }
+    snackbar.showError("Failed to load namespace.");
+    handleError(error);
   }
 };
-
 const handleUpdateNameError = (error: unknown): void => {
+  const nameFieldErrorMap: Record<number, string> = {
+    400: "This name is not valid",
+    409: "Name used already",
+  };
+
   if (axios.isAxiosError(error)) {
-    switch (error.response?.status) {
-      case 400:
-        setNameError("This name is not valid");
-        break;
-      case 409:
-        setNameError("Name used already");
-        break;
-      default:
-        snackbar.showError("Failed to update name.");
-        handleError(error);
+    const errorMessage = nameFieldErrorMap[error.response?.status as number];
+
+    if (errorMessage) {
+      setNameError(errorMessage);
+      return;
     }
   }
+
   snackbar.showError("Failed to update name.");
   handleError(error);
 };
