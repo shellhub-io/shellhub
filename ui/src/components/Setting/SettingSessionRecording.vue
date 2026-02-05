@@ -52,6 +52,4 @@ onMounted(async () => {
     handleError(error);
   }
 });
-
-defineExpose({ isSessionRecordingEnabled });
 </script>
