@@ -142,6 +142,4 @@ const close = () => {
   generatedApiKey.value = "";
   formRef.value?.reset();
 };
-
-defineExpose({ generateKey, showDialog, errorMessage, close });
 </script>

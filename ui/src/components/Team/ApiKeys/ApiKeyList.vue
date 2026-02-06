@@ -112,7 +112,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import moment from "moment";
 import DataTable from "@/components/Tables/DataTable.vue";
 import hasPermission from "@/utils/permission";
@@ -188,16 +188,12 @@ const fetchApiKeys = async () => {
       sortOrder: sortOrder.value,
     });
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("You are not authorized to view this API key.");
-        handleError(error);
-      }
-    } else {
-      snackbar.showError("Failed to load API keys.");
-      handleError(error);
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You are not authorized to view this API key.");
+      return;
     }
+    snackbar.showError("Failed to load API keys.");
+    handleError(error);
   } finally {
     loading.value = false;
   }
@@ -219,5 +215,5 @@ const sortByItem = async (field: string) => {
   await fetchApiKeys();
 };
 
-defineExpose({ refresh, hasKeyExpired, formatDate, itemsPerPage });
+defineExpose({ refresh });
 </script>
