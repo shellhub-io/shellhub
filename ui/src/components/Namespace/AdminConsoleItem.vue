@@ -7,6 +7,7 @@
   <v-list-item
     v-else
     lines="two"
+    data-test="admin-console-item"
   >
     <template #prepend><AdminConsoleItemIcon /></template>
     <v-list-item-title>Admin Console</v-list-item-title>

@@ -1,139 +1,102 @@
-import { createPinia, setActivePinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, afterEach, vi, beforeEach } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import DeviceAcceptWarning from "@/components/Devices/DeviceAcceptWarning.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useDevicesStore from "@/store/modules/devices";
+
+vi.mock("@/utils/permission", () => ({
+  default: vi.fn(() => true),
+}));
 
 describe("DeviceAcceptWarning", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceAcceptWarning>>;
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const devicesStore = useDevicesStore();
-  const vuetify = createVuetify();
+  let devicesStore: ReturnType<typeof useDevicesStore>;
 
-  beforeEach(() => {
-    // Reset stores to clean state
-    authStore.role = "owner";
-    devicesStore.duplicatedDeviceName = "";
-  });
+  const mountWrapper = (duplicatedDeviceName = "") => {
+    wrapper = mountComponent(DeviceAcceptWarning, {
+      piniaOptions: { initialState: { devices: { duplicatedDeviceName } } },
+    });
+
+    devicesStore = useDevicesStore();
+  };
 
   afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
   });
 
-  it("Is a Vue instance", () => {
-    devicesStore.duplicatedDeviceName = "Test Device";
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+  describe("dialog visibility", () => {
+    it("does not render dialog when no duplicated device name", () => {
+      mountWrapper();
+
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("modelValue")).toBe(false);
     });
-    expect(wrapper.vm).toBeTruthy();
+
+    it("renders dialog when duplicated device name is set", () => {
+      mountWrapper("test-device");
+
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("modelValue")).toBe(true);
+    });
   });
 
-  it("Renders the component", () => {
-    devicesStore.duplicatedDeviceName = "Test Device";
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+  describe("dialog content", () => {
+    beforeEach(() => mountWrapper("test-device"));
+
+    it("shows warning title", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("title")).toBe("You already have a device using the same name");
     });
-    expect(wrapper.html()).toMatchSnapshot();
+
+    it("shows description with duplicated device name", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("description")).toContain("test-device");
+      expect(messageDialog.props("description")).toContain("already taken");
+    });
+
+    it("displays warning icon", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("icon")).toBe("mdi-alert");
+      expect(messageDialog.props("iconColor")).toBe("warning");
+    });
+
+    it("shows Close button", () => {
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("cancelText")).toBe("Close");
+    });
   });
 
-  it("Shows MessageDialog when device name is duplicated and user has authorization", () => {
-    devicesStore.duplicatedDeviceName = "Test Device";
-    authStore.role = "owner";
+  describe("dialog actions", () => {
+    it("clears duplicated device name when cancel is emitted", async () => {
+      mountWrapper("test-device");
 
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      await messageDialog.vm.$emit("cancel");
+
+      expect(devicesStore.duplicatedDeviceName).toBe("");
     });
 
-    expect(wrapper.findComponent({ name: "MessageDialog" }).exists()).toBe(true);
-  });
+    it("clears duplicated device name when close is emitted", async () => {
+      mountWrapper("test-device");
 
-  it("Shows MessageDialog with correct props", () => {
-    devicesStore.duplicatedDeviceName = "Test Device";
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      await messageDialog.vm.$emit("close");
 
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+      expect(devicesStore.duplicatedDeviceName).toBe("");
     });
 
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    expect(messageDialog.exists()).toBe(true);
-    expect(messageDialog.props("title")).toBe("You already have a device using the same name");
-    const expectedDescription = "Test Device name is already taken by another accepted device, please choose another name.";
-    expect(messageDialog.props("description")).toBe(expectedDescription);
-    expect(messageDialog.props("icon")).toBe("mdi-alert");
-    expect(messageDialog.props("iconColor")).toBe("warning");
-    expect(messageDialog.props("cancelText")).toBe("Close");
-  });
+    it("updates dialog visibility when duplicated device name changes", async () => {
+      mountWrapper();
 
-  it("Clears duplicated device name when cancel is emitted", async () => {
-    devicesStore.duplicatedDeviceName = "Test Device";
+      const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
+      expect(messageDialog.props("modelValue")).toBe(false);
 
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
+      devicesStore.duplicatedDeviceName = "new-device";
+      await flushPromises();
+
+      expect(messageDialog.props("modelValue")).toBe(true);
     });
-
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    await messageDialog.vm.$emit("cancel");
-
-    expect(devicesStore.duplicatedDeviceName).toBe("");
-  });
-
-  it("Clears duplicated device name when close is emitted", async () => {
-    devicesStore.duplicatedDeviceName = "Test Device";
-
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-
-    const messageDialog = wrapper.findComponent({ name: "MessageDialog" });
-    await messageDialog.vm.$emit("close");
-
-    expect(devicesStore.duplicatedDeviceName).toBe("");
-  });
-
-  it("Component respects user authorization", () => {
-    authStore.role = "observer"; // No billing:subscribe permission
-    devicesStore.duplicatedDeviceName = "Test Device";
-
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-
-    // Component should still exist but conditionally render based on permissions
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Component handles empty device name", () => {
-    devicesStore.duplicatedDeviceName = ""; // No duplicated name
-    authStore.role = "owner";
-
-    wrapper = mount(DeviceAcceptWarning, {
-      global: {
-        plugins: [vuetify, router, SnackbarPlugin],
-      },
-    });
-
-    // Component should exist and handle empty state gracefully
-    expect(wrapper.vm).toBeTruthy();
   });
 });

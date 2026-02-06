@@ -5,7 +5,7 @@
   >
     <v-card-text class="pt-0">
       <v-list
-        v-bind="attrs"
+        v-bind="$attrs"
         border
         rounded
         class="bg-background pa-0"
@@ -17,9 +17,5 @@
 </template>
 
 <script setup lang="ts">
-import { useAttrs } from "vue";
-
 defineOptions({ inheritAttrs: false });
-
-const attrs = useAttrs();
 </script>

@@ -1,6 +1,7 @@
 <template>
   <v-list-item
     v-bind="$attrs"
+    data-test="rename-device-button"
     @click="open()"
   >
     <div class="d-flex align-center">
@@ -111,6 +112,4 @@ const rename = async () => {
     }
   }
 };
-
-defineExpose({ showDialog, newName, rename });
 </script>

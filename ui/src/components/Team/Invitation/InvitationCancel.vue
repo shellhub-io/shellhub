@@ -60,24 +60,19 @@ const update = () => {
 
 const handleCancelInvitationError = (error: unknown) => {
   if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
-    switch (status) {
-      case 400:
-        snackbar.showError("Invalid invitation.");
-        break;
-      case 403:
-        snackbar.showError("You don't have permission to cancel invitations.");
-        break;
-      case 404:
-        snackbar.showError("Invitation not found.");
-        break;
-      default:
-        snackbar.showError("Failed to cancel invitation.");
+    const errorMessageMap: Record<number, string> = {
+      400: "Invalid invitation.",
+      403: "You don't have permission to cancel invitations.",
+      404: "Invitation not found.",
+    };
+    const message = errorMessageMap[error.response?.status || 0];
+    if (message) {
+      snackbar.showError(message);
+      return;
     }
-  } else {
-    snackbar.showError("Failed to cancel invitation.");
   }
 
+  snackbar.showError("Failed to cancel invitation.");
   handleError(error);
 };
 

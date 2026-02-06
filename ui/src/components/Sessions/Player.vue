@@ -222,14 +222,7 @@ onUnmounted(() => {
 
 watchEffect(() => !showShortcutsDialog.value && changeFocusToPlayer());
 
-defineExpose({
-  player,
-  currentSpeed,
-  currentTime,
-  isPlaying,
-  showShortcutsDialog,
-  pause,
-});
+defineExpose({ currentSpeed, isPlaying });
 </script>
 
 <style lang="scss" scoped>

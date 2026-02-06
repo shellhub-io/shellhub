@@ -1,63 +1,88 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it, afterEach, vi, beforeEach } from "vitest";
+import { VueWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { mockInvitation } from "@tests/mocks";
 import InvitationsMenuItem from "@/components/Invitations/InvitationsMenuItem.vue";
 import { IInvitation } from "@/interfaces/IInvitation";
 import { formatFullDateTime } from "@/utils/date";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-
-type InvitationsMenuItemWrapper = VueWrapper<InstanceType<typeof InvitationsMenuItem>>;
-
-const mockInvitation: IInvitation = {
-  status: "pending",
-  role: "operator",
-  invited_by: "638af3e2c3a5f90008c8b456",
-  expires_at: "2025-12-31T23:59:59Z",
-  created_at: "2025-12-01T00:00:00Z",
-  updated_at: "2025-12-01T00:00:00Z",
-  status_updated_at: "2025-12-01T00:00:00Z",
-  namespace: {
-    tenant_id: "tenant1",
-    name: "Test Namespace",
-  },
-  user: {
-    id: "user1",
-    email: "user@example.com",
-  },
-};
 
 describe("InvitationsMenuItem", () => {
-  let wrapper: InvitationsMenuItemWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
+  let wrapper: VueWrapper<InstanceType<typeof InvitationsMenuItem>>;
 
-  beforeEach(() => {
-    wrapper = mount(InvitationsMenuItem, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-      props: {
-        invitation: mockInvitation,
-      },
+  const mountWrapper = (invitation: IInvitation = mockInvitation) => {
+    wrapper = mountComponent(InvitationsMenuItem, { props: { invitation } });
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  describe("Invitation display", () => {
+    it("Displays namespace name", () => {
+      expect(wrapper.text()).toContain("Test Namespace");
+    });
+
+    it("Displays role with icon", () => {
+      expect(wrapper.text()).toContain("operator");
+    });
+
+    it("Displays administrator role correctly", () => {
+      wrapper.unmount();
+      mountWrapper({
+        ...mockInvitation,
+        role: "administrator",
+      });
+
+      expect(wrapper.text()).toContain("admin");
+    });
+
+    it("Displays observer role correctly", () => {
+      wrapper.unmount();
+      mountWrapper({
+        ...mockInvitation,
+        role: "observer",
+      });
+
+      expect(wrapper.text()).toContain("observer");
     });
   });
 
-  it("Displays namespace name", () => {
-    expect(wrapper.text()).toContain("Test Namespace");
+  describe("Expand/collapse details", () => {
+    it("Shows invitation details when expanded", async () => {
+      const expandBtn = wrapper.find("button .mdi-chevron-down"); // Expand button ⌄
+      await expandBtn.trigger("click");
+
+      const formattedCreatedAt = formatFullDateTime(mockInvitation.created_at);
+      expect(wrapper.text()).toContain(`Invited by ${mockInvitation.invited_by} at ${formattedCreatedAt}`);
+    });
   });
 
-  it("Displays role", () => {
-    expect(wrapper.text()).toContain(mockInvitation.role);
-  });
+  describe("Action buttons", () => {
+    it("Renders accept button", () => {
+      const acceptComponent = wrapper.findComponent({ name: "InvitationAccept" });
+      expect(acceptComponent.exists()).toBe(true);
+    });
 
-  it("Displays invitation description", () => {
-    const formattedCreatedAt = formatFullDateTime(mockInvitation.created_at);
-    expect(wrapper.text()).toContain(`Invited by ${mockInvitation.invited_by} at ${formattedCreatedAt}`);
-  });
+    it("Renders decline button", () => {
+      const declineComponent = wrapper.findComponent({ name: "InvitationDecline" });
+      expect(declineComponent.exists()).toBe(true);
+    });
 
-  it("Emits update event when invitation is accepted/declined successfully", () => {
-    wrapper.vm.handleSuccess();
-    expect(wrapper.emitted("update")).toBeTruthy();
+    it("Passes correct props to InvitationAccept", () => {
+      const acceptComponent = wrapper.findComponent({ name: "InvitationAccept" });
+      expect(acceptComponent.props("tenant")).toBe("tenant1");
+      expect(acceptComponent.props("namespaceName")).toBe("Test Namespace");
+      expect(acceptComponent.props("role")).toBe("operator");
+    });
+
+    it("Passes correct props to InvitationDecline", () => {
+      const declineComponent = wrapper.findComponent({ name: "InvitationDecline" });
+      expect(declineComponent.props("tenant")).toBe("tenant1");
+      expect(declineComponent.props("namespaceName")).toBe("Test Namespace");
+    });
   });
 });

@@ -1,134 +1,132 @@
-import { createPinia, setActivePinia } from "pinia";
-import { DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
+import { describe, expect, it, afterEach, beforeEach } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import DeviceAdd from "@/components/Devices/DeviceAdd.vue";
-import { devicesApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const devices = [
-  {
-    uid: "a582b47a42d",
-    name: "39-5e-2a",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T18:58:53.276Z",
-    online: false,
-    namespace: "user",
-    status: "accepted",
-  },
-  {
-    uid: "a582b47a42e",
-    name: "39-5e-2b",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T19:58:53.276Z",
-    online: true,
-    namespace: "user",
-    status: "accepted",
-  },
-];
-
-describe("Device Add", () => {
+describe("DeviceAdd", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceAdd>>;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+  let dialog: DOMWrapper<Element>;
+
+  const openDialog = async () => {
+    await wrapper.find('[data-test="device-add-btn"]').trigger("click");
+    await flushPromises();
+  };
 
   beforeEach(() => {
-    mockDevicesApi.onGet("http://localhost:3000/api/devices?page=1&per_page=10&status=accepted").reply(200, devices);
+    wrapper = mountComponent(DeviceAdd, {
+      piniaOptions: { initialState: { auth: { tenantId: "test-tenant-id" } } },
+    });
 
-    wrapper = mount(DeviceAdd, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
+    dialog = new DOMWrapper(document.body);
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+    document.body.innerHTML = "";
+  });
+
+  describe("add device button", () => {
+    it("renders add device button", () => {
+      expect(wrapper.find('[data-test="device-add-btn"]').exists()).toBe(true);
+    });
+
+    it("displays Add Device text", () => {
+      expect(wrapper.find('[data-test="device-add-btn"]').text()).toContain("Add Device");
+    });
+
+    it("opens dialog when clicked", async () => {
+      await openDialog();
+
+      expect(dialog.find('[data-test="device-add-dialog"]').exists()).toBe(true);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("device add dialog", () => {
+    it("renders dialog with title and description", async () => {
+      await openDialog();
+
+      expect(dialog.find('[data-test="device-add-dialog"]').exists()).toBe(true);
+      expect(dialog.text()).toContain("Adding a device");
+      expect(dialog.text()).toContain("Choose an installation method");
+    });
+
+    it("displays documentation link in footer", async () => {
+      await openDialog();
+
+      const documentationLink = dialog.find('[data-test="documentation-link"]');
+      expect(documentationLink.exists()).toBe(true);
+      expect(documentationLink.attributes("href")).toBe("https://docs.shellhub.io/user-guides/devices/adding");
+    });
+
+    it("renders expansion panels for installation methods", async () => {
+      await openDialog();
+
+      expect(dialog.find(".v-expansion-panels").exists()).toBe(true);
+      expect(dialog.findAll(".v-expansion-panel").length).toBeGreaterThan(0);
+    });
+
+    it("shows recommended method chip", async () => {
+      await openDialog();
+
+      expect(dialog.text()).toContain("recommended");
+    });
+
+    it("closes dialog when close button is clicked", async () => {
+      await openDialog();
+
+      await dialog.find('[data-test="close-btn-toolbar"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none");
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("installation methods", () => {
+    it("displays installation method options", async () => {
+      await openDialog();
 
-  it("Renders the component dialog with new interface", async () => {
-    const button = wrapper.find('[data-test="device-add-btn"]');
-    expect(button.exists()).toBe(true);
-    await button.trigger("click");
-    const dialog = new DOMWrapper(document.body);
+      const installationMethods = ["Auto", "Docker", "Podman", "Snap", "Standalone", "WSL", "Yocto Project", "Buildroot", "FreeBSD"];
 
-    // Test dialog structure
-    expect(dialog.find('[data-test="device-add-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="dialog-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="documentation-link"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn-toolbar"]').exists()).toBe(true);
+      installationMethods.forEach((method) => {
+        expect(dialog.text()).toContain(method);
+      });
+    });
 
-    // Test toolbar elements
-    expect(dialog.find(".v-toolbar").exists()).toBe(true);
-    expect(dialog.find(".v-toolbar .v-avatar").exists()).toBe(true);
-    expect(dialog.find(".v-toolbar .v-toolbar-title").exists()).toBe(true);
+    it("displays method requirements", async () => {
+      await openDialog();
 
-    // Test expansion panels for installation methods
-    expect(dialog.find(".v-expansion-panels").exists()).toBe(true);
-    expect(dialog.find(".v-expansion-panel").exists()).toBe(true);
+      expect(dialog.text()).toContain("Requirements:");
+    });
 
-    // Test footer toolbar
-    expect(dialog.findAll(".v-toolbar").length).toBe(2); // Header and footer
-  });
+    it("expands panel when clicked", async () => {
+      await openDialog();
 
-  it("Shows installation methods with expansion panels", async () => {
-    const button = wrapper.find('[data-test="device-add-btn"]');
-    await button.trigger("click");
-    const dialog = new DOMWrapper(document.body);
-
-    const expansionPanels = dialog.findAll(".v-expansion-panel");
-    expect(expansionPanels.length).toBeGreaterThan(0);
-
-    // Test that Auto method exists and is recommended
-    const autoPanel = dialog.find('[data-test="device-add-dialog"] .v-expansion-panel');
-    expect(autoPanel.exists()).toBe(true);
-  });
-
-  it("Shows advanced options for script-based methods", async () => {
-    const button = wrapper.find('[data-test="device-add-btn"]');
-    await button.trigger("click");
-    const dialog = new DOMWrapper(document.body);
-
-    // Wait for dialog to be fully rendered
-    await wrapper.vm.$nextTick();
-
-    // Expand the first method panel (should be Auto)
-    const firstPanel = dialog.find(".v-expansion-panel-title");
-    if (firstPanel.exists()) {
+      const firstPanel = dialog.find(".v-expansion-panel-title");
       await firstPanel.trigger("click");
-      await wrapper.vm.$nextTick();
+      await flushPromises();
 
-      // Check if advanced options text exists (since it's inside an alert)
-      const advancedOptionsText = dialog.find(".v-expansion-panel-text");
-      expect(advancedOptionsText.exists()).toBe(true);
+      const panelText = dialog.find(".v-expansion-panel-text");
+      expect(panelText.exists()).toBe(true);
+    });
 
-      // Look for Advanced Options text content
-      const advancedText = dialog.text().includes("Advanced Options");
-      expect(advancedText).toBe(true);
-    }
+    it("shows the method's command when clicked", async () => {
+      const command = "curl -sSf http://localhost:3000/install.sh | TENANT_ID=test-tenant-id SERVER_ADDRESS=http://localhost:3000 sh";
+      await openDialog();
+
+      const firstPanel = dialog.find(".v-expansion-panel-title");
+      await firstPanel.trigger("click");
+      await flushPromises();
+
+      const copyCommandField = dialog.find('[data-test="copy-command-field"] input').element as HTMLInputElement;
+      expect(copyCommandField.value).toContain(command);
+    });
+  });
+
+  describe("advanced options", () => {
+    it("shows advanced options expansion panel", async () => {
+      await openDialog();
+
+      expect(dialog.text()).toContain("Advanced Options");
+    });
   });
 });

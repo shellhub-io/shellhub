@@ -25,6 +25,7 @@
           :items="itemsDate"
           :item-props="true"
           :hint="expirationHint"
+          persistent-hint
           return-object
           data-test="api-key-expiration-date"
         />
@@ -52,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch } from "vue";
 import moment from "moment";
 import * as yup from "yup";
 import { useField, useForm } from "vee-validate";
@@ -169,9 +170,5 @@ const reset = () => {
   [selectedDate.value] = itemsDate;
 };
 
-defineExpose({
-  submitForm,
-  reset,
-  isValid: computed(() => meta.value.valid),
-});
+defineExpose({ submitForm, reset });
 </script>

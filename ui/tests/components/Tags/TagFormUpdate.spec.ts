@@ -1,182 +1,306 @@
-import { createPinia, setActivePinia } from "pinia";
-import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { mockTag } from "@tests/mocks/tag";
 import TagFormUpdate from "@/components/Tags/TagFormUpdate.vue";
-import { tagsApi } from "@/api/http";
 import useTagsStore from "@/store/modules/tags";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import handleError from "@/utils/handleError";
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-const devices = [
-  {
-    uid: "a582b47a42d",
-    name: "39-5e-2a",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T18:58:53.276Z",
-    online: false,
-    namespace: "user",
-    status: "accepted",
-    tags: [{ name: "test1" }],
-  },
-  {
-    uid: "a582b47a42e",
-    name: "39-5e-2b",
-    identity: {
-      mac: "00:00:00:00:00:00",
-    },
-    info: {
-      id: "linuxmint",
-      pretty_name: "Linux Mint 19.3",
-      version: "",
-    },
-    public_key: "----- PUBLIC KEY -----",
-    tenant_id: "fake-tenant-data",
-    last_seen: "2020-05-20T19:58:53.276Z",
-    online: true,
-    namespace: "user",
-    status: "accepted",
-    tags: [{ name: "test2" }],
-  },
-];
-
-const tags = [
-  { name: "tag1" },
-  { name: "tag2" },
-  { name: "tag3" },
-];
-
-describe("Tag Form Update", () => {
+describe("TagFormUpdate", () => {
   let wrapper: VueWrapper<InstanceType<typeof TagFormUpdate>>;
-  setActivePinia(createPinia());
-  const tagsStore = useTagsStore();
-  const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
-  mockTagsApi
-    .onGet("http://localhost:3000/api/tags?filter=&page=1&per_page=10")
-    .reply(200, tags, { "x-total-count": "3" });
-  localStorage.setItem("tenant", "fake-tenant-data");
+  let tagsStore: ReturnType<typeof useTagsStore>;
+  let dialog: DOMWrapper<HTMLElement>;
+
+  const openDialog = async () => {
+    const button = wrapper.find('[data-test="open-tags-btn"]');
+    await button.trigger("click");
+    await flushPromises();
+  };
+
+  const mountWrapper = ({
+    deviceUid = "device-123",
+    tagsList = [{ name: "test-tag" }],
+    hasAuthorization = true,
+    tags = [mockTag],
+  } = {}) => {
+    wrapper = mountComponent(TagFormUpdate, {
+      props: {
+        deviceUid,
+        tagsList,
+        hasAuthorization,
+      },
+      piniaOptions: {
+        initialState: {
+          tags: {
+            tags,
+            tagCount: tags.length,
+          },
+        },
+      },
+      attachTo: document.body,
+    });
+
+    tagsStore = useTagsStore();
+    dialog = new DOMWrapper(document.body);
+  };
 
   beforeEach(() => {
-    wrapper = mount(TagFormUpdate, {
-      attachTo: document.body,
-      global: {
-        plugins: [vuetify],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: {
-        deviceUid: devices[0].uid,
-        tagsList: devices[0].tags,
-        hasAuthorization: true,
-      },
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  describe("Component rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders list item button", () => {
+      const button = wrapper.find('[data-test="open-tags-btn"]');
+      expect(button.exists()).toBe(true);
+    });
+
+    it("shows 'Add Tags' when no tags exist", () => {
+      wrapper.unmount();
+      mountWrapper({ tagsList: [] });
+      const title = wrapper.find('[data-test="has-tags-verification"]');
+      expect(title.text()).toBe("Add Tags");
+    });
+
+    it("shows 'Edit tags' when tags exist", () => {
+      const title = wrapper.find('[data-test="has-tags-verification"]');
+      expect(title.text()).toBe("Edit tags");
+    });
+
+    it("disables button when hasAuthorization is false", () => {
+      wrapper.unmount();
+      mountWrapper({ hasAuthorization: false });
+      const button = wrapper.find('[data-test="open-tags-btn"]');
+      expect(button.classes()).toContain("v-list-item--disabled");
     });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("Dialog display", () => {
+    it("opens dialog when button is clicked", async () => {
+      mountWrapper();
+      await openDialog();
 
-  it("Renders the component data table", async () => {
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-    await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="device-tags-autocomplete"]').trigger("click");
-
-    expect(wrapper.find('[data-test="has-tags-verification"]').exists()).toBe(true);
-
-    const formDialog = wrapper.findComponent({ name: "FormDialog" });
-    expect(formDialog.exists()).toBe(true);
-    expect(formDialog.props("title")).toBe("Edit Tags");
-    expect(formDialog.props("icon")).toBe("mdi-tag");
-    expect(formDialog.props("confirmText")).toBe("Save");
-    expect(formDialog.props("cancelText")).toBe("Cancel");
-
-    // Content inside the dialog
-    expect(dialog.find('[data-test="device-tags-autocomplete"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="cancel-btn"]').exists()).toBe(true);
-  });
-
-  it("Successfully saves tags", async () => {
-    mockTagsApi
-      .onPost("http://localhost:3000/api/devices/a582b47a42d/tags/tag-test-1")
-      .reply(200);
-
-    const tagsSpy = vi.spyOn(tagsStore, "addTagToDevice");
-
-    await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-
-    wrapper.vm.selectedTags = ["tag-test-1", "test1"];
-    await wrapper.vm.saveTags();
-
-    await flushPromises();
-
-    expect(tagsSpy).toHaveBeenCalledWith(
-      "a582b47a42d",
-      "tag-test-1",
-    );
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Tags updated successfully.");
-  });
-
-  it("Successfully removes tags", async () => {
-    mockTagsApi
-      .onDelete("http://localhost:3000/api/devices/a582b47a42d/tags/test1")
-      .reply(200);
-
-    const tagsSpy = vi.spyOn(tagsStore, "removeTagFromDevice");
-
-    await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-
-    // Remove tag locally
-    wrapper.vm.removeTag("test1");
-
-    // Verify local removal
-    expect(wrapper.vm.selectedTags).not.toContain("test1");
-
-    // Save the changes
-    await wrapper.vm.saveTags();
-
-    await flushPromises();
-
-    expect(tagsSpy).toHaveBeenCalledWith(
-      "a582b47a42d",
-      "test1",
-    );
-    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Tags updated successfully.");
-  });
-
-  it("Successfully loads more tags", async () => {
-    mockTagsApi
-      .onGet("http://localhost:3000/api/tags?page=1&per_page=10")
-      .reply(200, tags, { "x-total-count": "3" });
-
-    const tagsSpy = vi.spyOn(tagsStore, "fetchTagList");
-
-    await wrapper.findComponent('[data-test="open-tags-btn"]').trigger("click");
-
-    await flushPromises();
-
-    await wrapper.vm.loadTags();
-
-    await flushPromises();
-
-    expect(tagsSpy).toHaveBeenCalledWith({
-      filter: "",
-      perPage: 10,
+      const dialogElement = dialog.find('[data-test="tags-form-dialog"]');
+      expect(dialogElement.exists()).toBe(true);
     });
-    expect(tagsStore.tags).toEqual(tags);
+
+    it("loads tags when dialog opens", async () => {
+      mountWrapper();
+      await openDialog();
+
+      expect(tagsStore.fetchTagList).toHaveBeenCalled();
+    });
+
+    it("shows autocomplete when dialog is open", async () => {
+      mountWrapper();
+      await openDialog();
+
+      const autocomplete = dialog.find('[data-test="device-tags-autocomplete"]');
+      expect(autocomplete.exists()).toBe(true);
+    });
+  });
+
+  describe("Tag selection", () => {
+    it("displays selected tags as chips", async () => {
+      mountWrapper({ tagsList: [{ name: "tag1" }, { name: "tag2" }] });
+      await openDialog();
+
+      const selectedTags = dialog.findAll('[data-test="selected-tag-chip"]');
+      expect(selectedTags.length).toBe(2);
+    });
+
+    it("limits selection to 3 tags", async () => {
+      mountWrapper();
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:modelValue", ["tag1", "tag2", "tag3", "tag4"]);
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Maximum of 3 tags allowed.");
+    });
+
+    it("allows removing tags", async () => {
+      mountWrapper({ tagsList: [{ name: "tag1" }, { name: "tag2" }] });
+      await openDialog();
+
+      const removeBtn = dialog.find('[data-test="selected-tag-chip"] .v-chip__close');
+      await removeBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.findAll('[data-test="selected-tag-chip"]').length).toBeLessThan(2);
+    });
+  });
+
+  describe("Tag creation", () => {
+    it("shows create button when valid new tag is entered", async () => {
+      mountWrapper({ tags: [] });
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:menu", true);
+      await autocomplete.vm.$emit("update:search", "new-tag");
+      await flushPromises();
+
+      const createBtn = dialog.find('[data-test="create-new-tag-btn"]');
+      expect(createBtn.exists()).toBe(true);
+    });
+
+    it("creates new tag and adds to selection", async () => {
+      mountWrapper({ tags: [], tagsList: [] });
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:menu", true);
+      await autocomplete.vm.$emit("update:search", "new-tag");
+      await flushPromises();
+
+      const createBtn = dialog.find('[data-test="create-new-tag-btn"]');
+      await createBtn.trigger("click");
+      await flushPromises();
+
+      expect(tagsStore.createTag).toHaveBeenCalledWith("new-tag");
+    });
+
+    it("shows error when tag creation fails", async () => {
+      mountWrapper({ tags: [], tagsList: [] });
+      vi.mocked(tagsStore.createTag).mockRejectedValueOnce(
+        createAxiosError(500, "Error"),
+      );
+
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:menu", true);
+      await autocomplete.vm.$emit("update:search", "new-tag");
+      await flushPromises();
+
+      const createBtn = dialog.find('[data-test="create-new-tag-btn"]');
+      await createBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to create tag.");
+    });
+  });
+
+  describe("Saving tags", () => {
+    it("calls addTagToDevice for newly added tags", async () => {
+      mountWrapper({ tagsList: [] });
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:modelValue", ["new-tag"]);
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(tagsStore.addTagToDevice).toHaveBeenCalledWith("device-123", "new-tag");
+    });
+
+    it("calls removeTagFromDevice for removed tags", async () => {
+      mountWrapper({ tagsList: [{ name: "tag1" }, { name: "tag2" }] });
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:modelValue", ["tag1"]);
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(tagsStore.removeTagFromDevice).toHaveBeenCalledWith("device-123", "tag2");
+    });
+
+    it("shows success message on save", async () => {
+      mountWrapper({ tagsList: [] });
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:modelValue", ["new-tag"]);
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Tags updated successfully.");
+    });
+
+    it("emits update event on successful save", async () => {
+      mountWrapper({ tagsList: [] });
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:modelValue", ["new-tag"]);
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("closes dialog on successful save", async () => {
+      mountWrapper({ tagsList: [] });
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:modelValue", ["new-tag"]);
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none");
+    });
+
+    it("shows error message on save failure", async () => {
+      mountWrapper({ tagsList: [] });
+      vi.mocked(tagsStore.addTagToDevice).mockRejectedValueOnce(
+        createAxiosError(500, "Error"),
+      );
+
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:modelValue", ["new-tag"]);
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="confirm-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update tags.");
+    });
+  });
+
+  describe("Error handling", () => {
+    it("shows error when loading tags fails", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+
+      mountWrapper();
+      vi.mocked(tagsStore.fetchTagList).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const autocomplete = wrapper.findComponent({ name: "VAutocomplete" });
+      await autocomplete.vm.$emit("update:search", "new-tag");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load tags.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 });

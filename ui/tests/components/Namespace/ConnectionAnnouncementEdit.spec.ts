@@ -1,106 +1,179 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import { nextTick } from "vue";
+import { describe, expect, it, afterEach, vi, beforeEach } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mockSnackbar, mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mockNamespace } from "@tests/mocks";
 import ConnectionAnnouncementEdit from "@/components/Namespace/ConnectionAnnouncementEdit.vue";
-import { namespacesApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useNamespacesStore from "@/store/modules/namespaces";
-import { INamespaceMember } from "@/interfaces/INamespace";
+import handleError from "@/utils/handleError";
 
-type ConnectionAnnouncementEditWrapper = VueWrapper<InstanceType<typeof ConnectionAnnouncementEdit>>;
-
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
+const mockNamespaceWithAnnouncement = {
+  ...mockNamespace,
+  settings: {
+    connection_announcement: "Welcome message",
+  },
 };
 
-describe("Connection Announcement Edit", () => {
-  let wrapper: ConnectionAnnouncementEditWrapper;
-  setActivePinia(createPinia());
-  const namespacesStore = useNamespacesStore();
-  const vuetify = createVuetify();
+describe("ConnectionAnnouncementEdit", () => {
+  let wrapper: VueWrapper<InstanceType<typeof ConnectionAnnouncementEdit>>;
+  let dialog: DOMWrapper<Element>;
+  let namespacesStore: ReturnType<typeof useNamespacesStore>;
 
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+  const mountWrapper = async (currentNamespace = mockNamespaceWithAnnouncement) => {
+    wrapper = mountComponent(ConnectionAnnouncementEdit, {
+      props: { modelValue: true },
+      attachTo: document.body,
+      piniaOptions: {
+        initialState: {
+          namespaces: { currentNamespace },
+          auth: { token: "test-token", tenantId: currentNamespace.tenant_id },
+        },
+      },
+    });
 
-  const members = [
-    {
-      id: "xxxxxxxx",
-      role: "owner" as const,
-    },
-  ] as INamespaceMember[];
+    namespacesStore = useNamespacesStore();
+    dialog = new DOMWrapper(document.body);
 
-  const namespaceData = {
-    billing: null,
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-      connection_announcement: "",
-    },
-    max_devices: 3,
-    devices_accepted_count: 3,
-    devices_rejected_count: 0,
-    devices_pending_count: 0,
-    created_at: "",
-    type: "team" as const,
+    await flushPromises();
   };
 
-  beforeEach(() => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-    mockNamespacesApi.onGet("http://localhost:3000/api/namespaces?page=1&per_page=10").reply(200, [namespaceData]);
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
 
-    namespacesStore.currentNamespace = namespaceData;
+  describe("Dialog display", () => {
+    beforeEach(() => mountWrapper());
+    it("Renders FormDialog component", () => {
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.exists()).toBe(true);
+    });
 
-    wrapper = mount(ConnectionAnnouncementEdit, {
-      global: {
-        plugins: [vuetify],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: { modelValue: true },
+    it("Shows correct title", () => {
+      expect(dialog.find('[data-test="window-dialog-titlebar"]').text()).toContain("Change Connection Announcement");
+    });
+
+    it("Shows Edit and Close buttons", () => {
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("confirmText")).toBe("Save Announcement");
+      expect(formDialog.props("cancelText")).toBe("Cancel");
     });
   });
 
-  afterEach(() => {
-    wrapper.unmount();
+  describe("Textarea field", () => {
+    it("Renders textarea with current announcement", async () => {
+      await mountWrapper();
+
+      const textarea = dialog.find('[data-test="connection-announcement-text"] textarea');
+
+      expect(textarea.exists()).toBe(true);
+      expect((textarea.element as HTMLTextAreaElement).value).toBe("Welcome message");
+    });
+
+    it("Renders empty textarea when no announcement exists", async () => {
+      const currentNamespace = {
+        ...mockNamespace,
+        settings: {
+          connection_announcement: "",
+        },
+      };
+      await mountWrapper(currentNamespace);
+
+      const textarea = dialog.find('[data-test="connection-announcement-text"] textarea');
+      expect((textarea.element as HTMLTextAreaElement).value).toBe("");
+    });
   });
 
-  it("Successfully changes connection announcement data", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-    const changeNamespaceData = {
-      tenant_id: "fake-tenant-data",
-      settings: {
-        connection_announcement: "test",
-      },
-    };
+  describe("Form validation", () => {
+    beforeEach(() => mountWrapper());
+    it("Validates max length of 4096 characters", async () => {
+      const textarea = dialog.find('[data-test="connection-announcement-text"] textarea');
+      const longText = "a".repeat(4097);
 
-    mockNamespacesApi.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, changeNamespaceData);
+      await textarea.setValue(longText);
+      await flushPromises();
 
-    await wrapper.findComponent('[data-test="connection-announcement-text"]').setValue("test");
+      const confirmBtn = dialog.find('[data-test="change-connection-announcement-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    const storeSpy = vi.spyOn(namespacesStore, "editNamespace");
-    await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
+      const errorMessage = dialog.find('[data-test="connection-announcement-text"] .v-messages__message');
+      expect(errorMessage.text()).toBe("Your message should be 1-4096 characters long");
+    });
 
-    await nextTick();
-    await flushPromises();
-    expect(storeSpy).toHaveBeenCalledWith(changeNamespaceData);
+    it("Accepts text within 4096 character limit", async () => {
+      const textarea = dialog.find('[data-test="connection-announcement-text"] textarea');
+      const validText = "a".repeat(4096);
+
+      await textarea.setValue(validText);
+      await flushPromises();
+
+      const errorMessage = dialog.find('[data-test="connection-announcement-text"] .v-messages__message');
+      expect(errorMessage.text()).not.toBe("Your message should be 1-4096 characters long");
+    });
   });
 
-  it("Fails to change connection announcement data", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-    mockNamespacesApi.onPut("http://localhost:3000/api/namespaces/fake-tenant-data").reply(403);
+  describe("Update announcement", () => {
+    beforeEach(() => mountWrapper());
+    it("Calls editNamespace when confirmed", async () => {
+      const textarea = dialog.find('[data-test="connection-announcement-text"] textarea');
+      const newAnnouncement = "Updated welcome message";
+      await textarea.setValue(newAnnouncement);
+      await flushPromises();
 
-    await wrapper.findComponent('[data-test="change-connection-btn"]').trigger("click");
+      const confirmBtn = dialog.find('[data-test="change-connection-announcement-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    await nextTick();
-    await flushPromises();
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while updating the connection announcement.");
+      expect(namespacesStore.editNamespace).toHaveBeenCalledWith({
+        tenant_id: mockNamespace.tenant_id,
+        settings: { connection_announcement: newAnnouncement },
+      });
+    });
+
+    it("Emits update event after successful edit", async () => {
+      const textarea = dialog.find('[data-test="connection-announcement-text"] textarea');
+      await textarea.setValue("Updated message");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="change-connection-announcement-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+  });
+
+  describe("Error handling", () => {
+    beforeEach(() => mountWrapper());
+    it("Handles 400 error", async () => {
+      const error = createAxiosError(400, "Bad Request");
+
+      vi.mocked(namespacesStore.editNamespace).mockRejectedValueOnce(error);
+
+      const confirmBtn = dialog.find('[data-test="change-connection-announcement-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(namespacesStore.editNamespace).toHaveBeenCalled();
+      const errorMessage = dialog.find('[data-test="connection-announcement-text"] .v-messages__message');
+      expect(errorMessage.text()).toBe("This message is not valid");
+      expect(handleError).not.toHaveBeenCalled();
+    });
+
+    it("Handles 500 error", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+
+      vi.mocked(namespacesStore.editNamespace).mockRejectedValueOnce(error);
+
+      const confirmBtn = dialog.find('[data-test="change-connection-announcement-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(namespacesStore.editNamespace).toHaveBeenCalled();
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("An error occurred while updating the connection announcement.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 });

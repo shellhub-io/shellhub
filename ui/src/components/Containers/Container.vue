@@ -15,6 +15,7 @@
           :active="isActive(state.to)"
           active-color="secondary"
           class="bg-background"
+          data-test="container-state-btn"
         >
           {{ state.title }}
         </v-btn>

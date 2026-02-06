@@ -1,87 +1,116 @@
-import { setActivePinia, createPinia } from "pinia";
-import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import TagEdit from "@/components/Tags/TagEdit.vue";
-import { router } from "@/router";
-import { tagsApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useTagsStore from "@/store/modules/tags";
+import handleError from "@/utils/handleError";
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-describe("Tag Form Edit", () => {
+describe("TagEdit", () => {
   let wrapper: VueWrapper<InstanceType<typeof TagEdit>>;
-  setActivePinia(createPinia());
-  const tagsStore = useTagsStore();
-  const vuetify = createVuetify();
-  const mockTagsApi = new MockAdapter(tagsApi.getAxios());
-  localStorage.setItem("tenant", "fake-tenant-data");
+  let tagsStore: ReturnType<typeof useTagsStore>;
+  let dialog: DOMWrapper<HTMLElement>;
 
-  beforeEach(() => {
-    wrapper = mount(TagEdit, {
-      global: {
-        plugins: [vuetify, router],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: {
-        tagName: "tag-test",
-        hasAuthorization: true,
-      },
+  const openDialog = async () => {
+    const listItem = wrapper.find('[data-test="open-tag-edit"]');
+    await listItem.trigger("click");
+    await flushPromises();
+  };
+
+  const mountWrapper = ({ tagName = "tag-test", hasAuthorization = true } = {}) => {
+    wrapper = mountComponent(TagEdit, {
+      props: { tagName, hasAuthorization },
+      attachTo: document.body,
+    });
+    tagsStore = useTagsStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  describe("Rendering", () => {
+    it("renders edit list item", () => {
+      const listItem = wrapper.find('[data-test="open-tag-edit"]');
+      expect(listItem.exists()).toBe(true);
+    });
+
+    it("disables list item when hasAuthorization is false", () => {
+      wrapper.unmount();
+      mountWrapper({ hasAuthorization: false });
+      const listItem = wrapper.find('[data-test="open-tag-edit"]');
+      expect(listItem.classes()).toContain("v-list-item--disabled");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("Tag update", () => {
+    it("calls updateTag when submitting valid form", async () => {
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="tag-field"] input');
+      await nameInput.setValue("updated-tag");
+      await flushPromises();
+
+      const updateBtn = dialog.find('[data-test="edit-btn"]');
+      await updateBtn.trigger("click");
+      await flushPromises();
+
+      expect(tagsStore.updateTag).toHaveBeenCalledWith("tag-test", { name: "updated-tag" });
+    });
+
+    it("shows success snackbar on successful update", async () => {
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="tag-field"] input');
+      await nameInput.setValue("updated-tag");
+      await flushPromises();
+
+      const updateBtn = dialog.find('[data-test="edit-btn"]');
+      await updateBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Tag updated successfully.");
+    });
+
+    it("emits update event on successful update", async () => {
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="tag-field"] input');
+      await nameInput.setValue("updated-tag");
+      await flushPromises();
+
+      const updateBtn = dialog.find('[data-test="edit-btn"]');
+      await updateBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("Error handling", () => {
+    it("shows error snackbar when update fails", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
 
-  it("Renders the component table", async () => {
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-    await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
+      mountWrapper();
+      vi.mocked(tagsStore.updateTag).mockRejectedValueOnce(error);
 
-    expect(wrapper.find('[data-test="mdi-information-list-item"]').exists()).toBe(true);
-    expect(wrapper.findComponent('[data-test="tag-field"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="edit-btn"]').exists()).toBe(true);
-  });
+      await openDialog();
 
-  it("Successfully edit tag", async () => {
-    mockTagsApi.onPatch("http://localhost:3000/api/tags/tag-test").reply(200);
+      const nameInput = dialog.find('[data-test="tag-field"] input');
+      await nameInput.setValue("updated-tag");
+      await flushPromises();
 
-    const tagsSpy = vi.spyOn(tagsStore, "updateTag");
+      const updateBtn = dialog.find('[data-test="edit-btn"]');
+      await updateBtn.trigger("click");
+      await flushPromises();
 
-    await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="tag-field"]').setValue("tag-test2");
-
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-
-    await flushPromises();
-
-    expect(tagsSpy).toHaveBeenCalledWith(
-      "tag-test",
-      {
-        name: "tag-test2",
-      },
-    );
-  });
-
-  it("Failed to add tags", async () => {
-    mockTagsApi.onPatch("http://localhost:3000/api/tags/tag-test").reply(409);
-
-    await wrapper.findComponent('[data-test="open-tag-edit"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-    await flushPromises();
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update tag.");
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update tag.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 });

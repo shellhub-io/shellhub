@@ -8,7 +8,6 @@ export interface IUser {
   user: string;
   username: string;
   recovery_email: string;
-  currentPassword: string;
 }
 
 export interface IUserPatch {

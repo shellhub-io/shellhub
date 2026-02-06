@@ -1,111 +1,265 @@
-import MockAdapter from "axios-mock-adapter";
-import { createPinia, setActivePinia } from "pinia";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import ApiKeyEdit from "@/components/Team/ApiKeys/ApiKeyEdit.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { apiKeysApi } from "@/api/http";
+import useApiKeysStore from "@/store/modules/api_keys";
+import { BasicRole } from "@/interfaces/INamespace";
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-  showWarning: vi.fn(),
-  showInfo: vi.fn(),
-};
-
-vi.mock("@/helpers/snackbar", () => ({
-  default: () => mockSnackbar,
-}));
-
-describe("Api Key Edit", () => {
+describe("ApiKeyEdit", () => {
   let wrapper: VueWrapper<InstanceType<typeof ApiKeyEdit>>;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
+  let apiKeysStore: ReturnType<typeof useApiKeysStore>;
+  let dialog: DOMWrapper<HTMLElement>;
 
-  beforeEach(() => {
+  const openDialog = async () => {
+    const listItem = wrapper.find('[data-test="edit-api-key-btn"]');
+    await listItem.trigger("click");
+    await flushPromises();
+  };
+
+  const mountWrapper = ({
+    keyName = "test-key",
+    keyRole = "administrator" as BasicRole,
+    hasAuthorization = true,
+    disabled = false,
+  } = {}) => {
+    wrapper = mountComponent(ApiKeyEdit, {
+      props: { keyName, keyRole, hasAuthorization, disabled },
+      attachTo: document.body,
+    });
+    apiKeysStore = useApiKeysStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
     vi.clearAllMocks();
-    wrapper = mount(ApiKeyEdit, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-      props: {
-        keyName: "fake-id",
-        keyRole: "observer",
-        hasAuthorization: true,
-        disabled: false,
-      },
+    document.body.innerHTML = "";
+  });
+
+  describe("Rendering", () => {
+    it("renders edit list item", () => {
+      const listItem = wrapper.find('[data-test="edit-main-btn-title"]');
+      expect(listItem.exists()).toBe(true);
+      expect(listItem.text()).toBe("Edit");
+    });
+
+    it("renders edit icon", () => {
+      const icon = wrapper.find('[data-test="edit-icon"]');
+      expect(icon.exists()).toBe(true);
+    });
+
+    it("disables list item when hasAuthorization is false", () => {
+      wrapper.unmount();
+      mountWrapper({ hasAuthorization: false });
+
+      const listItem = wrapper.find("[data-test=edit-api-key-btn]");
+      expect(listItem.classes()).toContain("v-list-item--disabled");
+    });
+
+    it("disables list item when disabled prop is true", () => {
+      wrapper.unmount();
+      mountWrapper({ disabled: true });
+
+      const listItem = wrapper.find("[data-test=edit-api-key-btn]");
+      expect(listItem.classes()).toContain("v-list-item--disabled");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("Dialog", () => {
+    it("opens dialog when list item is clicked", async () => {
+      await openDialog();
+
+      const editDialog = dialog.find('[data-test="edit-dialog"]');
+      expect(editDialog.exists()).toBe(true);
+    });
+
+    it("renders form fields with initial values", async () => {
+      wrapper.unmount();
+      mountWrapper({ keyName: "my-key", keyRole: "observer" });
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input').element as HTMLInputElement;
+      expect(nameInput.value).toBe("my-key");
+    });
+
+    it("renders dialog buttons", async () => {
+      await openDialog();
+
+      expect(dialog.find('[data-test="edit-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  describe("API key editing", () => {
+    it("calls editApiKey when submitting with changed name", async () => {
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(apiKeysStore.editApiKey).toHaveBeenCalledWith({
+        key: "test-key",
+        name: "updated-key",
+        role: "administrator",
+      });
+    });
+
+    it("does not send name when it hasn't changed", async () => {
+      await openDialog();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(apiKeysStore.editApiKey).toHaveBeenCalledWith({
+        key: "test-key",
+        name: undefined,
+        role: "administrator",
+      });
+    });
+
+    it("shows success snackbar on successful edit", async () => {
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("API Key edited successfully.");
+    });
+
+    it("emits update event on successful edit", async () => {
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("closes dialog on successful edit", async () => {
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      const dialogContent = dialog.find(".v-overlay__content");
+      expect(dialogContent.attributes("style")).toContain("display: none;");
+    });
   });
 
-  it("Renders components", async () => {
-    expect(wrapper.find('[data-test="edit-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="edit-main-btn-title"]').exists()).toBe(true);
+  describe("Error handling", () => {
+    it("shows error snackbar when edit fails", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      vi.mocked(apiKeysStore.editApiKey).mockRejectedValueOnce(error);
 
-    await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
+      await openDialog();
 
-    expect(dialog.find('[data-test="edit-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="key-name-text"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="edit-btn"]').exists()).toBe(true);
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to edit API Key.");
+    });
+
+    it("shows error message for 409 status", async () => {
+      const error = createAxiosError(409, "Conflict");
+      vi.mocked(apiKeysStore.editApiKey).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      const alert = dialog.find('[data-test="form-dialog-alert"]');
+      expect(alert.text()).toContain("An API key with the same name already exists.");
+    });
+
+    it("shows generic error message for other status codes", async () => {
+      const error = createAxiosError(503, "Service Unavailable");
+      vi.mocked(apiKeysStore.editApiKey).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      const alert = dialog.find('[data-test="form-dialog-alert"]');
+      expect(alert.text()).toContain("An error occurred while editing your API key.");
+    });
+
+    it("dismisses error message when alert is dismissed", async () => {
+      const error = createAxiosError(409, "Conflict");
+      vi.mocked(apiKeysStore.editApiKey).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const nameInput = dialog.find('[data-test="key-name-text"] input');
+      await nameInput.setValue("updated-key");
+      await flushPromises();
+
+      const saveBtn = dialog.find('[data-test="edit-btn"]');
+      await saveBtn.trigger("click");
+      await flushPromises();
+
+      let alert = dialog.find('[data-test="form-dialog-alert"]');
+      expect(alert.exists()).toBe(true);
+
+      const closeAlertBtn = alert.find('[data-test="alert-got-it-btn"]');
+      await closeAlertBtn.trigger("click");
+      await flushPromises();
+
+      alert = dialog.find('[data-test="form-dialog-alert"]');
+      expect(alert.exists()).toBe(false);
+    });
   });
 
-  it("Opens dialog when edit button is clicked", async () => {
-    expect(wrapper.vm.showDialog).toBe(false);
+  describe("Dialog close", () => {
+    it("closes dialog when cancel button is clicked", async () => {
+      await openDialog();
 
-    await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
-    await flushPromises();
+      const cancelBtn = dialog.find('[data-test="close-btn"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
 
-    expect(wrapper.vm.showDialog).toBe(true);
-  });
-
-  it("Shows error message when errorMessage is set", async () => {
-    await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
-
-    // Set error message directly
-    wrapper.vm.errorMessage = "Test error message";
-    await flushPromises();
-
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.find('[data-test="form-dialog-alert"]').exists()).toBe(true);
-  });
-
-  it("Clears error message when dialog is opened", async () => {
-    wrapper.vm.errorMessage = "Test error message";
-
-    wrapper.vm.open();
-    await flushPromises();
-
-    expect(wrapper.vm.errorMessage).toBe("");
-  });
-
-  it("Handles form submission", async () => {
-    mockApiKeysApi.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(200);
-    const mockSubmitData = { name: "new-key-name", role: "administrator" as const };
-    await wrapper.findComponent('[data-test="edit-main-btn-title"]').trigger("click");
-    await wrapper.vm.editKey(mockSubmitData);
-
-    // Should call the store's editApiKey method
-    // This test validates the method structure and flow
-    expect(wrapper.vm.showDialog).toBe(false); // Dialog should close on success
-  });
-
-  it("Fails to Edit Api Key (409)", async () => {
-    mockApiKeysApi.onPatch("http://localhost:3000/api/namespaces/api-key/fake-id").reply(409);
-    await wrapper.vm.editKey({ name: "new-key-name", role: "administrator" });
-    await flushPromises();
-
-    expect(wrapper.vm.errorMessage).toBe("An API key with the same name already exists.");
+      const dialogContent = dialog.find(".v-overlay__content");
+      expect(dialogContent.attributes("style")).toContain("display: none;");
+    });
   });
 });

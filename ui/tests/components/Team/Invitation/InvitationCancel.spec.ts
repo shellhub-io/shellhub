@@ -1,90 +1,211 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { mockInvitation } from "@tests/mocks/invitation";
 import InvitationCancel from "@/components/Team/Invitation/InvitationCancel.vue";
-import { namespacesApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useInvitationsStore from "@/store/modules/invitations";
-import { IInvitation } from "@/interfaces/IInvitation";
-
-type InvitationCancelWrapper = VueWrapper<InstanceType<typeof InvitationCancel>>;
-
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-const invitation: IInvitation = {
-  status: "pending",
-  role: "operator",
-  invited_by: "user1",
-  expires_at: "2025-12-31T23:59:59Z",
-  created_at: "2025-12-01T00:00:00Z",
-  updated_at: "2025-12-01T00:00:00Z",
-  status_updated_at: "2025-12-01T00:00:00Z",
-  namespace: {
-    tenant_id: "fake-tenant",
-    name: "Test Namespace",
-  },
-  user: {
-    id: "user123",
-    email: "test@example.com",
-  },
-};
+import handleError from "@/utils/handleError";
 
 describe("InvitationCancel", () => {
-  let wrapper: InvitationCancelWrapper;
-  setActivePinia(createPinia());
-  const invitationsStore = useInvitationsStore();
-  const vuetify = createVuetify();
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
+  let wrapper: VueWrapper<InstanceType<typeof InvitationCancel>>;
+  let invitationsStore: ReturnType<typeof useInvitationsStore>;
+  let dialog: DOMWrapper<HTMLElement>;
 
-  beforeEach(() => {
-    wrapper = mount(InvitationCancel, {
-      global: {
-        plugins: [vuetify],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: {
-        invitation,
-        hasAuthorization: true,
-      },
+  const openDialog = async () => {
+    const listItem = wrapper.find('[data-test="invitation-cancel-btn"]');
+    await listItem.trigger("click");
+    await flushPromises();
+  };
+
+  const mountWrapper = ({
+    invitation = mockInvitation,
+    hasAuthorization = true,
+  } = {}) => {
+    wrapper = mountComponent(InvitationCancel, {
+      props: { invitation, hasAuthorization },
+      attachTo: document.body,
+    });
+    invitationsStore = useInvitationsStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  describe("Rendering", () => {
+    it("renders cancel list item", () => {
+      const listItem = wrapper.find('[data-test="invitation-cancel-btn"]');
+      expect(listItem.exists()).toBe(true);
+    });
+
+    it("renders cancel title", () => {
+      const title = wrapper.find('[data-test="invitation-cancel-title"]');
+      expect(title.exists()).toBe(true);
+      expect(title.text()).toBe("Cancel");
+    });
+
+    it("disables list item when hasAuthorization is false", () => {
+      wrapper.unmount();
+      mountWrapper({ hasAuthorization: false });
+
+      const listItem = wrapper.find('[data-test="invitation-cancel-btn"]');
+      expect(listItem.classes()).toContain("v-list-item--disabled");
     });
   });
 
-  it("Cancel invitation success", async () => {
-    mockNamespacesApi.onDelete("http://localhost:3000/api/namespaces/fake-tenant/invitations/user123").reply(200);
+  describe("Dialog", () => {
+    it("opens dialog when list item is clicked", async () => {
+      await openDialog();
 
-    const storeSpy = vi.spyOn(invitationsStore, "cancelInvitation");
-
-    await wrapper.findComponent('[data-test="invitation-cancel-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="cancel-invitation-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(storeSpy).toBeCalledWith({
-      tenant: "fake-tenant",
-      user_id: "user123",
+      const cancelDialog = dialog.find('[data-test="invitation-cancel-dialog"]');
+      expect(cancelDialog.exists()).toBe(true);
     });
 
-    expect(mockSnackbar.showSuccess).toBeCalledWith("Successfully cancelled invitation.");
+    it("displays invitation email in dialog description", async () => {
+      await openDialog();
+
+      const cancelDialog = dialog.find('[data-test="invitation-cancel-dialog"]');
+      expect(cancelDialog.text()).toContain(mockInvitation.user.email);
+    });
+
+    it("renders dialog buttons", async () => {
+      await openDialog();
+
+      expect(dialog.find('[data-test="cancel-invitation-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    });
   });
 
-  it("Cancel invitation error", async () => {
-    mockNamespacesApi.onDelete("http://localhost:3000/api/namespaces/fake-tenant/invitations/user123").reply(404);
+  describe("Invitation cancellation", () => {
+    it("calls cancelInvitation when confirming", async () => {
+      await openDialog();
 
-    const storeSpy = vi.spyOn(invitationsStore, "cancelInvitation");
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-    await wrapper.findComponent('[data-test="invitation-cancel-btn"]').trigger("click");
-    await wrapper.findComponent('[data-test="cancel-invitation-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(storeSpy).toBeCalledWith({
-      tenant: "fake-tenant",
-      user_id: "user123",
+      expect(invitationsStore.cancelInvitation).toHaveBeenCalledWith({
+        tenant: mockInvitation.namespace.tenant_id,
+        user_id: mockInvitation.user.id,
+      });
     });
 
-    expect(mockSnackbar.showError).toBeCalledWith("Invitation not found.");
+    it("shows success snackbar on successful cancellation", async () => {
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Successfully cancelled invitation.");
+    });
+
+    it("emits update event on successful cancellation", async () => {
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("closes dialog on successful cancellation", async () => {
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      const cancelDialogContent = dialog.find('[data-test="invitation-cancel-dialog"] .v-overlay__content');
+      expect(cancelDialogContent.attributes("style")).toContain("display: none");
+    });
+  });
+
+  describe("Error handling", () => {
+    it("shows error snackbar when cancellation fails", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      vi.mocked(invitationsStore.cancelInvitation).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to cancel invitation.");
+    });
+
+    it("shows error message for 400 status", async () => {
+      const error = createAxiosError(400, "Bad Request");
+      vi.mocked(invitationsStore.cancelInvitation).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Invalid invitation.");
+    });
+
+    it("shows error message for 403 status", async () => {
+      const error = createAxiosError(403, "Forbidden");
+      vi.mocked(invitationsStore.cancelInvitation).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("You don't have permission to cancel invitations.");
+    });
+
+    it("shows error message for 404 status", async () => {
+      const error = createAxiosError(404, "Not Found");
+      vi.mocked(invitationsStore.cancelInvitation).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Invitation not found.");
+    });
+
+    it("shows generic error message for other status codes", async () => {
+      const error = createAxiosError(503, "Service Unavailable");
+      vi.mocked(invitationsStore.cancelInvitation).mockRejectedValueOnce(error);
+
+      await openDialog();
+
+      const confirmBtn = dialog.find('[data-test="cancel-invitation-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to cancel invitation.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe("Dialog close", () => {
+    it("closes dialog when cancel button is clicked", async () => {
+      await openDialog();
+
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      await closeBtn.trigger("click");
+      await flushPromises();
+
+      const cancelDialogContent = dialog.find('[data-test="invitation-cancel-dialog"] .v-overlay__content');
+      expect(cancelDialogContent.attributes("style")).toContain("display: none");
+    });
   });
 });

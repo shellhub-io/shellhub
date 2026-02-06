@@ -1,7 +1,7 @@
 <template>
   <MessageDialog
     v-model="showDialog"
-    title="Namespace Leave"
+    title="Leave Namespace"
     description="Are you sure you want to leave this namespace? If you leave, you will need an invitation to rejoin."
     icon="mdi-exit-to-app"
     icon-color="warning"
@@ -47,6 +47,4 @@ const leave = async () => {
     isLoading.value = false;
   }
 };
-
-defineExpose({ showDialog });
 </script>

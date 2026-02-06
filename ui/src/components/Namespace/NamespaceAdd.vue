@@ -32,6 +32,7 @@
           label="Namespace"
           :error-messages="namespaceNameError"
           hide-details="auto"
+          data-test="namespace-name-field"
           class="mt-1 mb-4"
         />
         <div class="text-body-2 text-justify">
@@ -69,7 +70,7 @@
 import { computed, ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
@@ -105,21 +106,20 @@ const close = () => {
   resetNamespaceName();
 };
 
+// Handle unknown errors and display notifications
+const handleErrorAndNotify = (error: unknown) => {
+  snackbar.showError("An error occurred while creating the namespace.");
+  handleError(error);
+};
+
 // Change to the specified namespace
 const changeNamespace = async (tenantId: string) => {
   try {
     await namespacesStore.switchNamespace(tenantId);
     window.location.reload();
   } catch (error) {
-    snackbar.showError("An error occurred while switching namespaces.");
-    handleError(error);
+    handleErrorAndNotify(error);
   }
-};
-
-// Handle unknown errors and display notifications
-const handleErrorAndNotify = (error: unknown) => {
-  snackbar.showError("An error occurred while creating the namespace.");
-  handleError(error);
 };
 
 // Add a new namespace
@@ -134,19 +134,18 @@ const addNamespace = async () => {
     snackbar.showSuccess("Namespace created successfully");
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 400) {
-        setNamespaceNameError("Your namespace should be 3-30 characters long");
-      } else if (axiosError.response?.status === 403) {
-        setNamespaceNameError("Update your plan to create more namespaces");
-      } else if (axiosError.response?.status === 409) {
-        setNamespaceNameError("Namespace already exists");
-      } else {
-        handleErrorAndNotify(error);
+      const namespaceErrorMap: Record<number, string> = {
+        400: "Your namespace should be 3-30 characters long",
+        403: "Update your plan to create more namespaces",
+        409: "Namespace already exists",
+      };
+      const errorMessage = namespaceErrorMap[error.response?.status || 0];
+      if (errorMessage) {
+        setNamespaceNameError(errorMessage);
+        return;
       }
-    } else {
-      handleErrorAndNotify(error);
     }
+    handleErrorAndNotify(error);
   } finally {
     isLoading.value = false;
   }

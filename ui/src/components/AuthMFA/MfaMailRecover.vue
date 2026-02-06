@@ -30,6 +30,3 @@
     </v-card-subtitle>
   </v-container>
 </template>
-
-<script setup lang="ts">
-</script>

@@ -1,105 +1,192 @@
-import MockAdapter from "axios-mock-adapter";
-import { createPinia, setActivePinia } from "pinia";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
+import { describe, expect, it, afterEach, vi, beforeEach } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createAxiosError } from "@tests/utils/axiosError";
 import DeviceRename from "@/components/Devices/DeviceRename.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 import useDevicesStore from "@/store/modules/devices";
-import { devicesApi } from "@/api/http";
 
 describe("DeviceRename", () => {
   let wrapper: VueWrapper<InstanceType<typeof DeviceRename>>;
-  setActivePinia(createPinia());
-  const devicesStore = useDevicesStore();
-  const vuetify = createVuetify();
-  const mockDevicesApi = new MockAdapter(devicesApi.getAxios());
+  let dialog: DOMWrapper<Element>;
+  let devicesStore: ReturnType<typeof useDevicesStore>;
 
   beforeEach(() => {
-    wrapper = mount(DeviceRename, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-      props: {
-        uid: "a582b47a42d",
-        name: "39-5e-2a",
-      },
+    wrapper = mountComponent(DeviceRename, {
+      props: { uid: "test-device-uid", name: "test-device-name" },
     });
+
+    devicesStore = useDevicesStore();
+    dialog = new DOMWrapper(document.body);
   });
 
   afterEach(() => {
-    wrapper.unmount();
+    wrapper?.unmount();
+    document.body.innerHTML = "";
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("list item", () => {
+    it("renders rename list item", () => {
+      expect(wrapper.find('[data-test="rename-icon"]').exists()).toBe(true);
+    });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+    it("displays Rename text", () => {
+      expect(wrapper.find('[data-test="rename-title"]').text()).toBe("Rename");
+    });
 
-  it("Renders list item with rename option", () => {
-    expect(wrapper.find('[data-test="rename-icon"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="rename-title"]').exists()).toBe(true);
-  });
+    it("opens dialog when clicked", async () => {
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
 
-  it("Shows FormDialog with correct props when opened", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-
-    const formDialog = wrapper.findComponent({ name: "FormDialog" });
-    expect(formDialog.exists()).toBe(true);
-    expect(formDialog.props("title")).toBe("Rename Device");
-    expect(formDialog.props("icon")).toBe("mdi-pencil");
-    expect(formDialog.props("confirmText")).toBe("Rename");
-    expect(formDialog.props("cancelText")).toBe("Close");
-  });
-
-  it("Shows text field with initial device name", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
-
-    const textField = wrapper.findComponent({ name: "VTextField" });
-    expect(textField.exists()).toBe(true);
-    expect(textField.props("modelValue")).toBe("39-5e-2a");
-  });
-
-  it("Calls renameDevice when rename is successful", async () => {
-    const storeSpy = vi.spyOn(devicesStore, "renameDevice").mockResolvedValue();
-
-    wrapper.vm.newName = "new-device-name";
-    await wrapper.vm.rename();
-
-    expect(storeSpy).toHaveBeenCalledWith({
-      uid: "a582b47a42d",
-      name: { name: "new-device-name" },
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("modelValue")).toBe(true);
     });
   });
 
-  it("Closes dialog when cancel is emitted", async () => {
-    wrapper.vm.showDialog = true;
-    await flushPromises();
+  describe("rename dialog", () => {
+    it("shows FormDialog with correct props", async () => {
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
 
-    const formDialog = wrapper.findComponent({ name: "FormDialog" });
-    await formDialog.vm.$emit("cancel");
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      expect(formDialog.props("title")).toBe("Rename Device");
+      expect(formDialog.props("icon")).toBe("mdi-pencil");
+      expect(formDialog.props("confirmText")).toBe("Rename");
+      expect(formDialog.props("cancelText")).toBe("Close");
+    });
 
-    expect(wrapper.vm.showDialog).toBe(false);
+    it("displays text field with device name", async () => {
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const textField = dialog.find('[data-test="rename-field"]');
+      expect(textField.exists()).toBe(true);
+    });
+
+    it("shows initial device name in field", async () => {
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="rename-field"] input').element as HTMLInputElement;
+      expect(input.value).toBe("test-device-name");
+    });
+
+    it("updates field value when input changes", async () => {
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="rename-field"] input');
+      await input.setValue("new-name");
+      await flushPromises();
+
+      expect((input.element as HTMLInputElement).value).toBe("new-name");
+    });
   });
 
-  it("Handles rename errors gracefully", async () => {
-    mockDevicesApi.onPut("http://localhost:3000/api/devices/a582b47a42d").reply(400);
+  describe("device renaming", () => {
+    it("calls renameDevice when confirmed", async () => {
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
 
-    const storeSpy = vi.spyOn(devicesStore, "renameDevice");
-    wrapper.vm.newName = "new-name";
-    await wrapper.vm.rename();
+      const input = dialog.find('[data-test="rename-field"] input');
+      await input.setValue("new-device-name");
+      await flushPromises();
 
-    expect(storeSpy).toHaveBeenCalled();
-    // Component should handle errors gracefully without crashing
-  });
+      const confirmBtn = dialog.find('[data-test="rename-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
 
-  it("Exposes showDialog property", () => {
-    expect(wrapper.vm.showDialog).toBeDefined();
-    expect(typeof wrapper.vm.showDialog).toBe("boolean");
+      expect(devicesStore.renameDevice).toHaveBeenCalledWith({
+        uid: "test-device-uid",
+        name: { name: "new-device-name" },
+      });
+    });
+
+    it("emits update event after successful rename", async () => {
+      vi.spyOn(devicesStore, "renameDevice").mockResolvedValue();
+
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="rename-field"] input');
+      await input.setValue("new-name");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="rename-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("closes dialog after successful rename", async () => {
+      vi.spyOn(devicesStore, "renameDevice").mockResolvedValue();
+
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="rename-field"] input');
+      await input.setValue("new-name");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="rename-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none");
+    });
+
+    it("shows error message when invalid characters are used (400)", async () => {
+      vi.spyOn(devicesStore, "renameDevice").mockRejectedValue(createAxiosError(400, "Bad Request"));
+
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="rename-field"] input');
+      await input.setValue("invalid@name");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="rename-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(dialog.text()).toContain("The characters being used are invalid");
+      expect(dialog.find('[data-test="device-rename-dialog"]').exists()).toBe(true);
+    });
+
+    it("shows error message when name already exists (409)", async () => {
+      vi.spyOn(devicesStore, "renameDevice").mockRejectedValue(createAxiosError(409, "Conflict"));
+
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="rename-field"] input');
+      await input.setValue("existing-name");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="rename-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(dialog.text()).toContain("The name already exists in the namespace");
+      expect(dialog.find('[data-test="device-rename-dialog"]').exists()).toBe(true);
+    });
+
+    it("keeps dialog open on error so user can correct input", async () => {
+      vi.spyOn(devicesStore, "renameDevice").mockRejectedValue(createAxiosError(400, "Bad Request"));
+
+      await wrapper.find("[data-test='rename-device-button']").trigger("click");
+      await flushPromises();
+
+      const input = dialog.find('[data-test="rename-field"] input');
+      await input.setValue("invalid@name");
+      await flushPromises();
+
+      const confirmBtn = dialog.find('[data-test="rename-btn"]');
+      await confirmBtn.trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="rename-field"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="rename-btn"]').exists()).toBe(true);
+    });
   });
 });
