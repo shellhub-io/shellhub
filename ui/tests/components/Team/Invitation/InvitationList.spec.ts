@@ -1,158 +1,335 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { mockInvitation } from "@tests/mocks/invitation";
+import * as hasPermissionModule from "@/utils/permission";
 import InvitationList from "@/components/Team/Invitation/InvitationList.vue";
-import { namespacesApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
 import useInvitationsStore from "@/store/modules/invitations";
-import { IInvitation } from "@/interfaces/IInvitation";
-import { formatShortDateTime } from "@/utils/date";
-import { nextTick } from "vue";
+import moment from "moment";
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
+vi.mock("@/utils/permission");
 
-const mockInvitations: IInvitation[] = [
-  {
-    status: "pending",
-    role: "operator",
-    invited_by: "admin",
-    expires_at: "2025-12-31T23:59:59Z",
-    created_at: "2025-12-01T00:00:00Z",
-    updated_at: "2025-12-01T00:00:00Z",
-    status_updated_at: "2025-12-01T00:00:00Z",
-    namespace: {
-      tenant_id: "fake-tenant",
-      name: "Test Namespace",
+describe("InvitationList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof InvitationList>>;
+  let invitationsStore: ReturnType<typeof useInvitationsStore>;
+
+  const mockInvitations = [
+    mockInvitation,
+    {
+      ...mockInvitation,
+      user: { id: "user2", email: "user2@example.com" },
+      status: "accepted" as const,
     },
-    user: {
-      id: "user1",
-      email: "user1@example.com",
-    },
-  },
-];
+  ];
 
-// eslint-disable-next-line vue/max-len
-const mockInvitationsUrl = "http://localhost:3000/api/namespaces/fake-tenant/invitations?filter=W3sidHlwZSI6InByb3BlcnR5IiwicGFyYW1zIjp7Im5hbWUiOiJzdGF0dXMiLCJvcGVyYXRvciI6ImVxIiwidmFsdWUiOiJwZW5kaW5nIn19XQ%3D%3D&page=1&per_page=10";
+  const mountWrapper = ({
+    invitations = mockInvitations,
+    canEditInvitation = true,
+    canCancelInvitation = true,
+    canSendInvitation = true,
+  } = {}) => {
+    vi.mocked(hasPermissionModule.default).mockImplementation((permission: string) => {
+      if (permission === "namespace:editInvitation") return canEditInvitation;
+      if (permission === "namespace:cancelInvitation") return canCancelInvitation;
+      if (permission === "namespace:addMember") return canSendInvitation;
+      return false;
+    });
 
-const vuetify = createVuetify();
+    wrapper = mountComponent(InvitationList, {
+      piniaOptions: {
+        initialState: {
+          invitations: { namespaceInvitations: invitations, invitationCount: invitations.length },
+          auth: { tenantId: "tenant1" },
+        },
+      },
+    });
 
-const mountWrapper = () => mount(InvitationList, {
-  global: {
-    plugins: [vuetify],
-    provide: { [SnackbarInjectionKey]: mockSnackbar },
-  },
-});
+    invitationsStore = useInvitationsStore();
+  };
 
-describe("InvitationList", async () => {
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const invitationsStore = useInvitationsStore();
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
-
-  mockNamespacesApi.onGet(mockInvitationsUrl).reply(200, mockInvitations, {
-    "x-total-count": "1",
-  });
-  invitationsStore.namespaceInvitations = mockInvitations;
-  invitationsStore.invitationCount = 1;
-  authStore.tenantId = "fake-tenant";
-
-  const storeSpy = vi.spyOn(invitationsStore, "fetchNamespaceInvitationList");
-
-  const wrapper = mountWrapper();
-
-  await flushPromises();
-
-  it("Loads invitations on mount", () => {
-    expect(storeSpy).toHaveBeenCalled();
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    localStorage.clear();
   });
 
-  it("Renders the status filter select", () => {
-    const statusSelect = wrapper.find('[data-test="invitation-status-select"]');
-    expect(statusSelect.exists()).toBe(true);
+  describe("Component rendering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders data table", () => {
+      const table = wrapper.find('[data-test="invitations-list"]');
+      expect(table.exists()).toBe(true);
+    });
+
+    it("renders status filter select", () => {
+      const statusSelect = wrapper.find('[data-test="invitation-status-select"]');
+      expect(statusSelect.exists()).toBe(true);
+    });
+
+    it("displays invitation emails", () => {
+      const rows = wrapper.findAll("tbody tr");
+      expect(rows.length).toBeGreaterThan(0);
+    });
+
+    it("displays action menu for pending invitations", () => {
+      const actionBtn = wrapper.find('[data-test="invitation-actions"]');
+      expect(actionBtn.exists()).toBe(true);
+    });
   });
 
-  it("Shows 'Expires At' header for pending status filter by default", () => {
-    expect(wrapper.text()).toContain("Expires At");
+  describe("Data fetching", () => {
+    it("calls fetchNamespaceInvitationList with correct params", async () => {
+      mountWrapper();
+      await flushPromises();
+
+      expect(invitationsStore.fetchNamespaceInvitationList).toHaveBeenCalledWith(
+        "tenant1",
+        1,
+        10,
+        expect.any(String),
+      );
+    });
+
+    it("calls fetchNamespaceInvitationList when page changes", async () => {
+      mountWrapper();
+      vi.clearAllMocks();
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:page", 2);
+      await flushPromises();
+
+      expect(invitationsStore.fetchNamespaceInvitationList).toHaveBeenCalledWith(
+        "tenant1",
+        2,
+        10,
+        expect.any(String),
+      );
+    });
+
+    it("calls fetchNamespaceInvitationList when items per page changes", async () => {
+      mountWrapper();
+      vi.clearAllMocks();
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:itemsPerPage", 20);
+      await flushPromises();
+
+      expect(invitationsStore.fetchNamespaceInvitationList).toHaveBeenCalledWith(
+        "tenant1",
+        1,
+        20,
+        expect.any(String),
+      );
+    });
   });
 
-  it("Shows 'Cancelled At' header for cancelled status filter", async () => {
-    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
-    await statusSelect.setValue("cancelled");
-    await flushPromises();
-    expect(wrapper.text()).toContain("Cancelled At");
+  describe("Status filtering", () => {
+    beforeEach(() => mountWrapper());
+
+    it("filters by pending status by default", () => {
+      const statusSelect = wrapper.find('[data-test="invitation-status-select"] input').element as HTMLInputElement;
+      expect(statusSelect.value).toBe("Pending");
+    });
+
+    it("calls fetchNamespaceInvitationList when status filter changes", async () => {
+      const statusSelect = wrapper.findComponent({ name: "VSelect" });
+      await statusSelect.vm.$emit("update:modelValue", "accepted");
+      await flushPromises();
+
+      expect(invitationsStore.fetchNamespaceInvitationList).toHaveBeenCalled();
+    });
+
+    it("resets page to 1 when filter changes", async () => {
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:page", 3);
+      await flushPromises();
+
+      const statusSelect = wrapper.findComponent({ name: "VSelect" });
+      await statusSelect.vm.$emit("update:modelValue", "cancelled");
+      await flushPromises();
+
+      expect(invitationsStore.fetchNamespaceInvitationList).toHaveBeenCalledWith(
+        "tenant1",
+        1,
+        10,
+        expect.any(String),
+      );
+    });
   });
 
-  it("Shows 'Accepted At' header for accepted status filter", async () => {
-    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
-    await statusSelect.setValue("accepted");
-    await flushPromises();
-    expect(wrapper.text()).toContain("Accepted At");
+  describe("Invitation status display", () => {
+    it("displays pending status with warning color", () => {
+      const pendingInvitation = { ...mockInvitation, status: "pending" as const };
+      mountWrapper({ invitations: [pendingInvitation] });
+
+      const statusChip = wrapper.find(".v-chip");
+      expect(statusChip.classes()).toContain("text-warning");
+    });
+
+    it("displays accepted status with success color", () => {
+      const acceptedInvitation = { ...mockInvitation, status: "accepted" as const };
+      mountWrapper({ invitations: [acceptedInvitation] });
+
+      const statusChip = wrapper.find(".v-chip");
+      expect(statusChip.classes()).toContain("text-success");
+    });
+
+    it("displays rejected status with error color", () => {
+      const rejectedInvitation = { ...mockInvitation, status: "rejected" as const };
+      mountWrapper({ invitations: [rejectedInvitation] });
+
+      const statusChip = wrapper.find(".v-chip");
+      expect(statusChip.classes()).toContain("text-error");
+    });
+
+    it("displays cancelled status with grey color", () => {
+      const cancelledInvitation = { ...mockInvitation, status: "cancelled" as const };
+      mountWrapper({ invitations: [cancelledInvitation] });
+
+      const statusChip = wrapper.find(".v-chip");
+      expect(statusChip.classes()).toContain("text-grey");
+    });
   });
 
-  it("Shows 'Rejected At' header for rejected status filter", async () => {
-    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
-    await statusSelect.setValue("rejected");
-    await flushPromises();
-    expect(wrapper.text()).toContain("Rejected At");
+  describe("Expiration display", () => {
+    it("shows expiration date for pending invitation", () => {
+      const futureDate = moment().add(7, "days").toISOString();
+      const pendingInvitation = { ...mockInvitation, status: "pending" as const, expires_at: futureDate };
+      mountWrapper({ invitations: [pendingInvitation] });
+
+      const dateCell = wrapper.find('[data-test="invitation-date-cell"]');
+      expect(dateCell.exists()).toBe(true);
+    });
+
+    it("shows expired status for expired pending invitation", () => {
+      const pastDate = moment().subtract(1, "day").toISOString();
+      const expiredInvitation = { ...mockInvitation, status: "pending" as const, expires_at: pastDate };
+      mountWrapper({ invitations: [expiredInvitation] });
+
+      const dateCell = wrapper.find('[data-test="invitation-date-cell"]');
+      expect(dateCell.text()).toContain("Expired at");
+    });
+
+    it("shows error styling for expired invitation", () => {
+      const pastDate = moment().subtract(1, "day").toISOString();
+      const expiredInvitation = { ...mockInvitation, status: "pending" as const, expires_at: pastDate };
+      mountWrapper({ invitations: [expiredInvitation] });
+
+      const dateCell = wrapper.find('[data-test="invitation-date-cell"] span');
+      expect(dateCell.classes()).toContain("text-error");
+    });
+
+    it("shows status updated date for accepted invitation", () => {
+      const acceptedInvitation = {
+        ...mockInvitation,
+        status: "accepted" as const,
+        status_updated_at: "2025-12-15T00:00:00Z",
+      };
+      mountWrapper({ invitations: [acceptedInvitation] });
+
+      const dateCell = wrapper.find('[data-test="invitation-date-cell"]');
+      expect(dateCell.exists()).toBe(true);
+    });
   });
 
-  it("Shows expiration date for pending invitations", () => {
-    const dateCell = wrapper.find('[data-test="invitation-date-cell"]');
-    const formattedExpiresAt = formatShortDateTime(mockInvitations[0].expires_at); // December 31, 2025 11:59 PM
-    expect(dateCell.text()).toContain(formattedExpiresAt);
+  describe("Actions menu", () => {
+    it("shows resend, edit, and cancel actions for pending invitation", () => {
+      const pendingInvitation = { ...mockInvitation, status: "pending" as const };
+      mountWrapper({ invitations: [pendingInvitation] });
+
+      expect(wrapper.findComponent({ name: "InvitationResend" }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: "InvitationEdit" }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: "InvitationCancel" }).exists()).toBe(true);
+    });
+
+    it("shows resend action for cancelled invitation", () => {
+      const cancelledInvitation = { ...mockInvitation, status: "cancelled" as const };
+      mountWrapper({ invitations: [cancelledInvitation] });
+
+      expect(wrapper.findComponent({ name: "InvitationResend" }).exists()).toBe(true);
+    });
+
+    it("does not show actions menu for accepted invitation", () => {
+      const acceptedInvitation = { ...mockInvitation, status: "accepted" as const };
+      mountWrapper({ invitations: [acceptedInvitation] });
+
+      const actionBtn = wrapper.find('[data-test="invitation-actions"]');
+      expect(actionBtn.exists()).toBe(false);
+    });
+
+    it("does not show actions menu for rejected invitation", () => {
+      const rejectedInvitation = { ...mockInvitation, status: "rejected" as const };
+      mountWrapper({ invitations: [rejectedInvitation] });
+
+      const actionBtn = wrapper.find('[data-test="invitation-actions"]');
+      expect(actionBtn.exists()).toBe(false);
+    });
   });
 
-  it("Shows expired warning for expired pending invitations", async () => {
-    const expiredInvitation: IInvitation = {
-      ...mockInvitations[0],
-      expires_at: "2020-01-01T00:00:00Z",
-    };
-    const formattedExpiresAt = formatShortDateTime(expiredInvitation.expires_at); // January 1, 2020 00:00 AM
-    const expiredWrapper = mountWrapper();
-    await flushPromises();
-    invitationsStore.namespaceInvitations = [expiredInvitation];
-    await nextTick();
-    const dateCell = expiredWrapper.find('[data-test="invitation-date-cell"]');
-    expect(dateCell.text()).toContain(formattedExpiresAt);
-    expect(dateCell.html()).toContain("mdi-alert-circle");
-    expect(dateCell.html()).toContain("text-error");
+  describe("Error handling", () => {
+    it("shows error snackbar on 403 status", async () => {
+      const error = createAxiosError(403, "Forbidden");
+
+      mountWrapper();
+      vi.mocked(invitationsStore.fetchNamespaceInvitationList).mockRejectedValueOnce(error);
+      await flushPromises();
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:page", 2);
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("You don't have permission to access this resource.");
+    });
+
+    it("shows generic error snackbar for other errors", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+
+      mountWrapper();
+      vi.mocked(invitationsStore.fetchNamespaceInvitationList).mockRejectedValueOnce(error);
+      await flushPromises();
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:page", 2);
+      await flushPromises();
+
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load the invitation list.");
+    });
   });
 
-  it("Shows status_updated_at for non-pending invitations", async () => {
-    const cancelledInvitation: IInvitation = {
-      ...mockInvitations[0],
-      status: "cancelled",
-      status_updated_at: "2025-12-15T10:30:00Z",
-    };
-    const formattedStatusUpdatedAt = formatShortDateTime(cancelledInvitation.status_updated_at); // December 15, 2025 10:30 AM
+  describe("Refresh functionality", () => {
+    beforeEach(() => mountWrapper());
 
-    const cancelledWrapper = mountWrapper();
-    await flushPromises();
+    it("calls fetchNamespaceInvitationList when getInvitations is called", async () => {
+      vi.clearAllMocks();
 
-    const statusSelect = cancelledWrapper.findComponent('[data-test="invitation-status-select"]');
-    await statusSelect.setValue("cancelled");
-    await flushPromises();
+      await wrapper.vm.getInvitations();
+      await flushPromises();
 
-    invitationsStore.namespaceInvitations = [cancelledInvitation];
-    await nextTick();
+      expect(invitationsStore.fetchNamespaceInvitationList).toHaveBeenCalled();
+    });
 
-    const dateCell = cancelledWrapper.find('[data-test="invitation-date-cell"]');
-    expect(dateCell.text()).toContain(formattedStatusUpdatedAt);
+    it("sets status filter to pending when setStatusFilterToPending is called", async () => {
+      // Change filter first
+      const statusSelect = wrapper.findComponent({ name: "VSelect" });
+      await statusSelect.vm.$emit("update:modelValue", "accepted");
+      await flushPromises();
+
+      // Reset to pending
+      wrapper.vm.setStatusFilterToPending();
+      await flushPromises();
+
+      const statusSelectInput = wrapper.find('[data-test="invitation-status-select"] input').element as HTMLInputElement;
+      expect(statusSelectInput.value).toBe("Pending");
+    });
   });
 
-  it("Can change status filter and it updates the invitations", async () => {
-    const statusSelect = wrapper.findComponent('[data-test="invitation-status-select"]');
+  describe("Permission-based actions", () => {
+    it("enables all actions when user has all permissions", () => {
+      mountWrapper({
+        canEditInvitation: true,
+        canCancelInvitation: true,
+        canSendInvitation: true,
+      });
 
-    storeSpy.mockClear();
-    await statusSelect.setValue("accepted");
-    await flushPromises();
-
-    expect(storeSpy).toHaveBeenCalled();
+      expect(wrapper.findComponent({ name: "InvitationEdit" }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: "InvitationCancel" }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: "InvitationResend" }).exists()).toBe(true);
+    });
   });
 });

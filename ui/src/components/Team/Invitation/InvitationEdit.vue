@@ -66,24 +66,19 @@ const update = () => {
 
 const handleEditInvitationError = (error: unknown) => {
   if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
-    switch (status) {
-      case 400:
-        snackbar.showError("Invalid invitation or role.");
-        break;
-      case 403:
-        snackbar.showError("You don't have permission to edit invitations.");
-        break;
-      case 404:
-        snackbar.showError("Invitation not found.");
-        break;
-      default:
-        snackbar.showError("Failed to update invitation role.");
+    const errorMessageMap: Record<number, string> = {
+      400: "Invalid invitation or role.",
+      403: "You don't have permission to edit invitations.",
+      404: "Invitation not found.",
+    };
+    const message = errorMessageMap[error.response?.status || 0];
+    if (message) {
+      snackbar.showError(message);
+      return;
     }
-  } else {
-    snackbar.showError("Failed to update invitation role.");
   }
 
+  snackbar.showError("Failed to update invitation role.");
   handleError(error);
 };
 
