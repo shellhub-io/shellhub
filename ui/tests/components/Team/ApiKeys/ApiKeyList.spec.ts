@@ -1,156 +1,291 @@
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import moment from "moment";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { VueWrapper, flushPromises } from "@vue/test-utils";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { mockApiKeys } from "@tests/mocks/apiKey";
+import * as hasPermissionModule from "@/utils/permission";
 import ApiKeyList from "@/components/Team/ApiKeys/ApiKeyList.vue";
-import { apiKeysApi } from "@/api/http";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 import useApiKeysStore from "@/store/modules/api_keys";
+import moment from "moment";
+import handleError from "@/utils/handleError";
 
-type ApiKeyListWrapper = VueWrapper<InstanceType<typeof ApiKeyList>>;
+vi.mock("@/utils/permission");
 
-describe("Api Key List", () => {
-  let wrapper: ApiKeyListWrapper;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
-  const mockApiKeysApi = new MockAdapter(apiKeysApi.getAxios());
-  const apiKeysStore = useApiKeysStore();
+describe("ApiKeyList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof ApiKeyList>>;
+  let apiKeysStore: ReturnType<typeof useApiKeysStore>;
 
-  const mockApiKeys = [
-    {
-      name: "aaaa2",
-      tenant_id: "00000-0000-0000-0000-00000000000",
-      role: "administrator" as const,
-      created_by: "66562f80daba745a106393b5",
-      created_at: "2024-06-07T12:10:56.531Z",
-      updated_at: "2024-06-07T12:31:03.505Z",
-      expires_in: 1720354256,
-    },
-    {
-      name: "aaaa2",
-      tenant_id: "00000-0000-0000-0000-00000000000",
-      role: "administrator" as const,
-      created_by: "66562f80daba745a106393b5",
-      created_at: "2024-06-07T12:10:56.531Z",
-      updated_at: "2024-06-07T12:31:03.505Z",
-      expires_in: 1720354256,
-    },
-  ];
+  const mountWrapper = ({
+    apiKeys = mockApiKeys,
+    canDeleteApiKey = true,
+  } = {}) => {
+    vi.mocked(hasPermissionModule.default).mockReturnValue(canDeleteApiKey);
 
-  beforeEach(() => {
-    mockApiKeysApi.onGet("http://localhost:3000/api/namespaces/api-key?page=1&per_page=10").reply(200, mockApiKeys, { "x-total-count": 2 });
-    apiKeysStore.$patch({
-      apiKeys: mockApiKeys,
-      apiKeysCount: 2,
-    });
-
-    wrapper = mount(ApiKeyList, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
+    wrapper = mountComponent(ApiKeyList, {
+      piniaOptions: {
+        initialState: {
+          apiKeys: { apiKeys, apiKeysCount: apiKeys.length },
+        },
       },
     });
+
+    apiKeysStore = useApiKeysStore();
+  };
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    localStorage.clear();
   });
 
-  afterEach(async () => {
-    await flushPromises();
-    wrapper.unmount();
-  });
+  describe("Component rendering", () => {
+    beforeEach(() => mountWrapper());
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
-
-  it("Renders components", () => {
-    expect(wrapper.find('[data-test="api-key-list"]').exists()).toBe(true);
-  });
-
-  describe("expiration formatting", () => {
-    it("Returns 'Never' when unixTime is -1", () => {
-      const result = wrapper.vm.formatDate(-1);
-      expect(result).toBe("Never");
+    it("renders data table", () => {
+      const table = wrapper.find('[data-test="api-key-list"]');
+      expect(table.exists()).toBe(true);
     });
 
-    it("Formats unixTime into 'Expires on <date>' when unixTime is in the future", () => {
-      const futureUnixTime = moment().add(1, "day").unix();
-      const result = wrapper.vm.formatDate(futureUnixTime);
+    it("displays API key names", () => {
+      const firstKeyName = wrapper.find('[data-test="key-name"]');
+      expect(firstKeyName.exists()).toBe(true);
+    });
+
+    it("displays API key roles", () => {
+      const keyRole = wrapper.find('[data-test="key-name"]');
+      expect(keyRole.exists()).toBe(true);
+    });
+
+    it("displays expiration dates", () => {
+      const expiryDate = wrapper.find('[data-test="key-expiry-date"]');
+      expect(expiryDate.exists()).toBe(true);
+    });
+
+    it("displays action menu for each key", () => {
+      const menu = wrapper.find('[data-test="menu-key-component"]');
+      expect(menu.exists()).toBe(true);
+    });
+  });
+
+  describe("Data fetching", () => {
+    it("calls fetchApiKeys with correct params", async () => {
+      mountWrapper();
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:page", 2);
+      await flushPromises();
+
+      expect(apiKeysStore.fetchApiKeys).toHaveBeenCalledWith({
+        page: 2,
+        perPage: 10,
+        sortField: "name",
+        sortOrder: "asc",
+      });
+    });
+
+    it("calls fetchApiKeys when items per page changes", async () => {
+      mountWrapper();
+      vi.clearAllMocks();
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:itemsPerPage", 20);
+      await flushPromises();
+
+      expect(apiKeysStore.fetchApiKeys).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 20,
+        sortField: "name",
+        sortOrder: "asc",
+      });
+    });
+  });
+
+  describe("Sorting", () => {
+    beforeEach(() => mountWrapper());
+
+    it("calls fetchApiKeys when sorting by field", async () => {
+      vi.clearAllMocks();
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:sort", "expires_in");
+      await flushPromises();
+
+      expect(apiKeysStore.fetchApiKeys).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 10,
+        sortField: "expires_in",
+        sortOrder: "desc",
+      });
+    });
+
+    it("toggles sort order on second click", async () => {
+      vi.clearAllMocks();
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:sort", "name");
+      await flushPromises();
+
+      expect(apiKeysStore.fetchApiKeys).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 10,
+        sortField: "name",
+        sortOrder: "desc",
+      });
+
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:sort", "name");
+      await flushPromises();
+
+      expect(apiKeysStore.fetchApiKeys).toHaveBeenLastCalledWith({
+        page: 1,
+        perPage: 10,
+        sortField: "name",
+        sortOrder: "asc",
+      });
+    });
+  });
+
+  describe("Expiration formatting", () => {
+    it("displays 'Never' for never-expiring keys", () => {
+      const neverExpiringKey = {
+        ...mockApiKeys[0],
+        expires_in: -1,
+      };
+      mountWrapper({ apiKeys: [neverExpiringKey] });
+
+      const expiryDate = wrapper.find('[data-test="key-expiry-date"]');
+      expect(expiryDate.text()).toBe("Never");
+    });
+
+    it("displays future expiration date correctly", () => {
+      const futureUnixTime = moment().add(30, "days").unix();
+      const futureKey = {
+        ...mockApiKeys[0],
+        expires_in: futureUnixTime,
+      };
+      mountWrapper({ apiKeys: [futureKey] });
+
+      const expiryDate = wrapper.find('[data-test="key-expiry-date"]');
       const expected = `Expires on ${moment.unix(futureUnixTime).format("MMM D YYYY")}.`;
-      expect(result).toBe(expected);
+      expect(expiryDate.text()).toBe(expected);
     });
 
-    it("Formats unixTime into 'Expired on <date>' when unixTime is in the past", () => {
-      const pastUnixTime = moment().subtract(1, "day").unix();
-      const result = wrapper.vm.formatDate(pastUnixTime);
+    it("displays past expiration date correctly", () => {
+      const pastUnixTime = moment().subtract(10, "days").unix();
+      const expiredKey = {
+        ...mockApiKeys[0],
+        expires_in: pastUnixTime,
+      };
+      mountWrapper({ apiKeys: [expiredKey] });
+
+      const expiryDate = wrapper.find('[data-test="key-expiry-date"]');
       const expected = `Expired on ${moment.unix(pastUnixTime).format("MMM D YYYY")}.`;
-      expect(result).toBe(expected);
+      expect(expiryDate.text()).toBe(expected);
+    });
+  });
+
+  describe("Key expiration status", () => {
+    it("does not apply warning class for never-expiring keys", () => {
+      const neverExpiringKey = {
+        ...mockApiKeys[0],
+        expires_in: -1,
+      };
+      mountWrapper({ apiKeys: [neverExpiringKey] });
+
+      const expiryDate = wrapper.find('[data-test="key-expiry-date"]');
+      expect(expiryDate.classes()).not.toContain("text-warning");
     });
 
-    it("Returns false when unixTime is -1", () => {
-      const result = wrapper.vm.hasKeyExpired(-1);
-      expect(result).toBe(false);
+    it("does not apply warning class for future expiration", () => {
+      const futureUnixTime = moment().add(30, "days").unix();
+      const futureKey = {
+        ...mockApiKeys[0],
+        expires_in: futureUnixTime,
+      };
+      mountWrapper({ apiKeys: [futureKey] });
+
+      const expiryDate = wrapper.find('[data-test="key-expiry-date"]');
+      expect(expiryDate.classes()).not.toContain("text-warning");
     });
 
-    it("Returns true when unixTime is in the past", () => {
-      const pastUnixTime = moment().subtract(1, "day").unix();
-      const result = wrapper.vm.hasKeyExpired(pastUnixTime);
-      expect(result).toBe(true);
+    it("applies warning class for expired keys", () => {
+      const pastUnixTime = moment().subtract(10, "days").unix();
+      const expiredKey = {
+        ...mockApiKeys[0],
+        expires_in: pastUnixTime,
+      };
+      mountWrapper({ apiKeys: [expiredKey] });
+
+      const expiryDate = wrapper.find('[data-test="key-expiry-date"]');
+      expect(expiryDate.classes()).toContain("text-warning");
     });
 
-    it("Returns false when unixTime is in the future", () => {
-      const futureUnixTime = moment().add(1, "day").unix();
-      const result = wrapper.vm.hasKeyExpired(futureUnixTime);
-      expect(result).toBe(false);
+    it("shows alert icon for expired keys", () => {
+      const pastUnixTime = moment().subtract(10, "days").unix();
+      const expiredKey = {
+        ...mockApiKeys[0],
+        expires_in: pastUnixTime,
+      };
+      mountWrapper({ apiKeys: [expiredKey] });
+
+      const icon = wrapper.find("tbody tr td i.mdi-clock-alert-outline");
+      expect(icon.exists()).toBe(true);
     });
 
-    describe("expired vs will expire items formatting", () => {
-      it("Formats items that will expire correctly", () => {
-        const futureUnixTime = moment().add(1, "day").unix();
-        const item = { expires_in: futureUnixTime };
+    it("shows key icon for non-expired keys", () => {
+      const futureUnixTime = moment().add(30, "days").unix();
+      const futureKey = {
+        ...mockApiKeys[0],
+        expires_in: futureUnixTime,
+      };
+      mountWrapper({ apiKeys: [futureKey] });
 
-        const formatted = wrapper.vm.formatDate(item.expires_in);
-        const expected = `Expires on ${moment.unix(futureUnixTime).format("MMM D YYYY")}.`;
+      const icon = wrapper.find("tbody tr td i.mdi-key-outline");
+      expect(icon.exists()).toBe(true);
+    });
+  });
 
-        expect(formatted).toBe(expected);
-      });
+  describe("Error handling", () => {
+    it("shows error snackbar on 403 status", async () => {
+      const error = createAxiosError(403, "Forbidden");
 
-      it("Formats expired items correctly", () => {
-        const pastUnixTime = moment().subtract(1, "day").unix();
-        const item = { expires_in: pastUnixTime };
+      mountWrapper();
+      vi.mocked(apiKeysStore.fetchApiKeys).mockRejectedValueOnce(error);
+      await flushPromises();
 
-        const formatted = wrapper.vm.formatDate(item.expires_in);
-        const expected = `Expired on ${moment.unix(pastUnixTime).format("MMM D YYYY")}.`;
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:page", 2);
+      await flushPromises();
 
-        expect(formatted).toBe(expected);
-      });
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("You are not authorized to view this API key.");
+      expect(handleError).not.toHaveBeenCalled();
+    });
 
-      it("Formats items that will not expire correctly", () => {
-        const item = { expires_in: -1 };
+    it("shows generic error snackbar for other errors", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
 
-        const formatted = wrapper.vm.formatDate(item.expires_in);
-        const expected = "Never";
+      mountWrapper();
+      vi.mocked(apiKeysStore.fetchApiKeys).mockRejectedValueOnce(error);
+      await flushPromises();
 
-        expect(formatted).toBe(expected);
-      });
+      await wrapper.findComponent({ name: "DataTable" }).vm.$emit("update:page", 2);
+      await flushPromises();
 
-      it("Formats expired items with formatKey correctly", () => {
-        const pastUnixTime = moment().subtract(1, "day").unix();
-        const item = { expires_in: pastUnixTime };
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load API keys.");
+      expect(handleError).toHaveBeenCalled();
+    });
+  });
 
-        const formatted = wrapper.vm.hasKeyExpired(item.expires_in);
-        expect(formatted).toBe(true);
-      });
+  describe("Refresh functionality", () => {
+    beforeEach(() => mountWrapper());
 
-      it("Formats items that will not expire with formatKey correctly", () => {
-        const item = { expires_in: -1 };
+    it("calls fetchApiKeys when refresh is called", async () => {
+      await wrapper.vm.refresh();
+      await flushPromises();
 
-        const formatted = wrapper.vm.hasKeyExpired(item.expires_in);
-        expect(formatted).toBe(false);
-      });
+      expect(apiKeysStore.fetchApiKeys).toHaveBeenCalled();
+    });
+  });
+
+  describe("Permission-based actions", () => {
+    it("enables edit and delete when user has permission", () => {
+      mountWrapper({ canDeleteApiKey: true });
+
+      expect(wrapper.findAllComponents({ name: "ApiKeyEdit" }).length).toBeGreaterThan(0);
+      expect(wrapper.findAllComponents({ name: "ApiKeyDelete" }).length).toBeGreaterThan(0);
     });
   });
 });

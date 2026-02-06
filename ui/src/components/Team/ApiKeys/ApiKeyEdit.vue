@@ -1,5 +1,6 @@
 <template>
   <v-list-item
+    data-test="edit-api-key-btn"
     :disabled="!hasAuthorization || props.disabled"
     @click="open()"
   >
@@ -112,6 +113,4 @@ const editKey = async (formData: { name: string; role: BasicRole }) => {
     handleError(error);
   }
 };
-
-defineExpose({ showDialog, editKey, open, errorMessage });
 </script>

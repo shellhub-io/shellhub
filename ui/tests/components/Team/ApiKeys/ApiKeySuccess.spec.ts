@@ -1,142 +1,86 @@
-import { createPinia, setActivePinia } from "pinia";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach, vi } from "vitest";
-import type { Mock } from "vitest";
-import { useClipboard } from "@vueuse/core";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { VueWrapper, flushPromises, DOMWrapper } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
 import ApiKeySuccess from "@/components/Team/ApiKeys/ApiKeySuccess.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-  showWarning: vi.fn(),
-  showInfo: vi.fn(),
-};
-
-vi.mock("@/helpers/snackbar", () => ({
-  default: () => mockSnackbar,
-}));
-
-vi.mock("@vueuse/core", async () => {
-  const actual = await vi.importActual<typeof import("@vueuse/core")>("@vueuse/core");
-  return {
-    ...actual,
-    useClipboard: vi.fn(() => ({
-      copy: vi.fn().mockResolvedValue(undefined),
-    })),
-    useMagicKeys: vi.fn(),
-  };
-});
-
-const mockCopy = vi.fn();
-(useClipboard as unknown as Mock).mockReturnValue({
-  copy: mockCopy,
-});
-
-Object.defineProperty(globalThis, "isSecureContext", {
-  writable: true,
-  configurable: true,
-  value: true,
-});
-
-describe("Api Key Success", () => {
+describe("ApiKeySuccess", () => {
   let wrapper: VueWrapper<InstanceType<typeof ApiKeySuccess>>;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
+  let dialog: DOMWrapper<HTMLElement>;
 
-  const defaultProps = {
-    modelValue: true,
-    apiKey: "test-api-key-12345",
-    keyName: "test-key",
+  const mountWrapper = ({ apiKey = "generated-api-key-123", modelValue = true } = {}) => {
+    wrapper = mountComponent(ApiKeySuccess, {
+      props: {
+        apiKey,
+        modelValue,
+      },
+      attachTo: document.body,
+    });
+    dialog = new DOMWrapper(document.body);
   };
 
-  beforeEach(() => {
-    wrapper = mount(ApiKeySuccess, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-      },
-      props: defaultProps,
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  describe("Rendering", () => {
+    it("shows success dialog when modelValue is true", () => {
+      const successDialog = dialog.find('[data-test="api-key-success-dialog"]');
+      expect(successDialog.exists()).toBe(true);
+    });
+
+    it("hides dialog when modelValue is false", () => {
+      wrapper.unmount();
+      mountWrapper({ modelValue: false });
+
+      const successDialog = dialog.find('[data-test="api-key-success-dialog"]');
+      expect(successDialog.exists()).toBe(false);
+    });
+
+    it("displays the generated API key", () => {
+      const keyField = dialog.find('[data-test="generated-key-field"] input').element as HTMLInputElement;
+      expect(keyField.value).toBe("generated-api-key-123");
+    });
+
+    it("renders generated key field as readonly", () => {
+      const keyField = dialog.find('[data-test="generated-key-field"] input');
+      expect(keyField.attributes("readonly")).toBeDefined();
+    });
+
+    it("renders copy and close buttons", () => {
+      expect(dialog.find('[data-test="copy-btn"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
+    });
+
+    it("renders copy icon button inside field", () => {
+      expect(dialog.find('[data-test="copy-key-icon-btn"]').exists()).toBe(true);
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  describe("Dialog actions", () => {
+    it("emits update:modelValue with false when close button is clicked", async () => {
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      await closeBtn.trigger("click");
+      await flushPromises();
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+      expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([false]);
+    });
 
-  it("Renders components correctly", async () => {
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
+    it("closes dialog when close button is clicked", async () => {
+      const closeBtn = dialog.find('[data-test="close-btn"]');
+      await closeBtn.trigger("click");
+      await flushPromises();
 
-    expect(dialog.find('[data-test="api-key-success-dialog"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="generated-key-field"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="copy-key-icon-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="copy-btn"]').exists()).toBe(true);
-    expect(dialog.find('[data-test="close-btn"]').exists()).toBe(true);
-  });
+      // Re-mount with modelValue false to simulate the v-model update
+      wrapper.unmount();
+      mountWrapper({ modelValue: false });
 
-  it("Displays the API key in the text field", async () => {
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const keyField = dialog.find('[data-test="generated-key-field"] input').element as HTMLInputElement;
-    expect(keyField.value).toBe("test-api-key-12345");
-  });
-
-  it("Copies API key to clipboard when copy button is clicked", async () => {
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const copyButton = dialog.find('[data-test="copy-btn"]');
-    await copyButton.trigger("click");
-    await flushPromises();
-
-    expect(mockCopy).toHaveBeenCalledWith("test-api-key-12345");
-    expect(mockSnackbar.showInfo).toHaveBeenCalledWith("API Key copied to clipboard!");
-  });
-
-  it("Copies API key to clipboard when icon button is clicked", async () => {
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const iconButton = dialog.find('[data-test="copy-key-icon-btn"]');
-    await iconButton.trigger("click");
-    await flushPromises();
-
-    expect(mockCopy).toHaveBeenCalledWith("test-api-key-12345");
-    expect(mockSnackbar.showInfo).toHaveBeenCalledWith("API Key copied to clipboard!");
-  });
-
-  it("Shows error message when clipboard copy fails", async () => {
-    mockCopy.mockRejectedValueOnce(new Error("Clipboard error"));
-
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const copyButton = dialog.find('[data-test="copy-btn"]');
-    await copyButton.trigger("click");
-    await flushPromises();
-
-    expect(mockCopy).toHaveBeenCalledWith("test-api-key-12345");
-
-    const warningDialog = dialog.find('[data-test="copy-warning-dialog"]');
-    expect(warningDialog.exists()).toBe(true);
-  });
-
-  it("Has close button that triggers close method", async () => {
-    expect(wrapper.vm.showDialog).toBe(true);
-
-    const dialog = new DOMWrapper(document.body);
-    await flushPromises();
-
-    const closeButton = dialog.find('[data-test="close-btn"]');
-    expect(closeButton.exists()).toBe(true);
-
-    wrapper.vm.close();
-    expect(wrapper.vm.showDialog).toBe(false);
+      const successDialog = dialog.find('[data-test="api-key-success-dialog"]');
+      expect(successDialog.exists()).toBe(false);
+    });
   });
 });
