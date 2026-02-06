@@ -69,27 +69,20 @@ const update = () => {
 
 const handleResendInvitationError = (error: unknown) => {
   if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
-    switch (status) {
-      case 400:
-        snackbar.showError("Invalid invitation.");
-        break;
-      case 403:
-        snackbar.showError("You don't have permission to send invitations.");
-        break;
-      case 404:
-        snackbar.showError("Invitation not found.");
-        break;
-      case 409:
-        snackbar.showError("This user is already invited or is a member of this namespace.");
-        break;
-      default:
-        snackbar.showError("Failed to resend invitation.");
+    const errorMessageMap: Record<number, string> = {
+      400: "Invalid invitation.",
+      403: "You don't have permission to send invitations.",
+      404: "Invitation not found.",
+      409: "This user is already invited or is a member of this namespace.",
+    };
+    const message = errorMessageMap[error.response?.status || 0];
+    if (message) {
+      snackbar.showError(message);
+      return;
     }
-  } else {
-    snackbar.showError("Failed to resend invitation.");
   }
 
+  snackbar.showError("Failed to resend invitation.");
   handleError(error);
 };
 
