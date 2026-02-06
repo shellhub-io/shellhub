@@ -45,6 +45,7 @@
                   :model-value="isTagSelected(tag)"
                   color="primary"
                   hide-details
+                  data-test="tag-checkbox"
                 />
                 <v-list-item-title>{{ getTagName(tag) }}</v-list-item-title>
               </v-list-item-action>
@@ -62,6 +63,7 @@
           color="primary"
           text="Manage Tags"
           prepend-icon="mdi-cog"
+          data-test="manage-tags-btn"
           class="ma-2"
           :to="{ name: 'Tags' }"
         />
@@ -156,6 +158,4 @@ onMounted(async () => {
   tagsStore.selectedTags = [];
   await loadTags();
 });
-
-defineExpose({ isMenuOpen, loadTags, fetchedTags });
 </script>

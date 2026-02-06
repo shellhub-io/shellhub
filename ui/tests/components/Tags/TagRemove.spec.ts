@@ -1,94 +1,106 @@
-import { flushPromises, DOMWrapper, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, vi, beforeEach } from "vitest";
-import { createPinia, setActivePinia } from "pinia";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import TagRemove from "@/components/Tags/TagRemove.vue";
-import { tagsApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
 import useTagsStore from "@/store/modules/tags";
+import handleError from "@/utils/handleError";
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
+describe("TagRemove", () => {
+  let wrapper: VueWrapper<InstanceType<typeof TagRemove>>;
+  let tagsStore: ReturnType<typeof useTagsStore>;
+  let dialog: DOMWrapper<HTMLElement>;
 
-type TagRemoveWrapper = VueWrapper<InstanceType<typeof TagRemove>>;
+  const openDialog = async () => {
+    const listItem = wrapper.find('[data-test="open-tag-remove"]');
+    await listItem.trigger("click");
+    await flushPromises();
+  };
 
-describe("Tag Remove", () => {
-  let wrapper: TagRemoveWrapper;
-  let mockTagsApi: MockAdapter;
-  const vuetify = createVuetify();
-  beforeEach(() => {
-    setActivePinia(createPinia());
-    mockTagsApi = new MockAdapter(tagsApi.getAxios());
-    localStorage.setItem("tenant", "fake-tenant-data");
+  const triggerConfirmButton = async () => {
+    const confirmBtn = dialog.find('[data-test="confirm-btn"]');
+    await confirmBtn.trigger("click");
+    await flushPromises();
+  };
 
-    wrapper = mount(TagRemove, {
-      global: {
-        plugins: [vuetify],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: {
-        tagName: "tag-test",
-        hasAuthorization: true,
-      },
+  const mountWrapper = ({ tagName = "tag-test", hasAuthorization = true } = {}) => {
+    wrapper = mountComponent(TagRemove, {
+      props: { tagName, hasAuthorization },
+      attachTo: document.body,
+    });
+    tagsStore = useTagsStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  describe("Rendering", () => {
+    it("renders remove list item", () => {
+      const listItem = wrapper.find('[data-test="open-tag-remove"]');
+      expect(listItem.exists()).toBe(true);
+    });
+
+    it("disables list item when hasAuthorization is false", () => {
+      wrapper.unmount();
+      mountWrapper({ hasAuthorization: false });
+      const listItem = wrapper.find('[data-test="open-tag-remove"]');
+      expect(listItem.classes()).toContain("v-list-item--disabled");
     });
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  describe("Tag removal", () => {
+    beforeEach(() => openDialog());
+
+    it("opens dialog when clicking remove item", () => {
+      const messageDialog = dialog.find('[data-test="delete-tag-dialog"]');
+      expect(messageDialog.exists()).toBe(true);
+    });
+
+    it("calls deleteTag when confirming removal", async () => {
+      await triggerConfirmButton();
+
+      expect(tagsStore.deleteTag).toHaveBeenCalledWith("tag-test");
+    });
+
+    it("shows success snackbar on successful removal", async () => {
+      await triggerConfirmButton();
+
+      expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("tag-test was removed successfully.");
+    });
+
+    it("emits update event on successful removal", async () => {
+      await triggerConfirmButton();
+
+      expect(wrapper.emitted("update")).toBeTruthy();
+    });
+
+    it("closes dialog when clicking cancel", async () => {
+      const cancelBtn = dialog.find('[data-test="close-btn"]');
+      await cancelBtn.trigger("click");
+      await flushPromises();
+
+      expect(tagsStore.deleteTag).not.toHaveBeenCalled();
+    });
   });
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  describe("Error handling", () => {
+    it("shows error snackbar when removal fails", async () => {
+      const error = createAxiosError(500, "Internal Server Error");
+      mountWrapper();
+      vi.mocked(tagsStore.deleteTag).mockRejectedValueOnce(error);
 
-  it("Renders dialog and controls", async () => {
-    const body = new DOMWrapper(document.body);
-    await flushPromises();
+      await openDialog();
 
-    await wrapper.find('[data-test="open-tag-remove"]').trigger("click");
-    await flushPromises();
+      await triggerConfirmButton();
 
-    expect(wrapper.find('[data-test="mdi-information-list-item"]').exists()).toBe(true);
-    // New MessageDialog selectors
-    expect(body.find('[data-test="delete-tag-dialog"]').exists()).toBe(true);
-    expect(body.find('[data-test="close-btn"]').exists()).toBe(true);
-    expect(body.find('[data-test="confirm-btn"]').exists()).toBe(true);
-  });
-
-  it("Successfully removes tag", async () => {
-    mockTagsApi
-      .onDelete("http://localhost:3000/api/tags/tag-test")
-      .reply(200);
-
-    const tagsStore = useTagsStore();
-    const storeSpy = vi.spyOn(tagsStore, "deleteTag");
-
-    await wrapper.find('[data-test="open-tag-remove"]').trigger("click");
-    await flushPromises();
-
-    const messageDialogStub = wrapper.findComponent({ name: "MessageDialog" });
-    await messageDialogStub.vm.$emit("confirm");
-    await flushPromises();
-
-    expect(storeSpy).toHaveBeenCalledWith("tag-test");
-
-    expect(mockSnackbar.showSuccess).toHaveBeenCalled();
-  });
-
-  it("Shows error snackbar on failure", async () => {
-    mockTagsApi
-      .onDelete("http://localhost:3000/api/tags/tag-test")
-      .reply(409);
-
-    await wrapper.find('[data-test="open-tag-remove"]').trigger("click");
-    await flushPromises();
-
-    await new DOMWrapper(document.body).find('[data-test="confirm-btn"]').trigger("click");
-    await flushPromises();
-
-    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to remove tag.");
+      expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to remove tag.");
+      expect(handleError).toHaveBeenCalledWith(error);
+    });
   });
 });

@@ -84,7 +84,7 @@
           <v-chip
             :key="item.value"
             closable
-            data-test="selected-tags"
+            data-test="selected-tag-chip"
             :text="item.value"
             @click:close="removeTag(item.value)"
           />
@@ -271,14 +271,5 @@ const close = () => {
 onMounted(async () => {
   await loadTags();
   initialTags.value = selectedTags.value;
-});
-
-defineExpose({
-  loadTags,
-  createTag,
-  saveTags,
-  removeTag,
-  selectedTags,
-  availableTags,
 });
 </script>
