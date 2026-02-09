@@ -32,6 +32,7 @@ func TestMongoStore(t *testing.T) {
 		suite.TestNamespaceConflicts(t)
 		suite.TestNamespaceUpdate(t)
 		suite.TestNamespaceIncrementDeviceCount(t)
+		suite.TestNamespaceSyncDeviceCounts(t)
 		suite.TestNamespaceDelete(t)
 		suite.TestNamespaceDeleteMany(t)
 	})

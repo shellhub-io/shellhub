@@ -433,6 +433,102 @@ func (s *Store) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (in
 	return deletedCount.(int64), err
 }
 
+func (s *Store) NamespaceSyncDeviceCounts(ctx context.Context) error {
+	pipeline := []bson.M{
+		{
+			"$group": bson.M{
+				"_id": bson.M{
+					"tenant_id": "$tenant_id",
+					"status":    "$status",
+				},
+				"count": bson.M{"$sum": 1},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id": "$_id.tenant_id",
+				"counts": bson.M{
+					"$push": bson.M{
+						"status": "$_id.status",
+						"count":  "$count",
+					},
+				},
+			},
+		},
+	}
+
+	cursor, err := s.db.Collection("devices").Aggregate(ctx, pipeline)
+	if err != nil {
+		return FromMongoError(err)
+	}
+	defer cursor.Close(ctx)
+
+	tenantIDs := make([]string, 0)
+
+	for cursor.Next(ctx) {
+		var result struct {
+			ID     string `bson:"_id"`
+			Counts []struct {
+				Status string `bson:"status"`
+				Count  int64  `bson:"count"`
+			} `bson:"counts"`
+		}
+
+		if err := cursor.Decode(&result); err != nil {
+			return FromMongoError(err)
+		}
+
+		tenantIDs = append(tenantIDs, result.ID)
+
+		updateDoc := bson.M{
+			"devices_accepted_count": int64(0),
+			"devices_pending_count":  int64(0),
+			"devices_rejected_count": int64(0),
+			"devices_removed_count":  int64(0),
+		}
+
+		for _, c := range result.Counts {
+			switch c.Status {
+			case "accepted":
+				updateDoc["devices_accepted_count"] = c.Count
+			case "pending":
+				updateDoc["devices_pending_count"] = c.Count
+			case "rejected":
+				updateDoc["devices_rejected_count"] = c.Count
+			case "removed":
+				updateDoc["devices_removed_count"] = c.Count
+			}
+		}
+
+		if _, err := s.db.Collection("namespaces").UpdateOne(ctx, bson.M{"tenant_id": result.ID}, bson.M{"$set": updateDoc}); err != nil {
+			return FromMongoError(err)
+		}
+
+		if err := s.cache.Delete(ctx, strings.Join([]string{"namespace", result.ID}, "/")); err != nil {
+			log.Error(err)
+		}
+	}
+
+	if err := cursor.Err(); err != nil {
+		return FromMongoError(err)
+	}
+
+	zeroDoc := bson.M{
+		"$set": bson.M{
+			"devices_accepted_count": int64(0),
+			"devices_pending_count":  int64(0),
+			"devices_rejected_count": int64(0),
+			"devices_removed_count":  int64(0),
+		},
+	}
+
+	if _, err := s.db.Collection("namespaces").UpdateMany(ctx, bson.M{"tenant_id": bson.M{"$nin": tenantIDs}}, zeroDoc); err != nil {
+		return FromMongoError(err)
+	}
+
+	return nil
+}
+
 func (s *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
 	update := bson.M{
 		"$inc": bson.M{

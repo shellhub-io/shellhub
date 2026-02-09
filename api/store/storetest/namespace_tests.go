@@ -462,6 +462,47 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 	})
 }
 
+func (s *Suite) TestNamespaceSyncDeviceCounts(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("syncs counters with actual device data", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t, WithNamespaceName("sync-test"))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusPending))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusRejected))
+
+		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, tenantID, models.DeviceStatusAccepted, 100))
+		require.NoError(t, st.NamespaceSyncDeviceCounts(ctx))
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), ns.DevicesAcceptedCount)
+		assert.Equal(t, int64(1), ns.DevicesPendingCount)
+		assert.Equal(t, int64(1), ns.DevicesRejectedCount)
+		assert.Equal(t, int64(0), ns.DevicesRemovedCount)
+	})
+
+	t.Run("sets zero for namespaces with no devices", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t, WithNamespaceName("empty-ns"))
+
+		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, tenantID, models.DeviceStatusAccepted, 50))
+		require.NoError(t, st.NamespaceSyncDeviceCounts(ctx))
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), ns.DevicesAcceptedCount)
+		assert.Equal(t, int64(0), ns.DevicesPendingCount)
+		assert.Equal(t, int64(0), ns.DevicesRejectedCount)
+		assert.Equal(t, int64(0), ns.DevicesRemovedCount)
+	})
+}
+
 // TestNamespaceDeleteMany tests bulk namespace deletion
 func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 	ctx := context.Background()

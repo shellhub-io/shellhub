@@ -813,6 +813,24 @@ func (_m *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID str
 	return r0
 }
 
+// NamespaceSyncDeviceCounts provides a mock function with given fields: ctx
+func (_m *Store) NamespaceSyncDeviceCounts(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceSyncDeviceCounts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NamespaceList provides a mock function with given fields: ctx, opts
 func (_m *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	_va := make([]interface{}, len(opts))

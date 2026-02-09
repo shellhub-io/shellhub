@@ -527,6 +527,10 @@ func TestAuthDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusRemoved, int64(-1)).
+					Return(nil).
+					Once()
+				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, "00000000-0000-4000-0000-000000000000", models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
@@ -534,8 +538,9 @@ func TestAuthDevice(t *testing.T) {
 				expectedDevice := *device
 				expectedDevice.LastSeen = now
 				expectedDevice.DisconnectedAt = nil
-				expectedDevice.RemovedAt = &now
+				expectedDevice.RemovedAt = nil
 				expectedDevice.Status = models.DeviceStatusPending
+				expectedDevice.StatusUpdatedAt = now
 
 				storeMock.
 					On("DeviceUpdate", ctx, device).

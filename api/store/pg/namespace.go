@@ -184,6 +184,46 @@ func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string
 	return nil
 }
 
+func (pg *Pg) NamespaceSyncDeviceCounts(ctx context.Context) error {
+	db := pg.getConnection(ctx)
+
+	_, err := db.NewRaw(`
+		UPDATE namespaces SET
+			devices_accepted_count = COALESCE(c.accepted, 0),
+			devices_pending_count  = COALESCE(c.pending, 0),
+			devices_rejected_count = COALESCE(c.rejected, 0),
+			devices_removed_count  = COALESCE(c.removed, 0)
+		FROM (
+			SELECT
+				namespace_id,
+				COUNT(*) FILTER (WHERE status = 'accepted') AS accepted,
+				COUNT(*) FILTER (WHERE status = 'pending')  AS pending,
+				COUNT(*) FILTER (WHERE status = 'rejected') AS rejected,
+				COUNT(*) FILTER (WHERE status = 'removed')  AS removed
+			FROM devices
+			GROUP BY namespace_id
+		) c
+		WHERE namespaces.id = c.namespace_id
+	`).Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	_, err = db.NewUpdate().
+		Model((*entity.Namespace)(nil)).
+		Set("devices_accepted_count = 0").
+		Set("devices_pending_count = 0").
+		Set("devices_rejected_count = 0").
+		Set("devices_removed_count = 0").
+		Where("id NOT IN (SELECT DISTINCT namespace_id FROM devices)").
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
 func (pg *Pg) NamespaceDelete(ctx context.Context, namespace *models.Namespace) error {
 	deletedCount, err := pg.NamespaceDeleteMany(ctx, []string{namespace.TenantID})
 	switch {

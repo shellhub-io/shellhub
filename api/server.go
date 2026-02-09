@@ -141,6 +141,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	s.worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
 	s.worker.HandleCron(services.CronDeviceCleanup, service.DeviceCleanup(), asynq.Unique())
+	s.worker.HandleCron(services.CronNamespaceDeviceCountSync, service.NamespaceDeviceCountSync(), asynq.Unique())
 
 	log.Info("Server setup completed successfully")
 

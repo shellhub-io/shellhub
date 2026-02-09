@@ -163,7 +163,12 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		device.DisconnectedAt = nil
 
 		if device.RemovedAt != nil {
+			device.RemovedAt = nil
 			device.Status = models.DeviceStatusPending
+			device.StatusUpdatedAt = clock.Now()
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusRemoved, -1); err != nil {
+				return nil, err
+			}
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
 				return nil, err
 			}

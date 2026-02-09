@@ -458,3 +458,44 @@ func TestService_DeviceCleanup(t *testing.T) {
 		})
 	}
 }
+
+func TestService_NamespaceDeviceCountSync(t *testing.T) {
+	storeMock := new(storemock.Store)
+
+	cases := []struct {
+		description   string
+		requiredMocks func(context.Context)
+		expected      error
+	}{
+		{
+			description: "fails when sync fails",
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceSyncDeviceCounts", ctx).
+					Return(errors.New("sync error")).
+					Once()
+			},
+			expected: errors.New("sync error"),
+		},
+		{
+			description: "succeeds",
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceSyncDeviceCounts", ctx).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache(), clientMock)
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			ctx := context.Background()
+			tc.requiredMocks(ctx)
+			require.Equal(tt, tc.expected, s.NamespaceDeviceCountSync()(ctx))
+		})
+	}
+}

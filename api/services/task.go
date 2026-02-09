@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	TaskDevicesHeartbeat = worker.TaskPattern("api:heartbeat")
-	CronDeviceCleanup    = worker.CronSpec("0 2 * * *")
+	TaskDevicesHeartbeat         = worker.TaskPattern("api:heartbeat")
+	CronDeviceCleanup            = worker.CronSpec("0 2 * * *")
+	CronNamespaceDeviceCountSync = worker.CronSpec("0 3 * * *")
 )
 
 // DevicesHeartbeat creates a task handler for processing device heartbeat signals. The payload format is a
@@ -160,6 +161,22 @@ func (s *service) deviceCleanup() store.TransactionCb {
 
 		log.WithFields(log.Fields{"total_found": totalCount, "total_deleted": totalDeleted}).
 			Info("Device cleanup completed successfully")
+
+		return nil
+	}
+}
+
+func (s *service) NamespaceDeviceCountSync() worker.CronHandler {
+	return func(ctx context.Context) error {
+		log.Info("Starting namespace device count sync")
+
+		if err := s.store.NamespaceSyncDeviceCounts(ctx); err != nil {
+			log.WithError(err).Error("Failed to sync namespace device counts")
+
+			return err
+		}
+
+		log.Info("Namespace device count sync completed")
 
 		return nil
 	}
