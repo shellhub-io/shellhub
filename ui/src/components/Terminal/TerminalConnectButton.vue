@@ -19,16 +19,17 @@
           <v-btn
             :disabled="!online"
             icon="mdi-triangle-small-down"
+            data-test="dropdown-btn"
             v-bind="props"
           />
         </template>
         <v-list>
           <v-list-item
-            v-for="item in menu"
+            v-for="item in menuItems"
             :key="item.title"
             :value="item"
-            :data-test="item.title"
-            @click="item.method()"
+            :data-test="item.dataTest"
+            @click="item.method"
           >
             <div class="d-flex align-center">
               <v-icon
@@ -84,22 +85,20 @@ const openTerminalHelper = () => {
   showTerminalHelper.value = true;
 };
 
-const menu = reactive([
+const menuItems = reactive([
   {
     icon: "mdi-application-outline",
     title: "Connect via web",
-    type: "method",
+    dataTest: "connect-via-web",
     method: openWebTerminal,
   },
   {
     icon: "mdi-console",
     title: "Connect via terminal",
-    type: "method",
+    dataTest: "connect-via-terminal",
     method: openTerminalHelper,
   },
 ]);
-
-defineExpose({ showWebTerminal, showTerminalHelper });
 </script>
 
 <style scoped lang="scss">
