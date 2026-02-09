@@ -308,40 +308,9 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 					return NewErrDeviceDuplicated(device.Name, nil)
 				}
 
-				if envs.IsEnterprise() && !envs.IsCloud() {
-					evaluation, err := s.client.LicenseEvaluate(ctx)
-					if err != nil {
-						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).
-							Error("failed to evaluate license device limit")
-
-						return err
-					}
-
-					if !evaluation.CanAccept {
-						return NewErrDeviceMaxDevicesReached(0)
-					}
-				}
-
-				if envs.IsCloud() {
-					hasBillingActive := namespace.Billing != nil && namespace.Billing.IsActive()
-
-					if !hasBillingActive && namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).
-							Error("namespace's limit reached - cannot accept another device")
-
-						return NewErrDeviceLimit(namespace.MaxDevices, nil)
-					}
-
-					if err := s.handleCloudBilling(ctx, namespace); err != nil {
-						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID, "billing_active": namespace.Billing.IsActive()}).
-							Error("billing validation failed")
-
-						return err
-					}
-				} else {
-					if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
-						return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
-					}
+				// Validate namespace can accept another device
+				if err := s.validateDeviceAcceptance(ctx, namespace); err != nil {
+					return err
 				}
 			}
 		}
@@ -430,20 +399,31 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	return nil
 }
 
-// handleCloudBilling processes billing-related operations for Cloud environment.
-// This function has side effects: it may delete removed devices and report to billing.
-func (s *service) handleCloudBilling(ctx context.Context, namespace *models.Namespace) error {
-	if namespace.Billing.IsActive() {
-		if err := s.BillingReport(ctx, namespace.TenantID, ReportDeviceAccept); err != nil {
-			return NewErrBillingReportNamespaceDelete(err)
+// validateDeviceAcceptance checks if a namespace can accept another device.
+// For cloud environments, this includes billing validation.
+// For community/enterprise, this checks configured device limits.
+func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *models.Namespace) error {
+	// Check hard limit first (applies to all editions)
+	if namespace.HasMaxDevices() && namespace.HasMaxDevicesReached() {
+		// For cloud with inactive billing, this is a billing issue
+		if envs.IsCloud() && (namespace.Billing == nil || !namespace.Billing.IsActive()) {
+			log.WithFields(log.Fields{"tenant": namespace.TenantID}).
+				Error("namespace's limit reached - cannot accept another device")
+			return NewErrDeviceLimit(namespace.MaxDevices, nil)
 		}
-	} else {
-		ok, err := s.BillingEvaluate(ctx, namespace.TenantID)
-		switch {
-		case err != nil:
-			return NewErrBillingEvaluate(err)
-		case !ok:
-			return ErrDeviceLimit
+
+		// For CE/Enterprise, this is a license/config limit
+		return NewErrDeviceMaxDevicesReached(namespace.MaxDevices)
+	}
+
+	// Additional billing validation for cloud
+	if envs.IsCloud() && s.billing != nil {
+		if err := s.validateBillingForDeviceAcceptance(ctx, namespace); err != nil {
+			log.WithError(err).WithFields(log.Fields{
+				"tenant":         namespace.TenantID,
+				"billing_active": namespace.Billing.IsActive(),
+			}).Error("billing validation failed")
+			return err
 		}
 	}
 

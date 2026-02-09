@@ -67,6 +67,7 @@ var (
 	ErrReport                          = errors.New("report error", ErrLayer, ErrCodeInvalid)
 	ErrPaymentRequired                 = errors.New("payment required", ErrLayer, ErrCodePayment)
 	ErrEvaluate                        = errors.New("evaluate error", ErrLayer, ErrCodeInvalid)
+	ErrBillingNotAvailable             = errors.New("billing not available", ErrLayer, ErrCodeInvalid)
 	ErrNoContentChange                 = errors.New("no content change", ErrLayer, ErrCodeNoContentChange)
 	ErrNotFound                        = errors.New("not found", ErrLayer, ErrCodeNotFound)
 	ErrBadRequest                      = errors.New("bad request", ErrLayer, ErrCodeInvalid)
