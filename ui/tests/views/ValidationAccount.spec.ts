@@ -7,6 +7,7 @@ import ValidationAccount from "@/views/ValidationAccount.vue";
 import useUsersStore from "@/store/modules/users";
 import { createAxiosError } from "@tests/utils/axiosError";
 import * as usersApi from "@/store/api/users";
+import { envVariables } from "@/envVariables";
 
 vi.mock("@/store/api/users");
 
@@ -39,6 +40,8 @@ describe("ValidationAccount View", () => {
   afterEach(() => {
     vi.clearAllMocks();
     wrapper?.unmount();
+    envVariables.isCloud = false;
+    envVariables.onboardingUrl = "";
   });
 
   describe("when page loads", () => {
@@ -53,6 +56,30 @@ describe("ValidationAccount View", () => {
       expect(backToLogin.exists()).toBe(true);
       expect(backToLogin.text()).toContain("Back to");
       expect(backToLogin.text()).toContain("Login");
+    });
+  });
+
+  describe("onboarding survey", () => {
+    beforeEach(async () => {
+      envVariables.isCloud = true;
+      envVariables.onboardingUrl = "https://forms.example.com/survey";
+      await mountWrapper();
+    });
+
+    it("shows onboarding survey before validation", () => {
+      expect(wrapper.find('[data-test="onboarding-survey-container"]').exists()).toBe(true);
+      expect(usersStore.validateAccount).not.toHaveBeenCalled();
+    });
+
+    it("validates account after survey completion", async () => {
+      window.dispatchEvent(new MessageEvent("message", {
+        origin: "https://forms.example.com",
+        data: "formbricksSurveyCompleted",
+      }));
+      await flushPromises();
+
+      expect(wrapper.find('[data-test="onboarding-survey-container"]').exists()).toBe(false);
+      expect(usersStore.validateAccount).toHaveBeenCalledWith({ email, token });
     });
   });
 
