@@ -1,59 +1,80 @@
 <template>
   <v-container>
-    <v-card-title
-      class="d-flex justify-center"
-      data-test="verification-title"
-    >
-      Verification Account
-    </v-card-title>
-
-    <v-card-text
-      v-if="verifyActivationProcessingStatus === 'processing'"
-      class="d-flex align-center justify-center"
-      data-test="processing-card-text"
-    >
-      Processing activation.
-    </v-card-text>
-
-    <v-card-text
-      v-if="verifyActivationProcessingStatus === 'success'"
-      class="d-flex align-center justify-center text-center"
-      data-test="success-card-text"
-    >
-      Congrats and welcome to ShellHub.
-    </v-card-text>
-
-    <v-card-text
-      v-if="verifyActivationProcessingStatus === 'failed'"
-      class="d-flex align-center justify-center text-center"
-      data-test="failed-card-text"
-    >
-      There was a problem activating your account. Go to the login
-      page, login to receive another email with the activation link.
-    </v-card-text>
-
-    <v-card-text
-      v-if="verifyActivationProcessingStatus === 'failed-token'"
-      class="d-flex align-center justify-center text-center"
-      data-test="failed-token-card-text"
-    >
-      Your account activation token has expired. Go to the login page,
-      login to receive another email with the activation link.
-    </v-card-text>
-
-    <v-card-subtitle
-      class="d-flex align-center justify-center pa-4 mx-auto pt-2"
-      data-test="back-to-login"
-    >
-      Back to
-      <router-link
-        class="ml-1"
-        :to="{ name: 'Login' }"
-        data-test="login-btn"
+    <div v-if="showOnboardingStep">
+      <v-card-title class="d-flex justify-center">
+        Before verifying your account
+      </v-card-title>
+      <v-card-text class="text-center">
+        Please answer a few quick questions so we can better understand your needs.
+      </v-card-text>
+      <div
+        class="mt-2"
+        data-test="onboarding-survey-container"
+        style="position: relative; height: 60dvh; overflow: auto;"
       >
-        Login
-      </router-link>
-    </v-card-subtitle>
+        <iframe
+          :src="onboardingUrl"
+          frameborder="0"
+          style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; border: 0;"
+        />
+      </div>
+    </div>
+    <div v-else>
+      <v-card-title
+        class="d-flex justify-center"
+        data-test="verification-title"
+      >
+        Verification Account
+      </v-card-title>
+
+      <v-card-text
+        v-if="verifyActivationProcessingStatus === 'processing'"
+        class="d-flex align-center justify-center"
+        data-test="processing-card-text"
+      >
+        Processing activation.
+      </v-card-text>
+
+      <v-card-text
+        v-if="verifyActivationProcessingStatus === 'success'"
+        class="d-flex align-center justify-center text-center"
+        data-test="success-card-text"
+      >
+        Congrats and welcome to ShellHub.
+      </v-card-text>
+
+      <v-card-text
+        v-if="verifyActivationProcessingStatus === 'failed'"
+        class="d-flex align-center justify-center text-center"
+        data-test="failed-card-text"
+      >
+        There was a problem activating your account. Go to the login
+        page, login to receive another email with the activation link.
+      </v-card-text>
+
+      <v-card-text
+        v-if="verifyActivationProcessingStatus === 'failed-token'"
+        class="d-flex align-center justify-center text-center"
+        data-test="failed-token-card-text"
+      >
+        Your account activation token has expired. Go to the login page,
+        login to receive another email with the activation link.
+      </v-card-text>
+
+      <v-card-subtitle
+        class="d-flex align-center justify-center pa-4 mx-auto pt-2"
+        data-test="back-to-login"
+      >
+        Back to
+        <router-link
+          class="ml-1"
+          :to="{ name: 'Login' }"
+          data-test="login-btn"
+        >
+          Login
+        </router-link>
+      </v-card-subtitle>
+    </div>
   </v-container>
 </template>
 
@@ -61,10 +82,12 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
+import { useEventListener } from "@vueuse/core";
 import handleError from "@/utils/handleError";
 import useSnackbar from "@/helpers/snackbar";
 import useUsersStore from "@/store/modules/users";
 import { IUser } from "@/interfaces/IUser";
+import { envVariables } from "@/envVariables";
 
 const usersStore = useUsersStore();
 const router = useRouter();
@@ -72,8 +95,30 @@ const route = useRoute();
 const snackbar = useSnackbar();
 
 const activationProcessingStatus = ref("processing");
+const showOnboardingStep = ref(false);
 
 const verifyActivationProcessingStatus = computed(() => activationProcessingStatus.value);
+const hasOnboardingSurvey = computed(() => envVariables.isCloud && !!envVariables.onboardingUrl);
+
+const onboardingUrl = computed(() => {
+  if (!envVariables.onboardingUrl) {
+    return "";
+  }
+
+  const baseUrl = envVariables.onboardingUrl;
+  const params = new URLSearchParams({
+    consent_to_contact: "accepted",
+    source: "cloud",
+    embed: "true",
+    instance_domain: window.location.hostname,
+  });
+
+  if (import.meta.env.DEV) {
+    params.append("preview", "true");
+  }
+
+  return `${baseUrl}?${params.toString()}`;
+});
 
 const validateAccount = async () => {
   try {
@@ -108,6 +153,30 @@ const validateAccount = async () => {
 };
 
 onMounted(async () => {
+  if (hasOnboardingSurvey.value) {
+    showOnboardingStep.value = true;
+    return;
+  }
+
   await validateAccount();
+});
+
+useEventListener(window, "message", (event: MessageEvent) => {
+  if (!envVariables.onboardingUrl) return;
+
+  try {
+    const formbricksOrigin = new URL(envVariables.onboardingUrl).origin;
+    if (event.origin !== formbricksOrigin) {
+      return;
+    }
+  } catch {
+    return;
+  }
+
+  if (event.data === "formbricksSurveyCompleted") {
+    showOnboardingStep.value = false;
+    activationProcessingStatus.value = "processing";
+    void validateAccount();
+  }
 });
 </script>
