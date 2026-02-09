@@ -13,10 +13,10 @@
             "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
             "SHELLHUB_SERVER_ADDRESS=__SERVER_ADDRESS__",
             "SHELLHUB_TENANT_ID=__TENANT_ID__",
-            "SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key",
             "__PREFERRED_HOSTNAME__",
             "__PREFERRED_IDENTITY__",
-            "__KEEPALIVE_INTERVAL__"
+            "__KEEPALIVE_INTERVAL__",
+            "SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key"
         ],
         "cwd": "/",
         "capabilities": {
