@@ -17,19 +17,18 @@ type APIService struct {
 var _ Service = (*APIService)(nil)
 
 type service struct {
-	store          store.Store
-	privKey        *rsa.PrivateKey
-	pubKey         *rsa.PublicKey
-	cache          cache.Cache
-	client         internalclient.Client
-	locator        geoip.Locator
-	validator      *validator.Validator
-	billingService BillingService
+	store     store.Store
+	privKey   *rsa.PrivateKey
+	pubKey    *rsa.PublicKey
+	cache     cache.Cache
+	client    internalclient.Client
+	locator   geoip.Locator
+	validator *validator.Validator
+	billing   BillingProvider
 }
 
 //go:generate mockery --name Service --filename services.go
 type Service interface {
-	BillingInterface
 	TagsService
 	DeviceService
 	UserService
@@ -44,8 +43,17 @@ type Service interface {
 	APIKeyService
 
 	// Store returns the underlying store instance.
-	// This is used by route extensions (enterprise/cloud) to access the same
-	// database connection and create their own services using the shared store.
+	//
+	// IMPORTANT: Extensions should use Store() ONLY for:
+	// 1. Creating their own service layers that need database access
+	// 2. Querying data not exposed by core Service methods
+	//
+	// Extensions MUST NOT:
+	// 1. Modify core data (devices, users, namespaces) directly via Store()
+	// 2. Bypass core business logic or validation rules
+	// 3. Create transactions that span both core and extension operations
+	//
+	// Violating these rules may cause data inconsistency or break core functionality.
 	Store() store.Store
 }
 
@@ -57,9 +65,9 @@ func WithLocator(locator geoip.Locator) Option {
 	}
 }
 
-func WithBillingService(billing BillingService) Option {
+func WithBilling(billing BillingProvider) Option {
 	return func(service *APIService) {
-		service.billingService = billing
+		service.billing = billing
 	}
 }
 
@@ -81,7 +89,7 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 			c,
 			geoip.NewNullGeoLite(),
 			validator.New(),
-			nil, // billingService (injected via WithBillingService option)
+			nil, // billing (injected via WithBilling option)
 		},
 	}
 

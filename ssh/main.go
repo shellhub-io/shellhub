@@ -88,7 +88,14 @@ func main() {
 			}
 		}()
 
-		errs <- h.ListenAndServe(ListenAddress)
+		log.WithField("address", ListenAddress).Info("starting HTTP server")
+		if err := h.ListenAndServe(ListenAddress); err != nil {
+			log.WithError(err).WithField("address", ListenAddress).Error("HTTP server failed")
+			errs <- err
+		} else {
+			log.WithField("address", ListenAddress).Info("HTTP server stopped gracefully")
+			errs <- nil
+		}
 	}()
 
 	go func() {

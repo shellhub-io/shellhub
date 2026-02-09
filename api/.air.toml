@@ -6,15 +6,8 @@ pre_cmd = []
 cmd = "go build -gcflags=\"all=-N -l\" -o ./tmp/main ."
 post_cmd = []
 bin = ""
-full_bin = "dlv exec ./tmp/main"
-args_bin = [
-    "--listen=0.0.0.0:2345",
-    "--headless",
-    "--continue",
-    "--accept-multiclient",
-    "--",
-    "server",
-]
+full_bin = "dlv exec --continue --accept-multiclient --listen=:2345 --headless=true --api-version=2 --log ./tmp/main -- server"
+args_bin = []
 delay = 500
 exclude_dir = ["assets", "tmp", "vendor", "testdata"]
 exclude_file = []
