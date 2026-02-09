@@ -1,5 +1,6 @@
 <template>
   <v-list-item
+    data-test="member-delete-dialog-btn"
     :disabled="!hasAuthorization"
     @click="showDialog = true"
   >
@@ -7,7 +8,7 @@
       <div class="mr-2">
         <v-icon icon="mdi-delete" />
       </div>
-      <v-list-item-title data-test="member-delete-dialog-btn">
+      <v-list-item-title>
         Remove
       </v-list-item-title>
     </div>

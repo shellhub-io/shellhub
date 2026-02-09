@@ -44,6 +44,7 @@
             <v-tooltip
               v-if="member.added_at !== '0001-01-01T00:00:00Z'"
               activator="parent"
+              data-test="added-at-tooltip"
               location="bottom"
             >
               This member was added on {{ formatFullDateTime(member.added_at) }}
@@ -116,6 +117,7 @@
               v-else
               activator="parent"
               location="top"
+              data-test="owner-actions-tooltip"
             >
               No one can modify the owner of this namespace.
             </v-tooltip>
@@ -134,7 +136,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { formatFullDateTime } from "@/utils/date";
 import hasPermission from "@/utils/permission";
 import MemberDelete from "./MemberDelete.vue";
@@ -178,18 +180,16 @@ const getNamespace = async () => {
   try {
     await namespacesStore.fetchNamespace(tenant);
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError;
-      if (axiosError.response?.status === 403) {
-        snackbar.showError("You don't have permission to view this namespace.");
-        handleError(error);
-      }
-    } else {
-      snackbar.showError("Failed to fetch namespace members.");
-      handleError(error);
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You don't have permission to view this namespace.");
+      return;
     }
+
+    snackbar.showError("Failed to fetch namespace members.");
+    handleError(error);
   }
 };
+
 const refresh = async () => { await getNamespace(); };
 
 const isNamespaceOwner = (role: string) => role === "owner";
