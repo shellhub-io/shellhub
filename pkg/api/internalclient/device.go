@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 )
@@ -32,11 +33,16 @@ type deviceAPI interface {
 }
 
 func (c *client) DevicesOffline(ctx context.Context, uid string) error {
+	baseURL := c.config.APIBaseURL
+	if envs.IsCloud() || envs.IsEnterprise() {
+		baseURL = c.config.EnterpriseBaseURL
+	}
+
 	res, err := c.http.
 		R().
 		SetContext(ctx).
 		SetPathParam("uid", uid).
-		Post(c.config.APIBaseURL + "/internal/devices/{uid}/offline")
+		Post(baseURL + "/internal/devices/{uid}/offline")
 
 	return HasError(res, err)
 }

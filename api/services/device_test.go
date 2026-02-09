@@ -1911,10 +1911,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
-					Once()
-				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
@@ -1982,10 +1978,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("false").
-					Once()
-				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
@@ -2003,79 +1995,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 			},
 			expectedError: nil,
-		},
-		{
-			description: "failure (accepted) (different MAC) - license evaluate error [enterprise]",
-			req: &requests.DeviceUpdateStatus{
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				UID:      "limit-device",
-				Status:   "accepted",
-			},
-			requiredMocks: func() {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
-					Return(
-						&models.Namespace{
-							TenantID: "00000000-0000-0000-0000-000000000000",
-						},
-						nil,
-					).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceResolve", ctx, store.DeviceUIDResolver, "limit-device", mock.AnythingOfType("store.QueryOption")).
-					Return(
-						&models.Device{
-							UID:      "limit-device",
-							Name:     "test-device",
-							TenantID: "00000000-0000-0000-0000-000000000000",
-							Status:   models.DeviceStatusPending,
-							Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
-						},
-						nil,
-					).
-					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceResolve", ctx, store.DeviceMACResolver, "aa:bb:cc:dd:ee:ff", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
-					Return(nil, store.ErrNoDocuments).
-					Once()
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("InNamespace", "00000000-0000-0000-0000-000000000000").
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceResolve", ctx, store.DeviceHostnameResolver, "test-device", mock.AnythingOfType("store.QueryOption"), mock.AnythingOfType("store.QueryOption")).
-					Return(nil, store.ErrNoDocuments).
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
-					Once()
-				envMock.
-					On("Get", "SHELLHUB_CLOUD").
-					Return("false").
-					Once()
-				clientMock.
-					On("LicenseEvaluate", mock.Anything).
-					Return(nil, errors.New("license error", "", 0)).
-					Once()
-			},
-			expectedError: errors.New("license error", "", 0),
 		},
 		{
 			description: "failure (accepted) (different MAC) - device limit reached [enterprise]",
@@ -2138,19 +2057,11 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
-					Once()
-				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
 					Once()
-				clientMock.
-					On("LicenseEvaluate", mock.Anything).
-					Return(&models.BillingEvaluation{CanAccept: false}, nil).
-					Once()
 			},
-			expectedError: NewErrDeviceMaxDevicesReached(0),
+			expectedError: NewErrDeviceMaxDevicesReached(3),
 		},
 		{
 			description: "success (accepted) (different MAC) - device acceptance [enterprise]",
@@ -2213,16 +2124,8 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				envMock.
-					On("Get", "SHELLHUB_ENTERPRISE").
-					Return("true").
-					Once()
-				envMock.
 					On("Get", "SHELLHUB_CLOUD").
 					Return("false").
-					Twice()
-				clientMock.
-					On("LicenseEvaluate", mock.Anything).
-					Return(&models.BillingEvaluation{CanAccept: true}, nil).
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, updatedDevice).
