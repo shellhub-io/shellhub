@@ -49,4 +49,8 @@ type NamespaceStore interface {
 
 	NamespaceDelete(ctx context.Context, namespace *models.Namespace) error
 	NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error)
+
+	// NamespaceSyncDeviceCounts recalculates and sets the device counter cache fields
+	// for all namespaces based on actual device data.
+	NamespaceSyncDeviceCounts(ctx context.Context) error
 }

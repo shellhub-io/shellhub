@@ -24,6 +24,7 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestNamespaceConflicts(t)
 		s.TestNamespaceUpdate(t)
 		s.TestNamespaceIncrementDeviceCount(t)
+		s.TestNamespaceSyncDeviceCounts(t)
 		s.TestNamespaceDelete(t)
 		s.TestNamespaceDeleteMany(t)
 	})
