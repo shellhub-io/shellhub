@@ -40,6 +40,8 @@
           type="warning"
           class="mb-4"
           data-test="manual-config-info"
+          role="alert"
+          aria-live="assertive"
         >
           You need to provide at least one of the following URLs: POST URL or Redirect URL.
         </v-alert>

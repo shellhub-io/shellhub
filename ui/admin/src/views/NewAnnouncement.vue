@@ -42,6 +42,8 @@
         type="error"
         class="mt-2"
         data-test="announcement-error"
+        role="alert"
+        aria-live="assertive"
       >
         The announcement cannot be empty!
       </v-alert>
@@ -51,6 +53,8 @@
         type="warning"
         class="mt-2"
         data-test="announcement-key-warning"
+        role="alert"
+        aria-live="assertive"
       >
         It's recommended to set the TinyMCE key in the .env file.
       </v-alert>

@@ -86,7 +86,7 @@ exports[`MfaSettings > Renders the component (Recovery email window) 1`] = `
                             </label><label class="v-label v-field-label" id="input-v-3-label" aria-hidden="false" for="input-v-3">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
+                            <!----><input autocomplete="email" size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -238,7 +238,7 @@ exports[`MfaSettings > Renders the components (Recovery codes window) 1`] = `
                             </label><label class="v-label v-field-label" id="input-v-3-label" aria-hidden="false" for="input-v-3">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
+                            <!----><input autocomplete="email" size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -256,7 +256,7 @@ exports[`MfaSettings > Renders the components (Recovery codes window) 1`] = `
                 </transition-stub>
                 <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item v-window-item--active" style="">
-                    <div data-v-491349b1="" class="v-alert v-theme--light bg-warning v-alert--density-default v-alert--variant-flat" role="alert" data-test="alert-first-page">
+                    <div data-v-491349b1="" class="v-alert v-theme--light bg-warning v-alert--density-default v-alert--variant-flat" role="alert" data-test="alert-first-page" aria-live="assertive">
                       <!----><span class="v-alert__underlay"></span>
                       <!---->
                       <!---->
@@ -451,7 +451,7 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                             </label><label class="v-label v-field-label" id="input-v-3-label" aria-hidden="false" for="input-v-3">
                               <!---->Recovery Email
                             </label>
-                            <!----><input size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
+                            <!----><input autocomplete="email" size="1" type="text" aria-labelledby="input-v-3-label" id="input-v-3" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -469,7 +469,7 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                 </transition-stub>
                 <transition-stub data-v-491349b1="" name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item" style="display: none;">
-                    <div data-v-491349b1="" class="v-alert v-theme--light bg-warning v-alert--density-default v-alert--variant-flat" role="alert" data-test="alert-first-page">
+                    <div data-v-491349b1="" class="v-alert v-theme--light bg-warning v-alert--density-default v-alert--variant-flat" role="alert" data-test="alert-first-page" aria-live="assertive">
                       <!----><span class="v-alert__underlay"></span>
                       <!---->
                       <!---->
@@ -593,7 +593,7 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                       <p data-v-491349b1="" class="my-2"><strong data-v-491349b1="">Step 2:</strong> Enter the 6-digit code from your TOTP provider after signing in. </p>
                     </div>
                     <!--v-if-->
-                    <div data-v-491349b1="" class="v-otp-input" data-test="verification-code" required="">
+                    <div data-v-491349b1="" class="v-otp-input" data-test="verification-code" required="" autocomplete="one-time-code">
                       <div class="v-otp-input__content">
                         <!---->
                         <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
@@ -780,7 +780,7 @@ exports[`MfaSettings > Renders the components (Secret/QR Code window) 1`] = `
                             <div class="v-field__outline__end"></div>
                             <!---->
                           </div>
-                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        </div><input class="v-otp-input-input" type="hidden" required="" autocomplete="one-time-code" value="">
                         <!---->
                         <!---->
                         <!---->

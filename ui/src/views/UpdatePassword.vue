@@ -23,6 +23,7 @@
         :error-messages="passwordError"
         label="Password"
         required
+        autocomplete="new-password"
         variant="underlined"
         data-test="password-text"
         :type="showPassword ? 'text' : 'password'"
@@ -38,6 +39,7 @@
         :error-messages="passwordConfirmError"
         label="Confirm Password"
         required
+        autocomplete="new-password"
         variant="underlined"
         data-test="password-confirm-text"
         :type="showConfirmPassword ? 'text' : 'password'"

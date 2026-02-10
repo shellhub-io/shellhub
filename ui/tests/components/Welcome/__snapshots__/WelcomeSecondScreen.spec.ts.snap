@@ -59,7 +59,7 @@ exports[`Welcome Second Screen > Renders the component 1`] = `
         </div>
       </div>
     </div>
-    <div class="v-alert v-theme--light text-primary v-alert--density-default v-alert--variant-tonal" role="alert">
+    <div class="v-alert v-theme--light text-primary v-alert--density-default v-alert--variant-tonal" role="status" aria-live="polite">
       <!----><span class="v-alert__underlay"></span>
       <!---->
       <div class="v-alert__prepend"><i class="mdi-package-down mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" density="default"></i></div>

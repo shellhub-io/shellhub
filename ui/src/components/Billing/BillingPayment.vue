@@ -5,6 +5,7 @@
         v-model="customer.name"
         label="Name"
         disabled
+        autocomplete="name"
         data-test="customer-name"
       />
     </v-col>
@@ -13,6 +14,7 @@
         v-model="customer.email"
         label="E-mail"
         disabled
+        autocomplete="email"
         data-test="customer-email"
       />
     </v-col>
@@ -140,6 +142,8 @@
         :text="errorMessage"
         type="error"
         data-test="alert-message"
+        role="alert"
+        aria-live="assertive"
       />
     </v-col>
   </v-row>

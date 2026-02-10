@@ -101,6 +101,8 @@
                 class="mb-3"
                 title="Installation"
                 icon="mdi-package-down"
+                role="status"
+                aria-live="polite"
               >
                 Ready to install? Copy the command below and run it on your target device:
                 <CopyCommandField
@@ -183,6 +185,8 @@
                 class="mb-3"
                 title="Manual Installation Required"
                 icon="mdi-book-open-variant"
+                role="alert"
+                aria-live="assertive"
               >
                 This method requires manual configuration and build system integration. Please follow the detailed documentation:
                 <div class="mt-3">

@@ -28,6 +28,7 @@
           :error-messages="recoveryEmailError"
           hide-details="auto"
           required
+          autocomplete="email"
           data-test="recovery-email-text"
         />
       </v-window-item>
@@ -39,6 +40,8 @@
           text="Please tick the box below when you're confident you've saved your recovery codes.
                 Without them, you won't be able to get back into your account if you lose your MFA device.
                 Keep in mind that the codes will change if you come back to this page."
+          role="alert"
+          aria-live="assertive"
         />
         <v-card class="my-4 pa-3 border overflow-x-auto">
           <div class="recovery-codes-grid">
@@ -127,12 +130,15 @@
           type="error"
           data-test="error-alert"
           :text="errorMessage"
+          role="alert"
+          aria-live="assertive"
         />
         <v-otp-input
           v-model="verificationCode"
           data-test="verification-code"
           required
           label="Verification Code"
+          autocomplete="one-time-code"
           @keyup.enter="verificationCode ? enableMfa() : false"
         />
       </v-window-item>

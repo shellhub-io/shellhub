@@ -53,6 +53,8 @@
         variant="tonal"
         title="Installation"
         icon="mdi-package-down"
+        role="status"
+        aria-live="polite"
       >
         <div data-test="welcome-second-run-title">
           Ready to install? Copy the command below and run it on your target device:

@@ -12,6 +12,8 @@
     <div
       class="mt-2 mb-0 text-center"
       data-test="accountCreated-message"
+      role="status"
+      aria-live="polite"
     >
       Thank you for registering an account on ShellHub.
       <p

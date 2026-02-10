@@ -46,6 +46,7 @@
         required
         :error-messages="nameError"
         color="primary"
+        autocomplete="name"
       />
       <v-text-field
         v-model="username"
@@ -54,6 +55,7 @@
         required
         :error-messages="usernameError"
         color="primary"
+        autocomplete="username"
       />
       <v-text-field
         v-model="email"
@@ -63,6 +65,7 @@
         name="email"
         :error-messages="emailError"
         color="primary"
+        autocomplete="email"
       />
       <v-text-field
         v-model="password"
@@ -72,6 +75,7 @@
         name="password"
         :error-messages="passwordError"
         color="primary"
+        autocomplete="new-password"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         :type="showPassword ? 'text' : 'password'"
         @click:append-inner="togglePasswordVisibility"

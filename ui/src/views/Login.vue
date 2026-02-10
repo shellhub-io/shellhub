@@ -6,6 +6,8 @@
       variant="tonal"
       class="mb-4"
       data-test="user-status-alert"
+      role="alert"
+      aria-live="assertive"
     >
       {{ alertMessage }}
     </v-alert>
@@ -13,6 +15,8 @@
       v-if="loginToken"
       data-test="loadingToken-alert"
       class="pa-6 bg-v-theme-surface"
+      role="status"
+      aria-live="polite"
     >
       <div class="text-center">
         <p>Logging the token in...</p>
@@ -34,6 +38,8 @@
         variant="tonal"
         class="mb-4"
         data-test="invalid-login-alert"
+        role="alert"
+        aria-live="assertive"
         @click:close="!invalidCredentials"
       />
     </v-slide-y-reverse-transition>
@@ -47,6 +53,8 @@
         variant="tonal"
         class="mb-4"
         data-test="invalid-login-alert"
+        role="status"
+        aria-live="polite"
       />
     </v-slide-y-reverse-transition>
     <v-form
@@ -63,6 +71,7 @@
           :rules="rules"
           required
           label="Username or email address"
+          autocomplete="username"
           data-test="username-text"
         />
 
@@ -75,6 +84,7 @@
           :rules="rules"
           label="Password"
           required
+          autocomplete="current-password"
           data-test="password-text"
           :type="showPassword ? 'text' : 'password'"
           @click:append-inner="showPassword = !showPassword"

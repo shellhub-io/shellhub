@@ -20,6 +20,8 @@
           variant="tonal"
           data-test="invalid-login-alert"
           class="mb-4"
+          role="alert"
+          aria-live="assertive"
           @click:close="!tokenCountdownAlert"
         />
       </v-slide-y-reverse-transition>
@@ -33,6 +35,8 @@
           variant="tonal"
           data-test="invalid-login-alert"
           class="mb-4"
+          role="alert"
+          aria-live="assertive"
         />
       </v-slide-y-reverse-transition>
       <p class="mb-4 text-justify">

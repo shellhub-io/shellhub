@@ -37,6 +37,8 @@
             :text="errorMessage"
             type="error"
             data-test="checkout-error-alert"
+            role="alert"
+            aria-live="assertive"
           />
         </v-window-item>
         <v-window-item :value="4">

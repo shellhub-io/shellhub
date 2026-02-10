@@ -55,7 +55,7 @@ exports[`Recovery Helper > Renders the component 1`] = `
             </header><!-- Content -->
             <div class="pa-8">
               <transition-stub name="slide-y-reverse-transition" appear="false" persisted="false" css="true">
-                <div class="v-alert v-theme--light text-warning v-alert--density-default v-alert--variant-tonal mb-4" role="alert" data-test="invalid-login-alert">
+                <div class="v-alert v-theme--light text-warning v-alert--density-default v-alert--variant-tonal mb-4" role="alert" data-test="invalid-login-alert" aria-live="assertive">
                   <!----><span class="v-alert__underlay"></span>
                   <!---->
                   <div class="v-alert__prepend"><i class="mdi-alert-circle mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true" density="default"></i></div>

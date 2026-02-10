@@ -37,6 +37,8 @@
             variant="tonal"
             text="Users are strongly encouraged to change this password after their first successful authentication"
             data-test="password-warning"
+            role="alert"
+            aria-live="assertive"
           />
           <p class="text-justify">
             A new password has been generated for this user. Please copy and

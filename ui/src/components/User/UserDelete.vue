@@ -21,6 +21,8 @@
       variant="tonal"
       class="mb-4"
       data-test="namespace-warning"
+      role="alert"
+      aria-live="assertive"
     >
       <strong>Warning:</strong> You cannot delete your account while you have active namespaces.
       Please delete all your owned namespaces before attempting to delete your account.

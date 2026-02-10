@@ -5,6 +5,8 @@
     variant="tonal"
     data-test="error-alert"
     :text="errorAlert"
+    role="alert"
+    aria-live="assertive"
   />
   <v-card-title
     class="d-flex justify-center mb-1 text-h6"

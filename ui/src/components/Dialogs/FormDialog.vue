@@ -92,6 +92,8 @@
             variant="tonal"
             class="mb-0"
             data-test="form-dialog-alert"
+            :role="alertType === 'error' || alertType === 'warning' ? 'alert' : 'status'"
+            :aria-live="alertType === 'error' || alertType === 'warning' ? 'assertive' : 'polite'"
           >
             <template #append>
               <v-btn

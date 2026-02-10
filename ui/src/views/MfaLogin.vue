@@ -9,6 +9,8 @@
         variant="tonal"
         class="mb-4"
         data-test="alert-message"
+        role="alert"
+        aria-live="assertive"
       />
     </v-slide-y-reverse-transition>
     <v-row>
@@ -30,6 +32,7 @@
       data-test="verification-code"
       required
       label="Verification Code"
+      autocomplete="one-time-code"
       variant="underlined"
       @keyup.enter="verificationCode ? loginMfa() : false"
     />

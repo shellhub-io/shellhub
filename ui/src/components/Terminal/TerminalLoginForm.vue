@@ -27,6 +27,7 @@
         persistent-hint
         persistent-placeholder
         :validate-on-blur="true"
+        autocomplete="username"
         data-test="username-field"
       />
 
@@ -56,6 +57,7 @@
         hint="Enter a valid password for the user on the device"
         persistent-hint
         persistent-placeholder
+        autocomplete="current-password"
         data-test="password-field"
         :type="showPassword ? 'text' : 'password'"
         @click:append-inner="showPassword = !showPassword"
@@ -72,6 +74,7 @@
         hint="Enter the key's passphrase"
         persistent-hint
         persistent-placeholder
+        autocomplete="current-password"
         data-test="passphrase-field"
         :type="showPassword ? 'text' : 'password'"
         @click:append-inner="showPassword = !showPassword"
@@ -85,6 +88,8 @@
         density="compact"
         class="mt-4"
         data-test="sshid-hint"
+        role="status"
+        aria-live="polite"
       >
         <div class="d-flex align-center justify-space-between ga-2">
           <div class="text-body-2">
