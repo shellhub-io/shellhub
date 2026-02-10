@@ -45,6 +45,4 @@ const showDialog = defineModel<boolean>({ required: true });
 const redirectToPricing = () => {
   window.open("https://www.shellhub.io/pricing", "_blank", "noopener,noreferrer");
 };
-
-defineExpose({ showDialog });
 </script>
