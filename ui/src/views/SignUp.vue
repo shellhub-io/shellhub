@@ -6,11 +6,14 @@
       variant="tonal"
       class="mb-4"
       data-test="user-status-alert"
+      role="alert"
+      aria-live="polite"
     >
       Please create your account before accepting the namespace invitation.
     </v-alert>
     <form
       v-if="!showMessage"
+      aria-label="Create account"
       @submit.prevent="createAccount"
     >
       <v-card-title class="text-center">
@@ -24,6 +27,7 @@
           :error-messages="nameError"
           required
           label="Name"
+          autocomplete="name"
           variant="underlined"
           data-test="name-text"
         />
@@ -35,6 +39,7 @@
           :error-messages="usernameError"
           required
           label="Username"
+          autocomplete="username"
           variant="underlined"
           data-test="username-text"
         />
@@ -47,6 +52,7 @@
           :error-messages="emailError"
           required
           label="Email"
+          autocomplete="email"
           variant="underlined"
           data-test="email-text"
         />
@@ -59,6 +65,7 @@
           :error-messages="passwordError"
           label="Password"
           required
+          autocomplete="new-password"
           variant="underlined"
           data-test="password-text"
           :type="showPassword ? 'text' : 'password'"
@@ -74,6 +81,7 @@
           :error-messages="passwordConfirmError"
           label="Confirm Password"
           required
+          autocomplete="new-password"
           variant="underlined"
           data-test="password-confirm-text"
           :type="showConfirmPassword ? 'text' : 'password'"
@@ -87,6 +95,7 @@
           v-model="acceptPrivacyPolicy"
           color="primary"
           hide-details
+          aria-required="true"
           data-test="accept-privacy-policy-checkbox"
         >
           <template #label>
@@ -108,10 +117,10 @@
           data-test="accept-news-checkbox"
         >
           <template #label>
-            <p>
+            <span>
               I accept to receive news and updates from ShellHub via
               email.
-            </p>
+            </span>
           </template>
         </v-checkbox>
       </div>

@@ -18,6 +18,8 @@
           class="d-flex align-center justify-center text-center"
           type="success"
           data-test="verification-success"
+          role="status"
+          aria-live="polite"
         >
           You have successfully disabled Multi-Factor Authentication (MFA).
           You will be redirected to the application in 5 seconds.
@@ -28,6 +30,8 @@
           class="d-flex align-center justify-center text-center"
           type="error"
           data-test="verification-error"
+          role="alert"
+          aria-live="assertive"
         >
           {{ errorMsg }}
         </v-alert>
@@ -40,6 +44,7 @@
       label="Primary Email Code"
       :error-messages="emailError"
       required
+      autocomplete="one-time-code"
       variant="outlined"
       data-test="email-text"
     />
@@ -50,6 +55,7 @@
       label="Recovery Email Code"
       :error-messages="recoveryEmailError"
       required
+      autocomplete="one-time-code"
       variant="outlined"
       data-test="recovery-email-text"
     />

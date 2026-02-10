@@ -50,6 +50,8 @@
         class="mt-2"
         data-test="announcement-error"
         text="The announcement cannot be empty!"
+        role="alert"
+        aria-live="assertive"
       />
       <v-alert
         v-if="isTinyMceKeyEmpty"
@@ -57,6 +59,8 @@
         class="mt-2"
         data-test="announcement-key-warning"
         text="It's recommended to set the TinyMCE key in the .env file."
+        role="alert"
+        aria-live="assertive"
       />
     </v-card-text>
   </FormDialog>

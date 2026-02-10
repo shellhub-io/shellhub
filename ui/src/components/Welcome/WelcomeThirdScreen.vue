@@ -30,6 +30,8 @@
       icon="mdi-lan-connect"
       title="Connection Successful"
       data-test="welcome-third-screen-name"
+      role="status"
+      aria-live="polite"
     >
       <p
         class="mb-0"

@@ -64,6 +64,8 @@
         type="warning"
         class="mx-4 mb-4"
         text="Accepted devices in ShellHub become active in your account and are billed for the entire billing period."
+        role="alert"
+        aria-live="assertive"
       />
     </MessageDialog>
   </div>

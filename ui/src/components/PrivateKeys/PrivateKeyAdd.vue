@@ -22,6 +22,8 @@
         density="compact"
         variant="tonal"
         data-test="privacy-policy-alert"
+        role="status"
+        aria-live="polite"
       />
 
       <v-text-field
@@ -59,6 +61,7 @@
         hint="The key is encrypted and needs a passphrase. The passphrase is not stored."
         persistent-hint
         placeholder="Enter passphrase for encrypted key"
+        autocomplete="current-password"
         data-test="passphrase-field"
       />
     </div>

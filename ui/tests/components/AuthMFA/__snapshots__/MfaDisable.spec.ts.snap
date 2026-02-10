@@ -63,7 +63,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                 </transition-stub>
                 <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item v-window-item--active">
-                    <div class="v-otp-input mb-4" data-test="verification-code" required="">
+                    <div class="v-otp-input mb-4" data-test="verification-code" required="" autocomplete="one-time-code">
                       <div class="v-otp-input__content">
                         <!---->
                         <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
@@ -250,7 +250,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                             <div class="v-field__outline__end"></div>
                             <!---->
                           </div>
-                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        </div><input class="v-otp-input-input" type="hidden" required="" autocomplete="one-time-code" value="">
                         <!---->
                         <!---->
                         <!---->
@@ -360,7 +360,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                 </transition-stub>
                 <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item" style="display: none;">
-                    <div class="v-otp-input mb-4" data-test="verification-code" required="">
+                    <div class="v-otp-input mb-4" data-test="verification-code" required="" autocomplete="one-time-code">
                       <div class="v-otp-input__content">
                         <!---->
                         <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
@@ -547,7 +547,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                             <div class="v-field__outline__end"></div>
                             <!---->
                           </div>
-                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        </div><input class="v-otp-input-input" type="hidden" required="" autocomplete="one-time-code" value="">
                         <!---->
                         <!---->
                         <!---->
@@ -583,7 +583,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                             </label><label class="v-label v-field-label" id="input-v-13-label" aria-hidden="false" for="input-v-13">
                               <!---->Recovery Code
                             </label>
-                            <!----><input size="1" type="text" aria-labelledby="input-v-13-label" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
+                            <!----><input autocomplete="one-time-code" size="1" type="text" aria-labelledby="input-v-13-label" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -701,7 +701,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                 </transition-stub>
                 <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item" style="display: none;">
-                    <div class="v-otp-input mb-4" data-test="verification-code" required="">
+                    <div class="v-otp-input mb-4" data-test="verification-code" required="" autocomplete="one-time-code">
                       <div class="v-otp-input__content">
                         <!---->
                         <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
@@ -888,7 +888,7 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                             <div class="v-field__outline__end"></div>
                             <!---->
                           </div>
-                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        </div><input class="v-otp-input-input" type="hidden" required="" autocomplete="one-time-code" value="">
                         <!---->
                         <!---->
                         <!---->
@@ -1004,7 +1004,7 @@ exports[`MfaDisable > Renders the component (Recovery Code window) 1`] = `
                 </transition-stub>
                 <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item v-window-item--active">
-                    <div class="v-otp-input mb-4" data-test="verification-code" required="">
+                    <div class="v-otp-input mb-4" data-test="verification-code" required="" autocomplete="one-time-code">
                       <div class="v-otp-input__content">
                         <!---->
                         <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
@@ -1191,7 +1191,7 @@ exports[`MfaDisable > Renders the component (Recovery Code window) 1`] = `
                             <div class="v-field__outline__end"></div>
                             <!---->
                           </div>
-                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        </div><input class="v-otp-input-input" type="hidden" required="" autocomplete="one-time-code" value="">
                         <!---->
                         <!---->
                         <!---->
@@ -1301,7 +1301,7 @@ exports[`MfaDisable > Renders the component (Recovery Code window) 1`] = `
                 </transition-stub>
                 <transition-stub name="v-window-x-transition" appear="false" persisted="false" css="true">
                   <div class="v-window-item" style="display: none;">
-                    <div class="v-otp-input mb-4" data-test="verification-code" required="">
+                    <div class="v-otp-input mb-4" data-test="verification-code" required="" autocomplete="one-time-code">
                       <div class="v-otp-input__content">
                         <!---->
                         <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
@@ -1488,7 +1488,7 @@ exports[`MfaDisable > Renders the component (Recovery Code window) 1`] = `
                             <div class="v-field__outline__end"></div>
                             <!---->
                           </div>
-                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        </div><input class="v-otp-input-input" type="hidden" required="" autocomplete="one-time-code" value="">
                         <!---->
                         <!---->
                         <!---->
@@ -1524,7 +1524,7 @@ exports[`MfaDisable > Renders the component (Recovery Code window) 1`] = `
                             </label><label class="v-label v-field-label" id="input-v-13-label" aria-hidden="false" for="input-v-13">
                               <!---->Recovery Code
                             </label>
-                            <!----><input size="1" type="text" aria-labelledby="input-v-13-label" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
+                            <!----><input autocomplete="one-time-code" size="1" type="text" aria-labelledby="input-v-13-label" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
                             <!---->
                           </div>
                           <!---->
@@ -1649,7 +1649,7 @@ exports[`MfaDisable > Renders the component (Verification Code window) 1`] = `
                 </transition-stub>
                 <transition-stub name="" appear="false" persisted="false" css="true">
                   <div class="v-window-item v-window-item--active">
-                    <div class="v-otp-input mb-4" data-test="verification-code" required="">
+                    <div class="v-otp-input mb-4" data-test="verification-code" required="" autocomplete="one-time-code">
                       <div class="v-otp-input__content">
                         <!---->
                         <div class="v-field v-field--center-affix v-field--no-label v-field--variant-outlined v-theme--light v-locale--is-ltr">
@@ -1836,7 +1836,7 @@ exports[`MfaDisable > Renders the component (Verification Code window) 1`] = `
                             <div class="v-field__outline__end"></div>
                             <!---->
                           </div>
-                        </div><input class="v-otp-input-input" type="hidden" required="" value="">
+                        </div><input class="v-otp-input-input" type="hidden" required="" autocomplete="one-time-code" value="">
                         <!---->
                         <!---->
                         <!---->

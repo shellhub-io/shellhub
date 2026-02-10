@@ -14,6 +14,8 @@
     data-test="license-alert"
     :type="licenseAlert.type"
     :text="licenseAlert.message"
+    :role="licenseAlert.type === 'error' || licenseAlert.type === 'warning' ? 'alert' : 'status'"
+    :aria-live="licenseAlert.type === 'error' || licenseAlert.type === 'warning' ? 'assertive' : 'polite'"
   />
   <v-card
     class="w-100 pa-4 bg-background border"

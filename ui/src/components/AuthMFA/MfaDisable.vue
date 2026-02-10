@@ -21,6 +21,8 @@
           variant="tonal"
           class="mb-4 align-self-stretch"
           data-test="alert-message"
+          role="alert"
+          aria-live="assertive"
         />
       </v-slide-y-reverse-transition>
       <v-window-item :value="1">
@@ -30,6 +32,7 @@
           required
           label="Verification Code"
           class="mb-4"
+          autocomplete="one-time-code"
           @keyup.enter="verificationCode ? disableMfa() : false"
         />
 
@@ -54,6 +57,7 @@
           class="mx-auto mt-2"
           required
           label="Recovery Code"
+          autocomplete="one-time-code"
           data-test="recovery-code"
           width="400"
           @keyup.enter="recoveryCode ? disableMfa() : false"

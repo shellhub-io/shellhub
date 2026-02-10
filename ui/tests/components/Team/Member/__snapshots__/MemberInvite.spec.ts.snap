@@ -104,7 +104,7 @@ exports[`Member Invite > Renders the component 1`] = `
                                 </label><label class="v-label v-field-label" id="input-v-5-label" aria-hidden="false" for="input-v-5">
                                   <!---->Email
                                 </label>
-                                <!----><input size="1" type="text" aria-labelledby="input-v-5-label" id="input-v-5" required="" class="v-field__input" value="">
+                                <!----><input autocomplete="email" size="1" type="text" aria-labelledby="input-v-5-label" id="input-v-5" required="" class="v-field__input" value="">
                                 <!---->
                               </div>
                               <!---->

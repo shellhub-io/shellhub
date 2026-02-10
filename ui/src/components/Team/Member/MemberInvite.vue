@@ -49,6 +49,7 @@
               label="Email"
               :error-messages="emailError"
               required
+              autocomplete="email"
               hide-details="auto"
               data-test="email-text"
             />

@@ -53,6 +53,8 @@
           color="primary"
           variant="tonal"
           class="mb-6 text-left"
+          role="status"
+          aria-live="polite"
         >
           <template #prepend>
             <v-icon icon="mdi-information" />

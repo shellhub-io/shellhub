@@ -7,6 +7,8 @@
       :text="alertMessage"
       class="mb-4"
       data-test="user-status-alert"
+      :role="alertType === 'error' ? 'alert' : 'status'"
+      :aria-live="alertType === 'error' ? 'assertive' : 'polite'"
     />
     <v-form @submit.prevent="setupAccount">
       <v-card-title
@@ -105,6 +107,7 @@
             :error-messages="nameError"
             required
             label="Name"
+            autocomplete="name"
             data-test="name-text"
           />
 
@@ -115,6 +118,7 @@
             :error-messages="usernameError"
             required
             label="Username"
+            autocomplete="username"
             data-test="username-text"
           />
 
@@ -125,6 +129,7 @@
             :error-messages="emailError"
             required
             label="Email"
+            autocomplete="email"
             data-test="email-text"
           />
 
@@ -136,6 +141,7 @@
             :error-messages="passwordError"
             label="Password"
             required
+            autocomplete="new-password"
             data-test="password-text"
             :type="showPassword ? 'text' : 'password'"
             @click:append-inner="showPassword = !showPassword"
@@ -149,6 +155,7 @@
             :error-messages="passwordConfirmError"
             label="Confirm Password"
             required
+            autocomplete="new-password"
             data-test="password-confirm-text"
             :type="showConfirmPassword ? 'text' : 'password'"
             @click:append-inner="showConfirmPassword = !showConfirmPassword"

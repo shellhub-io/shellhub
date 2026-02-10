@@ -1,7 +1,11 @@
 <template>
   <v-container class="text-center">
     <v-slide-y-reverse-transition v-if="wasEmailSent">
-      <v-card-text data-test="success-text">
+      <v-card-text
+        data-test="success-text"
+        role="status"
+        aria-live="polite"
+      >
         <strong>An email with password reset instructions has been sent to your registered email address. Please check your inbox.
         </strong>
       </v-card-text>
@@ -25,6 +29,7 @@
           :error-messages="accountError"
           required
           label="Username or email address"
+          autocomplete="username"
           variant="underlined"
           class="text-left"
           data-test="account-text"
