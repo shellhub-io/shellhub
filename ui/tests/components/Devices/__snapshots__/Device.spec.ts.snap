@@ -37,7 +37,7 @@ exports[`Device > Renders correctly 1`] = `
           </div>
           <div class="v-field__prepend-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
           <div class="v-field__field" data-no-activator="">
-            <!----><label class="v-label v-field-label" id="input-v-4-label" for="input-v-4" aria-hidden="false">
+            <!----><label class="v-label v-field-label" id="input-v-4-label" aria-hidden="false" for="input-v-4">
               <!---->Search by hostname
             </label>
             <!----><input size="1" type="text" aria-labelledby="input-v-4-label" id="input-v-4" class="v-field__input" value="">
@@ -101,7 +101,7 @@ exports[`Device > Renders the component 1`] = `
           </div>
           <div class="v-field__prepend-inner"><i class="mdi-magnify mdi v-icon notranslate v-theme--light v-icon--size-default" aria-hidden="true"></i></div>
           <div class="v-field__field" data-no-activator="">
-            <!----><label class="v-label v-field-label" id="input-v-4-label" for="input-v-4" aria-hidden="false">
+            <!----><label class="v-label v-field-label" id="input-v-4-label" aria-hidden="false" for="input-v-4">
               <!---->Search by hostname
             </label>
             <!----><input size="1" type="text" aria-labelledby="input-v-4-label" id="input-v-4" class="v-field__input" value="">

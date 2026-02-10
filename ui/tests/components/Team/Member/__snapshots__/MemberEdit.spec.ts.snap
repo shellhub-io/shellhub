@@ -78,9 +78,9 @@ exports[`Member Edit > Renders the component 1`] = `
                         </div>
                       </div>
                       <!---->
-                      <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-4" aria-hidden="false">
+                      <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="false" for="input-v-4">
                           <!---->Role
-                        </label><label class="v-label v-field-label" id="input-v-4-label" for="input-v-4" aria-hidden="true">
+                        </label><label class="v-label v-field-label" id="input-v-4-label" aria-hidden="true">
                           <!---->Role
                         </label>
                         <!---->

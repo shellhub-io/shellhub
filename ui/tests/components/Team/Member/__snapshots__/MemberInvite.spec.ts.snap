@@ -99,9 +99,9 @@ exports[`Member Invite > Renders the component 1`] = `
                                 </div>
                               </div>
                               <!---->
-                              <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-5" aria-hidden="true">
+                              <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="true">
                                   <!---->Email
-                                </label><label class="v-label v-field-label" id="input-v-5-label" for="input-v-5" aria-hidden="false">
+                                </label><label class="v-label v-field-label" id="input-v-5-label" aria-hidden="false" for="input-v-5">
                                   <!---->Email
                                 </label>
                                 <!----><input size="1" type="text" aria-labelledby="input-v-5-label" id="input-v-5" required="" class="v-field__input" value="">
@@ -138,9 +138,9 @@ exports[`Member Invite > Renders the component 1`] = `
                                 </div>
                               </div>
                               <!---->
-                              <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-10" aria-hidden="false">
+                              <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="false" for="input-v-10">
                                   <!---->Role
-                                </label><label class="v-label v-field-label" id="input-v-10-label" for="input-v-10" aria-hidden="true">
+                                </label><label class="v-label v-field-label" id="input-v-10-label" aria-hidden="true">
                                   <!---->Role
                                 </label>
                                 <!---->

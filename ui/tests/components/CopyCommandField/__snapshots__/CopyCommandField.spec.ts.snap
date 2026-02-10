@@ -22,9 +22,9 @@ exports[`CopyCommandField > renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="false">
+        <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="false" for="input-v-1">
             <!---->Installation Command
-          </label><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="true">
+          </label><label class="v-label v-field-label" id="input-v-1-label" aria-hidden="true">
             <!---->Installation Command
           </label><span class="v-text-field__prefix"><span class="v-text-field__prefix__text">$</span></span><input readonly="" size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" aria-describedby="input-v-1-messages" class="v-field__input" value="curl -sSf https://example.com/install.sh | sh">
           <!---->
