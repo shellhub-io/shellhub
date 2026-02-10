@@ -31,6 +31,7 @@ FROM base AS builder
 ARG SHELLHUB_VERSION=latest
 ARG GOPROXY
 ARG TARGETARCH
+ARG TARGETVARIANT
 ARG TARGETOS=linux
 
 COPY ./pkg $GOPATH/src/github.com/shellhub-io/shellhub/pkg
@@ -43,7 +44,7 @@ RUN go mod download
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 # Cross-compile for target architecture
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
 # Runtime utilities stage - CRITICAL: must use target platform
 FROM --platform=$TARGETPLATFORM alpine:${ALPINE_VERSION:-3.22} AS runtime-utils
