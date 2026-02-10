@@ -96,7 +96,7 @@ import useUsersStore from "@/store/modules/users";
 import { IPremiumFeature } from "@/interfaces/IUser";
 
 const usersStore = useUsersStore();
-const showDialog = ref(false);
+const showDialog = defineModel<boolean>({ required: true });
 const premiumFeatures = ref<Array<IPremiumFeature>>([]);
 
 const close = () => {
@@ -107,6 +107,4 @@ const close = () => {
 onMounted(async () => {
   premiumFeatures.value = await usersStore.getPremiumContent();
 });
-
-defineExpose({ showDialog });
 </script>

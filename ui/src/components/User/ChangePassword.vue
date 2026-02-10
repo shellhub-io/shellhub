@@ -168,6 +168,4 @@ const updatePassword = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ showDialog, newPasswordConfirmError, newPasswordError });
 </script>
