@@ -21,9 +21,9 @@ exports[`RoleSelect > Renders the component 1`] = `
         </div>
       </div>
       <!---->
-      <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
+      <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="false" for="input-v-3">
           <!---->Role
-        </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="true">
+        </label><label class="v-label v-field-label" id="input-v-3-label" aria-hidden="true">
           <!---->Role
         </label>
         <!---->

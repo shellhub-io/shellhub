@@ -22,9 +22,9 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
           </div>
         </div>
         <!---->
-        <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-3" aria-hidden="false">
+        <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="false" for="input-v-3">
             <!---->Font Family
-          </label><label class="v-label v-field-label" id="input-v-3-label" for="input-v-3" aria-hidden="true">
+          </label><label class="v-label v-field-label" id="input-v-3-label" aria-hidden="true">
             <!---->Font Family
           </label>
           <!---->
@@ -93,7 +93,7 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
           <!---->
         </div>
         <div class="v-field__field" data-no-activator="">
-          <!----><label class="v-label v-field-label" id="input-v-7-label" for="input-v-7" aria-hidden="true">
+          <!----><label class="v-label v-field-label" id="input-v-7-label" aria-hidden="true">
             <!---->Font Size
           </label>
           <!----><input size="1" type="text" aria-labelledby="input-v-7-label" id="input-v-7" inputmode="decimal" class="v-field__input" value="15">
@@ -112,7 +112,7 @@ exports[`TerminalFontPicker.vue > renders the component 1`] = `
         </div>
         <div class="v-field__outline">
           <div class="v-field__outline__start"></div>
-          <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" for="input-v-7" aria-hidden="false">
+          <div class="v-field__outline__notch"><label class="v-label v-field-label v-field-label--floating" aria-hidden="false" for="input-v-7">
               <!---->Font Size
             </label></div>
           <div class="v-field__outline__end"></div>

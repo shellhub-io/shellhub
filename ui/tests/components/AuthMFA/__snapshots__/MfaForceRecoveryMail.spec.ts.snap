@@ -75,9 +75,9 @@ exports[`Force Adding a Recovery Mail > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="true">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="true">
                         <!---->Recovery Email
-                      </label><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
+                      </label><label class="v-label v-field-label" id="input-v-1-label" aria-hidden="false" for="input-v-1">
                         <!---->Recovery Email
                       </label>
                       <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" required="" class="v-field__input" value="">
@@ -190,9 +190,9 @@ exports[`Force Adding a Recovery Mail > Renders the component 1`] = `
                       </div>
                     </div>
                     <!---->
-                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-1" aria-hidden="true">
+                    <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="true">
                         <!---->Recovery Email
-                      </label><label class="v-label v-field-label" id="input-v-1-label" for="input-v-1" aria-hidden="false">
+                      </label><label class="v-label v-field-label" id="input-v-1-label" aria-hidden="false" for="input-v-1">
                         <!---->Recovery Email
                       </label>
                       <!----><input size="1" type="text" aria-labelledby="input-v-1-label" id="input-v-1" required="" class="v-field__input" value="">

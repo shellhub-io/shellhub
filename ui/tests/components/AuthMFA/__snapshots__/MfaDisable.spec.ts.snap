@@ -578,9 +578,9 @@ exports[`MfaDisable > Renders the component (Email Sent window) 1`] = `
                             </div>
                           </div>
                           <!---->
-                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-13" aria-hidden="true">
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="true">
                               <!---->Recovery Code
-                            </label><label class="v-label v-field-label" id="input-v-13-label" for="input-v-13" aria-hidden="false">
+                            </label><label class="v-label v-field-label" id="input-v-13-label" aria-hidden="false" for="input-v-13">
                               <!---->Recovery Code
                             </label>
                             <!----><input size="1" type="text" aria-labelledby="input-v-13-label" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
@@ -1519,9 +1519,9 @@ exports[`MfaDisable > Renders the component (Recovery Code window) 1`] = `
                             </div>
                           </div>
                           <!---->
-                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" for="input-v-13" aria-hidden="true">
+                          <div class="v-field__field" data-no-activator=""><label class="v-label v-field-label v-field-label--floating" aria-hidden="true">
                               <!---->Recovery Code
-                            </label><label class="v-label v-field-label" id="input-v-13-label" for="input-v-13" aria-hidden="false">
+                            </label><label class="v-label v-field-label" id="input-v-13-label" aria-hidden="false" for="input-v-13">
                               <!---->Recovery Code
                             </label>
                             <!----><input size="1" type="text" aria-labelledby="input-v-13-label" id="input-v-13" aria-describedby="input-v-13-messages" required="" class="v-field__input" value="">
