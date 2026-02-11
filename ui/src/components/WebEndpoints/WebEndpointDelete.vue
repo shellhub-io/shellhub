@@ -62,6 +62,4 @@ const remove = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ showDialog });
 </script>

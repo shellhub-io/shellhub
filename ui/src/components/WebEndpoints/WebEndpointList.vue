@@ -15,6 +15,7 @@
       <tr
         v-for="endpoint in webEndpoints"
         :key="endpoint.address"
+        data-test="web-endpoint-row"
         :class="isExpired(endpoint.expires_in) ? 'text-warning' : ''"
       >
         <td class="d-flex align-center justify-center text-center">
