@@ -1,21 +1,21 @@
 import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import TeamMembers from "@/views/TeamMembers.vue";
+import { mockNamespace } from "./mocks";
+import { createAxiosError } from "@tests/utils/axiosError";
 import { namespacesApi } from "@/api/http";
-import { mockNamespace } from "./mocks/namespace";
-import useNamespacesStore from "@/store/modules/namespaces";
 
 describe("TeamMembers", () => {
   let wrapper: VueWrapper<InstanceType<typeof TeamMembers>>;
-  let namespacesStore: ReturnType<typeof useNamespacesStore>;
-  let mockNamespacesApi: MockAdapter;
   const tenantId = mockNamespace.tenant_id;
 
-  const mountWrapper = async (mockError = false) => {
+  const mountWrapper = async (mockError?: Error) => {
     localStorage.setItem("tenant", tenantId);
-    if (mockError) vi.mocked(namespacesStore?.fetchNamespace).mockRejectedValueOnce(mockError);
+
+    if (mockError) {
+      vi.spyOn(namespacesApi, "getNamespace").mockRejectedValueOnce(mockError);
+    }
 
     wrapper = mountComponent(TeamMembers, {
       piniaOptions: {
@@ -24,15 +24,12 @@ describe("TeamMembers", () => {
       },
     });
 
-    namespacesStore = useNamespacesStore();
-
     await flushPromises();
   };
 
   afterEach(() => {
     wrapper?.unmount();
     localStorage.clear();
-    mockNamespacesApi?.restore();
     vi.restoreAllMocks();
   });
 
@@ -53,13 +50,9 @@ describe("TeamMembers", () => {
   });
 
   describe("error handling", () => {
-    beforeEach(() => { mockNamespacesApi = new MockAdapter(namespacesApi.getAxios()); });
-
     describe("403 - forbidden", () => {
       it("displays permission denied snackbar", async () => {
-        mockNamespacesApi.onGet(`http://localhost:3000/api/namespaces/${tenantId}`).reply(403);
-
-        await mountWrapper(true);
+        await mountWrapper(createAxiosError(403, "Forbidden"));
 
         expect(mockSnackbar.showError).toHaveBeenCalledWith("You don't have permission to access this resource.");
       });
@@ -67,9 +60,7 @@ describe("TeamMembers", () => {
 
     describe("500 - internal server error", () => {
       it("displays default error snackbar", async () => {
-        mockNamespacesApi.onGet(`http://localhost:3000/api/namespaces/${tenantId}`).reply(500);
-
-        await mountWrapper(true);
+        await mountWrapper(createAxiosError(500, "Internal Server Error"));
 
         expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to load namespaces.");
       });
