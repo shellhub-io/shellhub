@@ -1,99 +1,267 @@
-import { setActivePinia, createPinia } from "pinia";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import MockAdapter from "axios-mock-adapter";
-import { expect, describe, it, beforeEach } from "vitest";
-import { router } from "@/router";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
 import WebEndpointList from "@/components/WebEndpoints/WebEndpointList.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
-import { webEndpointsApi } from "@/api/http";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanRouter } from "@tests/utils/router";
+import useWebEndpointsStore from "@/store/modules/web_endpoints";
+import {
+  mockWebEndpoint,
+  mockExpiredWebEndpoint,
+  mockNeverExpiresWebEndpoint,
+  mockWebEndpointWithTLS,
+  mockWebEndpoints,
+} from "@tests/mocks/webEndpoint";
+import { Router } from "vue-router";
 
-type WebEndpointListWrapper = VueWrapper<InstanceType<typeof WebEndpointList>>;
+describe("WebEndpointList", () => {
+  let wrapper: VueWrapper<InstanceType<typeof WebEndpointList>>;
+  let webEndpointsStore: ReturnType<typeof useWebEndpointsStore>;
+  let router: Router;
 
-const mockEndpoints = [
-  {
-    address: "abc123",
-    namespace: "namespace",
-    device: {
-      uid: "a582b47a42d",
-      name: "39-5e-2a",
-      identity: {
-        mac: "00:00:00:00:00:00",
-      },
-      info: {
-        id: "linuxmint",
-        pretty_name: "Linux Mint 19.3",
-        version: "",
-      },
-      public_key: "----- PUBLIC KEY -----",
-      tenant_id: "fake-tenant-data",
-      last_seen: "2020-05-20T18:58:53.276Z",
-      online: false,
-      namespace: "user",
-      status: "accepted",
-    },
-    host: "192.168.0.1",
-    port: 8080,
-    full_address: "192.168.0.1:8080",
-    expires_in: "2099-12-31T23:59:59Z",
-  },
-];
+  const mountWrapper = async (webEndpoints = mockWebEndpoints) => {
+    router = createCleanRouter();
 
-describe("WebEndpointList.vue", () => {
-  let wrapper: WebEndpointListWrapper;
-  const mockWebEndpointsApi = new MockAdapter(webEndpointsApi.getAxios());
+    wrapper = mountComponent(WebEndpointList, {
+      global: { plugins: [router] },
+      piniaOptions: { initialState: { webEndpoints: { webEndpoints: webEndpoints, webEndpointCount: webEndpoints.length } } },
+    });
 
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
-
-  beforeEach(() => {
-    mockWebEndpointsApi.onGet("http://localhost:3000/api/web-endpoints?page=1&per_page=10")
-      .reply(200, mockEndpoints, { "x-total-count": "1" });
-
-    wrapper = mount(WebEndpointList, { global: { plugins: [vuetify, router, SnackbarPlugin] } });
-  });
-
-  it("is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
-
-  it("renders the DataTable", () => {
-    expect(wrapper.find('[data-test="web-endpoints-table"]').exists()).toBe(true);
-  });
-
-  it("renders table headers correctly", () => {
-    const headers = wrapper.findAll('[data-test="web-endpoints-table"] thead th');
-    expect(headers.length).toBe(7);
-    expect(headers[0].text()).toContain("Device");
-    expect(headers[1].text()).toContain("Address");
-    expect(headers[2].text()).toContain("Host");
-    expect(headers[3].text()).toContain("Port");
-    expect(headers[4].text()).toContain("Domain");
-    expect(headers[5].text()).toContain("Expiration Date");
-    expect(headers[6].text()).toContain("Actions");
-  });
-
-  it("renders table rows with web endpoints", () => {
-    const rows = wrapper.findAll('[data-test^="web-endpoint-url"]');
-    expect(rows.length).toBe(mockEndpoints.length);
-    expect(rows[0].text()).toContain("192.168.0.1:8080");
-  });
-
-  it("renders correct expiration text", () => {
-    const text = wrapper.text();
-    expect(text).toContain("Expires on");
-  });
-
-  it("renders empty state if no web endpoints", async () => {
-    wrapper.unmount();
-
-    mockWebEndpointsApi.onGet("http://localhost:3000/api/web-endpoints?page=1&per_page=10")
-      .reply(200, [], { "x-total-count": "0" });
-
-    wrapper = mount(WebEndpointList, { global: { plugins: [vuetify, router, SnackbarPlugin] } });
+    webEndpointsStore = useWebEndpointsStore();
 
     await flushPromises();
+  };
 
-    expect(wrapper.text()).toContain("No data available");
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  describe("Component initialization", () => {
+    it("fetches web endpoints on mount", () => {
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 10,
+        sortField: undefined,
+        sortOrder: undefined,
+      });
+    });
+
+    it("renders DataTable component", () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      expect(dataTable.exists()).toBe(true);
+      expect(dataTable.props("tableName")).toBe("webEndpoints");
+    });
+  });
+
+  describe("Table rendering", () => {
+    it("renders table headers correctly", () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      const headers = dataTable.props("headers");
+
+      expect(headers).toHaveLength(7);
+      expect(headers[0].text).toBe("Device");
+      expect(headers[1].text).toBe("Address");
+      expect(headers[2].text).toBe("Host");
+      expect(headers[3].text).toBe("Port");
+      expect(headers[4].text).toBe("Domain");
+      expect(headers[5].text).toBe("Expiration Date");
+      expect(headers[6].text).toBe("Actions");
+    });
+
+    it("renders web endpoint row with device info", () => {
+      expect(wrapper.text()).toContain("39-5e-2a");
+      expect(wrapper.text()).toContain("Linux Mint 19.3");
+    });
+
+    it("renders web endpoint URL as clickable link", () => {
+      const urlLink = wrapper.find('[data-test="web-endpoint-url"] a');
+      expect(urlLink.exists()).toBe(true);
+      expect(urlLink.attributes("href")).toContain("endpoint-123.example.com");
+      expect(urlLink.attributes("target")).toBe("_blank");
+      expect(urlLink.attributes("rel")).toBe("noopener noreferrer");
+    });
+
+    it("renders host and port", () => {
+      expect(wrapper.text()).toContain("192.168.1.1");
+      expect(wrapper.text()).toContain("8080");
+    });
+
+    it("renders TLS disabled chip when TLS is not enabled", () => {
+      const tlsChip = wrapper.find('[data-test="web-endpoint-tls"] .v-chip');
+      expect(tlsChip.exists()).toBe(true);
+      expect(tlsChip.text()).toBe("Disabled");
+    });
+
+    it("renders TLS domain chip when TLS is enabled", async () => {
+      wrapper.unmount();
+      await mountWrapper([mockWebEndpointWithTLS]);
+
+      const tlsChip = wrapper.find('[data-test="web-endpoint-tls"] .v-chip');
+      expect(tlsChip.exists()).toBe(true);
+      expect(tlsChip.text()).toBe("secure.example.com");
+    });
+
+    it("renders WebEndpointDelete component", () => {
+      const deleteComponent = wrapper.findComponent({ name: "WebEndpointDelete" });
+      expect(deleteComponent.exists()).toBe(true);
+      expect(deleteComponent.props("address")).toBe("endpoint-123");
+    });
+  });
+
+  describe("Expiration date formatting", () => {
+    it("shows future expiration date", () => {
+      expect(wrapper.text()).toContain("Expires on");
+    });
+
+    it("shows never expires for zero date", async () => {
+      wrapper.unmount();
+      await mountWrapper([mockNeverExpiresWebEndpoint]);
+
+      expect(wrapper.text()).toContain("Never Expires");
+    });
+
+    it("shows expired date and applies warning class", async () => {
+      wrapper.unmount();
+      await mountWrapper([mockExpiredWebEndpoint]);
+
+      expect(wrapper.text()).toContain("Expired on");
+      const row = wrapper.find('[data-test="web-endpoint-row"]');
+      expect(row.classes()).toContain("text-warning");
+    });
+  });
+
+  describe("Pagination", () => {
+    it("handles page change", async () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      await dataTable.vm.$emit("update:page", 2);
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith({
+        page: 2,
+        perPage: 10,
+        sortField: undefined,
+        sortOrder: undefined,
+      });
+    });
+
+    it("handles items per page change", async () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      await dataTable.vm.$emit("update:itemsPerPage", 20);
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 20,
+        sortField: undefined,
+        sortOrder: undefined,
+      });
+    });
+  });
+
+  describe("Sorting", () => {
+    it("sorts by address field", async () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      await dataTable.vm.$emit("update:sort", "address");
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 10,
+        sortField: "address",
+        sortOrder: "asc",
+      });
+    });
+
+    it("toggles sort order on second click", async () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+      await dataTable.vm.$emit("update:sort", "host");
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 10,
+        sortField: "host",
+        sortOrder: "asc",
+      });
+
+      await dataTable.vm.$emit("update:sort", "host");
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith({
+        page: 1,
+        perPage: 10,
+        sortField: "host",
+        sortOrder: "desc",
+      });
+    });
+
+    it("sorts by different fields", async () => {
+      const dataTable = wrapper.findComponent({ name: "DataTable" });
+
+      await dataTable.vm.$emit("update:sort", "expires_in");
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sortField: "expires_in",
+        }),
+      );
+
+      await dataTable.vm.$emit("update:sort", "port");
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sortField: "port",
+        }),
+      );
+    });
+  });
+
+  describe("Empty state", () => {
+    it("renders empty state when no endpoints", async () => {
+      wrapper.unmount();
+      await mountWrapper([]);
+
+      expect(wrapper.text()).toContain("No data available");
+    });
+  });
+
+  describe("Multiple endpoints", () => {
+    it("renders multiple web endpoints", () => {
+      const rows = wrapper.findAll('[data-test="web-endpoint-row"]');
+      expect(rows).toHaveLength(3);
+    });
+  });
+
+  describe("Refresh functionality", () => {
+    it("refetches data when WebEndpointDelete emits update", async () => {
+      const deleteComponent = wrapper.findComponent({ name: "WebEndpointDelete" });
+      deleteComponent.vm.$emit("update");
+      await flushPromises();
+
+      expect(webEndpointsStore.fetchWebEndpointsList).toHaveBeenCalled();
+    });
+  });
+
+  describe("Device navigation", () => {
+    it("navigates to device details when device name is clicked", async () => {
+      wrapper.unmount();
+      await mountWrapper([mockWebEndpoint]);
+
+      const pushSpy = vi.spyOn(router, "push");
+
+      const deviceLink = wrapper.find(".link");
+      await deviceLink.trigger("click");
+      await flushPromises();
+
+      expect(pushSpy).toHaveBeenCalledWith({
+        name: "DeviceDetails",
+        params: { identifier: "device-123" },
+      });
+    });
   });
 });
