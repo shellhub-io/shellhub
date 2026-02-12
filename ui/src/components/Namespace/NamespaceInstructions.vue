@@ -35,7 +35,7 @@
             target="_blank"
             rel="noopener noreferrer"
             class="text-decoration-none text-primary"
-            data-test="openContentSecond-text"
+            data-test="docs-link"
           >
             ShellHub Administration Guide
             <v-icon
@@ -52,7 +52,7 @@
       >
         <v-btn
           color="primary"
-          data-test="save-btn"
+          data-test="add-namespace-btn"
           @click="showNamespaceAdd = true"
         >
           Add Namespace

@@ -7,7 +7,7 @@
     @support-click="openShellhubHelp()"
   >
     <template #left>
-      <Namespace data-test="namespace-selector" />
+      <Namespace />
 
       <v-breadcrumbs
         :items="breadcrumbItems"
@@ -18,6 +18,7 @@
           <v-icon
             v-if="breadcrumbItems[0]?.icon"
             :icon="breadcrumbItems[0].icon"
+            data-test="breadcrumb-icon"
             size="small"
             class="mr-2"
           />
@@ -289,5 +290,5 @@ const generateBreadcrumbs = (route: RouteLocation): BreadcrumbItem[] => {
 
 const breadcrumbItems = computed(() => generateBreadcrumbs(route));
 
-defineExpose({ openShellhubHelp, chatSupportPaywall, logout, isDarkMode, breadcrumbItems, currentUser, identifier });
+defineExpose({ openShellhubHelp, chatSupportPaywall, breadcrumbItems, showNavigationDrawer });
 </script>

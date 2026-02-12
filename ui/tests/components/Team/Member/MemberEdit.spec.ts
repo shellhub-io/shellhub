@@ -1,102 +1,172 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { DOMWrapper, flushPromises, VueWrapper } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MemberEdit from "@/components/Team/Member/MemberEdit.vue";
-import { namespacesApi } from "@/api/http";
-import { router } from "@/router";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
-import useAuthStore from "@/store/modules/auth";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { mockMember } from "@tests/mocks/namespace";
 import useNamespacesStore from "@/store/modules/namespaces";
-import { INamespaceMember } from "@/interfaces/INamespace";
 
-type MemberEditWrapper = VueWrapper<InstanceType<typeof MemberEdit>>;
+describe("MemberEdit", () => {
+  let wrapper: VueWrapper<InstanceType<typeof MemberEdit>>;
+  let store: ReturnType<typeof useNamespacesStore>;
+  let dialog: DOMWrapper<HTMLElement>;
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-const members = [
-  {
-    id: "xxxxxxxx",
-    role: "owner" as const,
-  },
-] as INamespaceMember[];
-
-describe("Member Edit", () => {
-  let wrapper: MemberEditWrapper;
-  setActivePinia(createPinia());
-  const authStore = useAuthStore();
-  const namespacesStore = useNamespacesStore();
-  const vuetify = createVuetify();
-
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
-
-  beforeEach(() => {
-    authStore.tenantId = "fake-tenant-data";
-
-    wrapper = mount(MemberEdit, {
-      global: {
-        plugins: [vuetify, router],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
+  const mountWrapper = (
+    { hasAuthorization = true } = {},
+  ) => {
+    wrapper = mountComponent(MemberEdit, {
       props: {
-        member: members[0], hasAuthorization: true,
+        member: mockMember,
+        hasAuthorization,
+      },
+      attachTo: document.body,
+      piniaOptions: {
+        initialState: {
+          auth: { tenantId: "fake-tenant-data" },
+        },
       },
     });
+    store = useNamespacesStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  it("renders the list item with edit button", () => {
+    expect(wrapper.find('[data-test="member-edit-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="member-edit-title"]').text()).toBe("Edit");
+    expect(wrapper.find(".v-icon").classes()).toContain("mdi-pencil");
   });
 
-  it("Renders the component", async () => {
-    await wrapper.findComponent('[data-test="member-edit-btn"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
+  it("disables the list item when user doesn't have authorization", () => {
+    mountWrapper({ hasAuthorization: false });
+
+    const listItem = wrapper.find('[data-test="member-edit-btn"]');
+    expect(listItem.classes()).toContain("v-list-item--disabled");
   });
 
-  it("Edit Member Error Validation", async () => {
-    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(409);
-
-    const storeSpy = vi.spyOn(namespacesStore, "updateNamespaceMember");
-
-    await wrapper.findComponent('[data-test="member-edit-btn"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="role-select"]').setValue("not-right-role");
-
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-
+  it("opens dialog when clicking the list item", async () => {
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith({
-      role: "not-right-role",
+    const dialogEl = dialog.find('[data-test="member-edit-dialog"]');
+    expect(dialogEl.exists()).toBe(true);
+    expect(dialogEl.text()).toContain("Update member role");
+  });
+
+  it("displays role selector in dialog", async () => {
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    const roleSelect = dialog.find('[data-test="role-select"]');
+    expect(roleSelect.exists()).toBe(true);
+  });
+
+  it("successfully updates member role", async () => {
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    const roleSelect = wrapper.findComponent({ name: "RoleSelect" });
+    await roleSelect.setValue("administrator");
+    await flushPromises();
+
+    await dialog.find('[data-test="edit-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(store.updateNamespaceMember).toHaveBeenCalledWith({
+      user_id: mockMember.id,
       tenant_id: "fake-tenant-data",
-      user_id: "xxxxxxxx",
-    });
-
-    expect(mockSnackbar.showError).toBeCalledWith("Failed to update user role.");
-  });
-
-  it("Edit Member Success Validation", async () => {
-    mockNamespacesApi.onPatch("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
-
-    const storeSpy = vi.spyOn(namespacesStore, "updateNamespaceMember");
-
-    await wrapper.findComponent('[data-test="member-edit-btn"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="role-select"]').setValue("administrator");
-
-    await wrapper.findComponent('[data-test="edit-btn"]').trigger("click");
-
-    await flushPromises();
-
-    expect(storeSpy).toBeCalledWith({
       role: "administrator",
-      tenant_id: "fake-tenant-data",
-      user_id: "xxxxxxxx",
     });
+    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Successfully updated user role.");
+    expect(wrapper.emitted("update")).toBeTruthy();
+  });
+
+  it("handles 400 error when user isn't linked to namespace", async () => {
+    vi.mocked(store.updateNamespaceMember).mockRejectedValueOnce(
+      createAxiosError(400, "Bad Request"),
+    );
+
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="edit-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("The user isn't linked to the namespace.");
+    expect(wrapper.emitted("update")).toBeFalsy();
+  });
+
+  it("handles 403 error when user doesn't have permission to assign role", async () => {
+    vi.mocked(store.updateNamespaceMember).mockRejectedValueOnce(
+      createAxiosError(403, "Forbidden"),
+    );
+
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="edit-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("You don't have permission to assign a role to the user.");
+    expect(wrapper.emitted("update")).toBeFalsy();
+  });
+
+  it("handles 404 error when username doesn't exist", async () => {
+    vi.mocked(store.updateNamespaceMember).mockRejectedValueOnce(
+      createAxiosError(404, "Not Found"),
+    );
+
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="edit-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("The username doesn't exist.");
+    expect(wrapper.emitted("update")).toBeFalsy();
+  });
+
+  it("handles generic error when updating member fails", async () => {
+    vi.mocked(store.updateNamespaceMember).mockRejectedValueOnce(
+      createAxiosError(500, "Internal Server Error"),
+    );
+
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="edit-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to update user role.");
+    expect(wrapper.emitted("update")).toBeFalsy();
+  });
+
+  it("closes dialog when clicking cancel button", async () => {
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="close-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none");
+  });
+
+  it("emits update event and closes dialog after successful update", async () => {
+    await wrapper.find('[data-test="member-edit-btn"]').trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="edit-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(wrapper.emitted("update")).toHaveLength(1);
+
+    expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none");
   });
 });

@@ -3,7 +3,7 @@
     v-if="showMessage"
     color="transparent"
     class="elevation-0 bg-v-theme-surface mt-2 pt-0"
-    data-test="accountCreated-card"
+    data-test="account-created-card"
   >
     <v-card-title class="text-h5 pt-0 text-center">
       Account Creation Successful
@@ -11,20 +11,20 @@
 
     <div
       class="mt-2 mb-0 text-center"
-      data-test="accountCreated-message"
+      data-test="account-created-message"
       role="status"
       aria-live="polite"
     >
       Thank you for registering an account on ShellHub.
       <p
         v-if="isNormalMessage"
-        data-test="accountCreated-normal-message"
+        data-test="account-created-normal-message"
       >
         An email was sent with a confirmation link. You need to click on the link to activate your account.
       </p>
       <p
         v-else
-        data-test="accountCreated-sig-message"
+        data-test="account-created-sig-message"
       >
         You will be redirected in 5 seconds, if you weren't redirected, please click the button below.
       </p>
@@ -33,7 +33,7 @@
     <p
       v-if="isNormalMessage"
       class="text-caption mt-2 mb-0"
-      data-test="accountCreated-email-info"
+      data-test="account-created-email-info"
     >
       If you haven't received the email, click on the button.
     </p>
@@ -82,7 +82,7 @@ const showMessage = computed({
 const isNormalMessage = computed(() => props.messageKind === "normal");
 
 const buttonText = computed(() => (isNormalMessage.value ? "RESEND EMAIL" : "REDIRECT"));
-const buttonDataTest = computed(() => (isNormalMessage.value ? "resendEmail-btn" : "redirect-btn"));
+const buttonDataTest = computed(() => (isNormalMessage.value ? "resend-email-btn" : "redirect-btn"));
 
 const resendEmail = async () => {
   try {
@@ -117,6 +117,4 @@ watch(showMessage, async (newValue) => {
     setTimeout(() => { void redirect(); }, 5000);
   }
 });
-
-defineExpose({ resendEmail, redirect, showMessage });
 </script>

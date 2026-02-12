@@ -1,89 +1,99 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, VueWrapper, flushPromises } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { createPinia, setActivePinia } from "pinia";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
 import TerminalFontPicker from "@/components/Terminal/TerminalFontPicker.vue";
+import { mountComponent } from "@tests/utils/mount";
 import useTerminalThemeStore from "@/store/modules/terminal_theme";
 
-vi.mock("fontfaceobserver", () => ({
-  default: vi.fn().mockImplementation(() => ({
-    load: vi.fn().mockResolvedValue(undefined),
-  })),
-}));
-
-describe("TerminalFontPicker.vue", () => {
+describe("TerminalFontPicker", () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalFontPicker>>;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const terminalThemeStore = useTerminalThemeStore();
+  let terminalThemeStore: ReturnType<typeof useTerminalThemeStore>;
 
-  terminalThemeStore.setFontSettings = vi.fn().mockResolvedValue(undefined);
-  terminalThemeStore.$patch({
-    currentFontFamily: "Monospace",
-    currentFontSize: 15,
-  });
-
-  beforeEach(async () => {
-    wrapper = mount(TerminalFontPicker, {
-      global: {
-        plugins: [vuetify],
+  const mountWrapper = () => {
+    wrapper = mountComponent(TerminalFontPicker, {
+      piniaOptions: {
+        initialState: {
+          terminalTheme: {
+            currentFontFamily: "Monospace",
+            currentFontSize: 15,
+            availableFonts: [
+              "Monospace",
+              "Source Code Pro",
+              "Inconsolata",
+              "Ubuntu Mono",
+              "Fira Code",
+              "Anonymous Pro",
+              "JetBrains Mono",
+              "Noto Mono",
+            ],
+          },
+        },
       },
     });
-    await flushPromises();
+    terminalThemeStore = useTerminalThemeStore();
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
   });
 
-  it("renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
+  it("renders font family select", () => {
+    const fontFamilySelect = wrapper.findComponent({ name: "VSelect" });
+    expect(fontFamilySelect.exists()).toBe(true);
+    expect(fontFamilySelect.props("label")).toBe("Font Family");
   });
 
-  it("shows current font size value", () => {
-    const fontSizeInput = wrapper.find(".v-number-input input");
-    expect((fontSizeInput.element as HTMLInputElement).value).toBe("15");
+  it("renders font size number input with min and max constraints", () => {
+    const fontSizeInput = wrapper.findComponent({ name: "VNumberInput" });
+    expect(fontSizeInput.exists()).toBe(true);
+    expect(fontSizeInput.props("label")).toBe("Font Size");
+    expect(fontSizeInput.props("min")).toBe(8);
+    expect(fontSizeInput.props("max")).toBe(32);
+  });
+
+  it("displays current font family from store", () => {
+    const fontFamilySelect = wrapper.findComponent({ name: "VSelect" });
+    expect(fontFamilySelect.props("modelValue")).toBe("Monospace");
+  });
+
+  it("displays current font size from store", () => {
+    const fontSizeInput = wrapper.findComponent({ name: "VNumberInput" });
+    expect(fontSizeInput.props("modelValue")).toBe(15);
   });
 
   it("calls setFontSettings and emits update:fontSettings when font family changes", async () => {
     const fontFamilySelect = wrapper.findComponent({ name: "VSelect" });
-
     await fontFamilySelect.setValue("Fira Code");
     await flushPromises();
 
     expect(terminalThemeStore.setFontSettings).toHaveBeenCalledWith("Fira Code", 15);
-
-    const emitted = wrapper.emitted("update:fontSettings");
-    expect(emitted).toHaveLength(1);
-    expect(emitted?.[0][0]).toEqual({
-      fontFamily: "Fira Code",
-      fontSize: 15,
-    });
+    expect(wrapper.emitted("update:fontSettings")).toBeTruthy();
+    expect(wrapper.emitted("update:fontSettings")?.[0]).toEqual([
+      { fontFamily: "Fira Code", fontSize: 15 },
+    ]);
   });
 
   it("calls setFontSettings and emits update:fontSettings when font size changes", async () => {
-    const fontSizeInput = wrapper.find(".v-number-input input");
-
-    await fontSizeInput.setValue(18);
+    const fontSizeInput = wrapper.findComponent({ name: "VNumberInput" });
+    await fontSizeInput.setValue(20);
     await flushPromises();
 
-    expect(terminalThemeStore.setFontSettings).toHaveBeenCalledWith("Fira Code", 18);
-
-    const emitted = wrapper.emitted("update:fontSettings");
-    expect(emitted).toHaveLength(1);
-    expect(emitted?.[0][0]).toEqual({
-      fontFamily: "Fira Code",
-      fontSize: 18,
-    });
+    expect(terminalThemeStore.setFontSettings).toHaveBeenCalledWith("Monospace", 20);
+    expect(wrapper.emitted("update:fontSettings")).toBeTruthy();
+    expect(wrapper.emitted("update:fontSettings")?.[0]).toEqual([
+      { fontFamily: "Monospace", fontSize: 20 },
+    ]);
   });
 
-  it("uses storeToRefs for reactive store properties", async () => {
-    terminalThemeStore.$patch({
-      currentFontFamily: "Ubuntu Mono",
-      currentFontSize: 22,
-    });
-    await flushPromises();
+  it("displays all available font families", () => {
+    const fontFamilySelect = wrapper.findComponent({ name: "VSelect" });
+    const items = fontFamilySelect.props("items");
 
-    const fontSelect = wrapper.find(".v-select input");
-    const fontSizeInput = wrapper.find(".v-number-input input");
-
-    expect((fontSelect.element as HTMLInputElement).value).toBe("Ubuntu Mono");
-    expect((fontSizeInput.element as HTMLInputElement).value).toBe("22");
+    expect(items).toHaveLength(8);
+    expect(items).toContain("Monospace");
+    expect(items).toContain("Fira Code");
+    expect(items).toContain("JetBrains Mono");
   });
 });

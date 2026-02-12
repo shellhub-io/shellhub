@@ -14,7 +14,7 @@
       confirm-data-test="copy-warning-ok-btn"
       data-test="copy-warning-dialog"
       @close="showDialog = false"
-      @cancel="showDialog = false"
+      @confirm="showDialog = false"
     />
   </div>
 </template>

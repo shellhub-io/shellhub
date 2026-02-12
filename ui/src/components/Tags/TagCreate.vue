@@ -73,6 +73,4 @@ const create = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ tagInput, showDialog });
 </script>

@@ -269,7 +269,7 @@ onUnmounted(() => {
 });
 
 // Optional expose for testing or parent communication
-defineExpose({ xterm, ws, showDialog });
+defineExpose({ ws });
 </script>
 
 <style scoped lang="scss">

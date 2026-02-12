@@ -4,6 +4,7 @@
     transition="dialog-bottom-transition"
     title="What is an SSHID?"
     icon="mdi-ssh"
+    data-test="sshid-helper"
     @close="close"
   >
     <v-card-text class="pa-6">
@@ -76,7 +77,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import WindowDialog from "@/components/Dialogs/WindowDialog.vue";
-import CopyCommandField from "@/components/CopyCommandField.vue";
+import CopyCommandField from "@/components/Fields/CopyCommandField.vue";
 
 interface Props {
   sshid: string;
@@ -124,6 +125,4 @@ const examples = computed(() => [
 const close = () => {
   showDialog.value = false;
 };
-
-defineExpose({ showDialog });
 </script>

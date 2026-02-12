@@ -62,8 +62,6 @@ const copyKey = async () => {
 const close = () => {
   showDialog.value = false;
 };
-
-defineExpose({ showDialog, close });
 </script>
 
 <style scoped>

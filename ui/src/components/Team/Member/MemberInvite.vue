@@ -105,7 +105,7 @@
 import { ref } from "vue";
 import { useField } from "vee-validate";
 import * as yup from "yup";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
 import hasPermission from "@/utils/permission";
 import handleError from "@/utils/handleError";
@@ -153,20 +153,21 @@ const close = () => {
 const handleInviteError = (error: unknown) => {
   snackbar.showError("Failed to send invitation.");
 
-  if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError;
-    switch (axiosError.response?.status) {
-      case 409:
-        setEmailError("This user is already a member of this namespace.");
-        break;
-      case 404:
-        setEmailError("This user does not exist.");
-        break;
-      default:
-        setEmailError("An error occurred while sending the invitation.");
+  if (axios.isAxiosError(error) && error.response?.status) {
+    const errorMessagesMap: Record<number, string> = {
+      409: "This user is already a member of this namespace.",
+      404: "This user does not exist.",
+    };
+
+    const errorMessage = errorMessagesMap[error.response.status];
+    if (errorMessage) {
+      setEmailError(errorMessage);
+      return;
     }
-    handleError(error);
   }
+
+  setEmailError("An error occurred while sending the invitation.");
+  handleError(error);
 };
 
 const getInvitePayload = () => ({
@@ -202,6 +203,4 @@ const sendEmailInvite = async () => {
     isLoading.value = false;
   }
 };
-
-defineExpose({ emailError, formWindow, invitationLink });
 </script>

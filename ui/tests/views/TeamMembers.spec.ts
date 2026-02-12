@@ -2,7 +2,7 @@ import { VueWrapper, flushPromises } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import TeamMembers from "@/views/TeamMembers.vue";
-import { mockNamespace } from "./mocks";
+import { mockNamespace } from "../mocks";
 import { createAxiosError } from "@tests/utils/axiosError";
 import { namespacesApi } from "@/api/http";
 

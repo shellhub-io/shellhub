@@ -259,8 +259,8 @@ const {
     .number()
     .typeError("Port is a number between 1 and 65535")
     .integer()
-    .min(1)
-    .max(65535)
+    .min(1, "Port must be greater than or equal to 1")
+    .max(65535, "Port must be less than or equal to 65535")
     .required(),
   { initialValue: undefined },
 );

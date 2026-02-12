@@ -45,6 +45,7 @@
         v-if="authenticationMethod === TerminalAuthMethods.PrivateKey"
         v-model="selectedPrivateKeyName"
         @key-added="togglePassphraseField"
+        @update:model-value="togglePassphraseField"
       />
 
       <v-text-field
@@ -198,7 +199,6 @@ const togglePassphraseField = () => {
     const hasPassphrase = getSelectedPrivateKey()?.hasPassphrase || false;
     showPassphraseField.value = hasPassphrase;
   } else showPassphraseField.value = false;
-
   showPassword.value = false;
   resetPassphraseField();
 };
@@ -237,15 +237,4 @@ const submitForm = () => {
   emit("submit", formData);
   resetFields();
 };
-
-defineExpose({
-  authenticationMethod,
-  togglePassphraseField,
-  isFormValid,
-  submitForm,
-  username,
-  password,
-  passphrase,
-  selectedPrivateKeyName,
-});
 </script>

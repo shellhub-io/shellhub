@@ -1,126 +1,191 @@
-import { createPinia, setActivePinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
-import BillingDialog from "@/components/Billing/BillingDialog.vue";
-import { billingApi, namespacesApi } from "@/api/http";
-import { router } from "@/router";
-import { envVariables } from "@/envVariables";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { describe, expect, it, afterEach, vi, beforeEach } from "vitest";
+import { VueWrapper, DOMWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanRouter } from "@tests/utils/router";
+import { createAxiosError } from "@tests/utils/axiosError";
 import useCustomerStore from "@/store/modules/customer";
+import BillingDialog from "@/components/Billing/BillingDialog.vue";
+import { Router } from "vue-router";
 
-describe("Billing Dialog", async () => {
-  setActivePinia(createPinia());
-  const customerStore = useCustomerStore();
-  const vuetify = createVuetify();
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
-  const mockBillingApi = new MockAdapter(billingApi.getAxios());
+type CustomerStore = ReturnType<typeof useCustomerStore>;
 
-  const members = [
-    {
-      id: "xxxxxxxx",
-      username: "test",
-      role: "owner",
-    },
-  ];
+describe("BillingDialog", () => {
+  let wrapper: VueWrapper<InstanceType<typeof BillingDialog>>;
+  let customerStore: CustomerStore;
+  let dialog: DOMWrapper<HTMLElement>;
+  let router: Router;
 
-  const namespaceData = {
-    name: "test",
-    owner: "test",
-    tenant_id: "fake-tenant-data",
-    members,
-    settings: {
-      session_record: true,
-    },
-    max_devices: 3,
-    devices_count: 3,
-    created_at: "",
+  const mountWrapper = async (modelValue = true) => {
+    router = createCleanRouter();
+
+    wrapper = mountComponent(BillingDialog, {
+      props: { modelValue },
+      global: { plugins: [router] },
+    });
+
+    customerStore = useCustomerStore();
+
+    dialog = new DOMWrapper(document.body).find('[role="dialog"]');
+
+    await flushPromises();
   };
 
-  const customerData = {
-    id: "cus_test",
-    name: "test",
-    email: "test@test.com",
-    payment_methods: [
-      {
-        id: "test_id",
-        number: "xxxxxxxxxxxx4242",
-        brand: "visa",
-        exp_month: 3,
-        exp_year: 2029,
-        cvc: "",
-        default: true,
-      },
-    ],
-  };
-
-  localStorage.setItem("tenant", "fake-tenant-data");
-  envVariables.isCloud = true;
-
-  mockNamespacesApi.onGet("http://localhost:3000/api/namespaces/fake-tenant-data").reply(200, namespaceData);
-  mockBillingApi.onPost("http://localhost:3000/api/billing/customer").reply(200);
-  mockBillingApi.onGet("http://localhost:3000/api/billing/customer").reply(200, customerData);
-
-  const wrapper = mount(BillingDialog, {
-    global: {
-      plugins: [vuetify, router, SnackbarPlugin],
-    },
-    props: { modelValue: true },
-  });
-  wrapper.vm.showCheckoutDialog = true;
-  await flushPromises();
-
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  afterEach(() => {
+    wrapper?.unmount();
+    document.body.innerHTML = "";
   });
 
-  it("Renders the component (Welcome window)", () => {
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
+  describe("dialog visibility", () => {
+    it("does not display dialog when modelValue is false", async () => {
+      await mountWrapper(false);
+
+      expect(dialog.exists()).toBe(false);
+    });
+
+    it("displays dialog when modelValue is true", async () => {
+      await mountWrapper();
+
+      expect(dialog.exists()).toBe(true);
+    });
   });
 
-  it("Renders the component (Payment Details window)", async () => {
-    wrapper.vm.el = 2;
-    await flushPromises();
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
+  describe("window navigation - step 1: welcome letter", () => {
+    beforeEach(() => mountWrapper());
+
+    it("renders welcome screen initially", () => {
+      expect(dialog.text()).toContain("ShellHub Cloud Premium Subscription");
+      expect(dialog.find('[data-test="billing-payment-details"]').exists()).toBe(false);
+    });
+
+    it("displays next button on welcome screen", () => {
+      expect(dialog.find('[data-test="payment-letter-next-button"]').exists()).toBe(true);
+    });
+
+    it("moves to payment details when next is clicked", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="billing-payment-details"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="billing-letter"]').exists()).toBe(false);
+    });
   });
 
-  it("Renders the component (Checkout window)", async () => {
-    wrapper.vm.el = 3;
-    await flushPromises();
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
+  describe("window navigation - step 2: payment details", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays back and next buttons", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="payment-details-back-button"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="payment-details-next-button"]').exists()).toBe(true);
+    });
+
+    it("returns to welcome when back is clicked", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await flushPromises();
+
+      await dialog.find('[data-test="payment-details-back-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.text()).toContain("ShellHub Cloud Premium Subscription");
+    });
+
+    it("moves to checkout when next is clicked", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="billing-checkout"]').exists()).toBe(true);
+    });
   });
 
-  it("Renders the component (Success window)", async () => {
-    wrapper.vm.el = 4;
-    await flushPromises();
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
+  describe("window navigation - step 3: checkout", () => {
+    beforeEach(() => mountWrapper());
+
+    it("displays back and subscribe buttons", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="checkout-back-button"]').exists()).toBe(true);
+      expect(dialog.find('[data-test="checkout-button"]').exists()).toBe(true);
+    });
+
+    it("returns to payment details when back is clicked", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await flushPromises();
+
+      await dialog.find('[data-test="checkout-back-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="billing-payment-details"]').exists()).toBe(true);
+    });
   });
 
-  it("Goes to next and previous step when clicking on buttons", async () => {
-    wrapper.vm.resetDialog();
-    wrapper.vm.showCheckoutDialog = true;
-    await flushPromises();
-    expect(wrapper.vm.el).toEqual(1);
-    await wrapper.findComponent('[data-test="payment-letter-next-button"]').trigger("click");
-    expect(wrapper.vm.el).toEqual(2);
-    await wrapper.findComponent('[data-test="payment-details-back-button"]').trigger("click");
-    expect(wrapper.vm.el).toEqual(1);
+  describe("subscription creation", () => {
+    beforeEach(() => mountWrapper());
+    it("creates subscription when subscribe button is clicked", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await flushPromises();
+
+      await dialog.find('[data-test="checkout-button"]').trigger("click");
+      await flushPromises();
+
+      expect(customerStore.createSubscription).toHaveBeenCalled();
+    });
+
+    it("shows success screen after successful subscription", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await flushPromises();
+
+      await dialog.find('[data-test="checkout-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="card-fourth-page"]').exists()).toBe(true);
+    });
+
+    it("handles payment required error (402)", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await flushPromises();
+
+      const error = createAxiosError(402, "Payment Required");
+      vi.spyOn(customerStore, "createSubscription").mockRejectedValueOnce(error);
+
+      await dialog.find('[data-test="checkout-button"]').trigger("click");
+      await flushPromises();
+
+      expect(dialog.find('[data-test="checkout-error-alert"]').exists()).toBe(true);
+    });
   });
 
-  it("Subscribes to Premium", async () => {
-    wrapper.vm.el = 3;
-    await flushPromises();
+  describe("window navigation - step 4: success", () => {
+    beforeEach(() => mountWrapper());
+    it("displays close button on success screen", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await flushPromises();
 
-    mockBillingApi.onPost("http://localhost:3000/api/billing/subscription").reply(200);
+      await dialog.find('[data-test="checkout-button"]').trigger("click");
+      await flushPromises();
 
-    const subscribeSpy = vi.spyOn(customerStore, "createSubscription");
-    await wrapper.findComponent('[data-test="checkout-button"]').trigger("click");
+      expect(dialog.find('[data-test="successful-close-button"]').exists()).toBe(true);
+    });
 
-    expect(subscribeSpy).toHaveBeenCalled();
+    it("closes dialog when close button is clicked", async () => {
+      await dialog.find('[data-test="payment-letter-next-button"]').trigger("click");
+      await dialog.find('[data-test="payment-details-next-button"]').trigger("click");
+      await dialog.find('[data-test="checkout-button"]').trigger("click");
+      await flushPromises();
+
+      await dialog.find('[data-test="successful-close-button"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.emitted("reload")).toBeTruthy();
+    });
   });
 });

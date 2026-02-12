@@ -10,7 +10,7 @@
     />
     <v-list-item
       v-else
-      data-test="list-item"
+      data-test="open-action-dialog"
       @click="showDialog = true"
     >
       <v-tooltip
@@ -190,8 +190,6 @@ const handleClick = async () => {
     snackbar.showError("You don't have this kind of authorization.");
   }
 };
-
-defineExpose({ showDialog, canPerformDeviceAction, handleClick });
 </script>
 
 <style scoped>

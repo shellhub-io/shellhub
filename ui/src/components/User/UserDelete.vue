@@ -66,6 +66,4 @@ const deleteAccount = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ showDialog });
 </script>

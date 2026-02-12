@@ -1,83 +1,141 @@
-import { setActivePinia, createPinia } from "pinia";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createVuetify } from "vuetify";
-import { flushPromises, mount, VueWrapper } from "@vue/test-utils";
+import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
+import { DOMWrapper, VueWrapper, flushPromises } from "@vue/test-utils";
+import { mountComponent } from "@tests/utils/mount";
+import { mockPrivateKey, mockPrivateKeys } from "@tests/mocks";
 import PrivateKeySelectWithAdd from "@/components/PrivateKeys/PrivateKeySelectWithAdd.vue";
-import { SnackbarPlugin } from "@/plugins/snackbar";
 import usePrivateKeysStore from "@/store/modules/private_keys";
-import { nextTick } from "vue";
 
-type PrivateKeySelectWithAddWrapper = VueWrapper<InstanceType<typeof PrivateKeySelectWithAdd>>;
+describe("PrivateKeySelectWithAdd", () => {
+  let wrapper: VueWrapper<InstanceType<typeof PrivateKeySelectWithAdd>>;
+  let privateKeysStore: ReturnType<typeof usePrivateKeysStore>;
 
-const mockPrivateKeys = [
-  { id: 1, name: "test-key-1", data: "private-key-data-1", hasPassphrase: true, fingerprint: "fingerprint-1" },
-  { id: 2, name: "test-key-2", data: "private-key-data-2", hasPassphrase: false, fingerprint: "fingerprint-2" },
-  { id: 3, name: "test-key-3", data: "private-key-data-3", hasPassphrase: false, fingerprint: "fingerprint-3" },
-];
+  const mountWrapper = (privateKeys = mockPrivateKeys) => {
+    wrapper = mountComponent(PrivateKeySelectWithAdd, {
+      global: { stubs: ["v-file-upload", "v-file-upload-item"] },
+      props: { modelValue: "" },
+      piniaOptions: { initialState: { privateKeys: { privateKeys } } },
+      attachTo: document.body,
+    });
 
-describe("Private Key Select With Add", () => {
-  let wrapper: PrivateKeySelectWithAddWrapper;
-  setActivePinia(createPinia());
-  const privateKeysStore = usePrivateKeysStore();
-  const vuetify = createVuetify();
+    privateKeysStore = usePrivateKeysStore();
+  };
 
-  beforeEach(() => {
-    privateKeysStore.privateKeys = mockPrivateKeys;
+  beforeEach(() => mountWrapper());
 
-    wrapper = mount(PrivateKeySelectWithAdd, {
-      global: {
-        plugins: [vuetify, SnackbarPlugin],
-        stubs: {
-          "v-file-upload": true,
-          "v-file-upload-item": true,
-        },
-      },
-      props: { modelValue: "test-key-1" },
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+  });
+
+  describe("Select field", () => {
+    it("Renders select component", () => {
+      const select = wrapper.find('[data-test="private-keys-select"]');
+      expect(select.exists()).toBe(true);
+    });
+
+    it("Shows Private Key label", () => {
+      const select = wrapper.findComponent({ name: "VSelect" });
+      expect(select.props("label")).toBe("Private Key");
+    });
+
+    it("Shows hint text", () => {
+      const select = wrapper.findComponent({ name: "VSelect" });
+      expect(select.props("hint")).toBe("Select a private key file for authentication");
+      expect(select.props("persistentHint")).toBe(true);
+    });
+
+    it("Displays available private key names", () => {
+      const select = wrapper.findComponent({ name: "VSelect" });
+      expect(select.props("items")).toEqual([mockPrivateKey.name]);
+    });
+
+    it("Updates model value when selection changes", async () => {
+      const select = wrapper.findComponent({ name: "VSelect" });
+      await select.setValue(mockPrivateKey.name);
+      await flushPromises();
+
+      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+      expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([mockPrivateKey.name]);
     });
   });
 
-  it("Renders the private key select", () => {
-    const select = wrapper.find('[data-test="private-keys-select"]');
-    expect(select.exists()).toBe(true);
-  });
-
-  it("Displays all private keys in the select", () => {
-    const select = wrapper.findComponent({ name: "VSelect" });
-    expect(select.props("items")).toEqual(["test-key-1", "test-key-2", "test-key-3"]);
-  });
-
-  it("Auto-selects newly added key and emits key-added event", async () => {
-    const newKey = { id: 4, name: "new-test-key", data: "new-key-data", hasPassphrase: false, fingerprint: "new-fingerprint" };
-
-    const getPrivateKeyListSpy = vi.spyOn(privateKeysStore, "getPrivateKeyList").mockImplementation(() => {
-      privateKeysStore.privateKeys = [...mockPrivateKeys, newKey];
+  describe("Add New Private Key button", () => {
+    let menu: DOMWrapper<HTMLElement>;
+    beforeEach(() => {
+      const select = wrapper.findComponent({ name: "VSelect" });
+      select.vm.menu = true;
+      menu = new DOMWrapper(document.body);
+    });
+    it("Renders Add New Private Key button in select menu", () => {
+      const addButton = menu.find('[data-test="add-private-key-btn"]');
+      expect(addButton.exists()).toBe(true);
     });
 
-    const privateKeyAdd = wrapper.findComponent({ name: "PrivateKeyAdd" });
-    await privateKeyAdd.vm.$emit("update");
-    await nextTick();
-    await flushPromises();
+    it("Shows plus icon", () => {
+      const addButton = menu.find('[data-test="add-private-key-btn"]');
+      const icon = addButton.find(".v-icon");
+      expect(icon.classes()).toContain("mdi-plus");
+    });
 
-    expect(getPrivateKeyListSpy).toHaveBeenCalled();
-    expect(wrapper.emitted("key-added")).toBeTruthy();
-    expect(wrapper.vm.selectedPrivateKeyName).toBe("new-test-key");
+    it("Shows Add New Private Key text", () => {
+      const addButton = menu.find('[data-test="add-private-key-btn"]');
+      expect(addButton.text()).toContain("Add New Private Key");
+    });
+
+    it("Opens PrivateKeyAdd dialog when clicked", async () => {
+      const addButton = menu.find('[data-test="add-private-key-btn"]');
+      await addButton.trigger("click");
+      await flushPromises();
+
+      const privateKeyAdd = wrapper.findComponent({ name: "PrivateKeyAdd" });
+      expect(privateKeyAdd.props("modelValue")).toBe(true);
+    });
   });
 
-  it("Handles empty private keys list", async () => {
-    privateKeysStore.privateKeys = [];
+  describe("Handle private key added", () => {
+    it("Refreshes private keys list when new key is added", async () => {
+      const privateKeyAdd = wrapper.findComponent({ name: "PrivateKeyAdd" });
+      privateKeyAdd.vm.$emit("update");
+      await flushPromises();
 
-    await nextTick();
+      expect(privateKeysStore.getPrivateKeyList).toHaveBeenCalled();
+    });
 
-    const select = wrapper.findComponent({ name: "VSelect" });
-    expect(select.props("items")).toEqual([]);
+    it("Selects newest private key after adding", async () => {
+      const newKey = { ...mockPrivateKey, id: 2, name: "new-key" };
+      vi.mocked(privateKeysStore.getPrivateKeyList).mockImplementation(() => {
+        privateKeysStore.privateKeys.push(newKey);
+      });
+
+      const privateKeyAdd = wrapper.findComponent({ name: "PrivateKeyAdd" });
+      privateKeyAdd.vm.$emit("update");
+      await flushPromises();
+
+      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+    });
+
+    it("Emits key-added event after adding", async () => {
+      const newKey = { ...mockPrivateKey, id: 3, name: "another-key" };
+      vi.mocked(privateKeysStore.getPrivateKeyList).mockImplementation(() => {
+        privateKeysStore.privateKeys.push(newKey);
+      });
+
+      const privateKeyAdd = wrapper.findComponent({ name: "PrivateKeyAdd" });
+      privateKeyAdd.vm.$emit("update");
+      await flushPromises();
+
+      expect(wrapper.emitted("key-added")).toBeTruthy();
+    });
   });
 
-  it("Updates model value when selecting a key", async () => {
-    const select = wrapper.findComponent({ name: "VSelect" });
-    await select.setValue("test-key-2");
-    await flushPromises();
+  describe("Empty state", () => {
+    it("Works with no private keys", () => {
+      wrapper.unmount();
 
-    expect(wrapper.emitted("update:modelValue")).toBeTruthy();
-    expect(wrapper.emitted("update:modelValue")?.[0]).toEqual(["test-key-2"]);
+      mountWrapper([]);
+
+      const select = wrapper.findComponent({ name: "VSelect" });
+      expect(select.props("items")).toEqual([]);
+    });
   });
 });

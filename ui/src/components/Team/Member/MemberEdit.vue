@@ -68,23 +68,21 @@ const update = () => {
 };
 
 const handleEditMemberError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
-    switch (status) {
-      case 400:
-        snackbar.showError("The user isn't linked to the namespace.");
-        break;
-      case 403:
-        snackbar.showError("You don't have permission to assign a role to the user.");
-        break;
-      case 404:
-        snackbar.showError("The username doesn't exist.");
-        break;
-      default:
-        snackbar.showError("Failed to update user role.");
-    }
-  } else snackbar.showError("Failed to update user role.");
+  if (axios.isAxiosError(error) && error.response?.status) {
+    const errorMessagesMap: Record<number, string> = {
+      400: "The user isn't linked to the namespace.",
+      403: "You don't have permission to assign a role to the user.",
+      404: "The username doesn't exist.",
+    };
 
+    const errorMessage = errorMessagesMap[error.response.status];
+    if (errorMessage) {
+      snackbar.showError(errorMessage);
+      return;
+    }
+  }
+
+  snackbar.showError("Failed to update user role.");
   handleError(error);
 };
 
@@ -105,5 +103,4 @@ const editMember = async () => {
     isLoading.value = false;
   }
 };
-
 </script>

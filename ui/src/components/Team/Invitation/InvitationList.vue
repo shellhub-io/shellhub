@@ -255,14 +255,13 @@ const getInvitations = async () => {
       filter.value,
     );
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      if (error.response?.status === 403) {
-        snackbar.showError("You don't have permission to access this resource.");
-      }
-    } else {
-      snackbar.showError("Failed to load the invitation list.");
-      handleError(error);
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      snackbar.showError("You don't have permission to access this resource.");
+      return;
     }
+
+    snackbar.showError("Failed to load the invitation list.");
+    handleError(error);
   } finally {
     loading.value = false;
   }

@@ -1,5 +1,6 @@
 <template>
   <v-list-item
+    data-test="delete-api-key-btn"
     :disabled="!hasAuthorization"
     @click="showDialog = true"
   >
@@ -69,6 +70,4 @@ const remove = async () => {
     handleError(error);
   }
 };
-
-defineExpose({ showDialog });
 </script>

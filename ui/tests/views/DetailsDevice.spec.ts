@@ -7,7 +7,7 @@ import DetailsDevice from "@/views/DetailsDevice.vue";
 import { IDevice } from "@/interfaces/IDevice";
 import { envVariables } from "@/envVariables";
 import { formatFullDateTime } from "@/utils/date";
-import { mockDevice } from "@tests/views/mocks";
+import { mockDevice } from "../mocks";
 import { createAxiosError } from "@tests/utils/axiosError";
 import useDevicesStore from "@/store/modules/devices";
 
@@ -89,7 +89,7 @@ describe("Details Device View", () => {
 
     it("displays device action menu items", () => {
       const actionsList = wrapper.findComponent({ name: "VList" });
-      expect(actionsList.find('[data-test="device-rename-component"]').exists()).toBe(true);
+      expect(actionsList.find('[data-test="rename-device-button"]').exists()).toBe(true);
       expect(actionsList.find('[data-test="open-tags-btn"]').exists()).toBe(true);
       expect(actionsList.find('[data-test="device-delete-item"]').exists()).toBe(true);
     });

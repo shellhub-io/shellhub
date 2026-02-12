@@ -6,7 +6,7 @@
     @click="open"
   >
     <div class="d-flex align-center ga-2">
-      <v-icon icon="mdi-pencil"> mdi-pencil </v-icon>
+      <v-icon icon="mdi-pencil" />
       <v-list-item-title data-test="mdi-information-list-item">
         Edit
       </v-list-item-title>

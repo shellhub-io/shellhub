@@ -220,6 +220,4 @@ const handleConfirm = () => {
     emit("confirm");
   }
 };
-
-defineExpose({ footerWindow });
 </script>

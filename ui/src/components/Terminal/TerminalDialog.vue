@@ -36,6 +36,7 @@ import Terminal from "./Terminal.vue";
 
 // Utility to create key fingerprint for private key auth
 import { convertToFingerprint } from "@/utils/sshKeys";
+import handleError from "@/utils/handleError";
 
 const { deviceUid, deviceName, sshid } = defineProps<{
   deviceUid: string;
@@ -75,6 +76,8 @@ const connect = async (params: IConnectToTerminal) => {
 
     token.value = (response.data as { token: string }).token;
     showLoginForm.value = false;
+  } catch (error) {
+    handleError(error);
   } finally {
     isConnecting.value = false;
   }
@@ -127,13 +130,4 @@ watch(
   },
   { immediate: true },
 );
-
-// Expose for test or parent interaction
-defineExpose({
-  token,
-  handleSubmit,
-  showDialog,
-  showLoginForm,
-  close,
-});
 </script>

@@ -26,7 +26,7 @@ const terminalFontFamilies = [
 
 export type TerminalFontFamily = typeof terminalFontFamilies[number];
 
-const useTerminalThemeStore = defineStore("terminal-theme", () => {
+const useTerminalThemeStore = defineStore("terminalTheme", () => {
   const availableFonts = ref(terminalFontFamilies);
   const currentFontFamily = ref<TerminalFontFamily>(localStorage.getItem("terminalFontFamily") as TerminalFontFamily || "Monospace");
   const currentFontSize = ref<number>(parseInt(localStorage.getItem("terminalFontSize") || "15", 10));

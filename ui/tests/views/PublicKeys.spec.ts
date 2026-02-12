@@ -2,7 +2,7 @@ import { flushPromises, VueWrapper } from "@vue/test-utils";
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { mountComponent, mockSnackbar } from "@tests/utils/mount";
 import PublicKeys from "@/views/PublicKeys.vue";
-import { mockPublicKeys } from "@tests/views/mocks";
+import { mockPublicKeys } from "../mocks";
 import usePublicKeysStore from "@/store/modules/public_keys";
 import { createAxiosError } from "@tests/utils/axiosError";
 

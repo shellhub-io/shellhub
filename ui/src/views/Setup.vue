@@ -192,7 +192,7 @@ import { useField } from "vee-validate";
 import { useEventListener } from "@vueuse/core";
 import * as yup from "yup";
 import useUsersStore from "@/store/modules/users";
-import CopyCommandField from "@/components/CopyCommandField.vue";
+import CopyCommandField from "@/components/Fields/CopyCommandField.vue";
 import { envVariables } from "@/envVariables";
 
 enum SetupStep {

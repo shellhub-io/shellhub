@@ -1,95 +1,107 @@
-import { setActivePinia, createPinia } from "pinia";
-import { createVuetify } from "vuetify";
-import { DOMWrapper, flushPromises, mount, VueWrapper } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import MockAdapter from "axios-mock-adapter";
+import { DOMWrapper, flushPromises, VueWrapper } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MemberDelete from "@/components/Team/Member/MemberDelete.vue";
-import { namespacesApi } from "@/api/http";
-import { SnackbarInjectionKey } from "@/plugins/snackbar";
+import { createAxiosError } from "@tests/utils/axiosError";
+import { mountComponent, mockSnackbar } from "@tests/utils/mount";
+import { mockMember } from "@tests/mocks/namespace";
 import useNamespacesStore from "@/store/modules/namespaces";
-import { INamespaceMember } from "@/interfaces/INamespace";
+import handleError from "@/utils/handleError";
 
-type MemberDeleteWrapper = VueWrapper<InstanceType<typeof MemberDelete>>;
+describe("MemberDelete", () => {
+  let wrapper: VueWrapper<InstanceType<typeof MemberDelete>>;
+  let namespacesStore: ReturnType<typeof useNamespacesStore>;
+  let dialog: DOMWrapper<HTMLElement>;
 
-const mockSnackbar = {
-  showSuccess: vi.fn(),
-  showError: vi.fn(),
-};
-
-describe("Member Delete", () => {
-  let wrapper: MemberDeleteWrapper;
-  setActivePinia(createPinia());
-  const namespacesStore = useNamespacesStore();
-  const vuetify = createVuetify();
-  const mockNamespacesApi = new MockAdapter(namespacesApi.getAxios());
-
-  const members = [
-    {
-      id: "xxxxxxxx",
-      role: "owner" as const,
-    },
-  ] as INamespaceMember[];
-
-  beforeEach(() => {
-    localStorage.setItem("tenant", "fake-tenant-data");
-
-    wrapper = mount(MemberDelete, {
-      global: {
-        plugins: [vuetify],
-        provide: { [SnackbarInjectionKey]: mockSnackbar },
-      },
-      props: {
-        member: members[0],
-        hasAuthorization: true,
-      },
+  const mountWrapper = (hasAuthorization = true) => {
+    wrapper = mountComponent(MemberDelete, {
+      props: { member: mockMember, hasAuthorization },
+      attachTo: document.body,
+      piniaOptions: { initialState: { auth: { tenantId: "fake-tenant-data" } } },
     });
+
+    namespacesStore = useNamespacesStore();
+    dialog = new DOMWrapper(document.body);
+  };
+
+  beforeEach(() => mountWrapper());
+
+  afterEach(() => {
+    wrapper?.unmount();
+    vi.clearAllMocks();
+    document.body.innerHTML = "";
   });
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
+  it("renders the list item with delete button", () => {
+    expect(wrapper.find('[data-test="member-delete-dialog-btn"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="member-delete-dialog-btn"]').text()).toBe("Remove");
+    expect(wrapper.find(".v-icon").classes()).toContain("mdi-delete");
   });
 
-  it("Renders the component", async () => {
-    await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
-    const dialog = new DOMWrapper(document.body);
-    expect(dialog.html()).toMatchSnapshot();
+  it("disables the list item when user doesn't have authorization", () => {
+    mountWrapper(false);
+
+    const listItem = wrapper.find("[data-test='member-delete-dialog-btn']");
+    expect(listItem.classes()).toContain("v-list-item--disabled");
   });
 
-  it("Delete Member Error Validation", async () => {
-    mockNamespacesApi.onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(403);
-
-    const storeSpy = vi.spyOn(namespacesStore, "removeMemberFromNamespace");
-
-    await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="member-delete-remove-btn"]').trigger("click");
-
+  it("opens dialog when clicking the list item", async () => {
+    await wrapper.find("[data-test='member-delete-dialog-btn']").trigger("click");
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith({
-      tenant_id: "fake-tenant-data",
-      user_id: "xxxxxxxx",
-    });
-
-    expect(mockSnackbar.showError).toBeCalledWith("Failed to remove user from namespace.");
+    const dialogCard = dialog.find('[data-test="member-delete-card"]');
+    expect(dialogCard.exists()).toBe(true);
+    expect(dialogCard.text()).toContain("Are you sure?");
+    expect(dialogCard.text()).toContain("You are about to remove this user from the namespace");
   });
 
-  it("Delete Member Success Validation", async () => {
-    mockNamespacesApi.onDelete("http://localhost:3000/api/namespaces/fake-tenant-data/members/xxxxxxxx").reply(200);
-
-    const storeSpy = vi.spyOn(namespacesStore, "removeMemberFromNamespace");
-
-    await wrapper.findComponent('[data-test="member-delete-dialog-btn"]').trigger("click");
-
-    await wrapper.findComponent('[data-test="member-delete-remove-btn"]').trigger("click");
-
+  it("closes dialog when clicking the cancel button", async () => {
+    await wrapper.find("[data-test='member-delete-dialog-btn']").trigger("click");
     await flushPromises();
 
-    expect(storeSpy).toBeCalledWith({
-      tenant_id: "fake-tenant-data",
-      user_id: "xxxxxxxx",
-    });
+    await dialog.find('[data-test="member-delete-close-btn"]').trigger("click");
+    await flushPromises();
 
-    expect(mockSnackbar.showSuccess).toBeCalledWith("Successfully removed user from namespace.");
+    expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none");
+  });
+
+  it("successfully removes member from namespace", async () => {
+    await wrapper.find("[data-test='member-delete-dialog-btn']").trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="member-delete-remove-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(namespacesStore.removeMemberFromNamespace).toHaveBeenCalledWith({
+      user_id: mockMember.id,
+      tenant_id: "fake-tenant-data",
+    });
+    expect(mockSnackbar.showSuccess).toHaveBeenCalledWith("Successfully removed user from namespace.");
+    expect(wrapper.emitted("update")).toBeTruthy();
+  });
+
+  it("handles generic error when removing member fails", async () => {
+    const error = createAxiosError(500, "Internal Server Error");
+    vi.mocked(namespacesStore.removeMemberFromNamespace).mockRejectedValueOnce(error);
+
+    await wrapper.find("[data-test='member-delete-dialog-btn']").trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="member-delete-remove-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(mockSnackbar.showError).toHaveBeenCalledWith("Failed to remove user from namespace.");
+    expect(wrapper.emitted("update")).toBeFalsy();
+    expect(handleError).toHaveBeenCalledWith(error);
+  });
+
+  it("emits update event and closes dialog after successful removal", async () => {
+    await wrapper.find("[data-test='member-delete-dialog-btn']").trigger("click");
+    await flushPromises();
+
+    await dialog.find('[data-test="member-delete-remove-btn"]').trigger("click");
+    await flushPromises();
+
+    expect(wrapper.emitted("update")).toHaveLength(1);
+    expect(dialog.find(".v-overlay__content").attributes("style")).toContain("display: none");
   });
 });

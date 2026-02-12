@@ -1,75 +1,130 @@
-import { setActivePinia, createPinia } from "pinia";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { expect, describe, it, beforeEach } from "vitest";
+import { DOMWrapper, flushPromises, VueWrapper } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import TerminalConnectButton from "@/components/Terminal/TerminalConnectButton.vue";
-import { router } from "@/router";
-import { SnackbarPlugin } from "@/plugins/snackbar";
+import { mountComponent } from "@tests/utils/mount";
+import { createCleanRouter } from "@tests/utils/router";
 
-describe("Terminal Connect Button", () => {
+describe("TerminalConnectButton", () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalConnectButton>>;
-  setActivePinia(createPinia());
-  const vuetify = createVuetify();
 
-  beforeEach(() => {
-    wrapper = mount(TerminalConnectButton, {
-      global: {
-        plugins: [router, vuetify, SnackbarPlugin],
-      },
+  const mountWrapper = (online = true) => {
+    wrapper = mountComponent(TerminalConnectButton, {
+      global: { plugins: [createCleanRouter()] },
       props: {
-        online: true,
+        online,
         deviceUid: "a582b47a42d",
         deviceName: "test-device",
         sshid: "namespace.70-85-c2-08-60-2a@staging.shellhub.io",
       },
     });
-  });
+  };
 
-  it("Is a Vue instance", () => {
-    expect(wrapper.vm).toBeTruthy();
-  });
+  beforeEach(() => mountWrapper());
 
-  it("Renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  afterEach(() => wrapper?.unmount());
 
-  it("Renders the correct text based on online prop", async () => {
-    const connectBtn = wrapper.find("[data-test='connect-btn']");
+  it("renders connect button with correct text when online", () => {
+    const connectBtn = wrapper.find('[data-test="connect-btn"]');
     expect(connectBtn.text()).toBe("Connect");
-    await wrapper.setProps({ online: false });
-    expect(connectBtn.text()).toBe("Offline");
+    expect(connectBtn.attributes("disabled")).toBeUndefined();
   });
 
-  it("Sets disabled attribute based on online prop", async () => {
-    const connectBtn = wrapper.find("[data-test='connect-btn']");
-    expect(connectBtn.attributes("disabled")).toBeUndefined();
-    await wrapper.setProps({ online: false });
+  it("renders offline button when device is offline", () => {
+    mountWrapper(false);
+
+    const connectBtn = wrapper.find('[data-test="connect-btn"]');
+    expect(connectBtn.text()).toBe("Offline");
     expect(connectBtn.attributes("disabled")).toBeDefined();
   });
 
-  it("Opens the Web Terminal dialog when Connect button is clicked", async () => {
-    const connectBtn = wrapper.find("[data-test='connect-btn']");
+  it("applies green border when device is online", () => {
+    const btnGroup = wrapper.find(".v-btn-group");
+    expect(btnGroup.classes()).toContain("green-border");
+  });
+
+  it("does not apply green border when device is offline", () => {
+    mountWrapper(false);
+
+    const btnGroup = wrapper.find(".v-btn-group");
+    expect(btnGroup.classes()).not.toContain("green-border");
+  });
+
+  it("disables menu dropdown when device is offline", () => {
+    mountWrapper(false);
+
+    const menuButtons = wrapper.findAllComponents({ name: "VBtn" });
+    const dropdownButton = menuButtons[1];
+
+    expect(dropdownButton.attributes("disabled")).toBeDefined();
+  });
+
+  it("opens TerminalDialog when connect button is clicked", async () => {
+    const connectBtn = wrapper.find('[data-test="connect-btn"]');
     await connectBtn.trigger("click");
-    expect(wrapper.vm.showWebTerminal).toBe(true);
+    await flushPromises();
+
+    const terminalDialog = wrapper.findComponent({ name: "TerminalDialog" });
+    expect(terminalDialog.props("modelValue")).toBe(true);
   });
 
-  it("Opens the Web Terminal dialog when 'Connect via web' menu item is clicked", async () => {
-    const menuActivator = wrapper.findAllComponents({ name: "VBtn" }).at(1);
-    await menuActivator?.trigger("click");
+  it("passes correct props to TerminalDialog", () => {
+    const terminalDialog = wrapper.findComponent({ name: "TerminalDialog" });
 
-    const webItem = wrapper.findComponent("[data-test='Connect via web']");
+    expect(terminalDialog.props("deviceUid")).toBe("a582b47a42d");
+    expect(terminalDialog.props("deviceName")).toBe("test-device");
+    expect(terminalDialog.props("sshid")).toBe("namespace.70-85-c2-08-60-2a@staging.shellhub.io");
+  });
+
+  it("opens TerminalDialog when 'Connect via web' menu item is clicked", async () => {
+    const menuActivator = wrapper.find('[data-test="dropdown-btn"]');
+    await menuActivator.trigger("click");
+    await flushPromises();
+
+    const menu = new DOMWrapper(document.body).find(".v-menu");
+
+    const webItem = menu.find('[data-test="connect-via-web"]');
     await webItem.trigger("click");
+    await flushPromises();
 
-    expect(wrapper.vm.showWebTerminal).toBe(true);
+    const terminalDialog = wrapper.findComponent({ name: "TerminalDialog" });
+    expect(terminalDialog.props("modelValue")).toBe(true);
   });
 
-  it("Opens the Terminal Helper dialog when 'Connect via terminal' menu item is clicked", async () => {
-    const menuActivator = wrapper.findAllComponents({ name: "VBtn" }).at(1);
-    await menuActivator?.trigger("click");
+  it("opens SSHIDHelper when 'Connect via terminal' menu item is clicked", async () => {
+    const menuActivator = wrapper.find('[data-test="dropdown-btn"]');
+    await menuActivator.trigger("click");
+    await flushPromises();
 
-    const terminalItem = wrapper.findComponent("[data-test='Connect via terminal']");
+    const body = new DOMWrapper(document.body);
+    const menu = body.find(".v-menu");
+
+    const terminalItem = menu.find('[data-test="connect-via-terminal"]');
     await terminalItem.trigger("click");
+    await flushPromises();
 
-    expect(wrapper.vm.showTerminalHelper).toBe(true);
+    const sshidHelper = body.find('[data-test="sshid-helper"]');
+    expect(sshidHelper.exists()).toBe(true);
+  });
+
+  it("passes correct sshid prop to SSHIDHelper", () => {
+    const sshidHelper = wrapper.findComponent({ name: "SSHIDHelper" });
+    expect(sshidHelper.props("sshid")).toBe("namespace.70-85-c2-08-60-2a@staging.shellhub.io");
+  });
+
+  it("displays both menu items with correct icons", async () => {
+    const menuActivator = wrapper.find('[data-test="dropdown-btn"]');
+    await menuActivator.trigger("click");
+    await flushPromises();
+
+    const menu = new DOMWrapper(document.body).find(".v-menu");
+
+    const webItem = menu.find('[data-test="connect-via-web"]');
+    const terminalItem = menu.find('[data-test="connect-via-terminal"]');
+
+    expect(webItem.text()).toContain("Connect via web");
+    expect(webItem.find(".v-icon").classes()).toContain("mdi-application-outline");
+
+    expect(terminalItem.text()).toContain("Connect via terminal");
+    expect(terminalItem.find(".v-icon").classes()).toContain("mdi-console");
   });
 });

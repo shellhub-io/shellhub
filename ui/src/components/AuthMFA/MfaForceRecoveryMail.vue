@@ -109,6 +109,4 @@ const updateUserData = async () => {
     }
   }
 };
-
-defineExpose({ showDialog, recoveryEmailError });
 </script>

@@ -1,86 +1,46 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, VueWrapper, flushPromises } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import { createPinia, setActivePinia } from "pinia";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { flushPromises, VueWrapper } from "@vue/test-utils";
 import TerminalThemePicker from "@/components/Terminal/TerminalThemePicker.vue";
-import useTerminalThemeStore from "@/store/modules/terminal_theme";
-import { ITerminalTheme } from "@/interfaces/ITerminal";
+import { mountComponent } from "@tests/utils/mount";
+import { mockTerminalThemes } from "@tests/mocks/terminalTheme";
 
-const mockThemes: ITerminalTheme[] = [
-  {
-    name: "ShellHub Dark",
-    description: "Dark theme",
-    colors: {
-      background: "#0f1526",
-      foreground: "#ffffff",
-      cursor: "#ffffff",
-      selection: "#264f78",
-    },
-  },
-  {
-    name: "ShellHub Henry",
-    description: "Light theme",
-    colors: {
-      background: "#ffffff",
-      foreground: "#000000",
-      cursor: "#000000",
-      selection: "#add6ff",
-    },
-  },
-  {
-    name: "Dracula",
-    description: "Dark theme",
-    colors: {
-      background: "#282a36",
-      foreground: "#f8f8f2",
-      cursor: "#f8f8f0",
-      selection: "#44475a",
-    },
-  },
-];
-
-describe("TerminalThemePicker.vue", () => {
+describe("TerminalThemePicker", () => {
   let wrapper: VueWrapper<InstanceType<typeof TerminalThemePicker>>;
-  const vuetify = createVuetify();
-  setActivePinia(createPinia());
-  const terminalThemeStore = useTerminalThemeStore();
 
-  terminalThemeStore.loadThemes = vi.fn().mockResolvedValue(undefined);
-  terminalThemeStore.setTheme = vi.fn();
-  terminalThemeStore.$patch({
-    terminalThemes: mockThemes,
-    currentThemeName: "ShellHub Dark",
-  });
-
-  beforeEach(() => {
-    wrapper = mount(TerminalThemePicker, {
-      global: {
-        plugins: [vuetify],
-      },
-      props: {
-        modelValue: "ShellHub Dark",
+  const mountWrapper = ({ modelValue = "ShellHub Dark", themes = mockTerminalThemes } = {}) => {
+    wrapper = mountComponent(TerminalThemePicker, {
+      props: { modelValue },
+      piniaOptions: {
+        initialState: {
+          terminalTheme: {
+            terminalThemes: themes,
+            currentThemeName: modelValue,
+          },
+        },
       },
     });
-  });
+  };
 
-  it("renders the component", () => {
-    expect(wrapper.html()).toMatchSnapshot();
-  });
+  beforeEach(() => mountWrapper());
 
-  it("displays list of available themes and its descriptions", () => {
+  afterEach(() => wrapper?.unmount());
+
+  it("displays list of available themes", () => {
     const themeItems = wrapper.findAll('[data-test="theme-item"]');
-    expect(themeItems).toHaveLength(mockThemes.length);
+    expect(themeItems).toHaveLength(mockTerminalThemes.length);
+  });
 
+  it("displays theme names and descriptions", () => {
     expect(wrapper.text()).toContain("ShellHub Dark");
-    expect(wrapper.text()).toContain("ShellHub Henry");
+    expect(wrapper.text()).toContain("ShellHub Light");
     expect(wrapper.text()).toContain("Dracula");
     expect(wrapper.text()).toContain("Dark theme");
     expect(wrapper.text()).toContain("Light theme");
   });
 
-  it("shows preview for each theme with correct colors", () => {
+  it("shows preview for each theme with correct background and foreground colors", () => {
     const themePreviews = wrapper.findAll(".theme-preview");
-    expect(themePreviews).toHaveLength(mockThemes.length);
+    expect(themePreviews).toHaveLength(mockTerminalThemes.length);
 
     const firstPreview = themePreviews[0];
     const style = firstPreview.attributes("style");
@@ -96,7 +56,7 @@ describe("TerminalThemePicker.vue", () => {
     expect(activeTheme?.text()).toContain("ShellHub Dark");
   });
 
-  it("shows check icon for selected theme", () => {
+  it("shows check icon only for selected theme", () => {
     const checkIcons = wrapper.findAll(".mdi-check");
     expect(checkIcons).toHaveLength(1);
 
@@ -105,40 +65,57 @@ describe("TerminalThemePicker.vue", () => {
     expect(checkIcon.exists()).toBe(true);
   });
 
-  it("updates theme when theme item is clicked", async () => {
+  it("updates modelValue and emits update:selectedTheme when theme is clicked", async () => {
     const themeItems = wrapper.findAll('[data-test="theme-item"]');
     const draculaTheme = themeItems.find((item) => item.text().includes("Dracula"));
 
     await draculaTheme?.trigger("click");
     await flushPromises();
 
-    const emitted = wrapper.emitted("update:selectedTheme");
-    expect(emitted).toHaveLength(1);
-    expect(emitted?.[0][0]).toEqual(mockThemes[2]); // Dracula theme
+    expect(wrapper.emitted("update:modelValue")).toBeTruthy();
+    expect(wrapper.emitted("update:modelValue")?.[0]).toEqual(["Dracula"]);
+
+    expect(wrapper.emitted("update:selectedTheme")).toBeTruthy();
+    expect(wrapper.emitted("update:selectedTheme")?.[0]).toEqual([mockTerminalThemes[2]]);
   });
 
-  it("generates correct theme preview styles for different color combinations", () => {
-    const themeItems = wrapper.findAll('[data-test="theme-item"]');
+  it.each([
+    { index: 0, bg: "rgb(15, 21, 38)", fg: "rgb(255, 255, 255)", border: "rgb(38, 79, 120)" },
+    { index: 1, bg: "rgb(255, 255, 255)", fg: "rgb(0, 0, 0)", border: "rgb(173, 214, 255)" },
+    { index: 2, bg: "rgb(40, 42, 54)", fg: "rgb(248, 248, 242)", border: "rgb(68, 71, 90)" },
+  ])("generates correct preview style for theme at index $index", ({ index, bg, fg, border }) => {
+    const themePreviews = wrapper.findAll(".theme-preview");
+    const preview = themePreviews[index];
+    const style = preview.attributes("style");
 
-    // Test first theme (ShellHub Dark)
-    const darkPreview = themeItems[0].find(".theme-preview");
-    const darkStyle = darkPreview.attributes("style");
-    expect(darkStyle).toContain("background-color: rgb(15, 21, 38)");
-    expect(darkStyle).toContain("color: rgb(255, 255, 255)");
-    expect(darkStyle).toContain("border: 1px solid rgb(38, 79, 120)");
-
-    // Test second theme (ShellHub Henry)
-    const lightPreview = themeItems[1].find(".theme-preview");
-    const lightStyle = lightPreview.attributes("style");
-    expect(lightStyle).toContain("background-color: rgb(255, 255, 255)");
-    expect(lightStyle).toContain("color: rgb(0, 0, 0)");
-    expect(lightStyle).toContain("border: 1px solid rgb(173, 214, 255)");
+    expect(style).toContain(`background-color: ${bg}`);
+    expect(style).toContain(`color: ${fg}`);
+    expect(style).toContain(`border: 1px solid ${border}`);
   });
 
-  it("shows 'No themes available' when themes list is empty", async () => {
-    terminalThemeStore.$patch({ terminalThemes: [] });
-    await flushPromises();
+  it("shows 'No themes available' when themes list is empty", () => {
+    mountWrapper({ themes: [] });
+
     expect(wrapper.text()).toContain("No themes available");
     expect(wrapper.findAll('[data-test="theme-item"]')).toHaveLength(0);
+  });
+
+  it("displays preview code samples for each theme", () => {
+    const themePreviews = wrapper.findAll(".theme-preview");
+
+    themePreviews.forEach((preview) => {
+      expect(preview.text()).toContain("$ ls");
+      expect(preview.text()).toContain("file.txt");
+      expect(preview.text()).toContain("home");
+    });
+  });
+
+  it("applies primary color to selected theme title", () => {
+    const themeItems = wrapper.findAll('[data-test="theme-item"]');
+    const selectedItem = themeItems[0];
+    const title = selectedItem.find(".v-list-item-title");
+
+    expect(title.classes()).toContain("text-primary");
+    expect(title.classes()).toContain("font-weight-medium");
   });
 });
