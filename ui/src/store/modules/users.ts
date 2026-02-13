@@ -54,6 +54,10 @@ const useUsersStore = defineStore("users", () => {
     systemInfo.value = response.data as IUserSystemInfo;
   };
 
+  const checkHealth = async () => {
+    await usersApi.checkHealth();
+  };
+
   const getSamlUrl = async () => {
     const response = await usersApi.getSamlLink();
     return response.data.url;
@@ -74,6 +78,7 @@ const useUsersStore = defineStore("users", () => {
     updatePassword,
     getPremiumContent,
     fetchSystemInfo,
+    checkHealth,
     getSamlUrl,
   };
 });

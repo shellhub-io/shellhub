@@ -1,0 +1,16 @@
+get:
+  operationId: healthcheck
+  summary: Health check endpoint
+  description: |
+    Lightweight endpoint to verify API availability.
+    Returns HTTP 200 with empty body if the service is healthy.
+    Used by load balancers, monitoring systems, and the UI for service availability detection.
+  tags:
+    - community
+    - cloud
+    - enterprise
+    - system
+  responses:
+    '200':
+      description: Service is healthy and responding
+      content: {}

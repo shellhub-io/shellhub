@@ -41,6 +41,7 @@ All URIs are relative to *http://localhost*
 |[**getTagsDeprecated**](#gettagsdeprecated) | **GET** /api/namespaces/{tenant}/tags | Retrieve all tags associated with a namespace|
 |[**getToken**](#gettoken) | **GET** /api/token/{tenant} | Get token|
 |[**getUserInfo**](#getuserinfo) | **GET** /api/auth/user | Get user info|
+|[**healthcheck**](#healthcheck) | **GET** /healthcheck | Health check endpoint|
 |[**leaveNamespace**](#leavenamespace) | **DELETE** /api/namespaces/{tenant}/members | Leave Namespace|
 |[**listAnnouncements**](#listannouncements) | **GET** /api/announcements | List announcements|
 |[**login**](#login) | **POST** /api/login | Login|
@@ -2158,6 +2159,50 @@ This endpoint does not have any parameters.
 |**400** | Bad request |  -  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **healthcheck**
+> healthcheck()
+
+Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+
+### Example
+
+```typescript
+import {
+    CommunityApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CommunityApi(configuration);
+
+const { status, data } = await apiInstance.healthcheck();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Service is healthy and responding |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

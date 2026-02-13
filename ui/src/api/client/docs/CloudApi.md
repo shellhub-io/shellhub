@@ -10,12 +10,6 @@ All URIs are relative to *http://localhost*
 |[**cancelMembershipInvitation**](#cancelmembershipinvitation) | **DELETE** /api/namespaces/{tenant}/invitations/{user-id} | Cancel a pending membership invitation|
 |[**choiceDevices**](#choicedevices) | **POST** /api/billing/device-choice | Choice devices|
 |[**clsoeSession**](#clsoesession) | **POST** /api/sessions/{uid}/close | Close session|
-|[**connectorCreate**](#connectorcreate) | **POST** /api/connector | Connector\&#39;s create|
-|[**connectorDelete**](#connectordelete) | **DELETE** /api/connector/{uid} | Connector\&#39;s delete|
-|[**connectorGet**](#connectorget) | **GET** /api/connector/{uid} | Connector\&#39;s get|
-|[**connectorInfo**](#connectorinfo) | **GET** /api/connector/{uid}/info | Connector\&#39;s get Docker info|
-|[**connectorList**](#connectorlist) | **GET** /api/connector | Connector\&#39;s list|
-|[**connectorUpdate**](#connectorupdate) | **PATCH** /api/connector/{uid} | Connector\&#39;s setting update|
 |[**createAnnouncement**](#createannouncement) | **POST** /admin/api/announcements | Create an announcement|
 |[**createCustomer**](#createcustomer) | **POST** /api/billing/customer | Create customer|
 |[**createFirewallRule**](#createfirewallrule) | **POST** /api/firewall/rules | Create firewall rule|
@@ -47,6 +41,7 @@ All URIs are relative to *http://localhost*
 |[**getSessionRecord**](#getsessionrecord) | **GET** /api/sessions/{uid}/records/{seat} | Get session record|
 |[**getSubscription**](#getsubscription) | **GET** /api/billing/subscription | Get subscription|
 |[**getValidateAccount**](#getvalidateaccount) | **GET** /api/user/validation_account | Validate activation link|
+|[**healthcheck**](#healthcheck) | **GET** /healthcheck | Health check endpoint|
 |[**listAnnouncementsAdmin**](#listannouncementsadmin) | **GET** /admin/api/announcements | List announcements|
 |[**listTunnels**](#listtunnels) | **GET** /api/devices/{uid}/tunnels | List tunnels|
 |[**listWebEndpoints**](#listwebendpoints) | **GET** /api/web-endpoints | List web-endpoints|
@@ -402,349 +397,6 @@ void (empty response body)
 |-------------|-------------|------------------|
 |**200** | Success to close session. |  -  |
 |**400** | Bad request |  -  |
-|**500** | Internal error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **connectorCreate**
-> connectorCreate(connectorData)
-
-Create a new connector.
-
-### Example
-
-```typescript
-import {
-    CloudApi,
-    Configuration,
-    ConnectorData
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new CloudApi(configuration);
-
-let connectorData: ConnectorData; //
-
-const { status, data } = await apiInstance.connectorCreate(
-    connectorData
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **connectorData** | **ConnectorData**|  | |
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-[api-key](../README.md#api-key), [jwt](../README.md#jwt)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Create a Connector and connected successfully |  -  |
-|**201** | Create a Connector successfully, but failed to connect |  -  |
-|**400** | Bad request |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden |  -  |
-|**500** | Internal error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **connectorDelete**
-> connectorDelete()
-
-Deletes a connector.
-
-### Example
-
-```typescript
-import {
-    CloudApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new CloudApi(configuration);
-
-let uid: string; //Connector UID (default to undefined)
-
-const { status, data } = await apiInstance.connectorDelete(
-    uid
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **uid** | [**string**] | Connector UID | defaults to undefined|
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-[api-key](../README.md#api-key), [jwt](../README.md#jwt)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Delete the Connector successfully |  -  |
-|**400** | Bad request |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden |  -  |
-|**500** | Internal error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **connectorGet**
-> Connector connectorGet()
-
-Gets a connector.
-
-### Example
-
-```typescript
-import {
-    CloudApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new CloudApi(configuration);
-
-let uid: string; //Connector UID (default to undefined)
-
-const { status, data } = await apiInstance.connectorGet(
-    uid
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **uid** | [**string**] | Connector UID | defaults to undefined|
-
-
-### Return type
-
-**Connector**
-
-### Authorization
-
-[api-key](../README.md#api-key), [jwt](../README.md#jwt)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Get the Connector successfully |  -  |
-|**400** | Bad request |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden |  -  |
-|**500** | Internal error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **connectorInfo**
-> ConnectorInfo200Response connectorInfo()
-
-Gets the connector\'s connection docker info.
-
-### Example
-
-```typescript
-import {
-    CloudApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new CloudApi(configuration);
-
-let uid: string; //Connector UID (default to undefined)
-
-const { status, data } = await apiInstance.connectorInfo(
-    uid
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **uid** | [**string**] | Connector UID | defaults to undefined|
-
-
-### Return type
-
-**ConnectorInfo200Response**
-
-### Authorization
-
-[api-key](../README.md#api-key), [jwt](../README.md#jwt)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Get Connector\&#39;s connection Docker info successfully |  -  |
-|**400** | Bad request |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden |  -  |
-|**500** | Internal error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **connectorList**
-> Array<Connector> connectorList()
-
-List connectors.
-
-### Example
-
-```typescript
-import {
-    CloudApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new CloudApi(configuration);
-
-let enable: boolean; //Enable status. (optional) (default to undefined)
-let page: number; //Page number (optional) (default to 1)
-let perPage: number; //Items per page (optional) (default to 10)
-
-const { status, data } = await apiInstance.connectorList(
-    enable,
-    page,
-    perPage
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **enable** | [**boolean**] | Enable status. | (optional) defaults to undefined|
-| **page** | [**number**] | Page number | (optional) defaults to 1|
-| **perPage** | [**number**] | Items per page | (optional) defaults to 10|
-
-
-### Return type
-
-**Array<Connector>**
-
-### Authorization
-
-[api-key](../README.md#api-key), [jwt](../README.md#jwt)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | List Connectors for a namespace successfully |  * X-Total-Count - Announcements\&#39; total number. <br>  |
-|**400** | Bad request |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden |  -  |
-|**500** | Internal error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **connectorUpdate**
-> connectorUpdate(connectorData)
-
-Updates a connector settings.
-
-### Example
-
-```typescript
-import {
-    CloudApi,
-    Configuration,
-    ConnectorData
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new CloudApi(configuration);
-
-let uid: string; //Connector UID (default to undefined)
-let connectorData: ConnectorData; //
-
-const { status, data } = await apiInstance.connectorUpdate(
-    uid,
-    connectorData
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **connectorData** | **ConnectorData**|  | |
-| **uid** | [**string**] | Connector UID | defaults to undefined|
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-[api-key](../README.md#api-key), [jwt](../README.md#jwt)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Update the Connector settings successfully |  -  |
-|**201** | Create a Connector successfully, but failed to connect |  -  |
-|**400** | Bad request |  -  |
-|**401** | Unauthorized |  -  |
-|**403** | Forbidden |  -  |
 |**500** | Internal error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -2434,6 +2086,50 @@ No authorization required
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
 |**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **healthcheck**
+> healthcheck()
+
+Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+
+### Example
+
+```typescript
+import {
+    CloudApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CloudApi(configuration);
+
+const { status, data } = await apiInstance.healthcheck();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Service is healthy and responding |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

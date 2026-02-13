@@ -90,13 +90,27 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
+      await useUsersStore().fetchSystemInfo();
       if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
       next();
     },
     component: () => import("../views/Login.vue"),
+  },
+  {
+    path: "/system-unavailable",
+    name: "System Unavailable",
+    meta: {
+      layout: "LoginLayout",
+      requiresAuth: false,
+    },
+    beforeEnter: (to, from, next) => {
+      // Prevent users from manually navigating to the System Unavailable page
+      if (!to.query.redirect) next({ name: "Home" });
+    },
+    component: () => import("../views/UnavailabilityMessage.vue"),
   },
   {
     path: "/mfa-login",
@@ -185,7 +199,8 @@ export const routes: Array<RouteRecordRaw> = [
   {
     path: "/sign-up",
     name: "SignUp",
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
+      await useUsersStore().fetchSystemInfo();
       if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
@@ -204,7 +219,8 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
+      await useUsersStore().fetchSystemInfo();
       const forceSetup = to.query.force === "true";
       if (!forceSetup && (envVariables.isCloud || useUsersStore().systemInfo.setup)) {
         next({ name: "Login" });
@@ -544,7 +560,17 @@ export const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    await useUsersStore().fetchSystemInfo();
+    if (to.name !== "System Unavailable") {
+      try {
+        await useUsersStore().checkHealth();
+      } catch {
+        return next({
+          name: "System Unavailable",
+          query: { redirect: to.fullPath },
+        });
+      }
+    }
+
     const isLoggedIn = computed(() => useAuthStore().isLoggedIn);
     const requiresAuth = to.meta.requiresAuth ?? true;
 
@@ -555,6 +581,7 @@ router.beforeEach(
 
     const layout = to.meta.layout || "AppLayout";
     useLayoutStore().layout = layout as Layout;
+
     return next();
   },
 );

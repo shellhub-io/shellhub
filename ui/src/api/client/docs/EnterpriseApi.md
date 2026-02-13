@@ -37,6 +37,7 @@ All URIs are relative to *http://localhost*
 |[**getUser**](#getuser) | **GET** /admin/api/users/{id} | Get user|
 |[**getUserTokenAdmin**](#getusertokenadmin) | **GET** /admin/api/auth/token/{id} | Get user token|
 |[**getUsers**](#getusers) | **GET** /admin/api/users | Get users|
+|[**healthcheck**](#healthcheck) | **GET** /healthcheck | Health check endpoint|
 |[**listAnnouncementsAdmin**](#listannouncementsadmin) | **GET** /admin/api/announcements | List announcements|
 |[**loginAdmin**](#loginadmin) | **POST** /admin/api/login | Login on Admin|
 |[**sendLicense**](#sendlicense) | **POST** /admin/api/license | Send license data|
@@ -1873,6 +1874,50 @@ const { status, data } = await apiInstance.getUsers(
 |**200** | Success to get a list of users. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **healthcheck**
+> healthcheck()
+
+Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+
+### Example
+
+```typescript
+import {
+    EnterpriseApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new EnterpriseApi(configuration);
+
+const { status, data } = await apiInstance.healthcheck();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Service is healthy and responding |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

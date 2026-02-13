@@ -97,6 +97,8 @@ tags:
 paths:
   /info:
     $ref: paths/api@info.yaml
+  /healthcheck:
+    $ref: paths/api@healthcheck.yaml
   /api/login:
     $ref: paths/api@login.yaml
   /api/auth/user:
