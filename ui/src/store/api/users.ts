@@ -61,3 +61,5 @@ export const setup = async (data: IUserSetup) => systemApi.setup(data.sign, {
 });
 
 export const getInfo = async () => systemApi.getInfo();
+
+export const checkHealth = async () => systemApi.healthcheck();
