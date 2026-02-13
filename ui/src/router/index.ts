@@ -90,7 +90,8 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
+      await useUsersStore().fetchSystemInfo();
       if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
@@ -185,7 +186,8 @@ export const routes: Array<RouteRecordRaw> = [
   {
     path: "/sign-up",
     name: "SignUp",
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
+      await useUsersStore().fetchSystemInfo();
       if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
         next({ name: "Setup" });
       }
@@ -204,7 +206,8 @@ export const routes: Array<RouteRecordRaw> = [
       layout: "LoginLayout",
       requiresAuth: false,
     },
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
+      await useUsersStore().fetchSystemInfo();
       const forceSetup = to.query.force === "true";
       if (!forceSetup && (envVariables.isCloud || useUsersStore().systemInfo.setup)) {
         next({ name: "Login" });
@@ -544,7 +547,6 @@ export const router = createRouter({
 
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    await useUsersStore().fetchSystemInfo();
     const isLoggedIn = computed(() => useAuthStore().isLoggedIn);
     const requiresAuth = to.meta.requiresAuth ?? true;
 
