@@ -1,8 +1,16 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import MockAdapter from "axios-mock-adapter";
 import { createPinia, setActivePinia } from "pinia";
 import { mfaApi, usersApi, namespacesApi } from "@/api/http";
 import useAuthStore from "@/store/modules/auth";
+
+vi.mock("@/store/api/users", async () => {
+  const originalModule = await vi.importActual("@/store/api/users");
+  return {
+    ...originalModule,
+    checkHealth: vi.fn(() => Promise.resolve({ status: 200 })),
+  };
+});
 
 describe("Auth Store", () => {
   let mockMfaApi: MockAdapter;
