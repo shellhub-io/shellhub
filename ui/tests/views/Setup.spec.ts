@@ -6,6 +6,7 @@ import Setup from "@/views/Setup.vue";
 import useUsersStore from "@/store/modules/users";
 import { createAxiosError } from "@tests/utils/axiosError";
 import { envVariables } from "@/envVariables";
+import { routes } from "@/router";
 
 vi.mock("@/store/api/users");
 
@@ -17,12 +18,17 @@ vi.mock("@/envVariables", () => ({
   },
 }));
 
+const mockRoutes = [
+  ...routes,
+  { name: "Setup", path: "/setup", component: Setup },
+];
+
 describe("Setup View", () => {
   let wrapper: VueWrapper<InstanceType<typeof Setup>>;
   let usersStore: ReturnType<typeof useUsersStore>;
 
   const mountWrapper = async (mockError?: Error) => {
-    const router = createCleanRouter();
+    const router = createCleanRouter(mockRoutes);
     await router.push({ name: "Setup" });
     await router.isReady();
 
