@@ -26,3 +26,10 @@ agent/shellhub.key
 bin/agent
 
 agent/latest
+
+# Claude Code context files (symlinked from private repo)
+**/CLAUDE.md
+.claude/settings.json
+.claude/rules
+.claude/hooks
+.claude/skills
