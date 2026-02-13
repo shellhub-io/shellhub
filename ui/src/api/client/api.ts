@@ -302,179 +302,6 @@ export interface ConfigureSAMLAuthenticationRequestSp {
      */
     'sign_requests'?: boolean;
 }
-export interface Connector {
-    /**
-     * Connector\'s UID
-     */
-    'uid'?: string;
-    /**
-     * Namespace\'s tenant ID
-     */
-    'tenant_id'?: string;
-    /**
-     * Connector\'s connection is enabled.
-     */
-    'enable'?: boolean;
-    /**
-     * Address to the Container Engine.
-     */
-    'address'?: string;
-    /**
-     * Port to the Container Engine.
-     */
-    'port'?: number;
-    /**
-     * onnector\'s connection is using HTTPS for authentication.
-     */
-    'secure'?: boolean;
-    'status'?: ConnectorStatus;
-    'tls'?: ConnectorTLS;
-}
-export interface ConnectorData {
-    /**
-     * Connector\'s connection is enabled.
-     */
-    'enable'?: boolean;
-    /**
-     * Address to the Container Engine.
-     */
-    'address'?: string;
-    /**
-     * Port to the Container Engine.
-     */
-    'port'?: number;
-    /**
-     * onnector\'s connection is using HTTPS for authentication.
-     */
-    'secure'?: boolean;
-    'tls'?: ConnectorTLS;
-}
-export interface ConnectorInfo200Response {
-    'ID'?: string;
-    'Containers'?: number;
-    'ContainersRunning'?: number;
-    'ContainersPaused'?: number;
-    'ContainersStopped'?: number;
-    'Images'?: number;
-    'Driver'?: string;
-    'DriverStatus'?: Array<Array<string>>;
-    'Plugins'?: ConnectorInfo200ResponsePlugins;
-    'MemoryLimit'?: boolean;
-    'SwapLimit'?: boolean;
-    'CpuCfsPeriod'?: boolean;
-    'CpuCfsQuota'?: boolean;
-    'CPUShares'?: boolean;
-    'CPUSet'?: boolean;
-    'PidsLimit'?: boolean;
-    'IPv4Forwarding'?: boolean;
-    'BridgeNfIptables'?: boolean;
-    'BridgeNfIp6tables'?: boolean;
-    'Debug'?: boolean;
-    'NFd'?: number;
-    'OomKillDisable'?: boolean;
-    'NGoroutines'?: number;
-    'SystemTime'?: string;
-    'LoggingDriver'?: string;
-    'CgroupDriver'?: string;
-    'CgroupVersion'?: string;
-    'NEventsListener'?: number;
-    'KernelVersion'?: string;
-    'OperatingSystem'?: string;
-    'OSVersion'?: string;
-    'OSType'?: string;
-    'Architecture'?: string;
-    'IndexServerAddress'?: string;
-    'RegistryConfig'?: ConnectorInfo200ResponseRegistryConfig;
-    'NCPU'?: number;
-    'MemTotal'?: number;
-    'GenericResources'?: Array<string | null>;
-    'DockerRootDir'?: string;
-    'HttpProxy'?: string;
-    'HttpsProxy'?: string;
-    'NoProxy'?: string;
-    'Name'?: string;
-    'Labels'?: Array<string>;
-    'ExperimentalBuild'?: boolean;
-    'ServerVersion'?: string;
-    'Runtimes'?: ConnectorInfo200ResponseRuntimes;
-    'DefaultRuntime'?: string;
-    'Swarm'?: ConnectorInfo200ResponseSwarm;
-    'LiveRestoreEnabled'?: boolean;
-    'Isolation'?: string;
-    'InitBinary'?: string;
-    'ContainerdCommit'?: ConnectorInfo200ResponseContainerdCommit;
-    'RuncCommit'?: ConnectorInfo200ResponseContainerdCommit;
-    'InitCommit'?: ConnectorInfo200ResponseContainerdCommit;
-    'SecurityOptions'?: Array<string>;
-    'CDISpecDirs'?: Array<string>;
-    'Warnings'?: Array<string>;
-}
-export interface ConnectorInfo200ResponseContainerdCommit {
-    'ID'?: string;
-    'Expected'?: string;
-}
-export interface ConnectorInfo200ResponsePlugins {
-    'Volume'?: Array<string>;
-    'Network'?: Array<string>;
-    'Authorization'?: Array<string | null>;
-    'Log'?: Array<string>;
-}
-export interface ConnectorInfo200ResponseRegistryConfig {
-    'AllowNondistributableArtifactsCIDRs'?: Array<string | null>;
-    'AllowNondistributableArtifactsHostnames'?: Array<string | null>;
-    'InsecureRegistryCIDRs'?: Array<string>;
-    'IndexConfigs'?: ConnectorInfo200ResponseRegistryConfigIndexConfigs;
-    'Mirrors'?: Array<string>;
-}
-export interface ConnectorInfo200ResponseRegistryConfigIndexConfigs {
-    'docker.io'?: ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo;
-}
-export interface ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo {
-    'Name'?: string;
-    'Mirrors'?: Array<string>;
-    'Secure'?: boolean;
-    'Official'?: boolean;
-}
-export interface ConnectorInfo200ResponseRuntimes {
-    'io.containerd.runc.v2'?: ConnectorInfo200ResponseRuntimesIoContainerdRuncV2;
-    'runc'?: ConnectorInfo200ResponseRuntimesIoContainerdRuncV2;
-}
-export interface ConnectorInfo200ResponseRuntimesIoContainerdRuncV2 {
-    'path'?: string;
-    'status'?: { [key: string]: string; };
-}
-export interface ConnectorInfo200ResponseSwarm {
-    'NodeID'?: string;
-    'NodeAddr'?: string;
-    'LocalNodeState'?: string;
-    'ControlAvailable'?: boolean;
-    'Error'?: string;
-    'RemoteManagers'?: Array<string | null>;
-}
-export interface ConnectorStatus {
-    /**
-     * Connector\'s connetion state type.
-     */
-    'State'?: boolean;
-    /**
-     * Connector\'s connetion status message.
-     */
-    'Message'?: string;
-}
-export interface ConnectorTLS {
-    /**
-     * Certificate Authority used to generate the Cert for the server and the client.
-     */
-    'ca': string;
-    /**
-     * Certificate generated from the CA certificate and used by the client to authorize the connection to the Docker Engine.
-     */
-    'cert': string;
-    /**
-     * Private key for the certificate on the Cert field.
-     */
-    'key': string;
-}
 export interface CreateAnnouncementRequest {
     /**
      * Announcement title.
@@ -7538,271 +7365,6 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
-         * Create a new connector.
-         * @summary Connector\'s create
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorCreate: async (connectorData: ConnectorData, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'connectorData' is not null or undefined
-            assertParamExists('connectorCreate', 'connectorData', connectorData)
-            const localVarPath = `/api/connector`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(connectorData, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Deletes a connector.
-         * @summary Connector\'s delete
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorDelete: async (uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorDelete', 'uid', uid)
-            const localVarPath = `/api/connector/{uid}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Gets a connector.
-         * @summary Connector\'s get
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorGet: async (uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorGet', 'uid', uid)
-            const localVarPath = `/api/connector/{uid}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Gets the connector\'s connection docker info.
-         * @summary Connector\'s get Docker info
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorInfo: async (uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorInfo', 'uid', uid)
-            const localVarPath = `/api/connector/{uid}/info`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * List connectors.
-         * @summary Connector\'s list
-         * @param {boolean} [enable] Enable status.
-         * @param {number} [page] Page number
-         * @param {number} [perPage] Items per page
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorList: async (enable?: boolean, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/connector`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-            if (enable !== undefined) {
-                localVarQueryParameter['enable'] = enable;
-            }
-
-            if (page !== undefined) {
-                localVarQueryParameter['page'] = page;
-            }
-
-            if (perPage !== undefined) {
-                localVarQueryParameter['per_page'] = perPage;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Updates a connector settings.
-         * @summary Connector\'s setting update
-         * @param {string} uid Connector UID
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorUpdate: async (uid: string, connectorData: ConnectorData, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorUpdate', 'uid', uid)
-            // verify required parameter 'connectorData' is not null or undefined
-            assertParamExists('connectorUpdate', 'connectorData', connectorData)
-            const localVarPath = `/api/connector/{uid}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(connectorData, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Create an announcement.
          * @summary Create an announcement
          * @param {CreateAnnouncementRequest} [createAnnouncementRequest] 
@@ -9068,6 +8630,36 @@ export const CloudApiAxiosParamCreator = function (configuration?: Configuration
             };
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/healthcheck`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * List the announcements posted by ShellHub Cloud.
          * @summary List announcements
          * @param {number} [page] Page number
@@ -9839,87 +9431,6 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Create a new connector.
-         * @summary Connector\'s create
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorCreate(connectorData: ConnectorData, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorCreate(connectorData, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.connectorCreate']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Deletes a connector.
-         * @summary Connector\'s delete
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorDelete(uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorDelete(uid, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.connectorDelete']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Gets a connector.
-         * @summary Connector\'s get
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorGet(uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Connector>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorGet(uid, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.connectorGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Gets the connector\'s connection docker info.
-         * @summary Connector\'s get Docker info
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorInfo(uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ConnectorInfo200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorInfo(uid, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.connectorInfo']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * List connectors.
-         * @summary Connector\'s list
-         * @param {boolean} [enable] Enable status.
-         * @param {number} [page] Page number
-         * @param {number} [perPage] Items per page
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorList(enable?: boolean, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Connector>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorList(enable, page, perPage, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.connectorList']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Updates a connector settings.
-         * @summary Connector\'s setting update
-         * @param {string} uid Connector UID
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorUpdate(uid: string, connectorData: ConnectorData, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorUpdate(uid, connectorData, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['CloudApi.connectorUpdate']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Create an announcement.
          * @summary Create an announcement
          * @param {CreateAnnouncementRequest} [createAnnouncementRequest] 
@@ -10328,6 +9839,18 @@ export const CloudApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async healthcheck(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.healthcheck(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CloudApi.healthcheck']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * List the announcements posted by ShellHub Cloud.
          * @summary List announcements
          * @param {number} [page] Page number
@@ -10622,69 +10145,6 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
          */
         clsoeSession(uid: string, clsoeSessionRequest?: ClsoeSessionRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.clsoeSession(uid, clsoeSessionRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Create a new connector.
-         * @summary Connector\'s create
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorCreate(connectorData: ConnectorData, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.connectorCreate(connectorData, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Deletes a connector.
-         * @summary Connector\'s delete
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorDelete(uid: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.connectorDelete(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Gets a connector.
-         * @summary Connector\'s get
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorGet(uid: string, options?: RawAxiosRequestConfig): AxiosPromise<Connector> {
-            return localVarFp.connectorGet(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Gets the connector\'s connection docker info.
-         * @summary Connector\'s get Docker info
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorInfo(uid: string, options?: RawAxiosRequestConfig): AxiosPromise<ConnectorInfo200Response> {
-            return localVarFp.connectorInfo(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * List connectors.
-         * @summary Connector\'s list
-         * @param {boolean} [enable] Enable status.
-         * @param {number} [page] Page number
-         * @param {number} [perPage] Items per page
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorList(enable?: boolean, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Connector>> {
-            return localVarFp.connectorList(enable, page, perPage, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Updates a connector settings.
-         * @summary Connector\'s setting update
-         * @param {string} uid Connector UID
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorUpdate(uid: string, connectorData: ConnectorData, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.connectorUpdate(uid, connectorData, options).then((request) => request(axios, basePath));
         },
         /**
          * Create an announcement.
@@ -11002,6 +10462,15 @@ export const CloudApiFactory = function (configuration?: Configuration, basePath
             return localVarFp.getValidateAccount(email, token, options).then((request) => request(axios, basePath));
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.healthcheck(options).then((request) => request(axios, basePath));
+        },
+        /**
          * List the announcements posted by ShellHub Cloud.
          * @summary List announcements
          * @param {number} [page] Page number
@@ -11251,75 +10720,6 @@ export class CloudApi extends BaseAPI {
      */
     public clsoeSession(uid: string, clsoeSessionRequest?: ClsoeSessionRequest, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).clsoeSession(uid, clsoeSessionRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Create a new connector.
-     * @summary Connector\'s create
-     * @param {ConnectorData} connectorData 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorCreate(connectorData: ConnectorData, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).connectorCreate(connectorData, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Deletes a connector.
-     * @summary Connector\'s delete
-     * @param {string} uid Connector UID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorDelete(uid: string, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).connectorDelete(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Gets a connector.
-     * @summary Connector\'s get
-     * @param {string} uid Connector UID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorGet(uid: string, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).connectorGet(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Gets the connector\'s connection docker info.
-     * @summary Connector\'s get Docker info
-     * @param {string} uid Connector UID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorInfo(uid: string, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).connectorInfo(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * List connectors.
-     * @summary Connector\'s list
-     * @param {boolean} [enable] Enable status.
-     * @param {number} [page] Page number
-     * @param {number} [perPage] Items per page
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorList(enable?: boolean, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).connectorList(enable, page, perPage, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Updates a connector settings.
-     * @summary Connector\'s setting update
-     * @param {string} uid Connector UID
-     * @param {ConnectorData} connectorData 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorUpdate(uid: string, connectorData: ConnectorData, options?: RawAxiosRequestConfig) {
-        return CloudApiFp(this.configuration).connectorUpdate(uid, connectorData, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -11666,6 +11066,16 @@ export class CloudApi extends BaseAPI {
      */
     public getValidateAccount(email: string, token: string, options?: RawAxiosRequestConfig) {
         return CloudApiFp(this.configuration).getValidateAccount(email, token, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+     * @summary Health check endpoint
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public healthcheck(options?: RawAxiosRequestConfig) {
+        return CloudApiFp(this.configuration).healthcheck(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -13483,6 +12893,36 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             };
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/healthcheck`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -15158,6 +14598,18 @@ export const CommunityApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async healthcheck(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.healthcheck(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommunityApi.healthcheck']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -15937,6 +15389,15 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
             return localVarFp.getUserInfo(options).then((request) => request(axios, basePath));
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.healthcheck(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Allows the authenticated user to leave the specified namespace. Owners cannot leave a namespace; they must delete it instead. If the user attempts to leave their current authenticated namespace, the response will provide a new token that excludes this namespace. 
          * @summary Leave Namespace
          * @param {string} tenant Namespace\&#39;s tenant ID
@@ -16670,6 +16131,16 @@ export class CommunityApi extends BaseAPI {
      */
     public getUserInfo(options?: RawAxiosRequestConfig) {
         return CommunityApiFp(this.configuration).getUserInfo(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+     * @summary Health check endpoint
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public healthcheck(options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).healthcheck(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -20358,6 +19829,36 @@ export const EnterpriseApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/healthcheck`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * List the announcements posted by ShellHub Cloud.
          * @summary List announcements
          * @param {number} [page] Page number
@@ -21171,6 +20672,18 @@ export const EnterpriseApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async healthcheck(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.healthcheck(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['EnterpriseApi.healthcheck']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * List the announcements posted by ShellHub Cloud.
          * @summary List announcements
          * @param {number} [page] Page number
@@ -21637,6 +21150,15 @@ export const EnterpriseApiFactory = function (configuration?: Configuration, bas
          */
         getUsers(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<UserAdminResponse>> {
             return localVarFp.getUsers(filter, page, perPage, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.healthcheck(options).then((request) => request(axios, basePath));
         },
         /**
          * List the announcements posted by ShellHub Cloud.
@@ -22111,6 +21633,16 @@ export class EnterpriseApi extends BaseAPI {
      */
     public getUsers(filter?: string, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
         return EnterpriseApiFp(this.configuration).getUsers(filter, page, perPage, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+     * @summary Health check endpoint
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public healthcheck(options?: RawAxiosRequestConfig) {
+        return EnterpriseApiFp(this.configuration).healthcheck(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -24413,271 +23945,6 @@ export const NamespacesApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Create a new connector.
-         * @summary Connector\'s create
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorCreate: async (connectorData: ConnectorData, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'connectorData' is not null or undefined
-            assertParamExists('connectorCreate', 'connectorData', connectorData)
-            const localVarPath = `/api/connector`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(connectorData, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Deletes a connector.
-         * @summary Connector\'s delete
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorDelete: async (uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorDelete', 'uid', uid)
-            const localVarPath = `/api/connector/{uid}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Gets a connector.
-         * @summary Connector\'s get
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorGet: async (uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorGet', 'uid', uid)
-            const localVarPath = `/api/connector/{uid}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Gets the connector\'s connection docker info.
-         * @summary Connector\'s get Docker info
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorInfo: async (uid: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorInfo', 'uid', uid)
-            const localVarPath = `/api/connector/{uid}/info`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * List connectors.
-         * @summary Connector\'s list
-         * @param {boolean} [enable] Enable status.
-         * @param {number} [page] Page number
-         * @param {number} [perPage] Items per page
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorList: async (enable?: boolean, page?: number, perPage?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/connector`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-            if (enable !== undefined) {
-                localVarQueryParameter['enable'] = enable;
-            }
-
-            if (page !== undefined) {
-                localVarQueryParameter['page'] = page;
-            }
-
-            if (perPage !== undefined) {
-                localVarQueryParameter['per_page'] = perPage;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Updates a connector settings.
-         * @summary Connector\'s setting update
-         * @param {string} uid Connector UID
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorUpdate: async (uid: string, connectorData: ConnectorData, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'uid' is not null or undefined
-            assertParamExists('connectorUpdate', 'uid', uid)
-            // verify required parameter 'connectorData' is not null or undefined
-            assertParamExists('connectorUpdate', 'connectorData', connectorData)
-            const localVarPath = `/api/connector/{uid}`
-                .replace(`{${"uid"}}`, encodeURIComponent(String(uid)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication api-key required
-            await setApiKeyToObject(localVarHeaderParameter, "X-API-KEY", configuration)
-
-            // authentication jwt required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(connectorData, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Create a namespace.
          * @summary Create namespace
          * @param {CreateNamespaceRequest} [createNamespaceRequest] 
@@ -25804,87 +25071,6 @@ export const NamespacesApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Create a new connector.
-         * @summary Connector\'s create
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorCreate(connectorData: ConnectorData, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorCreate(connectorData, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.connectorCreate']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Deletes a connector.
-         * @summary Connector\'s delete
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorDelete(uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorDelete(uid, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.connectorDelete']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Gets a connector.
-         * @summary Connector\'s get
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorGet(uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Connector>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorGet(uid, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.connectorGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Gets the connector\'s connection docker info.
-         * @summary Connector\'s get Docker info
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorInfo(uid: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ConnectorInfo200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorInfo(uid, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.connectorInfo']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * List connectors.
-         * @summary Connector\'s list
-         * @param {boolean} [enable] Enable status.
-         * @param {number} [page] Page number
-         * @param {number} [perPage] Items per page
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorList(enable?: boolean, page?: number, perPage?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Connector>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorList(enable, page, perPage, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.connectorList']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Updates a connector settings.
-         * @summary Connector\'s setting update
-         * @param {string} uid Connector UID
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async connectorUpdate(uid: string, connectorData: ConnectorData, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.connectorUpdate(uid, connectorData, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['NamespacesApi.connectorUpdate']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Create a namespace.
          * @summary Create namespace
          * @param {CreateNamespaceRequest} [createNamespaceRequest] 
@@ -26294,69 +25480,6 @@ export const NamespacesApiFactory = function (configuration?: Configuration, bas
             return localVarFp.cancelMembershipInvitation(tenant, userId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Create a new connector.
-         * @summary Connector\'s create
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorCreate(connectorData: ConnectorData, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.connectorCreate(connectorData, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Deletes a connector.
-         * @summary Connector\'s delete
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorDelete(uid: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.connectorDelete(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Gets a connector.
-         * @summary Connector\'s get
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorGet(uid: string, options?: RawAxiosRequestConfig): AxiosPromise<Connector> {
-            return localVarFp.connectorGet(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Gets the connector\'s connection docker info.
-         * @summary Connector\'s get Docker info
-         * @param {string} uid Connector UID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorInfo(uid: string, options?: RawAxiosRequestConfig): AxiosPromise<ConnectorInfo200Response> {
-            return localVarFp.connectorInfo(uid, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * List connectors.
-         * @summary Connector\'s list
-         * @param {boolean} [enable] Enable status.
-         * @param {number} [page] Page number
-         * @param {number} [perPage] Items per page
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorList(enable?: boolean, page?: number, perPage?: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<Connector>> {
-            return localVarFp.connectorList(enable, page, perPage, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Updates a connector settings.
-         * @summary Connector\'s setting update
-         * @param {string} uid Connector UID
-         * @param {ConnectorData} connectorData 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        connectorUpdate(uid: string, connectorData: ConnectorData, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.connectorUpdate(uid, connectorData, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Create a namespace.
          * @summary Create namespace
          * @param {CreateNamespaceRequest} [createNamespaceRequest] 
@@ -26699,75 +25822,6 @@ export class NamespacesApi extends BaseAPI {
      */
     public cancelMembershipInvitation(tenant: string, userId: string, options?: RawAxiosRequestConfig) {
         return NamespacesApiFp(this.configuration).cancelMembershipInvitation(tenant, userId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Create a new connector.
-     * @summary Connector\'s create
-     * @param {ConnectorData} connectorData 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorCreate(connectorData: ConnectorData, options?: RawAxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).connectorCreate(connectorData, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Deletes a connector.
-     * @summary Connector\'s delete
-     * @param {string} uid Connector UID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorDelete(uid: string, options?: RawAxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).connectorDelete(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Gets a connector.
-     * @summary Connector\'s get
-     * @param {string} uid Connector UID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorGet(uid: string, options?: RawAxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).connectorGet(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Gets the connector\'s connection docker info.
-     * @summary Connector\'s get Docker info
-     * @param {string} uid Connector UID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorInfo(uid: string, options?: RawAxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).connectorInfo(uid, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * List connectors.
-     * @summary Connector\'s list
-     * @param {boolean} [enable] Enable status.
-     * @param {number} [page] Page number
-     * @param {number} [perPage] Items per page
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorList(enable?: boolean, page?: number, perPage?: number, options?: RawAxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).connectorList(enable, page, perPage, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Updates a connector settings.
-     * @summary Connector\'s setting update
-     * @param {string} uid Connector UID
-     * @param {ConnectorData} connectorData 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public connectorUpdate(uid: string, connectorData: ConnectorData, options?: RawAxiosRequestConfig) {
-        return NamespacesApiFp(this.configuration).connectorUpdate(uid, connectorData, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -29595,6 +28649,36 @@ export const SystemApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/healthcheck`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Register an user and create namespace with the same name as username
          * @summary User setup
          * @param {string} sign Signature used to validate request origin generated by running &#x60;./bin/setup&#x60; script
@@ -29658,6 +28742,18 @@ export const SystemApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async healthcheck(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.healthcheck(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SystemApi.healthcheck']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Register an user and create namespace with the same name as username
          * @summary User setup
          * @param {string} sign Signature used to validate request origin generated by running &#x60;./bin/setup&#x60; script
@@ -29691,6 +28787,15 @@ export const SystemApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.getInfo(agentVersion, options).then((request) => request(axios, basePath));
         },
         /**
+         * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+         * @summary Health check endpoint
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        healthcheck(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.healthcheck(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Register an user and create namespace with the same name as username
          * @summary User setup
          * @param {string} sign Signature used to validate request origin generated by running &#x60;./bin/setup&#x60; script
@@ -29717,6 +28822,16 @@ export class SystemApi extends BaseAPI {
      */
     public getInfo(agentVersion?: string, options?: RawAxiosRequestConfig) {
         return SystemApiFp(this.configuration).getInfo(agentVersion, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Lightweight endpoint to verify API availability. Returns HTTP 200 with empty body if the service is healthy. Used by load balancers, monitoring systems, and the UI for service availability detection. 
+     * @summary Health check endpoint
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public healthcheck(options?: RawAxiosRequestConfig) {
+        return SystemApiFp(this.configuration).healthcheck(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

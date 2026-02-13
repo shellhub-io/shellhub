@@ -1,6 +1,5 @@
 .gitignore
 .npmignore
-.openapi-generator-ignore
 api.ts
 base.ts
 common.ts
@@ -34,19 +33,6 @@ docs/ConfigureSAMLAuthenticationRequestIdpBinding.md
 docs/ConfigureSAMLAuthenticationRequestIdpBindingPreferred.md
 docs/ConfigureSAMLAuthenticationRequestIdpMappings.md
 docs/ConfigureSAMLAuthenticationRequestSp.md
-docs/Connector.md
-docs/ConnectorData.md
-docs/ConnectorInfo200Response.md
-docs/ConnectorInfo200ResponseContainerdCommit.md
-docs/ConnectorInfo200ResponsePlugins.md
-docs/ConnectorInfo200ResponseRegistryConfig.md
-docs/ConnectorInfo200ResponseRegistryConfigIndexConfigs.md
-docs/ConnectorInfo200ResponseRegistryConfigIndexConfigsDockerIo.md
-docs/ConnectorInfo200ResponseRuntimes.md
-docs/ConnectorInfo200ResponseRuntimesIoContainerdRuncV2.md
-docs/ConnectorInfo200ResponseSwarm.md
-docs/ConnectorStatus.md
-docs/ConnectorTLS.md
 docs/ContainersApi.md
 docs/CreateAnnouncementRequest.md
 docs/CreateNamespaceRequest.md
