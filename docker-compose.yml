@@ -104,6 +104,20 @@ services:
       test: "curl -f http://ui:8080/healthcheck || exit 1"
       interval: 30s
       start_period: 10s
+  ui-react:
+    image: shellhubio/ui-react:${SHELLHUB_VERSION}
+    restart: unless-stopped
+    environment:
+      - SHELLHUB_ENTERPRISE=${SHELLHUB_ENTERPRISE}
+      - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
+      - SHELLHUB_VERSION=${SHELLHUB_VERSION}
+      - SHELLHUB_SENTRY_DSN=${SHELLHUB_SENTRY_DSN}
+    networks:
+      - shellhub
+    healthcheck:
+      test: "curl -f http://ui-react:8080/healthcheck || exit 1"
+      interval: 30s
+      start_period: 10s
   gateway:
     image: shellhubio/gateway:${SHELLHUB_VERSION}
     restart: unless-stopped
@@ -133,6 +147,7 @@ services:
     depends_on:
       - api
       - ui
+      - ui-react
     ports:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTP_PORT}:80
     networks:

@@ -48,6 +48,17 @@ services:
     volumes:
       - ./ui:/src
       - ui_node_modules:/src/node_modules
+  ui-react:
+    image: ui-react
+    build:
+      context: .
+      dockerfile: ui-react/Dockerfile
+      target: development
+      network: host
+      args:
+        - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY:-}
+    volumes:
+      - ./ui-react:/src
   gateway:
     image: gateway
     build:

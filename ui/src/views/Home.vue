@@ -142,7 +142,7 @@ const activeNamespaceDescription = computed(() => (
   hasNamespace.value
     ? "This is your active namespace. All devices, sessions and configurations are isolated within this namespace."
     : `A namespace is a logical grouping that isolates your devices, sessions, and configurations from others.
-          Each namespace has its own unique Tenant ID used to register devices. 
+          Each namespace has its own unique Tenant ID used to register devices.
           You can create multiple namespaces to organize different projects, teams, or environments.`
 ));
 </script>
