@@ -11,7 +11,7 @@ require (
 	github.com/labstack/echo-contrib v0.17.4
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/multiformats/go-multistream v0.6.1
-	github.com/pires/go-proxyproto v0.10.0
+	github.com/pires/go-proxyproto v0.11.0
 	github.com/shellhub-io/shellhub v0.13.4
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
