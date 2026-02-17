@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --color-primary-rgb: 102, 122, 204;
+  }
+
+  body {
+    @apply bg-background text-text-primary font-sans antialiased;
+    margin: 0;
+  }
+
+  ::selection {
+    background: rgba(var(--color-primary-rgb), 0.3);
+    color: #fff;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2C2F36 transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2C2F36;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #383D47;
+  }
+}
+
+@layer components {
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(var(--color-primary-rgb), 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .scanline {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* Connection lines animation for welcome screen */
+  .connection-grid {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .connection-line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, rgba(var(--color-primary-rgb), 0.15), transparent);
+    height: 1px;
+    animation: connectionFlow 4s ease-in-out infinite;
+  }
+
+  .connection-line-v {
+    position: absolute;
+    background: linear-gradient(180deg, transparent, rgba(var(--color-primary-rgb), 0.15), transparent);
+    width: 1px;
+    animation: connectionFlowV 5s ease-in-out infinite;
+  }
+
+  .connection-dot {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgb(var(--color-primary-rgb));
+    box-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.6);
+    animation: dotPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes connectionFlow {
+    0%, 100% { opacity: 0; transform: translateX(-100%); }
+    50% { opacity: 1; transform: translateX(100%); }
+  }
+
+  @keyframes connectionFlowV {
+    0%, 100% { opacity: 0; transform: translateY(-100%); }
+    50% { opacity: 1; transform: translateY(100%); }
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.8); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Shimmer for copy button */
+  .shimmer {
+    background: linear-gradient(
+      110deg,
+      transparent 25%,
+      rgba(var(--color-primary-rgb), 0.08) 37%,
+      transparent 63%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Page transition fade */
+  .page-enter {
+    animation: pageEnter 1s ease-out;
+  }
+
+  @keyframes pageEnter {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Subtle bounce for expand hints */
+  .animate-bounce-subtle {
+    animation: bounceSub 2s ease-in-out 1s infinite;
+  }
+
+  @keyframes bounceSub {
+    0%, 100% { transform: translateY(0); }
+    15% { transform: translateY(2px); }
+    30% { transform: translateY(-1px); }
+    45% { transform: translateY(0); }
+  }
+
+  @keyframes cta-border-spin {
+    to { transform: rotate(1turn); }
+  }
+
+  @keyframes cta-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(var(--color-primary-rgb),0.3), 0 0 40px rgba(var(--color-primary-rgb),0.15), 0 0 60px rgba(var(--color-primary-rgb),0.05); }
+    50%      { box-shadow: 0 0 28px rgba(var(--color-primary-rgb),0.5), 0 0 56px rgba(var(--color-primary-rgb),0.25), 0 0 90px rgba(var(--color-primary-rgb),0.12); }
+  }
+
+  /* Landing page scroll-reveal */
+  .landing-reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .landing-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
