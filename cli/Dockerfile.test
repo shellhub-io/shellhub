@@ -1,5 +1,5 @@
 # base stage
-FROM golang:1.24-alpine3.22 AS base
+FROM golang:1.26-alpine3.22 AS base
 
 RUN apk add --no-cache git ca-certificates
 
