@@ -306,6 +306,8 @@ func main() {
 		},
 	})
 
+	registerInstallerCommands(rootCmd)
+
 	rootCmd.AddCommand(&cobra.Command{ // nolint: exhaustruct
 		Use:   "sftp",
 		Short: "Starts the SFTP server",
