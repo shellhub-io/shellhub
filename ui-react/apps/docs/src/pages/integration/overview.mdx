@@ -1,0 +1,49 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Integrations
+description: Integrate ShellHub with Ansible, Terraform, CI/CD, VS Code, and HTTP tunnels
+---
+
+# Integrations
+
+ShellHub works with the tools you already use. Because every device is reachable through a standard SSH connection via the ShellHub gateway, anything that speaks SSH can connect to your devices — no special plugins or proprietary protocols required.
+
+## What you can integrate
+
+| Integration | What it does |
+|---|---|
+| [Ansible](/v2/docs/integration/ansible) | Automate configuration management and deployments across your fleet |
+| [Terraform](/v2/docs/integration/terraform) | Provision infrastructure with the agent pre-installed |
+| [CI/CD Pipelines](/v2/docs/integration/ci-cd) | Deploy, test, or provision devices from GitHub Actions, GitLab CI, and other pipelines |
+| [VS Code Remote SSH](/v2/docs/integration/vscode-remote) | Develop directly on remote devices from VS Code |
+
+## How integrations work
+
+All SSH-based integrations follow the same pattern:
+
+1. Connect to the ShellHub gateway (e.g., `cloud.shellhub.io`) on port 22
+2. Use the device's SSHID as the target: `username@device.namespace`
+3. Authenticate with password or public key
+
+The gateway routes the connection to the correct device through the agent's reverse tunnel. From the client's perspective, it behaves like a normal SSH connection.
+
+```bash
+$ ssh user@device.namespace@cloud.shellhub.io
+```
+
+## Public key authentication
+
+For automation workflows (Ansible, CI/CD), public key authentication avoids storing passwords in scripts or environment variables:
+
+1. Upload your public key in the ShellHub dashboard under **Public Keys**
+2. Scope the key to specific usernames, hostnames, or device tags
+3. Use the corresponding private key in your automation tool
+
+See [Public Keys](/v2/docs/guides/public-keys) for setup details.
+
+## Next steps
+
+- [Ansible](/v2/docs/integration/ansible) — Automate device management
+- [Terraform](/v2/docs/integration/terraform) — Provision infra with the agent pre-installed
+- [CI/CD Pipelines](/v2/docs/integration/ci-cd) — Integrate with your deployment pipeline
+- [VS Code Remote SSH](/v2/docs/integration/vscode-remote) — Remote development on devices

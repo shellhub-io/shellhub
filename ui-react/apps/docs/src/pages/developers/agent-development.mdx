@@ -1,0 +1,49 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Agent Development
+description: Build the ShellHub agent from source and understand its architecture
+---
+
+# Agent Development
+
+Understand the ShellHub agent internals for contributing, debugging, or extending.
+
+To build the agent from source, see [Building from Source](/v2/docs/agent/building-from-source).
+
+## Architecture
+
+The agent is a single Go binary with these responsibilities:
+
+```
+Agent
+├── Connector      → Establishes WebSocket tunnel to the server
+├── Authenticator  → Handles device authentication with RSA keys
+├── SSH Handler    → Manages incoming SSH sessions from the tunnel
+├── Shell          → Spawns and manages shell processes (bash, sh)
+└── Info Reporter  → Sends device info (hostname, OS, IP) to the server
+```
+
+### Connection lifecycle
+
+1. Agent generates or loads an RSA private key
+2. Opens a WebSocket connection to the server at `/ws/connect`
+3. Sends device identity (tenant ID, hostname, public key)
+4. Server verifies the device and assigns a UID
+5. Agent enters a keepalive loop, sending pings at the configured interval
+6. When a user initiates an SSH session, the server signals the agent through the tunnel
+7. Agent spawns a shell process and bridges I/O
+
+### Reconnection
+
+If the connection drops, the agent retries with exponential backoff. The device's identity (private key) ensures it reconnects as the same device, not as a new registration.
+
+## Running tests
+
+```bash
+$ cd agent
+$ go test ./...
+```
+
+## Contributing
+
+See the [ShellHub contributing guide](https://github.com/shellhub-io/shellhub/blob/master/CONTRIBUTING.md) for code style, commit conventions, and pull request guidelines.

@@ -3,7 +3,9 @@ docker-compose.override.yml
 
 *~
 */tmp
-*/node_modules
+**/node_modules
+**/.vite
+**/.astro
 *.orig
 
 api_private_key

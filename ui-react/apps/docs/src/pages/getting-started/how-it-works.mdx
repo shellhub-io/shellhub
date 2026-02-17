@@ -1,0 +1,133 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: How it Works
+description: Core concepts behind ShellHub — Server, Agent, Namespace, SSHID, and the connection flow
+---
+
+import DiagramReverseConnectivity from '../../components/DiagramReverseConnectivity.astro';
+import DiagramConnectionFlow from '../../components/DiagramConnectionFlow.astro';
+
+# How it Works
+
+ShellHub has two core components: a **Server** that acts as the central gateway, and an **Agent** that runs on each device you want to access. Understanding how they interact is key to working with ShellHub.
+
+## Server
+
+The ShellHub Server is the central hub that sits between you and your devices. It handles authentication, device registration, SSH routing, session management, and the web dashboard.
+
+The server runs as a set of microservices orchestrated with Docker Compose:
+
+| Service | Role |
+|---------|------|
+| **Gateway** | Nginx reverse proxy — entry point for all traffic, handles SSL termination |
+| **API** | REST service — manages users, devices, namespaces, keys, and sessions |
+| **SSH** | SSH service — authenticates users and bridges connections to device agents |
+| **Database** | MongoDB or PostgreSQL — stores all persistent data |
+| **Redis** | Caching, session state, and async task processing |
+
+You can run the server yourself (self-hosted) or use [ShellHub Cloud](https://cloud.shellhub.io), which is fully managed.
+
+## Agent
+
+The Agent is a lightweight daemon that runs on each Linux device you want to manage. It does three things:
+
+1. **Connects outbound** to the ShellHub server over HTTPS (port 443) using a reverse WebSocket tunnel
+2. **Registers the device** with the server, reporting its hostname and identity
+3. **Handles SSH sessions** by bridging the tunnel to a local shell when you connect
+
+The agent is the only component that runs outside the ShellHub server. It works behind NAT, CGNAT, firewalls, and proxies because it initiates the connection — no inbound ports required on the device.
+
+The agent runs as a Docker container or as a native binary, and supports multiple installation methods depending on your platform.
+
+## Namespace
+
+A Namespace is a workspace that isolates a group of devices, users, and configurations. Think of it as a project or team workspace.
+
+Each namespace has its own:
+
+- **Devices** — Only devices registered to this namespace are visible
+- **Members** — Users with roles: Owner, Administrator, Operator, or Observer
+- **SSH keys** — Public keys for authentication, scoped to the namespace
+- **Firewall rules** — Connection policies applied to devices in this namespace
+- **Settings** — Session recording, connection announcements, MFA requirements
+
+When you create an account on ShellHub, you create a namespace. You can switch between namespaces if you belong to more than one.
+
+## Reverse connectivity
+
+Traditional SSH requires you to know the device's IP address — and that IP needs to be reachable from your network. This breaks down when devices are behind NAT, CGNAT, carrier networks, or corporate firewalls. The usual workarounds (VPNs, port forwarding, jump hosts) add complexity and fragility.
+
+ShellHub inverts this model. Instead of connecting **to** the device, the device connects **to** ShellHub:
+
+<DiagramReverseConnectivity />
+
+In the traditional model, you need the device's public IP — which breaks behind NAT, CGNAT, and firewalls. With ShellHub, the device initiates an outbound connection to the server, and you connect to the server. The server bridges the two.
+
+The agent opens an outbound WebSocket connection to the ShellHub server over port 443 (standard HTTPS). This works through any network that allows web browsing — NAT, CGNAT, firewalls, HTTP proxies, even satellite links. The device doesn't need a public IP, a static IP, or any inbound ports.
+
+Once connected, the agent holds a persistent tunnel open. When you want to SSH into the device, ShellHub routes your session through this existing tunnel. The device is always reachable, as long as it has internet access.
+
+## SSHID — Virtual hosting for SSH
+
+With thousands of devices connecting through a single gateway, ShellHub needs a way to route each SSH session to the right device. This is the same problem web servers solved with **virtual hosting**: one IP address serving many websites, using the `Host` header to pick the right one.
+
+ShellHub applies this concept to SSH through the **SSHID** — a unique address that encodes the target device, namespace, and user into a standard SSH username:
+
+```
+username@device.namespace@server
+```
+
+For example:
+
+```bash
+$ ssh root@raspberrypi.mycompany@cloud.shellhub.io
+```
+
+Here's what each part means:
+
+| Part | Value | Purpose |
+|------|-------|---------|
+| `root` | SSH username | The Linux user on the device |
+| `raspberrypi` | Device hostname | Identifies which device in the namespace |
+| `mycompany` | Namespace | Identifies which workspace (team/project) |
+| `cloud.shellhub.io` | Server | The ShellHub gateway address |
+
+When the gateway receives this connection, it parses the SSHID, looks up the device `raspberrypi` in the `mycompany` namespace, and routes the session through the agent's reverse tunnel — all transparently.
+
+This is what makes ShellHub a **gateway**, not just a jump host. You connect to one address, and ShellHub resolves the target device, authenticates you, and bridges the session. No SSH config per device, no IP management, no VPN tunnels.
+
+Because the SSHID is encoded as a standard SSH username, it works with any SSH client out of the box — OpenSSH, PuTTY, VS Code Remote SSH, Ansible, `scp`, `sftp`. No plugins, no custom protocols.
+
+## Connection flow
+
+Here's the full path of an SSH session:
+
+<DiagramConnectionFlow />
+
+1. You run `ssh root@raspberrypi.mycompany@cloud.shellhub.io`
+2. The **Gateway** receives the connection and forwards it to the **SSH Service**
+3. The SSH Service **parses the SSHID** to identify the namespace and device
+4. It **authenticates you** — password, public key, or MFA
+5. It finds the device's **existing reverse tunnel** (established by the agent)
+6. The session is **bridged**: your terminal I/O flows through the tunnel to the agent
+7. The **Agent** opens a local shell on the device and connects it to the tunnel
+
+The web terminal works the same way — your browser opens a WebSocket to the SSH Service, which routes through the agent's tunnel to the device shell.
+
+## Network requirements
+
+**Server side:**
+
+- Inbound TCP on port 80/443 (web dashboard and API)
+- Inbound TCP on port 22 (SSH connections, configurable)
+
+**Device side (agent):**
+
+- Outbound HTTPS to the ShellHub server (port 443)
+- No inbound ports required
+
+## Next steps
+
+- [Features](/v2/docs/getting-started/features) — What you can do with ShellHub
+- [Editions](/v2/docs/getting-started/editions) — Compare Community, Cloud, and Enterprise
+- [Quick Start](/v2/docs/getting-started/quick-start) — Set up ShellHub and connect your first device

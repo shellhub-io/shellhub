@@ -1,0 +1,54 @@
+---
+title: "Remote Access Best Practices for IoT and Embedded Linux"
+description: "Learn the essential security practices for managing remote access to IoT devices and embedded Linux systems at scale."
+author: "Gustavo Sampaio"
+authorRole: "Creator & Lead Developer"
+date: 2026-01-22
+categories:
+  - engineering
+tags:
+  - security
+  - iot
+  - best-practices
+ogTagline: "Secure Your Device Fleet"
+ogIcons:
+  - shield
+  - lock
+  - network
+---
+
+## The Challenge of Remote Access
+
+Managing remote access to hundreds or thousands of IoT devices presents unique challenges. Unlike traditional servers in a data center, IoT devices are often behind NATs, firewalls, or cellular networks with no static IP.
+
+## Key Principles
+
+### 1. Never Expose SSH Directly
+
+Opening port 22 to the internet is a recipe for disaster. Instead, use a reverse tunnel or gateway approach where devices connect outbound to a central server.
+
+### 2. Centralize Authentication
+
+Managing SSH keys across hundreds of devices manually is unsustainable. Use a centralized platform that distributes keys and manages access policies from a single control plane.
+
+### 3. Implement Least Privilege
+
+Not every team member needs root access to every device. Implement role-based access control and firewall rules to limit who can connect to which devices.
+
+### 4. Record Everything
+
+Session recording provides an audit trail that's invaluable for debugging issues and ensuring compliance. Every SSH session should be logged with full terminal output.
+
+## ShellHub's Approach
+
+ShellHub was designed from the ground up with these principles in mind:
+
+```
+Device → Agent (outbound connection) → Gateway → User
+```
+
+The agent initiates the connection, so no inbound ports are needed. Authentication is centralized, and every session is recorded by default.
+
+## Conclusion
+
+Secure remote access doesn't have to be complicated. By following these principles and using the right tools, you can manage thousands of devices without compromising security.

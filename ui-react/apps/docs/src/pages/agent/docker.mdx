@@ -1,0 +1,91 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Docker
+description: Install the ShellHub agent as a Docker container
+---
+
+# Docker
+
+The default and recommended way to install the ShellHub agent. Requires Docker or Podman on the device.
+
+## Installation
+
+### From the dashboard
+
+The easiest method. In the ShellHub dashboard, click **Add Device** and copy the install script command:
+
+```bash
+$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
+
+This downloads and runs the agent as a Docker container with automatic restart on reboot.
+
+### Manual Docker run
+
+If you prefer to run the container manually:
+
+```bash
+$ docker run -d \
+    --name shellhub-agent \
+    --restart always \
+    --privileged \
+    --net host \
+    --pid host \
+    -v /:/host \
+    -v /dev:/dev \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e SHELLHUB_SERVER_ADDRESS=https://cloud.shellhub.io \
+    -e SHELLHUB_TENANT_ID=YOUR_TENANT_ID \
+    -e SHELLHUB_PRIVATE_KEY=/host/etc/shellhub.key \
+    shellhubio/agent
+```
+
+The `--privileged` and `--net host` flags are required for the agent to manage SSH sessions and access the host's network stack.
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address in `SHELLHUB_SERVER_ADDRESS`.
+
+## Updating
+
+Pull the latest image and recreate the container:
+
+```bash
+$ docker pull shellhubio/agent
+$ docker rm -f shellhub-agent
+```
+
+Then re-run the install command or the manual Docker run command above.
+
+## Verifying
+
+Check the agent is running:
+
+```bash
+$ docker ps | grep shellhub-agent
+```
+
+Check agent logs:
+
+```bash
+$ docker logs shellhub-agent
+```
+
+The device should appear in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+
+## Supported architectures
+
+The Docker image supports:
+
+- `amd64` (x86_64)
+- `arm64` (aarch64)
+- `armv7` (32-bit ARM, e.g., Raspberry Pi 3/4)
+- `armv6` (e.g., Raspberry Pi Zero)
+
+Docker automatically pulls the correct architecture for your device.
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — Configuration reference and how the agent works
+- [Connecting](/v2/docs/guides/connecting) — Access your device via SSH through ShellHub
+- [Quick Start](/v2/docs/getting-started/quick-start) — Full setup walkthrough

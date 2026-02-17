@@ -1,0 +1,125 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Raspberry Pi
+description: Install the ShellHub agent on Raspberry Pi running Raspberry Pi OS
+---
+
+# Raspberry Pi
+
+Install the ShellHub agent on a Raspberry Pi running Raspberry Pi OS (Debian-based). Once installed, you can SSH into your Pi from anywhere through ShellHub — no port forwarding, no dynamic DNS, no VPN.
+
+## Prerequisites
+
+- Raspberry Pi (any model: Zero, 3, 4, 5) running Raspberry Pi OS (32-bit or 64-bit)
+- Internet connection on the Pi
+- A ShellHub account with a namespace
+
+## Install with the install script
+
+The fastest way. SSH into your Pi (or open a terminal) and run:
+
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | sh
+```
+
+The script detects your Pi's architecture (armhf or arm64) and installs the appropriate agent binary.
+
+For self-hosted ShellHub, pass your server address:
+
+```bash
+$ curl -sSf https://your-server.example.com/install.sh | sh
+```
+
+After installation, the agent starts automatically and the Pi appears as **Pending** in the ShellHub dashboard. Accept it to start connecting.
+
+## Install with Docker
+
+If your Pi has Docker installed:
+
+```bash
+$ docker run -d \
+  --name shellhub-agent \
+  --restart always \
+  --privileged \
+  --net host \
+  --pid host \
+  -v /:/host \
+  -v /dev:/dev \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /etc/shellhub:/etc/shellhub \
+  -e SERVER_ADDRESS=https://cloud.shellhub.io \
+  -e TENANT_ID=<your-tenant-id> \
+  shellhubio/agent
+```
+
+Replace `<your-tenant-id>` with your namespace's tenant ID (found in the namespace selector or Settings page).
+
+See the [Docker guide](/v2/docs/agent/docker) for more options.
+
+## Install with Snap
+
+On Ubuntu-based Raspberry Pi OS or Ubuntu Server for Pi:
+
+```bash
+$ sudo snap install shellhub-agent
+$ sudo snap set shellhub-agent server-address=https://cloud.shellhub.io
+$ sudo snap set shellhub-agent tenant-id=<your-tenant-id>
+$ sudo snap start shellhub-agent
+```
+
+See the [Snap guide](/v2/docs/agent/snap) for details.
+
+## Connecting to your Pi
+
+Once the agent is running and the device is accepted:
+
+**Web terminal** — Click the terminal icon next to your Pi on the Devices page.
+
+**Native SSH** — Use the SSHID:
+
+```bash
+$ ssh pi@mynamespace.raspberrypi.cloud.shellhub.io
+```
+
+Replace `pi` with your Pi's username, `mynamespace` with your namespace, and `raspberrypi` with the device hostname shown in the dashboard.
+
+## Headless setup
+
+For Pis deployed without a monitor or keyboard, install the agent as part of your provisioning process:
+
+1. Flash Raspberry Pi OS to an SD card
+2. Enable SSH on first boot (create an empty `ssh` file in the boot partition)
+3. Configure Wi-Fi if needed (`wpa_supplicant.conf` in boot partition)
+4. Boot the Pi and SSH in over your local network
+5. Run the install script
+6. Accept the device in ShellHub
+
+From this point on, you can reach the Pi through ShellHub regardless of network changes — even if it moves to a different Wi-Fi network, gets a new IP, or goes behind a NAT.
+
+## Embedded use cases
+
+If you're building a custom Linux image for Raspberry Pi with Buildroot or Yocto, you can embed the agent directly into the firmware. See [Embedded Linux](/v2/docs/embedded-linux/overview) for build system integrations.
+
+## Troubleshooting
+
+**Agent not starting** — Check the agent logs:
+
+```bash
+$ journalctl -u shellhub-agent -f
+```
+
+Or for Docker:
+
+```bash
+$ docker logs shellhub-agent
+```
+
+**Device shows as offline** — Make sure the Pi has internet access and can reach your ShellHub server on port 443. Test with:
+
+```bash
+$ curl -I https://cloud.shellhub.io
+```
+
+**Wrong architecture** — The install script auto-detects architecture. If it fails, check with `uname -m`. Raspberry Pi OS 32-bit reports `armv7l`, 64-bit reports `aarch64`.
+
+**Permission denied after connecting** — The default user on Raspberry Pi OS is `pi` (older images) or your custom username (newer images). Make sure you're using the correct username in the SSHID.

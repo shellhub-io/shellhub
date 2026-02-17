@@ -1,0 +1,70 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Snap
+description: Install the ShellHub agent as a Snap package on Ubuntu and Ubuntu Core
+---
+
+# Snap
+
+Install the ShellHub agent as a Snap package on Ubuntu, Ubuntu Core, or any Linux distribution with Snap support.
+
+## Installation
+
+```bash
+$ sudo snap install --classic shellhub
+```
+
+The `--classic` flag is required because the agent needs access to the host's network and filesystem.
+
+## Configuration
+
+Set the required configuration values:
+
+```bash
+$ sudo snap set shellhub server-address=https://cloud.shellhub.io
+$ sudo snap set shellhub tenant-id=YOUR_TENANT_ID
+```
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
+
+View the current configuration:
+
+```bash
+$ sudo snap get shellhub
+```
+
+### Available settings
+
+| Setting | Required | Description |
+|---------|:--------:|-------------|
+| `server-address` | Yes | ShellHub server URL |
+| `tenant-id` | Yes | Your namespace's tenant ID |
+| `private-key` | No | Path to the agent's private key file |
+| `preferred-hostname` | No | Override the device hostname |
+
+## Managing the service
+
+```bash
+$ sudo snap start shellhub     # Start the agent
+$ sudo snap stop shellhub      # Stop the agent
+$ sudo snap restart shellhub   # Restart the agent
+$ sudo snap logs shellhub      # View agent logs
+```
+
+## Updating
+
+Snap updates automatically. To force an update:
+
+```bash
+$ sudo snap refresh shellhub
+```
+
+## Verifying
+
+After configuration, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — Configuration reference and how the agent works
+- [Connecting](/v2/docs/guides/connecting) — Access your device via SSH through ShellHub
+- [Quick Start](/v2/docs/getting-started/quick-start) — Full setup walkthrough

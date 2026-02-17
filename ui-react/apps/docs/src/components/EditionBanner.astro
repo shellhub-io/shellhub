@@ -1,0 +1,22 @@
+---
+/**
+ * EditionBanner — Premium feature callout with CTA.
+ * Usage in MDX: <EditionBanner />
+ */
+---
+
+<div class="flex items-center justify-between gap-4 px-4 py-[11px] mb-6 rounded-lg border border-[rgba(102,122,204,0.15)] bg-gradient-to-br from-[rgba(102,122,204,0.05)] to-[rgba(102,122,204,0.01)] relative overflow-hidden before:content-[''] before:absolute before:top-0 before:inset-x-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[rgba(102,122,204,0.25)] before:to-transparent">
+  <div class="flex items-center gap-[9px] min-w-0">
+    <svg class="w-4 h-4 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+      <path d="M18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.456-2.456L14.25 6l1.035-.259a3.375 3.375 0 0 0 2.456-2.456L18 2.25Z" />
+    </svg>
+    <span class="text-[13.5px] leading-[1.4] text-text-secondary [&>strong]:text-[#B4BDE6] [&>strong]:font-medium">
+      This feature is included with <strong>Cloud</strong> and <strong>Enterprise</strong> editions.
+    </span>
+  </div>
+  <a href="/v2/docs/getting-started/editions" class="group/cta inline-flex items-center gap-1 text-[12.5px] text-primary no-underline whitespace-nowrap shrink-0 transition-colors duration-150 !border-b-0 hover:text-[#8B9EDD] hover:!border-b-0">
+    See all editions
+    <svg class="w-3 h-3 transition-transform duration-150 group-hover/cta:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+  </a>
+</div>

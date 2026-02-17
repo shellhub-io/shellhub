@@ -1,0 +1,66 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Agent Overview
+description: How the ShellHub agent works, configuration options, and installation methods
+---
+
+# Agent Overview
+
+The ShellHub agent is a lightweight daemon that runs on each device you want to manage remotely. It connects outbound to the ShellHub server and handles SSH sessions tunneled through the gateway.
+
+## How the agent works
+
+1. On startup, the agent opens a persistent WebSocket connection to the ShellHub server over HTTPS (port 443)
+2. It registers the device with the server, reporting its hostname and identity
+3. When you initiate an SSH session, the server routes it through the agent's tunnel
+4. The agent opens a local shell and bridges I/O between the tunnel and the shell process
+
+The connection is always initiated from the device side, so no inbound ports are needed.
+
+## Configuration
+
+The agent is configured through environment variables, regardless of installation method:
+
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `SHELLHUB_SERVER_ADDRESS` | Yes | ShellHub server URL (e.g., `https://cloud.shellhub.io`) |
+| `SHELLHUB_TENANT_ID` | Yes | Your namespace's tenant ID |
+| `SHELLHUB_PRIVATE_KEY` | No | Path to the agent's private key file (auto-generated if not set) |
+| `SHELLHUB_PREFERRED_HOSTNAME` | No | Override the device hostname reported to the server |
+| `SHELLHUB_KEEPALIVE_INTERVAL` | No | Interval between keepalive pings (default: 30s) |
+
+The **tenant ID** identifies which namespace the device belongs to. Find it in the ShellHub dashboard under **Settings > Namespace**.
+
+## Installation methods
+
+Choose the method that fits your platform:
+
+| Method | Best for |
+|--------|----------|
+| [Docker](/v2/docs/agent/docker) | Any Linux with Docker or Podman (default, recommended) |
+| [Snap](/v2/docs/agent/snap) | Ubuntu, Ubuntu Core |
+| [FreeBSD](/v2/docs/agent/freebsd) | FreeBSD systems |
+| [WSL](/v2/docs/agent/wsl) | Windows Subsystem for Linux |
+
+For embedded Linux platforms, see [Buildroot](/v2/docs/embedded-linux/buildroot) and [Yocto](/v2/docs/embedded-linux/yocto).
+
+For platforms without a pre-built package, you can [build the agent from source](/v2/docs/developers/agent-development).
+
+## Device identity
+
+Each device is identified by:
+
+- **Namespace** — The workspace it belongs to (set by tenant ID)
+- **Hostname** — The device's hostname (or the `SHELLHUB_PREFERRED_HOSTNAME` override)
+- **Private key** — A unique RSA key generated on first run, stored at the path specified by `SHELLHUB_PRIVATE_KEY`
+
+The combination of namespace + hostname must be unique. If two devices report the same hostname in the same namespace, the second one is rejected.
+
+## Network requirements
+
+The agent needs:
+
+- **Outbound HTTPS** to the ShellHub server (port 443)
+- **No inbound ports**
+
+The agent works behind NAT, CGNAT, HTTP proxies, and corporate firewalls as long as outbound HTTPS is allowed.

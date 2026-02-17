@@ -1,0 +1,65 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Yocto Project
+description: Add the ShellHub agent to Yocto-based Linux images with meta-shellhub
+---
+
+# Yocto Project
+
+Add the ShellHub agent to your Yocto-based Linux image using the meta-shellhub layer.
+
+## Prerequisites
+
+- Yocto Project (kirkstone or later)
+- Internet access to fetch the agent source during build
+
+## Setup
+
+### 1. Clone the meta-shellhub layer
+
+```bash
+$ git clone https://github.com/shellhub-io/meta-shellhub.git
+```
+
+### 2. Add the layer to your build
+
+In your `bblayers.conf`:
+
+```
+BBLAYERS += "/path/to/meta-shellhub"
+```
+
+### 3. Configure in `local.conf`
+
+```bash
+SHELLHUB_TENANT_ID = "YOUR_TENANT_ID"
+```
+
+### Optional configuration
+
+```bash
+SHELLHUB_SERVER_ADDRESS = "https://cloud.shellhub.io"
+SHELLHUB_PREFERRED_HOSTNAME = "my-yocto-device"
+SHELLHUB_PRIVATE_KEY = "/etc/shellhub.key"
+SHELLHUB_KEEPALIVE_INTERVAL = "30"
+```
+
+If `SHELLHUB_SERVER_ADDRESS` is not set, it defaults to `https://cloud.shellhub.io`.
+
+### 4. Build your image
+
+```bash
+$ bitbake your-image
+```
+
+The agent is included in the image and starts automatically on boot.
+
+## Verifying
+
+After booting the image, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+
+## Next steps
+
+- [Embedded Linux Overview](/v2/docs/embedded-linux/overview) — Why embed the agent and how it works
+- [Buildroot](/v2/docs/embedded-linux/buildroot) — Alternative build system integration
+- [Agent Overview](/v2/docs/agent/overview) — Agent configuration reference

@@ -1,0 +1,268 @@
+---
+---
+
+<div class="diagram-container">
+  <!-- Traditional SSH -->
+  <div class="diagram-row">
+    <div class="diagram-label">
+      <span class="diagram-tag diagram-tag--red">Traditional SSH</span>
+      <span class="diagram-hint">Requires public IP — breaks behind NAT, CGNAT, firewalls</span>
+    </div>
+    <div class="diagram-flow">
+      <div class="diagram-node">
+        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
+        </svg>
+        <span class="diagram-node-label">You</span>
+      </div>
+
+      <div class="diagram-arrow diagram-arrow--red">
+        <div class="diagram-arrow-line diagram-arrow-line--red"></div>
+        <span class="diagram-arrow-label">SSH (port 22)</span>
+        <svg class="diagram-arrow-head diagram-arrow-head--red" viewBox="0 0 12 10" fill="currentColor"><path d="M0 0L12 5L0 10z"/></svg>
+      </div>
+
+      <div class="diagram-node diagram-node--red">
+        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3m-13.5 0a3 3 0 0 1-3-3m3-3h13.5m-13.5 0a3 3 0 0 0-3 3m3-3a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3m-13.5 0a3 3 0 0 0-3 3m16.5 0a3 3 0 0 0 3-3m-3 3a3 3 0 0 1 3 3m-3-3h-13.5m13.5 0a3 3 0 0 1 3-3" />
+        </svg>
+        <span class="diagram-node-label">Device</span>
+        <div class="diagram-node-badge diagram-node-badge--red">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-divider"></div>
+
+  <!-- ShellHub -->
+  <div class="diagram-row">
+    <div class="diagram-label">
+      <span class="diagram-tag diagram-tag--primary">ShellHub</span>
+      <span class="diagram-hint">Device connects outbound — works through any network</span>
+    </div>
+    <div class="diagram-flow diagram-flow--shellhub">
+      <div class="diagram-node">
+        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3m-13.5 0a3 3 0 0 1-3-3m3-3h13.5m-13.5 0a3 3 0 0 0-3 3m3-3a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3m-13.5 0a3 3 0 0 0-3 3m16.5 0a3 3 0 0 0 3-3m-3 3a3 3 0 0 1 3 3m-3-3h-13.5m13.5 0a3 3 0 0 1 3-3" />
+        </svg>
+        <span class="diagram-node-label">Device</span>
+        <div class="diagram-node-badge diagram-node-badge--green">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+        </div>
+      </div>
+
+      <div class="diagram-arrow diagram-arrow--primary">
+        <div class="diagram-arrow-line diagram-arrow-line--primary"></div>
+        <span class="diagram-arrow-label">WebSocket (443)</span>
+        <svg class="diagram-arrow-head diagram-arrow-head--primary" viewBox="0 0 12 10" fill="currentColor"><path d="M0 0L12 5L0 10z"/></svg>
+      </div>
+
+      <div class="diagram-node diagram-node--primary diagram-node--server">
+        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 .75-7.425A4.502 4.502 0 0 0 14.25 6 4.5 4.5 0 0 0 6 9.75 4.5 4.5 0 0 0 2.25 15Z" />
+        </svg>
+        <span class="diagram-node-label">ShellHub Server</span>
+      </div>
+
+      <div class="diagram-arrow diagram-arrow--primary diagram-arrow--reverse">
+        <svg class="diagram-arrow-head diagram-arrow-head--primary diagram-arrow-head--left" viewBox="0 0 12 10" fill="currentColor"><path d="M12 0L0 5L12 10z"/></svg>
+        <div class="diagram-arrow-line diagram-arrow-line--primary"></div>
+        <span class="diagram-arrow-label">SSH</span>
+      </div>
+
+      <div class="diagram-node">
+        <svg class="diagram-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
+        </svg>
+        <span class="diagram-node-label">You</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .diagram-container {
+    background: #1E2127;
+    border: 1px solid #2C2F36;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 12px 0 24px;
+  }
+
+  .diagram-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .diagram-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .diagram-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+
+  .diagram-tag--red {
+    color: #ca6169;
+    background: rgba(202, 97, 105, 0.1);
+    border: 1px solid rgba(202, 97, 105, 0.2);
+  }
+
+  .diagram-tag--primary {
+    color: #667ACC;
+    background: rgba(102, 122, 204, 0.1);
+    border: 1px solid rgba(102, 122, 204, 0.2);
+  }
+
+  .diagram-hint {
+    font-size: 12px;
+    color: #5C6070;
+  }
+
+  .diagram-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 16px 20px;
+    background: rgba(24, 25, 27, 0.5);
+    border-radius: 10px;
+  }
+
+  .diagram-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .diagram-icon {
+    width: 36px;
+    height: 36px;
+    color: #8B8F99;
+    padding: 7px;
+    background: #22252B;
+    border: 1px solid #2C2F36;
+    border-radius: 10px;
+  }
+
+  .diagram-node--red .diagram-icon {
+    border-color: rgba(202, 97, 105, 0.4);
+  }
+
+  .diagram-node--primary .diagram-icon {
+    border-color: rgba(102, 122, 204, 0.4);
+    color: #667ACC;
+  }
+
+  .diagram-node--server .diagram-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(102, 122, 204, 0.08);
+  }
+
+  .diagram-node-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #8B8F99;
+    white-space: nowrap;
+  }
+
+  .diagram-node-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .diagram-node-badge--red {
+    background: rgba(202, 97, 105, 0.2);
+    color: #ca6169;
+  }
+
+  .diagram-node-badge--green {
+    background: rgba(130, 165, 104, 0.2);
+    color: #82a568;
+  }
+
+  .diagram-arrow {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 60px;
+    position: relative;
+    padding: 0 4px;
+  }
+
+  .diagram-arrow-line {
+    flex: 1;
+    height: 1px;
+  }
+
+  .diagram-arrow-line--red {
+    background: rgba(202, 97, 105, 0.3);
+  }
+
+  .diagram-arrow-line--primary {
+    background: rgba(102, 122, 204, 0.3);
+  }
+
+  .diagram-arrow-head {
+    width: 8px;
+    height: 7px;
+    flex-shrink: 0;
+  }
+
+  .diagram-arrow-head--red {
+    color: rgba(202, 97, 105, 0.5);
+  }
+
+  .diagram-arrow-head--primary {
+    color: rgba(102, 122, 204, 0.5);
+  }
+
+  .diagram-arrow-head--left {
+    order: -1;
+  }
+
+  .diagram-arrow-label {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: #5C6070;
+    white-space: nowrap;
+  }
+
+  .diagram-divider {
+    height: 1px;
+    background: #2C2F36;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 640px) {
+    .diagram-container { padding: 20px 16px; }
+    .diagram-flow { padding: 12px; }
+    .diagram-arrow-label { font-size: 9px; }
+    .diagram-hint { display: none; }
+  }
+</style>

@@ -1,0 +1,157 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Quick Start
+description: Get ShellHub running and connect your first device in minutes
+---
+
+# Quick Start
+
+This guide gets you from zero to your first SSH session through ShellHub. Pick your path:
+
+- **[ShellHub Cloud](#shellhub-cloud)** — Fastest way. No server setup, start in 2 minutes.
+- **[Self-Hosted](#self-hosted)** — Run ShellHub on your own infrastructure with Docker Compose.
+
+Both paths end the same way: installing the agent on a device, accepting it, and connecting via SSH.
+
+---
+
+## ShellHub Cloud
+
+### 1. Create an account
+
+Go to [cloud.shellhub.io](https://cloud.shellhub.io) and sign up. Verify your email when prompted.
+
+After logging in, you'll be asked to create a **namespace** — this is your workspace that groups your devices, team members, and settings.
+
+### 2. Install the agent
+
+In the dashboard, click **Add Device**. You'll get the install script command:
+
+```bash
+$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+Run this on any Linux device you want to manage. The agent installs as a Docker container and connects to ShellHub automatically.
+
+> **Tip:** The agent needs Docker or Podman on the device. For other installation methods (Snap, FreeBSD, Buildroot, Yocto), see [Agent](/v2/docs/agent/overview).
+
+### 3. Accept the device
+
+Back in the dashboard, the device appears with **Pending** status. Click **Accept** to approve it.
+
+### 4. Connect
+
+Click the terminal icon next to the device to open a web SSH session. Enter the device username and password — you're in.
+
+To connect with your own SSH client:
+
+```bash
+$ ssh username@hostname.namespace@cloud.shellhub.io
+```
+
+Replace `username` with the device user, `hostname` with the device name shown in the dashboard, and `namespace` with your namespace name.
+
+You should see the device's shell prompt. If you get a connection error, check that the device status shows **Online** in the dashboard.
+
+**Done.** You now have remote SSH access to your device through ShellHub.
+
+---
+
+## Self-Hosted
+
+### Prerequisites
+
+- Docker Engine 20.10+
+- Docker Compose v2
+- A Linux host with at least 1 GB of RAM
+- Ports 80 and 22 available (configurable)
+
+### 1. Clone the repository
+
+```bash
+$ git clone https://github.com/shellhub-io/shellhub.git
+$ cd shellhub
+```
+
+### 2. Generate keys
+
+ShellHub uses cryptographic keys for device authentication:
+
+```bash
+$ make keygen
+```
+
+### 3. Start the services
+
+```bash
+$ make start
+```
+
+First run pulls container images and takes a few minutes. Once done, all services are running.
+
+### 4. Create your account
+
+Run the setup script to generate a setup URL:
+
+```bash
+$ ./bin/setup
+```
+
+Open the generated URL in your browser. Create your admin account and choose a namespace name.
+
+### 5. Install the agent
+
+In the dashboard, click **Add Device** and copy the install command:
+
+```bash
+$ curl -sSf "http://YOUR_SERVER/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+Run this on the Linux device you want to manage. Replace `YOUR_SERVER` with your ShellHub server's address.
+
+### 6. Accept the device
+
+The device appears with **Pending** status in the dashboard. Click **Accept**.
+
+### 7. Connect
+
+Click the terminal icon to open a web session, or use your SSH client:
+
+```bash
+$ ssh username@hostname.namespace@your-server.com
+```
+
+You should see the device's shell prompt. If you get a connection error, check that the device status shows **Online** in the dashboard.
+
+**Done.** Your self-hosted ShellHub instance is running and your first device is connected.
+
+### Configuration
+
+Customize the deployment with a `.env.override` file in the project root:
+
+```bash
+SHELLHUB_HTTP_PORT=8080
+SHELLHUB_SSH_PORT=2222
+SHELLHUB_DOMAIN=shellhub.example.com
+SHELLHUB_AUTO_SSL=true
+```
+
+See [Configuring](/v2/docs/self-hosted/configuring) for the full reference.
+
+### Stopping
+
+```bash
+$ make stop
+```
+
+Data persists in Docker volumes. Your devices and configuration survive restarts.
+
+---
+
+## Next steps
+
+- [Agent](/v2/docs/agent/overview) — Install the agent on Docker, Snap, FreeBSD, or WSL
+- [Embedded Linux](/v2/docs/embedded-linux/overview) — Embed the agent into Buildroot or Yocto images
+- [FAQ](/v2/docs/getting-started/faq) — Common questions and answers
+- [Connecting to Devices](/v2/docs/guides/connecting) — Web terminal, SSH client, and GUI tools
+- [Self-Hosted Deployment](/v2/docs/self-hosted/deploying) — Production deployment guide

@@ -1,0 +1,92 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: File Transfer
+description: Transfer files to and from devices using SCP and SFTP through ShellHub
+---
+
+# File Transfer
+
+Move files between your workstation and remote devices using standard SCP and SFTP commands. ShellHub routes file transfers through the same gateway as SSH sessions — no extra ports or configuration needed.
+
+## SCP
+
+Copy files using the device's SSHID, the same address you use for SSH.
+
+### Upload a file
+
+```bash
+$ scp file.txt root@myteam.web-server.shellhub.example.com:/tmp/
+```
+
+### Download a file
+
+```bash
+$ scp root@myteam.web-server.shellhub.example.com:/var/log/app.log ./
+```
+
+### Transfer a directory
+
+Use `-r` for recursive transfers:
+
+```bash
+$ scp -r ./deploy root@myteam.web-server.shellhub.example.com:/opt/app/
+```
+
+### Non-default SSH port
+
+If your ShellHub server listens on a different port, use `-P` (uppercase):
+
+```bash
+$ scp -P 2222 file.txt root@myteam.web-server.shellhub.example.com:/tmp/
+```
+
+## SFTP
+
+SFTP provides an interactive file browser with the same SSHID:
+
+```bash
+$ sftp root@myteam.web-server.shellhub.example.com
+sftp> ls /var/log
+sftp> get /var/log/syslog ./syslog.local
+sftp> put config.yaml /etc/app/config.yaml
+sftp> exit
+```
+
+### Common SFTP commands
+
+| Command | Description |
+|---------|-------------|
+| `ls` | List remote files |
+| `cd` | Change remote directory |
+| `get <file>` | Download file |
+| `put <file>` | Upload file |
+| `mkdir <dir>` | Create remote directory |
+| `rm <file>` | Delete remote file |
+
+## rsync
+
+rsync works over SSH, so it works through ShellHub:
+
+```bash
+$ rsync -avz ./project/ root@myteam.web-server.shellhub.example.com:/opt/project/
+```
+
+For non-default ports:
+
+```bash
+$ rsync -avz -e "ssh -p 2222" ./project/ root@myteam.web-server.shellhub.example.com:/opt/project/
+```
+
+## GUI clients
+
+Any SFTP client that supports standard SSH connections works with ShellHub. Set the host to your ShellHub server, the port to your SSH port, and use the SSHID as the username.
+
+Popular clients: FileZilla, WinSCP, Cyberduck, Transmit.
+
+## Troubleshooting
+
+**Permission denied** — Check that the SSH user has write access to the target directory on the device.
+
+**Connection timeout during large transfers** — The transfer goes through the ShellHub tunnel. For very large files, consider compressing before transfer or using rsync with `--partial` for resumable transfers.
+
+**Port mismatch** — SCP uses `-P` (uppercase) for port, while SSH uses `-p` (lowercase). SFTP uses `-P` as well.

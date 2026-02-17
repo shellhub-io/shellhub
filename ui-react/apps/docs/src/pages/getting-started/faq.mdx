@@ -1,0 +1,94 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: FAQ
+description: Frequently asked questions about ShellHub — security, pricing, supported platforms, ports, and VPN comparison
+---
+
+# FAQ
+
+## What is ShellHub?
+
+ShellHub is a centralized SSH gateway for remote access to Linux devices. See the [Introduction](/v2/docs/getting-started/introduction) for a full overview of what it does and how it works.
+
+## Is ShellHub free?
+
+The Community Edition is free and open source (Apache 2.0 license). You can self-host it on your own infrastructure at no cost.
+
+ShellHub Cloud offers a free tier with limited devices. Paid plans are available for larger fleets.
+
+Enterprise pricing is available by contacting the ShellHub team.
+
+## Is it secure?
+
+All connections between the agent and the ShellHub server are encrypted over HTTPS/WSS (TLS). SSH sessions are end-to-end encrypted using standard SSH protocol encryption.
+
+ShellHub supports public key authentication, firewall rules, multi-factor authentication, and audit logging to help enforce your security policies.
+
+The agent connects outbound from the device — no inbound ports need to be opened, reducing the attack surface.
+
+## Which Linux distributions are supported?
+
+The agent runs on any Linux distribution. The default installation method uses Docker, which works on Ubuntu, Debian, CentOS, Fedora, Alpine, Arch, and any distro with Docker or Podman installed.
+
+Native packages are available for:
+- **Snap** — Ubuntu, Ubuntu Core, and other Snap-enabled distros
+- **FreeBSD** — Via the ports collection
+- **Buildroot** — Custom embedded Linux images
+- **Yocto** — Custom embedded Linux images via meta-shellhub layer
+- **WSL** — Windows Subsystem for Linux
+
+You can also [build from source](/v2/docs/developers/agent-development) for any platform with Go 1.24+.
+
+## Which architectures does the agent support?
+
+The Docker-based agent supports:
+- `amd64` (x86_64)
+- `arm64` (aarch64)
+- `armv7` (32-bit ARM, e.g. Raspberry Pi 3/4 with 32-bit OS)
+- `armv6` (e.g. Raspberry Pi Zero)
+
+## Can I self-host ShellHub?
+
+Yes. The Community Edition is fully self-hosted using Docker Compose. See the [Quick Start](/v2/docs/getting-started/quick-start#self-hosted) for setup instructions.
+
+The Enterprise Edition can also be self-hosted with additional features and support.
+
+## What ports does ShellHub need?
+
+Server: TCP 80/443 (web + API) and TCP 22 (SSH, configurable). Device agent: outbound HTTPS only, no inbound ports. See [Network requirements](/v2/docs/getting-started/how-it-works#network-requirements) for details.
+
+## Can I use my existing SSH keys?
+
+Yes. Upload your SSH public keys to ShellHub and use them to authenticate. You can scope keys by username, hostname, or device tag.
+
+```bash
+$ ssh -i ~/.ssh/id_ed25519 root@device.namespace@cloud.shellhub.io
+```
+
+## What's the difference between ShellHub and a VPN?
+
+A VPN creates a network tunnel between your machine and a remote network. ShellHub provides SSH access to specific devices without creating a full network tunnel.
+
+Key differences:
+
+| | ShellHub | VPN |
+|---|---|---|
+| Setup per device | Install agent (1 command) | Configure VPN client and server |
+| Network changes | None — outbound HTTPS only | Often requires firewall and routing changes |
+| Access scope | SSH to specific devices | Full network access |
+| Works behind CGNAT | Yes | Often no |
+| Audit logging | Built-in | Requires separate tooling |
+
+ShellHub is not a replacement for a VPN if you need full network-level access. It's purpose-built for SSH access to devices.
+
+## How do I update the agent?
+
+If you installed the agent via Docker (the default method), the agent container updates automatically when you re-run the install command. For Snap installations, use `sudo snap refresh shellhub`. For other methods, pull the latest source and rebuild.
+
+For self-hosted server updates, see the [Upgrading](/v2/docs/self-hosted/upgrading) guide.
+
+## Where can I get help?
+
+- **GitHub Issues** — [github.com/shellhub-io/shellhub/issues](https://github.com/shellhub-io/shellhub/issues)
+- **GitHub Discussions** — [github.com/shellhub-io/shellhub/discussions](https://github.com/shellhub-io/shellhub/discussions)
+- **Enterprise support** — Contact the ShellHub team for priority support

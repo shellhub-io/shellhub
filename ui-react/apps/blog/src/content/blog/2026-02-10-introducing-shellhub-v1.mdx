@@ -1,0 +1,65 @@
+---
+title: "Introducing ShellHub v1.0: A New Era for Remote Device Access"
+description: "After years of development, we're thrilled to announce ShellHub v1.0 — a production-ready platform for centralized SSH access to your Linux devices."
+author: "Gustavo Sampaio"
+authorRole: "Creator & Lead Developer"
+date: 2026-02-10
+categories:
+  - product
+tags:
+  - release
+  - ssh
+ogTagline: "The Future of Remote Access"
+ogIcons:
+  - cloud
+  - ssh
+  - shield
+---
+
+## A Long Journey
+
+ShellHub started as a simple idea: what if you could SSH into any Linux device, anywhere, without worrying about firewalls, NATs, or VPNs?
+
+Today, that idea is a reality. ShellHub v1.0 is the culmination of years of work by our team and community.
+
+## What's New in v1.0
+
+### Production-Ready Stability
+
+We've hardened every component of the platform. The gateway, API, SSH server, and agent have all been battle-tested in production environments managing thousands of devices.
+
+### Enhanced Security
+
+- **Public key authentication** with centralized key management
+- **Firewall rules** to control who can access which devices
+- **Session recording** for audit trails
+- **MFA support** for an extra layer of security
+
+### Improved Performance
+
+The new connection multiplexing in the SSH gateway reduces latency by up to 40% compared to previous versions. File transfers are also significantly faster thanks to optimized buffering.
+
+## Getting Started
+
+Getting started with ShellHub is straightforward:
+
+```bash
+curl -sSf https://cloud.shellhub.io/install.sh | sh
+```
+
+Or if you prefer self-hosted:
+
+```bash
+docker compose up -d
+```
+
+## What's Next
+
+We have an exciting roadmap ahead:
+
+- **Web terminal improvements** with better rendering and copy/paste
+- **API v2** with GraphQL support
+- **Kubernetes operator** for cloud-native deployments
+- **Plugin system** for extending ShellHub functionality
+
+Thank you to everyone who contributed to making this release possible. We couldn't have done it without our amazing community.

@@ -1,0 +1,81 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: VS Code Remote SSH
+description: Use VS Code Remote SSH to develop directly on ShellHub-connected devices
+---
+
+# VS Code Remote SSH
+
+Develop directly on your remote devices using VS Code's Remote - SSH extension. Edit files, run terminals, debug applications, and use extensions — all running on the remote device through ShellHub.
+
+## Prerequisites
+
+- [VS Code](https://code.visualstudio.com/) with the [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) extension installed
+- An SSH key uploaded to ShellHub (see [Public Keys](/v2/docs/guides/public-keys))
+- A device connected and accepted in ShellHub
+
+## SSH config
+
+Add your ShellHub devices to your SSH config file (`~/.ssh/config`):
+
+```
+Host my-device
+    HostName cloud.shellhub.io
+    User root@device-name.my-namespace
+    IdentityFile ~/.ssh/id_ed25519
+    Port 22
+```
+
+Replace:
+- `my-device` — A friendly name for this connection (shown in VS Code)
+- `root` — The SSH username on the device
+- `device-name.my-namespace` — The device's SSHID (hostname + namespace)
+- `cloud.shellhub.io` — Your ShellHub server address
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
+
+## Connecting
+
+1. Open VS Code
+2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) and type **Remote-SSH: Connect to Host**
+3. Select `my-device` from the list
+4. VS Code opens a new window connected to the remote device
+
+You can now open folders, edit files, run the integrated terminal, and install extensions that run on the device.
+
+## Multiple devices
+
+Add one entry per device in your SSH config:
+
+```
+Host edge-gateway
+    HostName cloud.shellhub.io
+    User admin@gateway.production
+    IdentityFile ~/.ssh/id_ed25519
+
+Host dev-board
+    HostName cloud.shellhub.io
+    User root@rpi4.lab
+    IdentityFile ~/.ssh/id_ed25519
+```
+
+All devices appear in VS Code's Remote Explorer panel for quick access.
+
+## Port forwarding
+
+VS Code automatically forwards ports when you run servers on the remote device. If you start a web server on port 3000, VS Code detects it and offers to open it in your local browser.
+
+This works through the SSH tunnel — no additional configuration in ShellHub is needed.
+
+## Tips
+
+- **Extensions**: Install language servers, linters, and debuggers on the remote side. VS Code handles the separation between local (UI) and remote (workspace) extensions automatically.
+- **Settings sync**: Your VS Code settings sync across local and remote sessions.
+- **Terminal**: The integrated terminal runs on the remote device. Use it for builds, tests, and shell commands.
+- **Workspace trust**: VS Code prompts you to trust the remote workspace on first connection. This is a VS Code security feature, not a ShellHub limitation.
+
+## Next steps
+
+- [Public Keys](/v2/docs/guides/public-keys) — Set up SSH key authentication
+- [Connecting](/v2/docs/guides/connecting) — SSH connection details and SSHID format
+- [Devices](/v2/docs/guides/devices) — Manage your connected devices

@@ -1,0 +1,318 @@
+---
+import "../styles/global.css";
+import { Footer } from "@shellhub/design-system/components";
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+
+function readingTime(body: string): string {
+  const words = body.split(/\s+/).length;
+  const mins = Math.ceil(words / 230);
+  return `${mins} min read`;
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const shareUrl = `https://shellhub.io/v2/blog/${post.id}`;
+const shareTitle = post.data.title;
+const ogImage = post.data.image || `/v2/blog/og/${post.id}.png`;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{post.data.title} — ShellHub Blog</title>
+    <meta name="description" content={post.data.description} />
+    <link rel="icon" type="image/x-icon" href="/v2/blog/favicon.ico" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={post.data.title} />
+    <meta property="og:description" content={post.data.description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content={ogImage} />
+  </head>
+  <body>
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-50 h-14 bg-background/40 backdrop-blur-xl border-b border-border shadow-lg shadow-black/10"
+    >
+      <div
+        class="flex items-center justify-between h-full max-w-7xl mx-auto px-8"
+      >
+        <div class="flex items-center gap-3">
+          <a href="/v2/" class="flex items-center shrink-0">
+            <img src="/v2/blog/logo-inverted.png" alt="ShellHub" class="h-9" />
+          </a>
+          <a
+            href="/v2/blog/"
+            class="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary bg-primary-50 border border-primary-100 rounded px-2 py-0.5 no-underline hover:bg-primary-100 transition-colors"
+          >
+            Blog
+          </a>
+        </div>
+        <div class="flex items-center gap-3">
+          <a
+            href="/v2/docs/"
+            class="text-[13px] text-text-secondary hover:text-text-primary transition-colors"
+            >Docs</a
+          >
+          <a
+            href="https://github.com/shellhub-io/shellhub"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-text-muted hover:text-text-secondary transition-colors flex items-center"
+          >
+            <svg viewBox="0 0 24 24" class="w-[18px] h-[18px] fill-current"
+              ><path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+              ></path></svg
+            >
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Article -->
+    <main class="max-w-7xl mx-auto px-8 pt-10 pb-24">
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-16">
+        <!-- Content column -->
+        <article class="max-w-[720px]">
+          <!-- Back -->
+          <a
+            href="/v2/blog/"
+            class="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors mb-8 group"
+          >
+            <svg
+              class="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform duration-200"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
+            </svg>
+            Back
+          </a>
+
+          <!-- Post header -->
+          <header class="mb-10">
+            <!-- Categories -->
+            {
+              post.data.categories.length > 0 && (
+                <div class="flex items-center gap-2 mb-4">
+                  {post.data.categories.map((cat: string) => (
+                    <span class="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              )
+            }
+
+            <h1
+              class="text-[2rem] sm:text-[2.5rem] font-bold tracking-[-0.03em] leading-[1.15] text-text-primary mb-4"
+            >
+              {post.data.title}
+            </h1>
+
+            <div class="flex items-center gap-3 mb-6">
+              <time class="font-mono text-xs text-text-muted">
+                {formatDate(post.data.date)}
+              </time>
+              <span class="text-text-muted/40">&bull;</span>
+              <span class="font-mono text-xs text-text-muted">
+                {readingTime(post.body ?? "")}
+              </span>
+            </div>
+
+            <!-- Author -->
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center"
+              >
+                <span class="text-sm font-semibold text-primary">
+                  {post.data.author
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")}
+                </span>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-text-primary leading-none">
+                  {post.data.author}
+                </p>
+                {
+                  post.data.authorRole && (
+                    <p class="text-xs text-text-muted mt-1">
+                      {post.data.authorRole}
+                    </p>
+                  )
+                }
+              </div>
+            </div>
+          </header>
+
+          <!-- Cover image -->
+          <div class="mb-12 rounded-xl overflow-hidden border border-border">
+            <img
+              src={ogImage}
+              alt={post.data.title}
+              class="w-full"
+            />
+          </div>
+
+          <!-- Content -->
+          <div class="prose">
+            <Content />
+          </div>
+
+          <!-- Post footer divider -->
+          <div class="border-t border-border mt-16 pt-8">
+            <a
+              href="/v2/blog/"
+              class="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-primary transition-colors group"
+            >
+              <svg
+                class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
+              </svg>
+              Back to all posts
+            </a>
+          </div>
+        </article>
+
+        <!-- Sidebar (TOC + Share) -->
+        <aside class="hidden lg:block">
+          <div class="sticky top-20">
+            <!-- Table of contents -->
+            {
+              tocHeadings.length > 0 && (
+                <nav class="mb-10">
+                  <h4 class="font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-4">
+                    On this page
+                  </h4>
+                  <div class="flex flex-col gap-0.5" id="toc">
+                    {tocHeadings.map((h) => (
+                      <a
+                        href={`#${h.slug}`}
+                        class={`toc-link${h.depth === 3 ? " toc-link--sub" : ""}`}
+                        data-slug={h.slug}
+                      >
+                        {h.text}
+                      </a>
+                    ))}
+                  </div>
+                </nav>
+              )
+            }
+
+            <!-- Share -->
+            <div>
+              <h4
+                class="font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-4"
+              >
+                Share this article
+              </h4>
+              <div class="flex items-center gap-3">
+                <!-- X/Twitter -->
+                <a
+                  href={`https://x.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-text-muted hover:text-text-secondary transition-colors"
+                  title="Share on X"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                    ></path>
+                  </svg>
+                </a>
+
+                <!-- LinkedIn -->
+                <a
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-text-muted hover:text-text-secondary transition-colors"
+                  title="Share on LinkedIn"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                    ></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <Footer />
+
+    <!-- TOC active state script -->
+    <script>
+      const tocLinks = document.querySelectorAll(".toc-link");
+      if (tocLinks.length > 0) {
+        const headings = Array.from(tocLinks).map((link) => {
+          const slug = (link as HTMLElement).dataset.slug;
+          return document.getElementById(slug!);
+        });
+
+        function updateActive() {
+          let current = 0;
+          headings.forEach((h, i) => {
+            if (h && h.getBoundingClientRect().top <= 100) {
+              current = i;
+            }
+          });
+          tocLinks.forEach((link, i) => {
+            link.classList.toggle("toc-link--active", i === current);
+          });
+        }
+
+        window.addEventListener("scroll", updateActive, { passive: true });
+        updateActive();
+      }
+    </script>
+  </body>
+</html>

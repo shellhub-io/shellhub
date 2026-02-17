@@ -1,0 +1,65 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Namespaces
+description: Isolated workspaces that contain your devices, sessions, keys, and team
+---
+
+# Namespaces
+
+A namespace is an isolated workspace. Each one has its own devices, SSH keys, firewall rules, sessions, and team members. Everything in ShellHub lives inside a namespace.
+
+Use namespaces to separate environments, projects, teams, or customers on a single ShellHub server.
+
+## Creating a namespace
+
+Your first namespace is created when you set up ShellHub. To create additional namespaces:
+
+1. Click the namespace selector in the dashboard header
+2. Select **Create Namespace**
+3. Pick a name — lowercase letters, numbers, and hyphens
+
+> Pick a short name. It becomes part of every device's SSH address.
+
+## Switching namespaces
+
+Click the namespace selector in the header to see all namespaces you belong to. Select one to switch — the dashboard, devices, sessions, and all other pages update to show that namespace's data.
+
+## What's inside a namespace
+
+| Resource | Scoped to namespace? |
+|----------|---------------------|
+| Devices | Yes — each device belongs to one namespace |
+| Sessions | Yes — session history is per namespace |
+| Public keys | Yes — keys are scoped to the namespace |
+| Firewall rules | Yes — rules apply within the namespace |
+| Tags | Yes — tags exist within a namespace |
+| Web endpoints | Yes — endpoints are per namespace |
+| Team members | Yes — members and roles are per namespace |
+| Settings | Yes — recording, announcements, MFA are per namespace |
+
+A user can be a member of multiple namespaces with different roles in each.
+
+## Namespace in SSHIDs
+
+The namespace is part of every device's SSHID:
+
+```
+<username>@<namespace>.<device-name>.<server>
+```
+
+For example:
+
+```bash
+$ ssh root@myteam.web-server.shellhub.example.com
+```
+
+Here `myteam` is the namespace. Your team will type it in every SSH command, so keep it short and descriptive.
+
+## Deleting a namespace
+
+Only the owner can delete a namespace. This permanently removes all devices, keys, firewall rules, session history, and member access. The action is irreversible.
+
+## Next steps
+
+- [Team](/v2/docs/guides/team) — Manage members, roles, and API keys
+- [Settings](/v2/docs/guides/settings) — Configure session recording, announcements, and MFA

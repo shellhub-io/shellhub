@@ -1,0 +1,41 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Tags
+description: Organize and filter devices with tags
+---
+
+# Tags
+
+Tags are labels you assign to devices to organize your fleet. Use them to group by environment, location, role, or anything that fits your workflow.
+
+## Assigning tags
+
+Open a device's details page and add tags in the tag field. Each device supports up to 3 tags. Tag names can contain lowercase letters, numbers, and hyphens.
+
+## Filtering
+
+On the **Devices** page, click a tag to filter the list. Combine tags for more specific views.
+
+## Tags + public keys
+
+Tags are especially useful with [public key authentication](/v2/docs/guides/public-keys). When you create a public key, you can restrict it to devices with specific tags.
+
+For example:
+
+- Tag production servers with `production`, staging with `staging`
+- Create a deploy key filtered to `production` — it only works on production devices
+- Create a dev key filtered to `staging` — it only works on staging devices
+
+This gives you environment-level access control without managing individual device permissions.
+
+## Common patterns
+
+| Tags | Purpose |
+|------|---------|
+| `production`, `staging`, `dev` | Environment separation |
+| `us-east`, `eu-west` | Geographic location |
+| `web`, `database`, `worker` | Server role |
+
+## Managing tags
+
+Tags can be added or removed at any time without affecting device connectivity. Removing a tag immediately updates any public key filters that reference it.

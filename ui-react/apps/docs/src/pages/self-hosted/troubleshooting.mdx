@@ -1,0 +1,130 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Troubleshooting
+description: Fix common issues with self-hosted ShellHub deployments
+---
+
+# Troubleshooting
+
+## Checking service status
+
+Verify all services are running:
+
+```bash
+$ ./bin/docker-compose ps
+```
+
+All services should show `Up` status. If a service is restarting or exited, check its logs.
+
+## Viewing logs
+
+```bash
+$ ./bin/docker-compose logs -f          # All services (follow mode)
+$ ./bin/docker-compose logs api         # API service
+$ ./bin/docker-compose logs ssh         # SSH service
+$ ./bin/docker-compose logs gateway     # Gateway/nginx
+```
+
+## Common issues
+
+### Port 22 is already in use
+
+The host's SSH daemon (sshd) is using port 22. Options:
+
+**Option A:** Change ShellHub's SSH port:
+
+```bash
+# .env.override
+SHELLHUB_SSH_PORT=2222
+```
+
+Then restart: `make restart`
+
+Users connect with: `ssh -p 2222 user@device.namespace@your-server.com`
+
+**Option B:** Move the host's SSH to a different port. Edit `/etc/ssh/sshd_config`:
+
+```
+Port 2222
+```
+
+Restart sshd, then ShellHub can use port 22.
+
+### Port 80 is already in use
+
+Another web server (Apache, nginx) is using port 80. Options:
+
+**Option A:** Change ShellHub's HTTP port:
+
+```bash
+# .env.override
+SHELLHUB_HTTP_PORT=8080
+```
+
+**Option B:** Stop the conflicting service and let ShellHub handle HTTP.
+
+**Option C:** Run ShellHub behind the existing reverse proxy. See [Configuration](/v2/docs/self-hosted/configuring).
+
+### Devices not connecting
+
+Common causes: wrong server address in the agent config, DNS resolution failure, or a firewall blocking outbound traffic.
+
+1. Check the agent logs on the device itself
+2. Verify the device can reach your ShellHub server on the configured HTTP port (default: 80, or 443 if using auto-SSL)
+3. Confirm the tenant ID in the agent config matches your namespace
+4. Make sure the agent service is running: `docker ps | grep shellhub-agent`
+5. Test connectivity from the device: `curl http://your-server/api/info`
+
+### Web dashboard not loading
+
+1. Check the gateway logs: `./bin/docker-compose logs gateway`
+2. Verify the API is healthy: `curl http://localhost/api/info`
+3. Check if all services are up: `./bin/docker-compose ps`
+
+### Container keeps restarting
+
+1. Check the container's logs: `./bin/docker-compose logs <service>`
+2. Check available memory: `free -h` — ShellHub needs at least 1 GB of RAM
+3. Check disk space: `df -h` — Docker and MongoDB both need free disk space
+4. Look for port conflicts: another process may be binding the same port
+
+### Forgot admin password
+
+Reset it with the CLI:
+
+```bash
+$ ./bin/cli user password <username> <new-password>
+```
+
+See [Administration](/v2/docs/self-hosted/administration) for more CLI commands.
+
+### Database connection errors
+
+**MongoDB:**
+
+1. Check logs: `./bin/docker-compose logs mongo`
+2. Verify the container is running: `./bin/docker-compose ps mongo`
+3. Check disk space — MongoDB needs free space for its journal files
+
+**PostgreSQL** (if using `SHELLHUB_DATABASE=postgres`):
+
+1. Check logs: `./bin/docker-compose logs postgres`
+2. Verify the container is running: `./bin/docker-compose ps postgres`
+3. Confirm credentials in `.env.override` match what PostgreSQL expects
+
+### SSL certificate issues
+
+If using auto-SSL (Let's Encrypt):
+
+1. Verify `SHELLHUB_DOMAIN` is set correctly
+2. Make sure ports 80 and 443 are accessible from the internet
+3. Check gateway logs for ACME errors: `./bin/docker-compose logs gateway | grep -i acme`
+4. Let's Encrypt has [rate limits](https://letsencrypt.org/docs/rate-limits/) — if you've hit them, wait before retrying
+
+## Getting help
+
+If the issue persists:
+
+- **GitHub Issues** — [github.com/shellhub-io/shellhub/issues](https://github.com/shellhub-io/shellhub/issues)
+- **GitHub Discussions** — [github.com/shellhub-io/shellhub/discussions](https://github.com/shellhub-io/shellhub/discussions)
+- **Enterprise support** — [ShellHub Enterprise](https://www.shellhub.io) customers get priority assistance

@@ -1,0 +1,54 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Container Access
+description: SSH into Docker containers running on your devices through ShellHub
+---
+
+# Container Access
+
+ShellHub lets you SSH directly into Docker containers running on your devices. The agent detects running containers and exposes them as accessible targets — you connect to a container the same way you connect to a device.
+
+## How it works
+
+When the ShellHub agent runs on a host with Docker, it can detect running containers and register them alongside the host device. Each container gets its own SSHID, so you can connect to it directly through the ShellHub gateway.
+
+The connection path:
+
+```
+You → ShellHub Gateway → Agent (on host) → Docker exec → Container shell
+```
+
+No SSH server needs to run inside the container. The agent handles the bridge between the SSH session and the container's shell.
+
+## Connecting to a container
+
+Use the container's SSHID just like a regular device:
+
+```bash
+$ ssh root@myteam.my-container.shellhub.example.com
+```
+
+From the web dashboard, containers appear on the **Containers** page with a terminal icon for web-based access.
+
+## Container visibility
+
+The agent lists containers that are:
+
+- **Running** — Stopped or paused containers are not shown
+- **On the same Docker host** — The agent only sees containers on the machine where it's installed
+
+When a container starts or stops, the agent updates ShellHub automatically.
+
+## Use cases
+
+**Debug a running service** — Drop into a production container to inspect logs, check config files, or run diagnostic commands without redeploying.
+
+**Access isolated environments** — Reach containers that have no exposed ports and no SSH server installed.
+
+**Audit container access** — All container SSH sessions are logged the same way as device sessions, with full audit trail and optional [session recording](/v2/docs/guides/session-recording).
+
+## Limitations
+
+- The ShellHub agent must run on the Docker host, not inside the container
+- Container access requires Docker to be installed and the Docker socket accessible to the agent
+- If a container is recreated (new container ID), it appears as a new entry

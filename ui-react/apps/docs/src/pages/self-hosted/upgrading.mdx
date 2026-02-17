@@ -1,0 +1,85 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Upgrade
+description: Update your self-hosted ShellHub instance to the latest version
+---
+
+# Upgrade
+
+## Before upgrading
+
+1. **Back up your database** — See [Administration](/v2/docs/self-hosted/administration#backups) for backup instructions
+2. **Check the release notes** — Look for breaking changes at [github.com/shellhub-io/shellhub/releases](https://github.com/shellhub-io/shellhub/releases)
+3. **Plan for brief downtime** — The upgrade restarts all services, typically under 2 minutes
+
+## Community Edition
+
+### 1. Stop the services
+
+```bash
+$ make stop
+```
+
+### 2. Pull the latest version
+
+```bash
+$ git fetch origin
+$ git checkout v<VERSION>
+```
+
+Replace `<VERSION>` with the target version tag (e.g., `v0.16.0`).
+
+### 3. Start the services
+
+```bash
+$ make start
+```
+
+Docker pulls the new container images automatically. Database migrations run on startup.
+
+### 4. Verify the upgrade
+
+```bash
+$ ./bin/docker-compose ps
+```
+
+All services should show `Up` status.
+
+## Enterprise Edition
+
+### 1. Authenticate with the Docker registry
+
+Enterprise images are hosted in a private registry. Log in with the credentials provided with your Enterprise license:
+
+```bash
+$ docker login registry.shellhub.io
+```
+
+### 2. Stop, pull, and start
+
+```bash
+$ make stop
+$ git fetch origin
+$ git checkout v<VERSION>
+$ make start
+```
+
+> **Note:** If this is your first Enterprise upgrade, make sure `.env.override` includes `SHELLHUB_ENTERPRISE=true`.
+
+## Rolling back
+
+If something goes wrong, restore the previous version:
+
+```bash
+$ make stop
+$ git checkout v<PREVIOUS_VERSION>
+$ make start
+```
+
+If migrations ran, restore the database backup first — migrations are forward-only.
+
+> **Warning:** Always back up before upgrading. Database migrations are not reversible without a backup.
+
+## Next steps
+
+- [Troubleshooting](/v2/docs/self-hosted/troubleshooting) — Fix common issues after upgrading

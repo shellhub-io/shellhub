@@ -1,0 +1,123 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: FreeBSD
+description: Install the ShellHub agent on FreeBSD using the ShellHub ports repository
+---
+
+# FreeBSD
+
+Install the ShellHub agent on FreeBSD by building from the ShellHub ports repository. The port compiles the agent from source using Go and installs it as an rc.d service.
+
+> **Note:** The ShellHub port is maintained at [github.com/shellhub-io/ports](https://github.com/shellhub-io/ports), not in the official FreeBSD ports tree. There is no `pkg install` binary package — you must build from source.
+
+## Prerequisites
+
+- FreeBSD 13.0 or later
+- Internet access to download the source tarball and Go toolchain
+
+The port's `USES= go` directive pulls Go automatically as a build dependency.
+
+## Installation
+
+### 1. Clone the ShellHub ports repository
+
+```bash
+$ git clone https://github.com/shellhub-io/ports.git /usr/local/shellhub-ports
+```
+
+### 2. Build and install
+
+```bash
+$ cd /usr/local/shellhub-ports/shellhub
+$ make install clean
+```
+
+This downloads the agent source from the ShellHub GitHub release, compiles it with Go, and installs the binary to `/usr/local/bin/shellhub`.
+
+## Configuration
+
+Enable the agent and set the required variables in `/etc/rc.conf`:
+
+```bash
+shellhub_enable="YES"
+shellhub_server_address="https://cloud.shellhub.io"
+shellhub_tenant_id="YOUR_TENANT_ID"
+```
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
+
+### All rc.conf variables
+
+| Variable | Required | Default | Description |
+|----------|:--------:|---------|-------------|
+| `shellhub_enable` | Yes | `NO` | Enable the ShellHub agent service |
+| `shellhub_server_address` | Yes | — | ShellHub server URL |
+| `shellhub_tenant_id` | Yes | — | Your namespace's tenant ID |
+| `shellhub_private_key` | No | `/usr/local/etc/shellhub.key` | Path to the agent's identity key |
+
+The agent generates a private key on first run and stores it at the `shellhub_private_key` path. This key identifies the device — if you delete it, the device re-registers as a new entry in the dashboard.
+
+## Managing the service
+
+```bash
+$ service shellhub start     # Start the agent
+$ service shellhub stop      # Stop the agent
+$ service shellhub restart   # Restart the agent
+$ service shellhub status    # Check if the agent is running
+```
+
+The service starts after the DAEMON stage and before LOGIN, so the agent is available before users log in.
+
+## File locations
+
+| File | Path |
+|------|------|
+| Binary | `/usr/local/bin/shellhub` |
+| Private key | `/usr/local/etc/shellhub.key` |
+| PID file | `/var/run/shellhub.pid` |
+| Log output | `/var/log/shellhub.log` |
+
+## Verifying
+
+After starting the service, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+
+If the device doesn't appear, check the logs:
+
+```bash
+$ cat /var/log/shellhub.log
+```
+
+Common issues:
+
+- **Agent fails to start** — Verify that both `shellhub_server_address` and `shellhub_tenant_id` are set in `/etc/rc.conf`. The rc.d script validates these on startup and exits with an error if either is missing.
+- **Connection refused** — Make sure the server address includes the protocol (`https://`). Confirm outbound HTTPS (port 443) is allowed by your firewall.
+- **Device re-registers after reboot** — The private key file may not be persisting. Check that `/usr/local/etc/shellhub.key` exists and is on a persistent filesystem.
+
+## Updating
+
+Pull the latest port and rebuild:
+
+```bash
+$ cd /usr/local/shellhub-ports
+$ git pull
+$ cd shellhub
+$ make deinstall
+$ make install clean
+$ service shellhub restart
+```
+
+## Supported architectures
+
+The agent compiles on any architecture supported by Go on FreeBSD:
+
+- `amd64`
+- `arm64`
+- `arm`
+- `386`
+- `riscv64`
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — How the agent works and configuration reference
+- [Connecting](/v2/docs/guides/connecting) — Access your FreeBSD device via SSH through ShellHub
+- [Quick Start](/v2/docs/getting-started/quick-start) — Full setup walkthrough

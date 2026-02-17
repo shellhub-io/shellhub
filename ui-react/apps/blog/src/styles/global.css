@@ -1,0 +1,236 @@
+@import "@shellhub/design-system/css/base.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ══════════════════════════════════════
+   Prose — Blog Content Styling
+   ══════════════════════════════════════ */
+
+.prose {
+  color: #C4C8D4;
+  line-height: 1.8;
+}
+
+.prose > *:first-child {
+  margin-top: 0 !important;
+}
+
+/* Headings */
+
+.prose h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #E1E4EA;
+  margin: 56px 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2C2F36;
+  scroll-margin-top: 5rem;
+}
+
+.prose h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #E1E4EA;
+  margin: 40px 0 14px 0;
+  scroll-margin-top: 5rem;
+}
+
+.prose h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #8B8F99;
+  margin: 28px 0 10px 0;
+  scroll-margin-top: 5rem;
+}
+
+/* Body */
+
+.prose p {
+  font-size: 16px;
+  line-height: 1.85;
+  color: #9DA1AD;
+  margin-bottom: 20px;
+}
+
+.prose strong {
+  color: #E1E4EA;
+  font-weight: 600;
+}
+
+/* Links */
+
+.prose a {
+  color: #667ACC;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(102, 122, 204, 0.25);
+  transition: all 0.15s;
+}
+
+.prose a:hover {
+  color: #8B9EDD;
+  border-bottom-color: #667ACC;
+}
+
+/* Inline code */
+
+.prose code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13.5px;
+  background: rgba(78, 154, 163, 0.08);
+  border: 1px solid rgba(78, 154, 163, 0.12);
+  border-radius: 4px;
+  padding: 2px 7px;
+  color: #4e9aa3;
+}
+
+/* Code blocks */
+
+.prose pre {
+  position: relative;
+  background: #111214;
+  border: 1px solid #2C2F36;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin: 24px 0;
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #C4C8D4;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+/* Lists */
+
+.prose ul {
+  margin-bottom: 20px;
+  padding-left: 24px;
+}
+
+.prose ul li {
+  font-size: 16px;
+  color: #9DA1AD;
+  line-height: 1.85;
+  list-style-type: disc;
+  margin-bottom: 6px;
+}
+
+.prose ul li::marker {
+  color: #667ACC;
+}
+
+.prose ol {
+  margin-bottom: 20px;
+  padding-left: 24px;
+}
+
+.prose ol li {
+  font-size: 16px;
+  color: #9DA1AD;
+  line-height: 1.85;
+  list-style-type: decimal;
+  margin-bottom: 6px;
+}
+
+.prose ol li::marker {
+  color: #667ACC;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+}
+
+/* Blockquotes */
+
+.prose blockquote {
+  border-left: 2px solid rgba(102, 122, 204, 0.35);
+  padding: 4px 20px;
+  margin: 28px 0;
+  color: #8B8F99;
+  font-style: italic;
+}
+
+/* Horizontal rules */
+
+.prose hr {
+  border: none;
+  height: 1px;
+  background: #2C2F36;
+  margin: 48px 0;
+}
+
+/* Images */
+
+.prose img {
+  border-radius: 10px;
+  border: 1px solid #2C2F36;
+  margin: 28px 0;
+}
+
+/* ══════════════════════════════════════
+   TOC Links
+   ══════════════════════════════════════ */
+
+.toc-link {
+  display: block;
+  font-size: 12.5px;
+  color: #5C6070;
+  text-decoration: none;
+  padding: 4px 0 4px 14px;
+  border-left: 1px solid #2C2F36;
+  transition: all 0.15s;
+}
+
+.toc-link:hover {
+  color: #8B8F99;
+}
+
+.toc-link--sub {
+  padding-left: 28px;
+  font-size: 12px;
+}
+
+.toc-link--active {
+  color: #667ACC;
+  border-left-color: #667ACC;
+}
+
+/* ══════════════════════════════════════
+   Animations
+   ══════════════════════════════════════ */
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out both;
+}
+
+/* Staggered children */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 50ms; }
+.stagger > *:nth-child(3) { animation-delay: 100ms; }
+.stagger > *:nth-child(4) { animation-delay: 150ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(6) { animation-delay: 250ms; }
+.stagger > *:nth-child(7) { animation-delay: 300ms; }
+.stagger > *:nth-child(8) { animation-delay: 350ms; }
+.stagger > *:nth-child(9) { animation-delay: 400ms; }
+.stagger > *:nth-child(10) { animation-delay: 450ms; }

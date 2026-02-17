@@ -1,0 +1,95 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: CI/CD Pipelines
+description: Deploy to ShellHub devices from GitHub Actions, GitLab CI, and other CI/CD systems
+---
+
+# CI/CD Pipelines
+
+Deploy code, run commands, or provision devices from your CI/CD pipeline. ShellHub provides standard SSH access, so any pipeline that supports SSH can reach your devices.
+
+## How it works
+
+1. Store an SSH private key as a CI/CD secret
+2. Upload the corresponding public key to ShellHub (scoped to the target devices)
+3. Use `ssh` or `scp` in your pipeline to connect through the ShellHub gateway
+
+The gateway acts as an SSH proxy — your pipeline connects to the gateway, which routes the session to the target device through the agent's reverse tunnel.
+
+## GitHub Actions
+
+```yaml
+name: Deploy to device
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p 22 cloud.shellhub.io >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        run: |
+          ssh root@web-server.my-namespace@cloud.shellhub.io \
+              "cd /app && git pull && systemctl restart myapp"
+```
+
+### Copying files
+
+```yaml
+      - name: Upload build artifacts
+        run: |
+          scp ./dist/app.tar.gz \
+              root@web-server.my-namespace@cloud.shellhub.io:/tmp/
+```
+
+## GitLab CI
+
+```yaml
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -p 22 cloud.shellhub.io >> ~/.ssh/known_hosts
+  script:
+    - ssh root@web-server.my-namespace@cloud.shellhub.io "cd /app && git pull && systemctl restart myapp"
+  only:
+    - main
+```
+
+## Other CI/CD systems
+
+Any system that can run SSH commands works with ShellHub. The pattern is always the same:
+
+1. Install an SSH client in the build environment
+2. Write the private key from a secret/variable to `~/.ssh/`
+3. Connect using the ShellHub SSHID format: `user@device.namespace@gateway`
+
+This works with Jenkins, CircleCI, Drone, Bitbucket Pipelines, Azure DevOps, and any other CI/CD tool.
+
+## Best practices
+
+- **Use dedicated keys** — Create an SSH key pair specifically for CI/CD. Don't reuse personal keys.
+- **Scope keys narrowly** — In ShellHub, scope the public key to only the devices and usernames your pipeline needs.
+- **Use device tags** — Tag devices by environment (`production`, `staging`) and scope keys to tags rather than individual devices.
+- **Rotate keys regularly** — Replace CI/CD keys on a schedule. ShellHub makes this easy since you manage keys centrally.
+- **Verify host keys** — Use `ssh-keyscan` to add the gateway's host key and enable `StrictHostKeyChecking` in production pipelines.
+
+## Next steps
+
+- [Public Keys](/v2/docs/guides/public-keys) — Set up and scope SSH keys
+- [Tags](/v2/docs/guides/tags) — Organize devices by environment
+- [Connecting](/v2/docs/guides/connecting) — SSH connection details and SSHID format

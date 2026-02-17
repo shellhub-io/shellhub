@@ -1,0 +1,12 @@
+{
+  "name": "@shellhub/design-system",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./tailwind.preset": "./tailwind.preset.js",
+    "./css/base.css": "./css/base.css",
+    "./components": "./components/index.ts",
+    "./constants": "./constants.ts"
+  }
+}

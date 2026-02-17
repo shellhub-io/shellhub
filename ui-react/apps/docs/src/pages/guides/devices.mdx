@@ -1,0 +1,71 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Device Management
+description: Monitor and manage your fleet of Linux devices
+---
+
+# Device Management
+
+Devices are Linux machines running the ShellHub agent. Once connected, you can monitor their status, organize them with tags, and open SSH sessions from anywhere.
+
+## Lifecycle
+
+Every device goes through a simple lifecycle:
+
+1. **Pending** — The agent registered with ShellHub, but the device hasn't been approved yet
+2. **Accepted** — Approved and ready for SSH connections
+3. **Rejected** — Explicitly denied access
+
+New devices always start as pending. You must manually accept them before anyone can connect. This prevents unauthorized devices from joining your namespace.
+
+## Device information
+
+Each device reports the following through the agent:
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Hostname (editable) |
+| **SSHID** | Unique identifier for SSH connections |
+| **MAC address** | Network interface identifier |
+| **OS** | Operating system and version |
+| **Architecture** | CPU arch (amd64, arm64, armv7, etc.) |
+| **Last seen** | Last heartbeat timestamp |
+| **Status** | Online or offline |
+
+## SSHID
+
+Every accepted device gets a unique SSH identifier:
+
+```
+<username>@<namespace>.<device-name>.<server>
+```
+
+For example:
+
+```bash
+$ ssh root@myteam.web-server.shellhub.example.com
+```
+
+This works with any standard SSH client. See [Connecting via SSH](/v2/docs/guides/connecting) for details.
+
+## Accepting and rejecting
+
+From the **Devices** page:
+
+- **Pending** tab — Accept or reject new devices
+- **Accepted** tab — View active devices, remove access if needed
+- **Rejected** tab — Re-accept previously rejected devices
+
+## Renaming
+
+You can rename a device from the device details page without affecting the underlying hostname. Names must be unique within a namespace and can contain lowercase letters, numbers, and hyphens.
+
+## Removing
+
+Removing a device reverts it to pending. The agent keeps running on the device, but it can't receive connections until re-accepted. To fully disconnect, uninstall the agent from the device.
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — Deploy the agent
+- [Tags](/v2/docs/guides/tags) — Organize devices
+- [Connecting via SSH](/v2/docs/guides/connecting) — Access your devices

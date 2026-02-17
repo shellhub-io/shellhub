@@ -1,0 +1,68 @@
+---
+title: "Automate Your Infrastructure with the ShellHub Terraform Provider"
+description: "Manage ShellHub namespaces, firewall rules, and public keys as code with our official Terraform provider."
+author: "Gustavo Sampaio"
+authorRole: "Creator & Lead Developer"
+date: 2026-01-08
+categories:
+  - product
+tags:
+  - terraform
+  - devops
+  - infrastructure-as-code
+ogTagline: "Infrastructure as Code"
+ogLayout: "integration"
+ogPartnerIcon: "terraform"
+ogIcons:
+  - terraform
+  - code
+  - cog
+---
+
+## Infrastructure as Code for Device Management
+
+We're excited to announce the official ShellHub Terraform Provider. Now you can manage your entire ShellHub configuration — namespaces, firewall rules, public keys, and device tags — using the same infrastructure-as-code workflow you use for the rest of your stack.
+
+## Quick Example
+
+```hcl
+provider "shellhub" {
+  api_url = "https://cloud.shellhub.io"
+  api_key = var.shellhub_api_key
+}
+
+resource "shellhub_namespace" "production" {
+  name       = "production-devices"
+  max_devices = 100
+}
+
+resource "shellhub_firewall_rule" "allow_ops" {
+  namespace_id = shellhub_namespace.production.id
+  priority     = 1
+  action       = "allow"
+  source       = "ops-team"
+  username     = ".*"
+  hostname     = ".*"
+}
+```
+
+## Why Terraform?
+
+If your team already uses Terraform for managing cloud infrastructure, adding ShellHub to your workflow is natural. You get:
+
+- **Version control** for access policies
+- **Reproducible** environments across staging and production
+- **Drift detection** when someone makes manual changes
+- **Plan and review** before applying changes
+
+## Getting Started
+
+Install the provider and check our documentation for the full resource reference.
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+The provider is open source and available on the Terraform Registry.

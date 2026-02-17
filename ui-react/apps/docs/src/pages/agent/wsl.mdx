@@ -1,0 +1,82 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: WSL
+description: Run the ShellHub agent inside Windows Subsystem for Linux
+---
+
+# WSL (Windows Subsystem for Linux)
+
+Run the ShellHub agent inside WSL to remotely access your Windows machine's Linux environment.
+
+## Requirements
+
+- **Windows 11 22H2** or later (mirrored networking requires this version)
+- **WSL 2** with a Linux distribution installed (Ubuntu, Debian, etc.)
+- **systemd enabled** in WSL
+- **Mirrored networking mode**
+
+## Enabling systemd
+
+Edit `/etc/wsl.conf` inside your WSL distribution:
+
+```ini
+[boot]
+systemd=true
+```
+
+Restart WSL:
+
+```powershell
+wsl --shutdown
+```
+
+## Enabling mirrored networking
+
+Create or edit `%USERPROFILE%\.wslconfig` on the Windows side:
+
+```ini
+[wsl2]
+networkingMode=mirrored
+```
+
+Restart WSL again:
+
+```powershell
+wsl --shutdown
+```
+
+> **Note:** WSL's default NAT networking may prevent the agent from maintaining a stable connection. Mirrored mode gives the WSL instance the same network identity as the Windows host.
+
+## Installation
+
+Once systemd and mirrored networking are configured, install the agent using the standard Docker method:
+
+```bash
+$ curl -sSf "https://cloud.shellhub.io/install.sh?tenant_id=YOUR_TENANT_ID" | sh
+```
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
+
+This requires Docker installed inside WSL. If you don't have Docker in WSL, install it first:
+
+```bash
+$ curl -fsSL https://get.docker.com | sh
+```
+
+## Verifying
+
+After installation, the device appears in the ShellHub dashboard with **Pending** status. Click **Accept** to approve it.
+
+The device hostname in the dashboard matches your WSL distribution's hostname.
+
+## Troubleshooting
+
+- **Agent fails to connect** — Confirm mirrored networking is active: run `wsl --version` and check that `networkingMode` is set. If you're on Windows 10 or an older Windows 11 build, mirrored mode is not available.
+- **systemd not working** — After editing `/etc/wsl.conf`, you must fully restart WSL with `wsl --shutdown`. Verify with `systemctl --no-pager` inside WSL — if it errors, systemd is not active.
+- **Docker not starting** — If using Docker CE inside WSL (not Docker Desktop), make sure the Docker daemon is running: `sudo service docker start`. Docker Desktop's WSL integration works differently and may conflict with the agent's `--net host` flag.
+
+## Next steps
+
+- [Agent Overview](/v2/docs/agent/overview) — Configuration reference and how the agent works
+- [Docker](/v2/docs/agent/docker) — Docker agent details and manual run options
+- [Connecting](/v2/docs/guides/connecting) — Access your device via SSH through ShellHub

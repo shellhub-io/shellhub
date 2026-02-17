@@ -1,0 +1,445 @@
+@import "@shellhub/design-system/css/base.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Offset anchors below the sticky header (h-14 = 56px + 24px breathing room) */
+.prose :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: 5rem;
+}
+
+/* ══════════════════════════════════════
+   Background Patterns (complex gradients)
+   ══════════════════════════════════════ */
+
+/* Content page grid background */
+.docs-grid-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(102, 122, 204, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 122, 204, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 60%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 60%);
+}
+
+/* Hero section grid background */
+.docs-hero-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(102, 122, 204, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 122, 204, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.6) 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.6) 0%, transparent 70%);
+}
+
+/* ══════════════════════════════════════
+   Hero Search Hover Effect
+   ══════════════════════════════════════ */
+
+.hero-search-btn:hover {
+  border-color: rgba(102, 122, 204, 0.35);
+  background: rgba(30, 33, 39, 0.95);
+  box-shadow: 0 0 0 3px rgba(102, 122, 204, 0.08), 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ══════════════════════════════════════
+   TOC Links (JS-generated elements)
+   ══════════════════════════════════════ */
+
+.toc-link {
+  display: block;
+  font-size: 12.5px;
+  color: #5C6070;
+  text-decoration: none;
+  padding: 3px 0 3px 12px;
+  border-left: 1px solid #2C2F36;
+  transition: all 0.15s;
+}
+
+.toc-link:hover {
+  color: #8B8F99;
+}
+
+.toc-link--sub {
+  padding-left: 24px;
+  font-size: 12px;
+}
+
+.toc-link--active {
+  color: #667ACC;
+  border-left-color: #667ACC;
+}
+
+/* ══════════════════════════════════════
+   Command Palette (JS-generated HTML)
+   ══════════════════════════════════════ */
+
+.cmd-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 18vh;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+
+.cmd-palette.cmd-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cmd-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.cmd-dialog {
+  position: relative;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: 440px;
+  background: #1E2127;
+  border: 1px solid #2C2F36;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(102, 122, 204, 0.06),
+    0 24px 72px rgba(0, 0, 0, 0.5);
+  transform: translateY(-10px) scale(0.97);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cmd-open .cmd-dialog {
+  transform: translateY(0) scale(1);
+}
+
+.cmd-input-row {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  border-bottom: 1px solid #2C2F36;
+}
+
+.cmd-search-icon {
+  width: 16px;
+  height: 16px;
+  color: #5C6070;
+  flex-shrink: 0;
+}
+
+.cmd-input {
+  flex: 1;
+  height: 50px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 15px;
+  color: #E1E4EA;
+}
+
+.cmd-input::placeholder {
+  color: #5C6070;
+}
+
+.cmd-esc {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: #5C6070;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #2C2F36;
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.cmd-results {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.cmd-section {
+  padding: 8px 10px 4px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5C6070;
+}
+
+.cmd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #8B8F99;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.08s;
+}
+
+.cmd-item:hover,
+.cmd-item--sel {
+  background: rgba(102, 122, 204, 0.1);
+  color: #E1E4EA;
+}
+
+.cmd-item--cur span:first-child {
+  color: #667ACC;
+}
+
+.cmd-badge {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  color: #667ACC;
+  background: rgba(102, 122, 204, 0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.cmd-empty {
+  padding: 24px;
+  text-align: center;
+  color: #5C6070;
+  font-size: 13px;
+}
+
+/* ══════════════════════════════════════
+   Prose — Markdown Content Styling
+   ══════════════════════════════════════ */
+
+.prose {
+  color: #E1E4EA;
+  line-height: 1.6;
+}
+
+.prose > *:first-child {
+  margin-top: 0 !important;
+}
+
+/* Headings */
+
+.prose h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #E1E4EA;
+  margin: 0 0 12px 0;
+}
+
+.prose h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #E1E4EA;
+  margin: 44px 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2C2F36;
+}
+
+.prose h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #E1E4EA;
+  margin: 32px 0 12px 0;
+}
+
+.prose h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8B8F99;
+  margin: 24px 0 8px 0;
+}
+
+/* Body */
+
+.prose p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #8B8F99;
+  margin-bottom: 16px;
+}
+
+.prose strong {
+  color: #E1E4EA;
+  font-weight: 500;
+}
+
+.prose h1 + p {
+  font-size: 16px;
+  color: #8B8F99;
+  margin-top: 4px;
+  margin-bottom: 36px;
+  line-height: 1.7;
+}
+
+/* Links */
+
+.prose a {
+  color: #667ACC;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(102, 122, 204, 0.25);
+  transition: all 0.15s;
+}
+
+.prose a:hover {
+  color: #8B9EDD;
+  border-bottom-color: #667ACC;
+}
+
+/* Inline code */
+
+.prose code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  background: rgba(78, 154, 163, 0.08);
+  border: 1px solid rgba(78, 154, 163, 0.12);
+  border-radius: 4px;
+  padding: 1.5px 6px;
+  color: #4e9aa3;
+}
+
+/* Code blocks */
+
+.prose pre {
+  position: relative;
+  background: #141517;
+  border: 1px solid #2C2F36;
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.prose pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #E1E4EA;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* Lists */
+
+.prose ul {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.prose ul li {
+  font-size: 15px;
+  color: #8B8F99;
+  line-height: 1.75;
+  list-style-type: disc;
+  margin-bottom: 4px;
+}
+
+.prose ul li::marker {
+  color: #667ACC;
+}
+
+.prose ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.prose ol li {
+  font-size: 15px;
+  color: #8B8F99;
+  line-height: 1.75;
+  list-style-type: decimal;
+  margin-bottom: 4px;
+}
+
+.prose ol li::marker {
+  color: #667ACC;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12.5px;
+}
+
+/* Blockquotes */
+
+.prose blockquote {
+  border-left: 2px solid rgba(102, 122, 204, 0.35);
+  padding: 4px 16px;
+  margin: 0 0 16px 0;
+  color: #8B8F99;
+  font-style: italic;
+}
+
+/* Horizontal rules */
+
+.prose hr {
+  border: none;
+  height: 1px;
+  background: #2C2F36;
+  margin: 36px 0;
+}
+
+/* Tables */
+
+.prose table {
+  width: 100%;
+  font-size: 13.5px;
+  margin-bottom: 20px;
+  border-collapse: collapse;
+  border: 1px solid #2C2F36;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.prose th {
+  text-align: left;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5C6070;
+  padding: 10px 14px;
+  border-bottom: 1px solid #2C2F36;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.prose td {
+  padding: 10px 14px;
+  color: #8B8F99;
+  border-bottom: 1px solid rgba(44, 47, 54, 0.5);
+}
+
+.prose td code {
+  font-size: 12px;
+}
+
+.prose td ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.prose td li {
+  font-size: 13px;
+}
+

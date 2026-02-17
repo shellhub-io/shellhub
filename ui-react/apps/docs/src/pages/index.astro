@@ -1,0 +1,231 @@
+---
+import "../styles/global.css";
+import { Footer } from "@shellhub/design-system/components";
+import { sidebar, flattenItems } from "../data/sidebar";
+
+const sections = sidebar.map(section => ({
+  label: section.label,
+  description: section.description,
+  icon: section.icon,
+  items: flattenItems(section.items).filter(item => item.featured),
+}));
+
+// Flatten all items for command palette
+const allItems = sidebar.flatMap(section =>
+  flattenItems(section.items).map(item => ({ ...item, section: section.label }))
+);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShellHub Documentation</title>
+    <meta name="description" content="Official documentation for ShellHub — centralized SSH access to Linux devices over the internet." />
+    <link rel="icon" type="image/x-icon" href="/v2/docs/favicon.ico" />
+  </head>
+  <body class="bg-background text-text-primary font-sans antialiased">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 h-14 bg-background/40 backdrop-blur-xl border-b border-border shadow-lg shadow-black/10">
+      <div class="flex items-center justify-between h-full max-w-7xl mx-auto px-8">
+        <div class="flex items-center gap-3">
+          <a href="/v2/" class="flex items-center shrink-0">
+            <img src="/v2/docs/logo-inverted.png" alt="ShellHub" class="h-9" />
+          </a>
+          <a href="/v2/docs/" class="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary bg-primary-50 border border-primary-100 rounded px-2 py-0.5 no-underline hover:bg-primary-100 transition-colors">
+            Docs
+          </a>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            id="cmd-trigger"
+            title="Search docs (Ctrl+K)"
+            class="flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] border border-border rounded-lg text-text-muted cursor-pointer transition-all hover:bg-white/[0.06] hover:border-border-light hover:text-text-secondary"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+            <span class="text-[13px]">Search</span>
+            <kbd class="font-mono text-[10px] text-text-muted bg-white/[0.04] border border-border rounded px-1.5 py-px">&#8984;K</kbd>
+          </button>
+          <a href="https://github.com/shellhub-io/shellhub" target="_blank" rel="noopener noreferrer" class="text-text-muted hover:text-text-secondary transition-colors flex items-center">
+            <svg viewBox="0 0 24 24" class="w-[18px] h-[18px] fill-current"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative py-16 px-6 overflow-hidden grid-bg">
+
+      <!-- Connection dots animation -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="connection-dot" style="top: 20%; left: 15%; animation-delay: 0s;"></div>
+        <div class="connection-dot" style="top: 35%; right: 20%; animation-delay: 1.2s;"></div>
+        <div class="connection-dot" style="bottom: 30%; left: 25%; animation-delay: 0.6s;"></div>
+        <div class="connection-dot" style="top: 50%; right: 12%; animation-delay: 1.8s;"></div>
+        <div class="connection-line" style="top: 30%; left: 5%; width: 200px; animation-delay: 0.3s;"></div>
+        <div class="connection-line" style="top: 60%; right: 5%; width: 160px; animation-delay: 1.5s;"></div>
+        <div class="connection-line-v" style="top: 10%; left: 40%; height: 120px; animation-delay: 0.8s;"></div>
+        <div class="connection-line-v" style="top: 20%; right: 30%; height: 100px; animation-delay: 2s;"></div>
+      </div>
+
+      <div class="relative max-w-7xl mx-auto px-8 text-center animate-slide-up">
+          <h1 class="text-[2.5rem] font-bold tracking-tight text-text-primary mb-4 leading-[1.15]">
+            ShellHub Documentation
+          </h1>
+          <p class="text-[17px] leading-relaxed text-text-secondary mb-8 mx-auto max-w-lg">
+            Everything you need to set up, manage, and connect to your remote Linux devices.
+          </p>
+
+          <!-- Search bar -->
+          <button
+            id="hero-search"
+            class="hero-search-btn flex items-center gap-3 w-full max-w-xl mx-auto px-6 py-4 bg-surface/80 border border-border rounded-2xl cursor-pointer transition-all backdrop-blur-sm"
+          >
+            <svg class="w-5 h-5 text-text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <span class="flex-1 text-left text-[15px] text-text-muted font-sans">Search the documentation...</span>
+            <kbd class="font-mono text-[11px] text-text-muted bg-white/[0.04] border border-border rounded-md px-2 py-0.5 shrink-0">&#8984;K</kbd>
+          </button>
+      </div>
+    </section>
+
+    <!-- Categories Grid -->
+    <section class="pb-20">
+      <div class="max-w-7xl mx-auto px-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sections.map((section) => (
+            <div class="group flex flex-col p-6 bg-surface/50 border border-border rounded-[14px] transition-all hover:border-border-light hover:bg-surface/80">
+              <div class="w-10 h-10 flex items-center justify-center bg-primary-50 border border-primary-100 rounded-[10px] mb-4">
+                <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><Fragment set:html={section.icon} /></svg>
+              </div>
+              <h3 class="text-base font-semibold text-text-primary mb-1.5">{section.label}</h3>
+              <p class="text-[13.5px] leading-relaxed text-text-muted mb-0 line-clamp-2 min-h-[2lh]">{section.description}</p>
+              <ul class="list-none p-0 m-0 flex flex-col gap-0.5 border-t border-border/50 pt-3 mt-4">
+                {section.items.map((item) => (
+                  <li>
+                    <a href={item.href} class="flex items-center gap-1.5 text-[13px] text-text-secondary no-underline py-1 -mx-1.5 px-1.5 rounded-md transition-colors hover:text-primary hover:bg-white/[0.03]">
+                      <svg class="w-3.5 h-3.5 text-text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <Footer />
+
+    <!-- Command Palette -->
+    <div class="cmd-palette" id="cmd-palette">
+      <div class="cmd-overlay" id="cmd-overlay"></div>
+      <div class="cmd-dialog">
+        <div class="cmd-input-row">
+          <svg class="cmd-search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+          <input type="text" class="cmd-input" id="cmd-input" placeholder="Search documentation..." autocomplete="off" spellcheck="false" />
+          <kbd class="cmd-esc">esc</kbd>
+        </div>
+        <div class="cmd-results" id="cmd-results"></div>
+      </div>
+    </div>
+
+    <script define:vars={{ allItems }}>
+      const currentPath = window.location.pathname.replace(/\/$/, "");
+
+      const palette = document.getElementById("cmd-palette");
+      const overlay = document.getElementById("cmd-overlay");
+      const input = document.getElementById("cmd-input");
+      const results = document.getElementById("cmd-results");
+      const trigger = document.getElementById("cmd-trigger");
+      const heroSearch = document.getElementById("hero-search");
+
+      let selectedIdx = 0;
+      let filtered = allItems;
+
+      function open() {
+        palette.classList.add("cmd-open");
+        input.value = "";
+        selectedIdx = 0;
+        render(allItems);
+        requestAnimationFrame(() => input.focus());
+      }
+
+      function close() {
+        palette.classList.remove("cmd-open");
+      }
+
+      function render(items) {
+        filtered = items;
+        let section = "";
+        let html = "";
+
+        items.forEach((item, i) => {
+          if (item.section !== section) {
+            section = item.section;
+            html += `<div class="cmd-section">${section}</div>`;
+          }
+          const sel = i === selectedIdx ? " cmd-item--sel" : "";
+          html += `<a href="${item.href}" class="cmd-item${sel}" data-i="${i}">
+            <span>${item.label}</span>
+          </a>`;
+        });
+
+        results.innerHTML = html || '<div class="cmd-empty">No results</div>';
+        const selEl = results.querySelector(".cmd-item--sel");
+        selEl?.scrollIntoView({ block: "nearest" });
+      }
+
+      function filter(q) {
+        q = q.toLowerCase().trim();
+        if (!q) return render(allItems);
+        selectedIdx = 0;
+        render(allItems.filter(it =>
+          it.label.toLowerCase().includes(q) ||
+          it.section.toLowerCase().includes(q) ||
+          it.href.toLowerCase().includes(q)
+        ));
+      }
+
+      trigger?.addEventListener("click", open);
+      heroSearch?.addEventListener("click", open);
+      overlay?.addEventListener("click", close);
+
+      document.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+          e.preventDefault();
+          palette.classList.contains("cmd-open") ? close() : open();
+        }
+        if (!palette.classList.contains("cmd-open")) return;
+        if (e.key === "Escape") { close(); return; }
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          selectedIdx = Math.min(selectedIdx + 1, filtered.length - 1);
+          render(filtered);
+        }
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          selectedIdx = Math.max(selectedIdx - 1, 0);
+          render(filtered);
+        }
+        if (e.key === "Enter" && filtered[selectedIdx]) {
+          e.preventDefault();
+          window.location.href = filtered[selectedIdx].href;
+        }
+      });
+
+      input?.addEventListener("input", (e) => filter(e.target.value));
+
+      results?.addEventListener("mouseover", (e) => {
+        const item = e.target.closest(".cmd-item");
+        if (item) {
+          selectedIdx = parseInt(item.dataset.i);
+          render(filtered);
+        }
+      });
+    </script>
+  </body>
+</html>

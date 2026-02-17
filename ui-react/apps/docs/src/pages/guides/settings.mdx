@@ -1,0 +1,43 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Settings
+description: Configure namespace settings — session recording, connection announcements, and more
+---
+
+import EditionBanner from '../../components/EditionBanner.astro';
+
+# Settings
+
+Namespace settings control behavior that applies to all devices and sessions within the namespace. Only the Owner and Administrators can modify settings.
+
+## Session recording
+
+<EditionBanner />
+
+When enabled, ShellHub records all terminal I/O during SSH sessions. Recordings can be replayed in the dashboard for auditing, compliance, and troubleshooting.
+
+Toggle **Session Recording** to start capturing new sessions. Existing sessions are not affected.
+
+See [Session Recording](/v2/docs/guides/session-recording) for details on playback, storage, and privacy considerations.
+
+## Connection announcement
+
+Display a message to users before they connect to a device. Use it to notify about maintenance windows, acceptable use policies, or recording notices.
+
+When set, users see the announcement text before their SSH session starts.
+
+## MFA requirement
+
+<EditionBanner />
+
+When enabled, all namespace members must have multi-factor authentication configured on their account. Members without MFA will be prompted to set it up before they can access the namespace.
+
+## Device limits
+
+View the maximum number of devices allowed in this namespace based on your plan. The dashboard shows current usage against the limit.
+
+| Edition | Default limit |
+|---------|--------------|
+| Community | 3 devices |
+| Cloud | Based on subscription |
+| Enterprise | Unlimited |

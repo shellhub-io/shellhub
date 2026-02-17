@@ -1,0 +1,66 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Web Endpoints
+description: Expose HTTP services running on remote devices through ShellHub web endpoints
+---
+
+import EditionBanner from '../../components/EditionBanner.astro';
+
+# Web Endpoints
+
+Access HTTP services running on your devices through ShellHub — without opening ports or configuring firewalls. Web endpoints create a public URL that proxies HTTP requests through the agent's existing connection.
+
+<EditionBanner />
+
+## How it works
+
+1. A device runs an HTTP service on a local port (e.g., `:8080`)
+2. You create a web endpoint in ShellHub pointing to that port
+3. ShellHub generates a public URL that routes requests through the gateway to the device
+
+No additional ports are opened on the device. Traffic flows through the same outbound WebSocket connection the agent already maintains.
+
+## Creating a web endpoint
+
+In the ShellHub dashboard:
+
+1. Go to **Devices** and select the device
+2. Click the **Web Endpoints** tab
+3. Click **Add Endpoint**
+4. Enter the local port of the service on the device (e.g., `8080`)
+5. Click **Create**
+
+ShellHub generates a unique URL like:
+
+```
+https://abcdef1234.tunnel.cloud.shellhub.io
+```
+
+Open this URL in your browser to access the service running on the device.
+
+## Use cases
+
+- **Web dashboards** — Access Grafana, Prometheus, Node-RED, or any monitoring tool running on edge devices
+- **Admin panels** — Reach device configuration interfaces without VPN or port forwarding
+- **API endpoints** — Expose REST APIs running on devices for testing or integration
+- **Development** — Preview web applications running on remote machines
+
+## Limitations
+
+- HTTP traffic only — web endpoints proxy HTTP/HTTPS, not arbitrary TCP
+- The device must be online and connected to ShellHub
+- Endpoint URLs are unique per endpoint and change when recreated
+- Each endpoint maps to a single port on the device
+
+## Security
+
+- Endpoint URLs are randomly generated and not guessable
+- Access control follows your ShellHub namespace permissions
+- Traffic between the client and ShellHub gateway is encrypted (HTTPS)
+- Traffic between the gateway and the device flows through the agent's encrypted WebSocket tunnel
+
+## Next steps
+
+- [Connecting](/v2/docs/guides/connecting) — SSH access methods (web terminal, SSH client, GUI tools)
+- [Features](/v2/docs/getting-started/features) — Overview of all ShellHub features
+- [Editions](/v2/docs/getting-started/editions) — Compare Cloud and Enterprise capabilities

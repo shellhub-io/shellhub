@@ -1,0 +1,276 @@
+---
+import "../styles/global.css";
+import { Footer } from "@shellhub/design-system/components";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("blog"))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const featured = posts[0];
+const rest = posts.slice(1);
+
+// Extract unique categories
+const allCategories = [...new Set(posts.flatMap((p) => p.data.categories))];
+
+// Reading time helper
+function readingTime(body: string): string {
+  const words = body.split(/\s+/).length;
+  const mins = Math.ceil(words / 230);
+  return `${mins} min read`;
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShellHub Blog</title>
+    <meta
+      name="description"
+      content="News, updates, and technical articles from the ShellHub team."
+    />
+    <link rel="icon" type="image/x-icon" href="/v2/blog/favicon.ico" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-50 h-14 bg-background/40 backdrop-blur-xl border-b border-border shadow-lg shadow-black/10"
+    >
+      <div
+        class="flex items-center justify-between h-full max-w-7xl mx-auto px-8"
+      >
+        <div class="flex items-center gap-3">
+          <a href="/v2/" class="flex items-center shrink-0">
+            <img src="/v2/blog/logo-inverted.png" alt="ShellHub" class="h-9" />
+          </a>
+          <a
+            href="/v2/blog/"
+            class="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary bg-primary-50 border border-primary-100 rounded px-2 py-0.5 no-underline hover:bg-primary-100 transition-colors"
+          >
+            Blog
+          </a>
+        </div>
+        <div class="flex items-center gap-3">
+          <a
+            href="/v2/docs/"
+            class="text-[13px] text-text-secondary hover:text-text-primary transition-colors"
+            >Docs</a
+          >
+          <a
+            href="https://github.com/shellhub-io/shellhub"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-text-muted hover:text-text-secondary transition-colors flex items-center"
+          >
+            <svg viewBox="0 0 24 24" class="w-[18px] h-[18px] fill-current"
+              ><path
+                d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+              ></path></svg
+            >
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Featured Post Hero -->
+    {
+      featured && (
+        <section class="max-w-7xl mx-auto px-8 pt-16 pb-12">
+          <a
+            href={`/v2/blog/${featured.id}`}
+            class="group grid grid-cols-1 lg:grid-cols-2 gap-10 items-center no-underline"
+          >
+            {/* Cover image */}
+            <div class="relative overflow-hidden rounded-xl border border-border bg-surface aspect-[1200/630]">
+              <img
+                src={featured.data.image || `/v2/blog/og/${featured.id}.png`}
+                alt={featured.data.title}
+                class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+              />
+            </div>
+
+            {/* Content */}
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center gap-3">
+                <time class="font-mono text-xs text-text-muted">
+                  {formatDate(featured.data.date)}
+                </time>
+                <span class="text-text-muted/40">&bull;</span>
+                <span class="font-mono text-xs text-text-muted">
+                  {readingTime(featured.body ?? "")}
+                </span>
+              </div>
+
+              <h2 class="text-[1.75rem] leading-tight font-bold tracking-[-0.02em] text-text-primary group-hover:text-primary transition-colors duration-200">
+                {featured.data.title}
+              </h2>
+
+              <p class="text-[15px] leading-relaxed text-text-secondary line-clamp-3">
+                {featured.data.description}
+              </p>
+
+              <div class="flex items-center gap-3 mt-1">
+                <div class="w-8 h-8 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center">
+                  <span class="text-xs font-semibold text-primary">
+                    {featured.data.author
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")}
+                  </span>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-text-primary leading-none">
+                    {featured.data.author}
+                  </p>
+                  {featured.data.authorRole && (
+                    <p class="text-xs text-text-muted mt-0.5">
+                      {featured.data.authorRole}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </a>
+        </section>
+      )
+    }
+
+    <!-- Divider -->
+    <div class="max-w-7xl mx-auto px-8">
+      <div class="border-t border-border"></div>
+    </div>
+
+    <!-- Category Filters + Post List -->
+    <section class="max-w-7xl mx-auto px-8 pt-10 pb-24">
+      <!-- Filters -->
+      <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <div class="flex items-center gap-2 flex-wrap" id="filters">
+          <button
+            class="filter-pill filter-pill--active"
+            data-category="all"
+          >
+            All
+          </button>
+          {
+            allCategories.map((cat) => (
+              <button class="filter-pill" data-category={cat}>
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- Post List -->
+      <div class="flex flex-col stagger" id="post-list">
+        {
+          rest.map((post) => (
+            <a
+              href={`/v2/blog/${post.id}`}
+              class="post-row animate-slide-up group flex items-center gap-4 py-4 border-b border-border/60 no-underline transition-colors hover:bg-white/[0.015] -mx-3 px-3 rounded-md"
+              data-categories={post.data.categories.join(",")}
+            >
+              {/* Title */}
+              <span class="flex-1 text-[15px] text-text-secondary group-hover:text-text-primary transition-colors font-medium truncate">
+                {post.data.title}
+              </span>
+
+              {/* Category badge */}
+              {post.data.categories[0] && (
+                <span class="hidden sm:inline-flex font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted bg-white/[0.03] border border-border rounded px-2 py-0.5 shrink-0">
+                  {post.data.categories[0]}
+                </span>
+              )}
+
+              {/* Author avatar */}
+              <div class="w-6 h-6 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                <span class="text-[9px] font-semibold text-primary/70">
+                  {post.data.author
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")}
+                </span>
+              </div>
+
+              {/* Date */}
+              <time class="font-mono text-xs text-text-muted shrink-0 w-24 text-right hidden sm:block">
+                {formatDate(post.data.date)}
+              </time>
+            </a>
+          ))
+        }
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="hidden py-16 text-center">
+        <p class="text-text-muted text-sm">No posts in this category yet.</p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <Footer />
+
+    <!-- Filter Script -->
+    <script>
+      const pills = document.querySelectorAll(".filter-pill");
+      const rows = document.querySelectorAll(".post-row");
+      const emptyState = document.getElementById("empty-state");
+
+      pills.forEach((pill) => {
+        pill.addEventListener("click", () => {
+          pills.forEach((p) => p.classList.remove("filter-pill--active"));
+          pill.classList.add("filter-pill--active");
+
+          const cat = (pill as HTMLElement).dataset.category;
+          let visible = 0;
+
+          rows.forEach((row) => {
+            const cats = (row as HTMLElement).dataset.categories || "";
+            const show = cat === "all" || cats.split(",").includes(cat!);
+            (row as HTMLElement).style.display = show ? "" : "none";
+            if (show) visible++;
+          });
+
+          if (emptyState) {
+            emptyState.classList.toggle("hidden", visible > 0);
+          }
+        });
+      });
+    </script>
+
+    <style>
+      .filter-pill {
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #5c6070;
+        background: transparent;
+        border: 1px solid #2c2f36;
+        border-radius: 9999px;
+        padding: 5px 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .filter-pill:hover {
+        color: #8b8f99;
+        border-color: #383d47;
+      }
+
+      .filter-pill--active {
+        color: #e1e4ea;
+        border-color: #e1e4ea;
+        background: rgba(255, 255, 255, 0.04);
+      }
+    </style>
+  </body>
+</html>

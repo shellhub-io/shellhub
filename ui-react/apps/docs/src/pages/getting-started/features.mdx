@@ -1,0 +1,133 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Features
+description: Everything ShellHub offers — native SSH, web terminal, file transfer, firewall rules, session recording, and more
+---
+
+# Features
+
+Here's what ShellHub offers for remote device access, organized by capability.
+
+## Native SSH support
+
+Connect to any registered device using your existing SSH client — OpenSSH, PuTTY, JuiceSSH, or any tool that speaks SSH. No plugins, no custom clients. Just use the device's [SSHID](/v2/docs/getting-started/how-it-works#sshid) as the target:
+
+```bash
+$ ssh root@device.namespace@cloud.shellhub.io
+```
+
+ShellHub acts as a transparent SSH proxy. Your SSH client connects to the ShellHub server, which routes the session to the correct device through the agent's tunnel.
+
+## Web terminal
+
+Open an SSH session directly from your browser. Click the terminal icon next to any device in the dashboard, enter credentials, and you're connected. No SSH client installation needed.
+
+The web terminal uses xterm.js for a full terminal experience with copy/paste, scrollback, and resizable panes.
+
+## SCP and SFTP
+
+Transfer files to and from your devices using standard SCP and SFTP tools:
+
+```bash
+$ scp myfile.txt root@device.namespace@cloud.shellhub.io:/tmp/
+$ sftp root@device.namespace@cloud.shellhub.io
+```
+
+Works with any SCP/SFTP client — FileZilla, WinSCP, or the command-line tools you already use.
+
+## Public key authentication
+
+Upload SSH public keys to ShellHub and control which keys can access which devices. Keys can be scoped with filters:
+
+- **By username** — Restrict a key to specific usernames on the device
+- **By hostname** — Limit access to specific devices by name
+- **By tag** — Apply keys to groups of devices using tags
+
+This gives you centralized key management without manually copying `authorized_keys` files to each device.
+
+## Firewall rules
+
+Define connection policies that control who can SSH into which devices. Rules are evaluated by priority and can match on:
+
+- **Source IP** — Allow or deny connections from specific IPs or ranges
+- **Username** — Restrict which usernames can be used
+- **Device** — Apply rules globally, to specific hostnames (regex), or by tag
+
+Firewall rules let you enforce access policies across your entire fleet from a single dashboard.
+
+> **Note:** Available on Cloud and Enterprise editions.
+
+## Audit logging
+
+Every SSH connection is recorded with metadata:
+
+- Who connected (username and IP)
+- Which device they accessed
+- Authentication method used (password, key)
+- Session start and end time
+- Whether authentication succeeded or failed
+
+The audit log gives you visibility into all access activity across your devices.
+
+> **Note:** Available on Cloud and Enterprise editions.
+
+## Session recording
+
+Record terminal sessions and play them back from the dashboard. Session recording captures the full terminal output, so you can review exactly what happened during a session — useful for compliance, incident investigation, or training.
+
+> **Note:** Available on Cloud and Enterprise editions.
+
+## Container remote access
+
+SSH directly into Docker containers running on your devices, not just the host. The agent can expose containers as individually addressable devices in the ShellHub dashboard.
+
+This is useful for accessing application containers, debugging services in production, or managing multi-container setups on edge devices.
+
+> **Note:** Available on Cloud and Enterprise editions.
+
+## HTTP tunnels
+
+Access web services running on your devices through encrypted HTTP tunnels. If a device runs a web dashboard, API, or monitoring service on a local port, ShellHub can expose it through a secure tunnel — no port forwarding needed.
+
+The tunnel is encrypted even if the underlying service uses plain HTTP, so you get secure access to device-local web interfaces from anywhere.
+
+> **Note:** Available on Cloud and Enterprise editions.
+
+## Device tagging
+
+Assign up to 3 tags per device to organize your fleet. Tags are free-form labels — use them for environment (`production`, `staging`), location (`warehouse-a`, `office`), role (`gateway`, `sensor`), or any classification that fits your workflow.
+
+Tags integrate with firewall rules and public key filters, so you can apply policies to groups of devices instead of managing them one by one.
+
+## Multi-factor authentication
+
+Add TOTP-based MFA to user accounts. ShellHub supports standard authenticator apps (Google Authenticator, 1Password, Authy) and provides recovery codes for backup access.
+
+> **Note:** Available on Cloud and Enterprise editions.
+
+## Namespaces and team management
+
+Organize devices into namespaces with role-based access for team members:
+
+| Role | Permissions |
+|------|-------------|
+| **Owner** | Full access including billing and namespace deletion |
+| **Administrator** | Full access except billing |
+| **Operator** | Connect to devices, manage device settings |
+| **Observer** | Read-only access, can connect to devices |
+
+Invite team members by email and assign roles per namespace.
+
+## API access
+
+Automate ShellHub with the REST API. Generate API keys scoped to a namespace and role, then use them to manage devices, keys, and settings programmatically:
+
+```bash
+$ curl -H "X-API-Key: YOUR_API_KEY" \
+    https://cloud.shellhub.io/api/devices
+```
+
+## Next steps
+
+- [Editions](/v2/docs/getting-started/editions) — See which features are available in each edition
+- [Quick Start](/v2/docs/getting-started/quick-start) — Set up ShellHub and connect your first device

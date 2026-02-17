@@ -1,0 +1,76 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Ansible
+description: Use Ansible to manage ShellHub devices — inventory, playbooks, and SSH configuration
+---
+
+# Ansible
+
+Manage your ShellHub-connected devices with Ansible. Since ShellHub provides standard SSH access through its gateway, Ansible works without any special modules or plugins.
+
+## Inventory
+
+Create an Ansible inventory using the ShellHub SSHID format. Each host is `user@device.namespace@gateway`:
+
+```ini
+[webservers]
+web-01 ansible_host=cloud.shellhub.io ansible_user=root@web-01.my-namespace
+web-02 ansible_host=cloud.shellhub.io ansible_user=root@web-02.my-namespace
+
+[edge-devices]
+sensor-gw ansible_host=cloud.shellhub.io ansible_user=admin@sensor-gateway.my-namespace
+camera-01 ansible_host=cloud.shellhub.io ansible_user=admin@camera-node-01.my-namespace
+```
+
+> **Note:** For self-hosted instances, replace `cloud.shellhub.io` with your server address.
+
+## Authentication
+
+Use public key authentication to avoid password prompts:
+
+1. Upload your SSH public key in the ShellHub dashboard under **Public Keys**
+2. Point Ansible to the private key:
+
+```ini
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/id_ed25519
+```
+
+Or pass it on the command line:
+
+```bash
+$ ansible-playbook -i inventory.ini --private-key ~/.ssh/id_ed25519 playbook.yml
+```
+
+## Running playbooks
+
+Run playbooks as you normally would:
+
+```bash
+$ ansible-playbook -i inventory.ini deploy.yml
+```
+
+```bash
+$ ansible -i inventory.ini edge-devices -m ping
+```
+
+Ansible connects through the ShellHub gateway transparently. No changes to your playbooks are needed — only the inventory and SSH config.
+
+## Dynamic inventory
+
+For larger fleets, use the ShellHub API to generate inventory dynamically instead of maintaining a static file. The API returns device lists with tags and online status that you can map to Ansible groups:
+
+```bash
+$ curl -H "Authorization: Bearer YOUR_API_KEY" \
+    https://cloud.shellhub.io/api/devices?status=accepted
+```
+
+If you organize devices with tags in ShellHub (e.g., `production`, `staging`, `region-us`), you can map tags to Ansible groups. This keeps your inventory in sync with the ShellHub dashboard without manual updates.
+
+See [API Reference](/v2/docs/developers/api-reference) for the full device list endpoint.
+
+## Next steps
+
+- [Public Keys](/v2/docs/guides/public-keys) — Set up key-based authentication
+- [Tags](/v2/docs/guides/tags) — Organize devices for targeted automation
+- [API Reference](/v2/docs/developers/api-reference) — Build dynamic inventory from the API
