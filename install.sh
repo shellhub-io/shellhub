@@ -175,126 +175,74 @@ snap_install() {
 }
 
 standalone_install() {
-  INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
-
   if [ "$(id -u)" -ne 0 ]; then
     printf "⚠️ NOTE: This install method requires root privileges.\n"
     SUDO="sudo"
   fi
 
-  if ! systemctl show-environment >/dev/null 2>&1; then
-    printf "❌ ERROR: This is not a systemd-based operation system. Unable to proceed with the requested action.\n"
-    exit 1
-  fi
+  INSTALL_BIN="$INSTALL_DIR/shellhub-agent"
+  $SUDO mkdir -p "$INSTALL_DIR"
 
-  echo "📥 Downloading required files..."
-
-  {
-    download "https://github.com/opencontainers/runc/releases/download/${RUNC_VERSION}/runc.${RUNC_ARCH}" $TMP_DIR/runc && chmod 755 $TMP_DIR/runc
-  } || { rm -rf $TMP_DIR && echo "❌ Failed to download runc binary." && exit 1; }
-
-  {
-    download https://raw.githubusercontent.com/shellhub-io/shellhub/${AGENT_VERSION}/agent/packaging/config.json $TMP_DIR/config.json
-  } || { rm -rf $TMP_DIR && echo "❌ Failed to download OCI runtime spec." && exit 1; }
-
-  {
-    download https://raw.githubusercontent.com/shellhub-io/shellhub/${AGENT_VERSION}/agent/packaging/shellhub-agent.service $TMP_DIR/shellhub-agent.service
-  } || { rm -rf $TMP_DIR && echo "❌ Failed to download systemd service file." && exit 1; }
-
-  {
-    download https://github.com/shellhub-io/shellhub/releases/download/$AGENT_VERSION/rootfs-$AGENT_ARCH.tar.gz $TMP_DIR/rootfs.tar.gz
-  } || { rm -rf $TMP_DIR && echo "❌ Failed to download rootfs." && exit 1; }
-
-  echo "📂 Extracting files..."
-
-  {
-    mkdir -p $TMP_DIR/rootfs && tar -C $TMP_DIR/rootfs -xzf $TMP_DIR/rootfs.tar.gz && rm -f $TMP_DIR/rootfs.tar.gz
-  } || { rm -rf $TMP_DIR && echo "❌ Failed to extract rootfs." && exit 1; }
-
-  rm -f $TMP_DIR/rootfs/.dockerenv
-
-  sed -i "s,__SERVER_ADDRESS__,$SERVER_ADDRESS,g" $TMP_DIR/config.json
-  sed -i "s,__TENANT_ID__,$TENANT_ID,g" $TMP_DIR/config.json
-  sed -i "s,__ROOT_PATH__,$INSTALL_DIR/rootfs,g" $TMP_DIR/config.json
-  sed -i "s,__INSTALL_DIR__,$INSTALL_DIR,g" $TMP_DIR/shellhub-agent.service
-
-  # Handle optional environment variables
-  if [ -n "${PREFERRED_HOSTNAME}" ]; then
-    sed -i "s,__PREFERRED_HOSTNAME__,SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME,g" $TMP_DIR/config.json
+  if [ -n "${AGENT_BINARY}" ]; then
+    echo "📂 Using local binary: $AGENT_BINARY"
+    $SUDO cp "$AGENT_BINARY" "$INSTALL_BIN"
+    $SUDO chmod 755 "$INSTALL_BIN"
   else
-    sed -i '/"__PREFERRED_HOSTNAME__"/d' $TMP_DIR/config.json
+    echo "📥 Downloading ShellHub agent binary..."
+
+    {
+      download "https://github.com/shellhub-io/shellhub/releases/download/$AGENT_VERSION/shellhub-agent-linux-$BINARY_ARCH.gz" "$TMP_DIR/shellhub-agent.gz"
+    } || { rm -rf "$TMP_DIR" && echo "❌ Failed to download agent binary." && exit 1; }
+
+    echo "📂 Extracting binary..."
+
+    gzip -d "$TMP_DIR/shellhub-agent.gz"
+    chmod 755 "$TMP_DIR/shellhub-agent"
+    $SUDO mv "$TMP_DIR/shellhub-agent" "$INSTALL_BIN"
   fi
 
-  if [ -n "${PREFERRED_IDENTITY}" ]; then
-    sed -i "s,__PREFERRED_IDENTITY__,SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY,g" $TMP_DIR/config.json
-  else
-    sed -i '/"__PREFERRED_IDENTITY__"/d' $TMP_DIR/config.json
-  fi
+  echo "🚀 Installing ShellHub system service..."
 
-  if [ -n "${KEEPALIVE_INTERVAL}" ]; then
-    sed -i "s,__KEEPALIVE_INTERVAL__,SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL,g" $TMP_DIR/config.json
-  else
-    sed -i '/"__KEEPALIVE_INTERVAL__"/d' $TMP_DIR/config.json
-  fi
+  INSTALL_ARGS="--server-address=$SERVER_ADDRESS --tenant-id=$TENANT_ID"
+  [ -n "${PREFERRED_HOSTNAME}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-hostname=$PREFERRED_HOSTNAME"
+  [ -n "${PREFERRED_IDENTITY}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-identity=$PREFERRED_IDENTITY"
+  [ -n "${KEEPALIVE_INTERVAL}" ] && INSTALL_ARGS="$INSTALL_ARGS --keepalive-interval=$KEEPALIVE_INTERVAL"
 
-  echo "🚀 Starting ShellHub system service..."
-
-  $SUDO cp $TMP_DIR/shellhub-agent.service /etc/systemd/system/shellhub-agent.service
-
-  # NOTE: As we need to check if the service is running to indicate it was installed correctly, we need to copy the
-  # values to install directory before enable it, to a correctly check the status.
-  $SUDO rm -rf $INSTALL_DIR
-  $SUDO mv $TMP_DIR $INSTALL_DIR
-
-  uninstall() {
-    echo "Please check the logs with the command:"
-    echo "journalctl -f -u shellhub-agent"
-    echo ""
-    echo "❗ Uninstalling ShellHub agent..."
-    $SUDO rm -rf $TMP_DIR
-    $SUDO rm -rf $INSTALL_DIR
-    $SUDO rm /etc/systemd/system/shellhub-agent.service
-  }
-
-  $SUDO systemctl enable --now shellhub-agent || {
-    uninstall && echo "❌ Failed to enable systemd service."
+  $SUDO "$INSTALL_BIN" install $INSTALL_ARGS || {
+    echo "❌ Failed to install ShellHub agent service."
+    $SUDO rm -f "$INSTALL_BIN"
     exit 1
   }
 
-  trap 'echo "❗ Interrupted. Disabling shellhub-agent..."; $SUDO systemctl disable --now shellhub-agent; exit 1' INT
+  echo "✅ ShellHub agent installed and started."
 
-  echo "🔍 Checking service status..."
-  echo "Please wait for the service to start. This may take a few seconds."
-  echo "Press Ctrl+C to cancel the installation."
+  rm -rf "$TMP_DIR"
+}
 
-  timeout 15s sh -c '
-      journalctl -f -u shellhub-agent --since "$(systemctl show -p ActiveEnterTimestamp shellhub-agent | cut -d= -f2)" | while read -r line; do
-        if echo "$line" | grep -Eq "Listening for connections"; then
-            echo "✅ Success: $line"
-            exit 0
-        elif echo "$line" | grep -Eq "fatal"; then
-            echo "❌ Failure: $line"
-            exit 2
-        fi
-      done
-    '
+standalone_uninstall() {
+  if [ "$(id -u)" -ne 0 ]; then
+    printf "⚠️ NOTE: This operation requires root privileges.\n"
+    SUDO="sudo"
+  fi
 
-  exit_code=$?
+  INSTALL_BIN="$INSTALL_DIR/shellhub-agent"
 
-  if [ $exit_code -eq 124 ]; then
-    echo "❌ Timeout: Service took too long to start."
-    echo "Disabling shellhub-agent service..."
-    $SUDO systemctl disable --now shellhub-agent
-    uninstall
-    exit 1
-  elif [ $exit_code -eq 2 ]; then
-    echo "Disabling shellhub-agent service..."
-    $SUDO systemctl disable --now shellhub-agent
-    uninstall
+  if [ ! -f "$INSTALL_BIN" ]; then
+    echo "❌ ShellHub agent binary not found at $INSTALL_BIN."
     exit 1
   fi
 
-  $SUDO rm -rf $TMP_DIR
+  echo "🗑️ Stopping and removing ShellHub agent service..."
+
+  $SUDO "$INSTALL_BIN" uninstall || {
+    echo "⚠️ Service uninstall reported an error (it may already be removed)."
+  }
+
+  echo "🗑️ Removing ShellHub agent binary..."
+  $SUDO rm -f "$INSTALL_BIN"
+
+  echo "✅ ShellHub agent uninstalled."
+  echo "ℹ️ The private key file was left in place. Remove it manually if no longer needed."
 }
 
 wsl_install() {
@@ -355,30 +303,27 @@ SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
 TENANT_ID="${TENANT_ID}"
 INSTALL_METHOD="$INSTALL_METHOD"
 AGENT_VERSION="${AGENT_VERSION:-$(http_get $SERVER_ADDRESS/info | sed -E 's/.*"version":\s?"?([^,"]*)"?.*/\1/')}"
-AGENT_ARCH="$AGENT_ARCH"
-RUNC_VERSION=${RUNC_VERSION:-v1.1.3}
-RUNC_ARCH=$RUNC_ARCH
-INSTALL_DIR="${INSTALL_DIR:-/opt/shellhub}"
+BINARY_ARCH="$BINARY_ARCH"
+INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 TMP_DIR="${TMP_DIR:-$(mktemp -d -t shellhub-installer-XXXXXX)}"
 
 # Auto detect arch if it has not already been set
-if [ -z "$AGENT_ARCH" ]; then
+if [ -z "$BINARY_ARCH" ]; then
   case $(uname -m) in
   x86_64)
-    AGENT_ARCH=amd64
-    RUNC_ARCH=amd64
+    BINARY_ARCH=amd64
     ;;
   armv6l)
-    AGENT_ARCH=arm32v6
-    RUNC_ARCH=armel
+    BINARY_ARCH=armv6
     ;;
   armv7l)
-    AGENT_ARCH=arm32v7
-    RUNC_ARCH=armhf
+    BINARY_ARCH=armv7
     ;;
   aarch64)
-    AGENT_ARCH=arm64v8
-    RUNC_ARCH=arm64
+    BINARY_ARCH=arm64
+    ;;
+  i386|i486|i586|i686)
+    BINARY_ARCH=386
     ;;
   esac
 fi
@@ -394,7 +339,7 @@ if [ -z "$INSTALL_METHOD" ]; then
   echo "  2. Podman     - If Podman is installed and accessible in rootful mode"
   echo "  3. Snap       - If Snap package manager is available"
   echo "  4. WSL        - If running in WSL2 with systemd and mirrored networking"
-  echo "  5. Standalone - Fallback method using runc and systemd"
+  echo "  5. Standalone - Native binary with systemd"
   echo
 fi
 
@@ -402,7 +347,7 @@ echo "⚙️ Detected settings:"
 echo "- Server address: $SERVER_ADDRESS"
 echo "- Tenant ID: $TENANT_ID"
 echo "- Agent version: $AGENT_VERSION"
-echo "- Architecture: $AGENT_ARCH"
+echo "- Architecture: $BINARY_ARCH"
 [ -n "$INSTALL_METHOD" ] && echo "- Install method: $INSTALL_METHOD"
 echo
 
@@ -473,29 +418,45 @@ fi
 
 [ -z "$INSTALL_METHOD" ] && INSTALL_METHOD="standalone"
 
-case "$INSTALL_METHOD" in
-podman)
-  echo "🐳 Installing ShellHub using podman method..."
-  podman_install "$@"
-  ;;
-docker)
-  echo "🐳 Installing ShellHub using docker method..."
-  docker_install "$@"
-  ;;
-snap)
-  echo "📦 Installing ShellHub using snap method..."
-  snap_install
-  ;;
-standalone)
-  echo "🐧 Installing ShellHub using standalone method..."
-  standalone_install
-  ;;
-wsl)
-  echo "🪟 Installing ShellHub using WSL method..."
-  wsl_install
+case "$1" in
+uninstall)
+  case "$INSTALL_METHOD" in
+  standalone|wsl)
+    echo "🗑️ Uninstalling ShellHub using standalone method..."
+    standalone_uninstall
+    ;;
+  *)
+    echo "❌ Uninstall is not yet supported for '$INSTALL_METHOD' install method."
+    exit 1
+    ;;
+  esac
   ;;
 *)
-  echo "❌ Install method not supported."
-  exit 1
+  case "$INSTALL_METHOD" in
+  podman)
+    echo "🐳 Installing ShellHub using podman method..."
+    podman_install "$@"
+    ;;
+  docker)
+    echo "🐳 Installing ShellHub using docker method..."
+    docker_install "$@"
+    ;;
+  snap)
+    echo "📦 Installing ShellHub using snap method..."
+    snap_install
+    ;;
+  standalone)
+    echo "🐧 Installing ShellHub using standalone method..."
+    standalone_install
+    ;;
+  wsl)
+    echo "🪟 Installing ShellHub using WSL method..."
+    wsl_install
+    ;;
+  *)
+    echo "❌ Install method not supported."
+    exit 1
+    ;;
+  esac
   ;;
 esac

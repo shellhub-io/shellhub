@@ -141,7 +141,7 @@ jobs:
           if [ -n "${{ matrix.goarm }}" ]; then
             BINARY_NAME="${BINARY_NAME}v${{ matrix.goarm }}"
           fi
-          go build -ldflags "-s -w -X main.AgentVersion=${{ env.RELEASE_VERSION }}" -o "$BINARY_NAME" .
+          go build -tags installer -ldflags "-s -w -X main.AgentVersion=${{ env.RELEASE_VERSION }}" -o "$BINARY_NAME" .
           gzip "$BINARY_NAME"
 
       - name: upload binary artifact
