@@ -17,7 +17,7 @@ ENV NPM_CONFIG_REGISTRY ${NPM_CONFIG_REGISTRY}
 
 WORKDIR /src
 
-COPY --from=base /app/node_modules /node_modules
+COPY --from=base /app/node_modules ./node_modules
 
 COPY ui/scripts /scripts
 

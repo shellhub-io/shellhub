@@ -47,6 +47,7 @@ services:
         - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY:-}
     volumes:
       - ./ui:/src
+      - ui_node_modules:/src/node_modules
   gateway:
     image: gateway
     build:
@@ -93,3 +94,7 @@ services:
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
     networks:
       - shellhub
+
+volumes:
+  ui_node_modules:
+  ui_react_node_modules:

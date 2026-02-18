@@ -1,6 +1,12 @@
 #!/bin/sh
 
-cp -a /node_modules .
+# Install dependencies only when package.json or package-lock.json changes
+STAMP="./node_modules/.install_hash"
+HASH=$(md5sum ./package.json ./package-lock.json 2>/dev/null | md5sum | cut -d' ' -f1)
+if [ ! -d ./node_modules/.bin ] || [ "$(cat "$STAMP" 2>/dev/null)" != "$HASH" ]; then
+    npm install
+    echo "$HASH" > "$STAMP"
+fi
 
 PREFIX=SHELLHUB
 
