@@ -308,6 +308,20 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus) store.Tra
 					return NewErrDeviceDuplicated(device.Name, nil)
 				}
 
+				if envs.IsEnterprise() && !envs.IsCloud() {
+					evaluation, err := s.client.LicenseEvaluate(ctx)
+					if err != nil {
+						log.WithError(err).WithFields(log.Fields{"device_uid": device.UID}).
+							Error("failed to evaluate license device limit")
+
+						return err
+					}
+
+					if !evaluation.CanAccept {
+						return NewErrDeviceMaxDevicesReached(0)
+					}
+				}
+
 				if envs.IsCloud() {
 					hasBillingActive := namespace.Billing != nil && namespace.Billing.IsActive()
 
