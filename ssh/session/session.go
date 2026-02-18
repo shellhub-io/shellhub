@@ -581,18 +581,40 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	return nil
 }
 
+func (s *Session) checkLicense(ctx context.Context) (bool, error) {
+	evaluation, err := s.api.LicenseEvaluate(ctx)
+	if err != nil {
+		var e *internalclient.Error
+		if errors.As(err, &e) && e.Code == http.StatusPaymentRequired {
+			return false, ErrLicenseBlock
+		}
+
+		return false, err
+	}
+
+	if !evaluation.CanConnect {
+		return false, ErrLicenseBlock
+	}
+
+	return true, nil
+}
+
 func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	snap := getSnapshot(ctx)
 
-	if envs.IsEnterprise() {
-		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
+	if envs.IsEnterprise() && !envs.IsCloud() {
+		if ok, err := s.checkLicense(ctx); err != nil || !ok {
 			return err
 		}
 
-		if envs.IsCloud() {
-			if ok, err := s.checkBilling(ctx); err != nil || !ok {
-				return err
-			}
+		if ok, err := s.checkFirewall(ctx); err != nil || !ok {
+			return err
+		}
+	}
+
+	if envs.IsCloud() {
+		if ok, err := s.checkBilling(ctx); err != nil || !ok {
+			return err
 		}
 	}
 
