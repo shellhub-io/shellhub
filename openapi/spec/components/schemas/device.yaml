@@ -64,3 +64,11 @@ properties:
     $ref: devicePublicURL.yaml
   acceptable:
     $ref: deviceAcceptable.yaml
+required:
+  - uid
+  - name
+  - status
+  - online
+  - tenant_id
+  - created_at
+  - last_seen
