@@ -354,6 +354,36 @@ func (_m *Client) KeepAliveSession(ctx context.Context, uid string) error {
 	return r0
 }
 
+// LicenseEvaluate provides a mock function with given fields: ctx
+func (_m *Client) LicenseEvaluate(ctx context.Context) (*models.BillingEvaluation, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LicenseEvaluate")
+	}
+
+	var r0 *models.BillingEvaluation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (*models.BillingEvaluation, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) *models.BillingEvaluation); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.BillingEvaluation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListDevices provides a mock function with given fields: ctx
 func (_m *Client) ListDevices(ctx context.Context) ([]models.Device, error) {
 	ret := _m.Called(ctx)
