@@ -361,6 +361,28 @@ describe("Users Store", () => {
     });
   });
 
+  describe("checkHealth", () => {
+    const healthcheckUrl = "http://localhost:3000/healthcheck";
+
+    it("should resolve successfully when the API is healthy", async () => {
+      mockSystemApi.onGet(healthcheckUrl).reply(200);
+
+      await expect(usersStore.checkHealth()).resolves.not.toThrow();
+    });
+
+    it("should throw error when the API returns 503", async () => {
+      mockSystemApi.onGet(healthcheckUrl).reply(503);
+
+      await expect(usersStore.checkHealth()).rejects.toBeAxiosErrorWithStatus(503);
+    });
+
+    it("should throw error when network fails", async () => {
+      mockSystemApi.onGet(healthcheckUrl).networkError();
+
+      await expect(usersStore.checkHealth()).rejects.toThrow();
+    });
+  });
+
   describe("getSamlUrl", () => {
     const samlUrl = "http://localhost:3000/api/user/saml/auth";
 
