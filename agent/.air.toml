@@ -1,18 +1,13 @@
 root = "../"
-tmp_dir = "tmp"
+tmp_dir = "/tmp/air"
 
 [build]
 pre_cmd = []
-cmd = "go build -tags docker -ldflags \"-X main.AgentVersion=latest\" -gcflags=\"all=-N -l\" -o ./tmp/main ."
+cmd = "go build -tags docker -ldflags \"-X main.AgentVersion=latest\" -o /tmp/air/main ."
 post_cmd = []
-bin = ""
-full_bin = "dlv exec ./tmp/main"
-args_bin = [
-  "--listen=0.0.0.0:2345",
-  "--headless",
-  "--continue",
-  "--accept-multiclient",
-]
+bin = "/tmp/air/main"
+full_bin = ""
+args_bin = []
 delay = 500
 exclude_dir = ["assets", "tmp", "vendor", "testdata"]
 exclude_file = []

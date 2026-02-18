@@ -1,9 +1,9 @@
 root = "../"
-tmp_dir = "tmp"
+tmp_dir = "/tmp/air"
 
 [build]
 pre_cmd = []
-cmd = "go build -gcflags=\"all=-N -l\" -o ./tmp/main ."
+cmd = "go build -gcflags=\"all=-N -l\" -o /tmp/air/main ."
 post_cmd = []
 bin = ""
 full_bin = ""
