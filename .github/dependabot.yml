@@ -11,18 +11,27 @@ updates:
     interval: weekly
   commit-message:
     prefix: "docker: cli"
+  ignore:
+    - dependency-name: "golang"
+      update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: docker
   directory: "/api"
   schedule:
     interval: weekly
   commit-message:
     prefix: "docker: api"
+  ignore:
+    - dependency-name: "golang"
+      update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: docker
   directory: "/gateway"
   schedule:
     interval: weekly
   commit-message:
     prefix: "docker: gateway"
+  ignore:
+    - dependency-name: "golang"
+      update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: docker
   directory: "/ui"
   schedule:
@@ -39,12 +48,18 @@ updates:
     interval: weekly
   commit-message:
     prefix: "docker: agent"
+  ignore:
+    - dependency-name: "golang"
+      update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: docker
   directory: "/ssh"
   schedule:
     interval: weekly
   commit-message:
     prefix: "docker: ssh"
+  ignore:
+    - dependency-name: "golang"
+      update-types: ["version-update:semver-major", "version-update:semver-minor"]
 - package-ecosystem: npm
   directory: "/ui"
   schedule:
