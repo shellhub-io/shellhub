@@ -1,9 +1,6 @@
 #!/bin/sh
 
-# Cleanup function to kill Delve processes on exit
 cleanup() {
-    echo "Cleaning up Delve processes..."
-    pkill -9 dlv
     exit 0
 }
 
