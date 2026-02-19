@@ -45,6 +45,9 @@ get:
   responses:
     '200':
       description: Success to export users.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
       content:
         application/octet-stream:
           schema:

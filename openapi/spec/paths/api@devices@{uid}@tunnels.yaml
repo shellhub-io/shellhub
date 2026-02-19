@@ -18,6 +18,9 @@ get:
   responses:
     '200':
       description: Success to get the tunnels.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
       content:
         application/json:
           schema:

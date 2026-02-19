@@ -28,11 +28,7 @@ get:
       description: Success to get the web-endpoints.
       headers:
         X-Total-Count:
-          description: Web endpoints' total number.
-          schema:
-            type: string
-            minimum: 0
-            readOnly: true
+          $ref: ../components/headers/XTotalCount.yaml
       content:
         application/json:
           schema:

@@ -1,0 +1,5 @@
+description: Total number of items matching the query.
+schema:
+  type: integer
+  minimum: 0
+  readOnly: true

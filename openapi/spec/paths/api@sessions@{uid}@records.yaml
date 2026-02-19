@@ -18,11 +18,7 @@ get:
       description: Success to list the session records.
       headers:
         X-Total-Count:
-          description: Session records' total number.
-          schema:
-            type: string
-            minimum: 0
-            readOnly: true
+          $ref: ../components/headers/XTotalCount.yaml
     '400':
       $ref: ../components/responses/400.yaml
     '404':
