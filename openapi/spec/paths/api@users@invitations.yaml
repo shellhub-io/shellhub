@@ -27,10 +27,7 @@ get:
       description: Successfully retrieved membership invitations list.
       headers:
         X-Total-Count:
-          description: Total number of membership invitations.
-          schema:
-            type: integer
-            minimum: 0
+          $ref: ../components/headers/XTotalCount.yaml
       content:
         application/json:
           schema:

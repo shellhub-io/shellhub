@@ -69,11 +69,7 @@ get:
       description: Success.
       headers:
         X-Total-Count:
-          description: Total matched documents.
-          schema:
-            type: string
-            minimum: 0
-            readOnly: true
+          $ref: ../components/headers/XTotalCount.yaml
       content:
         application/json:
           schema:

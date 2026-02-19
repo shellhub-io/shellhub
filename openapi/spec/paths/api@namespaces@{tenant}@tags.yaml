@@ -19,10 +19,7 @@ get:
       description: Success to get tag list.
       headers:
         X-Total-Count:
-          description: Tags' total number.
-          schema:
-            type: string
-            minimum: 0
+          $ref: ../components/headers/XTotalCount.yaml
       content:
         application/json:
           schema:
