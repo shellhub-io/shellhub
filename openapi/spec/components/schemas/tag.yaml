@@ -2,9 +2,27 @@ description: |
   A tag represents a label or category that can be attached to devices,
   firewall rules and public keys for organization and filtering purposes.
 type: object
+required:
+  - name
+  - tenant_id
+  - created_at
+  - updated_at
 properties:
   name:
     type: string
     description: The display name of the tag
     minLength: 3
     maxLength: 255
+  tenant_id:
+    type: string
+    description: The tenant ID that owns this tag
+  created_at:
+    type: string
+    format: date-time
+    description: The timestamp when the tag was created
+    example: '2026-01-01T12:00:00Z'
+  updated_at:
+    type: string
+    format: date-time
+    description: The timestamp when the tag was last updated
+    example: '2026-01-02T12:00:00Z'
