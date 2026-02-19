@@ -108,7 +108,8 @@ export const routes: Array<RouteRecordRaw> = [
     },
     beforeEnter: (to, from, next) => {
       // Prevent users from manually navigating to the System Unavailable page
-      if (!to.query.redirect) next({ name: "Home" });
+      if (!to.query.redirect) return next({ name: "Home" });
+      next();
     },
     component: () => import("../views/UnavailabilityMessage.vue"),
   },
