@@ -88,7 +88,7 @@ export const routes: Array<RouteRecordRaw> = [
     beforeEnter: async (to, from, next) => {
       await useUsersStore().fetchSystemInfo();
       if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
-        next({ name: "Setup" });
+        return next({ name: "Setup" });
       }
       next();
     },
@@ -198,7 +198,7 @@ export const routes: Array<RouteRecordRaw> = [
     beforeEnter: async (to, from, next) => {
       await useUsersStore().fetchSystemInfo();
       if (!envVariables.isCloud && !useUsersStore().systemInfo.setup) {
-        next({ name: "Setup" });
+        return next({ name: "Setup" });
       }
       next();
     },
