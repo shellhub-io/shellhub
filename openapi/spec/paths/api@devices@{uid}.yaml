@@ -62,6 +62,8 @@ put:
               $ref: ../components/schemas/deviceName.yaml
             public_url:
               $ref: ../components/schemas/devicePublicURL.yaml
+          required:
+            - name
   responses:
     '200':
       description: Success to update device's data.
