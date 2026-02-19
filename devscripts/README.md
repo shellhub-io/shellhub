@@ -12,7 +12,7 @@ They are not intented for regular use by end users.
 
 ## Scripts
 
-* `add-device`: Add a random fake device to ShellHub
+* `add-device`: Add a test device to ShellHub (`--fake` for API-only, `--agent` for real agent container)
 * `get-devices`: Get devices from API
 * `lint-code`: Run code linter
 * `test-unit`: Run unit test

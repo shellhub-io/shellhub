@@ -1,24 +1,40 @@
 #!/bin/sh
 
-[ -z $1 ] && echo "Usage: $0 <tenant_id>" && exit 1
+. "$(dirname "$0")/utils"
 
-TENANT_ID=$1
-ID=$(echo "raspbian ubuntucore arch debian ubuntu" | cut -d' ' -f$(shuf -i1-5 -n1))
-PRETTY_NAME=$ID
-MACADDR=$(echo -n 02; dd bs=1 count=5 if=/dev/random 2>/dev/null | hexdump -v -e '/1 ":%02X"')
+check_bin openssl
+check_bin http
 
-PRIVATE_KEY_FILE=$(mktemp -u)
-PUBLIC_KEY_FILE=$(mktemp -u)
+usage() {
+    echo "Usage: $0 <--fake|--agent> <tenant_id>"
+    echo ""
+    echo "Modes:"
+    echo "  --fake     Register a fake device via API (no agent/tunnel)"
+    echo "  --agent    Spawn a real agent container (SSH, SCP, tunnel)"
+    echo ""
+    echo "Examples:"
+    echo "  $0 --fake 00000000-0000-4000-0000-000000000000"
+    echo "  $0 --agent 00000000-0000-4000-0000-000000000000"
+}
 
-openssl genpkey -algorithm RSA -out $PRIVATE_KEY_FILE -pkeyopt rsa_keygen_bits:2048 2> /dev/null
-openssl rsa -in $PRIVATE_KEY_FILE -out $PUBLIC_KEY_FILE -pubout 2> /dev/null
+add_fake_device() {
+    TENANT_ID=$1
+    ID=$(echo "raspbian ubuntucore arch debian ubuntu" | cut -d' ' -f$(shuf -i1-5 -n1))
+    PRETTY_NAME=$ID
+    MACADDR=$(echo -n 02; dd bs=1 count=5 if=/dev/random 2>/dev/null | hexdump -v -e '/1 ":%02X"')
 
-PUBLIC_KEY=$(cat $PUBLIC_KEY_FILE)
+    PRIVATE_KEY_FILE=$(mktemp -u)
+    PUBLIC_KEY_FILE=$(mktemp -u)
 
-rm -f $PRIVATE_KEY_FILE
-rm -f $PUBLIC_KEY_FILE
+    openssl genpkey -algorithm RSA -out $PRIVATE_KEY_FILE -pkeyopt rsa_keygen_bits:2048 2> /dev/null
+    openssl rsa -in $PRIVATE_KEY_FILE -out $PUBLIC_KEY_FILE -pubout 2> /dev/null
 
-JSON=$(cat <<EOF
+    PUBLIC_KEY=$(cat $PUBLIC_KEY_FILE)
+
+    rm -f $PRIVATE_KEY_FILE
+    rm -f $PUBLIC_KEY_FILE
+
+    JSON=$(cat <<EOF
 {
   "sessions": [],
   "info": {
@@ -36,4 +52,51 @@ JSON=$(cat <<EOF
 EOF
 )
 
-echo $JSON | http post http://localhost/api/devices/auth && echo "Device added!"
+    echo $JSON | http post http://localhost/api/devices/auth && echo "Device added!"
+}
+
+add_agent_device() {
+    TENANT_ID=$1
+    TIMESTAMP=$(date +%s)
+    CONTAINER_NAME="shellhub-test-${TIMESTAMP}"
+    HOSTNAME="test-${TIMESTAMP}"
+
+    echo "Starting real agent container: ${CONTAINER_NAME}"
+    echo ""
+
+    "${SHELLHUB_PATH}/bin/docker-compose" run \
+        --name "${CONTAINER_NAME}" \
+        --detach \
+        --no-deps \
+        -e "SHELLHUB_TENANT_ID=${TENANT_ID}" \
+        -e "SHELLHUB_PREFERRED_HOSTNAME=${HOSTNAME}" \
+        -e "SHELLHUB_PREFERRED_IDENTITY=root" \
+        agent
+
+    echo ""
+    echo "Container: ${CONTAINER_NAME}"
+    echo "Hostname:  ${HOSTNAME}"
+    echo ""
+    echo "Useful commands:"
+    echo "  docker logs -f ${CONTAINER_NAME}"
+    echo "  docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}"
+}
+
+case "${1:-}" in
+    --fake)
+        [ -z "${2:-}" ] && echo "Error: <tenant_id> is required" && echo "" && usage && exit 1
+        add_fake_device "$2"
+        ;;
+    --agent)
+        [ -z "${2:-}" ] && echo "Error: <tenant_id> is required" && echo "" && usage && exit 1
+        add_agent_device "$2"
+        ;;
+    --help|-h)
+        usage
+        exit 0
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac
