@@ -350,7 +350,7 @@ const { status, data } = await apiInstance.apiKeyList(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**401** | Unauthorized |  -  |
 |**404** | Not found |  -  |
@@ -1374,7 +1374,7 @@ const { status, data } = await apiInstance.getContainers(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a list of containers. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get a list of containers. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1496,7 +1496,7 @@ const { status, data } = await apiInstance.getDevices(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a list of devices. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get a list of devices. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1718,7 +1718,7 @@ const { status, data } = await apiInstance.getNamespaces(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a namespace list. |  * X-Total-Count - Namespaces\&#39; total number. <br>  |
+|**200** | Success to get a namespace list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1777,7 +1777,7 @@ const { status, data } = await apiInstance.getPublicKeys(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a list of public keys. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get a list of public keys. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1886,7 +1886,7 @@ const { status, data } = await apiInstance.getSessions(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get list of sessions. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get list of sessions. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1991,7 +1991,7 @@ const { status, data } = await apiInstance.getTags(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get tag list. |  * X-Total-Count - Namespaces\&#39; total number. <br>  |
+|**200** | Success to get tag list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
@@ -2055,7 +2055,7 @@ const { status, data } = await apiInstance.getTagsDeprecated(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get tag list. |  * X-Total-Count - Namespaces\&#39; total number. <br>  |
+|**200** | Success to get tag list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
@@ -2314,7 +2314,7 @@ No authorization required
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the announcements. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get the announcements. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**500** | Internal error |  -  |
 
@@ -3042,18 +3042,18 @@ Update container\'s data.
 import {
     CommunityApi,
     Configuration,
-    UpdateDeviceRequest
+    UpdateContainerRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new CommunityApi(configuration);
 
 let uid: string; //Device\'s UID (default to undefined)
-let updateDeviceRequest: UpdateDeviceRequest; // (optional)
+let updateContainerRequest: UpdateContainerRequest; // (optional)
 
 const { status, data } = await apiInstance.updateContainer(
     uid,
-    updateDeviceRequest
+    updateContainerRequest
 );
 ```
 
@@ -3061,7 +3061,7 @@ const { status, data } = await apiInstance.updateContainer(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **updateDeviceRequest** | **UpdateDeviceRequest**|  | |
+| **updateContainerRequest** | **UpdateContainerRequest**|  | |
 | **uid** | [**string**] | Device\&#39;s UID | defaults to undefined|
 
 

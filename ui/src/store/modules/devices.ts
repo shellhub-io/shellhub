@@ -90,7 +90,7 @@ const useDevicesStore = defineStore("devices", () => {
 
   const renameDevice = async (data: IDeviceRename) => {
     await devicesApi.renameDevice(data);
-    device.value.name = data.name.name as string;
+    device.value.name = data.name.name;
   };
 
   const fetchDevice = async (identifiers: { hostname?: string, uid?: string }) => {

@@ -937,7 +937,7 @@ const { status, data } = await apiInstance.exportNamespaces(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to export namespaces. |  -  |
+|**200** | Success to export namespaces. |  * X-Total-Count -  <br>  |
 |**204** | No content. |  -  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
@@ -997,7 +997,7 @@ const { status, data } = await apiInstance.exportUsers(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to export users. |  -  |
+|**200** | Success to export users. |  * X-Total-Count -  <br>  |
 |**204** | No content. |  -  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
@@ -1220,7 +1220,7 @@ const { status, data } = await apiInstance.getDevicesAdmin(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a list of devices. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get a list of devices. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1329,7 +1329,7 @@ const { status, data } = await apiInstance.getFirewallRulesAdmin(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get firewall rules. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get firewall rules. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**500** | Internal error |  -  |
@@ -1490,7 +1490,7 @@ const { status, data } = await apiInstance.getNamespacesAdmin(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a namespace list. |  * X-Total-Count - Namespaces\&#39; total number. <br>  |
+|**200** | Success to get a namespace list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1549,7 +1549,7 @@ const { status, data } = await apiInstance.getPublicKeysAdmin(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a list of public keys. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get a list of public keys. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1658,7 +1658,7 @@ const { status, data } = await apiInstance.getSessionsAdmin(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get list of sessions. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get list of sessions. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1871,7 +1871,7 @@ const { status, data } = await apiInstance.getUsers(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a list of users. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get a list of users. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1974,7 +1974,7 @@ const { status, data } = await apiInstance.listAnnouncementsAdmin(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the announcements. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get the announcements. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**500** | Internal error |  -  |
 

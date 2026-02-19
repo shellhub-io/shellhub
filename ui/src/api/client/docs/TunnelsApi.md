@@ -178,7 +178,7 @@ const { status, data } = await apiInstance.listTunnels(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the tunnels. |  -  |
+|**200** | Success to get the tunnels. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |

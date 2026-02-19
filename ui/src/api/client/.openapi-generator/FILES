@@ -157,6 +157,7 @@ docs/Tag.md
 docs/TagsApi.md
 docs/Tunnel.md
 docs/TunnelsApi.md
+docs/UpdateContainerRequest.md
 docs/UpdateDeviceNameAdminRequest.md
 docs/UpdateDeviceRequest.md
 docs/UpdateDeviceStatusStatusParameter.md

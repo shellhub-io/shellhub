@@ -1,19 +1,19 @@
-# UpdateDeviceRequest
+# UpdateContainerRequest
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**name** | **string** | Device\&#39;s name   By default, the name is the device\&#39;s MAC address when it just added.  | [default to undefined]
+**name** | **string** | Device\&#39;s name   By default, the name is the device\&#39;s MAC address when it just added.  | [optional] [default to undefined]
 **public_url** | **boolean** | Device\&#39;s public URL status. | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { UpdateDeviceRequest } from './api';
+import { UpdateContainerRequest } from './api';
 
-const instance: UpdateDeviceRequest = {
+const instance: UpdateContainerRequest = {
     name,
     public_url,
 };

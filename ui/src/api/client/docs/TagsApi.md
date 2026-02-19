@@ -306,7 +306,7 @@ const { status, data } = await apiInstance.getTags(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get tag list. |  * X-Total-Count - Namespaces\&#39; total number. <br>  |
+|**200** | Success to get tag list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
@@ -370,7 +370,7 @@ const { status, data } = await apiInstance.getTagsDeprecated(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get tag list. |  * X-Total-Count - Namespaces\&#39; total number. <br>  |
+|**200** | Success to get tag list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |

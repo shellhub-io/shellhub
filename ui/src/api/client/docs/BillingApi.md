@@ -428,7 +428,7 @@ This endpoint does not have any parameters.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the most used devices. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get the most used devices. |  * X-Total-Count -  <br>  |
 |**403** | Forbidden |  -  |
 |**500** | Internal error |  -  |
 

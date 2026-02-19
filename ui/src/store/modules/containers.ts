@@ -51,7 +51,7 @@ const useContainersStore = defineStore("containers", () => {
 
   const renameContainer = async (data: IContainerRename) => {
     await containerApi.renameContainer(data);
-    container.value.name = data.name.name as string;
+    container.value.name = data.name.name;
   };
 
   const getContainer = async (uid: string) => {

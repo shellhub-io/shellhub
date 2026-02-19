@@ -381,11 +381,11 @@ export interface Device {
     /**
      * Device\'s UID
      */
-    'uid'?: string;
+    'uid': string;
     /**
      * Device\'s name   By default, the name is the device\'s MAC address when it just added. 
      */
-    'name'?: string;
+    'name': string;
     'identity'?: DeviceIdentity;
     'info'?: DeviceInfo;
     /**
@@ -395,20 +395,20 @@ export interface Device {
     /**
      * Namespace\'s tenant ID
      */
-    'tenant_id'?: string;
+    'tenant_id': string;
     /**
      * Device\'s last seen date
      */
-    'last_seen'?: string;
+    'last_seen': string;
     /**
      * Device\'s availability status
      */
-    'online'?: boolean;
+    'online': boolean;
     /**
      * Namespace\'s name
      */
     'namespace'?: string;
-    'status'?: DeviceStatus;
+    'status': DeviceStatus;
     /**
      * Device\'s status update date
      */
@@ -416,7 +416,7 @@ export interface Device {
     /**
      * Device\'s creation date
      */
-    'created_at'?: string;
+    'created_at': string;
     /**
      * Device\'s remote address
      */
@@ -2061,7 +2061,19 @@ export interface Tag {
     /**
      * The display name of the tag
      */
-    'name'?: string;
+    'name': string;
+    /**
+     * The tenant ID that owns this tag
+     */
+    'tenant_id': string;
+    /**
+     * The timestamp when the tag was created
+     */
+    'created_at': string;
+    /**
+     * The timestamp when the tag was last updated
+     */
+    'updated_at': string;
 }
 export interface Tunnel {
     /**
@@ -2101,6 +2113,16 @@ export interface Tunnel {
      */
     'created_at'?: string;
 }
+export interface UpdateContainerRequest {
+    /**
+     * Device\'s name   By default, the name is the device\'s MAC address when it just added. 
+     */
+    'name'?: string;
+    /**
+     * Device\'s public URL status.
+     */
+    'public_url'?: boolean;
+}
 export interface UpdateDeviceNameAdminRequest {
     /**
      * Device\'s new name.
@@ -2111,7 +2133,7 @@ export interface UpdateDeviceRequest {
     /**
      * Device\'s name   By default, the name is the device\'s MAC address when it just added. 
      */
-    'name'?: string;
+    'name': string;
     /**
      * Device\'s public URL status.
      */
@@ -13551,11 +13573,11 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
          * Update container\'s data.
          * @summary Update container
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+         * @param {UpdateContainerRequest} [updateContainerRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateContainer: async (uid: string, updateDeviceRequest?: UpdateDeviceRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateContainer: async (uid: string, updateContainerRequest?: UpdateContainerRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('updateContainer', 'uid', uid)
             const localVarPath = `/api/containers/{uid}`
@@ -13585,7 +13607,7 @@ export const CommunityApiAxiosParamCreator = function (configuration?: Configura
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateDeviceRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(updateContainerRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -14814,12 +14836,12 @@ export const CommunityApiFp = function(configuration?: Configuration) {
          * Update container\'s data.
          * @summary Update container
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+         * @param {UpdateContainerRequest} [updateContainerRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateContainer(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateContainer(uid, updateDeviceRequest, options);
+        async updateContainer(uid: string, updateContainerRequest?: UpdateContainerRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateContainer(uid, updateContainerRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CommunityApi.updateContainer']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -15560,12 +15582,12 @@ export const CommunityApiFactory = function (configuration?: Configuration, base
          * Update container\'s data.
          * @summary Update container
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+         * @param {UpdateContainerRequest} [updateContainerRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateContainer(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.updateContainer(uid, updateDeviceRequest, options).then((request) => request(axios, basePath));
+        updateContainer(uid: string, updateContainerRequest?: UpdateContainerRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.updateContainer(uid, updateContainerRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Update container\'s status.
@@ -16320,12 +16342,12 @@ export class CommunityApi extends BaseAPI {
      * Update container\'s data.
      * @summary Update container
      * @param {string} uid Device\&#39;s UID
-     * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+     * @param {UpdateContainerRequest} [updateContainerRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public updateContainer(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: RawAxiosRequestConfig) {
-        return CommunityApiFp(this.configuration).updateContainer(uid, updateDeviceRequest, options).then((request) => request(this.axios, this.basePath));
+    public updateContainer(uid: string, updateContainerRequest?: UpdateContainerRequest, options?: RawAxiosRequestConfig) {
+        return CommunityApiFp(this.configuration).updateContainer(uid, updateContainerRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -16624,11 +16646,11 @@ export const ContainersApiAxiosParamCreator = function (configuration?: Configur
          * Update container\'s data.
          * @summary Update container
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+         * @param {UpdateContainerRequest} [updateContainerRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateContainer: async (uid: string, updateDeviceRequest?: UpdateDeviceRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateContainer: async (uid: string, updateContainerRequest?: UpdateContainerRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'uid' is not null or undefined
             assertParamExists('updateContainer', 'uid', uid)
             const localVarPath = `/api/containers/{uid}`
@@ -16658,7 +16680,7 @@ export const ContainersApiAxiosParamCreator = function (configuration?: Configur
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(updateDeviceRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(updateContainerRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -16767,12 +16789,12 @@ export const ContainersApiFp = function(configuration?: Configuration) {
          * Update container\'s data.
          * @summary Update container
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+         * @param {UpdateContainerRequest} [updateContainerRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateContainer(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateContainer(uid, updateDeviceRequest, options);
+        async updateContainer(uid: string, updateContainerRequest?: UpdateContainerRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateContainer(uid, updateContainerRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ContainersApi.updateContainer']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -16839,12 +16861,12 @@ export const ContainersApiFactory = function (configuration?: Configuration, bas
          * Update container\'s data.
          * @summary Update container
          * @param {string} uid Device\&#39;s UID
-         * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+         * @param {UpdateContainerRequest} [updateContainerRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateContainer(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.updateContainer(uid, updateDeviceRequest, options).then((request) => request(axios, basePath));
+        updateContainer(uid: string, updateContainerRequest?: UpdateContainerRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.updateContainer(uid, updateContainerRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Update container\'s status.
@@ -16906,12 +16928,12 @@ export class ContainersApi extends BaseAPI {
      * Update container\'s data.
      * @summary Update container
      * @param {string} uid Device\&#39;s UID
-     * @param {UpdateDeviceRequest} [updateDeviceRequest] 
+     * @param {UpdateContainerRequest} [updateContainerRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public updateContainer(uid: string, updateDeviceRequest?: UpdateDeviceRequest, options?: RawAxiosRequestConfig) {
-        return ContainersApiFp(this.configuration).updateContainer(uid, updateDeviceRequest, options).then((request) => request(this.axios, this.basePath));
+    public updateContainer(uid: string, updateContainerRequest?: UpdateContainerRequest, options?: RawAxiosRequestConfig) {
+        return ContainersApiFp(this.configuration).updateContainer(uid, updateContainerRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

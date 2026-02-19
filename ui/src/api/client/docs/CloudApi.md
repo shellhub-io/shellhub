@@ -1583,7 +1583,7 @@ This endpoint does not have any parameters.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the most used devices. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get the most used devices. |  * X-Total-Count -  <br>  |
 |**403** | Forbidden |  -  |
 |**500** | Internal error |  -  |
 
@@ -1692,7 +1692,7 @@ const { status, data } = await apiInstance.getFirewallRules(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get firewall rules. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get firewall rules. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**500** | Internal error |  -  |
@@ -1752,7 +1752,7 @@ const { status, data } = await apiInstance.getMembershipInvitationList(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Successfully retrieved membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
+|**200** | Successfully retrieved membership invitations list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -1814,7 +1814,7 @@ const { status, data } = await apiInstance.getNamespaceMembershipInvitationList(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Successfully retrieved namespace membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
+|**200** | Successfully retrieved namespace membership invitations list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
@@ -2186,7 +2186,7 @@ const { status, data } = await apiInstance.listAnnouncementsAdmin(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the announcements. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get the announcements. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**500** | Internal error |  -  |
 
@@ -2245,7 +2245,7 @@ const { status, data } = await apiInstance.listTunnels(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the tunnels. |  -  |
+|**200** | Success to get the tunnels. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
@@ -2312,7 +2312,7 @@ const { status, data } = await apiInstance.listWebEndpoints(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get the web-endpoints. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get the web-endpoints. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |

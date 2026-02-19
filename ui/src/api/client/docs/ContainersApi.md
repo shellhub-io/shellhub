@@ -180,7 +180,7 @@ const { status, data } = await apiInstance.getContainers(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success to get a list of containers. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success to get a list of containers. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -197,18 +197,18 @@ Update container\'s data.
 import {
     ContainersApi,
     Configuration,
-    UpdateDeviceRequest
+    UpdateContainerRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new ContainersApi(configuration);
 
 let uid: string; //Device\'s UID (default to undefined)
-let updateDeviceRequest: UpdateDeviceRequest; // (optional)
+let updateContainerRequest: UpdateContainerRequest; // (optional)
 
 const { status, data } = await apiInstance.updateContainer(
     uid,
-    updateDeviceRequest
+    updateContainerRequest
 );
 ```
 
@@ -216,7 +216,7 @@ const { status, data } = await apiInstance.updateContainer(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **updateDeviceRequest** | **UpdateDeviceRequest**|  | |
+| **updateContainerRequest** | **UpdateContainerRequest**|  | |
 | **uid** | [**string**] | Device\&#39;s UID | defaults to undefined|
 
 

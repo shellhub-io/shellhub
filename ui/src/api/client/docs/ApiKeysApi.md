@@ -175,7 +175,7 @@ const { status, data } = await apiInstance.apiKeyList(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Success. |  * X-Total-Count - Announcements\&#39; total number. <br>  |
+|**200** | Success. |  * X-Total-Count -  <br>  |
 |**400** | Bad request |  -  |
 |**401** | Unauthorized |  -  |
 |**404** | Not found |  -  |

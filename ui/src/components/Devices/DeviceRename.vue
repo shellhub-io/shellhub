@@ -73,7 +73,7 @@ const {
   value: newName,
   errorMessage: newNameError,
   setErrors: setNewNameError,
-} = useField<string | undefined>("name", yup.string().required(), {
+} = useField<string>("name", yup.string().required(), {
   initialValue: props.name,
 });
 

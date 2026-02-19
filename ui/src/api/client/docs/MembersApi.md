@@ -361,7 +361,7 @@ const { status, data } = await apiInstance.getMembershipInvitationList(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Successfully retrieved membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
+|**200** | Successfully retrieved membership invitations list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal error |  -  |
 
@@ -423,7 +423,7 @@ const { status, data } = await apiInstance.getNamespaceMembershipInvitationList(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** | Successfully retrieved namespace membership invitations list. |  * X-Total-Count - Total number of membership invitations. <br>  |
+|**200** | Successfully retrieved namespace membership invitations list. |  * X-Total-Count -  <br>  |
 |**401** | Unauthorized |  -  |
 |**403** | Forbidden |  -  |
 |**404** | Not found |  -  |
