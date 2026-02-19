@@ -25,31 +25,26 @@ export const handleAcceptInvite = async (to: RouteLocationNormalized, from: Rout
 
     switch (userStatus) {
       case "invited":
-        next({
+        return next({
           path: "/sign-up",
           query: { redirect: to.path, ...to.query },
         });
-        return;
       case "not-confirmed":
-        next({
+        return next({
           path: "/login",
           query: { redirect: "/accept-invite", ...to.query },
         });
-        return;
       case "confirmed":
         if (!isLoggedIn.value) {
-          next({
+          return next({
             path: "/login",
             query: { redirect: "/accept-invite", ...to.query },
           });
-          return;
         }
-        next();
-        break;
+        return next();
       default:
-        break;
+        return next();
     }
-    next();
   } catch {
     snackbar.showError("Failed to accept invitation.");
     next({ name: "Login" });
