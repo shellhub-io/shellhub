@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, onUnmounted } from "vue";
 import moment from "moment";
 
 export default function useCountdown() {
@@ -23,6 +23,8 @@ export default function useCountdown() {
       }
     }, 1000);
   }
+
+  onUnmounted(() => clearInterval(countdownInterval));
 
   return { startCountdown, countdown };
 }
