@@ -21,7 +21,7 @@ const useWebEndpointsStore = defineStore("webEndpoints", () => {
         showWebEndpoints.value = true;
       }
       webEndpoints.value = res.data as IWebEndpoint[];
-      webEndpointCount.value = parseInt(res.headers["x-total-count"] as string, 10);
+      webEndpointCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
     } catch (error) {
       webEndpoints.value = [];
       webEndpointCount.value = 0;

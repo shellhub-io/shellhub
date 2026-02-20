@@ -33,7 +33,7 @@ const useInvitationsStore = defineStore("invitations", () => {
       perPage,
     });
     namespaceInvitations.value = res.data as IInvitation[];
-    invitationCount.value = Number(res.headers["x-total-count"]);
+    invitationCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
   };
 
   const acceptInvitation = async (tenant: string) => {

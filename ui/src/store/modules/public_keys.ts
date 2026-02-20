@@ -10,7 +10,7 @@ const usePublicKeysStore = defineStore("publicKeys", () => {
   const fetchPublicKeyList = async (data?: { page: number; perPage: number; filter?: string }) => {
     const res = await publicKeysApi.fetchPublicKeys(data?.page || 1, data?.perPage || 10, data?.filter);
     publicKeys.value = res.data as IPublicKey[];
-    publicKeyCount.value = parseInt(res.headers["x-total-count"] as string, 10);
+    publicKeyCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
   };
 
   const createPublicKey = async (data: IPublicKeyCreate) => {

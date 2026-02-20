@@ -28,7 +28,7 @@ const useTagsStore = defineStore("tags", () => {
         data?.filter,
       );
       tags.value = res.data as ITag[];
-      tagCount.value = parseInt(res.headers["x-total-count"] as string, 10);
+      tagCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
     } catch (error) {
       tags.value = [];
       tagCount.value = 0;
@@ -38,7 +38,7 @@ const useTagsStore = defineStore("tags", () => {
 
   const setTagListVisibility = async () => {
     const { headers } = await tagsApi.getTags(1, 1);
-    const count = parseInt(headers["x-total-count"] as string, 10);
+    const count = parseInt(headers["x-total-count"] as string, 10) || 0;
     if (count) showTags.value = true;
   };
 

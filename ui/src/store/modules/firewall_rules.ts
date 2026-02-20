@@ -18,7 +18,7 @@ const useFirewallRulesStore = defineStore("firewallRules", () => {
         data?.page || 1,
       );
       firewallRules.value = res.data as IFirewallRule[];
-      firewallRuleCount.value = parseInt(res.headers["x-total-count"] as string, 10);
+      firewallRuleCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
     } catch (error) {
       firewallRules.value = [];
       firewallRuleCount.value = 0;
