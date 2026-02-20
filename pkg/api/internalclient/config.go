@@ -14,10 +14,8 @@ type Config struct {
 	RetryMaxWaitTime int `env:"SHELLHUB_INTERNAL_HTTP_CLIENT_RETRY_MAX_WAIT_TIME,default=20"`
 
 	// APIBaseURL defines the base URL for the API service.
+	// All routes — community and enterprise — are served by this single backend.
 	APIBaseURL string `env:"SHELLHUB_INTERNAL_HTTP_CLIENT_API_BASE_URL,default=http://api:8080"`
-
-	// EnterpriseBaseURL defines the base URL for enterprise endpoints (cloud component).
-	EnterpriseBaseURL string `env:"SHELLHUB_INTERNAL_HTTP_CLIENT_ENTERPRISE_BASE_URL,default=http://cloud:8080"`
 }
 
 func NewConfigFromEnv() (*Config, error) {
@@ -32,10 +30,9 @@ func NewConfigFromEnv() (*Config, error) {
 // DefaultConfig returns a Config struct with default values.
 func DefaultConfig() (*Config, error) {
 	return &Config{
-		RetryCount:        3,
-		RetryWaitTime:     5,
-		RetryMaxWaitTime:  20,
-		APIBaseURL:        "http://api:8080",
-		EnterpriseBaseURL: "http://cloud:8080",
+		RetryCount:       3,
+		RetryWaitTime:    5,
+		RetryMaxWaitTime: 20,
+		APIBaseURL:       "http://api:8080",
 	}, nil
 }

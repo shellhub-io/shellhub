@@ -127,7 +127,7 @@ func (c *client) SaveSession(ctx context.Context, uid string, seat int) error {
 			"uid":  uid,
 			"seat": strconv.Itoa(seat),
 		}).
-		Post(c.config.EnterpriseBaseURL + "/internal/sessions/{uid}/records/{seat}")
+		Post(c.config.APIBaseURL + "/internal/sessions/{uid}/records/{seat}")
 	if err := HasError(resp, err); err != nil {
 		return err
 	}
