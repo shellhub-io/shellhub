@@ -12,4 +12,13 @@ fi
 
 ln -sf $PWD/api /api
 
-air
+# If the cloud repo is mounted at the expected container path, run air
+# with -tags enterprise (EE). Otherwise run a plain CE build.
+CLOUD_DIR="/go/src/github.com/shellhub-io/cloud"
+
+if [ -d "$CLOUD_DIR" ]; then
+    echo "Cloud sources found at $CLOUD_DIR — building api-enterprise (EE)"
+    exec air -c .air.enterprise.toml
+else
+    exec air
+fi
