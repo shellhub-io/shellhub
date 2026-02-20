@@ -35,7 +35,7 @@ type deviceAPI interface {
 func (c *client) DevicesOffline(ctx context.Context, uid string) error {
 	baseURL := c.config.APIBaseURL
 	if envs.IsCloud() || envs.IsEnterprise() {
-		baseURL = c.config.EnterpriseBaseURL
+		baseURL = c.config.APIBaseURL
 	}
 
 	res, err := c.http.
@@ -142,7 +142,7 @@ func (c *client) LookupWebEndpoints(ctx context.Context, address string) (*WebEn
 		SetContext(ctx).
 		SetPathParam("address", address).
 		SetResult(&endpoint).
-		Get(c.config.EnterpriseBaseURL + "/internal/web-endpoints/{address}")
+		Get(c.config.APIBaseURL + "/internal/web-endpoints/{address}")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}

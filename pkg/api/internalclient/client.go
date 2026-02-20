@@ -68,8 +68,7 @@ func NewClient(cfg *Config, opts ...clientOption) (Client, error) {
 		httpClient.SetLogger(&LeveledLogger{c.logger})
 	}
 
-	// NOTE: Avoid setting a global base URL on the Resty client. Calls to enterprise endpoints
-	// will use c.config.EnterpriseBaseURL explicitly when needed.
+	// NOTE: Avoid setting a global base URL on the Resty client; each call sets its own URL.
 	httpClient.SetRetryCount(c.config.RetryCount)
 	httpClient.SetRetryWaitTime(time.Duration(c.config.RetryWaitTime) * time.Second)
 	httpClient.SetRetryMaxWaitTime(time.Duration(c.config.RetryMaxWaitTime) * time.Second)
