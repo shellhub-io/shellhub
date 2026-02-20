@@ -15,9 +15,18 @@ ln -sf $PWD/api /api
 # If the cloud repo is mounted at the expected container path, run air
 # with -tags enterprise (EE). Otherwise run a plain CE build.
 CLOUD_DIR="/go/src/github.com/shellhub-io/cloud"
+WORKSPACE="/go/src/github.com/shellhub-io"
 
 if [ -d "$CLOUD_DIR" ]; then
     echo "Cloud sources found at $CLOUD_DIR — building api-enterprise (EE)"
+
+    # Create go.work so the unified build can resolve both shellhub and cloud modules.
+    go work init \
+        "$WORKSPACE/shellhub" \
+        "$WORKSPACE/shellhub/openapi" \
+        "$WORKSPACE/shellhub/api" \
+        "$WORKSPACE/cloud"
+
     exec air -c .air.enterprise.toml
 else
     exec air
