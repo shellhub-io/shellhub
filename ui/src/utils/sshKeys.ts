@@ -37,8 +37,6 @@ export const generateSignature = (
   return signer.sign().toString();
 };
 
-export const parseCertificate = (certificate: string) => sshpk.parseCertificate(Buffer.from(btoa(certificate), "base64"), "pem");
-
 export const isX509CertificateValid = (certificate: string) => {
   try {
     return !!sshpk.parseCertificate(certificate, "pem");
