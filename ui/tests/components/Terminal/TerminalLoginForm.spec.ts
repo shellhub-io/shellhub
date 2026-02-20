@@ -4,6 +4,7 @@ import TerminalLoginForm from "@/components/Terminal/TerminalLoginForm.vue";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import { TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { mountComponent } from "@tests/utils/mount";
+import * as sshUtils from "@/utils/sshKeys";
 
 const mockPrivateKeys: Array<IPrivateKey> = [
   {
@@ -246,6 +247,8 @@ describe("TerminalLoginForm", () => {
 
   describe("Form submission with password", () => {
     it("emits submit event with correct data for password authentication", async () => {
+      vi.spyOn(sshUtils, "isKeyValid").mockReturnValueOnce(true);
+
       const username = "testuser";
       const password = "testpassword";
 
@@ -283,6 +286,27 @@ describe("TerminalLoginForm", () => {
       await flushPromises();
 
       expect(wrapper.emitted("submit")).toBeFalsy();
+    });
+
+    it("does not emit submit when passphrase is invalid", async () => {
+      vi.spyOn(sshUtils, "isKeyValid").mockReturnValueOnce(false);
+
+      await selectPrivateKeyAuth("test-key-1");
+
+      const usernameField = dialog.find('[data-test="username-field"]');
+      await usernameField.find("input").setValue("testuser");
+      await flushPromises();
+
+      const passphraseField = dialog.find('[data-test="passphrase-field"]');
+      await passphraseField.find("input").setValue("wrongpassphrase");
+      await flushPromises();
+
+      const formDialog = wrapper.findComponent({ name: "FormDialog" });
+      formDialog.vm.$emit("confirm");
+      await flushPromises();
+
+      expect(wrapper.emitted("submit")).toBeFalsy();
+      expect(dialog.find('[data-test="passphrase-field"]').text()).toContain("Wrong passphrase");
     });
 
     it("resets fields after successful submission", async () => {
@@ -457,6 +481,8 @@ describe("TerminalLoginForm", () => {
 
   describe("Keyboard shortcuts", () => {
     it("submits form on Enter key in password field", async () => {
+      vi.spyOn(sshUtils, "isKeyValid").mockReturnValueOnce(true);
+
       const usernameField = dialog.find('[data-test="username-field"]');
       await usernameField.find("input").setValue("testuser");
       await flushPromises();
