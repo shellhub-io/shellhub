@@ -92,5 +92,24 @@ describe("Snackbar", () => {
       const snackbar = wrapper.findComponent({ name: "v-snackbar" });
       expect(snackbar.props("modelValue")).toBe(true);
     });
+
+    it("Does not close prematurely when triggered multiple times quickly", async () => {
+      vi.useFakeTimers();
+      const snackbar = wrapper.findComponent({ name: "v-snackbar" });
+
+      plugin.showSuccess("First message");
+      vi.advanceTimersByTime(2000);
+      plugin.showError("Second message");
+      await nextTick();
+
+      // Still visible — the first timeout was cancelled by the second call
+      expect(snackbar.props("modelValue")).toBe(true);
+
+      vi.advanceTimersByTime(4000);
+      await flushPromises();
+      expect(snackbar.props("modelValue")).toBe(false);
+
+      vi.useRealTimers();
+    });
   });
 });
