@@ -1,4 +1,5 @@
 import useAuthStore from "@/store/modules/auth";
+import { Role } from "@/interfaces/INamespace";
 
 enum Roles {
   OBSERVER = 1,
@@ -6,6 +7,15 @@ enum Roles {
   ADMINISTRATOR = 3,
   OWNER = 4,
 }
+
+const roleLevels: Record<Role, Roles> = {
+  observer: Roles.OBSERVER,
+  operator: Roles.OPERATOR,
+  administrator: Roles.ADMINISTRATOR,
+  owner: Roles.OWNER,
+};
+
+const isValidRole = (role: string): role is Role => role in roleLevels;
 
 const permissions = {
   "device:connect": Roles.OBSERVER,
@@ -66,10 +76,8 @@ type Action = keyof typeof permissions;
 
 const hasPermission = (action: Action) => {
   const { role } = useAuthStore();
-  const roleLevel = Roles[role.toUpperCase()] as Roles || 0;
-  const requiredLevel = permissions[action];
-
-  return roleLevel >= requiredLevel;
+  if (!isValidRole(role)) return false;
+  return roleLevels[role] >= permissions[action];
 };
 
 export default hasPermission;
