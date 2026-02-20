@@ -409,6 +409,7 @@ func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *model
 		if envs.IsCloud() && (namespace.Billing == nil || !namespace.Billing.IsActive()) {
 			log.WithFields(log.Fields{"tenant": namespace.TenantID}).
 				Error("namespace's limit reached - cannot accept another device")
+
 			return NewErrDeviceLimit(namespace.MaxDevices, nil)
 		}
 
@@ -423,6 +424,7 @@ func (s *service) validateDeviceAcceptance(ctx context.Context, namespace *model
 				"tenant":         namespace.TenantID,
 				"billing_active": namespace.Billing.IsActive(),
 			}).Error("billing validation failed")
+
 			return err
 		}
 	}

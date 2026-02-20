@@ -24,7 +24,6 @@ type DefaultHTTPHandlerConfig struct {
 	Reporter *sentry.Client
 }
 
-
 // DefaultHTTPHandler creates an HTTP handler, using [github.com/labstack/echo/v4] package, with the default
 // configuration required by ShellHub's services, loading the [github.com/shellhub-io/shellhub/api/pkg/gateway] into
 // the context, and the service layer. The configuration received controls the error reporter and more.

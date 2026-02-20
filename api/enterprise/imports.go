@@ -1,4 +1,4 @@
-//go:build cloud
+//go:build enterprise
 
 package enterprise
 

@@ -23,6 +23,10 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	log "github.com/sirupsen/logrus"
+
+	// Blank import triggers init() functions in cloud packages when built with -tags enterprise.
+	// In CE builds this package is empty and compiles to nothing.
+	_ "github.com/shellhub-io/shellhub/api/enterprise"
 )
 
 type env struct {
@@ -125,6 +129,23 @@ func (s *Server) Setup(ctx context.Context) error {
 		return err
 	}
 
+	// If a billing provider factory was registered (EE/cloud build), create and
+	// inject the billing provider before the service is constructed.
+	if factory := services.BillingFactory(); factory != nil {
+		log.Info("Billing provider factory registered; initializing billing provider")
+
+		billing, err := factory(ctx, store, cache)
+		if err != nil {
+			return errors.Join(errors.New("failed to initialize billing provider"), err)
+		}
+
+		if billing != nil {
+			servicesOptions = append(servicesOptions, services.WithBilling(billing))
+		}
+
+		log.Info("Billing provider initialized and injected into service")
+	}
+
 	routerOptions, err := s.routerOptions()
 	if err != nil {
 		return err
@@ -142,6 +163,9 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.worker.HandleTask(services.TaskDevicesHeartbeat, service.DevicesHeartbeat(), asynq.BatchTask())
 	s.worker.HandleCron(services.CronDeviceCleanup, service.DeviceCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronNamespaceDeviceCountSync, service.NamespaceDeviceCountSync(), asynq.Unique())
+
+	// Apply any worker extensions registered by cloud/enterprise packages.
+	routes.ApplyWorkerExtensions(s.worker, store, cache)
 
 	log.Info("Server setup completed successfully")
 
