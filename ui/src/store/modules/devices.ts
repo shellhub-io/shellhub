@@ -45,22 +45,23 @@ const useDevicesStore = defineStore("devices", () => {
   };
 
   const fetchDeviceCounts = async () => {
-    const acceptedRes = await devicesApi.fetchDevices(1, 1, "accepted");
-    totalDevicesCount.value = parseInt(acceptedRes.headers["x-total-count"] as string, 10);
-
-    const pendingRes = await devicesApi.fetchDevices(1, 1, "pending");
-    pendingDevicesCount.value = parseInt(pendingRes.headers["x-total-count"] as string, 10);
-
     const onlineFilter = Buffer.from(JSON.stringify([
       { type: "property", params: { name: "online", operator: "eq", value: true } },
     ])).toString("base64");
-    const onlineRes = await devicesApi.fetchDevices(1, 1, "accepted", onlineFilter);
-    onlineDevicesCount.value = parseInt(onlineRes.headers["x-total-count"] as string, 10);
-
     const offlineFilter = Buffer.from(JSON.stringify([
       { type: "property", params: { name: "online", operator: "eq", value: false } },
     ])).toString("base64");
-    const offlineRes = await devicesApi.fetchDevices(1, 1, "accepted", offlineFilter);
+
+    const [acceptedRes, pendingRes, onlineRes, offlineRes] = await Promise.all([
+      devicesApi.fetchDevices(1, 1, "accepted"),
+      devicesApi.fetchDevices(1, 1, "pending"),
+      devicesApi.fetchDevices(1, 1, "accepted", onlineFilter),
+      devicesApi.fetchDevices(1, 1, "accepted", offlineFilter),
+    ]);
+
+    totalDevicesCount.value = parseInt(acceptedRes.headers["x-total-count"] as string, 10);
+    pendingDevicesCount.value = parseInt(pendingRes.headers["x-total-count"] as string, 10);
+    onlineDevicesCount.value = parseInt(onlineRes.headers["x-total-count"] as string, 10);
     offlineDevicesCount.value = parseInt(offlineRes.headers["x-total-count"] as string, 10);
   };
 
