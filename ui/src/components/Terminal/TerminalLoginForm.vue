@@ -69,7 +69,7 @@
         v-if="showPassphraseField"
         v-model="passphrase"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-        :error-messages="passphraseError"
+        :error-messages="passphraseValidationError || passphraseError"
         label="Passphrase"
         required
         hint="Enter the key's passphrase"
@@ -80,6 +80,7 @@
         :type="showPassword ? 'text' : 'password'"
         @click:append-inner="showPassword = !showPassword"
         @keydown.enter.prevent="submitForm"
+        @update:model-value="passphraseValidationError = ''"
       />
 
       <v-alert
@@ -130,6 +131,7 @@ import PrivateKeySelectWithAdd from "@/components/PrivateKeys/PrivateKeySelectWi
 import { LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
+import { isKeyValid } from "@/utils/sshKeys";
 
 const props = defineProps<{
   sshid?: string;
@@ -172,6 +174,8 @@ const {
 } = useField<string>("passphrase", yup.string().required(), {
   initialValue: "",
 });
+
+const passphraseValidationError = ref("");
 
 const getSelectedPrivateKey = () =>
   privateKeys.find(
@@ -221,16 +225,22 @@ const handleClose = () => {
 const submitForm = () => {
   if (!isFormValid.value) return;
 
-  const privateKey
-    = authenticationMethod.value === TerminalAuthMethods.PrivateKey
-      ? getSelectedPrivateKey()?.data
-      : undefined;
+  const selectedKey = authenticationMethod.value === TerminalAuthMethods.PrivateKey
+    ? getSelectedPrivateKey()
+    : undefined;
+
+  if (showPassphraseField.value && selectedKey) {
+    if (!isKeyValid("private", selectedKey.data, passphrase.value)) {
+      passphraseValidationError.value = "Wrong passphrase";
+      return;
+    }
+  }
 
   const formData: LoginFormData = {
     username: username.value,
     password: password.value,
     authenticationMethod: authenticationMethod.value,
-    privateKey,
+    privateKey: selectedKey?.data,
     passphrase: showPassphraseField.value ? passphrase.value : undefined,
   };
 
