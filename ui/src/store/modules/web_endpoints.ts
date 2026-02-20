@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as webEndpointsApi from "../api/web_endpoints";
 import { FetchWebEndpointsParams, IWebEndpoint, IWebEndpointsCreate } from "@/interfaces/IWebEndpoints";
+import { parseTotalCount } from "@/utils/headers";
 
 const useWebEndpointsStore = defineStore("webEndpoints", () => {
   const webEndpoints = ref<Array<IWebEndpoint>>([]);
@@ -21,7 +22,7 @@ const useWebEndpointsStore = defineStore("webEndpoints", () => {
         showWebEndpoints.value = true;
       }
       webEndpoints.value = res.data as IWebEndpoint[];
-      webEndpointCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+      webEndpointCount.value = parseTotalCount(res.headers);
     } catch (error) {
       webEndpoints.value = [];
       webEndpointCount.value = 0;

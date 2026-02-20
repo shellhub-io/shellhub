@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as containerApi from "../api/containers";
+import { parseTotalCount } from "@/utils/headers";
 import { FetchContainerParams, IContainer, IContainerRename } from "@/interfaces/IContainer";
 
 const useContainersStore = defineStore("containers", () => {
@@ -24,7 +25,7 @@ const useContainersStore = defineStore("containers", () => {
       );
 
       containers.value = res.data as IContainer[];
-      containerCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+      containerCount.value = parseTotalCount(res.headers);
     } catch (error) {
       containers.value = [];
       containerCount.value = 0;
@@ -34,7 +35,7 @@ const useContainersStore = defineStore("containers", () => {
 
   const setContainerListVisibility = async () => {
     const { headers } = await containerApi.fetchContainers(1, 1);
-    if (parseInt(headers["x-total-count"] as string, 10) || 0) showContainers.value = true;
+    if (parseTotalCount(headers)) showContainers.value = true;
   };
 
   const acceptContainer = async (uid: string) => {

@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as tagsApi from "../api/tags";
 import { ITag, IUpdateTagName } from "@/interfaces/ITags";
+import { parseTotalCount } from "@/utils/headers";
 
 const useTagsStore = defineStore("tags", () => {
   const tags = ref<ITag[]>([]);
@@ -28,7 +29,7 @@ const useTagsStore = defineStore("tags", () => {
         data?.filter,
       );
       tags.value = res.data as ITag[];
-      tagCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+      tagCount.value = parseTotalCount(res.headers);
     } catch (error) {
       tags.value = [];
       tagCount.value = 0;
@@ -38,7 +39,7 @@ const useTagsStore = defineStore("tags", () => {
 
   const setTagListVisibility = async () => {
     const { headers } = await tagsApi.getTags(1, 1);
-    const count = parseInt(headers["x-total-count"] as string, 10) || 0;
+    const count = parseTotalCount(headers);
     if (count) showTags.value = true;
   };
 
