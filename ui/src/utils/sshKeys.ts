@@ -1,6 +1,5 @@
 import NodeRSA from "node-rsa";
 import * as sshpk from "sshpk";
-import handleError from "@/utils/handleError";
 
 export const parsePrivateKey = (privateKey: string, passphrase?: string) => sshpk.parsePrivateKey(privateKey, "auto", { passphrase });
 
@@ -22,21 +21,20 @@ const generateRsaKeySignature = (
   return key.sign(challenge, "base64");
 };
 
-export const generateSignature = (privateKey: string, challenge: Buffer, passphrase?: string) => {
-  try {
-    const parsedPrivateKey = parsePrivateKey(privateKey, passphrase);
-    if (parsedPrivateKey.type === "rsa") {
-      const decryptedPem = parsedPrivateKey.toString("pem");
-      return generateRsaKeySignature(decryptedPem, challenge);
-    }
-
-    const signer = parsedPrivateKey.createSign("sha512");
-    signer.update(challenge);
-    return signer.sign().toString();
-  } catch (error) {
-    handleError(error);
-    return false;
+export const generateSignature = (
+  privateKey: string,
+  challenge: Buffer,
+  passphrase?: string,
+): string => {
+  const parsedPrivateKey = parsePrivateKey(privateKey, passphrase);
+  if (parsedPrivateKey.type === "rsa") {
+    const decryptedPem = parsedPrivateKey.toString("pem");
+    return generateRsaKeySignature(decryptedPem, challenge);
   }
+
+  const signer = parsedPrivateKey.createSign("sha512");
+  signer.update(challenge);
+  return signer.sign().toString();
 };
 
 export const parseCertificate = (certificate: string) => sshpk.parseCertificate(Buffer.from(btoa(certificate), "base64"), "pem");
