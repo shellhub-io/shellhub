@@ -2,6 +2,7 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 import { IInvitation, IInviteMemberPayload } from "@/interfaces/IInvitation";
 import * as invitationsApi from "../api/invitations";
+import { parseTotalCount } from "@/utils/headers";
 import { BasicRole } from "@/interfaces/INamespace";
 import { getInvitationStatusFilter } from "@/utils/invitations";
 
@@ -33,7 +34,7 @@ const useInvitationsStore = defineStore("invitations", () => {
       perPage,
     });
     namespaceInvitations.value = res.data as IInvitation[];
-    invitationCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+    invitationCount.value = parseTotalCount(res.headers);
   };
 
   const acceptInvitation = async (tenant: string) => {

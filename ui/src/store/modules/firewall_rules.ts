@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as firewallRuleApi from "../api/firewall_rules";
 import { IFirewallRule } from "@/interfaces/IFirewallRule";
+import { parseTotalCount } from "@/utils/headers";
 
 const useFirewallRulesStore = defineStore("firewallRules", () => {
   const firewallRules = ref<Array<IFirewallRule>>([]);
@@ -18,7 +19,7 @@ const useFirewallRulesStore = defineStore("firewallRules", () => {
         data?.page || 1,
       );
       firewallRules.value = res.data as IFirewallRule[];
-      firewallRuleCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+      firewallRuleCount.value = parseTotalCount(res.headers);
     } catch (error) {
       firewallRules.value = [];
       firewallRuleCount.value = 0;

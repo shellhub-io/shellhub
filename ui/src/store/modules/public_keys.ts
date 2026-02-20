@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as publicKeysApi from "../api/public_keys";
 import { IPublicKey, IPublicKeyCreate } from "@/interfaces/IPublicKey";
+import { parseTotalCount } from "@/utils/headers";
 
 const usePublicKeysStore = defineStore("publicKeys", () => {
   const publicKeys = ref<Array<IPublicKey>>([]);
@@ -10,7 +11,7 @@ const usePublicKeysStore = defineStore("publicKeys", () => {
   const fetchPublicKeyList = async (data?: { page: number; perPage: number; filter?: string }) => {
     const res = await publicKeysApi.fetchPublicKeys(data?.page || 1, data?.perPage || 10, data?.filter);
     publicKeys.value = res.data as IPublicKey[];
-    publicKeyCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+    publicKeyCount.value = parseTotalCount(res.headers);
   };
 
   const createPublicKey = async (data: IPublicKeyCreate) => {

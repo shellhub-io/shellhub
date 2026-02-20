@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as apiKeysApi from "../api/api_keys";
+import { parseTotalCount } from "@/utils/headers";
 import { IApiKey, IApiKeyCreate, IApiKeyEdit, IApiKeyRemove } from "@/interfaces/IApiKey";
 
 const useApiKeysStore = defineStore("apiKeys", () => {
@@ -20,7 +21,7 @@ const useApiKeysStore = defineStore("apiKeys", () => {
       sortField,
     );
     apiKeys.value = res.data as IApiKey[] || [];
-    apiKeysCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+    apiKeysCount.value = parseTotalCount(res.headers);
   };
 
   const generateApiKey = async (data: IApiKeyCreate) => {

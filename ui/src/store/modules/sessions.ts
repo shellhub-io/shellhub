@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import * as sessionsApi from "../api/sessions";
+import { parseTotalCount } from "@/utils/headers";
 import { ISession } from "@/interfaces/ISession";
 
 const useSessionsStore = defineStore("sessions", () => {
@@ -12,7 +13,7 @@ const useSessionsStore = defineStore("sessions", () => {
     try {
       const res = await sessionsApi.fetchSessions(data?.page || 1, data?.perPage || 10);
       sessions.value = res.data as ISession[];
-      sessionCount.value = Number(res.headers["x-total-count"]);
+      sessionCount.value = parseTotalCount(res.headers);
     } catch (error) {
       sessions.value = [];
       sessionCount.value = 0;

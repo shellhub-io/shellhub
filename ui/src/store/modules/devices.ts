@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import * as devicesApi from "../api/devices";
 import * as billingApi from "../api/billing";
 import { FetchDevicesParams, IDevice, IDeviceRename } from "@/interfaces/IDevice";
+import { parseTotalCount } from "@/utils/headers";
 
 const useDevicesStore = defineStore("devices", () => {
   const devices = ref<Array<IDevice>>([]);
@@ -35,7 +36,7 @@ const useDevicesStore = defineStore("devices", () => {
         data?.sortOrder,
       );
       devices.value = res.data as IDevice[];
-      deviceCount.value = parseInt(res.headers["x-total-count"] as string, 10) || 0;
+      deviceCount.value = parseTotalCount(res.headers);
       if (deviceCount.value) showDevices.value = true;
     } catch (error) {
       devices.value = [];
@@ -59,15 +60,15 @@ const useDevicesStore = defineStore("devices", () => {
       devicesApi.fetchDevices(1, 1, "accepted", offlineFilter),
     ]);
 
-    totalDevicesCount.value = parseInt(acceptedRes.headers["x-total-count"] as string, 10) || 0;
-    pendingDevicesCount.value = parseInt(pendingRes.headers["x-total-count"] as string, 10) || 0;
-    onlineDevicesCount.value = parseInt(onlineRes.headers["x-total-count"] as string, 10) || 0;
-    offlineDevicesCount.value = parseInt(offlineRes.headers["x-total-count"] as string, 10) || 0;
+    totalDevicesCount.value = parseTotalCount(acceptedRes.headers);
+    pendingDevicesCount.value = parseTotalCount(pendingRes.headers);
+    onlineDevicesCount.value = parseTotalCount(onlineRes.headers);
+    offlineDevicesCount.value = parseTotalCount(offlineRes.headers);
   };
 
   const setDeviceListVisibility = async () => {
     const { headers } = await devicesApi.fetchDevices(1, 1);
-    if (parseInt(headers["x-total-count"] as string, 10) || 0) showDevices.value = true;
+    if (parseTotalCount(headers)) showDevices.value = true;
   };
 
   const fetchOnlineDevices = async (filter?: string) => {
