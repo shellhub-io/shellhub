@@ -26,12 +26,15 @@ const state = reactive<SnackbarState>({
   show: false,
 });
 
+let hideTimeout: ReturnType<typeof setTimeout> | undefined;
+
 const showSnackbar = (type: SnackbarType, message: string) => {
   state.message = message;
   state.type = type;
   state.show = true;
 
-  setTimeout(() => {
+  clearTimeout(hideTimeout);
+  hideTimeout = setTimeout(() => {
     state.show = false;
   }, 4000);
 };
