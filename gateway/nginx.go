@@ -55,6 +55,7 @@ func (nc *NginxController) generateConfigs() {
 		} else {
 			nc.generateConfig(path, destPath)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -84,7 +85,7 @@ func (nc *NginxController) generateConfig(src, dst string) {
 		log.Fatalf("Failed to execute template %s: %v", src, err)
 	}
 
-	err = os.WriteFile(dst, output.Bytes(), 0o644)
+	err = os.WriteFile(dst, output.Bytes(), 0o600)
 	if err != nil {
 		log.Fatalf("Failed to write config file %s: %v", dst, err)
 	}
@@ -115,7 +116,6 @@ func (nc *NginxController) watchConfigTemplates() {
 					fmt.Println("GatewayConfig file modified:", event.Name)
 					nc.generateConfigs()
 					nc.reload()
-					break
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -136,6 +136,7 @@ func (nc *NginxController) watchConfigTemplates() {
 				log.Println("ERROR: Failed to add directory to watcher:", err)
 			}
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -204,6 +205,7 @@ func templateArgs(pairs ...any) (map[string]any, error) {
 			return nil, fmt.Errorf("key must be a string, got %T", pairs[i])
 		}
 	}
+
 	return argsMap, nil
 }
 
