@@ -22,18 +22,56 @@ jobs:
 
       - name: Get release version
         id: get_version
-        run: echo RELEASE_VERSION=$(echo ${GITHUB_REF:10}) >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Set docker build args
-        if: matrix.project == 'connector'
-        run: echo "BUILD_ARGS=SHELLHUB_VERSION=${{ env.RELEASE_VERSION }}" >> $GITHUB_ENV
-
-      - name: Build and publish '${{ matrix.project }}' to Docker Registry
-        uses: elgohr/Publish-Docker-Github-Action@master
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          name: shellhubio/${{ matrix.project }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tags: "latest,${{ env.RELEASE_VERSION }}"
-          dockerfile: ${{ matrix.project }}/Dockerfile
-          buildargs: ${{ env.BUILD_ARGS }}
+
+      - name: Build and publish '${{ matrix.project }}' to Docker Registry
+        uses: docker/build-push-action@v6
+        with:
+          tags: shellhubio/${{ matrix.project }}:latest,shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
+          push: true
+          file: ${{ matrix.project }}/Dockerfile
+
+  publish-enterprise:
+    name: Build and publish 'api-enterprise' to Docker Registry
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout shellhub source
+        uses: actions/checkout@v6
+        with:
+          path: shellhub
+
+      - name: Checkout cloud source
+        uses: actions/checkout@v6
+        with:
+          repository: shellhub-io/cloud
+          token: ${{ secrets.CLOUD_REPO_TOKEN }}
+          ref: ${{ github.ref_name }}
+          path: cloud
+
+      - name: Get release version
+        run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.infra.ossystems.io
+          username: ${{ secrets.PORTUS_USERNAME }}
+          password: ${{ secrets.PORTUS_TOKEN }}
+
+      - name: Build and publish 'api-enterprise' to Docker Registry
+        uses: docker/build-push-action@v6
+        with:
+          tags: registry.infra.ossystems.io/shellhub/api-enterprise:latest,registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
+          push: true
+          context: shellhub
+          file: shellhub/api/Dockerfile
+          build-args: EDITION=enterprise
+          build-contexts: cloud-src=./cloud
