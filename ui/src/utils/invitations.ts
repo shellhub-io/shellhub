@@ -10,7 +10,7 @@ export const getInvitationStatusFilter = (status: IInvitation["status"]) => {
 };
 
 export const orderInvitationsByCreatedAt = (invitations: IInvitation[]) => {
-  return invitations.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  return [...invitations].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 };
 
 export const isInvitationExpired = (expiresAt: IInvitation["expires_at"]): boolean => {
