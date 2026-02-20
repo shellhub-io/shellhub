@@ -3,8 +3,34 @@ package services
 import (
 	"context"
 
+	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
+
+// ========================================
+// BILLING PROVIDER FACTORY
+// ========================================
+
+// BillingProviderFactory is a function that constructs a BillingProvider using the
+// core store and cache. It is called during server setup when the -tags enterprise binary
+// is built. Cloud packages register a factory via RegisterBillingProvider in their
+// init() functions.
+type BillingProviderFactory func(ctx context.Context, store store.Store, cache cache.Cache) (BillingProvider, error)
+
+var billingFactory BillingProviderFactory
+
+// RegisterBillingProvider registers the factory function that creates the billing
+// provider. This must be called before the server's Setup() is invoked — typically
+// from a cloud package's init() function.
+func RegisterBillingProvider(f BillingProviderFactory) {
+	billingFactory = f
+}
+
+// BillingFactory returns the registered BillingProviderFactory, or nil in CE builds.
+func BillingFactory() BillingProviderFactory {
+	return billingFactory
+}
 
 // ========================================
 // INTERFACES

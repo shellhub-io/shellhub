@@ -3,6 +3,9 @@ package routes
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/shellhub-io/shellhub/api/services"
+	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/worker"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -42,8 +45,32 @@ func applyExtensions(router *echo.Echo, service services.Service) error {
 	for _, ext := range routeExtensions {
 		if err := ext(router, service); err != nil {
 			log.WithError(err).Error("failed to apply route extension")
+
 			return err
 		}
 	}
+
 	return nil
+}
+
+// WorkerExtension is a function that registers additional task handlers on the
+// worker server. Cloud packages register handlers for cloud-specific background
+// tasks (e.g., member invitations) via this extension point.
+type WorkerExtension func(server worker.Server, store store.Store, cache cache.Cache)
+
+// workerExtensions holds all registered worker extensions.
+var workerExtensions []WorkerExtension
+
+// RegisterWorkerExtension registers a worker extension. Must be called before
+// server.Setup() — typically from a cloud package's init() function.
+func RegisterWorkerExtension(ext WorkerExtension) {
+	workerExtensions = append(workerExtensions, ext)
+}
+
+// ApplyWorkerExtensions invokes all registered worker extensions, passing the
+// worker server so each extension can register its own task handlers.
+func ApplyWorkerExtensions(server worker.Server, store store.Store, cache cache.Cache) {
+	for _, ext := range workerExtensions {
+		ext(server, store, cache)
+	}
 }
