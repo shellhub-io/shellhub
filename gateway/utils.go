@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"os"
 	"path"
 	"strconv"
@@ -16,7 +17,12 @@ func rlimitMaxNumFiles() int {
 	if err := unix.Getrlimit(unix.RLIMIT_NOFILE, &rLimit); err != nil {
 		log.Fatal(err)
 	}
-	return int(rLimit.Max)
+
+	if rLimit.Max > math.MaxInt {
+		return math.MaxInt
+	}
+
+	return int(rLimit.Max) //nolint:gosec
 }
 
 // getSysctl retrieves the value of a given sysctl parameter.
@@ -26,12 +32,14 @@ func getSysctl(sysctl string) int {
 	)
 	if err != nil {
 		log.Println(err)
+
 		return -1
 	}
 
 	value, err := strconv.Atoi(strings.Trim(string(data), " \n"))
 	if err != nil {
 		log.Println(err)
+
 		return -1
 	}
 
@@ -42,5 +50,6 @@ func getSysctl(sysctl string) int {
 func halfString(s string) string {
 	runes := []rune(s)
 	n := len(runes) / 2
+
 	return string(runes[:n]) + "..."
 }

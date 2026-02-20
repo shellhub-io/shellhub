@@ -76,12 +76,7 @@ func (gc *GatewayConfig) applyDefaults() {
 
 	gc.BacklogSize = getSysctl("net.core.somaxconn")
 
-	// Set APIBackend based on cloud/enterprise mode
-	// When cloud or enterprise is enabled, route to cloud service
-	// Otherwise, route to community api service
-	if gc.EnableCloud || gc.EnableEnterprise {
-		gc.APIBackend = "cloud:8080"
-	} else {
-		gc.APIBackend = "api:8080"
-	}
+	// Cloud and enterprise features are now unified into the api binary.
+	// All traffic always routes to api:8080 regardless of edition.
+	gc.APIBackend = "api:8080"
 }
