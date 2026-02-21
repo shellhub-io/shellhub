@@ -255,10 +255,8 @@ func (s *Store) TagDelete(ctx context.Context, tag *models.Tag) error {
 			return nil, FromMongoError(err)
 		}
 
-		for _, c := range []string{"public_keys", "firewall_rules"} {
-			if _, err := s.db.Collection(c).UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"filters.tag_ids": objID}}); err != nil {
-				return nil, FromMongoError(err)
-			}
+		if _, err := s.db.Collection("public_keys").UpdateMany(sessCtx, bson.M{"tenant_id": tag.TenantID}, bson.M{"$pull": bson.M{"filters.tag_ids": objID}}); err != nil {
+			return nil, FromMongoError(err)
 		}
 
 		return nil, nil
@@ -275,8 +273,6 @@ func getTargetCollectionMetadata(target store.TagTarget) (string, string, string
 		return "devices", "uid", "tag_ids", nil
 	case store.TagTargetPublicKey:
 		return "public_keys", "fingerprint", "filter.tag_ids", nil
-	case store.TagTargetFirewallRule:
-		return "firewall_rules", "_id", "filter.tag_ids", nil
 	default:
 		return "", "", "", errors.New("invalid tag target")
 	}

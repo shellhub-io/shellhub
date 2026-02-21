@@ -23,6 +23,7 @@ type User struct {
 	PasswordDigest string          `bun:"password_digest"`
 	Preferences    UserPreferences `bun:"embed:"`
 	MFA            UserMFA         `bun:"-"`
+	Admin          bool            `bun:"admin"`
 	Namespaces     int             `bun:"namespaces,scanonly"`
 }
 
@@ -70,6 +71,7 @@ func UserFromModel(model *models.User) *User {
 		Username:       model.Username,
 		Email:          model.Email,
 		PasswordDigest: model.Password.Hash,
+		Admin:          model.Admin,
 		Preferences: UserPreferences{
 			PreferredNamespace: model.Preferences.PreferredNamespace,
 			AuthMethods:        authMethods,
@@ -100,6 +102,7 @@ func UserToModel(entity *User) *models.User {
 		CreatedAt:      entity.CreatedAt,
 		LastLogin:      entity.LastLogin,
 		EmailMarketing: entity.Preferences.EmailMarketing,
+		Admin:          entity.Admin,
 		UserData: models.UserData{
 			Name:          entity.Name,
 			Username:      entity.Username,
