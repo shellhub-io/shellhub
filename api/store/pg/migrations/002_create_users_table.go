@@ -45,6 +45,7 @@ func migration002Up(ctx context.Context, db *bun.DB) error {
 		NamespaceOwnershipLimit int       `bun:"namespace_ownership_limit,type:integer,notnull"`
 		EmailMarketing          bool      `bun:"email_marketing,notnull,default:false"`
 		PreferredNamespaceID    string    `bun:"preferred_namespace_id,type:uuid,nullzero"`
+		Admin                   bool      `bun:"admin,notnull,default:false"`
 	}{}
 
 	if _, err := db.
