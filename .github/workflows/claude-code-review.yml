@@ -85,6 +85,19 @@ jobs:
           ln -sf "$GITHUB_WORKSPACE/claude/.claude" "$GITHUB_WORKSPACE/.claude"
           ln -sf "$GITHUB_WORKSPACE/claude/shellhub/CLAUDE.md" "$GITHUB_WORKSPACE/CLAUDE.md"
 
+      - name: Acknowledge /review command
+        if: github.event_name != 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request_review" ]]; then
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews/${{ github.event.review.id }}/reactions -f content=eyes
+          elif [[ "${{ github.event_name }}" == "pull_request_review_comment" ]]; then
+            gh api repos/${{ github.repository }}/pulls/comments/${{ github.event.comment.id }}/reactions -f content=eyes
+          else
+            gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content=eyes
+          fi
+
       - name: Run Claude Code Review
         uses: anthropics/claude-code-action@v1
         with:
