@@ -46,3 +46,9 @@ func applyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.Que
 
 	return wrapper.query, nil
 }
+
+// ApplyOptions is the exported version of applyOptions, allowing external packages
+// (e.g. cloud store) to reuse the same query-option mechanism.
+func ApplyOptions(ctx context.Context, query *bun.SelectQuery, opts ...store.QueryOption) (*bun.SelectQuery, error) {
+	return applyOptions(ctx, query, opts...)
+}

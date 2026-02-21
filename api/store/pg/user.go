@@ -76,9 +76,8 @@ func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models
 	db := pg.getConnection(ctx)
 
 	entities := make([]entity.User, 0)
-	query := db.NewSelect().Model(&entities).
-		ColumnExpr(`"user".*`).
-		ColumnExpr(userExprNamespaces())
+	query := UserSelectQuery(db.NewSelect().Model(&entities))
+
 	var err error
 	query, err = applyOptions(ctx, query, opts...)
 	if err != nil {
@@ -107,9 +106,7 @@ func (pg *Pg) UserResolve(ctx context.Context, resolver store.UserResolver, val 
 	}
 
 	u := new(entity.User)
-	query := db.NewSelect().Model(u).
-		ColumnExpr(`"user".*`).
-		ColumnExpr(userExprNamespaces()).
+	query := UserSelectQuery(db.NewSelect().Model(u)).
 		Where("? = ?", bun.Ident(column), val)
 
 	query, err = applyOptions(ctx, query, opts...)
@@ -191,8 +188,13 @@ func (pg *Pg) UserDelete(ctx context.Context, user *models.User) error {
 }
 
 // userExprNamespaces returns the SQL expression for counting owned namespaces.
-func userExprNamespaces() string {
-	return `(SELECT COUNT(*) FROM namespaces WHERE owner_id = "user".id) AS namespaces`
+// UserSelectQuery applies the standard user SELECT decorations: all columns
+// plus the computed namespaces count. The caller provides the base query
+// with the desired model (core or cloud entity).
+func UserSelectQuery(q *bun.SelectQuery) *bun.SelectQuery {
+	return q.
+		ColumnExpr(`"user".*`).
+		ColumnExpr(`(SELECT COUNT(*) FROM namespaces WHERE owner_id = "user".id) AS namespaces`)
 }
 
 func UserResolverToString(resolver store.UserResolver) (string, error) {
