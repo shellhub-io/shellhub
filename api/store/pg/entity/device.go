@@ -104,7 +104,7 @@ func DeviceToModel(entity *Device) *models.Device {
 		PublicKey:      entity.PublicKey,
 		Online:         entity.Online,
 		Acceptable:     entity.Acceptable,
-		Namespace:      entity.Namespace.Name,
+		Namespace:      "",
 		DisconnectedAt: nil,
 		RemoteAddr:     "",
 		Taggable: models.Taggable{
@@ -124,6 +124,10 @@ func DeviceToModel(entity *Device) *models.Device {
 		Identity: &models.DeviceIdentity{
 			MAC: entity.MAC,
 		},
+	}
+
+	if entity.Namespace != nil {
+		device.Namespace = entity.Namespace.Name
 	}
 
 	if !entity.DisconnectedAt.IsZero() {
