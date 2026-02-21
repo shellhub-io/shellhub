@@ -18,11 +18,20 @@ type TagTarget int
 const (
 	TagTargetDevice TagTarget = iota + 1
 	TagTargetPublicKey
-	TagTargetFirewallRule
 )
 
+var extraTagTargets []TagTarget
+
+// RegisterTagTarget adds a custom TagTarget to the global list.
+// Cloud/enterprise layers use this to extend tag targets without modifying core.
+func RegisterTagTarget(t TagTarget) {
+	extraTagTargets = append(extraTagTargets, t)
+}
+
 func TagTargets() []TagTarget {
-	return []TagTarget{TagTargetDevice, TagTargetPublicKey, TagTargetFirewallRule}
+	targets := []TagTarget{TagTargetDevice, TagTargetPublicKey}
+
+	return append(targets, extraTagTargets...)
 }
 
 type TagsStore interface {
