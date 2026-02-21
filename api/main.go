@@ -50,7 +50,7 @@ func main() {
 
 			if err := server.Start(); err != nil {
 				log.WithError(err).
-					Error("failed too start the server")
+					Error("failed to start the server")
 
 				return err
 			}
