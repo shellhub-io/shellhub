@@ -24,7 +24,15 @@ var extraTagTargets []TagTarget
 
 // RegisterTagTarget adds a custom TagTarget to the global list.
 // Cloud/enterprise layers use this to extend tag targets without modifying core.
+// It must be called during package initialization (e.g., from an init function)
+// and is not safe for concurrent use.
 func RegisterTagTarget(t TagTarget) {
+	for _, existing := range extraTagTargets {
+		if existing == t {
+			return
+		}
+	}
+
 	extraTagTargets = append(extraTagTargets, t)
 }
 

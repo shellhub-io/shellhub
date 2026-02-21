@@ -187,7 +187,6 @@ func (pg *Pg) UserDelete(ctx context.Context, user *models.User) error {
 	return fromSQLError(err)
 }
 
-// userExprNamespaces returns the SQL expression for counting owned namespaces.
 // UserSelectQuery applies the standard user SELECT decorations: all columns
 // plus the computed namespaces count. The caller provides the base query
 // with the desired model (core or cloud entity).
