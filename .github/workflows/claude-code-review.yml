@@ -17,16 +17,15 @@ on:
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: true
 
 jobs:
   review:
     name: Claude Code Review
     if: |
-      (github.event_name == 'pull_request_target' && !github.event.pull_request.draft) ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/review')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/review')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '/review'))
+      (github.event_name == 'pull_request_target' && !github.event.pull_request.draft && github.event.pull_request.user.type != 'Bot') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/review') && github.event.comment.user.type != 'Bot') ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/review') && github.event.comment.user.type != 'Bot') ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '/review') && github.event.review.user.type != 'Bot')
 
     runs-on: ubuntu-latest
     permissions:
@@ -35,12 +34,8 @@ jobs:
       issues: write
 
     steps:
-      # Checkout shellhub at workspace root (claude-code-action needs .git here)
-      - name: Checkout shellhub (PR branch)
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
+      # Generate cross-repo token first (no checkout needed) so the auth
+      # check can run before any expensive checkout or API resolve steps.
       - name: Generate cross-repo token
         id: app-token
         uses: actions/create-github-app-token@v1
@@ -50,12 +45,114 @@ jobs:
           owner: shellhub-io
           repositories: cloud,claude
 
+      - name: Check /review authorization
+        id: auth-check
+        if: github.event_name != 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          REVIEW_USER: ${{ github.event.review.user.login }}
+          COMMENT_USER: ${{ github.event.comment.user.login }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          COMMENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request_review" ]]; then
+            USERNAME="$REVIEW_USER"
+          else
+            USERNAME="$COMMENT_USER"
+          fi
+
+          HTTP_STATUS=$(gh api orgs/shellhub-io/teams/admin/memberships/"$USERNAME" \
+            --silent -i 2>/dev/null | head -1 | awk '{print $2}') || true
+          [[ "$HTTP_STATUS" =~ ^[0-9]+$ ]] || HTTP_STATUS="000"
+
+          if [[ "$HTTP_STATUS" == "200" ]]; then
+            echo "authorized=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$HTTP_STATUS" == "404" ]]; then
+            echo "authorized=false" >> "$GITHUB_OUTPUT"
+
+            GH_TOKEN="$COMMENT_TOKEN" gh pr comment "$PR_NUMBER" \
+              --body "@$USERNAME You are not authorized to request an explicit review. If you believe this PR needs a new automated review round, please tag the \`@shellhub-io/admin\` team and a team member can trigger it." || true
+          else
+            echo "::warning::Team membership check returned HTTP $HTTP_STATUS for $USERNAME"
+            echo "authorized=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Acknowledge /review command
+        if: github.event_name != 'pull_request_target' && steps.auth-check.outputs.authorized == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          REVIEW_ID: ${{ github.event.review.id }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request_review" ]]; then
+            gh api "repos/$REPO/pulls/$PR_NUMBER/reviews/$REVIEW_ID/reactions" -f content=eyes
+          elif [[ "$EVENT_NAME" == "pull_request_review_comment" ]]; then
+            gh api "repos/$REPO/pulls/comments/$COMMENT_ID/reactions" -f content=eyes
+          elif [[ "$EVENT_NAME" == "issue_comment" ]]; then
+            gh api "repos/$REPO/issues/comments/$COMMENT_ID/reactions" -f content=eyes
+          else
+            echo "::warning::Unexpected event type for acknowledge: $EVENT_NAME"
+          fi
+
+      - name: Authorization gate
+        id: gate
+        if: github.event_name == 'pull_request_target' || steps.auth-check.outputs.authorized == 'true'
+        run: echo "proceed=true" >> "$GITHUB_OUTPUT"
+
+      # For issue_comment events, github.event.pull_request.head.sha is unavailable
+      # (the payload only has github.event.issue). Resolve the PR head SHA via gh API.
+      - name: Resolve PR head ref
+        id: pr-ref
+        if: steps.gate.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ -n "$PR_SHA" ]]; then
+            echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+          else
+            SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid --jq '.headRefOid')
+            if [[ -z "$SHA" ]]; then
+              echo "::error::Failed to resolve PR head SHA for PR #$PR_NUMBER"
+              exit 1
+            fi
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout shellhub (PR branch)
+        if: steps.gate.outputs.proceed == 'true'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.pr-ref.outputs.sha }}
+
       - name: Determine cloud branch
         id: cloud-branch
+        if: steps.gate.outputs.proceed == 'true'
+        env:
+          HEAD_REF: ${{ github.head_ref || github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
-          BRANCH="${{ github.head_ref || github.ref_name }}"
+          if [[ -n "$HEAD_REF" ]]; then
+            BRANCH="$HEAD_REF"
+          else
+            BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq '.headRefName') || {
+              echo "::warning::Failed to resolve PR head ref name, falling back to master"
+              true
+            }
+            BRANCH="${BRANCH:-master}"
+          fi
           if git ls-remote --exit-code --heads \
-            https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/shellhub-io/cloud.git \
+            "https://x-access-token:${APP_TOKEN}@github.com/shellhub-io/cloud.git" \
             "$BRANCH" > /dev/null 2>&1; then
             echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
           else
@@ -63,6 +160,7 @@ jobs:
           fi
 
       - name: Checkout cloud (context)
+        if: steps.gate.outputs.proceed == 'true'
         uses: actions/checkout@v6
         with:
           repository: shellhub-io/cloud
@@ -72,6 +170,7 @@ jobs:
           path: cloud
 
       - name: Checkout claude config
+        if: steps.gate.outputs.proceed == 'true'
         uses: actions/checkout@v6
         with:
           repository: shellhub-io/claude
@@ -80,25 +179,34 @@ jobs:
           path: claude
 
       - name: Setup workspace context
-        run: |
-          # Link CLAUDE.md and .claude/ from claude repo into shellhub checkout
-          ln -sf "$GITHUB_WORKSPACE/claude/.claude" "$GITHUB_WORKSPACE/.claude"
-          ln -sf "$GITHUB_WORKSPACE/claude/shellhub/CLAUDE.md" "$GITHUB_WORKSPACE/CLAUDE.md"
+        if: steps.gate.outputs.proceed == 'true'
+        run: "$GITHUB_WORKSPACE/claude/workspace.sh" sync -w "$GITHUB_WORKSPACE" --project shellhub
 
-      - name: Acknowledge /review command
-        if: github.event_name != 'pull_request_target'
+      - name: Check PR author team membership
+        id: author-check
+        if: steps.gate.outputs.proceed == 'true'
+        continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request_review" ]]; then
-            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews/${{ github.event.review.id }}/reactions -f content=eyes
-          elif [[ "${{ github.event_name }}" == "pull_request_review_comment" ]]; then
-            gh api repos/${{ github.repository }}/pulls/comments/${{ github.event.comment.id }}/reactions -f content=eyes
+          # Default to non-admin so continue-on-error failures are fail-closed
+          echo "is_admin=false" >> "$GITHUB_OUTPUT"
+          HTTP_STATUS=$(gh api orgs/shellhub-io/teams/admin/memberships/"$PR_AUTHOR" \
+            --silent -i 2>/dev/null | head -1 | awk '{print $2}') || true
+          [[ "$HTTP_STATUS" =~ ^[0-9]+$ ]] || HTTP_STATUS="000"
+          if [[ "$HTTP_STATUS" == "200" ]]; then
+            echo "is_admin=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$HTTP_STATUS" == "404" ]]; then
+            echo "is_admin=false" >> "$GITHUB_OUTPUT"
           else
-            gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content=eyes
+            echo "::warning::Author team membership check returned HTTP $HTTP_STATUS for $PR_AUTHOR"
+            echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run Claude Code Review
+        if: steps.gate.outputs.proceed == 'true'
+        timeout-minutes: 30
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -149,6 +257,22 @@ jobs:
             - description: what's wrong and why
             - suggestion: corrected code (if applicable), or empty string
 
+            General instructions for ALL agents:
+            - Be exhaustive. Report every issue you find regardless of severity. Do not
+              stop after finding the most obvious problems.
+            - Do at least two passes: first for structural/logic issues, then for edge
+              cases and defensive coding.
+            - For each suggestion you make, verify it is correct: check that all
+              referenced variables exist, all event fields are available for every
+              trigger type, token permissions are sufficient, and your fix does not
+              introduce new issues.
+            - Check consistency: if you find an issue in one place, scan for the same
+              pattern elsewhere in the diff and report all occurrences.
+            - Consider all GitHub Actions trigger types this workflow handles
+              (pull_request_target, issue_comment, pull_request_review,
+              pull_request_review_comment) and verify each code path works for all of
+              them.
+
             Agents must NOT post any GitHub comments. They only return findings.
 
             ## Step 3: Aggregate and deduplicate
@@ -157,6 +281,19 @@ jobs:
             1. Remove duplicate findings (same file + same line range + same issue)
             2. If the same pattern repeats across multiple locations, keep only the first occurrence and note "Same issue also at: file:line, file:line, ..."
             3. Compare against the existing review comments fetched in Step 1. Skip any finding already reported in a previous review thread on the same file and line.
+
+            ## Step 3.5: Cross-validate findings
+
+            Before posting, do a final review pass:
+            1. For each finding with a suggestion, verify the suggested fix is correct
+               and complete — does it handle all trigger types? Does it use the right
+               token? Does it introduce any new issues?
+            2. For each finding, check if the same pattern exists elsewhere in the diff
+               that wasn't reported. If so, add those locations.
+            3. Read the full diff one more time specifically looking for: missing error
+               handling, missing fallbacks for optional event fields, inconsistent
+               patterns between similar code blocks, and defensive coding gaps
+               (continue-on-error, || true, fail-closed defaults).
 
             ## Step 4: Post inline comments
 
@@ -172,11 +309,33 @@ jobs:
 
             ## Step 5: Post closing comment
 
-            After all inline comments are posted, post ONE comment on the PR using `gh pr comment`:
-            - Briefly summarize what was reviewed and how many findings were posted
-            - State: "I've provided feedback and suggestions as inline comments on the code.
-              When you've addressed the feedback and believe the PR is ready for a new review,
-              comment `/review` to request a new review iteration."
+            After Step 4 is complete, post ONE comment on the PR using `gh pr comment`.
+            When mentioning `/review` in any comment, always wrap it in backticks (`` `/review` ``).
+
+            The PR author ${{ steps.author-check.outputs.is_admin == 'true' && 'IS' || 'is NOT' }} a member of the shellhub-io/admin team.
+
+            If there are findings:
+            - Post a concise closing comment
+            - Do NOT repeat findings that were already posted as inline comments
+            - If any findings could not be posted as inline comments (e.g., architectural
+              concerns, missing files, cross-cutting issues not tied to specific lines),
+              include them in the closing comment
+            - If the PR author IS an admin team member: remind them to comment `/review`
+              when they've addressed the feedback and the PR is ready for another round
+            - If the PR author is NOT an admin team member: ask them to tag the
+              `@shellhub-io/admin` team (in backticks to avoid notification) when they
+              believe the PR is ready for a new automated review round
+
+            If there are NO findings (zero inline comments posted):
+            - State: "🎉 I reviewed this PR across code quality, security, testing, language
+              patterns, and architecture and found no issues to report. The code looks good
+              as-is."
+            - Do NOT mention inline comments or request a `/review` follow-up.
+            - If the PR author is NOT an admin team member: add "If you push additional
+              changes and want a new review, tag `@shellhub-io/admin` and a team member
+              can trigger it."
+
+            In both cases, always post the closing comment. Never skip Step 5.
 
           claude_args: |
             --max-turns 30
