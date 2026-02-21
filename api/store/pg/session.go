@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
+	"github.com/uptrace/bun"
 )
 
 func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
@@ -30,25 +31,7 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 		return nil, 0, fromSQLError(err)
 	}
 
-	query = db.NewSelect().
-		Model(&entities).
-		Relation("Device").
-		Relation("Device.Namespace").
-		ColumnExpr("session.*").
-		ColumnExpr(sessionExprActive()).
-		ColumnExpr(sessionExprEventTypes()).
-		ColumnExpr(sessionExprEventSeats()).
-		Join("LEFT JOIN active_sessions AS active_session ON session.id = active_session.session_id").
-		Join(`LEFT JOIN (
-			SELECT session_id, string_agg(DISTINCT type::text, ',') as types
-			FROM session_events
-			GROUP BY session_id
-		) event_types ON session.id = event_types.session_id`).
-		Join(`LEFT JOIN (
-			SELECT session_id, string_agg(DISTINCT seat::text, ',') as seats
-			FROM session_events
-			GROUP BY session_id
-		) event_seats ON session.id = event_seats.session_id`)
+	query = SessionSelectQuery(db.NewSelect().Model(&entities), "")
 
 	query, err = applyOptions(ctx, query, opts...)
 	if err != nil {
@@ -79,27 +62,7 @@ func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver
 	}
 
 	e := &entity.Session{}
-	query := db.NewSelect().
-		Model(e).
-		Relation("Device").
-		Relation("Device.Namespace").
-		ColumnExpr("session.*").
-		ColumnExpr(sessionExprActive()).
-		ColumnExpr(sessionExprEventTypes()).
-		ColumnExpr(sessionExprEventSeats()).
-		Join("LEFT JOIN active_sessions AS active_session ON session.id = active_session.session_id").
-		Join(`LEFT JOIN (
-			SELECT session_id, string_agg(DISTINCT type::text, ',') as types
-			FROM session_events
-			WHERE session_id = ?
-			GROUP BY session_id
-		) event_types ON session.id = event_types.session_id`, sessionID).
-		Join(`LEFT JOIN (
-			SELECT session_id, string_agg(DISTINCT seat::text, ',') as seats
-			FROM session_events
-			WHERE session_id = ?
-			GROUP BY session_id
-		) event_seats ON session.id = event_seats.session_id`, sessionID).
+	query := SessionSelectQuery(db.NewSelect().Model(e), sessionID).
 		Where("session.id = ?", sessionID)
 
 	var err error
@@ -329,17 +292,47 @@ func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, new
 	return nil
 }
 
-// sessionExprActive returns the SQL expression for the "active" field.
-func sessionExprActive() string {
-	return "CASE WHEN active_session.session_id IS NOT NULL THEN true ELSE false END AS active"
-}
+// SessionSelectQuery applies the standard session SELECT decorations: relations,
+// computed columns (active, event_types, event_seats), and LEFT JOINs.
+// If sessionID is non-empty, event subqueries are filtered for performance.
+// The caller provides the base query with the desired model (core or cloud entity).
+func SessionSelectQuery(q *bun.SelectQuery, sessionID string) *bun.SelectQuery {
+	q = q.
+		Relation("Device").
+		Relation("Device.Namespace").
+		ColumnExpr("session.*").
+		ColumnExpr("CASE WHEN active_session.session_id IS NOT NULL THEN true ELSE false END AS active").
+		ColumnExpr("COALESCE(event_types.types, '') AS event_types").
+		ColumnExpr("COALESCE(event_seats.seats, '') AS event_seats").
+		Join("LEFT JOIN active_sessions AS active_session ON session.id = active_session.session_id")
 
-// sessionExprEventTypes returns the SQL expression for aggregated event types.
-func sessionExprEventTypes() string {
-	return "COALESCE(event_types.types, '') AS event_types"
-}
+	if sessionID != "" {
+		q = q.
+			Join(`LEFT JOIN (
+				SELECT session_id, string_agg(DISTINCT type::text, ',') as types
+				FROM session_events
+				WHERE session_id = ?
+				GROUP BY session_id
+			) event_types ON session.id = event_types.session_id`, sessionID).
+			Join(`LEFT JOIN (
+				SELECT session_id, string_agg(DISTINCT seat::text, ',') as seats
+				FROM session_events
+				WHERE session_id = ?
+				GROUP BY session_id
+			) event_seats ON session.id = event_seats.session_id`, sessionID)
+	} else {
+		q = q.
+			Join(`LEFT JOIN (
+				SELECT session_id, string_agg(DISTINCT type::text, ',') as types
+				FROM session_events
+				GROUP BY session_id
+			) event_types ON session.id = event_types.session_id`).
+			Join(`LEFT JOIN (
+				SELECT session_id, string_agg(DISTINCT seat::text, ',') as seats
+				FROM session_events
+				GROUP BY session_id
+			) event_seats ON session.id = event_seats.session_id`)
+	}
 
-// sessionExprEventSeats returns the SQL expression for aggregated event seats.
-func sessionExprEventSeats() string {
-	return "COALESCE(event_seats.seats, '') AS event_seats"
+	return q
 }
