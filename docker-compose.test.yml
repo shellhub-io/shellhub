@@ -28,9 +28,19 @@ services:
     build:
       context: .
       dockerfile: gateway/Dockerfile
-      target: production 
+      target: production
     healthcheck:
       interval: 5s
       start_period: 10s
       retries: 20
     ports: []
+  ui-react:
+    image: ui-react:test
+    build:
+      context: .
+      dockerfile: ui-react/Dockerfile
+      target: production
+    healthcheck:
+      interval: 5s
+      start_period: 10s
+      retries: 20
