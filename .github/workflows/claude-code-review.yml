@@ -17,6 +17,7 @@ on:
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
 
 jobs:
   review:
@@ -131,45 +132,20 @@ jobs:
         if: github.event_name == 'pull_request_target' || steps.auth-check.outputs.authorized == 'true'
         run: echo "proceed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Create or update progress comment
-        id: progress
-        if: steps.gate.outputs.proceed == 'true'
+      - name: Clean up previous review comment
+        if: steps.gate.outputs.proceed == 'true' && github.event_name != 'pull_request_target'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
           REPO: ${{ github.repository }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           MARKER="<!-- claude-code-review -->"
-          BODY="$(cat <<EOF
-          ${MARKER}
-          ## Code Review
-
-          :hourglass_flowing_sand: Setting up review environment...
-          EOF
-          )"
-
-          # Search for existing review comment
-          EXISTING_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
-            --paginate --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
-            | tail -1) || true
-
-          # On /review re-trigger, delete the old comment so the new one appears
-          # in chronological order near the /review command.
-          if [[ -n "$EXISTING_ID" && "$EVENT_NAME" != "pull_request_target" ]]; then
-            gh api "repos/$REPO/issues/comments/$EXISTING_ID" -X DELETE > /dev/null || true
-            EXISTING_ID=""
-          fi
-
-          if [[ -n "$EXISTING_ID" ]]; then
-            gh api "repos/$REPO/issues/comments/$EXISTING_ID" -X PATCH -f body="$BODY" > /dev/null
-            echo "comment_id=$EXISTING_ID" >> "$GITHUB_OUTPUT"
-          else
-            COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
-              -f body="$BODY" --jq '.id')
-            echo "comment_id=$COMMENT_ID" >> "$GITHUB_OUTPUT"
-          fi
+          gh api "repos/$REPO/issues/$PR_NUMBER/comments" --paginate \
+            --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
+          | while read -r id; do
+            gh api "repos/$REPO/issues/comments/$id" -X DELETE > /dev/null || true
+          done
 
       - name: Determine cloud branch
         id: cloud-branch
@@ -243,17 +219,6 @@ jobs:
             echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create post-comment helper
-        if: steps.gate.outputs.proceed == 'true' && steps.progress.outputs.comment_id != ''
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
-        run: |
-          printf '#!/bin/bash\nexec gh api "repos/%s/issues/comments/%s" -X PATCH -F body=@"$1"\n' \
-            "$REPO" "$COMMENT_ID" > /usr/local/bin/post-comment
-          chmod +x /usr/local/bin/post-comment
-
       - name: Run Claude Code Review
         if: steps.gate.outputs.proceed == 'true'
         timeout-minutes: 30
@@ -261,7 +226,8 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
+          track_progress: ${{ github.event_name == 'pull_request_target' }}
+          trigger_phrase: "/review"
           settings: |
             {
               "env": {
@@ -269,42 +235,25 @@ jobs:
               }
             }
           prompt: |
-            You are the lead reviewer for PR #${{ github.event.pull_request.number || github.event.issue.number }}
-            in shellhub-io/shellhub (Community Edition).
+            You are the lead reviewer for this PR in shellhub-io/shellhub (Community Edition).
 
             The cloud/ (enterprise) repo is checked out at $GITHUB_WORKSPACE/cloud/ for context.
             Focus the review on the shellhub diff. Use cloud/ only to understand cross-repo impact.
 
-            ## Progress Tracking
+            ## Step 1: Check for existing reviews
 
-            A progress comment (ID: ${{ steps.progress.outputs.comment_id }}) has been created on the PR.
-            Update it at each major phase. Every update MUST include `<!-- claude-code-review -->`
-            at the start of the body so re-reviews can find it.
+            Fetch existing review comments to avoid duplicating feedback:
+              gh api repos/shellhub-io/shellhub/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/comments
+              gh api repos/shellhub-io/shellhub/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/reviews
 
-            To update it, always follow this two-step pattern:
-            1. Use the **Write** tool (NEVER Bash/echo/printf) to create /tmp/comment.md.
-               Bash mangles `<!-- -->` — the Write tool is the only safe option.
-            2. Run: post-comment /tmp/comment.md
+            Update the tracking comment via mcp__github_comment__update_claude_comment:
 
-            You MUST update the progress comment after every step — do not skip or batch them.
-            If an update fails, continue with the review but still attempt subsequent updates.
-            If the comment ID above is empty (step failed), skip all progress updates and
-            fall back to posting the final summary with `gh pr comment` instead.
+                <!-- claude-code-review -->
+                ## Code Review
 
-            ## Step 1: Gather context
-
-            1. Get the PR diff:
-               gh pr diff ${{ github.event.pull_request.number || github.event.issue.number }}
-            2. Get the list of changed files:
-               gh pr view ${{ github.event.pull_request.number || github.event.issue.number }} --json files
-            3. Fetch ALL existing review comments to avoid duplicating feedback:
-               gh api repos/shellhub-io/shellhub/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/comments
-               gh api repos/shellhub-io/shellhub/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/reviews
-
-            After completing this step, update the progress comment:
-            - [x] Gathered PR context (N files changed)
-            - [ ] Reviewing with 5 specialized agents
-            - [ ] Posting feedback
+                - [x] Gathered PR context
+                - [ ] Reviewing with 5 specialized agents
+                - [ ] Posting feedback
 
             ## Step 2: Spawn 5 reviewer agents IN PARALLEL
 
@@ -346,10 +295,14 @@ jobs:
 
             Agents must NOT post any GitHub comments. They only return findings.
 
-            After all agents complete, update the progress comment:
-            - [x] Gathered PR context (N files changed)
-            - [x] Code review complete
-            - [ ] Posting feedback
+            After all agents complete, update the tracking comment via mcp__github_comment__update_claude_comment:
+
+                <!-- claude-code-review -->
+                ## Code Review
+
+                - [x] Gathered PR context
+                - [x] Code review complete
+                - [ ] Posting feedback
 
             ## Step 3: Aggregate and deduplicate
 
@@ -383,17 +336,20 @@ jobs:
 
             Do NOT re-report issues that already exist in previous review threads.
 
-            After posting all inline comments, update the progress comment:
-            - [x] Gathered PR context (N files changed)
-            - [x] Code review complete
-            - [x] Posted N inline comments
-            - [ ] Finalizing summary
+            After posting all inline comments, update the tracking comment via mcp__github_comment__update_claude_comment:
+
+                <!-- claude-code-review -->
+                ## Code Review
+
+                - [x] Gathered PR context
+                - [x] Code review complete
+                - [x] Posted inline comments
+                - [ ] Finalizing summary
 
             ## Step 5: Update final summary
 
-            After Step 4 is complete, update the progress comment one final time to become
-            the closing summary. Do NOT post a separate comment with `gh pr comment` —
-            transform the existing progress comment in place.
+            After Step 4 is complete, update the tracking comment one final time via
+            mcp__github_comment__update_claude_comment to become the closing summary.
 
             When mentioning `/review` in any comment, always wrap it in backticks (`` `/review` ``).
 
@@ -401,7 +357,7 @@ jobs:
 
             ### If there are findings:
 
-            Update the progress comment to:
+            Update the tracking comment to:
 
                 <!-- claude-code-review -->
                 ## Code Review Complete
@@ -422,7 +378,7 @@ jobs:
 
             ### If there are NO findings:
 
-            Update the progress comment to:
+            Update the tracking comment to:
 
                 <!-- claude-code-review -->
                 ## Code Review Complete
@@ -437,29 +393,9 @@ jobs:
             Do NOT mention inline comments or `/review` follow-up when there are no findings
             (unless the author is non-admin, in which case include the tag guidance).
 
-            In both cases, always update the progress comment. Never skip Step 5.
+            In both cases, always update the tracking comment. Never skip Step 5.
 
           claude_args: |
-            --max-turns 30
+            --max-turns 50
             --model claude-opus-4-6
             --allowedTools "mcp__github_inline_comment__create_inline_comment"
-
-      - name: Ensure progress comment was updated
-        if: always() && steps.progress.outputs.comment_id != ''
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
-        run: |
-          CURRENT=$(gh api "repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body')
-          if echo "$CURRENT" | grep -q "Setting up review environment"; then
-            gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$(cat <<'EOF'
-          <!-- claude-code-review -->
-          ## Code Review Complete
-
-          :warning: The review agent did not update this comment with a summary.
-          Check the inline comments on the PR for review feedback.
-          EOF
-            )" > /dev/null
-          fi
