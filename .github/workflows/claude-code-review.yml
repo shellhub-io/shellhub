@@ -139,6 +139,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
           REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           MARKER="<!-- claude-code-review -->"
           BODY="$(cat <<EOF
@@ -149,10 +150,17 @@ jobs:
           EOF
           )"
 
-          # Search for existing review comment to reuse (sticky)
+          # Search for existing review comment
           EXISTING_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
             --paginate --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
             | tail -1) || true
+
+          # On /review re-trigger, delete the old comment so the new one appears
+          # in chronological order near the /review command.
+          if [[ -n "$EXISTING_ID" && "$EVENT_NAME" != "pull_request_target" ]]; then
+            gh api "repos/$REPO/issues/comments/$EXISTING_ID" -X DELETE > /dev/null || true
+            EXISTING_ID=""
+          fi
 
           if [[ -n "$EXISTING_ID" ]]; then
             gh api "repos/$REPO/issues/comments/$EXISTING_ID" -X PATCH -f body="$BODY" > /dev/null
@@ -256,18 +264,15 @@ jobs:
             The cloud/ (enterprise) repo is checked out at $GITHUB_WORKSPACE/cloud/ for context.
             Focus the review on the shellhub diff. Use cloud/ only to understand cross-repo impact.
 
-            The progress comment ID is ${{ steps.progress.outputs.comment_id }}.
-            The repository is ${{ github.repository }}.
-
             ## Progress Tracking
 
-            A progress comment has been created on the PR (comment ID above). Update it
-            at each major phase using `gh api`. Every update MUST include `<!-- claude-code-review -->`
+            A progress comment (ID: ${{ steps.progress.outputs.comment_id }}) has been created on the PR.
+            Update it at each major phase. Every update MUST include `<!-- claude-code-review -->`
             at the start of the body so re-reviews can find it.
 
             Update template (use a heredoc for the body):
 
-                gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$(cat <<'PROGRESS'
+                gh api "repos/${{ github.repository }}/issues/comments/${{ steps.progress.outputs.comment_id }}" -X PATCH -f body="$(cat <<'PROGRESS'
                 <!-- claude-code-review -->
                 ## Code Review
 
@@ -277,8 +282,8 @@ jobs:
                 )"
 
             Progress updates are best-effort. If an update fails, continue with the review.
-            If PROGRESS_COMMENT_ID is empty (step failed), skip all progress updates and
-            fall back to posting the final summary with `gh pr comment` as before.
+            If the comment ID above is empty (step failed), skip all progress updates and
+            fall back to posting the final summary with `gh pr comment` instead.
 
             ## Step 1: Gather context
 
@@ -432,3 +437,23 @@ jobs:
             --max-turns 30
             --model claude-opus-4-6
             --allowedTools "mcp__github_inline_comment__create_inline_comment"
+
+      - name: Ensure progress comment was updated
+        if: always() && steps.progress.outputs.comment_id != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
+        run: |
+          CURRENT=$(gh api "repos/$REPO/issues/comments/$COMMENT_ID" --jq '.body')
+          if echo "$CURRENT" | grep -q "Setting up review environment"; then
+            gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$(cat <<'EOF'
+          <!-- claude-code-review -->
+          ## Code Review Complete
+
+          :warning: The review agent did not update this comment with a summary.
+          Check the inline comments on the PR for review feedback.
+          EOF
+            )" > /dev/null
+          fi
