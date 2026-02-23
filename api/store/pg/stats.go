@@ -10,7 +10,7 @@ import (
 )
 
 func (pg *Pg) GetStats(ctx context.Context, tenantID string) (*models.Stats, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	onlineDevicesQuery := buildOnlineDevicesQuery(db, tenantID)
 	onlineDevices, err := onlineDevicesQuery.Count(ctx)

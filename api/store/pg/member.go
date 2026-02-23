@@ -10,7 +10,7 @@ import (
 )
 
 func (pg *Pg) NamespaceCreateMembership(ctx context.Context, tenantID string, membership *models.Member) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	membership.AddedAt = clock.Now()
 	entity := entity.MembershipFromModel(tenantID, membership)
@@ -22,7 +22,7 @@ func (pg *Pg) NamespaceCreateMembership(ctx context.Context, tenantID string, me
 }
 
 func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, tenantID string, member *models.Member) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	e := entity.MembershipFromModel(tenantID, member)
 	e.UpdatedAt = clock.Now()
@@ -39,7 +39,7 @@ func (pg *Pg) NamespaceUpdateMembership(ctx context.Context, tenantID string, me
 }
 
 func (pg *Pg) NamespaceDeleteMembership(ctx context.Context, tenantID string, member *models.Member) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	e := entity.MembershipFromModel(tenantID, member)
 	r, err := db.NewDelete().Model(e).WherePK().Exec(ctx)

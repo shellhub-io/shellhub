@@ -12,7 +12,7 @@ import (
 )
 
 func (pg *Pg) TagCreate(ctx context.Context, tag *models.Tag) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	tag.CreatedAt = clock.Now()
 	tag.UpdatedAt = clock.Now()
@@ -34,7 +34,7 @@ func (pg *Pg) TagCreate(ctx context.Context, tag *models.Tag) (string, error) {
 }
 
 func (pg *Pg) TagConflicts(ctx context.Context, tenantID string, target *models.TagConflicts) ([]string, bool, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	if target.Name == "" {
 		return []string{}, false, nil
@@ -70,7 +70,7 @@ func (pg *Pg) TagConflicts(ctx context.Context, tenantID string, target *models.
 }
 
 func (pg *Pg) TagList(ctx context.Context, opts ...store.QueryOption) ([]models.Tag, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Tag, 0)
 	query := db.NewSelect().Model(&entities).Column("tag.*")
@@ -94,7 +94,7 @@ func (pg *Pg) TagList(ctx context.Context, opts ...store.QueryOption) ([]models.
 }
 
 func (pg *Pg) TagResolve(ctx context.Context, resolver store.TagResolver, value string, opts ...store.QueryOption) (*models.Tag, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	column, err := TagResolverToString(resolver)
 	if err != nil {
@@ -117,7 +117,7 @@ func (pg *Pg) TagResolve(ctx context.Context, resolver store.TagResolver, value 
 }
 
 func (pg *Pg) TagUpdate(ctx context.Context, tag *models.Tag) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	t := entity.TagFromModel(tag)
 	t.UpdatedAt = clock.Now()
@@ -135,7 +135,7 @@ func (pg *Pg) TagUpdate(ctx context.Context, tag *models.Tag) error {
 }
 
 func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTarget, targetID string) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	tag := new(entity.Tag)
 	if err := db.NewSelect().Model(tag).Where("id = ?", id).Scan(ctx); err != nil {
@@ -181,7 +181,7 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 }
 
 func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.TagTarget, targetIDs ...string) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	tag := new(entity.Tag)
 	if err := db.NewSelect().Model(tag).Where("id = ?", id).Scan(ctx); err != nil {
@@ -229,7 +229,7 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 }
 
 func (pg *Pg) TagDelete(ctx context.Context, tag *models.Tag) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	t := entity.TagFromModel(tag)
 

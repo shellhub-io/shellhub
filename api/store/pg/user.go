@@ -12,7 +12,7 @@ import (
 )
 
 func (pg *Pg) UserCreate(ctx context.Context, user *models.User) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	user.CreatedAt = clock.Now()
 	if user.ID == "" {
@@ -27,7 +27,7 @@ func (pg *Pg) UserCreate(ctx context.Context, user *models.User) (string, error)
 }
 
 func (pg *Pg) UserConflicts(ctx context.Context, target *models.UserConflicts) ([]string, bool, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	if target.Email == "" && target.Username == "" {
 		return []string{}, false, nil
@@ -73,7 +73,7 @@ func (pg *Pg) UserConflicts(ctx context.Context, target *models.UserConflicts) (
 }
 
 func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models.User, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.User, 0)
 	query := UserSelectQuery(db.NewSelect().Model(&entities))
@@ -98,7 +98,7 @@ func (pg *Pg) UserList(ctx context.Context, opts ...store.QueryOption) ([]models
 }
 
 func (pg *Pg) UserResolve(ctx context.Context, resolver store.UserResolver, val string, opts ...store.QueryOption) (*models.User, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	column, err := UserResolverToString(resolver)
 	if err != nil {
@@ -122,7 +122,7 @@ func (pg *Pg) UserResolve(ctx context.Context, resolver store.UserResolver, val 
 }
 
 func (pg *Pg) UserGetInfo(ctx context.Context, userID string) (userInfo *models.UserInfo, err error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	var namespaceEntities []entity.Namespace
 	err = db.NewSelect().
@@ -153,7 +153,7 @@ func (pg *Pg) UserGetInfo(ctx context.Context, userID string) (userInfo *models.
 }
 
 func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	u := entity.UserFromModel(user)
 	u.UpdatedAt = clock.Now()
@@ -171,7 +171,7 @@ func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
 }
 
 func (pg *Pg) UserDelete(ctx context.Context, user *models.User) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	u := entity.UserFromModel(user)
 

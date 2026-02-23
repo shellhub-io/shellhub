@@ -11,7 +11,7 @@ import (
 )
 
 func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	apiKey.CreatedAt = clock.Now()
 	apiKey.UpdatedAt = clock.Now()
@@ -23,7 +23,7 @@ func (pg *Pg) APIKeyCreate(ctx context.Context, apiKey *models.APIKey) (string, 
 }
 
 func (pg *Pg) APIKeyConflicts(ctx context.Context, tenantID string, target *models.APIKeyConflicts) ([]string, bool, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	if target.ID == "" && target.Name == "" {
 		return []string{}, false, nil
@@ -68,7 +68,7 @@ func (pg *Pg) APIKeyConflicts(ctx context.Context, tenantID string, target *mode
 }
 
 func (pg *Pg) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.APIKey, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.APIKey, 0)
 
@@ -93,7 +93,7 @@ func (pg *Pg) APIKeyList(ctx context.Context, opts ...store.QueryOption) ([]mode
 }
 
 func (pg *Pg) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, val string, opts ...store.QueryOption) (*models.APIKey, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	column, err := APIKeyResolverToString(resolver)
 	if err != nil {
@@ -115,7 +115,7 @@ func (pg *Pg) APIKeyResolve(ctx context.Context, resolver store.APIKeyResolver, 
 }
 
 func (pg *Pg) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	a := entity.APIKeyFromModel(apiKey)
 	a.UpdatedAt = clock.Now()
@@ -132,7 +132,7 @@ func (pg *Pg) APIKeyUpdate(ctx context.Context, apiKey *models.APIKey) error {
 }
 
 func (pg *Pg) APIKeyDelete(ctx context.Context, apiKey *models.APIKey) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	a := entity.APIKeyFromModel(apiKey)
 	r, err := db.NewDelete().Model(a).WherePK().Exec(ctx)

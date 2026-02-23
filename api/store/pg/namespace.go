@@ -12,7 +12,7 @@ import (
 )
 
 func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	namespace.CreatedAt = clock.Now()
 	if namespace.TenantID == "" {
@@ -34,7 +34,7 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 }
 
 func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	if target.Name == "" {
 		return []string{}, false, nil
@@ -72,7 +72,7 @@ func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceCo
 }
 
 func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Namespace, 0)
 	query := db.NewSelect().Model(&entities)
@@ -97,7 +97,7 @@ func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 }
 
 func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceResolver, val string) (*models.Namespace, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	column, err := NamespaceResolverToString(resolver)
 	if err != nil {
@@ -114,7 +114,7 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 }
 
 func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	ns := new(entity.Namespace)
 	if err := db.NewSelect().
@@ -133,7 +133,7 @@ func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models
 }
 
 func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	// First check if namespace exists
 	exists, err := db.NewSelect().Model((*entity.Namespace)(nil)).Where("id = ?", namespace.TenantID).Exists(ctx)
@@ -160,7 +160,7 @@ func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) 
 }
 
 func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	column := "devices_" + string(status) + "_count"
 	result, err := db.NewUpdate().
@@ -185,7 +185,7 @@ func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string
 }
 
 func (pg *Pg) NamespaceSyncDeviceCounts(ctx context.Context) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	_, err := db.NewRaw(`
 		UPDATE namespaces SET
@@ -237,7 +237,7 @@ func (pg *Pg) NamespaceDelete(ctx context.Context, namespace *models.Namespace) 
 }
 
 func (pg *Pg) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 	fn := pg.namespaceDeleteManyFn(ctx, tenantIDs)
 
 	if tx, ok := db.(bun.Tx); ok {

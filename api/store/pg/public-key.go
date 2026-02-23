@@ -11,7 +11,7 @@ import (
 )
 
 func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	publicKey.CreatedAt = clock.Now()
 	e := entity.PublicKeyFromModel(publicKey)
@@ -41,7 +41,7 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 }
 
 func (pg *Pg) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]models.PublicKey, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.PublicKey, 0)
 
@@ -66,7 +66,7 @@ func (pg *Pg) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]m
 }
 
 func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	a := entity.PublicKeyFromModel(publicKey)
 	a.UpdatedAt = clock.Now()
@@ -89,7 +89,7 @@ func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) 
 }
 
 func (pg *Pg) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	column, err := PublicKeyResolverToString(resolver)
 	if err != nil {
@@ -113,7 +113,7 @@ func (pg *Pg) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyReso
 }
 
 func (pg *Pg) PublicKeyDelete(ctx context.Context, publicKey *models.PublicKey) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	a := entity.PublicKeyFromModel(publicKey)
 
