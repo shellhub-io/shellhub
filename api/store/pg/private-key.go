@@ -9,7 +9,7 @@ import (
 )
 
 func (pg *Pg) PrivateKeyCreate(ctx context.Context, privateKey *models.PrivateKey) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	privateKey.CreatedAt = clock.Now()
 
@@ -21,7 +21,7 @@ func (pg *Pg) PrivateKeyCreate(ctx context.Context, privateKey *models.PrivateKe
 }
 
 func (pg *Pg) PrivateKeyGet(ctx context.Context, fingerprint string) (*models.PrivateKey, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	privateKey := new(entity.PrivateKey)
 	if err := db.NewSelect().Model(privateKey).Where("fingerprint = ?", fingerprint).Scan(ctx); err != nil {

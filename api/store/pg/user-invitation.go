@@ -10,7 +10,7 @@ import (
 )
 
 func (pg *Pg) UserInvitationsUpsert(ctx context.Context, email string) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	now := clock.Now()
 	normalizedEmail := strings.ToLower(email)

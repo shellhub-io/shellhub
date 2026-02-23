@@ -13,7 +13,7 @@ import (
 )
 
 func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	device.CreatedAt = clock.Now()
 
@@ -26,7 +26,7 @@ func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, 
 }
 
 func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflicts) ([]string, bool, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	if target.Name == "" {
 		return []string{}, false, nil
@@ -65,7 +65,7 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, target *models.DeviceConflict
 }
 
 func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Device, 0)
 
@@ -99,7 +99,7 @@ func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable,
 }
 
 func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, val string, opts ...store.QueryOption) (*models.Device, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	column, err := DeviceResolverToString(resolver)
 	if err != nil {
@@ -131,7 +131,7 @@ func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, 
 }
 
 func (pg *Pg) DeviceUpdate(ctx context.Context, device *models.Device) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	d := entity.DeviceFromModel(device)
 	d.UpdatedAt = clock.Now()
@@ -149,7 +149,7 @@ func (pg *Pg) DeviceUpdate(ctx context.Context, device *models.Device) error {
 }
 
 func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.Time) (int64, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	unnestExpr, unnestIDs := deviceExprUnnestIDs(ids)
 	r, err := db.NewUpdate().
@@ -179,7 +179,7 @@ func (pg *Pg) DeviceDelete(ctx context.Context, device *models.Device) error {
 }
 
 func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 	fn := pg.deviceDeleteManyFn(ctx, uids)
 
 	if tx, ok := db.(bun.Tx); ok {

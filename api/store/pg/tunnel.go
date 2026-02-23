@@ -8,7 +8,7 @@ import (
 )
 
 func (pg *Pg) TunnelUpdateDeviceUID(ctx context.Context, tenantID, oldUID, newUID string) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	_, err := db.NewUpdate().
 		Model((*entity.Tunnel)(nil)).

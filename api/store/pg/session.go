@@ -12,7 +12,7 @@ import (
 )
 
 func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Session, 0)
 	query := db.NewSelect().
@@ -51,7 +51,7 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 }
 
 func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	var sessionID string
 	switch resolver {
@@ -79,7 +79,7 @@ func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver
 }
 
 func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	session.StartedAt = clock.Now()
 	session.LastSeen = session.StartedAt
@@ -105,7 +105,7 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 }
 
 func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	e := entity.SessionFromModel(session)
 	result, err := db.NewUpdate().Model(e).OmitZero().Where("id = ?", e.ID).Exec(ctx)
@@ -126,7 +126,7 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 }
 
 func (pg *Pg) ActiveSessionCreate(ctx context.Context, session *models.Session) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	activeSession := &models.ActiveSession{UID: models.UID(session.UID), LastSeen: session.StartedAt, TenantID: session.TenantID}
 	e := entity.ActiveSessionFromModel(activeSession)
@@ -138,7 +138,7 @@ func (pg *Pg) ActiveSessionCreate(ctx context.Context, session *models.Session) 
 }
 
 func (pg *Pg) ActiveSessionResolve(ctx context.Context, resolver store.SessionResolver, value string) (*models.ActiveSession, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	var sessionID string
 	switch resolver {
@@ -157,7 +157,7 @@ func (pg *Pg) ActiveSessionResolve(ctx context.Context, resolver store.SessionRe
 }
 
 func (pg *Pg) ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	e := entity.ActiveSessionFromModel(activeSession)
 	result, err := db.NewUpdate().Model(e).Where("session_id = ?", e.SessionID).Exec(ctx)
@@ -179,7 +179,7 @@ func (pg *Pg) ActiveSessionUpdate(ctx context.Context, activeSession *models.Act
 
 func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
-		db := pg.getConnection(ctx)
+		db := pg.GetConnection(ctx)
 
 		result, err := db.NewUpdate().
 			Model((*entity.Session)(nil)).
@@ -207,7 +207,7 @@ func (pg *Pg) ActiveSessionDelete(ctx context.Context, uid models.UID) error {
 }
 
 func (pg *Pg) SessionEventsCreate(ctx context.Context, event *models.SessionEvent) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	e := entity.SessionEventFromModel(event)
 	e.ID = uuid.Generate()
@@ -220,7 +220,7 @@ func (pg *Pg) SessionEventsCreate(ctx context.Context, event *models.SessionEven
 }
 
 func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, event models.SessionEventType, opts ...store.QueryOption) ([]models.SessionEvent, int, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.SessionEvent, 0)
 	query := db.NewSelect().
@@ -254,7 +254,7 @@ func (pg *Pg) SessionEventsList(ctx context.Context, uid models.UID, seat int, e
 }
 
 func (pg *Pg) SessionEventsDelete(ctx context.Context, uid models.UID, seat int, event models.SessionEventType) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	if _, err := db.NewDelete().
 		Model((*entity.SessionEvent)(nil)).
@@ -269,7 +269,7 @@ func (pg *Pg) SessionEventsDelete(ctx context.Context, uid models.UID, seat int,
 }
 
 func (pg *Pg) SessionUpdateDeviceUID(ctx context.Context, oldUID models.UID, newUID models.UID) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	result, err := db.NewUpdate().
 		Model((*entity.Session)(nil)).

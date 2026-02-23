@@ -11,7 +11,7 @@ import (
 )
 
 func (pg *Pg) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	now := clock.Now()
 	invitation.ID = uuid.Generate()
@@ -29,7 +29,7 @@ func (pg *Pg) MembershipInvitationCreate(ctx context.Context, invitation *models
 }
 
 func (pg *Pg) MembershipInvitationResolve(ctx context.Context, tenantID, userID string) (*models.MembershipInvitation, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	invitation := new(entity.MembershipInvitation)
 
@@ -51,7 +51,7 @@ func (pg *Pg) MembershipInvitationResolve(ctx context.Context, tenantID, userID 
 }
 
 func (pg *Pg) MembershipInvitationUpdate(ctx context.Context, invitation *models.MembershipInvitation) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	invitation.UpdatedAt = clock.Now()
 

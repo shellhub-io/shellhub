@@ -11,7 +11,7 @@ import (
 )
 
 func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	system := new(entity.System)
 	if err := db.NewSelect().Model(system).Limit(1).Scan(ctx); err != nil {
@@ -40,7 +40,7 @@ func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 }
 
 func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
-	db := pg.getConnection(ctx)
+	db := pg.GetConnection(ctx)
 
 	// Get existing system (should be only one)
 	existingSystem := new(entity.System)
@@ -54,11 +54,11 @@ func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
 		if systemEntity.ID == "" {
 			systemEntity.ID = uuid.Generate()
 		}
-		_, err = pg.driver.NewInsert().Model(systemEntity).Exec(ctx)
+		_, err = db.NewInsert().Model(systemEntity).Exec(ctx)
 	case err == nil:
 		// System exists, update it (use existing ID)
 		systemEntity.ID = existingSystem.ID
-		_, err = pg.driver.NewUpdate().Model(systemEntity).WherePK().Exec(ctx)
+		_, err = db.NewUpdate().Model(systemEntity).WherePK().Exec(ctx)
 	}
 
 	return err

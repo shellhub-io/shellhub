@@ -12,13 +12,13 @@ type txKeyType struct{}
 
 var txKey = txKeyType{}
 
-// getConnection returns the appropriate executor for the given context.
+// GetConnection returns the appropriate executor for the given context.
 // If the context contains an active transaction, it returns the transaction handle.
 // Otherwise, it returns the base database driver.
 //
 // This allows store methods to be written agnostic of whether they are
 // running inside a transaction or not.
-func (pg *Pg) getConnection(ctx context.Context) bun.IDB {
+func (pg *Pg) GetConnection(ctx context.Context) bun.IDB {
 	if tx, ok := ctx.Value(txKey).(bun.Tx); ok {
 		log.Debug("reusing existing SQL transaction from context")
 
@@ -31,7 +31,7 @@ func (pg *Pg) getConnection(ctx context.Context) bun.IDB {
 // Example:
 //
 //	err := store.WithTransaction(ctx, func(ctx context.Context) error {
-//	    db := store.getExecutor(ctx)
+//	    db := store.GetConnection(ctx)
 //	    if _, err := db.NewDelete().Model(&Device{}).Where("id = ?", id).Exec(ctx); err != nil {
 //	        return err
 //	    }
