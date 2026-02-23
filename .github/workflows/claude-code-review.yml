@@ -131,6 +131,38 @@ jobs:
         if: github.event_name == 'pull_request_target' || steps.auth-check.outputs.authorized == 'true'
         run: echo "proceed=true" >> "$GITHUB_OUTPUT"
 
+      - name: Create or update progress comment
+        id: progress
+        if: steps.gate.outputs.proceed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          MARKER="<!-- claude-code-review -->"
+          BODY="$(cat <<EOF
+          ${MARKER}
+          ## Code Review
+
+          :hourglass_flowing_sand: Setting up review environment...
+          EOF
+          )"
+
+          # Search for existing review comment to reuse (sticky)
+          EXISTING_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+            --paginate --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" \
+            | tail -1) || true
+
+          if [[ -n "$EXISTING_ID" ]]; then
+            gh api "repos/$REPO/issues/comments/$EXISTING_ID" -X PATCH -f body="$BODY" > /dev/null
+            echo "comment_id=$EXISTING_ID" >> "$GITHUB_OUTPUT"
+          else
+            COMMENT_ID=$(gh api "repos/$REPO/issues/$PR_NUMBER/comments" \
+              -f body="$BODY" --jq '.id')
+            echo "comment_id=$COMMENT_ID" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Determine cloud branch
         id: cloud-branch
         if: steps.gate.outputs.proceed == 'true'
@@ -224,6 +256,30 @@ jobs:
             The cloud/ (enterprise) repo is checked out at $GITHUB_WORKSPACE/cloud/ for context.
             Focus the review on the shellhub diff. Use cloud/ only to understand cross-repo impact.
 
+            The progress comment ID is ${{ steps.progress.outputs.comment_id }}.
+            The repository is ${{ github.repository }}.
+
+            ## Progress Tracking
+
+            A progress comment has been created on the PR (comment ID above). Update it
+            at each major phase using `gh api`. Every update MUST include `<!-- claude-code-review -->`
+            at the start of the body so re-reviews can find it.
+
+            Update template (use a heredoc for the body):
+
+                gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$(cat <<'PROGRESS'
+                <!-- claude-code-review -->
+                ## Code Review
+
+                - [x] Completed step
+                - [ ] Next step...
+                PROGRESS
+                )"
+
+            Progress updates are best-effort. If an update fails, continue with the review.
+            If PROGRESS_COMMENT_ID is empty (step failed), skip all progress updates and
+            fall back to posting the final summary with `gh pr comment` as before.
+
             ## Step 1: Gather context
 
             1. Get the PR diff:
@@ -233,6 +289,11 @@ jobs:
             3. Fetch ALL existing review comments to avoid duplicating feedback:
                gh api repos/shellhub-io/shellhub/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/comments
                gh api repos/shellhub-io/shellhub/pulls/${{ github.event.pull_request.number || github.event.issue.number }}/reviews
+
+            After completing this step, update the progress comment:
+            - [x] Gathered PR context (N files changed)
+            - [ ] Reviewing with 5 specialized agents
+            - [ ] Posting feedback
 
             ## Step 2: Spawn 5 reviewer agents IN PARALLEL
 
@@ -274,6 +335,11 @@ jobs:
 
             Agents must NOT post any GitHub comments. They only return findings.
 
+            After all agents complete, update the progress comment:
+            - [x] Gathered PR context (N files changed)
+            - [x] Code review complete
+            - [ ] Posting feedback
+
             ## Step 3: Aggregate and deduplicate
 
             After all 5 agents complete, collect their findings. Then:
@@ -306,35 +372,61 @@ jobs:
 
             Do NOT re-report issues that already exist in previous review threads.
 
-            ## Step 5: Post closing comment
+            After posting all inline comments, update the progress comment:
+            - [x] Gathered PR context (N files changed)
+            - [x] Code review complete
+            - [x] Posted N inline comments
+            - [ ] Finalizing summary
 
-            After Step 4 is complete, post ONE comment on the PR using `gh pr comment`.
+            ## Step 5: Update final summary
+
+            After Step 4 is complete, update the progress comment one final time to become
+            the closing summary. Do NOT post a separate comment with `gh pr comment` —
+            transform the existing progress comment in place.
+
             When mentioning `/review` in any comment, always wrap it in backticks (`` `/review` ``).
 
             The PR author ${{ steps.author-check.outputs.is_admin == 'true' && 'IS' || 'is NOT' }} a member of the shellhub-io/admin team.
 
-            If there are findings:
-            - Post a concise closing comment
-            - Do NOT repeat findings that were already posted as inline comments
-            - If any findings could not be posted as inline comments (e.g., architectural
-              concerns, missing files, cross-cutting issues not tied to specific lines),
-              include them in the closing comment
-            - If the PR author IS an admin team member: remind them to comment `/review`
-              when they've addressed the feedback and the PR is ready for another round
-            - If the PR author is NOT an admin team member: ask them to tag the
-              `@shellhub-io/admin` team (in backticks to avoid notification) when they
-              believe the PR is ready for a new automated review round
+            ### If there are findings:
 
-            If there are NO findings (zero inline comments posted):
-            - State: "🎉 I reviewed this PR across code quality, security, testing, language
-              patterns, and architecture and found no issues to report. The code looks good
-              as-is."
-            - Do NOT mention inline comments or request a `/review` follow-up.
-            - If the PR author is NOT an admin team member: add "If you push additional
-              changes and want a new review, tag `@shellhub-io/admin` and a team member
-              can trigger it."
+            Update the progress comment to:
 
-            In both cases, always post the closing comment. Never skip Step 5.
+                <!-- claude-code-review -->
+                ## Code Review Complete
+
+                Reviewed N files. **X inline issues** posted (breakdown by severity).
+
+                ### Additional notes
+                (Only if there are non-inlinable findings — architectural concerns,
+                missing files, cross-cutting issues not tied to specific lines.
+                Omit this section entirely if all findings were posted inline.)
+
+                ---
+                {For admin authors:}
+                To request another review round, comment `/review`.
+                {For non-admin authors:}
+                If you've addressed the feedback and want a new review, tag
+                `@shellhub-io/admin` and a team member can trigger it.
+
+            ### If there are NO findings:
+
+            Update the progress comment to:
+
+                <!-- claude-code-review -->
+                ## Code Review Complete
+
+                Reviewed N files across code quality, security, testing, language patterns,
+                and architecture — no issues found. The code looks good as-is.
+
+                {For non-admin authors only:}
+                If you push additional changes and want a new review, tag
+                `@shellhub-io/admin` and a team member can trigger it.
+
+            Do NOT mention inline comments or `/review` follow-up when there are no findings
+            (unless the author is non-admin, in which case include the tag guidance).
+
+            In both cases, always update the progress comment. Never skip Step 5.
 
           claude_args: |
             --max-turns 30
