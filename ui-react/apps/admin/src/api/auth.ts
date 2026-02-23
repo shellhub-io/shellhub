@@ -1,4 +1,9 @@
+import axios from "axios";
 import apiClient from "./client";
+
+const publicClient = axios.create({
+  baseURL: `${window.location.protocol}//${window.location.host}`,
+});
 
 interface LoginPayload {
   username: string;
@@ -50,6 +55,18 @@ export async function updatePassword(
     current_password: currentPassword,
     password: newPassword,
   });
+}
+
+export async function recoverPassword(username: string): Promise<void> {
+  await publicClient.post("/api/user/recover_password", { username });
+}
+
+export async function updateRecoverPassword(
+  uid: string,
+  token: string,
+  password: string,
+): Promise<void> {
+  await publicClient.post(`/api/user/${encodeURIComponent(uid)}/update_password`, { token, password });
 }
 
 export async function deleteUser(): Promise<void> {
