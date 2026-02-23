@@ -271,9 +271,9 @@ jobs:
             at the start of the body so re-reviews can find it.
 
             To update it, always follow this two-step pattern:
-            1. Use the Write tool to create /tmp/comment.md with the markdown body.
-               Start every body with <!-- claude-code-review --> (a real HTML comment — do not escape it).
-            2. Post it:
+            1. Use the **Write** tool (NEVER echo/printf/bash) to create /tmp/comment.md.
+               This is critical — bash escapes `!` in `<!-- -->`, breaking the hidden marker.
+            2. Post it with Bash:
                gh api "repos/${{ github.repository }}/issues/comments/${{ steps.progress.outputs.comment_id }}" -X PATCH -F body=@/tmp/comment.md
 
             Never use -f body="..." with inline content — newlines will be lost.
