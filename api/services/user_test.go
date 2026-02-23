@@ -247,6 +247,60 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
+			description: "succeeds when only password fields are submitted",
+			req: &requests.UpdateUser{
+				UserID:          "000000000000000000000000",
+				Password:        "new-secret",
+				CurrentPassword: "secret",
+			},
+			requiredMocks: func(ctx context.Context) {
+				user := &models.User{
+					ID: "000000000000000000000000",
+					UserData: models.UserData{
+						Name:          "James Smith",
+						Username:      "james_smith",
+						Email:         "james.smith@shellhub.io",
+						RecoveryEmail: "recover@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+				}
+
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(user, nil).
+					Once()
+				storeMock.
+					On("UserConflicts", ctx, &models.UserConflicts{}).
+					Return([]string{}, false, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				hashMock.
+					On("Do", "new-secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yv", nil).
+					Once()
+
+				updatedUser := *user
+				updatedUser.Password = models.UserPassword{
+					Plain: "new-secret",
+					Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yv",
+				}
+
+				storeMock.
+					On("UserUpdate", ctx, &updatedUser).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				conflicts: []string{},
+				err:       nil,
+			},
+		},
+		{
 			description: "Success to update user",
 			req: &requests.UpdateUser{
 				UserID:        "000000000000000000000000",
