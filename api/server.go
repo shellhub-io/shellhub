@@ -99,6 +99,10 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Debug("Redis cache initialized successfully")
 
+	// Capture the wrapper factory before the local "store" variable shadows the
+	// package name. In CE builds this returns nil.
+	wrapperFactory := store.StoreWrapper()
+
 	var store store.Store
 	switch s.env.Database {
 	case "mongo":
@@ -118,6 +122,17 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	log.WithField("database", s.env.Database).Info("store connected successfully")
+
+	// If a store wrapper factory was registered (EE/cloud build), wrap the
+	// store so cloud-specific entity overrides are used by the core service.
+	if wrapperFactory != nil {
+		store, err = wrapperFactory(store, cache)
+		if err != nil {
+			return errors.Join(errors.New("failed to wrap store"), err)
+		}
+
+		log.Info("Store wrapper applied")
+	}
 
 	apiClient, err := internalclient.NewClient(nil, internalclient.WithAsynqWorker(s.env.RedisURI))
 	if err != nil {
