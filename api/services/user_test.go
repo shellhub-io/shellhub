@@ -110,6 +110,68 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
+			description: "Fail when recovery email matches req's email case-insensitively",
+			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "John.Doe@TEST.COM",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@test.com",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				conflicts: []string{"email", "recovery_email"},
+				err:       NewErrBadRequest(nil),
+			},
+		},
+		{
+			description: "Fail when recovery email matches user's email case-insensitively",
+			req: &requests.UpdateUser{
+				UserID:        "000000000000000000000000",
+				Name:          "John Doe",
+				Username:      "john_doe",
+				Email:         "john.doe@test.com",
+				RecoveryEmail: "James.Smith@TEST.COM",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							UserData: models.UserData{
+								Name:          "James Smith",
+								Username:      "james_smith",
+								Email:         "james.smith@test.com",
+								RecoveryEmail: "recover@test.com",
+							},
+						},
+						nil,
+					).
+					Once()
+			},
+			expected: Expected{
+				conflicts: []string{"email", "recovery_email"},
+				err:       NewErrBadRequest(nil),
+			},
+		},
+		{
 			description: "Fail when conflict fields exists",
 			req: &requests.UpdateUser{
 				UserID:        "000000000000000000000000",
@@ -145,7 +207,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when the current password doesn't match with user's password",
+			description: "Fails when the current password doesn't match with user's password",
 			req: &requests.UpdateUser{
 				UserID:          "000000000000000000000000",
 				Name:            "John Doe",
@@ -247,7 +309,7 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds when only password fields are submitted",
+			description: "Succeeds when only password fields are submitted",
 			req: &requests.UpdateUser{
 				UserID:          "000000000000000000000000",
 				Password:        "new-secret",
