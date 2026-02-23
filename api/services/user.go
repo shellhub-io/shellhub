@@ -28,7 +28,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) ([]s
 		return []string{}, NewErrUserNotFound(req.UserID, nil)
 	}
 
-	if req.RecoveryEmail == user.Email || req.RecoveryEmail == req.Email {
+	if req.RecoveryEmail != "" && (strings.EqualFold(req.RecoveryEmail, user.Email) || strings.EqualFold(req.RecoveryEmail, req.Email)) {
 		return []string{"email", "recovery_email"}, NewErrBadRequest(nil)
 	}
 
