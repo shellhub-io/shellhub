@@ -270,21 +270,12 @@ jobs:
             Update it at each major phase. Every update MUST include `<!-- claude-code-review -->`
             at the start of the body so re-reviews can find it.
 
-            Update template (write body to a file, then post it):
+            To update it, always follow this two-step pattern:
+            1. Use the Write tool to create /tmp/comment.md with the markdown body.
+               Start every body with <!-- claude-code-review --> (a real HTML comment — do not escape it).
+            2. Post it:
+               gh api "repos/${{ github.repository }}/issues/comments/${{ steps.progress.outputs.comment_id }}" -X PATCH -F body=@/tmp/comment.md
 
-                1. Write the comment body to /tmp/comment.md (plain markdown, no escaping):
-
-                   <!-- claude-code-review -->
-                   ## Code Review
-
-                   - [x] Completed step
-                   - [ ] Next step...
-
-                2. Post it:
-
-                   gh api "repos/${{ github.repository }}/issues/comments/${{ steps.progress.outputs.comment_id }}" -X PATCH -F body=@/tmp/comment.md
-
-            IMPORTANT: Always use this two-step pattern (write file, then -F body=@file).
             Never use -f body="..." with inline content — newlines will be lost.
 
             Progress updates are best-effort. If an update fails, continue with the review.
