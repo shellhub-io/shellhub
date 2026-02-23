@@ -243,6 +243,17 @@ jobs:
             echo "is_admin=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Create post-comment helper
+        if: steps.gate.outputs.proceed == 'true' && steps.progress.outputs.comment_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMENT_ID: ${{ steps.progress.outputs.comment_id }}
+        run: |
+          printf '#!/bin/bash\nexec gh api "repos/%s/issues/comments/%s" -X PATCH -F body=@"$1"\n' \
+            "$REPO" "$COMMENT_ID" > /usr/local/bin/post-comment
+          chmod +x /usr/local/bin/post-comment
+
       - name: Run Claude Code Review
         if: steps.gate.outputs.proceed == 'true'
         timeout-minutes: 30
@@ -271,12 +282,9 @@ jobs:
             at the start of the body so re-reviews can find it.
 
             To update it, always follow this two-step pattern:
-            1. Use the **Write** tool (NEVER echo/printf/bash) to create /tmp/comment.md.
-               This is critical — bash escapes `!` in `<!-- -->`, breaking the hidden marker.
-            2. Post it with Bash:
-               gh api "repos/${{ github.repository }}/issues/comments/${{ steps.progress.outputs.comment_id }}" -X PATCH -F body=@/tmp/comment.md
-
-            Never use -f body="..." with inline content — newlines will be lost.
+            1. Use the **Write** tool (NEVER Bash/echo/printf) to create /tmp/comment.md.
+               Bash mangles `<!-- -->` — the Write tool is the only safe option.
+            2. Run: post-comment /tmp/comment.md
 
             You MUST update the progress comment after every step — do not skip or batch them.
             If an update fails, continue with the review but still attempt subsequent updates.
