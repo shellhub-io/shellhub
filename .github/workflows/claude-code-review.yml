@@ -278,7 +278,8 @@ jobs:
 
             Never use -f body="..." with inline content — newlines will be lost.
 
-            Progress updates are best-effort. If an update fails, continue with the review.
+            You MUST update the progress comment after every step — do not skip or batch them.
+            If an update fails, continue with the review but still attempt subsequent updates.
             If the comment ID above is empty (step failed), skip all progress updates and
             fall back to posting the final summary with `gh pr comment` instead.
 
