@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { getConfig } from "./env";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
 import ConfirmAccount from "./pages/ConfirmAccount";
@@ -22,6 +23,8 @@ const Team = lazy(() => import("./pages/team"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BannerEdit = lazy(() => import("./pages/BannerEdit"));
 const Profile = lazy(() => import("./pages/Profile"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
 
 export default function App() {
@@ -34,6 +37,12 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/confirm-account" element={<ConfirmAccount />} />
               <Route path="/setup" element={<Setup />} />
+              {getConfig().cloud && (
+                <>
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/update-password" element={<UpdatePassword />} />
+                </>
+              )}
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route element={<NamespaceGuard />}>

@@ -7,6 +7,7 @@ import ConfirmDialog from "../components/common/ConfirmDialog";
 import CopyButton from "../components/common/CopyButton";
 import { AxiosError } from "axios";
 import { LABEL, INPUT } from "../utils/styles";
+import { validatePassword } from "../utils/validation";
 import { validateRecoveryEmail } from "./profile/validate";
 import { getConfig } from "../env";
 import {
@@ -50,11 +51,6 @@ function validateEmail(v: string): string | null {
   return null;
 }
 
-function validatePassword(v: string): string | null {
-  if (v.length < 5) return "Password must be at least 5 characters";
-  if (v.length > 32) return "Password must be at most 32 characters";
-  return null;
-}
 
 /* ─── Settings Card ─── */
 

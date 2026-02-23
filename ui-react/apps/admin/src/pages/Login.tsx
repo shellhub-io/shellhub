@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { AxiosError } from "axios";
 import {
   ExclamationCircleIcon,
@@ -8,6 +8,7 @@ import {
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
+import { getConfig } from "../env";
 
 interface CountdownState {
   display: string;
@@ -57,6 +58,17 @@ function useLoginCountdown(lockoutEndEpoch: number | null) {
 }
 
 export default function Login() {
+  const isCloud = getConfig().cloud;
+  const location = useLocation();
+  const rawState = location.state as Record<string, unknown> | null;
+  const notice = typeof rawState?.notice === "string" ? rawState.notice : undefined;
+
+  useEffect(() => {
+    if (notice) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [notice]);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -140,8 +152,14 @@ export default function Login() {
               Your timeout has finished. Please try to log back in.
             </div>
           )}
+          {notice && (
+            <div role="alert" className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
+              <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+              {notice}
+            </div>
+          )}
           {error && !lockoutExpired && (
-            <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
+            <div role="alert" className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <ExclamationCircleIcon
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
@@ -191,6 +209,17 @@ export default function Login() {
               placeholder="password"
             />
           </div>
+
+          {isCloud && (
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          )}
 
           <button
             type="submit"
