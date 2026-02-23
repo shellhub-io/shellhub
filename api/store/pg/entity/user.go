@@ -22,7 +22,7 @@ type User struct {
 	Email          string          `bun:"email"`
 	PasswordDigest string          `bun:"password_digest"`
 	Preferences    UserPreferences `bun:"embed:"`
-	MFA            UserMFA         `bun:"-"`
+	MFA            UserMFA         `bun:"embed:mfa_"`
 	Admin          bool            `bun:"admin"`
 	Namespaces     int             `bun:"namespaces,scanonly"`
 }
