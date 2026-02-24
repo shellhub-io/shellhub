@@ -42,6 +42,11 @@ func migration006Down(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, `
 		DROP TABLE IF EXISTS api_keys;
 	`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 006")
 
-	return err
+		return err
+	}
+
+	return nil
 }

@@ -70,6 +70,11 @@ func migration017Up(ctx context.Context, db *bun.DB) error {
 
 func migration017Down(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, `DROP TABLE IF EXISTS tunnels;`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 017")
 
-	return err
+		return err
+	}
+
+	return nil
 }

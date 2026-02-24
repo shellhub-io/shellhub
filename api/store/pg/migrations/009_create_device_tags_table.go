@@ -59,6 +59,11 @@ func migration009Down(ctx context.Context, db *bun.DB) error {
 		DROP TABLE IF EXISTS public_key_tags;
 		DROP TABLE IF EXISTS device_tags;
 	`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 009")
 
-	return err
+		return err
+	}
+
+	return nil
 }

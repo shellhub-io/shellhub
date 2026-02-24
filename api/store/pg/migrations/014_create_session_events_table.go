@@ -101,6 +101,11 @@ func migration014Down(ctx context.Context, db *bun.DB) error {
 		DROP TABLE IF EXISTS session_events;
 		DROP TYPE IF EXISTS session_event_type;
 	`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 014")
 
-	return err
+		return err
+	}
+
+	return nil
 }

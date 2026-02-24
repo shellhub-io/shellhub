@@ -45,6 +45,11 @@ func migration011Up(ctx context.Context, db *bun.DB) error {
 
 func migration011Down(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, `DROP TABLE IF EXISTS systems;`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 011")
 
-	return err
+		return err
+	}
+
+	return nil
 }

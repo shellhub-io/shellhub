@@ -56,6 +56,11 @@ func migration010Up(ctx context.Context, db *bun.DB) error {
 
 func migration010Down(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, "DROP TABLE IF EXISTS public_key_tags")
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 010")
 
-	return err
+		return err
+	}
+
+	return nil
 }

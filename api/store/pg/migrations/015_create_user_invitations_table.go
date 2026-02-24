@@ -50,6 +50,11 @@ func migration015Up(ctx context.Context, db *bun.DB) error {
 
 func migration015Down(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, `DROP TABLE IF EXISTS user_invitations;`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 015")
 
-	return err
+		return err
+	}
+
+	return nil
 }
