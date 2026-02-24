@@ -21,7 +21,7 @@ jobs:
           repositories: cloud
 
       - name: Dispatch to cloud
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
