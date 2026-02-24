@@ -15,6 +15,9 @@ ssh_private_key
 go.work
 go.work.sum
 
+# Generated at runtime by gen-config.sh from env vars
+ui-react/apps/admin/public/config.json
+
 # Docker binaries
 agent/agent
 api/api
