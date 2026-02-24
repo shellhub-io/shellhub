@@ -214,7 +214,7 @@ func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error
 
 func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun.Tx) (int64, error) {
 	return func(tx bun.Tx) (int64, error) {
-		r, err := tx.NewDelete().Model((*entity.Device)(nil)).Where("id IN (?)", bun.In(uids)).Exec(ctx)
+		r, err := tx.NewDelete().Model((*entity.Device)(nil)).Where("id IN (?)", bun.List(uids)).Exec(ctx)
 		if err != nil {
 			return 0, fromSQLError(err)
 		}
@@ -223,14 +223,14 @@ func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun
 
 		if _, err := tx.NewDelete().
 			Model((*entity.Session)(nil)).
-			Where("device_id IN (?)", bun.In(uids)).
+			Where("device_id IN (?)", bun.List(uids)).
 			Exec(ctx); err != nil {
 			return 0, fromSQLError(err)
 		}
 
 		if _, err := tx.NewDelete().
 			Model((*entity.Tunnel)(nil)).
-			Where("device_id IN (?)", bun.In(uids)).
+			Where("device_id IN (?)", bun.List(uids)).
 			Exec(ctx); err != nil {
 			return 0, fromSQLError(err)
 		}
