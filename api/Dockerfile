@@ -2,6 +2,7 @@
 #
 # Build args:
 #   EDITION=community (default) | enterprise
+#   MJML_VERSION=4.10.1 (default)
 #
 # CE:  docker build --build-arg EDITION=community -f api/Dockerfile .
 # EE:  docker build --build-arg EDITION=enterprise \
@@ -12,6 +13,7 @@
 # Cloud source is provided separately via --build-context (never in main context).
 
 ARG EDITION=community
+ARG MJML_VERSION=4.10.1
 
 # ── cloud-src: empty by default, overridden via --build-context for EE ────────
 FROM scratch AS cloud-src
@@ -38,12 +40,20 @@ RUN go mod download
 FROM base AS builder
 
 ARG EDITION=community
+ARG MJML_VERSION
+
+RUN if [ "$EDITION" = "enterprise" ]; then \
+        apk add --no-cache npm && npm install -g mjml@${MJML_VERSION}; \
+    fi
 
 COPY ./pkg     /go/src/github.com/shellhub-io/shellhub/pkg
 COPY ./openapi /go/src/github.com/shellhub-io/shellhub/openapi
 COPY ./api     /go/src/github.com/shellhub-io/shellhub/api
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub/api
+
+RUN mkdir -p /templates
+COPY ./install.sh /templates/install.sh
 
 RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud \
     if [ "$EDITION" = "enterprise" ]; then \
@@ -53,7 +63,8 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
             ./github.com/shellhub-io/shellhub/api \
             ./github.com/shellhub-io/cloud && \
         cd /go/src/github.com/shellhub-io/shellhub/api && \
-        GOWORK=/go/src/go.work go build -tags enterprise -o /api .; \
+        GOWORK=/go/src/go.work go build -tags enterprise -o /api . && \
+        mjml /go/src/github.com/shellhub-io/cloud/templates/*.mjml -o /templates; \
     else \
         go build -o /api .; \
     fi
@@ -62,9 +73,11 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
 FROM base AS development
 
 ARG GOPROXY
+ARG MJML_VERSION
 ENV GOPROXY=${GOPROXY}
 
-RUN apk add --update openssl build-base docker-cli
+RUN apk add --update openssl build-base docker-cli npm
+RUN npm install -g mjml@${MJML_VERSION}
 RUN go install github.com/air-verse/air@v1.62 && \
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6 && \
     go install github.com/vektra/mockery/v2/...@v2.53.2
@@ -84,8 +97,6 @@ FROM alpine:3.23.3 AS production
 RUN apk add --no-cache curl
 
 COPY --from=builder /api /api
-
-RUN mkdir -p /templates
-COPY ./install.sh /templates/install.sh
+COPY --from=builder /templates /templates
 
 ENTRYPOINT ["/api", "server"]
