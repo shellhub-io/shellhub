@@ -18,6 +18,7 @@ func TestPgStore(t *testing.T) {
 		suite.TestUserList(t)
 		suite.TestUserResolve(t)
 		suite.TestUserCreate(t)
+		suite.TestUserCreatePasswordRoundTrip(t)
 		suite.TestUserConflicts(t)
 		suite.TestUserUpdate(t)
 		suite.TestUserDelete(t)

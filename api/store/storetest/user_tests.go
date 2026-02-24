@@ -148,6 +148,38 @@ func (s *Suite) TestUserCreate(t *testing.T) {
 	}
 }
 
+func (s *Suite) TestUserCreatePasswordRoundTrip(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("password can be verified after round-trip through database", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		password, err := models.HashUserPassword("testpassword")
+		require.NoError(t, err)
+
+		user := &models.User{
+			UserData: models.UserData{
+				Name:     "roundtrip user",
+				Username: "roundtrip_user",
+				Email:    "roundtrip@test.com",
+			},
+			Password: password,
+		}
+
+		userID, err := st.UserCreate(ctx, user)
+		require.NoError(t, err)
+		require.NotEmpty(t, userID)
+
+		resolved, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		require.NotNil(t, resolved)
+
+		assert.True(t, resolved.Password.Compare("testpassword"), "correct password must match after round-trip")
+		assert.False(t, resolved.Password.Compare("wrongpassword"), "wrong password must not match")
+	})
+}
+
 func (s *Suite) TestUserConflicts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
