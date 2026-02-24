@@ -20,6 +20,18 @@ WORKSPACE="/go/src/github.com/shellhub-io"
 if [ -d "$CLOUD_DIR" ]; then
     echo "Cloud sources found at $CLOUD_DIR — building api-enterprise (EE)"
 
+    # Compile email templates from MJML source into /templates.
+    # NOTE: Templates are compiled once at container startup.
+    # Restart the container to recompile after editing .mjml files.
+    if [ -d "$CLOUD_DIR/templates" ]; then
+        echo "Compiling email templates from $CLOUD_DIR/templates"
+        mjml "$CLOUD_DIR"/templates/*.mjml -o /templates || {
+            echo "ERROR: MJML template compilation failed" >&2
+            exit 1
+        }
+        echo "Email templates compiled successfully."
+    fi
+
     # Create go.work so the unified build can resolve both shellhub and cloud modules.
     go work init \
         "$WORKSPACE/shellhub" \
