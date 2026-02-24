@@ -16,7 +16,7 @@ export default function SetupGuard() {
       .then((info) => setSetupDone(info.setup))
       .catch(() => setSetupDone(true))
       .finally(() => setLoading(false));
-  }, [isCloud]);
+  }, [isCloud, location.pathname]);
 
   if (loading) {
     return (

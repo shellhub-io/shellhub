@@ -35,7 +35,10 @@ export default function Setup() {
 
   useEffect(() => {
     if (success) {
-      const timer = setTimeout(() => navigate("/login"), 3000);
+      const timer = setTimeout(
+        () => navigate("/login", { replace: true }),
+        3000,
+      );
       return () => clearTimeout(timer);
     }
   }, [success, navigate]);
