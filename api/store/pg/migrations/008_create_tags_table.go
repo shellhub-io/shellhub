@@ -51,6 +51,11 @@ func migration008Up(ctx context.Context, db *bun.DB) error {
 
 func migration008Down(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, "DROP TABLE IF EXISTS tags")
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 008")
 
-	return err
+		return err
+	}
+
+	return nil
 }

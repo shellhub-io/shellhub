@@ -101,6 +101,11 @@ func migration004Down(ctx context.Context, db *bun.DB) error {
 		DROP TABLE IF EXISTS devices;
 		DROP TYPE IF EXISTS device_status;
 	`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 004")
 
-	return err
+		return err
+	}
+
+	return nil
 }

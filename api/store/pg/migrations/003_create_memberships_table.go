@@ -49,6 +49,11 @@ func migration003Down(ctx context.Context, db *bun.DB) error {
 		DROP TABLE IF EXISTS memberships;
 		DROP TYPE IF EXISTS membership_role;
 	`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 003")
 
-	return err
+		return err
+	}
+
+	return nil
 }

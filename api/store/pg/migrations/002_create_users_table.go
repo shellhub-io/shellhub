@@ -69,6 +69,11 @@ func migration002Down(ctx context.Context, db *bun.DB) error {
 		DROP TYPE IF EXISTS user_status;
 		DROP TYPE IF EXISTS user_auth_method;
 	`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 002")
 
-	return err
+		return err
+	}
+
+	return nil
 }

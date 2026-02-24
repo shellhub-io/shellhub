@@ -52,6 +52,11 @@ func migration001Down(ctx context.Context, db *bun.DB) error {
 		DROP TABLE IF EXISTS namespaces;
 		DROP TYPE IF EXISTS namespace_scope;
 	`)
+	if err != nil {
+		log.WithError(err).Error("failed to revert migration 001")
 
-	return err
+		return err
+	}
+
+	return nil
 }
