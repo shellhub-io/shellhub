@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/uptrace/bun"
 )
@@ -45,6 +46,8 @@ func SessionFromModel(model *models.Session) *Session {
 		sessionType = "shell"
 	}
 
+	now := clock.Now()
+
 	session := &Session{
 		ID:            model.UID,
 		DeviceID:      string(model.DeviceUID),
@@ -59,8 +62,8 @@ func SessionFromModel(model *models.Session) *Session {
 		Term:          model.Term,
 		Longitude:     model.Position.Longitude,
 		Latitude:      model.Position.Latitude,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
 	return session
@@ -112,7 +115,7 @@ func ActiveSessionFromModel(model *models.ActiveSession) *ActiveSession {
 	return &ActiveSession{
 		SessionID: string(model.UID),
 		SeenAt:    model.LastSeen,
-		CreatedAt: time.Now(),
+		CreatedAt: clock.Now(),
 	}
 }
 
