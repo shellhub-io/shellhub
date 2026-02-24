@@ -192,7 +192,7 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 	case store.TagTargetDevice:
 		query := db.NewDelete().Model((*entity.DeviceTag)(nil)).Where("tag_id = ?", id)
 		if len(targetIDs) > 0 {
-			query = query.Where("device_id IN (?)", bun.In(targetIDs))
+			query = query.Where("device_id IN (?)", bun.List(targetIDs))
 		}
 
 		r, err := query.Exec(ctx)
@@ -209,7 +209,7 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 	case store.TagTargetPublicKey:
 		query := db.NewDelete().Model((*entity.PublicKeyTag)(nil)).Where("tag_id = ?", id)
 		if len(targetIDs) > 0 {
-			query = query.Where("public_key_id IN (?)", bun.In(targetIDs))
+			query = query.Where("public_key_id IN (?)", bun.List(targetIDs))
 		}
 
 		r, err := query.Exec(ctx)

@@ -274,12 +274,12 @@ func (pg *Pg) namespaceDeleteManyFn(ctx context.Context, tenantIDs []string) fun
 	return func(tx bun.Tx) (int64, error) {
 		if _, err := tx.NewDelete().
 			Model((*entity.Session)(nil)).
-			Where("device_id IN (SELECT id FROM devices WHERE namespace_id IN (?))", bun.In(tenantIDs)).
+			Where("device_id IN (SELECT id FROM devices WHERE namespace_id IN (?))", bun.List(tenantIDs)).
 			Exec(ctx); err != nil {
 			return 0, fromSQLError(err)
 		}
 
-		res, err := tx.NewDelete().Model((*entity.Namespace)(nil)).Where("id IN (?)", bun.In(tenantIDs)).Exec(ctx)
+		res, err := tx.NewDelete().Model((*entity.Namespace)(nil)).Where("id IN (?)", bun.List(tenantIDs)).Exec(ctx)
 		if err != nil {
 			return 0, fromSQLError(err)
 		}
@@ -294,7 +294,7 @@ func (pg *Pg) namespaceDeleteManyFn(ctx context.Context, tenantIDs []string) fun
 		}
 
 		for _, e := range entities {
-			if _, err := tx.NewDelete().Model(e).Where("namespace_id IN (?)", bun.In(tenantIDs)).Exec(ctx); err != nil {
+			if _, err := tx.NewDelete().Model(e).Where("namespace_id IN (?)", bun.List(tenantIDs)).Exec(ctx); err != nil {
 				return 0, fromSQLError(err)
 			}
 		}
@@ -302,7 +302,7 @@ func (pg *Pg) namespaceDeleteManyFn(ctx context.Context, tenantIDs []string) fun
 		if _, err := tx.NewUpdate().
 			Model((*entity.User)(nil)).
 			Set("preferred_namespace_id = NULL").
-			Where("preferred_namespace_id IN (?)", bun.In(tenantIDs)).
+			Where("preferred_namespace_id IN (?)", bun.List(tenantIDs)).
 			Exec(ctx); err != nil {
 			return 0, fromSQLError(err)
 		}
