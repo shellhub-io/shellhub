@@ -17,7 +17,7 @@ ARG EDITION=community
 FROM scratch AS cloud-src
 
 # ── base stage ────────────────────────────────────────────────────────────────
-FROM golang:1.24.9-alpine3.22 AS base
+FROM golang:1.24.13-alpine3.22 AS base
 
 ARG GOPROXY
 
