@@ -243,6 +243,21 @@ func (s *Suite) TestDeviceCreate(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, tenantID, created.TenantID)
 	})
+
+	t.Run("succeeds persisting status_updated_at on create", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		statusUpdatedAt := time.Date(2025, 6, 15, 12, 0, 0, 0, time.UTC)
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t,
+			WithTenantID(tenantID),
+			WithDeviceStatusUpdatedAt(statusUpdatedAt),
+		)
+
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.True(t, statusUpdatedAt.Equal(device.StatusUpdatedAt), "StatusUpdatedAt should match: expected %v, got %v", statusUpdatedAt, device.StatusUpdatedAt)
+	})
 }
 
 // TestDeviceConflicts tests checking for device conflicts
@@ -379,6 +394,37 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		require.NoError(t, err)
 		assert.Nil(t, updated.RemovedAt, "RemovedAt should be nil after update")
 		assert.Equal(t, models.DeviceStatusPending, updated.Status)
+	})
+
+	t.Run("succeeds updating status_updated_at", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		initialStatusUpdatedAt := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+		deviceUID := s.CreateDevice(t,
+			WithTenantID(tenantID),
+			WithDeviceStatus(models.DeviceStatusPending),
+			WithDeviceStatusUpdatedAt(initialStatusUpdatedAt),
+		)
+
+		// Verify initial value persisted
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.True(t, initialStatusUpdatedAt.Equal(device.StatusUpdatedAt), "initial StatusUpdatedAt should match: expected %v, got %v", initialStatusUpdatedAt, device.StatusUpdatedAt)
+		assert.Equal(t, models.DeviceStatusPending, device.Status)
+
+		// Update status and status_updated_at
+		newStatusUpdatedAt := time.Date(2025, 6, 15, 12, 0, 0, 0, time.UTC)
+		device.Status = models.DeviceStatusAccepted
+		device.StatusUpdatedAt = newStatusUpdatedAt
+		err = st.DeviceUpdate(ctx, device)
+		require.NoError(t, err)
+
+		// Verify the update persisted
+		updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.True(t, newStatusUpdatedAt.Equal(updated.StatusUpdatedAt), "updated StatusUpdatedAt should match: expected %v, got %v", newStatusUpdatedAt, updated.StatusUpdatedAt)
+		assert.Equal(t, models.DeviceStatusAccepted, updated.Status)
 	})
 }
 
