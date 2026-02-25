@@ -13,8 +13,12 @@ import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
 import SetupGuard from "./components/common/SetupGuard";
+import SignUpGuard from "./components/common/SignUpGuard";
 import FeatureGate from "./components/common/FeatureGate";
 
+const SignUp = lazy(() => import("./pages/SignUp"));
+const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
+const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
 const Sessions = lazy(() => import("./pages/Sessions"));
@@ -39,6 +43,11 @@ export default function App() {
             <Route element={<LoginLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/setup" element={<Setup />} />
+              <Route element={<SignUpGuard />}>
+                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/confirm-account" element={<ConfirmAccount />} />
+                <Route path="/validation-account" element={<ValidationAccount />} />
+              </Route>
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route element={<NamespaceGuard />}>

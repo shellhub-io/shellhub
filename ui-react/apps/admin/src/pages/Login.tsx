@@ -1,11 +1,13 @@
 import { useState, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   ExclamationCircleIcon,
   LockClosedIcon,
   BookOpenIcon,
+  UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
+import { getConfig } from "../env";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -142,6 +144,18 @@ export default function Login() {
           </svg>
           Community
         </a>
+        {getConfig().cloud && (
+          <>
+            <span className="w-px h-3 bg-border" />
+            <Link
+              to="/sign-up"
+              className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
+            >
+              <UserPlusIcon className="w-3.5 h-3.5" />
+              Sign Up
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
