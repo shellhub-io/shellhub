@@ -173,6 +173,13 @@ func WithDeviceRemovedAt(removedAt *time.Time) DeviceOption {
 	}
 }
 
+// WithDeviceStatusUpdatedAt sets the status_updated_at timestamp
+func WithDeviceStatusUpdatedAt(statusUpdatedAt time.Time) DeviceOption {
+	return func(d *models.Device) {
+		d.StatusUpdatedAt = statusUpdatedAt
+	}
+}
+
 // CreateDevice creates a device with default or customized values
 // Returns the generated device UID
 // If tenant is not provided via WithTenantID(), a default namespace will be created
