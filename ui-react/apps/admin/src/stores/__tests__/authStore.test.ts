@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createAxiosError } from "../../test/createAxiosError";
 import { useAuthStore } from "../authStore";
 
 vi.mock("../../api/client", () => ({
@@ -13,6 +14,7 @@ vi.mock("../../api/client", () => ({
 
 vi.mock("../../api/auth", () => ({
   getAuthUser: vi.fn(),
+  login: vi.fn(),
   updateUser: vi.fn(),
   updatePassword: vi.fn(),
 }));
@@ -23,9 +25,10 @@ vi.mock("../../api/mfa", () => ({
 }));
 
 import apiClient from "../../api/client";
-import { getAuthUser } from "../../api/auth";
+import { getAuthUser, login as apiLogin } from "../../api/auth";
 import { validateMfa, recoverMfa } from "../../api/mfa";
 
+const mockedLogin = vi.mocked(apiLogin);
 const mockedApiClientPost = vi.mocked(apiClient.post);
 const mockedGetAuthUser = vi.mocked(getAuthUser);
 const mockedValidateMfa = vi.mocked(validateMfa);
@@ -83,6 +86,18 @@ describe("authStore", () => {
       await expect(
         useAuthStore.getState().login("admin", "wrong"),
       ).rejects.toThrow("401");
+
+      const state = useAuthStore.getState();
+      expect(state.token).toBeNull();
+      expect(state.loading).toBe(false);
+    });
+
+    it("re-throws on 403 (Login page handles redirect)", async () => {
+      mockedLogin.mockRejectedValue(createAxiosError(403));
+
+      await expect(
+        useAuthStore.getState().login("admin", "password"),
+      ).rejects.toThrow();
 
       const state = useAuthStore.getState();
       expect(state.token).toBeNull();
