@@ -38,6 +38,7 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestDeviceHeartbeat(t)
 		s.TestDeviceDelete(t)
 		s.TestDeviceDeleteMany(t)
+		s.TestDeviceStatusUpdatedAt(t)
 	})
 
 	t.Run("UserStore", func(t *testing.T) {

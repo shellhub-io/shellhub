@@ -166,6 +166,13 @@ func WithDeviceStatus(status models.DeviceStatus) DeviceOption {
 	}
 }
 
+// WithDeviceStatusUpdatedAt sets the status updated at timestamp
+func WithDeviceStatusUpdatedAt(t time.Time) DeviceOption {
+	return func(d *models.Device) {
+		d.StatusUpdatedAt = t
+	}
+}
+
 // CreateDevice creates a device with default or customized values
 // Returns the generated device UID
 // If tenant is not provided via WithTenantID(), a default namespace will be created

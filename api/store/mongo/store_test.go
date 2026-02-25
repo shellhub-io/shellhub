@@ -46,6 +46,7 @@ func TestMongoStore(t *testing.T) {
 		suite.TestDeviceHeartbeat(t)
 		suite.TestDeviceDelete(t)
 		suite.TestDeviceDeleteMany(t)
+		suite.TestDeviceStatusUpdatedAt(t)
 	})
 
 	runSubSuite(t, "SessionStore", func(suite *storetest.Suite, t *testing.T) {

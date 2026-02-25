@@ -548,3 +548,55 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }
+
+// TestDeviceStatusUpdatedAt tests that StatusUpdatedAt is persisted through create, resolve, and update
+func (s *Suite) TestDeviceStatusUpdatedAt(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("persists StatusUpdatedAt through create and resolve", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		statusUpdatedAt := time.Date(2025, 6, 15, 10, 30, 0, 0, time.UTC)
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t,
+			WithDeviceName("status-time-device"),
+			WithTenantID(tenantID),
+			WithDeviceStatusUpdatedAt(statusUpdatedAt),
+		)
+
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		require.NotNil(t, device)
+		assert.Equal(t, statusUpdatedAt, device.StatusUpdatedAt.UTC())
+	})
+
+	t.Run("persists StatusUpdatedAt through update", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		initialTime := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+		updatedTime := time.Date(2025, 7, 20, 14, 45, 0, 0, time.UTC)
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t,
+			WithDeviceName("update-status-time-device"),
+			WithTenantID(tenantID),
+			WithDeviceStatusUpdatedAt(initialTime),
+		)
+
+		// Update the device with a new StatusUpdatedAt
+		err := st.DeviceUpdate(ctx, &models.Device{
+			UID:             string(deviceUID),
+			TenantID:        tenantID,
+			Name:            "update-status-time-device",
+			StatusUpdatedAt: updatedTime,
+		})
+		require.NoError(t, err)
+
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		require.NotNil(t, device)
+		assert.Equal(t, updatedTime, device.StatusUpdatedAt.UTC())
+	})
+}

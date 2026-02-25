@@ -10,26 +10,27 @@ import (
 type Device struct {
 	bun.BaseModel `bun:"table:devices"`
 
-	ID             string     `bun:"id,pk"`
-	NamespaceID    string     `bun:"namespace_id,type:uuid"`
-	CreatedAt      time.Time  `bun:"created_at"`
-	UpdatedAt      time.Time  `bun:"updated_at"`
-	RemovedAt      *time.Time `bun:"removed_at"`
-	LastSeen       time.Time  `bun:"last_seen"`
-	DisconnectedAt time.Time  `bun:"disconnected_at,nullzero"`
-	Online         bool       `bun:",scanonly"`
-	Acceptable     bool       `bun:",scanonly"`
-	Status         string     `bun:"status"`
-	Name           string     `bun:"name"`
-	MAC            string     `bun:"mac"`
-	PublicKey      string     `bun:"public_key"`
-	Identifier     string     `bun:"identifier"`
-	PrettyName     string     `bun:"pretty_name"`
-	Version        string     `bun:"version"`
-	Arch           string     `bun:"arch"`
-	Platform       string     `bun:"platform"`
-	Longitude      float64    `bun:"longitude,type:numeric"`
-	Latitude       float64    `bun:"latitude,type:numeric"`
+	ID              string     `bun:"id,pk"`
+	NamespaceID     string     `bun:"namespace_id,type:uuid"`
+	CreatedAt       time.Time  `bun:"created_at"`
+	UpdatedAt       time.Time  `bun:"updated_at"`
+	RemovedAt       *time.Time `bun:"removed_at"`
+	LastSeen        time.Time  `bun:"last_seen"`
+	DisconnectedAt  time.Time  `bun:"disconnected_at,nullzero"`
+	Online          bool       `bun:",scanonly"`
+	Acceptable      bool       `bun:",scanonly"`
+	Status          string     `bun:"status"`
+	StatusUpdatedAt time.Time  `bun:"status_updated_at"`
+	Name            string     `bun:"name"`
+	MAC             string     `bun:"mac"`
+	PublicKey       string     `bun:"public_key"`
+	Identifier      string     `bun:"identifier"`
+	PrettyName      string     `bun:"pretty_name"`
+	Version         string     `bun:"version"`
+	Arch            string     `bun:"arch"`
+	Platform        string     `bun:"platform"`
+	Longitude       float64    `bun:"longitude,type:numeric"`
+	Latitude        float64    `bun:"latitude,type:numeric"`
 
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
@@ -43,15 +44,16 @@ func DeviceFromModel(model *models.Device) *Device {
 	}
 
 	device := &Device{
-		ID:          model.UID,
-		NamespaceID: model.TenantID,
-		CreatedAt:   model.CreatedAt,
-		UpdatedAt:   time.Time{},
-		LastSeen:    model.LastSeen,
-		Status:      status,
-		Name:        model.Name,
-		PublicKey:   model.PublicKey,
-		Tags:        []*Tag{},
+		ID:              model.UID,
+		NamespaceID:     model.TenantID,
+		CreatedAt:       model.CreatedAt,
+		UpdatedAt:       time.Time{},
+		LastSeen:        model.LastSeen,
+		Status:          status,
+		StatusUpdatedAt: model.StatusUpdatedAt,
+		Name:            model.Name,
+		PublicKey:       model.PublicKey,
+		Tags:            []*Tag{},
 	}
 
 	if model.DisconnectedAt != nil {
@@ -95,18 +97,19 @@ func DeviceFromModel(model *models.Device) *Device {
 
 func DeviceToModel(entity *Device) *models.Device {
 	device := &models.Device{
-		UID:            entity.ID,
-		TenantID:       entity.NamespaceID,
-		CreatedAt:      entity.CreatedAt,
-		LastSeen:       entity.LastSeen,
-		Status:         models.DeviceStatus(entity.Status),
-		Name:           entity.Name,
-		PublicKey:      entity.PublicKey,
-		Online:         entity.Online,
-		Acceptable:     entity.Acceptable,
-		Namespace:      "",
-		DisconnectedAt: nil,
-		RemoteAddr:     "",
+		UID:             entity.ID,
+		TenantID:        entity.NamespaceID,
+		CreatedAt:       entity.CreatedAt,
+		LastSeen:        entity.LastSeen,
+		Status:          models.DeviceStatus(entity.Status),
+		StatusUpdatedAt: entity.StatusUpdatedAt,
+		Name:            entity.Name,
+		PublicKey:       entity.PublicKey,
+		Online:          entity.Online,
+		Acceptable:      entity.Acceptable,
+		Namespace:       "",
+		DisconnectedAt:  nil,
+		RemoteAddr:      "",
 		Taggable: models.Taggable{
 			Tags: []models.Tag{},
 		},
