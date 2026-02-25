@@ -12,6 +12,8 @@ import (
 func TestDeviceFromModel(t *testing.T) {
 	now := time.Now()
 	disconnectedAt := now.Add(-time.Hour)
+	statusUpdatedAt := now.Add(-30 * time.Minute)
+	removedAt := now.Add(-2 * time.Hour)
 
 	tests := []struct {
 		name  string
@@ -21,16 +23,18 @@ func TestDeviceFromModel(t *testing.T) {
 		{
 			name: "full fields",
 			model: &models.Device{
-				UID:            "device-uid-1",
-				TenantID:       "tenant-id-1",
-				CreatedAt:      now,
-				LastSeen:       now,
-				Status:         models.DeviceStatusAccepted,
-				Name:           "my-device",
-				PublicKey:      "ssh-rsa AAAA...",
-				DisconnectedAt: &disconnectedAt,
-				Identity:       &models.DeviceIdentity{MAC: "00:11:22:33:44:55"},
-				Position:       &models.DevicePosition{Longitude: 1.23, Latitude: 4.56},
+				UID:             "device-uid-1",
+				TenantID:        "tenant-id-1",
+				CreatedAt:       now,
+				RemovedAt:       &removedAt,
+				LastSeen:        now,
+				Status:          models.DeviceStatusAccepted,
+				StatusUpdatedAt: statusUpdatedAt,
+				Name:            "my-device",
+				PublicKey:       "ssh-rsa AAAA...",
+				DisconnectedAt:  &disconnectedAt,
+				Identity:        &models.DeviceIdentity{MAC: "00:11:22:33:44:55"},
+				Position:        &models.DevicePosition{Longitude: 1.23, Latitude: 4.56},
 				Info: &models.DeviceInfo{
 					ID:         "device-info-id",
 					PrettyName: "My Device",
@@ -43,6 +47,9 @@ func TestDeviceFromModel(t *testing.T) {
 				assert.Equal(t, "device-uid-1", result.ID)
 				assert.Equal(t, "tenant-id-1", result.NamespaceID)
 				assert.Equal(t, "accepted", result.Status)
+				assert.Equal(t, statusUpdatedAt, result.StatusUpdatedAt)
+				require.NotNil(t, result.RemovedAt)
+				assert.Equal(t, removedAt, *result.RemovedAt)
 				assert.Equal(t, "my-device", result.Name)
 				assert.Equal(t, "ssh-rsa AAAA...", result.PublicKey)
 				assert.Equal(t, disconnectedAt, result.DisconnectedAt)
@@ -147,6 +154,8 @@ func TestDeviceFromModel(t *testing.T) {
 func TestDeviceToModel(t *testing.T) {
 	now := time.Now()
 	disconnectedAt := now.Add(-time.Hour)
+	statusUpdatedAt := now.Add(-30 * time.Minute)
+	removedAt := now.Add(-2 * time.Hour)
 
 	tests := []struct {
 		name   string
@@ -156,25 +165,27 @@ func TestDeviceToModel(t *testing.T) {
 		{
 			name: "full fields with Namespace loaded",
 			entity: &Device{
-				ID:             "device-uid-1",
-				NamespaceID:    "tenant-id-1",
-				CreatedAt:      now,
-				LastSeen:       now,
-				Status:         "accepted",
-				Name:           "my-device",
-				PublicKey:      "ssh-rsa AAAA...",
-				Online:         true,
-				Acceptable:     false,
-				DisconnectedAt: disconnectedAt,
-				MAC:            "00:11:22:33:44:55",
-				Longitude:      1.23,
-				Latitude:       4.56,
-				Identifier:     "info-id",
-				PrettyName:     "My Device",
-				Version:        "1.0.0",
-				Arch:           "amd64",
-				Platform:       "linux",
-				Namespace:      &Namespace{Name: "my-namespace"},
+				ID:              "device-uid-1",
+				NamespaceID:     "tenant-id-1",
+				CreatedAt:       now,
+				RemovedAt:       &removedAt,
+				LastSeen:        now,
+				Status:          "accepted",
+				StatusUpdatedAt: statusUpdatedAt,
+				Name:            "my-device",
+				PublicKey:       "ssh-rsa AAAA...",
+				Online:          true,
+				Acceptable:      false,
+				DisconnectedAt:  disconnectedAt,
+				MAC:             "00:11:22:33:44:55",
+				Longitude:       1.23,
+				Latitude:        4.56,
+				Identifier:      "info-id",
+				PrettyName:      "My Device",
+				Version:         "1.0.0",
+				Arch:            "amd64",
+				Platform:        "linux",
+				Namespace:       &Namespace{Name: "my-namespace"},
 				Tags: []*Tag{
 					{ID: "tag-1", NamespaceID: "t1", Name: "prod"},
 				},
@@ -183,6 +194,9 @@ func TestDeviceToModel(t *testing.T) {
 				assert.Equal(t, "device-uid-1", result.UID)
 				assert.Equal(t, "tenant-id-1", result.TenantID)
 				assert.Equal(t, models.DeviceStatusAccepted, result.Status)
+				assert.Equal(t, statusUpdatedAt, result.StatusUpdatedAt)
+				require.NotNil(t, result.RemovedAt)
+				assert.Equal(t, removedAt, *result.RemovedAt)
 				assert.Equal(t, "my-device", result.Name)
 				assert.Equal(t, "ssh-rsa AAAA...", result.PublicKey)
 				assert.Equal(t, now, result.CreatedAt)
