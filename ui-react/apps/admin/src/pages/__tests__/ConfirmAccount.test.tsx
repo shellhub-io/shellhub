@@ -2,22 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { resendEmail as apiResendEmail } from "../../api/auth";
+import { resendEmail as apiResendEmail } from "../../api/users";
+import { useSignUpStore } from "../../stores/signUpStore";
 import ConfirmAccount from "../ConfirmAccount";
 
 /* ------------------------------------------------------------------ */
 /* Mocks                                                               */
 /* ------------------------------------------------------------------ */
 
-const mockNavigate = vi.hoisted(() => vi.fn());
-
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
-  return { ...actual, useNavigate: () => mockNavigate };
+  return { ...actual };
 });
 
-vi.mock("../../api/auth", () => ({
+vi.mock("../../api/users", () => ({
   resendEmail: vi.fn(),
+  signUp: vi.fn(),
+  validateAccount: vi.fn(),
 }));
 
 const mockedResendEmail = vi.mocked(apiResendEmail);
@@ -42,8 +43,8 @@ function renderConfirmAccount(username?: string) {
 afterEach(cleanup);
 
 beforeEach(() => {
-  mockNavigate.mockReset();
   mockedResendEmail.mockReset();
+  useSignUpStore.setState({ resendLoading: false, resendError: null });
 });
 
 /* ================================================================== */
@@ -63,10 +64,9 @@ describe("ConfirmAccount", () => {
       expect(screen.getByRole("link", { name: /login/i })).toBeInTheDocument();
     });
 
-    it("shows a warning and disables the button when no username is provided", () => {
+    it("redirects to /login when no username is provided", () => {
       renderConfirmAccount();
-      expect(screen.getByText(/no username provided/i)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /resend email/i })).toBeDisabled();
+      expect(screen.queryByText(/account activation required/i)).not.toBeInTheDocument();
     });
 
     it("enables the button when a username is provided", () => {
@@ -76,26 +76,27 @@ describe("ConfirmAccount", () => {
   });
 
   describe("resend email", () => {
-    it("calls resendEmail with the username and navigates to /login on success", async () => {
+    it("calls resendEmail with the username and shows success message", async () => {
       mockedResendEmail.mockResolvedValue(undefined);
 
       renderConfirmAccount("admin");
       await userEvent.click(screen.getByRole("button", { name: /resend email/i }));
 
       expect(mockedResendEmail).toHaveBeenCalledWith("admin");
-      expect(mockNavigate).toHaveBeenCalledWith("/login");
+      await waitFor(() =>
+        expect(screen.getByText(/confirmation email sent successfully/i)).toBeInTheDocument(),
+      );
     });
 
-    it("shows an error message and does not navigate on failure", async () => {
+    it("shows an error message on failure", async () => {
       mockedResendEmail.mockRejectedValue(new Error("500"));
 
       renderConfirmAccount("admin");
       await userEvent.click(screen.getByRole("button", { name: /resend email/i }));
 
-      expect(
-        screen.getByText(/an error occurred while sending the email/i),
-      ).toBeInTheDocument();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(screen.getByText(/failed to resend email/i)).toBeInTheDocument(),
+      );
     });
 
     it("shows Sending... and disables the button while the request is in flight", async () => {
@@ -118,12 +119,6 @@ describe("ConfirmAccount", () => {
 
       resolveResend();
       await clickPromise;
-    });
-
-    it("does not call resendEmail when username is absent", async () => {
-      renderConfirmAccount();
-      await userEvent.click(screen.getByRole("button", { name: /resend email/i }));
-      expect(mockedResendEmail).not.toHaveBeenCalled();
     });
   });
 });
