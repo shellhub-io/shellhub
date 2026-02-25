@@ -1,6 +1,11 @@
-import { BookOpenIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { Link } from "react-router-dom";
 
-export default function AuthFooterLinks() {
+interface AuthFooterLinksProps {
+  isCloud: boolean;
+}
+
+export default function AuthFooterLinks({ isCloud }: AuthFooterLinksProps) {
   return (
     <div
       className="flex items-center justify-center gap-6 mt-10 animate-fade-in"
@@ -27,6 +32,18 @@ export default function AuthFooterLinks() {
         </svg>
         Community
       </a>
+      {isCloud && (
+        <>
+          <span className="w-px h-3 bg-border" />
+          <Link
+            to="/sign-up"
+            className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
+          >
+            <UserPlusIcon className="w-3.5 h-3.5" />
+            Sign Up
+          </Link>
+        </>
+      )}
     </div>
   );
 }

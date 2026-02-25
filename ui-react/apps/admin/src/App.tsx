@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { getConfig } from "./env";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
-import ConfirmAccount from "./pages/ConfirmAccount";
 import AppLayout from "./components/layout/AppLayout";
 
 const MfaLogin = lazy(() => import("./pages/MfaLogin"));
@@ -16,7 +15,11 @@ import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
 import SetupGuard from "./components/common/SetupGuard";
+import SignUpGuard from "./components/common/SignUpGuard";
 
+const SignUp = lazy(() => import("./pages/SignUp"));
+const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
+const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
 const Sessions = lazy(() => import("./pages/Sessions"));
@@ -48,6 +51,11 @@ export default function App() {
               <Route path="/mfa-reset-verify" element={<MfaResetVerify />} />
               <Route path="/reset-mfa" element={<MfaResetComplete />} />
               <Route path="/setup" element={<Setup />} />
+              <Route element={<SignUpGuard />}>
+                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/confirm-account" element={<ConfirmAccount />} />
+                <Route path="/validation-account" element={<ValidationAccount />} />
+              </Route>
               {getConfig().cloud && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
