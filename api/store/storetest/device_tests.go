@@ -348,6 +348,38 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "updated-name", device.Name)
 	})
+
+	t.Run("succeeds clearing removed_at on removed device", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create a device marked as removed
+		tenantID := s.CreateNamespace(t)
+		removedAt := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+		deviceUID := s.CreateDevice(t,
+			WithDeviceName("removed-device"),
+			WithTenantID(tenantID),
+			WithDeviceStatus(models.DeviceStatusRemoved),
+			WithDeviceRemovedAt(&removedAt),
+		)
+
+		// Verify it was created with removed_at set
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		require.NotNil(t, device.RemovedAt, "RemovedAt should be set after creation")
+		assert.Equal(t, models.DeviceStatusRemoved, device.Status)
+
+		// Simulate what AuthDevice does: clear RemovedAt and restore status
+		device.RemovedAt = nil
+		device.Status = models.DeviceStatusPending
+		err = st.DeviceUpdate(ctx, device)
+		require.NoError(t, err)
+
+		// Verify the update persisted
+		updated, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.Nil(t, updated.RemovedAt, "RemovedAt should be nil after update")
+		assert.Equal(t, models.DeviceStatusPending, updated.Status)
+	})
 }
 
 // TestDeviceHeartbeat tests device heartbeat updates
