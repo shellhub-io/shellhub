@@ -6,6 +6,7 @@ import {
   updateUser,
   updatePassword as apiUpdatePassword,
 } from "../api/auth";
+import { useVaultStore } from "./vaultStore";
 
 interface AuthState {
   token: string | null;
@@ -73,6 +74,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        useVaultStore.getState().lock();
         set(initialState);
       },
 
