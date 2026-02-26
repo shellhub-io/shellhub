@@ -70,12 +70,17 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 
 		// exit sends the error's message to the client on the browser.
 		exit := func(wsconn *websocket.Conn, err error) {
-			buffer, err := json.Marshal(Message{
+			log.WithError(err).Error("web terminal error")
+
+			buffer, marshalErr := json.Marshal(Message{
 				Kind: messageKindError,
 				Data: err.Error(),
 			})
+			if marshalErr != nil {
+				log.WithError(marshalErr).Error("failed to marshal error message")
 
-			log.WithError(err).Error("failed to parsing the error message on web terminal")
+				return
+			}
 
 			wsconn.Write(buffer) //nolint:errcheck
 		}
