@@ -2,3 +2,4 @@
 api/ @shellhub-io/backend-owners
 ssh/ @shellhub-io/backend-owners
 ui/ @shellhub-io/frontend-owners
+ui-react/ @shellhub-io/frontend-owners
