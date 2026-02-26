@@ -41,10 +41,10 @@ function validateEmail(v: string): string | null {
   return null;
 }
 
-function validateRecoveryEmail(v: string, primary: string): string | null {
-  if (!v) return null;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Invalid email format";
-  if (v === primary) return "Must be different from your email";
+function validateRecoveryEmail(recoveryEmail: string, primaryEmail: string): string | null {
+  if (!recoveryEmail) return null;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recoveryEmail)) return "Invalid email format";
+  if (recoveryEmail.toLowerCase() === primaryEmail.toLowerCase()) return "Must be different from your email";
   return null;
 }
 
