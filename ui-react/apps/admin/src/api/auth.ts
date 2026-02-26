@@ -26,6 +26,7 @@ interface UserResponse {
   email: string;
   recovery_email: string;
   tenant: string;
+  mfa?: boolean;
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {

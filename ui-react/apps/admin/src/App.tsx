@@ -5,6 +5,12 @@ import Login from "./pages/Login";
 import Setup from "./pages/Setup";
 import ConfirmAccount from "./pages/ConfirmAccount";
 import AppLayout from "./components/layout/AppLayout";
+
+const MfaLogin = lazy(() => import("./pages/MfaLogin"));
+const MfaRecover = lazy(() => import("./pages/MfaRecover"));
+const MfaResetRequest = lazy(() => import("./pages/MfaResetRequest"));
+const MfaResetVerify = lazy(() => import("./pages/MfaResetVerify"));
+const MfaResetComplete = lazy(() => import("./pages/MfaResetComplete"));
 import LoginLayout from "./components/layout/LoginLayout";
 import ConnectivityGuard from "./components/common/ConnectivityGuard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -36,6 +42,11 @@ export default function App() {
             <Route element={<LoginLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/confirm-account" element={<ConfirmAccount />} />
+              <Route path="/mfa-login" element={<MfaLogin />} />
+              <Route path="/mfa-recover" element={<MfaRecover />} />
+              <Route path="/mfa-reset-request" element={<MfaResetRequest />} />
+              <Route path="/mfa-reset-verify" element={<MfaResetVerify />} />
+              <Route path="/reset-mfa" element={<MfaResetComplete />} />
               <Route path="/setup" element={<Setup />} />
               {getConfig().cloud && (
                 <>
