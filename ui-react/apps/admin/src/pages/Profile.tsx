@@ -4,6 +4,7 @@ import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
 import { AxiosError } from "axios";
 import { LABEL, INPUT } from "../utils/styles";
+import { validateRecoveryEmail } from "./profile/validate";
 import {
   UserIcon,
   PencilSquareIcon,
@@ -38,13 +39,6 @@ function validateUsername(v: string): string | null {
 function validateEmail(v: string): string | null {
   if (!v.trim()) return "Email is required";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Invalid email format";
-  return null;
-}
-
-function validateRecoveryEmail(recoveryEmail: string, primaryEmail: string): string | null {
-  if (!recoveryEmail) return null;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recoveryEmail)) return "Invalid email format";
-  if (recoveryEmail.toLowerCase() === primaryEmail.toLowerCase()) return "Must be different from your email";
   return null;
 }
 
