@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -159,11 +160,19 @@ func newSession(ctx context.Context, cache cache.Cache, conn *Conn, creds *Crede
 	if err != nil {
 		var e *BannerError
 
-		// NOTE: if the connection return a error banner, wrap that message into an error and return to the session.
+		// NOTE: if the connection returns an error banner, map it to a standard error for the web client
+		// instead of forwarding the raw banner text (which is meant for native SSH clients).
 		if errors.As(err, &e) {
 			logger.WithError(e).Debug("failed to receive the connection banner")
 
-			return e
+			switch {
+			case strings.Contains(e.Message, "Connection Failed"):
+				return ErrConnect
+			case strings.Contains(e.Message, "Access Denied"):
+				return ErrFindDevice
+			default:
+				return ErrConnect
+			}
 		}
 
 		// NOTE: Otherwise, any other error from the [ssh.Dial] process, we assume it was an authentication error,
