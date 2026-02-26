@@ -19,6 +19,7 @@ export interface VaultKeyEntry {
   data: string;
   hasPassphrase: boolean;
   fingerprint: string;
+  algorithm?: string;
   createdAt: string;
   updatedAt: string;
 }
