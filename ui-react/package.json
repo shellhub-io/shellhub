@@ -29,6 +29,8 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
-    "date-fns": "^4.1.0"
+    "@types/qrcode": "^1.5.6",
+    "date-fns": "^4.1.0",
+    "qrcode": "^1.5.4"
   }
 }

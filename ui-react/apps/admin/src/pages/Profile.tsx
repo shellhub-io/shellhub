@@ -13,7 +13,11 @@ import {
   LockClosedIcon,
   TrashIcon,
   AtSymbolIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import MfaEnableDrawer from "../components/mfa/MfaEnableDrawer";
+import MfaDisableDialog from "../components/mfa/MfaDisableDialog";
+import { hasMfaSupport } from "../utils/features";
 
 const USERNAME_REGEX = /^[a-z0-9_.@-]+$/;
 
@@ -457,10 +461,12 @@ function ChangePasswordDrawer({
 /* ─── Page ─── */
 
 export default function Profile() {
-  const { name, username, email, recoveryEmail, fetchUser } = useAuthStore();
+  const { name, username, email, recoveryEmail, mfaEnabled, fetchUser } = useAuthStore();
 
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [pwDrawerOpen, setPwDrawerOpen] = useState(false);
+  const [mfaEnableOpen, setMfaEnableOpen] = useState(false);
+  const [mfaDisableOpen, setMfaDisableOpen] = useState(false);
 
   useEffect(() => {
     fetchUser();
@@ -560,6 +566,57 @@ export default function Profile() {
               Change Password
             </button>
           </SettingsRow>
+
+          {hasMfaSupport() ? (
+            <SettingsRow
+              icon={<ShieldCheckIcon className="w-4 h-4" />}
+              title="Multi-Factor Authentication"
+              description="Add an extra layer of security with TOTP-based 2FA. Recovery codes are shown once during setup."
+              badge={
+                mfaEnabled ? (
+                  <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-green/10 text-accent-green border border-accent-green/20">
+                    Enabled
+                  </span>
+                ) : null
+              }
+            >
+              {mfaEnabled ? (
+                <button
+                  onClick={() => setMfaDisableOpen(true)}
+                  className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
+                >
+                  Disable
+                </button>
+              ) : (
+                <button
+                  onClick={() => setMfaEnableOpen(true)}
+                  className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
+                >
+                  Enable MFA
+                </button>
+              )}
+            </SettingsRow>
+          ) : (
+            <SettingsRow
+              icon={<ShieldCheckIcon className="w-4 h-4" />}
+              title="Multi-Factor Authentication"
+              description="Enhance your account security with TOTP-based 2FA"
+              badge={
+                <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
+                  Pro
+                </span>
+              }
+            >
+              <a
+                href="https://www.shellhub.io/pricing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-hover-strong hover:bg-hover-strong text-text-primary border border-border hover:border-border-light rounded-lg text-sm font-medium transition-all"
+              >
+                Upgrade
+              </a>
+            </SettingsRow>
+          )}
         </SettingsCard>
 
         {/* ── Danger Zone ── */}
@@ -587,6 +644,23 @@ export default function Profile() {
       <ChangePasswordDrawer
         open={pwDrawerOpen}
         onClose={() => setPwDrawerOpen(false)}
+      />
+      <MfaEnableDrawer
+        open={mfaEnableOpen}
+        onClose={() => setMfaEnableOpen(false)}
+        onSuccess={() => {
+          setMfaEnableOpen(false);
+          fetchUser(); // Refresh to update mfaEnabled
+        }}
+        currentRecoveryEmail={recoveryEmail ?? null}
+      />
+      <MfaDisableDialog
+        open={mfaDisableOpen}
+        onClose={() => setMfaDisableOpen(false)}
+        onSuccess={() => {
+          setMfaDisableOpen(false);
+          fetchUser(); // Refresh to update mfaEnabled
+        }}
       />
     </div>
   );
