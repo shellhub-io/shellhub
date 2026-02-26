@@ -8,6 +8,10 @@ export function useCountdown(targetTimestamp: number | null) {
   useEffect(() => {
     if (!targetTimestamp) return;
 
+    // Reset expired state when receiving a new timestamp
+    setIsExpired(false);
+    setTimeLeft("");
+
     const updateCountdown = () => {
       const now = Date.now();
       const diff = targetTimestamp * 1000 - now; // Convert to ms

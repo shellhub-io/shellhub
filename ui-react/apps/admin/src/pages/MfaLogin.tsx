@@ -95,6 +95,7 @@ export default function MfaLogin() {
                   onChange={(e) => otp.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otp.handleKeyDown(index, e)}
                   autoFocus={index === 0}
+                  aria-label={`Digit ${index + 1} of 6`}
                   className="w-12 h-12 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
                 />
               ))}

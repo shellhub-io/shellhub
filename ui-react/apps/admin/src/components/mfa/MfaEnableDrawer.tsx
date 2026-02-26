@@ -5,6 +5,7 @@ import {
   ExclamationCircleIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
+import { isAxiosError } from "axios";
 import Drawer from "../common/Drawer";
 import { QRCodeDisplay } from "./QRCodeDisplay";
 import { generateMfa, enableMfa } from "../../api/mfa";
@@ -76,7 +77,7 @@ export default function MfaEnableDrawer({
       await handleGenerateMfa();
       setStep(2);
     } catch (err) {
-      if (err instanceof Error && err.message.includes("409")) {
+      if (isAxiosError(err) && err.response?.status === 409) {
         setError("Email already in use");
       } else {
         setError("Failed to save recovery email");
@@ -128,7 +129,28 @@ export default function MfaEnableDrawer({
     setLoading(true);
 
     try {
+      // SECURITY NOTE: Trust Boundary Violation
+      // The frontend sends the TOTP secret and recovery codes to the backend.
+      // This creates a trust boundary issue - an attacker with XSS or devtools
+      // access could substitute their own secret before this call.
+      //
+      // IDEAL SOLUTION: Backend should store secret+codes in a temporary session
+      // when generateMfa() is called, then reference that session during enableMfa().
+      // The frontend would only send the verification code.
+      //
+      // CURRENT TRADEOFF: We accept this risk because:
+      // 1. The verification code proves the user scanned the QR (partial mitigation)
+      // 2. Changing the API contract requires backend modifications
+      // 3. The secret is cleared from state immediately after success (below)
+      //
+      // This pattern requires trusting the client, but is necessary given the
+      // current API design.
       await enableMfa({ code: otp.getValue(), secret, recovery_codes: recoveryCodes });
+
+      // Clear sensitive data from memory immediately after success
+      setSecret("");
+      setRecoveryCodes([]);
+
       setStep(4);
     } catch {
       setError("Invalid verification code");
@@ -449,7 +471,7 @@ export default function MfaEnableDrawer({
               <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
                 Verification Code
               </label>
-              <div className="flex gap-2 justify-center">
+              <div className="flex gap-2 justify-center" onPaste={otp.handlePaste}>
                 {otp.code.map((digit, index) => (
                   <input
                     key={index}
@@ -461,6 +483,7 @@ export default function MfaEnableDrawer({
                     onChange={(e) => otp.handleChange(index, e.target.value)}
                     onKeyDown={(e) => otp.handleKeyDown(index, e)}
                     autoFocus={index === 0}
+                    aria-label={`Digit ${index + 1} of 6`}
                     className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                   />
                 ))}

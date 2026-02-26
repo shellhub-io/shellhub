@@ -5,11 +5,11 @@ import { useAuthStore } from "../stores/authStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
 export default function MfaResetRequest() {
-  const { requestMfaReset, loading, error, user, username, mfaToken } = useAuthStore();
+  const { requestMfaReset, loading, error, user, username, mfaToken, pendingMfaUser } = useAuthStore();
   const navigate = useNavigate();
   const [emailsSent, setEmailsSent] = useState(false);
 
-  const identifier = user || username;
+  const identifier = pendingMfaUser || user || username;
 
   // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {

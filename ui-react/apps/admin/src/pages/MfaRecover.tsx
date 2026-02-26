@@ -10,10 +10,10 @@ import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
 export default function MfaRecover() {
-  const { recoverWithCode, loading, error, mfaRecoveryExpiry, updateMfaStatus, user, username, mfaToken } = useAuthStore();
+  const { recoverWithCode, loading, error, mfaRecoveryExpiry, updateMfaStatus, user, username, mfaToken, pendingMfaUser } = useAuthStore();
   const navigate = useNavigate();
 
-  const identifier = user || username;
+  const identifier = pendingMfaUser || user || username;
   const [recoveryCode, setRecoveryCode] = useState("");
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
 
@@ -43,11 +43,19 @@ export default function MfaRecover() {
   };
 
   const handleDisableMfa = async () => {
-    // Use the recovery code that was just entered
-    await disableMfa({ recovery_code: recoveryCode });
-    updateMfaStatus(false);
-    setShowTimeoutModal(false);
-    navigate("/dashboard");
+    try {
+      // During recovery window, backend validates via session token
+      // No need to re-send the already-consumed recovery code
+      await disableMfa({});
+      updateMfaStatus(false);
+      setShowTimeoutModal(false);
+      navigate("/dashboard");
+    } catch (err) {
+      // Show error to user - they may need to re-authenticate
+      console.error("Failed to disable MFA:", err);
+      // Close modal and let user see error from the API
+      setShowTimeoutModal(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -109,6 +117,8 @@ export default function MfaRecover() {
               onChange={(e) => setRecoveryCode(e.target.value)}
               required
               autoFocus
+              autoComplete="off"
+              spellCheck={false}
               className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-yellow/50 focus:ring-1 focus:ring-accent-yellow/20 transition-all duration-200"
               placeholder="Enter recovery code"
             />

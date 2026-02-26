@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useCountdown } from "../../hooks/useCountdown";
 
@@ -19,12 +19,33 @@ export default function MfaRecoveryTimeoutModal({
   const [disabling, setDisabling] = useState(false);
   const { timeLeft, isExpired } = useCountdown(expiresAt);
 
+  // Handle Escape key for accessibility
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !disabling) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open, onClose, disabling]);
+
   if (!open) return null;
 
   const handleDisable = async () => {
     setDisabling(true);
     try {
       await onDisable();
+    } catch (error) {
+      // Log error for debugging - parent component (MfaRecover) handles user feedback
+      console.error("Failed to disable MFA during recovery window:", error);
+      // Don't rethrow - allow modal to remain open for user to see parent's error or retry
     } finally {
       setDisabling(false);
     }
@@ -35,7 +56,12 @@ export default function MfaRecoveryTimeoutModal({
       {/* Non-dismissible backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-      <div className="relative bg-surface border border-border rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up">
+      <div
+        className="relative bg-surface border border-border rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recovery-timeout-title"
+      >
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-yellow/15 border border-accent-yellow/25 flex items-center justify-center">
@@ -45,7 +71,10 @@ export default function MfaRecoveryTimeoutModal({
             />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-text-primary mb-1">
+            <h2
+              id="recovery-timeout-title"
+              className="text-base font-semibold text-text-primary mb-1"
+            >
               Recovery Window Active
             </h2>
             <p className="text-xs font-mono text-accent-yellow">

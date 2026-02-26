@@ -32,6 +32,7 @@ interface AuthState {
   mfaRecoveryExpiry: number | null;
   mfaResetUserId: string | null;
   mfaResetIdentifier: string | null;
+  pendingMfaUser: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
@@ -71,6 +72,7 @@ const initialState = {
   mfaRecoveryExpiry: null,
   mfaResetUserId: null,
   mfaResetIdentifier: null,
+  pendingMfaUser: null,
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -92,10 +94,11 @@ export const useAuthStore = create<AuthState>()(
 
           if (mfaToken) {
             // MFA required - store token temporarily, don't persist
+            // Use pendingMfaUser (not persisted) instead of user (persisted)
             set({
               mfaToken,
               mfaEnabled: true,
-              user: username,
+              pendingMfaUser: username,
               loading: false,
             });
             return;
@@ -118,10 +121,10 @@ export const useAuthStore = create<AuthState>()(
           const currentState = get();
           if (currentState.mfaToken) {
             // MFA required - not an error, navigation will be handled by Login component
-            // IMPORTANT: Set user field so recovery pages can access it
+            // Use pendingMfaUser (not persisted) so recovery pages can access it
             set({
               loading: false,
-              user: username,
+              pendingMfaUser: username,
               mfaEnabled: true,
             });
             return;
@@ -184,6 +187,7 @@ export const useAuthStore = create<AuthState>()(
             tenant: data.tenant,
             name: data.name,
             mfaToken: null, // Clear temporary token
+            pendingMfaUser: null, // Clear pending username
             mfaEnabled: true,
             loading: false,
           });
@@ -195,7 +199,8 @@ export const useAuthStore = create<AuthState>()(
 
       recoverWithCode: async (code: string, identifier?: string) => {
         // Try to get identifier from parameter first, then fall back to store
-        const username = identifier || get().user || get().username;
+        // Check pendingMfaUser for in-progress MFA sessions
+        const username = identifier || get().pendingMfaUser || get().user || get().username;
         if (!username) {
           set({ error: "Username or email is required" });
           throw new Error("Username or email is required");
@@ -224,6 +229,8 @@ export const useAuthStore = create<AuthState>()(
             name: data.name,
             mfaEnabled: true,
             mfaRecoveryExpiry: expiryValue,
+            pendingMfaUser: null, // Clear pending username
+            mfaToken: null, // Clear temporary MFA token
             loading: false,
           });
         } catch {
@@ -272,6 +279,7 @@ export const useAuthStore = create<AuthState>()(
             mfaEnabled: data.mfa || false,
             mfaResetUserId: null,
             mfaResetIdentifier: null,
+            pendingMfaUser: null, // Clear pending username
             loading: false,
           });
         } catch {
@@ -303,7 +311,7 @@ export const useAuthStore = create<AuthState>()(
         role: state.role,
         name: state.name,
         mfaEnabled: state.mfaEnabled,
-        // Do NOT persist: mfaToken, mfaRecoveryExpiry, mfaResetUserId, mfaResetIdentifier
+        // Do NOT persist: mfaToken, mfaRecoveryExpiry, mfaResetUserId, mfaResetIdentifier, pendingMfaUser
       }),
     },
   ),

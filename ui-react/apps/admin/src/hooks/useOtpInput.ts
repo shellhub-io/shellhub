@@ -1,41 +1,45 @@
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, useCallback, KeyboardEvent } from "react";
 
 export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
   const [code, setCode] = useState<string[]>(Array(length).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const handleChange = (index: number, value: string) => {
+  const handleChange = useCallback((index: number, value: string) => {
     // Validate input based on mode
     const pattern = alphanumeric ? /^[a-zA-Z0-9]$/ : /^\d$/;
     if (value && !pattern.test(value)) return;
 
-    const newCode = [...code];
-    newCode[index] = alphanumeric ? value.toUpperCase() : value;
-    setCode(newCode);
+    setCode((prevCode) => {
+      const newCode = [...prevCode];
+      newCode[index] = alphanumeric ? value.toUpperCase() : value;
+      return newCode;
+    });
 
     // Auto-advance to next field
     if (value && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
-  };
+  }, [alphanumeric, length]);
 
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = useCallback((index: number, e: KeyboardEvent<HTMLInputElement>) => {
     // Backspace: clear current and move to previous
     if (e.key === "Backspace") {
-      if (!code[index] && index > 0) {
-        const newCode = [...code];
-        newCode[index - 1] = "";
-        setCode(newCode);
-        inputRefs.current[index - 1]?.focus();
-      } else {
-        const newCode = [...code];
-        newCode[index] = "";
-        setCode(newCode);
-      }
+      setCode((prevCode) => {
+        if (!prevCode[index] && index > 0) {
+          const newCode = [...prevCode];
+          newCode[index - 1] = "";
+          inputRefs.current[index - 1]?.focus();
+          return newCode;
+        } else {
+          const newCode = [...prevCode];
+          newCode[index] = "";
+          return newCode;
+        }
+      });
     }
-  };
+  }, []);
 
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault();
     const rawData = e.clipboardData.getData("text");
     const pastedData = alphanumeric
@@ -45,12 +49,12 @@ export function useOtpInput(length: number = 6, alphanumeric: boolean = false) {
       setCode(pastedData.split(""));
       inputRefs.current[length - 1]?.focus();
     }
-  };
+  }, [alphanumeric, length]);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setCode(Array(length).fill(""));
     inputRefs.current[0]?.focus();
-  };
+  }, [length]);
 
   const getValue = () => code.join("");
   const isComplete = code.every((digit) => digit !== "");

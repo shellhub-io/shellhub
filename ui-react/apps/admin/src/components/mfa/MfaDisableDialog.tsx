@@ -51,18 +51,21 @@ export default function MfaDisableDialog({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    // Validate input before setting loading state to avoid UI flicker
+    if (mode === "totp" && !otp.isComplete) return;
+    if (mode === "recovery" && !recoveryCode.trim()) return;
+    if (mode === "email-reset" && (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete)) return;
+
     setError("");
     setSubmitting(true);
 
     try {
       if (mode === "totp") {
-        if (!otp.isComplete) return;
         await disableMfa({ code: otp.getValue() });
       } else if (mode === "recovery") {
-        if (!recoveryCode.trim()) return;
         await disableMfa({ recovery_code: recoveryCode });
       } else if (mode === "email-reset") {
-        if (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete) return;
         await disableMfa({
           main_email_code: otpMainEmail.getValue(),
           recovery_email_code: otpRecoveryEmail.getValue(),
@@ -150,7 +153,7 @@ export default function MfaDisableDialog({
                 <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
                   Verification Code
                 </label>
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-2 justify-center" onPaste={otp.handlePaste}>
                   {otp.code.map((digit, index) => (
                     <input
                       key={index}
@@ -162,6 +165,7 @@ export default function MfaDisableDialog({
                       onChange={(e) => otp.handleChange(index, e.target.value)}
                       onKeyDown={(e) => otp.handleKeyDown(index, e)}
                       autoFocus={index === 0}
+                      aria-label={`Digit ${index + 1} of 6`}
                       className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all"
                     />
                   ))}
