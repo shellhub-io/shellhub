@@ -1,0 +1,123 @@
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+concurrency:
+  group: claude-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  claude:
+    name: Claude
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') && github.event.comment.user.type != 'Bot') ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude') && github.event.comment.user.type != 'Bot')
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Generate cross-repo token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: shellhub,cloud,claude,team
+
+      # For issue_comment events, github.event.pull_request.head.sha is
+      # unavailable (the payload only has github.event.issue). Resolve the
+      # PR head SHA via the REST API so the correct ref is checked out.
+      - name: Resolve PR head ref
+        id: pr-ref
+        if: github.event_name == 'pull_request_review_comment' || (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ -n "$PR_SHA" ]]; then
+            echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+          else
+            SHA=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPO/pulls/$PR_NUMBER" | jq -r '.head.sha')
+            if [[ -z "$SHA" || "$SHA" == "null" ]]; then
+              echo "::error::Failed to resolve PR head SHA for PR #$PR_NUMBER"
+              exit 1
+            fi
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout shellhub
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.pr-ref.outputs.sha || '' }}
+
+      - name: Determine cloud branch
+        id: cloud-branch
+        if: github.event_name == 'pull_request_review_comment' || (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+        env:
+          HEAD_REF: ${{ github.head_ref || github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ -n "$HEAD_REF" ]]; then
+            BRANCH="$HEAD_REF"
+          else
+            BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName --jq '.headRefName') || {
+              echo "::warning::Failed to resolve PR head ref name, falling back to master"
+              true
+            }
+            BRANCH="${BRANCH:-master}"
+          fi
+          if curl -sf -H "Authorization: Bearer $APP_TOKEN" \
+            "https://api.github.com/repos/shellhub-io/cloud/branches/$BRANCH" > /dev/null 2>&1; then
+            echo "ref=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=master" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout cloud (context)
+        uses: actions/checkout@v6
+        with:
+          repository: shellhub-io/cloud
+          token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ steps.cloud-branch.outputs.ref || 'master' }}
+          fetch-depth: 1
+          path: cloud
+
+      - name: Checkout claude config
+        uses: actions/checkout@v6
+        with:
+          repository: shellhub-io/claude
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 1
+          path: claude
+
+      - name: Setup workspace context
+        run: |
+          "$GITHUB_WORKSPACE/claude/workspace.sh" sync -w "$GITHUB_WORKSPACE" --project shellhub
+
+      - name: Run Claude
+        timeout-minutes: 60
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ steps.app-token.outputs.token }}
+          trigger_phrase: "@claude"
+          prompt: |
+            When asked to create a GitHub issue, route it to the correct repository:
+            - Community or open-source ShellHub issues → shellhub-io/shellhub (this repo)
+            - Cloud or enterprise-specific issues → shellhub-io/team
