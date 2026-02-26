@@ -118,8 +118,3 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           trigger_phrase: "@claude"
-          show_full_output: true
-          prompt: |
-            When asked to create a GitHub issue, route it to the correct repository:
-            - Community or open-source ShellHub issues → shellhub-io/shellhub (this repo)
-            - Cloud or enterprise-specific issues → shellhub-io/team
