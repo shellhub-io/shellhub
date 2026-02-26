@@ -11,7 +11,11 @@ import TerminalSettingsDrawer from "./TerminalSettingsDrawer";
 
 /** Terminal info shown on the left side of the AppBar */
 export function TerminalInfo({ session }: { session: TerminalSession }) {
-  const { connectionStatus: status } = session;
+  const status = useTerminalStore(
+    (s) =>
+      s.sessions.find((ss) => ss.id === session.id)?.connectionStatus ??
+      "disconnected",
+  );
 
   return (
     <div className="flex items-center gap-2.5 min-w-0">

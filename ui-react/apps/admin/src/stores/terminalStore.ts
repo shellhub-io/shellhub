@@ -13,18 +13,31 @@ export interface TerminalSession {
   connectionStatus: ConnectionStatus;
 }
 
+export interface ReconnectTarget {
+  deviceUid: string;
+  deviceName: string;
+}
+
 interface TerminalState {
   sessions: TerminalSession[];
-  open: (params: Omit<TerminalSession, "id" | "state" | "connectionStatus">) => void;
+  reconnectTarget: ReconnectTarget | null;
+  open: (
+    params: Omit<TerminalSession, "id" | "state" | "connectionStatus">,
+  ) => void;
   minimize: (id: string) => void;
   minimizeAll: () => void;
   restore: (id: string) => void;
   toggleFullscreen: (id: string) => void;
   close: (id: string) => void;
+  closeAndReconnect: (id: string) => void;
+  clearReconnect: () => void;
   setConnectionStatus: (id: string, status: ConnectionStatus) => void;
 }
 
-function demoteOthers(sessions: TerminalSession[], targetId: string): TerminalSession[] {
+function demoteOthers(
+  sessions: TerminalSession[],
+  targetId: string,
+): TerminalSession[] {
   return sessions.map((s) => {
     if (s.id === targetId) return s;
     if (s.state !== "minimized") return { ...s, state: "minimized" as const };
@@ -34,10 +47,12 @@ function demoteOthers(sessions: TerminalSession[], targetId: string): TerminalSe
 
 export const useTerminalStore = create<TerminalState>((set) => ({
   sessions: [],
+  reconnectTarget: null,
 
   open: (params) => {
     const id = crypto.randomUUID();
     set((state) => ({
+      reconnectTarget: null,
       sessions: [
         ...demoteOthers(state.sessions, id),
         { ...params, id, state: "docked", connectionStatus: "connecting" },
@@ -73,7 +88,13 @@ export const useTerminalStore = create<TerminalState>((set) => ({
     set((state) => ({
       sessions: demoteOthers(state.sessions, id).map((s) => {
         if (s.id !== id) return s;
-        return { ...s, state: s.state === "fullscreen" ? "docked" as const : "fullscreen" as const };
+        return {
+          ...s,
+          state:
+            s.state === "fullscreen"
+              ? ("docked" as const)
+              : ("fullscreen" as const),
+        };
       }),
     }));
   },
@@ -82,6 +103,24 @@ export const useTerminalStore = create<TerminalState>((set) => ({
     set((state) => ({
       sessions: state.sessions.filter((s) => s.id !== id),
     }));
+  },
+
+  closeAndReconnect: (id) => {
+    set((state) => {
+      const session = state.sessions.find((s) => s.id === id);
+      if (!session) return state;
+      return {
+        sessions: state.sessions.filter((s) => s.id !== id),
+        reconnectTarget: {
+          deviceUid: session.deviceUid,
+          deviceName: session.deviceName,
+        },
+      };
+    });
+  },
+
+  clearReconnect: () => {
+    set({ reconnectTarget: null });
   },
 
   setConnectionStatus: (id, status) => {
