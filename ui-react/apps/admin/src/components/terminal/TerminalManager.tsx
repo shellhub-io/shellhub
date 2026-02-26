@@ -1,12 +1,38 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTerminalStore } from "../../stores/terminalStore";
+import { useNamespacesStore } from "../../stores/namespacesStore";
+import ConnectDrawer from "../ConnectDrawer";
 import TerminalInstance from "./TerminalInstance";
 import TerminalTaskbar from "./TerminalTaskbar";
 
 export default function TerminalManager() {
   const sessions = useTerminalStore((s) => s.sessions);
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
+  const reconnectTarget = useTerminalStore((s) => s.reconnectTarget);
+  const currentNamespace = useNamespacesStore((s) => s.currentNamespace);
+
+  const [connectTarget, setConnectTarget] = useState<{
+    uid: string;
+    name: string;
+    sshid: string;
+  } | null>(null);
+
+  // Open ConnectDrawer when a reconnect is requested (works from any page)
+  useEffect(() => {
+    if (!reconnectTarget) return;
+    useTerminalStore.getState().clearReconnect();
+    const nsName = currentNamespace?.name;
+    const sshid = nsName
+      ? `${nsName}.${reconnectTarget.deviceName}@${nsName}`
+      : reconnectTarget.deviceUid;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setConnectTarget({
+      uid: reconnectTarget.deviceUid,
+      name: reconnectTarget.deviceName,
+      sshid,
+    });
+  }, [reconnectTarget, currentNamespace]);
 
   // Auto-minimize terminal when navigating to another page
   const location = useLocation();
@@ -20,6 +46,16 @@ export default function TerminalManager() {
 
   return (
     <>
+      {connectTarget && (
+        <ConnectDrawer
+          open
+          onClose={() => setConnectTarget(null)}
+          deviceUid={connectTarget.uid}
+          deviceName={connectTarget.name}
+          sshid={connectTarget.sshid}
+        />
+      )}
+
       {sessions.map((s) => {
         const isVisible = s.state !== "minimized";
         const isFullscreen = s.state === "fullscreen";

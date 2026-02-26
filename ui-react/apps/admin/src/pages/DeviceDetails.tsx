@@ -251,6 +251,7 @@ export default function DeviceDetails() {
     searchParams.get("connect") === "true" &&
     device?.online &&
     !existingSession;
+
   const [autoConnectDone, setAutoConnectDone] = useState(false);
   if (shouldAutoConnect && !autoConnectDone) {
     setAutoConnectDone(true);
