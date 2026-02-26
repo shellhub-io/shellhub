@@ -3,7 +3,6 @@ import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { AxiosError } from "axios";
-import { login as apiLogin } from "../../api/auth";
 import { useAuthStore } from "../../stores/authStore";
 import Login from "../Login";
 
@@ -18,8 +17,11 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+vi.mock("../../api/client", () => ({
+  default: { post: vi.fn() },
+}));
+
 vi.mock("../../api/auth", () => ({
-  login: vi.fn(),
   getAuthUser: vi.fn(),
   updateUser: vi.fn(),
   updatePassword: vi.fn(),
@@ -27,7 +29,8 @@ vi.mock("../../api/auth", () => ({
   resendEmail: vi.fn(),
 }));
 
-const mockedApiLogin = vi.mocked(apiLogin);
+import apiClient from "../../api/client";
+const mockedPost = vi.mocked(apiClient.post);
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -74,7 +77,7 @@ afterEach(cleanup);
 
 beforeEach(() => {
   mockNavigate.mockReset();
-  mockedApiLogin.mockReset();
+  mockedPost.mockReset();
   useAuthStore.setState({
     token: null,
     user: null,
@@ -118,13 +121,9 @@ describe("Login", () => {
 
   describe("successful login", () => {
     it("navigates to /dashboard on success", async () => {
-      mockedApiLogin.mockResolvedValue({
-        token: "jwt",
-        user: "admin",
-        id: "uid",
-        email: "admin@test.com",
-        tenant: "tenant-1",
-        name: "Admin",
+      mockedPost.mockResolvedValue({
+        data: { token: "jwt", user: "admin", id: "uid", email: "admin@test.com", tenant: "tenant-1", name: "Admin" },
+        headers: {},
       });
 
       renderLogin();
@@ -137,10 +136,10 @@ describe("Login", () => {
   describe("loading state", () => {
     it("shows Authenticating... and disables the button while the request is in flight", async () => {
       let resolveLogin!: () => void;
-      mockedApiLogin.mockReturnValue(
+      mockedPost.mockReturnValue(
         new Promise((resolve) => {
           resolveLogin = () =>
-            resolve({ token: "t", user: "u", id: "i", email: "e@e.com", tenant: "t", name: "n" });
+            resolve({ data: { token: "t", user: "u", id: "i", email: "e@e.com", tenant: "t", name: "n" }, headers: {} });
         }),
       );
 
@@ -164,7 +163,7 @@ describe("Login", () => {
 
   describe("error handling", () => {
     it("shows invalid credentials error on 401", async () => {
-      mockedApiLogin.mockRejectedValue(makeAxiosError(401));
+      mockedPost.mockRejectedValue(makeAxiosError(401));
 
       renderLogin();
       await fillAndSubmit();
@@ -176,7 +175,7 @@ describe("Login", () => {
     });
 
     it("navigates to /confirm-account with username on 403", async () => {
-      mockedApiLogin.mockRejectedValue(makeAxiosError(403));
+      mockedPost.mockRejectedValue(makeAxiosError(403));
 
       renderLogin();
       await fillAndSubmit("admin");
@@ -188,7 +187,7 @@ describe("Login", () => {
 
     it("shows rate-limit error on 429", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 60;
-      mockedApiLogin.mockRejectedValue(
+      mockedPost.mockRejectedValue(
         makeAxiosError(429, { "x-account-lockout": String(epoch) }),
       );
 
@@ -202,7 +201,7 @@ describe("Login", () => {
     });
 
     it("shows generic server error on unexpected status codes", async () => {
-      mockedApiLogin.mockRejectedValue(makeAxiosError(500));
+      mockedPost.mockRejectedValue(makeAxiosError(500));
 
       renderLogin();
       await fillAndSubmit();
@@ -214,7 +213,7 @@ describe("Login", () => {
     });
 
     it("shows generic error on non-axios errors", async () => {
-      mockedApiLogin.mockRejectedValue(new Error("Network error"));
+      mockedPost.mockRejectedValue(new Error("Network error"));
 
       renderLogin();
       await fillAndSubmit();
@@ -226,14 +225,10 @@ describe("Login", () => {
     });
 
     it("clears the error when a new submit is attempted", async () => {
-      mockedApiLogin.mockRejectedValueOnce(makeAxiosError(401));
-      mockedApiLogin.mockResolvedValueOnce({
-        token: "jwt",
-        user: "admin",
-        id: "uid",
-        email: "admin@test.com",
-        tenant: "tenant-1",
-        name: "Admin",
+      mockedPost.mockRejectedValueOnce(makeAxiosError(401));
+      mockedPost.mockResolvedValueOnce({
+        data: { token: "jwt", user: "admin", id: "uid", email: "admin@test.com", tenant: "tenant-1", name: "Admin" },
+        headers: {},
       });
 
       const user = userEvent.setup();
@@ -256,7 +251,7 @@ describe("Login", () => {
     it("displays the remaining lockout time after the first interval tick", async () => {
       // 30 seconds from now — first tick should show "29 seconds"
       const epoch = Math.floor(Date.now() / 1000) + 30;
-      mockedApiLogin.mockRejectedValue(
+      mockedPost.mockRejectedValue(
         makeAxiosError(429, { "x-account-lockout": String(epoch) }),
       );
 
@@ -279,7 +274,7 @@ describe("Login", () => {
     it("shows lockout-expired alert when the countdown reaches zero", async () => {
       // 1 second lockout so the test completes quickly
       const epoch = Math.floor(Date.now() / 1000) + 1;
-      mockedApiLogin.mockRejectedValue(
+      mockedPost.mockRejectedValue(
         makeAxiosError(429, { "x-account-lockout": String(epoch) }),
       );
 

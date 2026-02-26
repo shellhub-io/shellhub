@@ -61,10 +61,20 @@ export function setupInterceptors(instance: AxiosInstance) {
       return response;
     },
     (error: AxiosError) => {
-      const isLoginRequest = error.config?.url?.includes("/api/login");
-      if (error.response?.status === 401 && !isLoginRequest) {
-        useAuthStore.getState().logout();
-        window.location.href = "/login";
+      if (error.response?.status === 401) {
+        // Check for MFA token first (applies to any URL)
+        const mfaToken = error.response.headers["x-mfa-token"];
+        if (mfaToken) {
+          useAuthStore.getState().setMfaToken(mfaToken);
+          return Promise.reject(error);
+        }
+
+        // No MFA token — only logout for non-login endpoints
+        const isLoginRequest = error.config?.url?.includes("/api/login");
+        if (!isLoginRequest) {
+          useAuthStore.getState().logout();
+          window.location.href = "/login";
+        }
       } else if (isApiDown(error)) {
         scheduleMarkDown();
       }
