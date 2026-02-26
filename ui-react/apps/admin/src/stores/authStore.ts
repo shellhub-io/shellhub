@@ -53,6 +53,7 @@ interface AuthState {
   completeMfaReset: (mainEmailCode: string, recoveryEmailCode: string) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
+  setCompleteSession: (data: LoginResponse) => void;
 }
 
 const initialState = {
@@ -294,6 +295,18 @@ export const useAuthStore = create<AuthState>()(
 
       setMfaToken: (token: string) => {
         set({ mfaToken: token });
+      },
+
+      setCompleteSession: (data: LoginResponse) => {
+        set({
+          token: data.token,
+          user: data.user,
+          userId: data.id,
+          email: data.email,
+          tenant: data.tenant,
+          name: data.name,
+          mfaEnabled: data.mfa || false,
+        });
       },
     }),
     {

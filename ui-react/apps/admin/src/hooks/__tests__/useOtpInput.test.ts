@@ -83,7 +83,7 @@ describe("useOtpInput", () => {
 
     // Backspace on empty third field should clear second field
     act(() => {
-      result.current.handleKeyDown(2, { key: "Backspace" } as React.KeyboardEvent);
+      result.current.handleKeyDown(2, { key: "Backspace" } as React.KeyboardEvent<HTMLInputElement>);
     });
 
     expect(result.current.code[1]).toBe("");
@@ -100,7 +100,7 @@ describe("useOtpInput", () => {
 
     // Backspace on filled field should clear it
     act(() => {
-      result.current.handleKeyDown(0, { key: "Backspace" } as React.KeyboardEvent);
+      result.current.handleKeyDown(0, { key: "Backspace" } as React.KeyboardEvent<HTMLInputElement>);
     });
 
     expect(result.current.code[0]).toBe("");

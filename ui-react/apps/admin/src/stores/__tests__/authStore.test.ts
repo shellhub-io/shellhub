@@ -197,6 +197,13 @@ describe("authStore", () => {
         error: "some error",
         username: "admin",
         recoveryEmail: "r@b.com",
+        // MFA fields
+        mfaEnabled: true,
+        mfaToken: "mfa-temp-token",
+        mfaRecoveryExpiry: "1234567890",
+        mfaResetUserId: "reset-user-123",
+        mfaResetIdentifier: "reset-id-456",
+        pendingMfaUser: "pending-user",
       };
 
       const persisted = partialize(full) as Record<string, unknown>;
@@ -209,6 +216,7 @@ describe("authStore", () => {
         tenant: "t",
         role: "owner",
         name: "Admin",
+        mfaEnabled: true, // MFA enabled status SHOULD persist
       });
 
       // Should NOT persist transient state
@@ -216,6 +224,13 @@ describe("authStore", () => {
       expect(persisted).not.toHaveProperty("error");
       expect(persisted).not.toHaveProperty("username");
       expect(persisted).not.toHaveProperty("recoveryEmail");
+
+      // Should NOT persist sensitive MFA session/flow state
+      expect(persisted).not.toHaveProperty("mfaToken");
+      expect(persisted).not.toHaveProperty("mfaRecoveryExpiry");
+      expect(persisted).not.toHaveProperty("mfaResetUserId");
+      expect(persisted).not.toHaveProperty("mfaResetIdentifier");
+      expect(persisted).not.toHaveProperty("pendingMfaUser");
     });
   });
 
@@ -345,6 +360,46 @@ describe("authStore", () => {
       useAuthStore.getState().setMfaToken("mfa-token-123");
 
       expect(useAuthStore.getState().mfaToken).toBe("mfa-token-123");
+    });
+  });
+
+  describe("setCompleteSession", () => {
+    it("sets all user data from LoginResponse", () => {
+      const loginResponse = {
+        token: "jwt-token",
+        user: "admin",
+        id: "user-123",
+        email: "admin@test.com",
+        tenant: "tenant-456",
+        name: "Admin User",
+        mfa: true,
+      };
+
+      useAuthStore.getState().setCompleteSession(loginResponse);
+
+      const state = useAuthStore.getState();
+      expect(state.token).toBe("jwt-token");
+      expect(state.user).toBe("admin");
+      expect(state.userId).toBe("user-123");
+      expect(state.email).toBe("admin@test.com");
+      expect(state.tenant).toBe("tenant-456");
+      expect(state.name).toBe("Admin User");
+      expect(state.mfaEnabled).toBe(true);
+    });
+
+    it("handles missing mfa field as false", () => {
+      const loginResponse = {
+        token: "jwt-token",
+        user: "admin",
+        id: "user-123",
+        email: "admin@test.com",
+        tenant: "tenant-456",
+        name: "Admin User",
+      };
+
+      useAuthStore.getState().setCompleteSession(loginResponse);
+
+      expect(useAuthStore.getState().mfaEnabled).toBe(false);
     });
   });
 });

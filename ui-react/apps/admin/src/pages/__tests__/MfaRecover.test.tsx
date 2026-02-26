@@ -108,7 +108,7 @@ describe("MfaRecover", () => {
       </MemoryRouter>
     );
 
-    const backLink = screen.getByText(/Back to MFA Login/i);
+    const backLink = screen.getByText(/Back to verification/i);
     expect(backLink).toHaveAttribute("href", "/mfa-login");
   });
 
