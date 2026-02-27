@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/api/store/migrate"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	mongooptions "github.com/shellhub-io/shellhub/api/store/mongo/options"
 	"github.com/shellhub-io/shellhub/api/store/pg"
@@ -110,6 +111,26 @@ func (s *Server) Setup(ctx context.Context) error {
 	case "postgres":
 		uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
 		store, err = pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate()) // TODO: Log envs
+	case "migrate":
+		mongoStore, mongoErr := mongo.NewStore(ctx, s.env.MongoURI, cache)
+		if mongoErr != nil {
+			log.WithError(mongoErr).Fatal("failed to connect to MongoDB for migration")
+		}
+
+		uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
+		pgStore, pgErr := pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate())
+		if pgErr != nil {
+			log.WithError(pgErr).Fatal("failed to connect to PostgreSQL for migration")
+		}
+
+		migrator := migrate.New(mongoStore.(*mongo.Store).GetDB(), pgStore.(*pg.Pg).Driver())
+		if err := migrator.Run(ctx); err != nil {
+			log.WithError(err).Fatal("migration failed")
+		}
+
+		log.Info("Migration completed successfully")
+
+		os.Exit(0)
 	default:
 		log.WithField("database", s.env.Database).Error("invalid database")
 

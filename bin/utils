@@ -51,7 +51,7 @@ COMPOSE_FILE="docker-compose.yml"
 
 SHELLHUB_DATABASE=${SHELLHUB_DATABASE:-mongo}
 case "$SHELLHUB_DATABASE" in
-    mongo|postgres)
+    mongo|postgres|migrate)
         COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SHELLHUB_DATABASE}.yml"
         ;;
     *)

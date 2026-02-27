@@ -29,6 +29,7 @@ type GatewayConfig struct {
 	EnableProxyProtocol          bool        `env:"SHELLHUB_PROXY"`
 	EnableEnterprise             bool        `env:"SHELLHUB_ENTERPRISE"`
 	EnableCloud                  bool        `env:"SHELLHUB_CLOUD"`
+	Database                     string      `env:"SHELLHUB_DATABASE,default=mongo"`
 	EnableAccessLogs             bool        `env:"SHELLHUB_GATEWAY_ACCESS_LOGS" default:"true"`
 	APIRateLimit                 string      `env:"SHELLHUB_API_RATE_LIMIT,default=1000r/s"`
 	APIRateLimitZoneSize         string      `env:"SHELLHUB_API_RATE_LIMIT_ZONE_SIZE,default=10m"`
