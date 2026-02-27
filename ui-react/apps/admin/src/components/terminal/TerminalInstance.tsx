@@ -3,7 +3,9 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { WebglAddon } from "@xterm/addon-webgl";
+import { Buffer } from "buffer";
 import apiClient from "../../api/client";
+import { generateSignature } from "../../utils/ssh-keys";
 import type { TerminalSession } from "../../stores/terminalStore";
 import { useTerminalStore } from "../../stores/terminalStore";
 import { useTerminalThemeStore } from "../../stores/terminalThemeStore";
@@ -33,6 +35,7 @@ export default function TerminalInstance({
   const wsRef = useRef<WebSocket | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const prevVisibleRef = useRef(visible);
+  const resizeRegisteredRef = useRef(false);
   const [error, setError] = useState<TerminalError | null>(null);
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
@@ -57,13 +60,20 @@ export default function TerminalInstance({
     async function connect() {
       updateStatus("connecting");
 
+      // Build POST body: for private key auth, send fingerprint; for password auth, send password
+      const body: Record<string, string> = {
+        device: session.deviceUid,
+        username: session.username,
+      };
+      if (session.fingerprint) {
+        body.fingerprint = session.fingerprint;
+      } else {
+        body.password = session.password;
+      }
+
       let token: string;
       try {
-        const res = await apiClient.post("/ws/ssh", {
-          device: session.deviceUid,
-          username: session.username,
-          password: session.password,
-        });
+        const res = await apiClient.post("/ws/ssh", body);
         token = res.data.token;
       } catch {
         if (cancelled) return;
@@ -104,6 +114,20 @@ export default function TerminalInstance({
       const wsUrl = `${proto}//${window.location.host}/ws/ssh?token=${token}&cols=${cols}&rows=${rows}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
+      resizeRegisteredRef.current = false;
+
+      const registerResizeHandler = () => {
+        if (resizeRegisteredRef.current) return;
+        resizeRegisteredRef.current = true;
+
+        term.onResize(({ cols, rows }) => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(
+              JSON.stringify({ kind: WS_KIND.RESIZE, data: { cols, rows } }),
+            );
+          }
+        });
+      };
 
       ws.onopen = () => {
         if (cancelled) return;
@@ -113,15 +137,46 @@ export default function TerminalInstance({
       ws.onmessage = async (event) => {
         if (cancelled) return;
         if (event.data instanceof Blob) {
+          // Binary data = terminal output (password auth or post-signature)
           term.write(await event.data.text());
+          registerResizeHandler();
         } else {
+          // JSON text message = challenge-response or error
           const msg = parseMessage(event.data);
-          if (msg?.kind === WS_KIND.ERROR) {
-            lastError = true;
-            updateStatus("disconnected");
-            setError(resolveError(msg.data, session.deviceUid));
-          } else if (!lastError) {
-            term.write(event.data);
+          if (!msg) {
+            if (!lastError) term.write(event.data);
+            return;
+          }
+
+          switch (msg.kind) {
+            case WS_KIND.SIGNATURE: {
+              if (!session.privateKey) return;
+              const challengeBuffer = Buffer.from(msg.data, "base64");
+              try {
+                const signature = generateSignature(
+                  session.privateKey,
+                  challengeBuffer,
+                  session.passphrase,
+                );
+                ws.send(JSON.stringify({ kind: WS_KIND.SIGNATURE, data: signature }));
+              } catch {
+                term.write("\r\n\x1b[1;31mFailed to sign authentication challenge.\x1b[0m\r\n");
+                ws.close();
+                return;
+              }
+              // Clear sensitive key material after successful handshake
+              useTerminalStore.getState().clearSensitiveData(session.id);
+              registerResizeHandler();
+              break;
+            }
+            case WS_KIND.ERROR: {
+              lastError = true;
+              updateStatus("disconnected");
+              setError(resolveError(msg.data, session.deviceUid));
+              break;
+            }
+            default:
+              break;
           }
         }
       };
@@ -145,14 +200,6 @@ export default function TerminalInstance({
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(
             JSON.stringify({ kind: WS_KIND.INPUT, data: data.slice(0, 4096) }),
-          );
-        }
-      });
-
-      term.onResize(({ cols, rows }) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(
-            JSON.stringify({ kind: WS_KIND.RESIZE, data: { cols, rows } }),
           );
         }
       });
