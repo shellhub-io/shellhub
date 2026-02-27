@@ -1,13 +1,10 @@
-import { useState, useEffect, useRef, useCallback, FormEvent, DragEvent } from "react";
-import {
-  ExclamationCircleIcon,
-  ArrowUpTrayIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+import { useState, useEffect, FormEvent } from "react";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { useVaultStore, DuplicateKeyError } from "@/stores/vaultStore";
 import { validatePrivateKey, getFingerprint } from "@/utils/ssh-keys";
 import Drawer from "@/components/common/Drawer";
-import { LABEL, INPUT, INPUT_MONO } from "@/utils/styles";
+import KeyFileInput from "@/components/common/KeyFileInput";
+import { LABEL, INPUT } from "@/utils/styles";
 import type { VaultKeyEntry } from "@/types/vault";
 
 interface Props {
@@ -29,9 +26,6 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
   const [passphraseError, setPassphraseError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<"file" | "text">("file");
-  const [dragging, setDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -39,19 +33,16 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
       setName(editKey.name);
       setKeyData(editKey.data);
       setEncrypted(editKey.hasPassphrase);
-      setInputMode("text");
     } else {
       setName("");
       setKeyData("");
       setEncrypted(false);
-      setInputMode("file");
     }
     setNameError(null);
     setPassphrase("");
     setKeyError(null);
     setPassphraseError(null);
     setError(null);
-    setDragging(false);
   }, [open, editKey]);
 
   const handleNameChange = (value: string) => {
@@ -81,46 +72,11 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
     setEncrypted(result.encrypted);
   };
 
-  const processFile = (file: File) => {
-    if (file.size > 512 * 1024) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = reader.result as string;
-      handleKeyChange(text);
-      if (!name) {
-        const base = file.name.replace(/\.[^.]+$/, "");
-        setName(base);
-      }
-    };
-    reader.readAsText(file);
+  const handleFileName = (fileName: string) => {
+    if (!name) setName(fileName);
   };
 
-  const handleDrop = (e: DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) processFile(file);
-  };
-
-  const handleKeyChangeRef = useRef(handleKeyChange);
-  handleKeyChangeRef.current = handleKeyChange;
-
-  const handlePaste = useCallback((e: Event) => {
-    const ce = e as ClipboardEvent;
-    const text = ce.clipboardData?.getData("text");
-    if (!text) return;
-    const result = validatePrivateKey(text.trim());
-    if (result.valid) {
-      e.preventDefault();
-      handleKeyChangeRef.current(text);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!open || isEdit) return;
-    document.addEventListener("paste", handlePaste);
-    return () => document.removeEventListener("paste", handlePaste);
-  }, [open, isEdit, handlePaste]);
+  const validateForPaste = (text: string) => validatePrivateKey(text.trim()).valid;
 
   const handlePassphraseChange = (value: string) => {
     setPassphrase(value);
@@ -259,114 +215,22 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
           )}
         </div>
 
-        {/* Private key data — file or text input */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="key-data" className={LABEL + " !mb-0"}>
-              Private Key
-            </label>
-            {!isEdit && (
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setInputMode("file")}
-                  className={`px-2 py-0.5 rounded text-2xs font-medium transition-all ${inputMode === "file" ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary"}`}
-                >
-                  File
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setInputMode("text")}
-                  className={`px-2 py-0.5 rounded text-2xs font-medium transition-all ${inputMode === "text" ? "bg-primary/10 text-primary" : "text-text-muted hover:text-text-secondary"}`}
-                >
-                  Text
-                </button>
-              </div>
-            )}
-          </div>
-
-          {inputMode === "file" && !isEdit ? (
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
-                dragging
-                  ? "border-primary bg-primary/5"
-                  : keyData
-                    ? "border-accent-green/30 bg-accent-green/5"
-                    : `border-border hover:border-primary/30 ${keyError ? "border-accent-red/30" : ""}`
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pem,.key,.txt"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) processFile(file);
-                  e.target.value = "";
-                }}
-              />
-              {keyData ? (
-                <>
-                  <CheckCircleIcon className="w-5 h-5 text-accent-green" />
-                  <span className="text-xs text-accent-green font-medium">
-                    Key loaded {encrypted && "(encrypted)"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleKeyChange("");
-                    }}
-                    className="text-2xs text-text-muted hover:text-text-primary transition-colors"
-                  >
-                    Clear
-                  </button>
-                </>
-              ) : (
-                <>
-                  <ArrowUpTrayIcon className="w-5 h-5 text-text-muted" />
-                  <span className="text-xs text-text-secondary">
-                    Drop private key file, paste, or browse
-                  </span>
-                </>
-              )}
-            </div>
-          ) : (
-            <textarea
-              id="key-data"
-              value={keyData}
-              onChange={(e) => handleKeyChange(e.target.value)}
-              placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
-              rows={8}
-              aria-invalid={!!keyError}
-              aria-describedby={keyError ? "key-data-error" : undefined}
-              className={`${INPUT_MONO} resize-none`}
-            />
-          )}
-
-          {!isEdit && (
-            <p className="mt-1 text-2xs text-text-muted">
-              RSA, DSA, ECDSA, ED25519 — PEM and OpenSSH formats.
-            </p>
-          )}
-          {keyError && (
-            <p
-              id="key-data-error"
-              className="text-2xs text-accent-red mt-1.5 flex items-center gap-1"
-            >
-              <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
-              {keyError}
-            </p>
-          )}
-        </div>
+        <KeyFileInput
+          label="Private Key"
+          id="key-data"
+          value={keyData}
+          onChange={handleKeyChange}
+          validate={validateForPaste}
+          onFileName={handleFileName}
+          disabled={isEdit}
+          error={keyError}
+          accept=".pem,.key,.txt"
+          placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
+          rows={8}
+          hint="RSA, DSA, ECDSA, ED25519 — PEM and OpenSSH formats."
+          loadedLabel={`Key loaded${encrypted ? " (encrypted)" : ""}`}
+          emptyLabel="Drop private key file, paste, or browse"
+        />
 
         {encrypted && (
           <div>
