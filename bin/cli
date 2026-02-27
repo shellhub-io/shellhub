@@ -9,4 +9,4 @@ cd $(dirname $(readlink_f $0))/../
 
 exit_if_not_running
 
-exec docker compose exec cli ./cli $@
+exec docker compose exec cli /cli "$@"
