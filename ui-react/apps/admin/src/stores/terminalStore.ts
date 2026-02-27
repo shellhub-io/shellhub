@@ -9,6 +9,9 @@ export interface TerminalSession {
   deviceName: string;
   username: string;
   password: string;
+  fingerprint?: string;
+  privateKey?: string;
+  passphrase?: string;
   state: TerminalWindowState;
   connectionStatus: ConnectionStatus;
 }
@@ -32,6 +35,7 @@ interface TerminalState {
   closeAndReconnect: (id: string) => void;
   clearReconnect: () => void;
   setConnectionStatus: (id: string, status: ConnectionStatus) => void;
+  clearSensitiveData: (id: string) => void;
 }
 
 function demoteOthers(
@@ -127,6 +131,16 @@ export const useTerminalStore = create<TerminalState>((set) => ({
     set((state) => ({
       sessions: state.sessions.map((s) =>
         s.id === id ? { ...s, connectionStatus: status } : s,
+      ),
+    }));
+  },
+
+  clearSensitiveData: (id) => {
+    set((state) => ({
+      sessions: state.sessions.map((s) =>
+        s.id === id
+          ? { ...s, privateKey: undefined, passphrase: undefined, password: "" }
+          : s,
       ),
     }));
   },
