@@ -18,7 +18,6 @@ func Entities() []any {
 		(*SessionEvent)(nil),
 		(*System)(nil),
 		(*Tag)(nil),
-		(*Tunnel)(nil),
 		(*User)(nil),
 		(*UserInvitation)(nil),
 	}

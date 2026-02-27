@@ -121,8 +121,4 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestSystemGet(t)
 		s.TestSystemSet(t)
 	})
-
-	t.Run("TunnelStore", func(t *testing.T) {
-		s.TestTunnelUpdateDeviceUID(t)
-	})
 }

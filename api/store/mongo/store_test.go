@@ -119,10 +119,6 @@ func TestMongoStore(t *testing.T) {
 		suite.TestSystemGet(t)
 		suite.TestSystemSet(t)
 	})
-
-	runSubSuite(t, "TunnelStore", func(suite *storetest.Suite, t *testing.T) {
-		suite.TestTunnelUpdateDeviceUID(t)
-	})
 }
 
 // runSubSuite creates a fresh MongoDB database for each sub-suite

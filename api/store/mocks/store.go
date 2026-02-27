@@ -813,24 +813,6 @@ func (_m *Store) NamespaceIncrementDeviceCount(ctx context.Context, tenantID str
 	return r0
 }
 
-// NamespaceSyncDeviceCounts provides a mock function with given fields: ctx
-func (_m *Store) NamespaceSyncDeviceCounts(ctx context.Context) error {
-	ret := _m.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceSyncDeviceCounts")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
-		r0 = rf(ctx)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NamespaceList provides a mock function with given fields: ctx, opts
 func (_m *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	_va := make([]interface{}, len(opts))
@@ -903,6 +885,24 @@ func (_m *Store) NamespaceResolve(ctx context.Context, resolver store.NamespaceR
 	}
 
 	return r0, r1
+}
+
+// NamespaceSyncDeviceCounts provides a mock function with given fields: ctx
+func (_m *Store) NamespaceSyncDeviceCounts(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceSyncDeviceCounts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NamespaceUpdate provides a mock function with given fields: ctx, namespace
@@ -1645,24 +1645,6 @@ func (_m *Store) TagUpdate(ctx context.Context, tag *models.Tag) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *models.Tag) error); ok {
 		r0 = rf(ctx, tag)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// TunnelUpdateDeviceUID provides a mock function with given fields: ctx, tenantID, oldUID, newUID
-func (_m *Store) TunnelUpdateDeviceUID(ctx context.Context, tenantID string, oldUID string, newUID string) error {
-	ret := _m.Called(ctx, tenantID, oldUID, newUID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for TunnelUpdateDeviceUID")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, tenantID, oldUID, newUID)
 	} else {
 		r0 = ret.Error(0)
 	}

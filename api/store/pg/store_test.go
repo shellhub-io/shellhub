@@ -120,10 +120,6 @@ func TestPgStore(t *testing.T) {
 		suite.TestSystemGet(t)
 		suite.TestSystemSet(t)
 	})
-
-	runSubSuite(t, "TunnelStore", func(suite *storetest.Suite, t *testing.T) {
-		suite.TestTunnelUpdateDeviceUID(t)
-	})
 }
 
 // runSubSuite creates a fresh PostgreSQL database for each sub-suite
