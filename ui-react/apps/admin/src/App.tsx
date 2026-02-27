@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
+import { getConfig } from "./env";
 import AppLayout from "./components/layout/AppLayout";
 import LoginLayout from "./components/layout/LoginLayout";
 import ConnectivityGuard from "./components/common/ConnectivityGuard";
@@ -29,6 +30,8 @@ const FirewallRulesPage = lazy(() => import("./pages/firewall-rules"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BannerEdit = lazy(() => import("./pages/BannerEdit"));
 const Profile = lazy(() => import("./pages/Profile"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 
 export default function App() {
   return (
@@ -39,6 +42,12 @@ export default function App() {
             <Route element={<LoginLayout />}>
               <Route path="/login" element={<Login />} />
               <Route path="/setup" element={<Setup />} />
+              {getConfig().cloud && (
+                <>
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/update-password" element={<UpdatePassword />} />
+                </>
+              )}
             </Route>
             <Route element={<ProtectedRoute />}>
               <Route element={<NamespaceGuard />}>
