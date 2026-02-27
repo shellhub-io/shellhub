@@ -9,6 +9,7 @@ import {
   UsersIcon,
   CpuChipIcon,
   CommandLineIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
 interface NavItem {
@@ -56,6 +57,11 @@ const sections: NavSection[] = [
         to: "/sshkeys/public-keys",
         label: "Public Keys",
         icon: <KeyIcon className="w-[18px] h-[18px]" />,
+      },
+      {
+        to: "/secure-vault",
+        label: "Secure Vault",
+        icon: <LockClosedIcon className="w-[18px] h-[18px]" />,
       },
     ],
   },

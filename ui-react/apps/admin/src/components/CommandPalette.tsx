@@ -14,6 +14,7 @@ import {
   CommandLineIcon,
   PlusIcon,
   ChevronDoubleRightIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
 /* ─── Types ─── */
@@ -50,6 +51,7 @@ const icons = {
   terminal: <ChevronDoubleRightIcon className="w-4 h-4" />,
   logout: <ArrowRightStartOnRectangleIcon className="w-4 h-4" />,
   team: <UsersIcon className="w-4 h-4" />,
+  vault: <LockClosedIcon className="w-4 h-4" />,
 };
 
 /* ─── Fuzzy match ─── */
@@ -131,6 +133,7 @@ export default function CommandPalette() {
       { label: "Devices", path: "/devices", icon: icons.devices },
       { label: "Sessions", path: "/sessions", icon: icons.sessions },
       { label: "Public Keys", path: "/sshkeys/public-keys", icon: icons.keys },
+      { label: "Secure Vault", path: "/secure-vault", icon: icons.vault },
       { label: "Team", path: "/team", icon: icons.team },
       { label: "Settings", path: "/settings", icon: icons.settings },
       { label: "Add Device", path: "/devices/add", icon: icons.add },
