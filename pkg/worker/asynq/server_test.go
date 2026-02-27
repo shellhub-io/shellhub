@@ -24,27 +24,32 @@ func TestServer(t *testing.T) {
 	redisContainer, err := redis.Run(ctx, image)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		require.NoError(t, redisContainer.Terminate(ctx))
-	})
-
 	redisConnStr, err := redisContainer.ConnectionString(ctx)
 	require.NoError(t, err)
 
 	// Setup server and handlers
 	srv := asynq.NewServer(redisConnStr, asynq.BatchConfig(2, 1, 1))
-	defer srv.Shutdown()
 
-	assertTaskPayload := ""
+	// Shutdown the server before terminating Redis to avoid connection refused spam.
+	t.Cleanup(func() {
+		srv.Shutdown()
+		require.NoError(t, redisContainer.Terminate(ctx))
+	})
+
+	taskCalled := make(chan string, 1)
 	srv.HandleTask("queue:task", func(_ context.Context, payload []byte) error {
-		assertTaskPayload = string(payload)
+		taskCalled <- string(payload)
 
 		return nil
 	})
 
-	assertCronPayload := ""
+	cronCalled := make(chan struct{})
 	srv.HandleCron("* * * * *", func(_ context.Context) error {
-		assertCronPayload = "cron was called"
+		select {
+		case <-cronCalled:
+		default:
+			close(cronCalled)
+		}
 
 		return nil
 	})
@@ -55,11 +60,20 @@ func TestServer(t *testing.T) {
 	opt, err := asynqlib.ParseRedisURI(redisConnStr)
 	require.NoError(t, err)
 	asynqClient := asynqlib.NewClient(opt)
+	defer asynqClient.Close()
 	_, err = asynqClient.Enqueue(asynqlib.NewTask("queue:task", []byte("task was called")), asynqlib.Queue("queue"))
 	require.NoError(t, err)
 
-	// Assert that tasks was called. We sleep for 1 minute to wait the server process the cronjob
-	time.Sleep(1 * time.Minute)
-	require.Equal(t, assertTaskPayload, "task was called")
-	require.Equal(t, assertCronPayload, "cron was called")
+	select {
+	case payload := <-taskCalled:
+		require.Equal(t, "task was called", payload)
+	case <-time.After(10 * time.Second):
+		t.Fatal("task was not processed within 10s")
+	}
+
+	select {
+	case <-cronCalled:
+	case <-time.After(2 * time.Minute):
+		t.Fatal("cron did not fire within 2 minutes")
+	}
 }
