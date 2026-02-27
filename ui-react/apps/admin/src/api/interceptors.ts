@@ -61,7 +61,7 @@ export function setupInterceptors(instance: AxiosInstance) {
       return response;
     },
     (error: AxiosError) => {
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 && useAuthStore.getState().token) {
         useAuthStore.getState().logout();
         window.location.href = "/v2/ui/login";
       } else if (isApiDown(error)) {
