@@ -359,9 +359,9 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
 	logFields := log.Fields{"tenant_id": tenantID, "old_device_uid": oldDevice.UID, "new_device_uid": newDevice.UID}
 
-	log.WithFields(logFields).Debug("transferring tunnels from old device to new device")
-	if err := s.store.TunnelUpdateDeviceUID(ctx, tenantID, oldDevice.UID, newDevice.UID); err != nil {
-		log.WithError(err).WithFields(logFields).Error("failed to transfer tunnels")
+	log.WithFields(logFields).Debug("firing device merge hooks")
+	if err := fireDeviceMerge(ctx, tenantID, oldDevice, newDevice); err != nil {
+		log.WithError(err).WithFields(logFields).Error("device merge hook failed")
 
 		return err
 	}

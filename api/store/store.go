@@ -16,7 +16,6 @@ type Store interface {
 	APIKeyStore
 	TransactionStore
 	SystemStore
-	TunnelStore
 
 	Options() QueryOptions
 }

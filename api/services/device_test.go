@@ -1377,6 +1377,10 @@ func TestOfflineDevice(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus(t *testing.T) {
+	savedHooks := deviceMergeHooks
+	deviceMergeHooks = nil
+	t.Cleanup(func() { deviceMergeHooks = savedHooks })
+
 	now := time.Now()
 	clockMock := new(clockmock.Clock)
 	clockMock.On("Now").Return(now)
@@ -1749,10 +1753,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(oldDevice, nil).
 					Once()
 				// Merge operations
-				storeMock.
-					On("TunnelUpdateDeviceUID", ctx, "00000000-0000-0000-0000-000000000000", "old-device", "new-device").
-					Return(nil).
-					Once()
 				storeMock.
 					On("SessionUpdateDeviceUID", ctx, models.UID("old-device"), models.UID("new-device")).
 					Return(nil).

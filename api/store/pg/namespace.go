@@ -290,7 +290,6 @@ func (pg *Pg) namespaceDeleteManyFn(ctx context.Context, tenantIDs []string) fun
 			(*entity.Device)(nil),
 			(*entity.PublicKey)(nil),
 			(*entity.APIKey)(nil),
-			(*entity.Tunnel)(nil),
 		}
 
 		for _, e := range entities {

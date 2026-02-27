@@ -228,13 +228,6 @@ func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun
 			return 0, fromSQLError(err)
 		}
 
-		if _, err := tx.NewDelete().
-			Model((*entity.Tunnel)(nil)).
-			Where("device_id IN (?)", bun.List(uids)).
-			Exec(ctx); err != nil {
-			return 0, fromSQLError(err)
-		}
-
 		return count, nil
 	}
 }
