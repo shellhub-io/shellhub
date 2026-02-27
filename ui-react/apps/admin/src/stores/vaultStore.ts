@@ -214,33 +214,36 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       if (get().status !== "unlocked") throw new Error("Vault is locked");
       const oldKey = getSessionKey()!;
 
-      await verifyPassword(currentPassword, meta);
+      try {
+        await verifyPassword(currentPassword, meta);
+      } catch {
+        set({ loading: false, error: "Current password is incorrect" });
+        return;
+      }
 
       const { meta: newMeta, derivedKey: newKey } = await createVaultMeta(newPassword);
 
-      // Save current encrypted data for rollback before re-encrypting.
+      // Save current encrypted data and meta for rollback before re-encrypting.
       const oldData = backend.loadData();
+      const oldMeta = meta;
 
       setSessionKey(newKey);
       try {
         await persistKeys(get().keys);
         backend.saveMeta(newMeta);
       } catch (err) {
-        // Restore old session key and old encrypted data (no re-encryption needed)
+        // Restore old session key, encrypted data, and meta
         setSessionKey(oldKey);
         if (oldData) backend.saveData(oldData);
+        backend.saveMeta(oldMeta);
         throw err;
       }
 
       set({ loading: false });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-      const isWrongPassword = msg === "Vault verifier mismatch";
       set({
         loading: false,
-        error: isWrongPassword
-          ? "Current password is incorrect"
-          : "Failed to change master password",
+        error: "Failed to change master password",
       });
     }
   },
