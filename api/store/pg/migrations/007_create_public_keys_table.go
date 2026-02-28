@@ -20,6 +20,7 @@ func migration007Up(ctx context.Context, db *bun.DB) error {
 		CreatedAt      time.Time `bun:"created_at,type:timestamptz,notnull"`
 		UpdatedAt      time.Time `bun:"updated_at,type:timestamptz,notnull"`
 		Name           string    `bun:"name,type:varchar,notnull"`
+		Username       string    `bun:"username,type:varchar,notnull,default:''"`
 		Data           []byte    `bun:"data,type:bytea,nullzero"`
 		FilterHostname string    `bun:"filter_hostname,type:varchar,default:''"`
 	}{}
