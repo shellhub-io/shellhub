@@ -154,6 +154,10 @@ func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
 		}
 	}
 
+	if err := fireNamespaceDelete(ctx, n); err != nil {
+		return err
+	}
+
 	return s.store.NamespaceDelete(ctx, n)
 }
 

@@ -411,7 +411,7 @@ func (s *Store) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (in
 			}
 		}
 
-		collections := []string{"devices", "sessions", "firewall_rules", "public_keys", "recorded_sessions", "api_keys", "tunnels"}
+		collections := []string{"devices", "sessions", "public_keys", "api_keys"}
 		for _, collection := range collections {
 			if _, err := s.db.Collection(collection).DeleteMany(sessCtx, bson.M{"tenant_id": bson.M{"$in": tenantIDs}}); err != nil {
 				return 0, FromMongoError(err)
