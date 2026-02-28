@@ -15,6 +15,7 @@ type PublicKey struct {
 	CreatedAt      time.Time `bun:"created_at"`
 	UpdatedAt      time.Time `bun:"updated_at"`
 	Name           string    `bun:"name"`
+	Username       string    `bun:"username"`
 	Data           []byte    `bun:"data,type:bytea"`
 	FilterHostname string    `bun:"filter_hostname"`
 
@@ -28,6 +29,7 @@ func PublicKeyFromModel(model *models.PublicKey) *PublicKey {
 		CreatedAt:      model.CreatedAt,
 		UpdatedAt:      time.Time{},
 		Name:           model.PublicKeyFields.Name,
+		Username:       model.PublicKeyFields.Username,
 		Data:           model.Data,
 		FilterHostname: model.Filter.Hostname,
 		Tags:           []*Tag{},
@@ -59,7 +61,7 @@ func PublicKeyToModel(entity *PublicKey) *models.PublicKey {
 		CreatedAt:   entity.CreatedAt,
 		PublicKeyFields: models.PublicKeyFields{
 			Name:     entity.Name,
-			Username: "",
+			Username: entity.Username,
 			Filter: models.PublicKeyFilter{
 				Hostname: entity.FilterHostname,
 				Taggable: models.Taggable{
