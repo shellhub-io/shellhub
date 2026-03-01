@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 import * as path from "node:path";
 
 function healthcheck(): Plugin {
@@ -16,7 +17,7 @@ function healthcheck(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), healthcheck()],
+  plugins: [react(), nodePolyfills(), healthcheck()],
   base: "/v2/ui/",
   server: {
     port: 8080,

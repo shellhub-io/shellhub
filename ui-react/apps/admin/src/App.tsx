@@ -29,6 +29,7 @@ const FirewallRulesPage = lazy(() => import("./pages/firewall-rules"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BannerEdit = lazy(() => import("./pages/BannerEdit"));
 const Profile = lazy(() => import("./pages/Profile"));
+const SecureVault = lazy(() => import("./pages/secure-vault"));
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
+                  <Route path="/secure-vault" element={<SecureVault />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/webendpoints" element={<WebEndpoints />} />
                   <Route path="/settings" element={<Settings />} />
