@@ -1,32 +1,41 @@
-import { useState, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { FormEvent, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
   ExclamationCircleIcon,
-  LockClosedIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
+import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
-export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const { login, loading, error } = useAuthStore();
+export default function MfaLogin() {
+  const otp = useOtpInput(6);
+  const { loginWithMfa, loading, error, mfaToken } = useAuthStore();
   const navigate = useNavigate();
+
+  // Redirect if no MFA token
+  useEffect(() => {
+    if (!mfaToken) {
+      navigate("/login");
+    }
+  }, [mfaToken, navigate]);
+
+  // Prevent rendering while redirecting
+  if (!mfaToken) {
+    return null;
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await login(username, password);
+    if (!otp.isComplete) return;
 
-    const state = useAuthStore.getState();
-
-    if (state.mfaToken) {
-      // MFA required
-      navigate("/mfa-login");
-    } else if (state.token) {
-      // Normal login
+    try {
+      await loginWithMfa(otp.getValue());
       navigate("/dashboard");
+    } catch {
+      // Error is set in store
+      otp.reset();
     }
-    // Else: error is already set in store
   };
 
   return (
@@ -35,7 +44,7 @@ export default function Login() {
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
           <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <LockClosedIcon
+            <ShieldCheckIcon
               className="w-10 h-10 text-primary"
               strokeWidth={1.2}
             />
@@ -43,14 +52,14 @@ export default function Login() {
         </div>
 
         <p className="text-2xs font-mono font-semibold uppercase tracking-wide text-primary/80 mb-2">
-          Welcome Back
+          Security Verification
         </p>
         <h1 className="text-3xl font-bold text-text-primary mb-3">
-          Sign in to ShellHub
+          Two-Factor Authentication
         </h1>
         <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Access your devices, sessions, and security rules from a single
-          dashboard.
+          Enter the 6-digit code from your authenticator app to complete sign
+          in.
         </p>
       </div>
 
@@ -71,56 +80,51 @@ export default function Login() {
           )}
 
           <div>
-            <label
-              htmlFor="username"
-              className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
-            >
-              Username
+            <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
+              Verification Code
             </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoFocus
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-              placeholder="username"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-              placeholder="password"
-            />
+            <div className="flex gap-2 justify-center" onPaste={otp.handlePaste}>
+              {otp.code.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => (otp.inputRefs.current[index] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => otp.handleChange(index, e.target.value)}
+                  onKeyDown={(e) => otp.handleKeyDown(index, e)}
+                  autoFocus={index === 0}
+                  aria-label={`Digit ${index + 1} of 6`}
+                  className="w-12 h-12 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                />
+              ))}
+            </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !otp.isComplete}
             className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span className="font-mono text-xs">Authenticating...</span>
+                <span className="font-mono text-xs">Verifying...</span>
               </span>
             ) : (
-              "Sign In"
+              "Verify"
             )}
           </button>
+
+          <div className="text-center pt-2">
+            <Link
+              to="/mfa-recover"
+              className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+            >
+              Lost your TOTP password?
+            </Link>
+          </div>
         </form>
       </div>
 

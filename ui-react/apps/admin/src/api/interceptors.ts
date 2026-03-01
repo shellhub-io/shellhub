@@ -62,6 +62,16 @@ export function setupInterceptors(instance: AxiosInstance) {
     },
     (error: AxiosError) => {
       if (error.response?.status === 401) {
+        // Check for MFA token in response headers
+        const mfaToken = error.response.headers["x-mfa-token"];
+
+        if (mfaToken) {
+          // MFA required - store token, let Login component handle navigation
+          useAuthStore.getState().setMfaToken(mfaToken);
+          return Promise.reject(error);
+        }
+
+        // Regular 401 - logout
         useAuthStore.getState().logout();
         window.location.href = "/v2/ui/login";
       } else if (isApiDown(error)) {

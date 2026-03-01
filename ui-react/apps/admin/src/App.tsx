@@ -15,6 +15,12 @@ import NamespaceGuard from "./components/common/NamespaceGuard";
 import SetupGuard from "./components/common/SetupGuard";
 import FeatureGate from "./components/common/FeatureGate";
 
+// Lazy-loaded pages
+const MfaLogin = lazy(() => import("./pages/MfaLogin"));
+const MfaRecover = lazy(() => import("./pages/MfaRecover"));
+const MfaResetRequest = lazy(() => import("./pages/MfaResetRequest"));
+const MfaResetVerify = lazy(() => import("./pages/MfaResetVerify"));
+const MfaResetComplete = lazy(() => import("./pages/MfaResetComplete"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
 const Sessions = lazy(() => import("./pages/Sessions"));
@@ -38,6 +44,11 @@ export default function App() {
           <Route element={<SetupGuard />}>
             <Route element={<LoginLayout />}>
               <Route path="/login" element={<Login />} />
+              <Route path="/mfa-login" element={<MfaLogin />} />
+              <Route path="/mfa-recover" element={<MfaRecover />} />
+              <Route path="/mfa-reset-request" element={<MfaResetRequest />} />
+              <Route path="/mfa-reset-verify" element={<MfaResetVerify />} />
+              <Route path="/reset-mfa" element={<MfaResetComplete />} />
               <Route path="/setup" element={<Setup />} />
             </Route>
             <Route element={<ProtectedRoute />}>
