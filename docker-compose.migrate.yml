@@ -1,0 +1,34 @@
+services:
+  mongo:
+    image: mongo:4.4.29
+    restart: unless-stopped
+    healthcheck:
+      test: 'test $$(echo "rs.initiate({ _id: ''rs'', members: [ { _id: 0, host: ''mongo:27017'' } ] }).ok || rs.status().ok" | mongo --quiet) -eq 1'
+      interval: 30s
+      start_period: 10s
+    command: ["--replSet", "rs", "--bind_ip_all"]
+    networks:
+      - shellhub
+  postgres:
+    image: postgres:18.0
+    command: postgres -c io_method=io_uring
+    security_opt:
+      - seccomp=unconfined
+    healthcheck:
+      start_period: 90s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U ${SHELLHUB_POSTGRES_USERNAME} -d ${SHELLHUB_POSTGRES_DATABASE}"]
+    environment:
+      - POSTGRES_USER=${SHELLHUB_POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${SHELLHUB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${SHELLHUB_POSTGRES_DATABASE}
+    networks:
+      - shellhub
+  api:
+    depends_on:
+      mongo:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
