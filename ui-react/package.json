@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev:admin": "npm run dev -w @shellhub/admin"
+    "dev:admin": "npm run dev -w @shellhub/admin",
+    "test:admin": "TZ=UTC vitest run -w ./apps/admin --config ./apps/admin/vite.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
