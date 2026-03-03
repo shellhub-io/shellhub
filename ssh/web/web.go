@@ -109,6 +109,8 @@ func NewSSHServerBridge(router *echo.Echo, cache cache.Cache) {
 		creds, ok := manager.get(token)
 		if !ok {
 			exit(wsconn, ErrBridgeCredentialsNotFound)
+
+			return
 		}
 
 		conn := NewConn(wsconn)
