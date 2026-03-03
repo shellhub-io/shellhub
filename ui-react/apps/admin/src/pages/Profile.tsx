@@ -153,7 +153,7 @@ function EditProfileDrawer({
     username !== currentUsername ? validateUsername(username) : null;
   const emailError = email !== currentEmail ? validateEmail(email) : null;
   const recoveryEmailError =
-    recoveryEmail !== currentRecoveryEmail
+    recoveryEmail !== currentRecoveryEmail || email !== currentEmail
       ? validateRecoveryEmail(recoveryEmail, email)
       : null;
 
