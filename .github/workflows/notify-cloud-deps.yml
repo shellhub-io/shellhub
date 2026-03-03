@@ -1,0 +1,45 @@
+name: Notify Cloud (dependency sync)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      # Cloud depends on root and api/ modules only (see cloud go.mod replace directives).
+      - 'go.mod'
+      - 'go.sum'
+      - 'api/go.mod'
+      - 'api/go.sum'
+
+concurrency:
+  group: notify-cloud-deps
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    name: Dispatch dependency sync to cloud
+
+    runs-on: ubuntu-24.04
+
+    permissions: {}
+
+    steps:
+      - name: Generate token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+
+      - name: Dispatch to cloud
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: 'shellhub-io',
+              repo: 'cloud',
+              event_type: 'sync-deps',
+              client_payload: { sha: context.sha },
+            });
