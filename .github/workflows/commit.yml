@@ -9,7 +9,9 @@ on:
 
 jobs:
   check-commit-message:
-    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]'  && github.event.pull_request.draft == false }}
+    if: >-
+      github.actor != 'dependabot[bot]'
+      && (github.event.pull_request.draft == false || github.event_name == 'push')
     name: Check Commit Message
     runs-on: ubuntu-24.04
     steps:
