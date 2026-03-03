@@ -240,6 +240,13 @@ jobs:
             The cloud/ (enterprise) repo is checked out at $GITHUB_WORKSPACE/cloud/ for context.
             Focus the review on the shellhub diff. Use cloud/ only to understand cross-repo impact.
 
+            ## Step 0: Pre-flight checks
+
+            1. Check if the PR is closed or merged — if so, stop immediately.
+            2. Check if the PR is a draft — if so, stop immediately.
+            3. For automatic triggers only (not `/review`): check if Claude has already
+               commented on this PR — if so, stop to avoid duplicate reviews.
+
             ## Step 1: Check for existing reviews
 
             Fetch existing review comments to avoid duplicating feedback:
@@ -258,7 +265,14 @@ jobs:
             ## Step 2: Spawn 5 reviewer agents IN PARALLEL
 
             Launch exactly 5 Task agents in a SINGLE message (so they run in parallel).
-            Each agent MUST use model: "opus". Each agent gets:
+            Model assignments by agent role:
+            - Agent 1 (Code Quality): model: "sonnet"
+            - Agent 2 (Security): model: "opus"
+            - Agent 3 (Testing): model: "opus"
+            - Agent 4 (Go/TypeScript Patterns): model: "sonnet"
+            - Agent 5 (Architecture & Cross-repo): model: "opus"
+            - Validation subagents (Step 3.5): model: "sonnet"
+            Each agent gets:
             - The PR diff (pass it in the prompt)
             - The list of changed files
             - Read access to the full codebase (current directory for shellhub, $GITHUB_WORKSPACE/cloud/ for cloud)
@@ -277,21 +291,38 @@ jobs:
             - description: what's wrong and why
             - suggestion: corrected code (if applicable), or empty string
 
-            General instructions for ALL agents:
-            - Be exhaustive. Report every issue you find regardless of severity. Do not
-              stop after finding the most obvious problems.
-            - Do at least two passes: first for structural/logic issues, then for edge
-              cases and defensive coding.
+            Agent assumptions (applies to all agents):
+            - All tools are functional. Do not test tools or make exploratory calls.
+            - Only call a tool if it is required. Every tool call should have a clear purpose.
+            - Do not speculatively read files unless you have a specific reason to suspect an issue there.
+
+            CRITICAL: Only flag HIGH SIGNAL issues.
+
+            Flag issues where:
+            - Code will fail to compile or parse (syntax errors, type errors, missing imports)
+            - Code will definitely produce wrong results regardless of inputs (clear logic errors)
+            - Clear, unambiguous CLAUDE.md or project convention violations where you can quote the exact rule
+            - Code introduces an exploitable security vulnerability (not theoretical)
+            - Code will cause data loss, corruption, or undefined behavior
+
+            Do NOT flag:
+            - Code style or quality concerns
+            - Potential issues that depend on specific inputs or state
+            - Subjective suggestions or improvements
+            - Performance concerns unless there is a clear algorithmic regression
+            - Suggestions to add comments or documentation
+
+            If you are not certain an issue is real, do not flag it.
+            False positives erode trust and waste reviewer time.
+
+            Additional rules:
             - For each suggestion you make, verify it is correct: check that all
               referenced variables exist, all event fields are available for every
               trigger type, token permissions are sufficient, and your fix does not
               introduce new issues.
-            - Check consistency: if you find an issue in one place, scan for the same
-              pattern elsewhere in the diff and report all occurrences.
-            - Consider all GitHub Actions trigger types this workflow handles
-              (pull_request_target, issue_comment, pull_request_review,
-              pull_request_review_comment) and verify each code path works for all of
-              them.
+            - Read the actual source files (not just the diff) to understand surrounding
+              context before flagging an issue.
+            - Do NOT flag pre-existing issues that were not introduced in this branch.
 
             Agents must NOT post any GitHub comments. They only return findings.
 
@@ -311,18 +342,37 @@ jobs:
             2. If the same pattern repeats across multiple locations, keep only the first occurrence and note "Same issue also at: file:line, file:line, ..."
             3. Compare against the existing review comments fetched in Step 1. Skip any finding already reported in a previous review thread on the same file and line.
 
-            ## Step 3.5: Cross-validate findings
+            Post exactly ONE comment per unique issue. If the same logical issue
+            appears in multiple locations, post on the first occurrence and list
+            others in the body: "Same issue also at: `path/file.go:42`, `path/other.go:87`"
 
-            Before posting, do a final review pass:
-            1. For each finding with a suggestion, verify the suggested fix is correct
-               and complete — does it handle all trigger types? Does it use the right
-               token? Does it introduce any new issues?
-            2. For each finding, check if the same pattern exists elsewhere in the diff
-               that wasn't reported. If so, add those locations.
-            3. Read the full diff one more time specifically looking for: missing error
-               handling, missing fallbacks for optional event fields, inconsistent
-               patterns between similar code blocks, and defensive coding gaps
-               (continue-on-error, || true, fail-closed defaults).
+            ## Step 3.5: Validate each finding
+
+            For each finding that survived deduplication, launch a validation subagent
+            (model: "sonnet"). Pass it the finding details and the PR diff context.
+
+            The validation agent must:
+            1. Read the source file at the reported location with surrounding context
+            2. Confirm the issue is real — not a misreading, not pre-existing, not assumption-dependent
+            3. Confirm the issue was introduced in this branch's diff
+            4. If a suggestion is provided, verify it compiles and doesn't introduce new issues
+            5. Return: confirmed (true/false), confidence (0-100), reason
+
+            Discard any finding where confirmed is false OR confidence is below 80.
+
+            Cap: if more than 10 findings survive deduplication, re-evaluate whether
+            the high-signal filter was applied correctly before spawning validation agents.
+
+            Do NOT flag (remove even if an agent reports them):
+            - Pre-existing issues not introduced in this branch's diff
+            - Purely cosmetic formatting (whitespace, brace placement, import order)
+            - Issues a linter or formatter would catch (gofmt, eslint, prettier, golangci-lint)
+            - Subjective preferences with no concrete impact on correctness
+            - Issues silenced by lint-ignore comments (nolint, eslint-disable, etc.)
+            - General code quality concerns (e.g., lack of test coverage) unless explicitly required in CLAUDE.md
+            - Pedantic nitpicks that a senior engineer would not flag
+            - Suggestions to add error handling for errors already handled upstream
+            - Something that appears to be a bug but is actually correct
 
             ## Step 4: Post inline comments
 
@@ -333,6 +383,12 @@ jobs:
             ```suggestion
             corrected code here
             ```
+
+            When posting suggestions:
+            - Only use suggestion blocks for small, self-contained fixes (5 lines or fewer)
+            - For 6+ lines or structural changes, describe the fix without a suggestion block
+            - Never post a suggestion that requires changes in multiple locations to be correct
+            - Every suggestion must be directly committable — it must compile as-is
 
             Do NOT re-report issues that already exist in previous review threads.
 
