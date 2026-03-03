@@ -75,7 +75,7 @@ export default function FirewallRules() {
             <div className="absolute inset-0 grid-bg opacity-30" />
           </div>
 
-          <div className="relative z-10 flex-1 flex items-center justify-center px-8 py-12">
+          <div className="flex-1 flex items-center justify-center px-8 py-12">
             <div className="w-full max-w-2xl animate-fade-in">
               <div className="text-center mb-10">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/5">
