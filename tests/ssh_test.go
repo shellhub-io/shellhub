@@ -927,57 +927,67 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				_, err = fmt.Fprintln(stdin, "echo START")
 				require.NoError(t, err)
 
+				waitForMarker := func(reader *bufio.Reader, marker string) error {
+					for {
+						line, err := reader.ReadString('\n')
+						if err != nil {
+							return err
+						}
+						if strings.TrimSpace(line) == marker {
+							return nil
+						}
+					}
+				}
+
+				readMarkedOutput := func(stdin io.Writer, reader *bufio.Reader, marker string) (string, error) {
+					if _, err := fmt.Fprintf(stdin, "echo %s && stty size\n", marker); err != nil {
+						return "", err
+					}
+					if err := waitForMarker(reader, marker); err != nil {
+						return "", err
+					}
+					line, err := reader.ReadString('\n')
+					if err != nil {
+						return "", err
+					}
+
+					return strings.TrimSpace(line), nil
+				}
+
 				// NOTE: Wait for the shell to be ready.
-				for {
-					line, err := reader.ReadString('\n')
+				require.NoError(t, waitForMarker(reader, "START"))
+
+				initialSizeOutput, err := readMarkedOutput(stdin, reader, "SIZE_CHECK")
+				require.NoError(t, err)
+
+				assert.Equal(t, fmt.Sprintf("%d %d", initialHeight, initialWidth), initialSizeOutput)
+
+				// Cycle through each size twice to verify resizing back to a
+				// previously used dimension is correctly propagated.
+				sizes := [][2]int{{120, 40}, {80, 24}, {200, 50}, {100, 30}}
+				for i := range len(sizes) * 2 {
+					size := sizes[i%len(sizes)]
+					newWidth, newHeight := size[0], size[1]
+
+					err = sess.WindowChange(newHeight, newWidth)
 					require.NoError(t, err)
 
-					if strings.TrimSpace(line) == "START" {
-						break
-					}
+					expected := fmt.Sprintf("%d %d", newHeight, newWidth)
+					// Each retry uses a unique marker to avoid matching stale output
+					// left in the buffer from a previous attempt.
+					sizeCheckCounter := 0
+					require.EventuallyWithT(t, func(tt *assert.CollectT) {
+						sizeCheckCounter++
+						marker := fmt.Sprintf("SIZE_CHECK_%d_%d", i, sizeCheckCounter)
+
+						output, err := readMarkedOutput(stdin, reader, marker)
+						if !assert.NoError(tt, err) {
+							return
+						}
+
+						assert.Equal(tt, expected, output)
+					}, 500*time.Millisecond, 50*time.Millisecond)
 				}
-
-				_, err = fmt.Fprintln(stdin, "echo SIZE_CHECK && stty size")
-				require.NoError(t, err)
-
-				// NOTE: Wait for the marker, then read the size
-				for {
-					line, err := reader.ReadString('\n')
-					require.NoError(t, err)
-
-					if strings.TrimSpace(line) == "SIZE_CHECK" {
-						break
-					}
-				}
-
-				// Now read the actual size output
-				initialSizeOutput, err := reader.ReadString('\n')
-				require.NoError(t, err)
-
-				assert.Equal(t, fmt.Sprintf("%d %d", initialHeight, initialWidth), strings.TrimSpace(initialSizeOutput))
-
-				newWidth, newHeight := 120, 40
-				err = sess.WindowChange(newHeight, newWidth)
-				require.NoError(t, err)
-
-				_, err = fmt.Fprintln(stdin, "echo SIZE_CHECK && stty size")
-				require.NoError(t, err)
-
-				// NOTE: Wait for the marker, then read the size
-				for {
-					line, err := reader.ReadString('\n')
-					require.NoError(t, err)
-
-					if strings.TrimSpace(line) == "SIZE_CHECK" {
-						break
-					}
-				}
-
-				// Now read the actual size output
-				newSizeOutput, err := reader.ReadString('\n')
-				require.NoError(t, err)
-
-				assert.Equal(t, fmt.Sprintf("%d %d", newHeight, newWidth), strings.TrimSpace(newSizeOutput))
 			},
 		},
 		{
