@@ -22,7 +22,7 @@ export default function MigrationPage() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center px-6 animate-fade-in">
+      <div className="flex flex-col items-center text-center px-6 animate-fade-in">
         <img
           src="/v2/ui/logo.svg"
           alt="ShellHub"
