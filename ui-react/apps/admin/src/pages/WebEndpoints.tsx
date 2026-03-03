@@ -889,7 +889,7 @@ function WebEndpointsContent() {
             <div className="absolute inset-0 grid-bg opacity-30" />
           </div>
 
-          <div className="relative z-10 flex-1 flex items-center justify-center px-8 py-12">
+          <div className="flex-1 flex items-center justify-center px-8 py-12">
             <div className="w-full max-w-2xl animate-fade-in">
               {/* Header */}
               <div className="text-center mb-10">

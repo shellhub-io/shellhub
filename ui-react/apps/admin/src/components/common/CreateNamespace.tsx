@@ -232,7 +232,7 @@ export default function CreateNamespace() {
     <div className="relative w-full min-h-0 flex-1 flex overflow-auto">
       <AmbientBackground />
 
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-8 py-12 flex flex-col">
+      <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col">
         {/* Hero */}
         <div className="text-center mb-12 animate-fade-in">
           <div className="animate-float mb-6 inline-block">
