@@ -115,7 +115,7 @@ function SettingsRow({
 
 /* ─── Edit Profile Drawer ─── */
 
-function EditProfileDrawer({
+export function EditProfileDrawer({
   open,
   onClose,
   currentName,
