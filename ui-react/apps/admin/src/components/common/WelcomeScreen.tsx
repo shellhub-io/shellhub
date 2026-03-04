@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ShieldCheckIcon,
   CpuChipIcon,
   UserGroupIcon,
+  KeyIcon,
   CommandLineIcon,
   CheckIcon,
   ClipboardDocumentIcon,
@@ -107,19 +107,20 @@ const steps = [
   },
   {
     num: "02",
+    title: "Add a public key",
+    description:
+      "Set up SSH public key authentication for secure, passwordless access.",
+    icon: <KeyIcon className="w-6 h-6" />,
+    linkTo: "/sshkeys/public-keys",
+    linkLabel: "Manage keys",
+  },
+  {
+    num: "03",
     title: "Invite your team",
     description: "Add members to collaborate and manage devices together.",
     icon: <UserGroupIcon className="w-6 h-6" />,
     linkTo: "/team",
     linkLabel: "Manage team",
-  },
-  {
-    num: "03",
-    title: "Set up firewall rules",
-    description: "Control who can access your devices and from where.",
-    icon: <ShieldCheckIcon className="w-6 h-6" />,
-    linkTo: "/firewall/rules",
-    linkLabel: "Configure rules",
   },
 ];
 
