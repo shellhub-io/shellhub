@@ -1,10 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import MfaRecover from "../MfaRecover";
 
+vi.mock("../../api/mfa", () => ({
+  disableMfa: vi.fn(),
+}));
+
+import { disableMfa } from "../../api/mfa";
+const mockedDisableMfa = vi.mocked(disableMfa);
+
 beforeEach(() => {
+  mockedDisableMfa.mockResolvedValue(undefined);
   useAuthStore.setState({
     user: "admin",
     loading: false,
@@ -133,14 +141,103 @@ describe("MfaRecover", () => {
     });
   });
 
-  it("does not show timeout modal initially", () => {
+  it("shows 10-minute recovery window warning note", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
       </MemoryRouter>
     );
 
-    // Countdown format "X minutes Y seconds" should not appear in the main body
-    expect(screen.queryByText(/\d+ minutes? \d+ seconds?/)).not.toBeInTheDocument();
+    // The warning note is always rendered regardless of mfaRecoveryExpiry
+    expect(screen.getByText(/10-minute window/i)).toBeInTheDocument();
+  });
+
+  it("redirects to login when no identifier and no mfaToken", async () => {
+    useAuthStore.setState({
+      user: null,
+      username: null,
+      mfaToken: null,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/recover-mfa"]}>
+        <Routes>
+          <Route path="/recover-mfa" element={<MfaRecover />} />
+          <Route path="/login" element={<div>Login Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Login Page")).toBeInTheDocument();
+    });
+  });
+
+  it("does not redirect when mfaToken is present even without identifier", async () => {
+    useAuthStore.setState({
+      user: null,
+      username: null,
+      mfaToken: "active-mfa-token",
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/recover-mfa"]}>
+        <Routes>
+          <Route path="/recover-mfa" element={<MfaRecover />} />
+          <Route path="/login" element={<div>Login Page</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Should not redirect — mfaToken prevents redirect even without identifier
+    await waitFor(() => {
+      expect(screen.queryByText("Login Page")).not.toBeInTheDocument();
+    });
+  });
+
+  it("does not show recovery timeout modal initially", () => {
+    render(
+      <MemoryRouter>
+        <MfaRecover />
+      </MemoryRouter>
+    );
+
+    // Modal only appears after a successful recovery code submission
+    expect(screen.queryByText(/Recovery Window Active/i)).not.toBeInTheDocument();
+  });
+
+  it("calls disableMfa with the recovery code during recovery window", async () => {
+    const futureExpiry = Math.floor(Date.now() / 1000) + 600;
+    const mockRecover = vi.fn().mockImplementation(async () => {
+      useAuthStore.setState({ mfaRecoveryExpiry: futureExpiry });
+    });
+    useAuthStore.setState({ recoverWithCode: mockRecover });
+
+    render(
+      <MemoryRouter initialEntries={["/recover-mfa"]}>
+        <Routes>
+          <Route path="/recover-mfa" element={<MfaRecover />} />
+          <Route path="/dashboard" element={<div>Dashboard</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Enter and submit a recovery code
+    fireEvent.change(screen.getByPlaceholderText(/recovery code/i), {
+      target: { value: "MY-RECOVERY-CODE" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /recover account/i }));
+
+    // Wait for the recovery window modal to appear
+    await waitFor(() => {
+      expect(screen.getByText(/Recovery Window Active/i)).toBeInTheDocument();
+    });
+
+    // Click "Disable MFA" in the recovery window modal
+    fireEvent.click(screen.getByRole("button", { name: /disable mfa/i }));
+
+    await waitFor(() => {
+      expect(mockedDisableMfa).toHaveBeenCalledWith({ recovery_code: "MY-RECOVERY-CODE" });
+    });
   });
 });

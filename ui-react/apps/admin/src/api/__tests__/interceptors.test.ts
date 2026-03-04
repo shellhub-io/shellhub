@@ -39,6 +39,8 @@ beforeEach(() => {
     role: null,
     name: null,
     loading: false,
+    error: null,
+    mfaToken: null,
   });
 
   useConnectivityStore.getState().markUp();
@@ -259,11 +261,12 @@ describe("response interceptor", () => {
           headers: { "x-mfa-token": "mfa-temp-token-456" },
           data: {},
         },
+        config: { url: "/api/login" },
         isAxiosError: true,
       });
       client.defaults.adapter = adapter;
 
-      await expect(client.get("/test")).rejects.toBeDefined();
+      await expect(client.get("/api/login")).rejects.toBeDefined();
 
       const state = useAuthStore.getState();
       expect(state.mfaToken).toBe("mfa-temp-token-456");
@@ -288,8 +291,8 @@ describe("response interceptor", () => {
     });
 
     it("does not interfere with other status codes", async () => {
-      const token = makeJwt(futureExp());
-      useAuthStore.setState({ token });
+      const validToken = makeJwt(futureExp());
+      useAuthStore.setState({ token: validToken });
 
       const adapter = vi.fn().mockRejectedValue({
         response: {
@@ -306,7 +309,7 @@ describe("response interceptor", () => {
       // MFA token should NOT be set for non-401 responses
       expect(useAuthStore.getState().mfaToken).toBeNull();
       // Should still be logged in
-      expect(useAuthStore.getState().token).toBe(token);
+      expect(useAuthStore.getState().token).toBe(validToken);
     });
   });
 });
