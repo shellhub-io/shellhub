@@ -4,9 +4,6 @@ import { getConfig } from "../../env";
 import { useTerminalStore } from "../../stores/terminalStore";
 import {
   HomeIcon,
-  CubeIcon,
-  GlobeAltIcon,
-  ShieldCheckIcon,
   KeyIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
@@ -47,16 +44,6 @@ const sections: NavSection[] = [
         icon: <CpuChipIcon className="w-[18px] h-[18px]" />,
       },
       {
-        to: "/containers",
-        label: "Containers",
-        icon: <CubeIcon className="w-[18px] h-[18px]" />,
-      },
-      {
-        to: "/webendpoints",
-        label: "Web Endpoints",
-        icon: <GlobeAltIcon className="w-[18px] h-[18px]" />,
-      },
-      {
         to: "/sessions",
         label: "Sessions",
         icon: <CommandLineIcon className="w-[18px] h-[18px]" />,
@@ -66,12 +53,6 @@ const sections: NavSection[] = [
   {
     title: "Security",
     items: [
-      {
-        to: "/firewall/rules",
-        label: "Firewall Rules",
-        premium: true,
-        icon: <ShieldCheckIcon className="w-[18px] h-[18px]" />,
-      },
       {
         to: "/sshkeys/public-keys",
         label: "Public Keys",
