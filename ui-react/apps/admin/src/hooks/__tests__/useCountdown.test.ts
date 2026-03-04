@@ -20,11 +20,12 @@ describe("useCountdown", () => {
   });
 
   it("calculates time left correctly", () => {
-    const now = Date.now();
+    // Align to second boundary so diff is exact (no sub-second rounding)
+    const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
     // 5 minutes 30 seconds in the future
-    const target = Math.floor(now / 1000) + 330;
+    const target = now / 1000 + 330;
 
     const { result } = renderHook(() => useCountdown(target));
 
@@ -33,11 +34,11 @@ describe("useCountdown", () => {
   });
 
   it("handles singular minute and second", () => {
-    const now = Date.now();
+    const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
     // 1 minute 1 second in the future
-    const target = Math.floor(now / 1000) + 61;
+    const target = now / 1000 + 61;
 
     const { result } = renderHook(() => useCountdown(target));
 
@@ -45,11 +46,11 @@ describe("useCountdown", () => {
   });
 
   it("handles plural minutes", () => {
-    const now = Date.now();
+    const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
     // 2 minutes 0 seconds in the future
-    const target = Math.floor(now / 1000) + 120;
+    const target = now / 1000 + 120;
 
     const { result } = renderHook(() => useCountdown(target));
 
@@ -57,11 +58,11 @@ describe("useCountdown", () => {
   });
 
   it("updates countdown every second", () => {
-    const now = Date.now();
+    const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);
 
     // 10 seconds in the future
-    const target = Math.floor(now / 1000) + 10;
+    const target = now / 1000 + 10;
 
     const { result } = renderHook(() => useCountdown(target));
 
