@@ -51,3 +51,15 @@ export async function updatePassword(
     password: newPassword,
   });
 }
+
+export async function recoverPassword(username: string): Promise<void> {
+  await apiClient.post("/api/user/recover_password", { username });
+}
+
+export async function updateRecoverPassword(
+  uid: string,
+  token: string,
+  password: string,
+): Promise<void> {
+  await apiClient.post(`/api/user/${encodeURIComponent(uid)}/update_password`, { token, password });
+}

@@ -4,6 +4,7 @@ import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
 import { AxiosError } from "axios";
 import { LABEL, INPUT } from "../utils/styles";
+import { validatePassword } from "../utils/validation";
 import { validateRecoveryEmail } from "./profile/validate";
 import {
   UserIcon,
@@ -42,11 +43,6 @@ function validateEmail(v: string): string | null {
   return null;
 }
 
-function validatePassword(v: string): string | null {
-  if (v.length < 5) return "Password must be at least 5 characters";
-  if (v.length > 32) return "Password must be at most 32 characters";
-  return null;
-}
 
 /* ─── Settings Card ─── */
 
