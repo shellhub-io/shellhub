@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createAxiosError } from "../../test/createAxiosError";
 import { useAuthStore } from "../authStore";
 
 vi.mock("../../api/auth", () => ({
@@ -63,6 +64,22 @@ describe("authStore", () => {
       expect(state.token).toBeNull();
       expect(state.loading).toBe(false);
       expect(state.error).toBe("Invalid username or password");
+    });
+
+    it("sets unconfirmed-account message and clears token on 403", async () => {
+      mockedLogin.mockRejectedValue(createAxiosError(403));
+
+      // Seed a stale token to verify it is cleared on failure
+      useAuthStore.setState({ token: "stale-token" });
+
+      await useAuthStore.getState().login("admin", "password");
+
+      const state = useAuthStore.getState();
+      expect(state.token).toBeNull();
+      expect(state.loading).toBe(false);
+      expect(state.error).toBe(
+        "Your account has not been confirmed. Please check your email for the activation link.",
+      );
     });
 
     it("sets loading during request", async () => {

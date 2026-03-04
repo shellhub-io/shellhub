@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import axios from "axios";
 import {
   login as apiLogin,
   getAuthUser,
@@ -67,8 +68,12 @@ export const useAuthStore = create<AuthState>()(
             name: data.name,
             loading: false,
           });
-        } catch {
-          set({ loading: false, error: "Invalid username or password" });
+        } catch (err) {
+          const status = axios.isAxiosError(err) ? err.response?.status : null;
+          const error = status === 403
+            ? "Your account has not been confirmed. Please check your email for the activation link."
+            : "Invalid username or password";
+          set({ loading: false, error, token: null });
         }
       },
 

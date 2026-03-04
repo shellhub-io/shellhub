@@ -140,6 +140,24 @@ describe("response interceptor", () => {
     expect(window.location.href).toBe("/v2/ui/login");
   });
 
+  it("does NOT logout or redirect on 401 when no active session token", async () => {
+    // No token — unauthenticated request (e.g. sign-up API returning 401)
+    useAuthStore.setState({ token: null });
+
+    const adapter = vi.fn().mockRejectedValue({
+      response: { status: 401 },
+      isAxiosError: true,
+    });
+    client.defaults.adapter = adapter;
+
+    await expect(client.get("/test")).rejects.toBeDefined();
+
+    // State must not change
+    expect(useAuthStore.getState().token).toBeNull();
+    // Must not redirect
+    expect(window.location.href).toBe("");
+  });
+
   it("marks API as up on successful response", async () => {
     useConnectivityStore.getState().markDown();
     expect(useConnectivityStore.getState().apiReachable).toBe(false);
