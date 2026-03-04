@@ -1,15 +1,14 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CpuChipIcon,
   UserGroupIcon,
   KeyIcon,
   CommandLineIcon,
-  CheckIcon,
-  ClipboardDocumentIcon,
   ArrowRightIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { buildInstallCommand } from "@/utils/installCommand";
+import CopyButton from "./CopyButton";
 
 interface WelcomeScreenProps {
   namespaceName: string;
@@ -128,18 +127,10 @@ export default function WelcomeScreen({
   namespaceName,
   tenantId,
 }: WelcomeScreenProps) {
-  const [copied, setCopied] = useState(false);
-
-  const installCmd = `curl -sSf "${window.location.origin}/install.sh?tenant_id=${tenantId}" | sh`;
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(installCmd);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const installCmd = buildInstallCommand(tenantId, window.location.origin);
 
   return (
-    <div className="-mx-8 -mt-8 min-h-[calc(100vh-3.5rem)]">
+    <div className="-m-8 flex-1 relative overflow-hidden">
       {/* Hero */}
       <div className="relative px-8 pt-16 pb-12 overflow-hidden">
         <ConnectionGrid />
@@ -219,27 +210,13 @@ export default function WelcomeScreen({
 
                 {step.hasCommand && (
                   <div className="relative">
-                    <div className="bg-background border border-border rounded-lg p-3 pr-10 font-mono text-2xs text-text-secondary break-all leading-relaxed">
+                    <div className="bg-background border border-border rounded-lg p-3 pr-10 font-mono text-xs text-text-secondary break-all leading-relaxed">
                       <span className="text-primary/60">$ </span>
                       {installCmd}
                     </div>
-                    <button
-                      onClick={handleCopy}
-                      className="absolute top-2 right-2 p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-                      title="Copy command"
-                    >
-                      {copied ? (
-                        <CheckIcon
-                          className="w-3.5 h-3.5 text-accent-green"
-                          strokeWidth={2}
-                        />
-                      ) : (
-                        <ClipboardDocumentIcon
-                          className="w-3.5 h-3.5"
-                          strokeWidth={2}
-                        />
-                      )}
-                    </button>
+                    <div className="absolute top-2 right-2">
+                      <CopyButton text={installCmd} size="md" />
+                    </div>
                   </div>
                 )}
 
