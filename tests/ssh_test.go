@@ -973,20 +973,42 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					require.NoError(t, err)
 
 					expected := fmt.Sprintf("%d %d", newHeight, newWidth)
-					// Each retry uses a unique marker to avoid matching stale output
-					// left in the buffer from a previous attempt.
-					sizeCheckCounter := 0
-					require.EventuallyWithT(t, func(tt *assert.CollectT) {
-						sizeCheckCounter++
-						marker := fmt.Sprintf("SIZE_CHECK_%d_%d", i, sizeCheckCounter)
+					// Poll until stty reports the expected size. Each attempt
+					// uses a unique marker so stale output from prior attempts
+					// is never matched.
+					//
+					// readMarkedOutput blocks on ReadString which cannot be
+					// interrupted, so each attempt runs in a goroutine with a
+					// per-attempt timeout. On timeout we abort immediately
+					// (the deferred sess/conn Close unblocks the reader).
+					deadline := time.Now().Add(5 * time.Second)
+					var lastOutput string
+					matched := false
+					for attempt := 0; !matched && time.Now().Before(deadline); attempt++ {
+						marker := fmt.Sprintf("SIZE_CHECK_%d_%d", i, attempt)
 
-						output, err := readMarkedOutput(stdin, reader, marker)
-						if !assert.NoError(tt, err) {
-							return
+						type readResult struct {
+							output string
+							err    error
 						}
+						ch := make(chan readResult, 1)
+						go func() {
+							out, err := readMarkedOutput(stdin, reader, marker)
+							ch <- readResult{out, err}
+						}()
 
-						assert.Equal(tt, expected, output)
-					}, 500*time.Millisecond, 50*time.Millisecond)
+						select {
+						case r := <-ch:
+							require.NoError(t, r.err)
+							lastOutput = r.output
+							matched = (r.output == expected)
+						case <-time.After(2 * time.Second):
+							require.Fail(t, "timeout reading stty output",
+								"marker=%s expected=%s", marker, expected)
+						}
+					}
+					require.True(t, matched,
+						"expected terminal size %q but got %q", expected, lastOutput)
 				}
 			},
 		},
