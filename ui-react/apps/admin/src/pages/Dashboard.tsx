@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ClockIcon,
@@ -11,8 +11,8 @@ import {
 import { useDevicesStore } from "../stores/devicesStore";
 import { useNamespacesStore } from "../stores/namespacesStore";
 import { useSessionsStore } from "../stores/sessionsStore";
-import { getStats } from "../api/stats";
-import { type Stats } from "../types/stats";
+import { useStatsStore } from "../stores/statsStore";
+import { hasAnyDevices } from "../utils/stats";
 import { formatDate } from "../utils/date";
 import PageHeader from "../components/common/PageHeader";
 import StatCard from "../components/common/StatCard";
@@ -25,27 +25,33 @@ import { TH } from "../utils/styles";
 export default function Dashboard() {
   const {
     totalCount: devicesCount,
-    loading,
     fetch: fetchDevices,
+    setStatus: setDevicesStatus,
   } = useDevicesStore();
   const { currentNamespace } = useNamespacesStore();
   const { sessions, fetch: fetchSessions } = useSessionsStore();
-  const [stats, setStats] = useState<Stats | null>(null);
+  const { stats, loading: statsLoading, error: statsError, fetch: fetchStats } = useStatsStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchDevices(1, 1);
     fetchSessions(1, 5);
-    getStats()
-      .then(setStats)
-      .catch(() => {});
-  }, [fetchDevices, fetchSessions]);
+    fetchStats();
+  }, [fetchDevices, fetchSessions, fetchStats]);
 
-  if (!loading && devicesCount === 0 && currentNamespace) {
+  // Suppress flash: while stats are loading, don't render the full dashboard
+  if (statsLoading) return null;
+
+  if (!statsError && stats && !hasAnyDevices(stats) && currentNamespace) {
     return (
       <WelcomeScreen namespaceName={currentNamespace.name} />
     );
   }
+
+  const goToPending = () => {
+    setDevicesStatus("pending");
+    navigate("/devices");
+  };
 
   return (
     <div>
@@ -89,7 +95,7 @@ export default function Dashboard() {
             icon={<SignalIcon className="w-7 h-7" />}
             title="Online Devices"
             value={stats?.online_devices ?? "--"}
-            linkLabel="View online"
+            linkLabel="View all devices"
             linkTo="/devices"
             accent="text-accent-green"
           />
@@ -100,7 +106,7 @@ export default function Dashboard() {
             title="Pending Devices"
             value={stats?.pending_devices ?? "--"}
             linkLabel="View pending"
-            linkTo="/devices"
+            onClick={goToPending}
             accent="text-accent-yellow"
           />
         </div>
