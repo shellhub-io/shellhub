@@ -65,6 +65,11 @@ export async function removeDevice(uid: string): Promise<void> {
   await apiClient.delete(`/api/devices/${uid}`);
 }
 
+export async function getFirstPendingDevice(): Promise<Device | null> {
+  const { data } = await getDevices(1, 1, "pending");
+  return data.length > 0 ? data[0] : null;
+}
+
 export async function addDeviceTag(uid: string, tag: string): Promise<void> {
   await apiClient.post(`/api/devices/${uid}/tags/${tag}`);
 }
