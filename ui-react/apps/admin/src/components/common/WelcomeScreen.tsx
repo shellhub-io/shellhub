@@ -7,12 +7,9 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
-import { buildInstallCommand } from "@/utils/installCommand";
-import CopyButton from "./CopyButton";
 
 interface WelcomeScreenProps {
   namespaceName: string;
-  tenantId: string;
 }
 
 function ConnectionGrid() {
@@ -102,7 +99,8 @@ const steps = [
     description:
       "Install the ShellHub agent on any Linux device to start managing it remotely.",
     icon: <CpuChipIcon className="w-6 h-6" />,
-    hasCommand: true,
+    linkTo: "/devices/add",
+    linkLabel: "Add device",
   },
   {
     num: "02",
@@ -123,12 +121,7 @@ const steps = [
   },
 ];
 
-export default function WelcomeScreen({
-  namespaceName,
-  tenantId,
-}: WelcomeScreenProps) {
-  const installCmd = buildInstallCommand(tenantId, window.location.origin);
-
+export default function WelcomeScreen({ namespaceName }: WelcomeScreenProps) {
   return (
     <div className="-m-8 flex-1 relative overflow-hidden">
       {/* Hero */}
@@ -182,9 +175,9 @@ export default function WelcomeScreen({
 
       {/* Steps */}
       <div className="px-8 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+        <ol className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {steps.map((step, idx) => (
-            <div
+            <li
               key={step.num}
               className="group relative bg-card border border-border rounded-xl p-6 hover:border-primary/30 transition-all duration-300 animate-slide-up overflow-hidden"
               style={{ animationDelay: `${400 + idx * 100}ms` }}
@@ -208,18 +201,6 @@ export default function WelcomeScreen({
                   {step.description}
                 </p>
 
-                {step.hasCommand && (
-                  <div className="relative">
-                    <div className="bg-background border border-border rounded-lg p-3 pr-10 font-mono text-xs text-text-secondary break-all leading-relaxed">
-                      <span className="text-primary/60">$ </span>
-                      {installCmd}
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <CopyButton text={installCmd} size="md" />
-                    </div>
-                  </div>
-                )}
-
                 {step.linkTo && (
                   <Link
                     to={step.linkTo}
@@ -233,9 +214,9 @@ export default function WelcomeScreen({
                   </Link>
                 )}
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
 
         {/* Footer links */}
         <div

@@ -43,10 +43,7 @@ export default function Dashboard() {
 
   if (!loading && devicesCount === 0 && currentNamespace) {
     return (
-      <WelcomeScreen
-        namespaceName={currentNamespace.name}
-        tenantId={currentNamespace.tenant_id}
-      />
+      <WelcomeScreen namespaceName={currentNamespace.name} />
     );
   }
 

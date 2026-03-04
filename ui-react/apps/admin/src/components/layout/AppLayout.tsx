@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import AppBar from "./AppBar";
 import TerminalManager from "../terminal/TerminalManager";
 import ConnectivityBanner from "../common/ConnectivityBanner";
+import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
 
 export default function AppLayout() {
   const { pathname } = useLocation();
@@ -26,6 +27,7 @@ export default function AppLayout() {
         </div>
       </div>
       <TerminalManager />
+      <WelcomeWizardTrigger />
     </div>
   );
 }
