@@ -6,7 +6,6 @@ import {
   HomeIcon,
   KeyIcon,
   Cog6ToothIcon,
-  MagnifyingGlassIcon,
   UsersIcon,
   CpuChipIcon,
   CommandLineIcon,
@@ -120,27 +119,7 @@ export default function Sidebar() {
         <img src="/v2/ui/logo.svg" alt="ShellHub" className="h-8" />
       </div>
 
-      {/* Command palette trigger */}
-      <div className="px-3 pt-4 pb-2">
-        <button
-          onClick={() =>
-            window.dispatchEvent(
-              new KeyboardEvent("keydown", { key: "k", ctrlKey: true }),
-            )
-          }
-          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-md border border-border hover:border-border-light bg-hover-subtle hover:bg-hover-medium transition-all duration-150 group"
-        >
-          <MagnifyingGlassIcon className="w-3.5 h-3.5 text-text-muted group-hover:text-text-secondary transition-colors shrink-0" />
-          <span className="text-xs text-text-muted/50 group-hover:text-text-muted transition-colors flex-1 text-left">
-            Search...
-          </span>
-          <kbd className="text-2xs font-mono text-text-muted/30 bg-hover-subtle border border-border/50 px-1.5 py-0.5 rounded shrink-0">
-            ⌘K
-          </kbd>
-        </button>
-      </div>
-
-      <nav className="flex-1 px-3 py-2 overflow-y-auto">
+      <nav className="flex-1 px-3 pt-4 py-2 overflow-y-auto">
         {sections.map((section, idx) => (
           <div key={section.title} className={idx > 0 ? "mt-5" : ""}>
             <p className="px-3 mb-1.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60">

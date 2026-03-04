@@ -2,7 +2,6 @@ import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import AppBar from "./AppBar";
 import TerminalManager from "../terminal/TerminalManager";
-import CommandPalette from "../CommandPalette";
 import ConnectivityBanner from "../common/ConnectivityBanner";
 
 export default function AppLayout() {
@@ -27,7 +26,6 @@ export default function AppLayout() {
         </div>
       </div>
       <TerminalManager />
-      <CommandPalette />
     </div>
   );
 }
