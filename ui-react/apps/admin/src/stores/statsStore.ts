@@ -4,18 +4,23 @@ import { Stats } from "@/types/stats";
 
 interface StatsState {
   stats: Stats | null;
+  loading: boolean;
+  error: boolean;
   fetch: () => Promise<void>;
 }
 
 export const useStatsStore = create<StatsState>((set) => ({
   stats: null,
+  loading: true,
+  error: false,
 
   fetch: async () => {
+    set({ loading: true, error: false });
     try {
       const stats = await getStats();
-      set({ stats });
+      set({ stats, loading: false });
     } catch {
-      // Stats unavailable — fail silently
+      set({ loading: false, error: true });
     }
   },
 }));
