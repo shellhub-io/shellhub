@@ -67,7 +67,7 @@ EOF
 }
 
 tenant_file() {
-  _KEY="${PRIVATE_KEY:-/etc/shellhub.key}"
+  _KEY="${PRIVATE_KEY:-/etc/shellhub-agent/shellhub.key}"
 
   echo "${_KEY#/host}.tenant"
 }
@@ -315,7 +315,7 @@ podman_install() {
   esac
 
   if [ -z "$MODE" ]; then
-    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub-agent/shellhub.key}"
 
     echo "🚀 Starting ShellHub container in Agent mode..."
   fi
@@ -351,7 +351,7 @@ podman_install() {
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "podman"
-    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub-agent/shellhub.key}"
     enroll_agent_interactively "$SUDO $WRAPPER_PATH" "${_CKEY#/host}" "$SUDO podman logs --tail 50 $CONTAINER_NAME"
   fi
 }
@@ -403,7 +403,7 @@ docker_install() {
   esac
 
   if [ -z "$MODE" ]; then
-    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub-agent/shellhub.key}"
 
     echo "🚀 Starting ShellHub container in Agent mode..."
   fi
@@ -439,7 +439,7 @@ docker_install() {
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "docker"
-    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub-agent/shellhub.key}"
     enroll_agent_interactively "$SUDO $WRAPPER_PATH" "${_CKEY#/host}" "$SUDO docker logs --tail 50 $CONTAINER_NAME"
   fi
 }
@@ -484,7 +484,7 @@ snap_install() {
 
     sudo snap set shellhub server-address="$SERVER_ADDRESS"
     sudo snap set shellhub tenant-id="$TENANT_ID"
-    sudo snap set shellhub private-key="${PRIVATE_KEY:-/etc/shellhub.key}"
+    sudo snap set shellhub private-key="${PRIVATE_KEY:-/etc/shellhub-agent/shellhub.key}"
 
     sudo snap start shellhub
   } || {
@@ -560,7 +560,7 @@ standalone_install() {
   AGENT_LOG_CMD=""
   command -v journalctl >/dev/null 2>&1 && AGENT_LOG_CMD="$SUDO journalctl -u shellhub-agent --no-pager -n 50 --since @$_SERVICE_STARTED"
 
-  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}" "$AGENT_LOG_CMD"
+  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub-agent/shellhub.key}" "$AGENT_LOG_CMD"
   _ENROLLMENT_STATUS=$?
 
   rm -rf "$TMP_DIR"
