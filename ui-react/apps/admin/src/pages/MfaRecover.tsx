@@ -10,12 +10,21 @@ import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
 export default function MfaRecover() {
-  const { recoverWithCode, loading, error, mfaRecoveryExpiry, updateMfaStatus, user, username, mfaToken } = useAuthStore();
+  const recoverWithCode = useAuthStore((s) => s.recoverWithCode);
+  const updateMfaStatus = useAuthStore((s) => s.updateMfaStatus);
+  const loading = useAuthStore((s) => s.loading);
+  const error = useAuthStore((s) => s.error);
+  const mfaRecoveryExpiry = useAuthStore((s) => s.mfaRecoveryExpiry);
+  const pendingMfaUser = useAuthStore((s) => s.pendingMfaUser);
+  const user = useAuthStore((s) => s.user);
+  const username = useAuthStore((s) => s.username);
+  const mfaToken = useAuthStore((s) => s.mfaToken);
   const navigate = useNavigate();
 
-  const identifier = user || username;
+  const identifier = pendingMfaUser || user || username;
   const [recoveryCode, setRecoveryCode] = useState("");
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
+  const [disableError, setDisableError] = useState("");
 
   // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {
@@ -32,10 +41,16 @@ export default function MfaRecover() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!recoveryCode.trim()) return;
+    setDisableError("");
 
     try {
       await recoverWithCode(recoveryCode, identifier);
-      setShowTimeoutModal(true);
+      // Check if backend provided a recovery window (X-Expires-At header)
+      if (useAuthStore.getState().mfaRecoveryExpiry) {
+        setShowTimeoutModal(true);
+      } else {
+        navigate("/dashboard");
+      }
     } catch {
       // Error is set in store
       setRecoveryCode("");
@@ -43,11 +58,17 @@ export default function MfaRecover() {
   };
 
   const handleDisableMfa = async () => {
-    // Use the recovery code that was just entered
-    await disableMfa({ recovery_code: recoveryCode });
-    updateMfaStatus(false);
-    setShowTimeoutModal(false);
-    navigate("/dashboard");
+    try {
+      // Backend caches the recovery code for 10 minutes after RecoverMFA succeeds;
+      // DisableMFA validates against that cache — no re-hashing required.
+      await disableMfa({ recovery_code: recoveryCode });
+      updateMfaStatus(false);
+      setShowTimeoutModal(false);
+      navigate("/dashboard");
+    } catch {
+      setShowTimeoutModal(false);
+      setDisableError("Failed to disable MFA. Please try again or contact support.");
+    }
   };
 
   const handleCloseModal = () => {
@@ -85,13 +106,13 @@ export default function MfaRecover() {
         style={{ animationDelay: "200ms" }}
       >
         <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
+          {(error || disableError) && (
             <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <ExclamationCircleIcon
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
               />
-              {error}
+              {error || disableError}
             </div>
           )}
 
@@ -109,6 +130,8 @@ export default function MfaRecover() {
               onChange={(e) => setRecoveryCode(e.target.value)}
               required
               autoFocus
+              autoComplete="off"
+              spellCheck={false}
               className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-yellow/50 focus:ring-1 focus:ring-accent-yellow/20 transition-all duration-200"
               placeholder="Enter recovery code"
             />
@@ -134,13 +157,13 @@ export default function MfaRecover() {
 
           <div className="text-center pt-2 space-y-2">
             <Link
-              to="/mfa-login"
+              to="/login-mfa"
               className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
             >
               ← Back to verification
             </Link>
             <Link
-              to="/mfa-reset-request"
+              to="/reset-request-mfa"
               className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
             >
               Lost recovery codes? Request email reset
@@ -165,7 +188,7 @@ export default function MfaRecover() {
       <AuthFooterLinks />
 
       {/* Timeout Modal */}
-      {showTimeoutModal && mfaRecoveryExpiry && (
+      {showTimeoutModal && mfaRecoveryExpiry !== null && (
         <MfaRecoveryTimeoutModal
           open={showTimeoutModal}
           expiresAt={mfaRecoveryExpiry}

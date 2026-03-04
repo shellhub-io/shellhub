@@ -1,17 +1,9 @@
 import apiClient from "./client";
+import type { LoginResponse } from "../types/mfa";
 
 interface LoginPayload {
   username: string;
   password: string;
-}
-
-interface LoginResponse {
-  token: string;
-  user: string;
-  name: string;
-  id: string;
-  tenant: string;
-  email: string;
 }
 
 interface UserResponse {

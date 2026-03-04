@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { disableMfa } from "../../api/mfa";
 import { useOtpInput } from "../../hooks/useOtpInput";
@@ -24,9 +24,20 @@ export default function MfaDisableDialog({
   const [error, setError] = useState("");
   const [emailRequested, setEmailRequested] = useState(false);
   const [requestingEmail, setRequestingEmail] = useState(false);
-  const otpMainEmail = useOtpInput(5, true);
-  const otpRecoveryEmail = useOtpInput(5, true);
-  const { user, username, requestMfaReset } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const username = useAuthStore((s) => s.username);
+  const requestMfaReset = useAuthStore((s) => s.requestMfaReset);
+
+  useEffect(() => {
+    if (!open) return;
+    setMode("totp");
+    otp.reset();
+    setRecoveryCode("");
+    setSubmitting(false);
+    setError("");
+    setEmailRequested(false);
+    setRequestingEmail(false);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!open) return null;
 
@@ -51,22 +62,19 @@ export default function MfaDisableDialog({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    // Validate input before setting loading state to avoid UI flicker
+    if (mode === "totp" && !otp.isComplete) return;
+    if (mode === "recovery" && !recoveryCode.trim()) return;
+
     setError("");
     setSubmitting(true);
 
     try {
       if (mode === "totp") {
-        if (!otp.isComplete) return;
         await disableMfa({ code: otp.getValue() });
       } else if (mode === "recovery") {
-        if (!recoveryCode.trim()) return;
         await disableMfa({ recovery_code: recoveryCode });
-      } else if (mode === "email-reset") {
-        if (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete) return;
-        await disableMfa({
-          main_email_code: otpMainEmail.getValue(),
-          recovery_email_code: otpRecoveryEmail.getValue(),
-        });
       }
 
       onSuccess();
@@ -77,24 +85,16 @@ export default function MfaDisableDialog({
         otp.reset();
         setRecoveryCode("");
         setEmailRequested(false);
-        otpMainEmail.reset();
-        otpRecoveryEmail.reset();
         setError("");
       }, 300);
     } catch {
-      let errorMessage = "Invalid verification code";
-      if (mode === "recovery") {
-        errorMessage = "Invalid recovery code";
-      } else if (mode === "email-reset") {
-        errorMessage = "Invalid email verification codes";
-      }
+      const errorMessage = mode === "recovery"
+        ? "Invalid recovery code"
+        : "Invalid verification code";
       setError(errorMessage);
 
       if (mode === "totp") {
         otp.reset();
-      } else if (mode === "email-reset") {
-        otpMainEmail.reset();
-        otpRecoveryEmail.reset();
       }
     } finally {
       setSubmitting(false);
@@ -102,11 +102,7 @@ export default function MfaDisableDialog({
   };
 
   const isComplete =
-    mode === "totp"
-      ? otp.isComplete
-      : mode === "recovery"
-      ? recoveryCode.trim() !== ""
-      : otpMainEmail.isComplete && otpRecoveryEmail.isComplete;
+    mode === "totp" ? otp.isComplete : recoveryCode.trim() !== "";
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center">
@@ -114,7 +110,12 @@ export default function MfaDisableDialog({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up">
+      <div
+        className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="disable-mfa-title"
+      >
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-red/15 border border-accent-red/25 flex items-center justify-center">
@@ -124,7 +125,7 @@ export default function MfaDisableDialog({
             />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-text-primary">
+            <h2 id="disable-mfa-title" className="text-base font-semibold text-text-primary">
               Disable MFA
             </h2>
             <p className="text-xs text-text-muted mt-0.5">
@@ -150,7 +151,7 @@ export default function MfaDisableDialog({
                 <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
                   Verification Code
                 </label>
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-2 justify-center" onPaste={otp.handlePaste}>
                   {otp.code.map((digit, index) => (
                     <input
                       key={index}
@@ -162,6 +163,7 @@ export default function MfaDisableDialog({
                       onChange={(e) => otp.handleChange(index, e.target.value)}
                       onKeyDown={(e) => otp.handleKeyDown(index, e)}
                       autoFocus={index === 0}
+                      aria-label={`Digit ${index + 1} of 6`}
                       className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all"
                     />
                   ))}
@@ -171,7 +173,7 @@ export default function MfaDisableDialog({
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={() => setMode("recovery")}
+                  onClick={() => { setMode("recovery"); setError(""); }}
                   className="text-xs text-text-muted hover:text-text-secondary transition-colors"
                 >
                   Use recovery code instead
@@ -189,6 +191,8 @@ export default function MfaDisableDialog({
                   value={recoveryCode}
                   onChange={(e) => setRecoveryCode(e.target.value)}
                   autoFocus
+                  autoComplete="off"
+                  spellCheck={false}
                   className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all"
                   placeholder="Enter recovery code"
                 />
@@ -282,7 +286,7 @@ export default function MfaDisableDialog({
           )}
 
           {/* Actions */}
-          {(mode !== "email-reset" || emailRequested) && (
+          {mode !== "email-reset" && (
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"

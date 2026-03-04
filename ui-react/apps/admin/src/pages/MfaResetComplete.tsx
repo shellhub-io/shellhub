@@ -9,7 +9,7 @@ import AuthFooterLinks from "../components/common/AuthFooterLinks";
 export default function MfaResetComplete() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { setSession, updateMfaStatus } = useAuthStore();
+  const { setCompleteSession } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,9 +43,8 @@ export default function MfaResetComplete() {
         recovery_email_code: otpRecovery.getValue(),
       });
 
-      // Successful reset = authenticated
-      setSession({ token: data.token, tenant: data.tenant });
-      updateMfaStatus(data.mfa || false);
+      // Set complete session with all user data
+      setCompleteSession(data);
       navigate("/dashboard");
     } catch {
       setError("Invalid verification codes. Please check and try again.");
@@ -105,6 +104,7 @@ export default function MfaResetComplete() {
                   onChange={(e) => otpMain.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpMain.handleKeyDown(index, e)}
                   autoFocus={index === 0}
+                  aria-label={`Main email code digit ${index + 1} of 5`}
                   className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 uppercase"
                 />
               ))}
@@ -129,6 +129,7 @@ export default function MfaResetComplete() {
                   value={char}
                   onChange={(e) => otpRecovery.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpRecovery.handleKeyDown(index, e)}
+                  aria-label={`Recovery email code digit ${index + 1} of 5`}
                   className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 uppercase"
                 />
               ))}

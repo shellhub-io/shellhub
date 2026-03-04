@@ -5,11 +5,17 @@ import { useAuthStore } from "../stores/authStore";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
 export default function MfaResetRequest() {
-  const { requestMfaReset, loading, error, user, username, mfaToken } = useAuthStore();
+  const requestMfaReset = useAuthStore((s) => s.requestMfaReset);
+  const loading = useAuthStore((s) => s.loading);
+  const error = useAuthStore((s) => s.error);
+  const pendingMfaUser = useAuthStore((s) => s.pendingMfaUser);
+  const user = useAuthStore((s) => s.user);
+  const username = useAuthStore((s) => s.username);
+  const mfaToken = useAuthStore((s) => s.mfaToken);
   const navigate = useNavigate();
   const [emailsSent, setEmailsSent] = useState(false);
 
-  const identifier = user || username;
+  const identifier = pendingMfaUser || user || username;
 
   // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {
@@ -94,7 +100,7 @@ export default function MfaResetRequest() {
 
             <div className="text-center pt-2">
               <Link
-                to="/mfa-recover"
+                to="/recover-mfa"
                 className="block text-xs text-text-muted hover:text-text-secondary transition-colors"
               >
                 ← Back to recovery

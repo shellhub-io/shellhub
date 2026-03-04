@@ -4,13 +4,21 @@ import {
   ExclamationCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { useShallow } from "zustand/shallow";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
 export default function MfaLogin() {
   const otp = useOtpInput(6);
-  const { loginWithMfa, loading, error, mfaToken } = useAuthStore();
+  const { loginWithMfa, loading, error, mfaToken } = useAuthStore(
+    useShallow((state) => ({
+      loginWithMfa: state.loginWithMfa,
+      loading: state.loading,
+      error: state.error,
+      mfaToken: state.mfaToken,
+    }))
+  );
   const navigate = useNavigate();
 
   // Redirect if no MFA token
@@ -95,6 +103,7 @@ export default function MfaLogin() {
                   onChange={(e) => otp.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otp.handleKeyDown(index, e)}
                   autoFocus={index === 0}
+                  aria-label={`Digit ${index + 1} of 6`}
                   className="w-12 h-12 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
                 />
               ))}
@@ -116,12 +125,21 @@ export default function MfaLogin() {
             )}
           </button>
 
-          <div className="text-center pt-2">
+          <div className="text-center pt-2 space-y-2">
             <Link
-              to="/mfa-recover"
-              className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+              to="/recover-mfa"
+              className="text-xs text-text-muted hover:text-text-secondary transition-colors block"
             >
               Lost your TOTP password?
+            </Link>
+            <Link
+              to="/login"
+              onClick={() => {
+                useAuthStore.getState().setMfaToken(null);
+              }}
+              className="text-xs text-text-muted hover:text-text-secondary transition-colors block"
+            >
+              ← Back to login
             </Link>
           </div>
         </form>

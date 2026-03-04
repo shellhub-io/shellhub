@@ -455,7 +455,12 @@ function ChangePasswordDrawer({
 /* ─── Page ─── */
 
 export default function Profile() {
-  const { name, username, email, recoveryEmail, mfaEnabled, fetchUser } = useAuthStore();
+  const name = useAuthStore((s) => s.name);
+  const username = useAuthStore((s) => s.username);
+  const email = useAuthStore((s) => s.email);
+  const recoveryEmail = useAuthStore((s) => s.recoveryEmail);
+  const mfaEnabled = useAuthStore((s) => s.mfaEnabled);
+  const fetchUser = useAuthStore((s) => s.fetchUser);
 
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [pwDrawerOpen, setPwDrawerOpen] = useState(false);

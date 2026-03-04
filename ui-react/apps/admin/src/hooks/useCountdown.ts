@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from "react";
 
 export function useCountdown(targetTimestamp: number | null) {
   const [timeLeft, setTimeLeft] = useState<string>("");
-  const [isExpired, setIsExpired] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const isExpired = timeLeft === "0 seconds";
 
   useEffect(() => {
     if (!targetTimestamp) return;
@@ -14,7 +15,6 @@ export function useCountdown(targetTimestamp: number | null) {
 
       if (diff <= 0) {
         setTimeLeft("0 seconds");
-        setIsExpired(true);
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
         }

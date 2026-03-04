@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ExclamationCircleIcon,
@@ -13,6 +13,11 @@ export default function Login() {
   const { login, loading, error } = useAuthStore();
   const navigate = useNavigate();
 
+  // Clear any stale MFA tokens when mounting login page
+  useEffect(() => {
+    useAuthStore.getState().setMfaToken(null);
+  }, []);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     await login(username, password);
@@ -21,7 +26,7 @@ export default function Login() {
 
     if (state.mfaToken) {
       // MFA required
-      navigate("/mfa-login");
+      navigate("/login-mfa");
     } else if (state.token) {
       // Normal login
       navigate("/dashboard");
