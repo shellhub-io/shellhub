@@ -6,9 +6,6 @@ import { useAuthStore } from "../stores/authStore";
 import {
   MagnifyingGlassIcon,
   HomeIcon,
-  CubeIcon,
-  GlobeAltIcon,
-  ShieldCheckIcon,
   KeyIcon,
   Cog6ToothIcon,
   ArrowRightStartOnRectangleIcon,
@@ -48,14 +45,11 @@ const icons = {
   devices: <CpuChipIcon className="w-4 h-4" />,
   sessions: <CommandLineIcon className="w-4 h-4" />,
   keys: <KeyIcon className="w-4 h-4" />,
-  firewall: <ShieldCheckIcon className="w-4 h-4" />,
   settings: <Cog6ToothIcon className="w-4 h-4" />,
   add: <PlusIcon className="w-4 h-4" />,
   terminal: <ChevronDoubleRightIcon className="w-4 h-4" />,
   logout: <ArrowRightStartOnRectangleIcon className="w-4 h-4" />,
   team: <UsersIcon className="w-4 h-4" />,
-  containers: <CubeIcon className="w-4 h-4" />,
-  web: <GlobeAltIcon className="w-4 h-4" />,
 };
 
 /* ─── Fuzzy match ─── */
@@ -135,15 +129,8 @@ export default function CommandPalette() {
     const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
       { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
       { label: "Devices", path: "/devices", icon: icons.devices },
-      { label: "Containers", path: "/containers", icon: icons.containers },
-      { label: "Web Endpoints", path: "/webendpoints", icon: icons.web },
       { label: "Sessions", path: "/sessions", icon: icons.sessions },
       { label: "Public Keys", path: "/sshkeys/public-keys", icon: icons.keys },
-      {
-        label: "Firewall Rules",
-        path: "/firewall/rules",
-        icon: icons.firewall,
-      },
       { label: "Team", path: "/team", icon: icons.team },
       { label: "Settings", path: "/settings", icon: icons.settings },
       { label: "Add Device", path: "/devices/add", icon: icons.add },
