@@ -1,0 +1,71 @@
+name: UI React
+
+on:
+  push:
+    branches: [master]
+
+  pull_request:
+    branches: [master]
+    types: [assigned, opened, synchronize, reopened, edited, ready_for_review]
+
+jobs:
+  validate:
+    name: validate (${{ matrix.app }})
+    if: ${{ github.event.pull_request.draft == false }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: admin
+            workspace: "@shellhub/admin"
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            admin:
+              - 'ui-react/apps/admin/**'
+              - 'ui-react/packages/**'
+              - 'ui-react/package.json'
+              - 'ui-react/package-lock.json'
+              - 'ui-react/eslint.config.js'
+
+      - name: Set up Node.JS 24.13.0 [${{ matrix.app }}]
+        if: steps.filter.outputs[matrix.app] == 'true'
+        uses: actions/setup-node@v6.2.0
+        with:
+          node-version: "24.13.0"
+
+      - name: Cache node modules [${{ matrix.app }}]
+        if: steps.filter.outputs[matrix.app] == 'true'
+        uses: actions/cache@v5
+        with:
+          path: ui-react/node_modules
+          key: ${{ runner.OS }}-ui-react-${{ hashFiles('ui-react/package-lock.json') }}
+
+      - name: Install Node Dependencies [${{ matrix.app }}]
+        if: steps.filter.outputs[matrix.app] == 'true'
+        working-directory: ui-react
+        run: npm install
+
+      - name: Unit test [${{ matrix.app }}]
+        if: steps.filter.outputs[matrix.app] == 'true'
+        working-directory: ui-react
+        run: npm run test -w ${{ matrix.workspace }}
+
+      - name: Code linting [${{ matrix.app }}]
+        if: steps.filter.outputs[matrix.app] == 'true'
+        working-directory: ui-react
+        run: npm run lint -w ${{ matrix.workspace }}
+
+      - name: Build [${{ matrix.app }}]
+        if: steps.filter.outputs[matrix.app] == 'true'
+        working-directory: ui-react
+        run: npm run build -w ${{ matrix.workspace }}
