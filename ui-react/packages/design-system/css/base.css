@@ -10,6 +10,15 @@
     margin: 0;
   }
 
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  /* Suppress the native backdrop on the welcome wizard (it uses a custom backdrop div) */
+  dialog[data-wizard]::backdrop {
+    background: none;
+  }
+
   ::selection {
     background: rgba(var(--color-primary-rgb), 0.3);
     color: #fff;
