@@ -16,9 +16,9 @@ beforeEach(() => {
 
 function renderMfaLogin() {
   return render(
-    <MemoryRouter initialEntries={["/mfa-login"]}>
+    <MemoryRouter initialEntries={["/login-mfa"]}>
       <Routes>
-        <Route path="/mfa-login" element={<MfaLogin />} />
+        <Route path="/login-mfa" element={<MfaLogin />} />
         <Route path="/login" element={<div>Login Page</div>} />
         <Route path="/dashboard" element={<div>Dashboard</div>} />
       </Routes>
@@ -65,10 +65,13 @@ describe("MfaLogin", () => {
   });
 
   it("displays error message on invalid code", async () => {
-    const mockLoginWithMfa = vi.fn().mockRejectedValue(new Error("Invalid"));
+    const mockLoginWithMfa = vi.fn().mockImplementation(async () => {
+      useAuthStore.setState({ error: "Invalid verification code" });
+      throw new Error("Invalid verification code");
+    });
     useAuthStore.setState({
       loginWithMfa: mockLoginWithMfa,
-      error: "Invalid verification code",
+      error: null,
     });
 
     renderMfaLogin();

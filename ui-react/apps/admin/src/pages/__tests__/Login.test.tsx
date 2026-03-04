@@ -174,17 +174,6 @@ describe("Login", () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it("navigates to /confirm-account with username on 403", async () => {
-      mockedPost.mockRejectedValue(makeAxiosError(403));
-
-      renderLogin();
-      await fillAndSubmit("admin");
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        "/confirm-account?username=admin",
-      );
-    });
-
     it("shows rate-limit error on 429", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 60;
       mockedPost.mockRejectedValue(

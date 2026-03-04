@@ -82,7 +82,7 @@ export const useAuthStore = create<AuthState>()(
       ...initialState,
 
       login: async (username: string, password: string) => {
-        set({ loading: true });
+        set({ loading: true, mfaToken: null });
         try {
           // Make direct API call to access response headers
           const response: AxiosResponse<LoginResponse> = await apiClient.post<LoginResponse>(
@@ -229,6 +229,7 @@ export const useAuthStore = create<AuthState>()(
             tenant: data.tenant,
             name: data.name,
             mfaEnabled: true,
+            mfaToken: null,
             mfaRecoveryExpiry: expiryValue,
             loading: false,
           });
