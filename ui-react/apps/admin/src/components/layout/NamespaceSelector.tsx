@@ -5,16 +5,16 @@ import { useNamespacesStore } from "../../stores/namespacesStore";
 import { useAuthStore } from "../../stores/authStore";
 import { getConfig } from "../../env";
 import { useClickOutside } from "../../hooks/useClickOutside";
+import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 
 export default function NamespaceSelector() {
   const { namespaces, currentNamespace, fetch, fetchCurrent, switchNamespace } =
     useNamespacesStore();
 
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  const canCreate = getConfig().cloud || getConfig().enterprise;
 
   useEffect(() => {
     const tenantId = useAuthStore.getState().tenant ?? "";
@@ -35,7 +35,11 @@ export default function NamespaceSelector() {
 
   const handleCreate = () => {
     setOpen(false);
-    navigate("/dashboard");
+    if (getConfig().cloud || getConfig().enterprise) {
+      navigate("/dashboard");
+    } else {
+      setCreateOpen(true);
+    }
   };
 
   const initials = (name: string) =>
@@ -129,24 +133,27 @@ export default function NamespaceSelector() {
             </div>
           )}
 
-          {/* Create namespace button (Cloud/Enterprise only) */}
-          {canCreate && (
-            <div className="p-2 border-t border-border">
-              <button
-                onClick={handleCreate}
-                className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
-              >
-                <span className="w-7 h-7 rounded bg-card border border-dashed border-border-light flex items-center justify-center text-text-muted group-hover:border-primary/40 group-hover:text-primary transition-colors shrink-0">
-                  <PlusIcon className="w-3.5 h-3.5" strokeWidth={2} />
-                </span>
-                <p className="text-sm text-text-muted group-hover:text-text-primary transition-colors">
-                  Create namespace
-                </p>
-              </button>
-            </div>
-          )}
+          {/* Create namespace */}
+          <div className="p-2 border-t border-border">
+            <button
+              onClick={handleCreate}
+              className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
+            >
+              <span className="w-7 h-7 rounded bg-card border border-dashed border-border-light flex items-center justify-center text-text-muted group-hover:border-primary/40 group-hover:text-primary transition-colors shrink-0">
+                <PlusIcon className="w-3.5 h-3.5" strokeWidth={2} />
+              </span>
+              <p className="text-sm text-text-muted group-hover:text-text-primary transition-colors">
+                Create namespace
+              </p>
+            </button>
+          </div>
         </div>
       )}
+
+      <CreateNamespaceDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+      />
     </div>
   );
 }
