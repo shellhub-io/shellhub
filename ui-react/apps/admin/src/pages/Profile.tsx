@@ -142,7 +142,6 @@ function DeleteAccountDialog({
     setError("");
     try {
       await deleteUser();
-      window.location.replace("/v2/ui/login");
     } catch (err) {
       if (err instanceof AxiosError && err.response?.status === 403) {
         setError(
