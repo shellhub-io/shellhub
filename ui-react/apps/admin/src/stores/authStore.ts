@@ -5,6 +5,7 @@ import {
   getAuthUser,
   updateUser,
   updatePassword as apiUpdatePassword,
+  deleteUser as apiDeleteUser,
 } from "../api/auth";
 import { useVaultStore } from "./vaultStore";
 
@@ -34,6 +35,7 @@ interface AuthState {
     currentPassword: string,
     newPassword: string,
   ) => Promise<void>;
+  deleteUser: () => Promise<void>;
 }
 
 const initialState = {
@@ -106,6 +108,11 @@ export const useAuthStore = create<AuthState>()(
 
       updatePassword: async (currentPassword, newPassword) => {
         await apiUpdatePassword(currentPassword, newPassword);
+      },
+
+      deleteUser: async () => {
+        await apiDeleteUser();
+        get().logout();
       },
     }),
     {

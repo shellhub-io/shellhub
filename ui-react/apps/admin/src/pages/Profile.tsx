@@ -1,10 +1,14 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useAuthStore } from "../stores/authStore";
+import { useNamespacesStore } from "../stores/namespacesStore";
 import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
+import ConfirmDialog from "../components/common/ConfirmDialog";
+import CopyButton from "../components/common/CopyButton";
 import { AxiosError } from "axios";
 import { LABEL, INPUT } from "../utils/styles";
 import { validateRecoveryEmail } from "./profile/validate";
+import { getConfig } from "../env";
 import {
   UserIcon,
   PencilSquareIcon,
@@ -14,6 +18,10 @@ import {
   LockClosedIcon,
   TrashIcon,
   AtSymbolIcon,
+  ExclamationTriangleIcon,
+  CommandLineIcon,
+  ShieldCheckIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 
 const USERNAME_REGEX = /^[a-z0-9_.@-]+$/;
@@ -109,6 +117,193 @@ function SettingsRow({
         </div>
       </div>
       <div className="shrink-0">{children}</div>
+    </div>
+  );
+}
+
+/* ─── Delete Account Dialog (Cloud) ─── */
+
+function DeleteAccountDialog({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const deleteUser = useAuthStore((s) => s.deleteUser);
+  const userId = useAuthStore((s) => s.userId);
+  const namespaces = useNamespacesStore((s) => s.namespaces);
+  const [error, setError] = useState("");
+
+  const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
+
+
+  const handleDelete = async () => {
+    setError("");
+    try {
+      await deleteUser();
+      window.location.replace("/v2/ui/login");
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.status === 403) {
+        setError(
+          "You cannot delete your account while you have active namespaces.",
+        );
+      } else {
+        setError("Failed to delete account.");
+      }
+    }
+  };
+
+  return (
+    <ConfirmDialog
+      open={open}
+      onClose={onClose}
+      onConfirm={handleDelete}
+      title="Confirm Account Deletion"
+      description={
+        isNamespaceOwner
+          ? "You cannot delete your account while you have active namespaces."
+          : "Are you sure you want to delete your account? This action cannot be undone."
+      }
+      confirmLabel="Delete Account"
+      confirmDisabled={isNamespaceOwner}
+    >
+      {(isNamespaceOwner || !!error) && (
+        <div className="mb-4 space-y-2">
+          {isNamespaceOwner && (
+            <div className="p-3 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-start gap-2 text-accent-yellow">
+              <ExclamationTriangleIcon
+                className="w-4 h-4 shrink-0 mt-0.5"
+                strokeWidth={2}
+              />
+              <span className="text-sm">
+                Please delete all your owned namespaces before attempting to
+                delete your account.
+              </span>
+            </div>
+          )}
+          {error && <p className="text-2xs text-accent-red">{error}</p>}
+        </div>
+      )}
+    </ConfirmDialog>
+  );
+}
+
+/* ─── Delete Account Warning Dialog (Community / Enterprise) ─── */
+
+function DeleteAccountWarningDialog({
+  open,
+  onClose,
+  isCommunity,
+}: {
+  open: boolean;
+  onClose: () => void;
+  isCommunity: boolean;
+}) {
+  const username = useAuthStore((s) => s.username);
+  const userId = useAuthStore((s) => s.userId);
+  const namespaces = useNamespacesStore((s) => s.namespaces);
+
+  const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
+  const deleteCommand = `./bin/cli user delete ${username ?? ""}`;
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative bg-surface border border-border rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up">
+        <div className="flex items-start gap-3 mb-5">
+          <span className="w-9 h-9 rounded-lg bg-hover-medium border border-border flex items-center justify-center shrink-0">
+            {isCommunity ? (
+              <CommandLineIcon className="w-5 h-5 text-text-muted" />
+            ) : (
+              <ShieldCheckIcon className="w-5 h-5 text-text-muted" />
+            )}
+          </span>
+          <div>
+            <h2 className="text-base font-semibold text-text-primary">
+              Account Deletion
+            </h2>
+            <p className="text-2xs text-text-muted mt-0.5">
+              {isCommunity ? "CLI Required" : "Admin Console Required"}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4 text-sm text-text-muted">
+          {isCommunity ? (
+            <>
+              <p>
+                In Community instances, user accounts can only be deleted via
+                the CLI. For detailed instructions, refer to our{" "}
+                <a
+                  href="https://docs.shellhub.io/self-hosted/administration#delete-a-user"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-1"
+                  data-test="docs-link"
+                >
+                  administration documentation
+                  <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+                </a>
+                .
+              </p>
+              <div>
+                <p className="text-2xs font-medium text-text-secondary mb-1.5">
+                  Run this command to delete your account:
+                </p>
+                <div className="flex items-center gap-2 bg-hover-medium border border-border rounded-lg px-3 py-2">
+                  <span className="flex-1 truncate font-mono text-2xs text-text-primary">
+                    {deleteCommand}
+                  </span>
+                  <CopyButton text={deleteCommand} size="sm" />
+                </div>
+              </div>
+              {isNamespaceOwner && (
+                <div className="p-3 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-start gap-2 text-accent-yellow">
+                  <ExclamationTriangleIcon
+                    className="w-4 h-4 shrink-0 mt-0.5"
+                    strokeWidth={2}
+                  />
+                  <span className="text-2xs">
+                    <strong>Namespace owner:</strong> You own one or more
+                    namespaces. You must delete all owned namespaces before
+                    deleting your account.
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <p>
+              In Enterprise instances, user accounts can only be deleted via
+              the Admin Console. Please access your{" "}
+              <a
+                href="/admin/users"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary hover:underline"
+              >
+                Admin Console
+              </a>{" "}
+              or contact your system administrator for assistance.
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={onClose}
+            data-test="close-btn"
+            className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -455,6 +650,11 @@ export default function Profile() {
 
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [pwDrawerOpen, setPwDrawerOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const config = getConfig();
+  const isCloud = config.cloud;
+  const isCommunity = !config.cloud && !config.enterprise;
 
   useEffect(() => {
     fetchUser();
@@ -561,11 +761,19 @@ export default function Profile() {
           <SettingsRow
             icon={<TrashIcon className="w-4 h-4 text-accent-red" />}
             title="Delete Account"
-            description="Permanently remove your account and all associated data. Only available on ShellHub Cloud."
+            description={
+              isCloud
+                ? "Permanently remove your account and all associated data."
+                : "Account deletion requires CLI or Admin Console access."
+            }
           >
-            <span className="inline-flex items-center px-2.5 py-1 text-2xs font-mono font-semibold rounded border bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20">
-              Cloud Only
-            </span>
+            <button
+              onClick={() => setDeleteDialogOpen(true)}
+              data-test="delete-account-btn"
+              className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 hover:border-accent-red/40 rounded-lg text-sm font-medium transition-all"
+            >
+              Delete
+            </button>
           </SettingsRow>
         </SettingsCard>
       </div>
@@ -582,6 +790,19 @@ export default function Profile() {
         open={pwDrawerOpen}
         onClose={() => setPwDrawerOpen(false)}
       />
+      {isCloud ? (
+        <DeleteAccountDialog
+          key={String(deleteDialogOpen)}
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+        />
+      ) : (
+        <DeleteAccountWarningDialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          isCommunity={isCommunity}
+        />
+      )}
     </div>
   );
 }

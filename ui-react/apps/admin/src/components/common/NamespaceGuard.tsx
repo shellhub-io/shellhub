@@ -1,36 +1,15 @@
 import { useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useNamespacesStore } from "../../stores/namespacesStore";
-import { useAuthStore } from "../../stores/authStore";
 import { useConnectivityStore } from "../../stores/connectivityStore";
 import CreateNamespace from "./CreateNamespace";
+import UserMenu from "../layout/UserMenu";
 
 function MinimalHeader() {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
   return (
     <header className="h-14 bg-surface border-b border-border px-5 flex items-center justify-between shrink-0">
       <img src="/v2/ui/logo.svg" alt="ShellHub" className="h-6" />
-      <div className="flex items-center gap-1">
-        {user && (
-          <span className="text-xs font-mono text-text-secondary px-3 py-1.5">
-            {user}
-          </span>
-        )}
-        <div className="w-px h-5 bg-border mx-1" />
-        <button
-          onClick={handleLogout}
-          className="text-xs font-medium text-text-muted hover:text-accent-red px-3 py-1.5 rounded-md hover:bg-accent-red/5 transition-all duration-150"
-        >
-          Logout
-        </button>
-      </div>
+      <UserMenu />
     </header>
   );
 }
@@ -38,6 +17,7 @@ function MinimalHeader() {
 export default function NamespaceGuard() {
   const { namespaces, loaded, fetch } = useNamespacesStore();
   const apiReachable = useConnectivityStore((s) => s.apiReachable);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     if (!loaded) fetch();
@@ -61,7 +41,7 @@ export default function NamespaceGuard() {
     );
   }
 
-  if (namespaces.length === 0) {
+  if (namespaces.length === 0 && pathname !== "/profile") {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <MinimalHeader />
