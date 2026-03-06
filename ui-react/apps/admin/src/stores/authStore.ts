@@ -1,12 +1,19 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import type { AxiosResponse } from "axios";
 import {
-  login as apiLogin,
   getAuthUser,
   updateUser,
   updatePassword as apiUpdatePassword,
 } from "../api/auth";
 import { useVaultStore } from "./vaultStore";
+import {
+  validateMfa,
+  recoverMfa,
+  requestMfaReset as apiRequestMfaReset,
+} from "../api/mfa";
+import type { LoginResponse } from "../types/mfa";
+import apiClient from "../api/client";
 
 interface AuthState {
   token: string | null;
@@ -20,6 +27,10 @@ interface AuthState {
   name: string | null;
   loading: boolean;
   error: string | null;
+  mfaEnabled: boolean;
+  mfaToken: string | null;
+  mfaRecoveryExpiry: number | null;
+  pendingMfaUser: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
@@ -34,6 +45,12 @@ interface AuthState {
     currentPassword: string,
     newPassword: string,
   ) => Promise<void>;
+  loginWithMfa: (code: string) => Promise<void>;
+  recoverWithCode: (code: string, identifier?: string) => Promise<void>;
+  requestMfaReset: (identifier: string) => Promise<void>;
+  updateMfaStatus: (enabled: boolean) => void;
+  setMfaToken: (token: string | null) => void;
+  setCompleteSession: (data: LoginResponse) => void;
 }
 
 const initialState = {
@@ -48,6 +65,10 @@ const initialState = {
   name: null,
   loading: false,
   error: null,
+  mfaEnabled: false,
+  mfaToken: null,
+  mfaRecoveryExpiry: null,
+  pendingMfaUser: null,
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -56,9 +77,16 @@ export const useAuthStore = create<AuthState>()(
       ...initialState,
 
       login: async (username: string, password: string) => {
-        set({ loading: true, error: null });
+        set({ loading: true, error: null, mfaToken: null });
         try {
-          const data = await apiLogin({ username, password });
+          // Make direct API call to access response headers
+          const response: AxiosResponse<LoginResponse> = await apiClient.post<LoginResponse>(
+            "/api/login",
+            { username, password }
+          );
+
+          // Normal login without MFA
+          const data = response.data;
           set({
             token: data.token,
             user: data.user,
@@ -66,9 +94,22 @@ export const useAuthStore = create<AuthState>()(
             email: data.email,
             tenant: data.tenant,
             name: data.name,
+            mfaEnabled: data.mfa || false,
             loading: false,
           });
         } catch {
+          // Check if MFA token was set by interceptor (401 with x-mfa-token)
+          const currentState = get();
+          if (currentState.mfaToken) {
+            // MFA required - not an error, navigation will be handled by Login component
+            // Use pendingMfaUser (not persisted) so recovery pages can access it
+            set({
+              loading: false,
+              pendingMfaUser: username,
+              mfaEnabled: true,
+            });
+            return;
+          }
           set({ loading: false, error: "Invalid username or password" });
         }
       },
@@ -76,6 +117,8 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         useVaultStore.getState().lock();
         set(initialState);
+        // Clear persisted session data from localStorage
+        localStorage.removeItem("shellhub-session");
       },
 
       fetchUser: async () => {
@@ -89,6 +132,7 @@ export const useAuthStore = create<AuthState>()(
             recoveryEmail: user.recovery_email,
             name: user.name,
             tenant: user.tenant,
+            mfaEnabled: user.mfa || false,
           });
         } catch {
           /* session expired — interceptor handles redirect */
@@ -107,6 +151,110 @@ export const useAuthStore = create<AuthState>()(
       updatePassword: async (currentPassword, newPassword) => {
         await apiUpdatePassword(currentPassword, newPassword);
       },
+
+      loginWithMfa: async (code: string) => {
+        const { mfaToken } = get();
+        if (!mfaToken) {
+          throw new Error("No MFA token available");
+        }
+
+        set({ loading: true, error: null });
+        try {
+          const data = await validateMfa({ token: mfaToken, code });
+          set({
+            token: data.token,
+            user: data.user,
+            userId: data.id,
+            email: data.email,
+            tenant: data.tenant,
+            name: data.name,
+            mfaToken: null, // Clear temporary token
+            pendingMfaUser: null, // Clear pending username
+            mfaEnabled: true,
+            loading: false,
+          });
+        } catch {
+          set({ loading: false, error: "Invalid verification code" });
+          throw new Error("Invalid verification code");
+        }
+      },
+
+      recoverWithCode: async (code: string, identifier?: string) => {
+        // Try to get identifier from parameter first, then fall back to store
+        // Check pendingMfaUser for in-progress MFA sessions
+        const username = identifier || get().pendingMfaUser || get().user || get().username;
+        if (!username) {
+          set({ error: "Username or email is required" });
+          throw new Error("Username or email is required");
+        }
+
+        set({ loading: true, error: null });
+        try {
+          const { data, expiresAt } = await recoverMfa({
+            identifier: username,
+            recovery_code: code,
+          });
+
+          // Parse expiry time with validation
+          let expiryValue: number | null = null;
+          if (expiresAt) {
+            const parsed = parseInt(expiresAt, 10);
+            expiryValue = !isNaN(parsed) ? parsed : null;
+          }
+
+          set({
+            token: data.token,
+            user: data.user,
+            userId: data.id,
+            email: data.email,
+            tenant: data.tenant,
+            name: data.name,
+            mfaEnabled: true,
+            mfaRecoveryExpiry: expiryValue,
+            pendingMfaUser: null, // Clear pending username
+            mfaToken: null, // Clear temporary MFA token
+            loading: false,
+          });
+        } catch {
+          set({ loading: false, error: "Invalid recovery code or username" });
+          throw new Error("Invalid recovery code or username");
+        }
+      },
+
+      requestMfaReset: async (identifier: string) => {
+        set({ loading: true, error: null });
+        try {
+          await apiRequestMfaReset(identifier);
+          set({ loading: false });
+        } catch {
+          set({ loading: false, error: "Unable to send reset emails. Please check your identifier." });
+          throw new Error("Reset request failed");
+        }
+      },
+
+      updateMfaStatus: (enabled: boolean) => {
+        set({ mfaEnabled: enabled });
+      },
+
+      setMfaToken: (token: string | null) => {
+        set({ mfaToken: token });
+      },
+
+      setCompleteSession: (data: LoginResponse) => {
+        set({
+          token: data.token,
+          user: data.user,
+          userId: data.id,
+          email: data.email,
+          tenant: data.tenant,
+          name: data.name,
+          mfaEnabled: data.mfa || false,
+          // Clear all transient MFA state after a complete session is established
+          mfaToken: null,
+          pendingMfaUser: null,
+          mfaRecoveryExpiry: null,
+        });
+      },
     }),
     {
       name: "shellhub-session",
@@ -120,6 +268,8 @@ export const useAuthStore = create<AuthState>()(
         tenant: state.tenant,
         role: state.role,
         name: state.name,
+        mfaEnabled: state.mfaEnabled,
+        // Do NOT persist: mfaToken, mfaRecoveryExpiry, mfaResetUserId, mfaResetIdentifier, pendingMfaUser, username, recoveryEmail
       }),
     },
   ),

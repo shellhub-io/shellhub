@@ -62,8 +62,24 @@ export function setupInterceptors(instance: AxiosInstance) {
     },
     (error: AxiosError) => {
       if (error.response?.status === 401) {
-        useAuthStore.getState().logout();
-        window.location.href = "/v2/ui/login";
+        // Check for MFA token in response headers
+        const mfaToken = error.response.headers["x-mfa-token"];
+        const isLoginEndpoint = error.config?.url === "/api/login";
+
+        if (mfaToken && isLoginEndpoint) {
+          // MFA required during login - store token, let Login component handle navigation
+          useAuthStore.getState().setMfaToken(mfaToken);
+          return Promise.reject(error);
+        }
+
+        // Regular 401 - logout (skip if MFA-related endpoint to avoid logout loops)
+        const isMfaEndpoint = error.config?.url?.includes("/api/user/mfa") ||
+                              error.config?.url?.includes("/api/auth/mfa");
+
+        if (!isMfaEndpoint) {
+          useAuthStore.getState().logout();
+          window.location.href = "/v2/ui/login";
+        }
       } else if (isApiDown(error)) {
         scheduleMarkDown();
       }

@@ -40,6 +40,7 @@ beforeEach(() => {
     name: null,
     loading: false,
     error: null,
+    mfaToken: null,
   });
 
   useConnectivityStore.getState().markUp();
@@ -234,5 +235,65 @@ describe("response interceptor", () => {
       vi.advanceTimersByTime(5000);
       expect(useConnectivityStore.getState().apiReachable).toBe(true);
     }
+  });
+
+  describe("MFA token handling", () => {
+    it("stores x-mfa-token from 401 response in authStore", async () => {
+      const adapter = vi.fn().mockRejectedValue({
+        response: {
+          status: 401,
+          headers: { "x-mfa-token": "mfa-temp-token-456" },
+          data: {},
+        },
+        config: { url: "/api/login" },
+        isAxiosError: true,
+      });
+      client.defaults.adapter = adapter;
+
+      await expect(client.get("/api/login")).rejects.toBeDefined();
+
+      const state = useAuthStore.getState();
+      expect(state.mfaToken).toBe("mfa-temp-token-456");
+    });
+
+    it("logs out and redirects on 401 without x-mfa-token", async () => {
+      useAuthStore.setState({ token: "valid-token", user: "admin" });
+
+      const adapter = vi.fn().mockRejectedValue({
+        response: {
+          status: 401,
+          headers: {},
+          data: {},
+        },
+        isAxiosError: true,
+      });
+      client.defaults.adapter = adapter;
+
+      await expect(client.get("/test")).rejects.toBeDefined();
+
+      expect(useAuthStore.getState().token).toBeNull(); // Logged out
+    });
+
+    it("does not interfere with other status codes", async () => {
+      const validToken = makeJwt(futureExp());
+      useAuthStore.setState({ token: validToken });
+
+      const adapter = vi.fn().mockRejectedValue({
+        response: {
+          status: 403,
+          headers: { "x-mfa-token": "should-be-ignored" },
+          data: {},
+        },
+        isAxiosError: true,
+      });
+      client.defaults.adapter = adapter;
+
+      await expect(client.get("/test")).rejects.toBeDefined();
+
+      // MFA token should NOT be set for non-401 responses
+      expect(useAuthStore.getState().mfaToken).toBeNull();
+      // Should still be logged in
+      expect(useAuthStore.getState().token).toBe(validToken);
+    });
   });
 });
