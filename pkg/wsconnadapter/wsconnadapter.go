@@ -31,6 +31,7 @@ type Adapter struct {
 	reader     io.Reader
 	stopPingCh chan struct{}
 	pongCh     chan bool
+	closeOnce  sync.Once
 	Logger     *log.Entry
 	CreatedAt  time.Time
 }
@@ -182,19 +183,18 @@ func (a *Adapter) Write(b []byte) (int, error) {
 }
 
 func (a *Adapter) Close() error {
-	select {
-	case <-a.stopPingCh:
-		a.Logger.Debug("stop ping message received")
-	default:
-		if a.stopPingCh != nil {
-			a.stopPingCh <- struct{}{}
-			close(a.stopPingCh)
+	var err error
 
+	a.closeOnce.Do(func() {
+		if a.stopPingCh != nil {
+			close(a.stopPingCh)
 			a.Logger.Debug("stop ping channel closed")
 		}
-	}
 
-	return a.conn.Close()
+		err = a.conn.Close()
+	})
+
+	return err
 }
 
 func (a *Adapter) LocalAddr() net.Addr {
