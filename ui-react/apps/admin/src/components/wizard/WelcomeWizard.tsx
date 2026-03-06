@@ -81,7 +81,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
         data-custom-backdrop
         aria-label="Welcome to ShellHub"
         {...backdropHandlers}
-        className="fixed inset-0 z-[60] m-auto w-full h-full sm:h-auto sm:max-w-xl sm:max-h-[85vh] bg-surface sm:border sm:border-border sm:rounded-2xl shadow-2xl shadow-black/40 flex flex-col animate-slide-up"
+        className="fixed inset-0 z-[60] m-auto w-full h-full sm:h-fit sm:max-w-xl sm:max-h-[85vh] bg-surface sm:border sm:border-border sm:rounded-2xl shadow-2xl shadow-black/40 flex flex-col animate-slide-up"
       >
         {/* Header */}
         <header className="flex items-center justify-between px-6 pt-5 pb-0 shrink-0">
