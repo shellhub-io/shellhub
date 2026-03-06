@@ -26,6 +26,7 @@ import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
 import { formatDateFull, formatRelative } from "../utils/date";
+import { buildSshid } from "../utils/sshid";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -281,7 +282,7 @@ export default function DeviceDetails() {
   }
 
   const nsName = currentNamespace?.name ?? "";
-  const sshid = nsName ? `${nsName}.${device.name}@${nsName}` : device.uid;
+  const sshid = nsName ? buildSshid(nsName, device.name) : device.uid;
 
   const handleDelete = async () => {
     setDeleting(true);
