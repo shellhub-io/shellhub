@@ -16,7 +16,7 @@
     overflow: hidden;
   }
 
-  dialog[data-custom-backdrop] {
+  dialog {
     all: unset;
     cursor: auto;
     user-select: text;
