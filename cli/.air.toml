@@ -2,16 +2,13 @@ root = "../"
 tmp_dir = "/tmp/air"
 
 [build]
-  cmd = "go build -o /cli ."
-  bin = "/bin/true"
-  delay = 1000
-  exclude_regex = ["_test.go"]
-  exclude_unchanged = false
-  follow_symlink = false
-  include_dir = ["pkg", "cli"]
-  include_ext = ["go"]
-  kill_delay = "0s"
-  stop_on_error = true
+cmd = "go build -o /cli ."
+bin = "/bin/true"
+delay = 1000
+exclude_regex = ["_test.go"]
+include_dir = ["pkg", "cli"]
+include_ext = ["go"]
+stop_on_error = true
 
 [misc]
-  clean_on_exit = true
+clean_on_exit = true
