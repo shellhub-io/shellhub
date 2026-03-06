@@ -8,10 +8,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../../stores/authStore";
 import { useClickOutside } from "../../hooks/useClickOutside";
+import { useNamespacesStore } from "../../stores/namespacesStore";
 
 export default function UserMenu() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const namespaces = useNamespacesStore((s) => s.namespaces);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -81,18 +83,20 @@ export default function UserMenu() {
                 Profile
               </span>
             </button>
-            <button
-              onClick={() => {
-                setOpen(false);
-                navigate("/settings");
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
-            >
-              <Cog6ToothIcon className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors" />
-              <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-                Settings
-              </span>
-            </button>
+            {namespaces.length > 0 && (
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/settings");
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
+              >
+                <Cog6ToothIcon className="w-4 h-4 text-text-muted group-hover:text-text-primary transition-colors" />
+                <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
+                  Settings
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Logout */}

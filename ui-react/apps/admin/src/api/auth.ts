@@ -51,3 +51,7 @@ export async function updatePassword(
     password: newPassword,
   });
 }
+
+export async function deleteUser(): Promise<void> {
+  await apiClient.delete("/api/user");
+}
