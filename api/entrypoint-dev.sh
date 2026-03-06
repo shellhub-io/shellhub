@@ -39,7 +39,12 @@ if [ -d "$CLOUD_DIR" ]; then
         "$WORKSPACE/shellhub/api" \
         "$WORKSPACE/cloud"
 
-    exec air -c .air.enterprise.toml
+    export GOFLAGS="-tags=enterprise"
+
+    exec air
 else
+    # Remove stale go.work left over from a previous enterprise run,
+    # otherwise Go will try to load the cloud module that no longer exists.
+    rm -f go.work go.work.sum
     exec air
 fi
