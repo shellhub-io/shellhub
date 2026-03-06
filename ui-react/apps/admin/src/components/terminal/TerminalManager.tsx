@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useTerminalStore } from "../../stores/terminalStore";
 import { useNamespacesStore } from "../../stores/namespacesStore";
 import ConnectDrawer from "../ConnectDrawer";
+import { buildSshid } from "../../utils/sshid";
 import TerminalInstance from "./TerminalInstance";
 import TerminalTaskbar from "./TerminalTaskbar";
 
@@ -24,7 +25,7 @@ export default function TerminalManager() {
     useTerminalStore.getState().clearReconnect();
     const nsName = currentNamespace?.name;
     const sshid = nsName
-      ? `${nsName}.${reconnectTarget.deviceName}@${nsName}`
+      ? buildSshid(nsName, reconnectTarget.deviceName)
       : reconnectTarget.deviceUid;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setConnectTarget({

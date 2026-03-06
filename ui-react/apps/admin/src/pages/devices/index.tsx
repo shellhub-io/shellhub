@@ -10,6 +10,7 @@ import ManageTagsDrawer from "../../components/ManageTagsDrawer";
 import CopyButton from "../../components/common/CopyButton";
 import PlatformBadge from "../../components/common/PlatformBadge";
 import { formatRelative } from "../../utils/date";
+import { buildSshid } from "../../utils/sshid";
 import { TH as TH_BASE } from "../../utils/styles";
 import Pagination from "../../components/common/Pagination";
 import TagFilterDropdown from "./TagFilterDropdown";
@@ -235,7 +236,7 @@ export default function Devices() {
               ) : (
                 filtered.map((device) => {
                   const sshid = nsName
-                    ? `${nsName}.${device.name}@${nsName}`
+                    ? buildSshid(nsName, device.name)
                     : device.uid.substring(0, 8);
                   return (
                     <tr
@@ -328,7 +329,7 @@ export default function Devices() {
                                     .restore(existing.id);
                                 } else {
                                   const sshid = nsName
-                                    ? `${nsName}.${device.name}@${nsName}`
+                                    ? buildSshid(nsName, device.name)
                                     : device.uid;
                                   setConnectTarget({
                                     uid: device.uid,
