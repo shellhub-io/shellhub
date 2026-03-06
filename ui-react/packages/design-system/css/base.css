@@ -3,6 +3,8 @@
 @layer base {
   :root {
     --color-primary-rgb: 102, 122, 204;
+    --dialog-backdrop-bg: rgba(0, 0, 0, 0.7);
+    --dialog-backdrop-blur: 4px;
   }
 
   body {
@@ -14,9 +16,16 @@
     overflow: hidden;
   }
 
-  /* Suppress the native backdrop on the welcome wizard (it uses a custom backdrop div) */
-  dialog[data-wizard]::backdrop {
-    background: none;
+  dialog[data-custom-backdrop] {
+    all: unset;
+    cursor: auto;
+    user-select: text;
+  }
+
+  dialog[data-custom-backdrop]::backdrop {
+    background: var(--dialog-backdrop-bg);
+    backdrop-filter: blur(var(--dialog-backdrop-blur));
+    -webkit-backdrop-filter: blur(var(--dialog-backdrop-blur));
   }
 
   ::selection {
