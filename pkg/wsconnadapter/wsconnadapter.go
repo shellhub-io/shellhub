@@ -31,6 +31,7 @@ type Adapter struct {
 	reader     io.Reader
 	stopPingCh chan struct{}
 	pongCh     chan bool
+	pingOnce   sync.Once
 	closeOnce  sync.Once
 	Logger     *log.Entry
 	CreatedAt  time.Time
@@ -73,53 +74,49 @@ func New(conn *websocket.Conn, options ...Option) *Adapter {
 }
 
 func (a *Adapter) Ping() chan bool {
-	if a.pongCh != nil {
-		a.Logger.Debug("pong channel is not null")
+	a.pingOnce.Do(func() {
+		a.stopPingCh = make(chan struct{})
+		a.pongCh = make(chan bool)
 
-		return a.pongCh
-	}
+		timeout := time.AfterFunc(pongTimeout, func() {
+			a.Logger.Debug("close connection due pong timeout")
 
-	a.stopPingCh = make(chan struct{})
-	a.pongCh = make(chan bool)
+			_ = a.Close()
+		})
 
-	timeout := time.AfterFunc(pongTimeout, func() {
-		a.Logger.Debug("close connection due pong timeout")
+		a.conn.SetPongHandler(func(_ string) error {
+			timeout.Reset(pongTimeout)
+			a.Logger.Trace("pong timeout")
 
-		_ = a.Close()
-	})
-
-	a.conn.SetPongHandler(func(_ string) error {
-		timeout.Reset(pongTimeout)
-		a.Logger.Trace("pong timeout")
-
-		// non-blocking channel write
-		select {
-		case a.pongCh <- true:
-			a.Logger.Trace("write true to pong channel")
-		default:
-		}
-
-		return nil
-	})
-
-	// ping loop
-	go func() {
-		ticker := time.NewTicker(pingInterval)
-		defer ticker.Stop()
-
-		for {
+			// non-blocking channel write
 			select {
-			case <-ticker.C:
-				if err := a.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second)); err != nil {
-					a.Logger.WithError(err).Error("failed to write ping message")
-				}
-			case <-a.stopPingCh:
-				a.Logger.Debug("stop ping message received")
-
-				return
+			case a.pongCh <- true:
+				a.Logger.Trace("write true to pong channel")
+			default:
 			}
-		}
-	}()
+
+			return nil
+		})
+
+		// ping loop
+		go func() {
+			ticker := time.NewTicker(pingInterval)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-ticker.C:
+					if err := a.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second)); err != nil {
+						a.Logger.WithError(err).Error("failed to write ping message")
+					}
+				case <-a.stopPingCh:
+					a.Logger.Debug("stop ping message received")
+
+					return
+				}
+			}
+		}()
+	})
 
 	return a.pongCh
 }
