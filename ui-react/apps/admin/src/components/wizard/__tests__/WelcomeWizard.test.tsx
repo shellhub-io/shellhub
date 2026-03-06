@@ -362,13 +362,15 @@ describe("WelcomeWizard", () => {
   });
 
   describe("backdrop click", () => {
-    it("calls onClose when backdrop is clicked on step 1", async () => {
-      const user = userEvent.setup();
+    it("calls onClose when backdrop is clicked on step 1", () => {
       const { onClose } = renderWizard();
 
-      // The backdrop is the absolutely-positioned sibling of the dialog
-      const backdrop = document.querySelector("[aria-hidden='true']") as HTMLElement;
-      await user.click(backdrop);
+      // The backdrop is the <dialog> element itself (native ::backdrop via showModal).
+      // fireEvent is used directly so mousedown and click both target the dialog node,
+      // matching the two-phase check in useBackdropClose.
+      const dialog = document.querySelector("dialog") as HTMLElement;
+      fireEvent.mouseDown(dialog);
+      fireEvent.click(dialog);
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -387,8 +389,9 @@ describe("WelcomeWizard", () => {
 
       onClose.mockClear();
 
-      const backdrop = document.querySelector("[aria-hidden='true']") as HTMLElement;
-      await user.click(backdrop);
+      const dialog = document.querySelector("dialog") as HTMLElement;
+      fireEvent.mouseDown(dialog);
+      fireEvent.click(dialog);
 
       expect(onClose).not.toHaveBeenCalled();
     });

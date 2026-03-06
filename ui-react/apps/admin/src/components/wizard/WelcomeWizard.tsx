@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { XMarkIcon, ArrowRightIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useBackdropClose } from "@/hooks/useBackdropClose";
 import { useDevicesStore } from "@/stores/devicesStore";
 import { Device } from "@/types/device";
 import WizardStep1Welcome from "./WizardStep1Welcome";
@@ -21,6 +22,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
   const [accepting, setAccepting] = useState(false);
 
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const backdropHandlers = useBackdropClose(dialogRef, onClose, () => step < TOTAL_STEPS);
   useFocusTrap(dialogRef, open);
 
   const { accept } = useDevicesStore();
@@ -74,22 +76,12 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center sm:p-4"
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={step === TOTAL_STEPS ? undefined : onClose}
-        aria-hidden="true"
-      />
-
-      {/* Dialog */}
       <dialog
         ref={dialogRef}
-        data-wizard
+        data-custom-backdrop
         aria-label="Welcome to ShellHub"
-        className="relative bg-surface sm:border sm:border-border sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-xl sm:max-h-[85vh] shadow-2xl shadow-black/40 flex flex-col animate-slide-up"
+        {...backdropHandlers}
+        className="fixed inset-0 z-[60] m-auto w-full h-full sm:h-auto sm:max-w-xl sm:max-h-[85vh] bg-surface sm:border sm:border-border sm:rounded-2xl shadow-2xl shadow-black/40 flex flex-col animate-slide-up"
       >
         {/* Header */}
         <header className="flex items-center justify-between px-6 pt-5 pb-0 shrink-0">
@@ -207,7 +199,6 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
           </div>
         </footer>
       </dialog>
-    </div>
   );
 }
 
