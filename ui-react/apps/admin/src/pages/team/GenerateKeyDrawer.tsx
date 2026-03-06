@@ -1,11 +1,19 @@
 import { useState, useEffect, FormEvent } from "react";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
+import axios from "axios";
 import { useApiKeysStore } from "../../stores/apiKeysStore";
 import CopyButton from "../../components/common/CopyButton";
 import Drawer from "../../components/common/Drawer";
 import { LABEL, INPUT } from "../../utils/styles";
 import { RoleSelector } from "./constants";
 import { EXPIRY_OPTIONS } from "./helpers";
+
+function validateName(value: string): string {
+  if (value.length < 3) return "Name must be at least 3 characters.";
+  if (value.length > 20) return "Name must be at most 20 characters.";
+  if (/\s/.test(value)) return "Name must not contain spaces.";
+  return "";
+}
 
 /* --- Generate API Key Drawer --- */
 
@@ -21,6 +29,7 @@ function GenerateKeyDrawer({
   const [role, setRole] = useState("administrator");
   const [expiresIn, setExpiresIn] = useState(30);
   const [submitting, setSubmitting] = useState(false);
+  const [nameError, setNameError] = useState("");
   const [error, setError] = useState("");
   const [generatedKey, setGeneratedKey] = useState("");
 
@@ -29,21 +38,40 @@ function GenerateKeyDrawer({
       setName("");
       setRole("administrator");
       setExpiresIn(30);
+      setNameError("");
       setError("");
       setGeneratedKey("");
     }
   }, [open]);
 
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (nameError) setNameError(validateName(value.trim()));
+  };
+
+  const handleNameBlur = () => {
+    if (name) setNameError(validateName(name.trim()));
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    const validationError = validateName(name.trim());
+    if (validationError) {
+      setNameError(validationError);
+      return;
+    }
     setSubmitting(true);
+    setNameError("");
     setError("");
     try {
       const id = await generate(name.trim(), role, expiresIn);
       setGeneratedKey(id);
-    } catch {
-      setError("Failed to generate API key. The name may already exist.");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 400) {
+        setNameError("Name must be 3–20 characters with no spaces.");
+      } else {
+        setError("Failed to generate API key. The name may already exist.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -73,7 +101,7 @@ function GenerateKeyDrawer({
             </button>
             <button
               onClick={handleSubmit}
-              disabled={!name.trim() || submitting}
+              disabled={submitting || !!nameError || !name.trim()}
               className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {submitting ? (
@@ -117,11 +145,15 @@ function GenerateKeyDrawer({
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onBlur={handleNameBlur}
               placeholder="e.g. ci-pipeline"
               autoFocus={open}
-              className={INPUT}
+              className={`${INPUT} ${nameError ? "border-accent-red/60 focus:border-accent-red/60 focus:ring-accent-red/20" : ""}`}
             />
+            {nameError && (
+              <p className="mt-1.5 text-2xs text-accent-red">{nameError}</p>
+            )}
           </div>
           <div>
             <label className={LABEL}>Role</label>
