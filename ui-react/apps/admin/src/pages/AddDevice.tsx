@@ -134,6 +134,7 @@ export default function AddDevice() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [hostname, setHostname] = useState("");
   const [identity, setIdentity] = useState("");
+  const [keepaliveInterval, setKeepaliveInterval] = useState("");
 
   const selectedMethod = METHODS.find((m) => m.id === method)!;
   const baseMethods = METHODS.slice(0, INITIAL_VISIBLE);
@@ -153,6 +154,8 @@ export default function AddDevice() {
     parts.push(`SERVER_ADDRESS=${origin}`);
     if (hostname.trim()) parts.push(`PREFERRED_HOSTNAME=${hostname.trim()}`);
     if (identity.trim()) parts.push(`PREFERRED_IDENTITY=${identity.trim()}`);
+    if (keepaliveInterval.trim())
+      parts.push(`KEEPALIVE_INTERVAL=${keepaliveInterval.trim()}`);
     parts.push("sh");
     return parts.join(" ");
   };
@@ -395,6 +398,26 @@ export default function AddDevice() {
                 />
                 <p className="text-2xs text-text-muted/60 mt-1">
                   Set a custom identity string for the device.
+                </p>
+              </div>
+              <div>
+                <label className={`block ${LABEL} mb-1.5`}>
+                  Keep Alive Interval{" "}
+                  <span className="text-text-muted/50 normal-case tracking-normal">
+                    (optional)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={keepaliveInterval}
+                  onChange={(e) => setKeepaliveInterval(e.target.value)}
+                  placeholder="30"
+                  className={INPUT}
+                />
+                <p className="text-2xs text-text-muted/60 mt-1">
+                  Interval in seconds between keep-alive messages sent by the
+                  agent. Defaults to 30.
                 </p>
               </div>
             </div>
