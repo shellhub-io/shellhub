@@ -33,7 +33,7 @@ describe("MfaMailRecover", () => {
   describe("navigation", () => {
     it("links to login page", () => {
       const loginLink = wrapper.find('[data-test="login-btn"]');
-      expect(loginLink.attributes("href")).toBe("/login");
+      expect(loginLink.attributes("href")).toBe("/v1/login");
     });
   });
 });

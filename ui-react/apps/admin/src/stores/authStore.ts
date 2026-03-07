@@ -113,7 +113,7 @@ export const useAuthStore = create<AuthState>()(
       deleteUser: async () => {
         await apiDeleteUser();
         get().logout();
-        window.location.replace("/v2/ui/login");
+        window.location.replace("/login");
       },
     }),
     {

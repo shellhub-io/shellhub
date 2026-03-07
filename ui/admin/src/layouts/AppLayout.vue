@@ -196,7 +196,7 @@ watch(drawer, () => {
 
 const logout = () => {
   authStore.logout();
-  window.location.href = "/login";
+  window.location.href = "/v1/login";
   createNewAdminClient();
   layoutStore.layout = "LoginLayout";
 };

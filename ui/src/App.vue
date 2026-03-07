@@ -12,7 +12,7 @@
           &mdash; 299 <code class="new-ui-bar-code">v-model</code> replaced with <code class="new-ui-bar-code">useState</code>
         </span>
         <a
-          href="/v2/ui/"
+          href="/"
           class="new-ui-bar-link"
         >
           <v-icon size="14" class="mr-1">

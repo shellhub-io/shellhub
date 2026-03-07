@@ -96,12 +96,12 @@ export const useNamespacesStore = create<NamespacesState>((set) => ({
   deleteNamespace: async (tenantId: string) => {
     await deleteNamespaceApi(tenantId);
     useAuthStore.getState().logout();
-    window.location.replace("/v2/ui/login");
+    window.location.replace("/login");
   },
 
   leaveNamespace: async (tenantId: string) => {
     await leaveNamespaceApi(tenantId);
     useAuthStore.getState().logout();
-    window.location.replace("/v2/ui/login");
+    window.location.replace("/login");
   },
 }));

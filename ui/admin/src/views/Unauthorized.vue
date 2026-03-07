@@ -103,11 +103,11 @@ const actionItems = [
 ];
 
 const goToMainApp = () => {
-  window.location.href = "/";
+  window.location.href = "/v1/";
 };
 
 const logout = () => {
   authStore.logout();
-  window.location.href = "/login";
+  window.location.href = "/v1/login";
 };
 </script>

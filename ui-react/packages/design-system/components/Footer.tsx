@@ -5,7 +5,7 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr] gap-10 mb-10">
           <div>
             <a href="#" className="inline-block mb-4">
-              <img src="/v2/logo-inverted.png" alt="ShellHub" className="h-8" />
+              <img src="/logo-inverted.png" alt="ShellHub" className="h-8" />
             </a>
             <p className="text-xs text-text-secondary max-w-[220px] leading-relaxed">The open source SSH gateway for remote access to Linux devices.</p>
           </div>

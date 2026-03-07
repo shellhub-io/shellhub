@@ -60,13 +60,13 @@ describe("Unauthorized", () => {
     await logoutButton.trigger("click");
 
     expect(authStore.logout).toHaveBeenCalled();
-    expect(window.location.href).toBe("/login");
+    expect(window.location.href).toBe("/v1/login");
   });
 
   it("redirects to main app when go to shellhub button is clicked", async () => {
     const goToMainAppButton = wrapper.findAll(".v-btn")[1];
     await goToMainAppButton.trigger("click");
 
-    expect(window.location.href).toBe("/");
+    expect(window.location.href).toBe("/v1/");
   });
 });

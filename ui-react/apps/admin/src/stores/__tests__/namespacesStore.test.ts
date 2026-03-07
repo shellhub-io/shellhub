@@ -155,7 +155,7 @@ describe("namespacesStore", () => {
 
       expect(mockedDeleteNamespace).toHaveBeenCalledWith("t1");
       expect(useAuthStore.getState().token).toBeNull();
-      expect(window.location.replace).toHaveBeenCalledWith("/v2/ui/login");
+      expect(window.location.replace).toHaveBeenCalledWith("/login");
     });
   });
 
@@ -167,7 +167,7 @@ describe("namespacesStore", () => {
 
       expect(mockedLeaveNamespace).toHaveBeenCalledWith("t1");
       expect(useAuthStore.getState().token).toBeNull();
-      expect(window.location.replace).toHaveBeenCalledWith("/v2/ui/login");
+      expect(window.location.replace).toHaveBeenCalledWith("/login");
     });
   });
 

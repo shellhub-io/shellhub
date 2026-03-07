@@ -106,7 +106,7 @@ describe("request interceptor", () => {
     expect(useAuthStore.getState().token).toBeNull();
 
     // Should redirect
-    expect(window.location.href).toBe("/v2/ui/login");
+    expect(window.location.href).toBe("/login");
   });
 
   it("rejects when token is malformed", async () => {
@@ -137,7 +137,7 @@ describe("response interceptor", () => {
     await expect(client.get("/test")).rejects.toBeDefined();
 
     expect(useAuthStore.getState().token).toBeNull();
-    expect(window.location.href).toBe("/v2/ui/login");
+    expect(window.location.href).toBe("/login");
   });
 
   it("marks API as up on successful response", async () => {

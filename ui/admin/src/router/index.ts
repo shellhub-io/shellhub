@@ -121,7 +121,7 @@ export const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory("/admin/"),
+  history: createWebHistory("/v1/admin/"),
   routes,
 });
 
@@ -134,7 +134,7 @@ router.beforeEach(
     const requiresAdmin = to.meta.requiresAdmin ?? true;
 
     if (!authStore.isLoggedIn && requiresAuth) {
-      window.location.href = `/login?redirect=${encodeURIComponent(to.fullPath)}`;
+      window.location.href = `/v1/login?redirect=${encodeURIComponent(to.fullPath)}`;
       return next();
     }
 

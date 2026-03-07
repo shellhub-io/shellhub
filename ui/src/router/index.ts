@@ -549,7 +549,7 @@ export const routes: Array<RouteRecordRaw> = [
 ];
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory("/v1/"),
   routes,
 });
 

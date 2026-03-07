@@ -24,7 +24,7 @@ const onResponseError = async (error: AxiosError, isAdmin: boolean): Promise<Axi
     const router = (await import("@admin/router")).default;
     if (error.response?.status === 401) {
       useAdminAuthStore().logout();
-      window.location.href = "/login";
+      window.location.href = "/v1/login";
     } else if (error.response?.status === 402) {
       await router.push({ name: "license" });
     }

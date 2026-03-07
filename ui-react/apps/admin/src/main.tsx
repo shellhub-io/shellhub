@@ -12,7 +12,7 @@ loadConfig().then(() => {
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
       <ErrorBoundary>
-        <BrowserRouter basename="/v2/ui">
+        <BrowserRouter basename="/">
           <App />
         </BrowserRouter>
       </ErrorBoundary>

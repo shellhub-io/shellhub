@@ -8,7 +8,7 @@ import UserMenu from "../layout/UserMenu";
 function MinimalHeader() {
   return (
     <header className="h-14 bg-surface border-b border-border px-5 flex items-center justify-between shrink-0">
-      <img src="/v2/ui/logo.svg" alt="ShellHub" className="h-6" />
+      <img src="/logo.svg" alt="ShellHub" className="h-6" />
       <UserMenu />
     </header>
   );

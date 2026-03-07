@@ -319,7 +319,7 @@ describe("DevicesDropdown", () => {
 
     it("creates navigation links to device details", async () => {
       await flushPromises();
-      const link = drawer.find(`a[href="/devices/${mockRecentDevices[0].uid}"]`);
+      const link = drawer.find(`a[href="/v1/devices/${mockRecentDevices[0].uid}"]`);
       expect(link.exists()).toBe(true);
     });
   });
@@ -511,7 +511,7 @@ describe("DevicesDropdown", () => {
 
     it("links to devices page", () => {
       const button = drawer.find('[data-test="view-all-devices-btn"]');
-      expect(button.attributes("href")).toBe("/devices");
+      expect(button.attributes("href")).toBe("/v1/devices");
     });
   });
 
