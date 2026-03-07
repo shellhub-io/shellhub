@@ -13,8 +13,8 @@ const Component = { template: "<v-app><AppLayout /></v-app>" };
 // Mock window.location for router tests
 Object.defineProperty(window, "location", {
   value: {
-    href: "http://localhost:3000/admin/",
-    pathname: "/admin/",
+    href: "http://localhost:3000/v1/admin/",
+    pathname: "/v1/admin/",
     search: "",
     hash: "",
   },

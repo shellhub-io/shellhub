@@ -27,7 +27,7 @@ export default defineConfig({
     }),
     healthcheck(),
   ],
-  base: "/v2/ui/",
+  base: "/",
   server: {
     port: 8080,
     allowedHosts: true,

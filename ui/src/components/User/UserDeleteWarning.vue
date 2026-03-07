@@ -40,7 +40,7 @@
           Please access your
           <a
             class="font-weight-medium text-primary"
-            href="/admin/users"
+            href="/v1/admin/users"
             target="_blank"
             rel="noopener noreferrer"
           >Admin Console</a>

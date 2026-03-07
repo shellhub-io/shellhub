@@ -248,7 +248,7 @@ onMounted(async () => {
   statsStore.stats = {} as IStats;
   await authStore.loginWithToken(route.query.token as string);
 
-  window.location.href = "/";
+  window.location.href = "/v1/";
 });
 
 const login = async () => {

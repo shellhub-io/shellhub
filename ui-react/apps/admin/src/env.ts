@@ -16,7 +16,7 @@ export async function loadConfig(): Promise<ClientConfig> {
   if (cached !== defaultConfig) return cached;
 
   try {
-    const res = await fetch("/v2/ui/config.json");
+    const res = await fetch("/config.json");
     cached = { ...defaultConfig, ...(await res.json()) };
   } catch {
     cached = defaultConfig;

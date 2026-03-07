@@ -122,7 +122,7 @@ export default function Sidebar() {
       }`}
     >
       <div className="h-14 flex items-center justify-center border-b border-border">
-        <img src="/v2/ui/logo.svg" alt="ShellHub" className="h-8" />
+        <img src="/logo.svg" alt="ShellHub" className="h-8" />
       </div>
 
       <nav className="flex-1 px-3 pt-4 py-2 overflow-y-auto">

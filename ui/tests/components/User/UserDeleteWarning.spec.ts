@@ -140,7 +140,7 @@ describe("UserDeleteWarning", () => {
     });
 
     it("renders Admin Console link", () => {
-      const adminLink = dialog.find('a[href="/admin/users"]');
+      const adminLink = dialog.find('a[href="/v1/admin/users"]');
       expect(adminLink.exists()).toBe(true);
       expect(adminLink.attributes("target")).toBe("_blank");
       expect(adminLink.attributes("rel")).toBe("noopener noreferrer");

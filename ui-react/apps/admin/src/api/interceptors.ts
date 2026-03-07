@@ -44,7 +44,7 @@ export function setupInterceptors(instance: AxiosInstance) {
     if (token) {
       if (isTokenExpired(token)) {
         useAuthStore.getState().logout();
-        window.location.href = "/v2/ui/login";
+        window.location.href = "/login";
         return Promise.reject(new Error("Token expired"));
       }
       config.headers.Authorization = `Bearer ${token}`;
@@ -63,7 +63,7 @@ export function setupInterceptors(instance: AxiosInstance) {
     (error: AxiosError) => {
       if (error.response?.status === 401) {
         useAuthStore.getState().logout();
-        window.location.href = "/v2/ui/login";
+        window.location.href = "/login";
       } else if (isApiDown(error)) {
         scheduleMarkDown();
       }

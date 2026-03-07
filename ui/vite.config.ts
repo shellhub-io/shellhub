@@ -12,6 +12,7 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/v1/",
   build: {
     rollupOptions: {
       input: {
@@ -38,12 +39,12 @@ export default defineConfig({
       name: "admin-handler",
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-          if (!req.url?.startsWith("/admin")) return next();
+          if (!req.url?.startsWith("/v1/admin")) return next();
 
           const parsedUrl = new URL(req.url, "http://localhost");
           const { pathname } = parsedUrl;
 
-          const relativePath = pathname.replace("/admin", "");
+          const relativePath = pathname.replace("/v1/admin", "");
           const filePath = path.resolve(__dirname, "admin", `.${relativePath}`);
 
           if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {

@@ -197,7 +197,7 @@ const availableNamespaces = computed(() => {
 });
 
 const navigateToAdminPanel = () => {
-  window.location.href = "/admin";
+  window.location.href = "/v1/admin";
 };
 
 const navigateToNamespaceSettings = async () => {
@@ -207,7 +207,7 @@ const navigateToNamespaceSettings = async () => {
 const handleNamespaceSwitch = async (tenantId: string) => {
   try {
     await namespacesStore.switchNamespace(tenantId);
-    if (props.isAdminContext && tenantId) window.location.href = "/";
+    if (props.isAdminContext && tenantId) window.location.href = "/v1/";
     else window.location.reload();
   } catch (error: unknown) {
     snackbar.showError("Failed to switch namespace");
