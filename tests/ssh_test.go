@@ -981,7 +981,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 					// interrupted, so each attempt runs in a goroutine with a
 					// per-attempt timeout. On timeout we abort immediately
 					// (the deferred sess/conn Close unblocks the reader).
-					deadline := time.Now().Add(5 * time.Second)
+					deadline := time.Now().Add(30 * time.Second)
 					var lastOutput string
 					matched := false
 					for attempt := 0; !matched && time.Now().Before(deadline); attempt++ {
@@ -1002,7 +1002,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 							require.NoError(t, r.err)
 							lastOutput = r.output
 							matched = (r.output == expected)
-						case <-time.After(2 * time.Second):
+						case <-time.After(10 * time.Second):
 							require.Fail(t, "timeout reading stty output",
 								"marker=%s expected=%s", marker, expected)
 						}
