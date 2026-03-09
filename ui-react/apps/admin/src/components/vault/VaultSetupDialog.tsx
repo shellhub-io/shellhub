@@ -6,7 +6,7 @@ import {
 import { useVaultStore } from "@/stores/vaultStore";
 import { getVaultBackend } from "@/utils/vault-backend-factory";
 import { useAuthStore } from "@/stores/authStore";
-import { INPUT } from "@/utils/styles";
+import PasswordInput from "@/components/common/PasswordInput";
 
 interface Props {
   open: boolean;
@@ -106,11 +106,8 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
             >
               Master Password
             </label>
-            <input
+            <PasswordInput
               id="vault-password"
-              type="text"
-              autoComplete="off"
-              style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimum 8 characters"
@@ -119,7 +116,6 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
               aria-describedby={
                 passwordTooShort ? "vault-password-error" : undefined
               }
-              className={INPUT}
             />
             {passwordTooShort && (
               <p
@@ -138,11 +134,8 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
             >
               Confirm Password
             </label>
-            <input
+            <PasswordInput
               id="vault-confirm"
-              type="text"
-              autoComplete="off"
-              style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               placeholder="Re-enter your password"
@@ -150,7 +143,6 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
               aria-describedby={
                 passwordsMismatch ? "vault-confirm-error" : undefined
               }
-              className={INPUT}
             />
             {passwordsMismatch && (
               <p

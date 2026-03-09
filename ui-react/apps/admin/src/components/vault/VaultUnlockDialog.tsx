@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
-import { INPUT } from "@/utils/styles";
+import PasswordInput from "@/components/common/PasswordInput";
 
 interface Props {
   open: boolean;
@@ -75,23 +75,20 @@ export default function VaultUnlockDialog({ open, onClose, onReset }: Props) {
             >
               Master Password
             </label>
-            <input
+            <PasswordInput
               id="vault-unlock-password"
-              type="password"
-              autoComplete="off"
-              data-1p-ignore
-              data-lpignore="true"
-              data-form-type="other"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your master password"
               autoFocus
               aria-invalid={!!error}
               aria-describedby={error ? "vault-unlock-error" : undefined}
-              className={INPUT}
             />
             {error && (
-              <p id="vault-unlock-error" className="text-2xs text-accent-red mt-1.5">
+              <p
+                id="vault-unlock-error"
+                className="text-2xs text-accent-red mt-1.5"
+              >
                 {error}
               </p>
             )}

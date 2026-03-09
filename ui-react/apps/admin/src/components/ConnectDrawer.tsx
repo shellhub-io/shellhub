@@ -11,6 +11,7 @@ import { useVaultStore } from "../stores/vaultStore";
 import { getFingerprint, validatePrivateKey } from "../utils/ssh-keys";
 import CopyButton from "./common/CopyButton";
 import Drawer from "./common/Drawer";
+import PasswordInput from "./common/PasswordInput";
 import VaultLockedBanner from "./vault/VaultLockedBanner";
 import VaultUnlockDialog from "./vault/VaultUnlockDialog";
 import { LABEL, INPUT } from "../utils/styles";
@@ -262,23 +263,11 @@ export default function ConnectDrawer({
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* Decoy to prevent Chrome username autofill */}
-          <input
-            type="text"
-            name="fake-user"
-            autoComplete="username"
-            className="absolute w-0 h-0 opacity-0 pointer-events-none"
-            tabIndex={-1}
-            aria-hidden="true"
-          />
-
           {/* Username */}
           <div>
             <label className={LABEL}>Username</label>
             <input
               type="text"
-              name="device-user"
-              id="device-user"
               autoComplete="off"
               value={state.username}
               onChange={(e) =>
@@ -373,18 +362,12 @@ export default function ConnectDrawer({
           {state.authMethod === "password" && (
             <div>
               <label className={LABEL}>Password</label>
-              <input
-                type="text"
-                name="device-pass"
-                id="device-pass"
-                autoComplete="off"
-                style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
+              <PasswordInput
                 value={state.password}
                 onChange={(e) =>
                   dispatch({ type: "setPassword", value: e.target.value })
                 }
                 placeholder="Enter device password"
-                className={INPUT}
               />
             </div>
           )}
@@ -460,9 +443,7 @@ export default function ConnectDrawer({
                   {selectedVaultKey?.hasPassphrase && (
                     <div>
                       <label className={LABEL}>Passphrase</label>
-                      <input
-                        type="password"
-                        autoComplete="off"
+                      <PasswordInput
                         value={state.passphrase}
                         onChange={(e) =>
                           dispatch({
@@ -471,7 +452,6 @@ export default function ConnectDrawer({
                           })
                         }
                         placeholder="Key passphrase"
-                        className={INPUT}
                       />
                     </div>
                   )}
@@ -492,9 +472,7 @@ export default function ConnectDrawer({
                   {state.manualKeyEncrypted && (
                     <div>
                       <label className={LABEL}>Passphrase</label>
-                      <input
-                        type="password"
-                        autoComplete="off"
+                      <PasswordInput
                         value={state.passphrase}
                         onChange={(e) =>
                           dispatch({
@@ -503,7 +481,6 @@ export default function ConnectDrawer({
                           })
                         }
                         placeholder="Enter passphrase for encrypted key"
-                        className={INPUT}
                       />
                       <p className="text-2xs text-text-muted mt-1.5">
                         This key is encrypted and requires a passphrase.

@@ -418,7 +418,7 @@ function PasswordField({
         <input
           id={id}
           type={visible ? "text" : "password"}
-          autoComplete="off"
+          autoComplete="new-password"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
