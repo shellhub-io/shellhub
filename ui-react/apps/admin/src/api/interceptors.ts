@@ -61,7 +61,8 @@ export function setupInterceptors(instance: AxiosInstance) {
       return response;
     },
     (error: AxiosError) => {
-      if (error.response?.status === 401) {
+      const isLoginRequest = error.config?.url?.includes("/api/login");
+      if (error.response?.status === 401 && !isLoginRequest) {
         useAuthStore.getState().logout();
         window.location.href = "/login";
       } else if (isApiDown(error)) {

@@ -1,23 +1,90 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import {
   ExclamationCircleIcon,
+  CheckCircleIcon,
   LockClosedIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 
+function useLoginCountdown(lockoutEndEpoch: number | null) {
+  const [display, setDisplay] = useState("");
+  const [expired, setExpired] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (lockoutEndEpoch === null) return;
+    setExpired(false);
+
+    intervalRef.current = setInterval(() => {
+      const diff = lockoutEndEpoch - Date.now() / 1000;
+      if (diff <= 0) {
+        clearInterval(intervalRef.current!);
+        setDisplay("");
+        setExpired(true);
+      } else if (diff < 60) {
+        const s = Math.floor(diff);
+        setDisplay(`${s} ${s === 1 ? "second" : "seconds"}`);
+      } else {
+        const m = Math.floor(diff / 60);
+        setDisplay(`${m} ${m === 1 ? "minute" : "minutes"}`);
+      }
+    }, 1000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [lockoutEndEpoch]);
+
+  return { display, expired };
+}
+
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const { login, loading, error } = useAuthStore();
+  const [error, setError] = useState<string | null>(null);
+  const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
+  const { login, loading } = useAuthStore();
   const navigate = useNavigate();
+  const { display: countdownDisplay, expired: lockoutExpired } =
+    useLoginCountdown(lockoutEndEpoch);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await login(username, password);
-    if (useAuthStore.getState().token) {
+    setError(null);
+    setLockoutEndEpoch(null);
+    try {
+      await login(username, password);
       navigate("/dashboard");
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        switch (err.response?.status) {
+          case 401:
+            setError(
+              "Invalid login credentials. Your password is incorrect or this account doesn't exist.",
+            );
+            break;
+          case 403:
+            navigate(
+              `/confirm-account?username=${encodeURIComponent(username)}`,
+            );
+            break;
+          case 429: {
+            const epoch = Number(err.response.headers["x-account-lockout"]);
+            setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
+            setError(
+              "Too many failed login attempts. Please wait before trying again.",
+            );
+            break;
+          }
+          default:
+            setError("Something went wrong on our end. Please try again later.");
+        }
+      } else {
+        setError("Something went wrong. Please try again later.");
+      }
     }
   };
 
@@ -52,13 +119,24 @@ export default function Login() {
         style={{ animationDelay: "200ms" }}
       >
         <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
+          {lockoutExpired && (
+            <div className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
+              <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+              Your timeout has finished. Please try to log back in.
+            </div>
+          )}
+          {error && !lockoutExpired && (
             <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <ExclamationCircleIcon
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
               />
-              {error}
+              <span>
+                {error}
+                {countdownDisplay && (
+                  <span className="font-semibold"> ({countdownDisplay})</span>
+                )}
+              </span>
             </div>
           )}
 

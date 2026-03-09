@@ -20,7 +20,6 @@ interface AuthState {
   role: string | null;
   name: string | null;
   loading: boolean;
-  error: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
@@ -49,7 +48,6 @@ const initialState = {
   role: null,
   name: null,
   loading: false,
-  error: null,
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -58,7 +56,7 @@ export const useAuthStore = create<AuthState>()(
       ...initialState,
 
       login: async (username: string, password: string) => {
-        set({ loading: true, error: null });
+        set({ loading: true });
         try {
           const data = await apiLogin({ username, password });
           set({
@@ -70,8 +68,9 @@ export const useAuthStore = create<AuthState>()(
             name: data.name,
             loading: false,
           });
-        } catch {
-          set({ loading: false, error: "Invalid username or password" });
+        } catch (err) {
+          set({ loading: false });
+          throw err;
         }
       },
 

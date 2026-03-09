@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
+import ConfirmAccount from "./pages/ConfirmAccount";
 import AppLayout from "./components/layout/AppLayout";
 import LoginLayout from "./components/layout/LoginLayout";
 import ConnectivityGuard from "./components/common/ConnectivityGuard";
@@ -31,6 +32,7 @@ export default function App() {
           <Route element={<SetupGuard />}>
             <Route element={<LoginLayout />}>
               <Route path="/login" element={<Login />} />
+              <Route path="/confirm-account" element={<ConfirmAccount />} />
               <Route path="/setup" element={<Setup />} />
             </Route>
             <Route element={<ProtectedRoute />}>
