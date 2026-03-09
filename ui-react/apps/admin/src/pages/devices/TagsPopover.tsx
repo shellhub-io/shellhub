@@ -119,9 +119,12 @@ function TagsPopover({
   );
   const isNew =
     input.trim().length >= 3 &&
+    input.trim().length <= 255 &&
     !allTags.includes(input.trim()) &&
     !tags.includes(input.trim());
-  const inputValid = !input.trim() || /^[a-zA-Z0-9]+$/.test(input.trim());
+  const inputValid =
+    !input.trim() ||
+    (/^[a-zA-Z0-9]+$/.test(input.trim()) && input.trim().length <= 255);
 
   return (
     <>
@@ -222,7 +225,9 @@ function TagsPopover({
                   )}
                   {input.trim().length >= 3 && !inputValid && (
                     <p className="text-2xs text-accent-red mt-1">
-                      Only letters and numbers
+                      {input.trim().length > 255
+                        ? "At most 255 characters"
+                        : "Only letters and numbers"}
                     </p>
                   )}
 

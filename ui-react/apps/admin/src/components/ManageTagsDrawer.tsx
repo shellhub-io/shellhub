@@ -41,7 +41,9 @@ export default function ManageTagsDrawer({
   }, [open, fetch]);
 
   const newNameValid =
-    newName.trim().length >= 3 && TAG_PATTERN.test(newName.trim());
+    newName.trim().length >= 3 &&
+    newName.trim().length <= 255 &&
+    TAG_PATTERN.test(newName.trim());
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -64,7 +66,9 @@ export default function ManageTagsDrawer({
 
   const editNameTrimmed = editName.trim();
   const editNameValid =
-    editNameTrimmed.length >= 3 && TAG_PATTERN.test(editNameTrimmed);
+    editNameTrimmed.length >= 3 &&
+    editNameTrimmed.length <= 255 &&
+    TAG_PATTERN.test(editNameTrimmed);
   const editNameChanged = editingTag !== null && editNameTrimmed !== editingTag;
 
   const handleRename = async (currentName: string) => {
@@ -73,7 +77,11 @@ export default function ManageTagsDrawer({
       setEditingTag(null);
       return;
     }
-    if (trimmed.length < 3 || !TAG_PATTERN.test(trimmed)) {
+    if (
+      trimmed.length < 3 ||
+      trimmed.length > 255 ||
+      !TAG_PATTERN.test(trimmed)
+    ) {
       return;
     }
     setSubmitting(true);
@@ -162,7 +170,9 @@ export default function ManageTagsDrawer({
             <p className="mt-1.5 text-2xs text-text-muted">
               {newName.trim().length < 3
                 ? "At least 3 characters"
-                : "Only letters and numbers"}
+                : newName.trim().length > 255
+                  ? "At most 255 characters"
+                  : "Only letters and numbers"}
             </p>
           )}
         </form>
@@ -244,7 +254,9 @@ export default function ManageTagsDrawer({
                         <p className="mt-1 text-2xs text-accent-red">
                           {editNameTrimmed.length < 3
                             ? "At least 3 characters"
-                            : "Only letters and numbers"}
+                            : editNameTrimmed.length > 255
+                              ? "At most 255 characters"
+                              : "Only letters and numbers"}
                         </p>
                       )}
                     </div>
