@@ -44,6 +44,13 @@ export default function AppBar() {
     }
   }
 
+  // Safety net: if fade-out gets stuck (e.g. transitionend never fires
+  // because the page re-mounts during navigation), skip straight to idle.
+  if (phase === "fading-out" && !activeSession && !pending) {
+    setDisplayed(null);
+    setPhase("idle");
+  }
+
   const handleTransitionEnd = useCallback(() => {
     if (phase !== "fading-out") return;
 
