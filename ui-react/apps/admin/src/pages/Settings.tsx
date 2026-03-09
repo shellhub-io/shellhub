@@ -20,6 +20,7 @@ import CopyButton from "../components/common/CopyButton";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import { LABEL, INPUT } from "../utils/styles";
+import { getConfig } from "../env";
 
 const NAME_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 
@@ -505,43 +506,45 @@ export default function Settings() {
 
         {/* ── SSH ── */}
         <SettingsCard title="SSH">
-          {/* Session Recording */}
-          <SettingsRow
-            icon={<VideoCameraIcon className="w-4 h-4" />}
-            title="Session Recording"
-            description="Record SSH sessions for audit and playback"
-          >
-            <div
-              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canEdit || togglingRecord ? "opacity-40 pointer-events-none" : ""}`}
+          {/* Session Recording (Cloud/Enterprise only) */}
+          {(getConfig().cloud || getConfig().enterprise) && (
+            <SettingsRow
+              icon={<VideoCameraIcon className="w-4 h-4" />}
+              title="Session Recording"
+              description="Record SSH sessions for audit and playback"
             >
-              <button
-                type="button"
-                onClick={() => {
-                  if (sessionRecord) handleToggleRecord();
-                }}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                  !sessionRecord
-                    ? "bg-hover-strong text-text-secondary border border-border-light"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
+              <div
+                className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canEdit || togglingRecord ? "opacity-40 pointer-events-none" : ""}`}
               >
-                Off
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!sessionRecord) handleToggleRecord();
-                }}
-                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                  sessionRecord
-                    ? "bg-primary/15 text-primary border border-primary/25"
-                    : "text-text-muted hover:text-text-secondary border border-transparent"
-                }`}
-              >
-                On
-              </button>
-            </div>
-          </SettingsRow>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (sessionRecord) handleToggleRecord();
+                  }}
+                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                    !sessionRecord
+                      ? "bg-hover-strong text-text-secondary border border-border-light"
+                      : "text-text-muted hover:text-text-secondary border border-transparent"
+                  }`}
+                >
+                  Off
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!sessionRecord) handleToggleRecord();
+                  }}
+                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                    sessionRecord
+                      ? "bg-primary/15 text-primary border border-primary/25"
+                      : "text-text-muted hover:text-text-secondary border border-transparent"
+                  }`}
+                >
+                  On
+                </button>
+              </div>
+            </SettingsRow>
+          )}
 
           {/* SSH Banner */}
           <BannerPreview banner={banner} canEdit={canEdit} />
