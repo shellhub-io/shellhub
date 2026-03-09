@@ -971,7 +971,6 @@ function WebEndpointsContent() {
       ) : (
         <>
           <PageHeader
-            variant="decorated"
             icon={<GlobeAltIcon className="w-6 h-6" />}
             overline="Networking"
             title="Web Endpoints"

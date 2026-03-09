@@ -156,7 +156,6 @@ export default function FirewallRules() {
       ) : (
         <>
           <PageHeader
-            variant="decorated"
             icon={<ExclamationTriangleIcon className="w-6 h-6" />}
             overline="Security"
             title="Firewall Rules"

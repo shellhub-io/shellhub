@@ -271,7 +271,6 @@ export default function PublicKeys() {
       ) : (
         <>
           <PageHeader
-            variant="decorated"
             icon={<KeyIcon className="w-6 h-6" />}
             overline="Security"
             title="Public Keys"

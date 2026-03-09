@@ -312,7 +312,6 @@ export default function SecureVault() {
       {status === "unlocked" && (
         <>
           <PageHeader
-            variant="decorated"
             icon={<ShieldCheckIcon className="w-6 h-6" />}
             overline="Security"
             title="Secure Vault"
