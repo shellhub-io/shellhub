@@ -76,7 +76,7 @@ describe("namespacesStore", () => {
 
       const state = useNamespacesStore.getState();
       expect(state.error).toBe("Failed to load namespaces");
-      expect(state.loaded).toBe(true);
+      expect(state.loaded).toBe(false);
     });
 
     it("sets API-down error when connectivity is lost", async () => {
