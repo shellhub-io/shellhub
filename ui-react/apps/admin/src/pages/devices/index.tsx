@@ -445,7 +445,10 @@ export default function Devices() {
       {/* Manage Tags Drawer */}
       <ManageTagsDrawer
         open={manageTagsOpen}
-        onClose={() => setManageTagsOpen(false)}
+        onClose={() => {
+          setManageTagsOpen(false);
+          fetch();
+        }}
       />
     </div>
   );
