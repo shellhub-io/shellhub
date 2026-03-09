@@ -1,5 +1,6 @@
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, useRef, FormEvent } from "react";
 import { useTagsStore } from "../stores/tagsStore";
+import { useDevicesStore } from "../stores/devicesStore";
 import axios from "axios";
 import Drawer from "./common/Drawer";
 import ConfirmDialog from "./common/ConfirmDialog";
@@ -28,6 +29,7 @@ export default function ManageTagsDrawer({
   const [submitting, setSubmitting] = useState(false);
   const [deletingTag, setDeletingTag] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const skipBlurRef = useRef(false);
 
   useEffect(() => {
     if (open) {
@@ -60,22 +62,34 @@ export default function ManageTagsDrawer({
     }
   };
 
+  const editNameTrimmed = editName.trim();
+  const editNameValid =
+    editNameTrimmed.length >= 3 && TAG_PATTERN.test(editNameTrimmed);
+  const editNameChanged = editingTag !== null && editNameTrimmed !== editingTag;
+
   const handleRename = async (currentName: string) => {
     const trimmed = editName.trim();
-    if (
-      !trimmed ||
-      trimmed.length < 3 ||
-      !TAG_PATTERN.test(trimmed) ||
-      trimmed === currentName
-    ) {
+    if (!trimmed || trimmed === currentName) {
       setEditingTag(null);
+      return;
+    }
+    if (trimmed.length < 3 || !TAG_PATTERN.test(trimmed)) {
       return;
     }
     setSubmitting(true);
     setError(null);
     try {
       await update(currentName, trimmed);
+      skipBlurRef.current = true;
+      setEditName("");
       setEditingTag(null);
+      const { filterTags } = useDevicesStore.getState();
+      if (filterTags.includes(currentName)) {
+        const next = filterTags.map((t) =>
+          t === currentName ? trimmed : t,
+        );
+        useDevicesStore.setState({ filterTags: next, page: 1 });
+      }
     } catch {
       setError(`Failed to rename "${currentName}".`);
     } finally {
@@ -89,6 +103,10 @@ export default function ManageTagsDrawer({
     try {
       await remove(name);
       setDeletingTag(null);
+      const { filterTags, removeFilterTag } = useDevicesStore.getState();
+      if (filterTags.includes(name)) {
+        removeFilterTag(name);
+      }
     } catch {
       setError(`Failed to delete "${name}".`);
     } finally {
@@ -192,18 +210,44 @@ export default function ManageTagsDrawer({
                   className="group flex items-center gap-2 px-6 py-2.5 hover:bg-hover-subtle transition-colors"
                 >
                   {editingTag === tag.name ? (
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleRename(tag.name);
-                        if (e.key === "Escape") setEditingTag(null);
-                      }}
-                      onBlur={() => handleRename(tag.name)}
-                      autoFocus
-                      className="flex-1 px-2.5 py-1 bg-card border border-primary/50 rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all"
-                    />
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            skipBlurRef.current = true;
+                            handleRename(tag.name);
+                          }
+                          if (e.key === "Escape") {
+                            skipBlurRef.current = true;
+                            setEditName("");
+                            setEditingTag(null);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (skipBlurRef.current) {
+                            skipBlurRef.current = false;
+                            return;
+                          }
+                          handleRename(tag.name);
+                        }}
+                        autoFocus
+                        className={`w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all ${
+                          editNameChanged && !editNameValid
+                            ? "border-accent-red/50 focus:ring-accent-red/20"
+                            : "border-primary/50 focus:ring-primary/20"
+                        }`}
+                      />
+                      {editNameChanged && !editNameValid && (
+                        <p className="mt-1 text-2xs text-accent-red">
+                          {editNameTrimmed.length < 3
+                            ? "At least 3 characters"
+                            : "Only letters and numbers"}
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <div className="flex-1 flex items-center gap-2 min-w-0">
                       <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-md font-medium">
