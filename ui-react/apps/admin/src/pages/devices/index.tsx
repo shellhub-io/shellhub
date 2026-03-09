@@ -195,7 +195,7 @@ export default function Devices() {
               <tr className="border-b border-border bg-surface/50">
                 {status === "accepted" && <th className={`${TH} w-12`} />}
                 <th className={TH}>Hostname</th>
-                {status === "accepted" && <th className={TH}>SSH ID</th>}
+                {status === "accepted" && <th className={TH}>SSHID</th>}
                 <th className={TH}>Operating System</th>
                 <th className={TH}>Tags</th>
                 <th className={TH}>Last Seen</th>
@@ -268,7 +268,7 @@ export default function Devices() {
                         </span>
                       </td>
 
-                      {/* SSH ID — accepted only */}
+                      {/* SSHID — accepted only */}
                       {status === "accepted" && (
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1">
