@@ -41,7 +41,8 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
 
   const passwordTooShort = password.length > 0 && password.length < 8;
   const passwordsMismatch = confirm.length > 0 && password !== confirm;
-  const canSubmit = password.length >= 8 && password === confirm && !loading;
+  const canSubmit =
+    password.length >= 8 && password === confirm && !loading;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -92,8 +93,8 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
             <ExclamationTriangleIcon className="w-4 h-4 text-accent-yellow shrink-0 mt-0.5" />
             <p className="text-xs text-text-secondary">
               <strong className="text-text-primary">{legacyCount}</strong>{" "}
-              existing {legacyCount === 1 ? "key" : "keys"} will be imported and
-              encrypted.
+              existing {legacyCount === 1 ? "key" : "keys"} will be imported
+              and encrypted.
             </p>
           </div>
         )}
@@ -108,24 +109,18 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
             </label>
             <input
               id="vault-password"
-              type="text"
+              type="password"
               autoComplete="off"
-              style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimum 8 characters"
               autoFocus
               aria-invalid={passwordTooShort}
-              aria-describedby={
-                passwordTooShort ? "vault-password-error" : undefined
-              }
+              aria-describedby={passwordTooShort ? "vault-password-error" : undefined}
               className={INPUT}
             />
             {passwordTooShort && (
-              <p
-                id="vault-password-error"
-                className="text-2xs text-accent-red mt-1.5"
-              >
+              <p id="vault-password-error" className="text-2xs text-accent-red mt-1.5">
                 Password must be at least 8 characters
               </p>
             )}
@@ -140,29 +135,25 @@ export default function VaultSetupDialog({ open, onClose }: Props) {
             </label>
             <input
               id="vault-confirm"
-              type="text"
+              type="password"
               autoComplete="off"
-              style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               placeholder="Re-enter your password"
               aria-invalid={passwordsMismatch}
-              aria-describedby={
-                passwordsMismatch ? "vault-confirm-error" : undefined
-              }
+              aria-describedby={passwordsMismatch ? "vault-confirm-error" : undefined}
               className={INPUT}
             />
             {passwordsMismatch && (
-              <p
-                id="vault-confirm-error"
-                className="text-2xs text-accent-red mt-1.5"
-              >
+              <p id="vault-confirm-error" className="text-2xs text-accent-red mt-1.5">
                 Passwords do not match
               </p>
             )}
           </div>
 
-          {error && <p className="text-xs text-accent-red">{error}</p>}
+          {error && (
+            <p className="text-xs text-accent-red">{error}</p>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button
