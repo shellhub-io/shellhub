@@ -13,11 +13,13 @@ function TagFilterDropdown({
   filterTags,
   onAdd,
   onRemove,
+  onClearAll,
   onManageTags,
 }: {
   filterTags: string[];
   onAdd: (tag: string) => void;
   onRemove: (tag: string) => void;
+  onClearAll: () => void;
   onManageTags: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -169,28 +171,28 @@ function TagFilterDropdown({
             </div>
 
             {/* Footer */}
-            <div className="p-2 border-t border-border flex items-center justify-between">
+            <div className="p-2 border-t border-border space-y-1">
+              {hasActive && (
+                <button
+                  onClick={() => {
+                    onClearAll();
+                    setOpen(false);
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 text-2xs text-text-muted hover:text-text-primary hover:bg-hover-medium rounded-md transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
               <button
                 onClick={() => {
                   setOpen(false);
                   onManageTags();
                 }}
-                className="text-2xs text-primary hover:text-primary/80 transition-colors font-medium flex items-center gap-1"
+                className="w-full text-left px-2.5 py-1.5 text-2xs text-primary hover:text-primary/80 hover:bg-hover-medium rounded-md transition-colors font-medium flex items-center gap-1"
               >
                 <Cog6ToothIcon className="w-3 h-3" strokeWidth={2} />
                 Manage tags
               </button>
-              {hasActive && (
-                <button
-                  onClick={() => {
-                    filterTags.forEach(onRemove);
-                    setOpen(false);
-                  }}
-                  className="text-2xs text-text-muted hover:text-text-primary transition-colors"
-                >
-                  Clear all
-                </button>
-              )}
             </div>
           </div>,
           document.body,

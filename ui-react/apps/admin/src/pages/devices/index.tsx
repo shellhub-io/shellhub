@@ -126,6 +126,7 @@ export default function Devices() {
             filterTags={filterTags}
             onAdd={addFilterTag}
             onRemove={removeFilterTag}
+            onClearAll={clearFilterTags}
             onManageTags={() => setManageTagsOpen(true)}
           />
 
