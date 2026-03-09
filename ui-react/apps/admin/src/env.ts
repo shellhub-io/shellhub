@@ -2,12 +2,14 @@ export interface ClientConfig {
   version: string;
   enterprise: boolean;
   cloud: boolean;
+  onboardingUrl: string;
 }
 
 const defaultConfig: ClientConfig = {
   version: "",
   enterprise: false,
   cloud: false,
+  onboardingUrl: "",
 };
 
 let cached: ClientConfig = defaultConfig;

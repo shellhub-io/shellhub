@@ -109,6 +109,7 @@ services:
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_VERSION=${SHELLHUB_VERSION}
       - SHELLHUB_SENTRY_DSN=${SHELLHUB_SENTRY_DSN}
+      - SHELLHUB_ONBOARDING_URL=${SHELLHUB_ONBOARDING_URL}
     networks:
       - shellhub
     healthcheck:
