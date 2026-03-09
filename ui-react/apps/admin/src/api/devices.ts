@@ -1,3 +1,4 @@
+import axios from "axios";
 import apiClient from "./client";
 import { Device } from "../types/device";
 import { PaginatedResponse } from "../types/api";
@@ -71,6 +72,14 @@ export async function getFirstPendingDevice(): Promise<Device | null> {
 }
 
 export async function addDeviceTag(uid: string, tag: string): Promise<void> {
+  // Ensure the tag exists before pushing it to the device.
+  // The create endpoint returns 409 if it already exists, which is fine.
+  try {
+    await apiClient.post("/api/tags", { name: tag });
+  } catch (err) {
+    if (!axios.isAxiosError(err) || err.response?.status !== 409) throw err;
+  }
+
   await apiClient.post(`/api/devices/${uid}/tags/${tag}`);
 }
 
