@@ -39,7 +39,6 @@ beforeEach(() => {
     role: null,
     name: null,
     loading: false,
-    error: null,
   });
 
   useConnectivityStore.getState().markUp();
@@ -125,7 +124,7 @@ describe("request interceptor", () => {
    ================================================================ */
 
 describe("response interceptor", () => {
-  it("logs out and redirects on 401", async () => {
+  it("logs out and redirects on 401 for non-login endpoints", async () => {
     useAuthStore.setState({ token: makeJwt(futureExp()) });
 
     const adapter = vi.fn().mockRejectedValue({
@@ -138,6 +137,22 @@ describe("response interceptor", () => {
 
     expect(useAuthStore.getState().token).toBeNull();
     expect(window.location.href).toBe("/login");
+  });
+
+  it("does not redirect on 401 from the login endpoint", async () => {
+    useAuthStore.setState({ token: makeJwt(futureExp()) });
+
+    const adapter = vi.fn().mockRejectedValue({
+      response: { status: 401 },
+      config: { url: "/api/login" },
+      isAxiosError: true,
+    });
+    client.defaults.adapter = adapter;
+
+    await expect(client.post("/api/login", {})).rejects.toBeDefined();
+
+    expect(useAuthStore.getState().token).not.toBeNull();
+    expect(window.location.href).not.toBe("/login");
   });
 
   it("marks API as up on successful response", async () => {

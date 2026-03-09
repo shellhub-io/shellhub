@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import {
@@ -9,36 +9,51 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 
+interface CountdownState {
+  display: string;
+  expired: boolean;
+  epoch: number | null;
+}
+
 function useLoginCountdown(lockoutEndEpoch: number | null) {
-  const [display, setDisplay] = useState("");
-  const [expired, setExpired] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [state, setState] = useState<CountdownState>({
+    display: "",
+    expired: false,
+    epoch: null,
+  });
 
   useEffect(() => {
     if (lockoutEndEpoch === null) return;
-    setExpired(false);
 
-    intervalRef.current = setInterval(() => {
+    const interval = setInterval(() => {
       const diff = lockoutEndEpoch - Date.now() / 1000;
       if (diff <= 0) {
-        clearInterval(intervalRef.current!);
-        setDisplay("");
-        setExpired(true);
+        clearInterval(interval);
+        setState({ display: "", expired: true, epoch: lockoutEndEpoch });
       } else if (diff < 60) {
         const s = Math.floor(diff);
-        setDisplay(`${s} ${s === 1 ? "second" : "seconds"}`);
+        setState({
+          display: `${s} ${s === 1 ? "second" : "seconds"}`,
+          expired: false,
+          epoch: lockoutEndEpoch,
+        });
       } else {
         const m = Math.floor(diff / 60);
-        setDisplay(`${m} ${m === 1 ? "minute" : "minutes"}`);
+        setState({
+          display: `${m} ${m === 1 ? "minute" : "minutes"}`,
+          expired: false,
+          epoch: lockoutEndEpoch,
+        });
       }
     }, 1000);
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    return () => clearInterval(interval);
   }, [lockoutEndEpoch]);
 
-  return { display, expired };
+  // If the epoch changed (or was cleared), state is stale — return clean defaults
+  if (state.epoch !== lockoutEndEpoch) return { display: "", expired: false };
+
+  return { display: state.display, expired: state.expired };
 }
 
 export default function Login() {

@@ -20,7 +20,6 @@ beforeEach(() => {
     role: "owner",
     name: "Alice",
     loading: false,
-    error: null,
   });
 
   useNamespacesStore.setState({
