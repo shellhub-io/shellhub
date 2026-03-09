@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useCallback, FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckIcon,
@@ -8,15 +8,27 @@ import {
   EyeIcon,
 } from "@heroicons/react/24/outline";
 import { setup } from "../api/system";
+import { getConfig } from "../env";
 import { validate, type FormErrors } from "./setup/validate";
+
+const STEP_SIGN = 1;
+const STEP_ONBOARDING = 2;
+const STEP_ACCOUNT = 3;
 
 export default function Setup() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const config = getConfig();
 
   const signFromQuery = searchParams.get("sign") || "";
 
-  const [step, setStep] = useState(signFromQuery ? 2 : 1);
+  const isCommunity = !config.cloud && !config.enterprise;
+  const showOnboarding = isCommunity && !!config.onboardingUrl;
+
+  const nextAfterSign = showOnboarding ? STEP_ONBOARDING : STEP_ACCOUNT;
+  const initialStep = signFromQuery ? nextAfterSign : STEP_SIGN;
+
+  const [step, setStep] = useState(initialStep);
   const [sign, setSign] = useState(signFromQuery);
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -30,8 +42,43 @@ export default function Setup() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [surveyCompleted, setSurveyCompleted] = useState(false);
 
   const errors = validate({ name, username, email, password, confirmPassword });
+
+  const onboardingUrl = (() => {
+    if (!config.onboardingUrl) return "";
+    const params = new URLSearchParams({
+      consent_to_contact: "accepted",
+      source: "self-hosted",
+      embed: "true",
+      instance_domain: window.location.hostname,
+    });
+    if (import.meta.env.DEV) params.append("preview", "true");
+    return `${config.onboardingUrl}?${params.toString()}`;
+  })();
+
+  const handleMessage = useCallback(
+    (event: MessageEvent) => {
+      if (!config.onboardingUrl) return;
+      try {
+        const origin = new URL(config.onboardingUrl).origin;
+        if (event.origin !== origin) return;
+      } catch {
+        return;
+      }
+      if (event.data === "formbricksSurveyCompleted") {
+        setSurveyCompleted(true);
+      }
+    },
+    [config.onboardingUrl],
+  );
+
+  useEffect(() => {
+    if (!showOnboarding) return;
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [showOnboarding, handleMessage]);
 
   useEffect(() => {
     if (success) {
@@ -59,7 +106,7 @@ export default function Setup() {
   const handleNextStep = (e: FormEvent) => {
     e.preventDefault();
     if (sign.trim()) {
-      setStep(2);
+      setStep(nextAfterSign);
     }
   };
 
@@ -100,6 +147,13 @@ export default function Setup() {
     }
   };
 
+  const totalSteps = showOnboarding ? 3 : 2;
+  const displayStep = (() => {
+    if (step === STEP_SIGN) return 1;
+    if (step === STEP_ONBOARDING) return 2;
+    return showOnboarding ? 3 : 2;
+  })();
+
   if (success) {
     return (
       <div className="w-full max-w-sm mx-auto animate-fade-in">
@@ -133,7 +187,9 @@ export default function Setup() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto animate-fade-in">
+    <div
+      className={`w-full mx-auto animate-fade-in ${step === STEP_ONBOARDING ? "max-w-lg" : "max-w-sm"}`}
+    >
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div className="px-8 pt-8 pb-6 border-b border-border bg-card/50">
           <div className="flex justify-center mb-5">
@@ -147,9 +203,9 @@ export default function Setup() {
           </p>
 
           <div className="flex items-center justify-center gap-2 mt-4">
-            <StepDot active={step === 1} label="1" />
-            <div className="w-6 h-px bg-border" />
-            <StepDot active={step === 2} label="2" />
+            {Array.from({ length: totalSteps }, (_, i) => (
+              <StepIndicator key={i} index={i} current={displayStep} />
+            ))}
           </div>
         </div>
 
@@ -164,7 +220,7 @@ export default function Setup() {
             </div>
           )}
 
-          {step === 1 ? (
+          {step === STEP_SIGN && (
             <form onSubmit={handleNextStep} className="space-y-5">
               <p className="text-xs text-text-secondary leading-relaxed">
                 Run the following command in your terminal to generate a setup
@@ -226,7 +282,43 @@ export default function Setup() {
                 Next
               </button>
             </form>
-          ) : (
+          )}
+
+          {step === STEP_ONBOARDING && (
+            <div className="space-y-5">
+              <p className="text-xs text-text-secondary leading-relaxed text-center">
+                Help us improve ShellHub by sharing your feedback
+              </p>
+
+              <div className="relative h-[60dvh] overflow-auto rounded-md border border-border">
+                <iframe
+                  src={onboardingUrl}
+                  title="Onboarding survey"
+                  className="absolute inset-0 w-full h-full border-0"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setStep(STEP_SIGN)}
+                  className="flex-1 bg-card hover:bg-border/50 border border-border text-text-secondary py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-200"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  disabled={!surveyCompleted}
+                  onClick={() => setStep(STEP_ACCOUNT)}
+                  className="flex-[2] bg-primary hover:bg-primary-600 text-white py-2.5 px-4 rounded-md text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === STEP_ACCOUNT && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <p className="text-xs text-text-secondary leading-relaxed mb-1">
                 Set up your admin account with your personal information.
@@ -291,7 +383,9 @@ export default function Setup() {
               <div className="flex gap-3 pt-1">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() =>
+                    setStep(showOnboarding ? STEP_ONBOARDING : STEP_SIGN)
+                  }
                   className="flex-1 bg-card hover:bg-border/50 border border-border text-text-secondary py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-200"
                 >
                   Back
@@ -320,6 +414,16 @@ export default function Setup() {
         ShellHub &mdash; Secure Remote Access
       </p>
     </div>
+  );
+}
+
+function StepIndicator({ index, current }: { index: number; current: number }) {
+  const stepNum = index + 1;
+  return (
+    <>
+      {index > 0 && <div className="w-6 h-px bg-border" />}
+      <StepDot active={current === stepNum} label={String(stepNum)} />
+    </>
   );
 }
 
