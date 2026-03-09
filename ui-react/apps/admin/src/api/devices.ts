@@ -20,14 +20,11 @@ function normalizeTags(device: Device): Device {
 }
 
 function buildFilter(tags: string[]): string {
-  const filters: unknown[] = tags.map((tag) => ({
+  const filter = [{
     type: "property",
-    params: { name: "tags.name", operator: "eq", value: tag },
-  }));
-  if (filters.length > 1) {
-    filters.push({ type: "operator", params: { name: "and" } });
-  }
-  return btoa(JSON.stringify(filters));
+    params: { name: "tags.name", operator: "contains", value: tags },
+  }];
+  return btoa(JSON.stringify(filter));
 }
 
 export async function getDevices(
