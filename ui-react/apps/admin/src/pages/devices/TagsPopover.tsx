@@ -7,7 +7,7 @@ import {
   PencilIcon,
 } from "@heroicons/react/24/outline";
 import { addDeviceTag, removeDeviceTag } from "../../api/devices";
-import { getTags, createTag } from "../../api/tags";
+import { getTags } from "../../api/tags";
 import { Device } from "../../types/device";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 
@@ -90,11 +90,10 @@ function TagsPopover({
     setLoading(true);
     setError(null);
     try {
+      await addDeviceTag(device.uid, tag);
       if (!allTags.includes(tag)) {
-        await createTag(tag);
         setAllTags((prev) => [...prev, tag]);
       }
-      await addDeviceTag(device.uid, tag);
       onUpdated();
       setInput("");
     } catch {
