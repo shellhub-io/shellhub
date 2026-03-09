@@ -74,10 +74,6 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
         devices: data,
         totalCount,
         loading: false,
-        page: p,
-        perPage: pp,
-        status: s,
-        filterTags: ft,
       });
     } catch {
       set({ loading: false, error: "Failed to load devices" });
