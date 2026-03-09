@@ -49,7 +49,7 @@ export const useNamespacesStore = create<NamespacesState>((set) => ({
       const apiDown = !useConnectivityStore.getState().apiReachable;
       set({
         loading: false,
-        loaded: !apiDown,
+        loaded: false,
         error: apiDown
           ? "Unable to reach the API"
           : "Failed to load namespaces",
