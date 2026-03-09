@@ -12,7 +12,7 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 
-const TAG_PATTERN = /^[a-zA-Z0-9\-_]+$/;
+const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
 
 export default function ManageTagsDrawer({
   open,
@@ -144,7 +144,7 @@ export default function ManageTagsDrawer({
             <p className="mt-1.5 text-2xs text-text-muted">
               {newName.trim().length < 3
                 ? "At least 3 characters"
-                : "Only letters, numbers, hyphens, underscores"}
+                : "Only letters and numbers"}
             </p>
           )}
         </form>
