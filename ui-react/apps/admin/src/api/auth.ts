@@ -55,3 +55,7 @@ export async function updatePassword(
 export async function deleteUser(): Promise<void> {
   await apiClient.delete("/api/user");
 }
+
+export async function resendEmail(username: string): Promise<void> {
+  await apiClient.post("/api/user/resend_email", { username });
+}
