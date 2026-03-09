@@ -210,6 +210,7 @@ export default function Setup() {
                 <input
                   id="sign"
                   type="text"
+                  autoComplete="off"
                   value={sign}
                   onChange={(e) => setSign(e.target.value)}
                   required
@@ -367,6 +368,7 @@ function InputField({
       <input
         id={id}
         type={type}
+        autoComplete="off"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
@@ -416,6 +418,7 @@ function PasswordField({
         <input
           id={id}
           type={visible ? "text" : "password"}
+          autoComplete="off"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
