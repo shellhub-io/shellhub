@@ -23,21 +23,16 @@ import { sessionType } from "../utils/session";
 import { TH } from "../utils/styles";
 
 export default function Dashboard() {
-  const {
-    totalCount: devicesCount,
-    fetch: fetchDevices,
-    setStatus: setDevicesStatus,
-  } = useDevicesStore();
+  const { setStatus: setDevicesStatus } = useDevicesStore();
   const { currentNamespace } = useNamespacesStore();
   const { sessions, fetch: fetchSessions } = useSessionsStore();
   const { stats, loading: statsLoading, error: statsError, fetch: fetchStats } = useStatsStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDevices(1, 1);
     fetchSessions(1, 5);
     fetchStats();
-  }, [fetchDevices, fetchSessions, fetchStats]);
+  }, [fetchSessions, fetchStats]);
 
   // Suppress flash: while stats are loading, don't render the full dashboard
   if (statsLoading) return null;
@@ -85,7 +80,7 @@ export default function Dashboard() {
           <StatCard
             icon={<CheckCircleIcon className="w-7 h-7" />}
             title="Accepted Devices"
-            value={devicesCount}
+            value={stats?.registered_devices ?? "--"}
             linkLabel="View all devices"
             linkTo="/devices"
           />
