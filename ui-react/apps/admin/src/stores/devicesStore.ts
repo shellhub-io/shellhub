@@ -44,6 +44,10 @@ interface DevicesState {
   clearFilterTags: () => void;
 }
 
+function pageAfterRemoval({ page, devices }: Pick<DevicesState, "page" | "devices">): number {
+  return devices.length === 1 && page > 1 ? page - 1 : page;
+}
+
 export const useDevicesStore = create<DevicesState>((set, get) => ({
   devices: [],
   totalCount: 0,
@@ -104,17 +108,17 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
 
   accept: async (uid: string) => {
     await acceptDevice(uid);
-    await get().fetch();
+    await get().fetch(pageAfterRemoval(get()));
   },
 
   reject: async (uid: string) => {
     await rejectDevice(uid);
-    await get().fetch();
+    await get().fetch(pageAfterRemoval(get()));
   },
 
   remove: async (uid: string) => {
     await removeDevice(uid);
-    await get().fetch();
+    await get().fetch(pageAfterRemoval(get()));
   },
 
   addTag: async (uid: string, tag: string) => {
