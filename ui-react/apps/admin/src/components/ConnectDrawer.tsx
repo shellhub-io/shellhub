@@ -123,12 +123,20 @@ export default function ConnectDrawer({
     (state.authMethod === "password"
       ? state.password.trim().length > 0
       : effectiveKeySource === "vault"
-        ? !!selectedVaultKey && (!selectedVaultKey.hasPassphrase || state.passphrase.trim().length > 0)
-        : state.manualKeyValid && (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
+        ? !!selectedVaultKey &&
+          (!selectedVaultKey.hasPassphrase ||
+            state.passphrase.trim().length > 0)
+        : state.manualKeyValid &&
+          (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
 
   const handleManualKeyChange = (pem: string) => {
     if (!pem.trim()) {
-      dispatch({ type: "setManualKey", value: pem, valid: false, encrypted: false });
+      dispatch({
+        type: "setManualKey",
+        value: pem,
+        valid: false,
+        encrypted: false,
+      });
       return;
     }
     const result = validatePrivateKey(pem.trim());
@@ -152,22 +160,39 @@ export default function ConnectDrawer({
         password: state.password,
       });
     } else {
-      const key = effectiveKeySource === "vault" && selectedVaultKey
-        ? selectedVaultKey.data
-        : state.privateKey.trim();
-      const phrase = effectiveKeySource === "vault" && selectedVaultKey
-        ? (selectedVaultKey.hasPassphrase ? state.passphrase : undefined)
-        : (state.manualKeyEncrypted ? state.passphrase : undefined);
+      const key =
+        effectiveKeySource === "vault" && selectedVaultKey
+          ? selectedVaultKey.data
+          : state.privateKey.trim();
+      const phrase =
+        effectiveKeySource === "vault" && selectedVaultKey
+          ? selectedVaultKey.hasPassphrase
+            ? state.passphrase
+            : undefined
+          : state.manualKeyEncrypted
+            ? state.passphrase
+            : undefined;
 
       let fingerprint: string;
       try {
         fingerprint = getFingerprint(key, phrase);
       } catch {
-        dispatch({ type: "setKeyError", value: "Failed to read private key. Check the key or passphrase." });
+        dispatch({
+          type: "setKeyError",
+          value: "Failed to read private key. Check the key or passphrase.",
+        });
         return;
       }
-      if (effectiveKeySource === "vault" && selectedVaultKey && fingerprint !== selectedVaultKey.fingerprint) {
-        dispatch({ type: "setKeyError", value: "Key data appears corrupted. Try re-importing the key into the vault." });
+      if (
+        effectiveKeySource === "vault" &&
+        selectedVaultKey &&
+        fingerprint !== selectedVaultKey.fingerprint
+      ) {
+        dispatch({
+          type: "setKeyError",
+          value:
+            "Key data appears corrupted. Try re-importing the key into the vault.",
+        });
         return;
       }
       dispatch({ type: "setKeyError", value: null });
@@ -187,7 +212,10 @@ export default function ConnectDrawer({
 
   return (
     <>
-      <VaultUnlockDialog open={unlockOpen} onClose={() => setUnlockOpen(false)} />
+      <VaultUnlockDialog
+        open={unlockOpen}
+        onClose={() => setUnlockOpen(false)}
+      />
       <Drawer
         open={open}
         onClose={onClose}
@@ -234,13 +262,28 @@ export default function ConnectDrawer({
             <div className="flex-1 h-px bg-border" />
           </div>
 
+          {/* Decoy to prevent Chrome username autofill */}
+          <input
+            type="text"
+            name="fake-user"
+            autoComplete="username"
+            className="absolute w-0 h-0 opacity-0 pointer-events-none"
+            tabIndex={-1}
+            aria-hidden="true"
+          />
+
           {/* Username */}
           <div>
             <label className={LABEL}>Username</label>
             <input
               type="text"
+              name="device-user"
+              id="device-user"
+              autoComplete="off"
               value={state.username}
-              onChange={(e) => dispatch({ type: "setUsername", value: e.target.value })}
+              onChange={(e) =>
+                dispatch({ type: "setUsername", value: e.target.value })
+              }
               placeholder="e.g. root"
               autoFocus={open}
               className={INPUT}
@@ -253,7 +296,9 @@ export default function ConnectDrawer({
             <div className="space-y-2">
               <button
                 type="button"
-                onClick={() => dispatch({ type: "setAuthMethod", value: "password" })}
+                onClick={() =>
+                  dispatch({ type: "setAuthMethod", value: "password" })
+                }
                 className={`flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all ${
                   state.authMethod === "password"
                     ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
@@ -287,7 +332,9 @@ export default function ConnectDrawer({
               </button>
               <button
                 type="button"
-                onClick={() => dispatch({ type: "setAuthMethod", value: "key" })}
+                onClick={() =>
+                  dispatch({ type: "setAuthMethod", value: "key" })
+                }
                 className={`flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all ${
                   state.authMethod === "key"
                     ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
@@ -327,9 +374,15 @@ export default function ConnectDrawer({
             <div>
               <label className={LABEL}>Password</label>
               <input
-                type="password"
+                type="text"
+                name="device-pass"
+                id="device-pass"
+                autoComplete="off"
+                style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
                 value={state.password}
-                onChange={(e) => dispatch({ type: "setPassword", value: e.target.value })}
+                onChange={(e) =>
+                  dispatch({ type: "setPassword", value: e.target.value })
+                }
                 placeholder="Enter device password"
                 className={INPUT}
               />
@@ -351,7 +404,9 @@ export default function ConnectDrawer({
                   <div className="flex gap-1 p-0.5 bg-card border border-border rounded-lg">
                     <button
                       type="button"
-                      onClick={() => dispatch({ type: "setKeySource", value: "vault" })}
+                      onClick={() =>
+                        dispatch({ type: "setKeySource", value: "vault" })
+                      }
                       className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                         state.keySource === "vault"
                           ? "bg-primary/10 text-primary border border-primary/20"
@@ -363,7 +418,9 @@ export default function ConnectDrawer({
                     </button>
                     <button
                       type="button"
-                      onClick={() => dispatch({ type: "setKeySource", value: "manual" })}
+                      onClick={() =>
+                        dispatch({ type: "setKeySource", value: "manual" })
+                      }
                       className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                         state.keySource === "manual"
                           ? "bg-primary/10 text-primary border border-primary/20"
@@ -384,7 +441,12 @@ export default function ConnectDrawer({
                     <label className={LABEL}>Select Key</label>
                     <select
                       value={state.selectedKeyId}
-                      onChange={(e) => dispatch({ type: "setSelectedKeyId", value: e.target.value })}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "setSelectedKeyId",
+                          value: e.target.value,
+                        })
+                      }
                       className={INPUT}
                     >
                       <option value="">Choose a key...</option>
@@ -400,8 +462,14 @@ export default function ConnectDrawer({
                       <label className={LABEL}>Passphrase</label>
                       <input
                         type="password"
+                        autoComplete="off"
                         value={state.passphrase}
-                        onChange={(e) => dispatch({ type: "setPassphrase", value: e.target.value })}
+                        onChange={(e) =>
+                          dispatch({
+                            type: "setPassphrase",
+                            value: e.target.value,
+                          })
+                        }
                         placeholder="Key passphrase"
                         className={INPUT}
                       />
@@ -428,7 +496,12 @@ export default function ConnectDrawer({
                         type="password"
                         autoComplete="off"
                         value={state.passphrase}
-                        onChange={(e) => dispatch({ type: "setPassphrase", value: e.target.value })}
+                        onChange={(e) =>
+                          dispatch({
+                            type: "setPassphrase",
+                            value: e.target.value,
+                          })
+                        }
                         placeholder="Enter passphrase for encrypted key"
                         className={INPUT}
                       />
@@ -450,7 +523,6 @@ export default function ConnectDrawer({
           )}
         </form>
       </Drawer>
-
     </>
   );
 }

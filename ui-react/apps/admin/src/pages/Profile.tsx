@@ -137,7 +137,6 @@ function DeleteAccountDialog({
 
   const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
 
-
   const handleDelete = async () => {
     setError("");
     try {
@@ -278,8 +277,8 @@ function DeleteAccountWarningDialog({
             </>
           ) : (
             <p>
-              In Enterprise instances, user accounts can only be deleted via
-              the Admin Console. Please access your{" "}
+              In Enterprise instances, user accounts can only be deleted via the
+              Admin Console. Please access your{" "}
               <a
                 href="/admin/users"
                 target="_blank"
@@ -434,6 +433,7 @@ export function EditProfileDrawer({
           <label className={LABEL}>Name</label>
           <input
             type="text"
+            autoComplete="off"
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus={open}
@@ -455,6 +455,7 @@ export function EditProfileDrawer({
           </div>
           <input
             type="text"
+            autoComplete="off"
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase())}
             className={INPUT}
@@ -472,6 +473,7 @@ export function EditProfileDrawer({
           <label className={LABEL}>Email</label>
           <input
             type="email"
+            autoComplete="off"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className={INPUT}
@@ -485,6 +487,7 @@ export function EditProfileDrawer({
           <label className={LABEL}>Recovery Email</label>
           <input
             type="email"
+            autoComplete="off"
             value={recoveryEmail}
             onChange={(e) => setRecoveryEmail(e.target.value)}
             className={INPUT}
