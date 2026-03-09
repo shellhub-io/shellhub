@@ -77,8 +77,9 @@ export default function VaultUnlockDialog({ open, onClose, onReset }: Props) {
             </label>
             <input
               id="vault-unlock-password"
-              type="password"
+              type="text"
               autoComplete="off"
+              style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
               data-1p-ignore
               data-lpignore="true"
               data-form-type="other"
@@ -91,7 +92,10 @@ export default function VaultUnlockDialog({ open, onClose, onReset }: Props) {
               className={INPUT}
             />
             {error && (
-              <p id="vault-unlock-error" className="text-2xs text-accent-red mt-1.5">
+              <p
+                id="vault-unlock-error"
+                className="text-2xs text-accent-red mt-1.5"
+              >
                 {error}
               </p>
             )}
