@@ -25,7 +25,6 @@ beforeEach(() => {
     role: null,
     name: null,
     loading: false,
-    error: null,
   });
   vi.clearAllMocks();
 });
@@ -51,18 +50,19 @@ describe("authStore", () => {
       expect(state.email).toBe("admin@test.com");
       expect(state.tenant).toBe("tenant-456");
       expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
     });
 
-    it("sets error on failure", async () => {
-      mockedLogin.mockRejectedValue(new Error("401"));
+    it("re-throws error and resets loading on failure", async () => {
+      const loginError = new Error("401");
+      mockedLogin.mockRejectedValue(loginError);
 
-      await useAuthStore.getState().login("admin", "wrong");
+      await expect(
+        useAuthStore.getState().login("admin", "wrong"),
+      ).rejects.toThrow("401");
 
       const state = useAuthStore.getState();
       expect(state.token).toBeNull();
       expect(state.loading).toBe(false);
-      expect(state.error).toBe("Invalid username or password");
     });
 
     it("sets loading during request", async () => {
@@ -183,7 +183,6 @@ describe("authStore", () => {
         role: "owner",
         name: "Admin",
         loading: true,
-        error: "some error",
         username: "admin",
         recoveryEmail: "r@b.com",
       };
@@ -202,7 +201,6 @@ describe("authStore", () => {
 
       // Should NOT persist transient state
       expect(persisted).not.toHaveProperty("loading");
-      expect(persisted).not.toHaveProperty("error");
       expect(persisted).not.toHaveProperty("username");
       expect(persisted).not.toHaveProperty("recoveryEmail");
     });

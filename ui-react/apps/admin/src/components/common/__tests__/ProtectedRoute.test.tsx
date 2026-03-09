@@ -14,7 +14,6 @@ beforeEach(() => {
     role: null,
     name: null,
     loading: false,
-    error: null,
   });
 });
 
