@@ -819,7 +819,7 @@ function EndpointCard({
         </div>
 
         {/* Right: delete action */}
-        <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center shrink-0">
           <button
             onClick={onDelete}
             className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"

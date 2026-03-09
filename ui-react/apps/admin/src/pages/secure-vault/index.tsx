@@ -69,7 +69,7 @@ function KeyRow({
         </span>
       </td>
       <td className="px-4 py-3.5 text-right">
-        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center justify-end gap-0.5">
           <button
             onClick={onEdit}
             title="Edit"
@@ -151,8 +151,9 @@ export default function SecureVault() {
                   Secure Vault
                 </h1>
                 <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-                  Store and encrypt your SSH private keys with a master password.
-                  Your keys never leave your browser and are protected at rest.
+                  Store and encrypt your SSH private keys with a master
+                  password. Your keys never leave your browser and are protected
+                  at rest.
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
@@ -241,8 +242,8 @@ export default function SecureVault() {
                   Your vault is locked
                 </h1>
                 <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-                  Enter your master password to access your SSH keys and
-                  connect to devices.
+                  Enter your master password to access your SSH keys and connect
+                  to devices.
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
@@ -380,11 +381,7 @@ export default function SecureVault() {
 
       <VaultSettingsSection />
 
-      <KeyDrawer
-        open={drawerOpen}
-        editKey={editTarget}
-        onClose={closeDrawer}
-      />
+      <KeyDrawer open={drawerOpen} editKey={editTarget} onClose={closeDrawer} />
       <KeyDeleteDialog
         open={!!deleteTarget}
         entry={deleteTarget}

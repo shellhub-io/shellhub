@@ -79,7 +79,7 @@ export default function RuleCard({
         </div>
 
         {/* Right: actions */}
-        <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={onEdit}
             className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"

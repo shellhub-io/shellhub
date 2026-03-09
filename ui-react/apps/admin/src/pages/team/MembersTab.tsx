@@ -110,7 +110,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                     </td>
                     <td className="px-4 py-3.5 text-right">
                       {!isSelf && (
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setEditTarget(m)}
                             className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
