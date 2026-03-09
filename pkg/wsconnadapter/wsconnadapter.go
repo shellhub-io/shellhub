@@ -33,6 +33,7 @@ type Adapter struct {
 	pongCh     chan bool
 	pingOnce   sync.Once
 	closeOnce  sync.Once
+	closeErr   error
 	Logger     *log.Entry
 	CreatedAt  time.Time
 }
@@ -180,18 +181,16 @@ func (a *Adapter) Write(b []byte) (int, error) {
 }
 
 func (a *Adapter) Close() error {
-	var err error
-
 	a.closeOnce.Do(func() {
 		if a.stopPingCh != nil {
 			close(a.stopPingCh)
 			a.Logger.Debug("stop ping channel closed")
 		}
 
-		err = a.conn.Close()
+		a.closeErr = a.conn.Close()
 	})
 
-	return err
+	return a.closeErr
 }
 
 func (a *Adapter) LocalAddr() net.Addr {
