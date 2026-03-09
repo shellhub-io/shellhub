@@ -2,27 +2,12 @@ import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useConnectivityStore } from "../../stores/connectivityStore";
+import AmbientBackground from "./AmbientBackground";
 
 function ApiUnavailablePage() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-background overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-accent-red/[0.06] rounded-full blur-[120px] animate-pulse-subtle" />
-        <div className="absolute -bottom-48 -right-32 w-[400px] h-[400px] bg-primary/[0.04] rounded-full blur-[100px] animate-pulse-subtle delay-1000" />
-        <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px] bg-accent-red/[0.03] rounded-full blur-[80px] animate-pulse-subtle delay-[2s]" />
-
-        <div className="connection-line top-[20%] left-0 w-[45%]" />
-        <div className="connection-line top-[45%] left-[35%] w-[65%] delay-[1.5s]" />
-        <div className="connection-line top-[70%] left-[10%] w-[40%] delay-[0.8s]" />
-        <div className="connection-line-v left-[25%] top-0 h-[55%] delay-500" />
-        <div className="connection-line-v left-[60%] top-[25%] h-[75%] delay-[1.8s]" />
-
-        <div className="connection-dot top-[20%] left-[25%] delay-300" />
-        <div className="connection-dot top-[45%] left-[60%] delay-[1.2s]" />
-
-        <div className="absolute inset-0 grid-bg opacity-50" />
-      </div>
+      <AmbientBackground variant="error" />
 
       {/* Content */}
       <div className="flex flex-col items-center text-center px-6 animate-fade-in">
