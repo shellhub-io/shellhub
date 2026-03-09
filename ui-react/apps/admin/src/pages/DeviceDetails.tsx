@@ -69,16 +69,37 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
   const { addTag, removeTag } = useDevicesStore();
   const [input, setInput] = useState("");
   const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAdd = async () => {
     const tag = input.trim();
-    if (!tag || (tags && tags.length >= 3)) return;
+    if (!tag) return;
+    setError(null);
+
+    if (tags && tags.includes(tag)) {
+      setError("This tag is already added.");
+      return;
+    }
+    if (tags && tags.length >= 3) return;
+    if (tag.length < 3) {
+      setError("Tag must be at least 3 characters.");
+      return;
+    }
+    if (tag.length > 255) {
+      setError("Tag must be at most 255 characters.");
+      return;
+    }
+    if (!/^[a-zA-Z0-9]+$/.test(tag)) {
+      setError("Tag must contain only letters and numbers.");
+      return;
+    }
+
     setAdding(true);
     try {
       await addTag(uid, tag);
       setInput("");
     } catch {
-      /* handled by store */
+      setError("Failed to add tag.");
     }
     setAdding(false);
   };
@@ -116,7 +137,10 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
             <input
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setError(null);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -141,6 +165,9 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
         <p className="text-2xs text-text-muted mt-1.5">
           Maximum of 3 tags reached.
         </p>
+      )}
+      {error && (
+        <p className="text-2xs text-accent-red mt-1.5">{error}</p>
       )}
     </div>
   );
