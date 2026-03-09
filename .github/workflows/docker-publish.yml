@@ -54,6 +54,7 @@ jobs:
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
           private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
           repositories: cloud
 
       - name: Checkout cloud source
