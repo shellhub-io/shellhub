@@ -16,6 +16,8 @@ import {
   KeyIcon,
   ArrowsRightLeftIcon,
   SignalIcon,
+  InformationCircleIcon,
+  CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import { useSessionsStore } from "../stores/sessionsStore";
 import CopyButton from "../components/common/CopyButton";
@@ -156,7 +158,39 @@ const NODE_COLORS: Record<EventStatus, string> = {
 };
 
 const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted";
+  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const VALUE = "text-sm text-text-primary font-medium mt-0.5";
+
+/* ── Info Row ── */
+function InfoItem({
+  label,
+  value,
+  mono,
+  copyable,
+  truncate,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  copyable?: boolean;
+  truncate?: number;
+}) {
+  const display = truncate && value ? value.slice(0, truncate) : value;
+
+  return (
+    <div>
+      <dt className={LABEL}>{label}</dt>
+      <dd className="flex items-center gap-1 mt-0.5">
+        <span
+          className={`text-sm text-text-primary ${mono ? "font-mono text-xs" : "font-medium"}`}
+        >
+          {display || "—"}
+        </span>
+        {copyable && value && <CopyButton text={value} />}
+      </dd>
+    </div>
+  );
+}
 
 /* ── sub-components ──────────────────────────────── */
 
@@ -303,7 +337,7 @@ export default function SessionDetails() {
   return (
     <div className="animate-fade-in">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 mb-6">
+      <div className="flex items-center gap-1.5 mb-5">
         <Link
           to="/sessions"
           className="text-2xs font-mono text-text-muted hover:text-primary transition-colors"
@@ -314,8 +348,8 @@ export default function SessionDetails() {
           className="w-3 h-3 text-text-muted/40"
           strokeWidth={2}
         />
-        <span className="text-2xs font-mono text-text-secondary truncate max-w-[28ch]">
-          {session.uid}
+        <span className="text-2xs font-mono text-text-secondary">
+          {session.uid.slice(0, 8)}
         </span>
       </div>
 
@@ -324,7 +358,10 @@ export default function SessionDetails() {
         {/* Timeline */}
         <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
           <div className="flex items-center justify-between mb-5">
-            <h3 className={LABEL}>Session flow</h3>
+            <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
+              <ClockIcon className="w-4 h-4 text-primary" />
+              Session flow
+            </h3>
             <div className="flex items-center gap-2">
               {!session.authenticated && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-mono font-semibold rounded-md bg-accent-red/10 text-accent-red border border-accent-red/20">
@@ -373,52 +410,48 @@ export default function SessionDetails() {
         {/* Right column */}
         <div className="space-y-5">
           {/* Session meta */}
-          <div className="bg-card border border-border rounded-xl p-5 space-y-3.5">
-            <h3 className={`${LABEL} mb-4`}>Details</h3>
-            <div>
-              <dt className={LABEL}>Session UID</dt>
-              <dd className="flex items-center gap-1 mt-1">
-                <code className="text-2xs font-mono text-text-muted truncate">
-                  {session.uid}
-                </code>
-                <CopyButton text={session.uid} />
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>From</dt>
-              <dd className="flex items-center gap-1 mt-1">
-                <code className="text-xs font-mono text-text-secondary">
-                  {session.ip_address}
-                </code>
-                <CopyButton text={session.ip_address} />
-              </dd>
-            </div>
-            <div>
-              <dt className={LABEL}>Started</dt>
-              <dd className="text-xs font-mono text-text-secondary mt-1">
-                {formatDateFull(session.started_at)}
-              </dd>
-            </div>
-            {!session.active && (
+          <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
+              <InformationCircleIcon className="w-4 h-4 text-primary" />
+              Details
+            </h3>
+            <dl className="space-y-3">
+              <InfoItem
+                label="Session UID"
+                value={session.uid}
+                mono
+                copyable
+                truncate={8}
+              />
+              <InfoItem label="From" value={session.ip_address} mono copyable />
               <div>
-                <dt className={LABEL}>Ended</dt>
-                <dd className="flex items-center gap-1.5 mt-1 flex-wrap">
-                  <span className="text-xs font-mono text-text-secondary">
-                    {formatRelative(session.last_seen)}
-                  </span>
-                  <span className="text-2xs text-text-muted">
-                    {formatDateFull(session.last_seen)}
-                  </span>
-                </dd>
+                <dt className={LABEL}>Started</dt>
+                <dd className={VALUE}>{formatDateFull(session.started_at)}</dd>
               </div>
-            )}
+              {!session.active && (
+                <div>
+                  <dt className={LABEL}>Ended</dt>
+                  <dd className="flex items-center gap-2 mt-0.5">
+                    <span className="text-sm text-text-primary font-medium">
+                      {formatRelative(session.last_seen)}
+                    </span>
+                    <span className="text-2xs text-text-muted">
+                      {formatDateFull(session.last_seen)}
+                    </span>
+                  </dd>
+                </div>
+              )}
+            </dl>
           </div>
 
           {/* Device */}
           {session.device?.uid && (
-            <div className="bg-card border border-border rounded-xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={LABEL}>Device</h3>
+            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
+                  <CpuChipIcon className="w-4 h-4 text-primary" />
+                  Device
+                </h3>
                 <DeviceChip
                   uid={session.device.uid}
                   name={
@@ -432,32 +465,26 @@ export default function SessionDetails() {
                 <dl className="space-y-3">
                   <div>
                     <dt className={LABEL}>OS</dt>
-                    <dd className="flex items-center gap-1.5 mt-1">
+                    <dd className="flex items-center gap-1.5 mt-0.5">
                       <DistroIcon
                         id={session.device.info.id}
                         className="text-[0.85rem] leading-none text-text-muted shrink-0"
                       />
-                      <span className="text-xs text-text-primary">
+                      <span className="text-sm text-text-primary font-medium">
                         {session.device.info.pretty_name}
                       </span>
                     </dd>
                   </div>
-                  <div>
-                    <dt className={LABEL}>Architecture</dt>
-                    <dd className="mt-1">
-                      <code className="text-xs font-mono text-text-secondary">
-                        {session.device.info.arch}
-                      </code>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className={LABEL}>Agent Version</dt>
-                    <dd className="mt-1">
-                      <code className="text-xs font-mono text-text-secondary">
-                        {session.device.info.version}
-                      </code>
-                    </dd>
-                  </div>
+                  <InfoItem
+                    label="Architecture"
+                    value={session.device.info.arch}
+                    mono
+                  />
+                  <InfoItem
+                    label="Agent Version"
+                    value={session.device.info.version}
+                    mono
+                  />
                 </dl>
               )}
             </div>

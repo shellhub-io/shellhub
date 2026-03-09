@@ -39,12 +39,16 @@ function InfoItem({
   value,
   mono,
   copyable,
+  truncate,
 }: {
   label: string;
   value: string;
   mono?: boolean;
   copyable?: boolean;
+  truncate?: number;
 }) {
+  const display = truncate && value ? value.slice(0, truncate) : value;
+
   return (
     <div>
       <dt className={LABEL}>{label}</dt>
@@ -52,7 +56,7 @@ function InfoItem({
         <span
           className={`text-sm text-text-primary ${mono ? "font-mono text-xs" : "font-medium"}`}
         >
-          {value || "—"}
+          {display || "—"}
         </span>
         {copyable && value && <CopyButton text={value} />}
       </dd>
@@ -392,7 +396,7 @@ export default function DeviceDetails() {
       {device.status === "accepted" && (
         <div className="bg-card border border-border rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className={LABEL}>SSH ID</p>
+            <p className={LABEL}>SSHID</p>
             <code className="text-sm font-mono text-accent-cyan mt-0.5 block">
               {sshid}
             </code>
@@ -409,7 +413,13 @@ export default function DeviceDetails() {
             Identity
           </h3>
           <dl className="space-y-3">
-            <InfoItem label="UID" value={device.uid} mono copyable />
+            <InfoItem
+              label="UID"
+              value={device.uid}
+              mono
+              copyable
+              truncate={8}
+            />
             <InfoItem
               label="MAC Address"
               value={device.identity?.mac}
