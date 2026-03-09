@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 
 interface DrawerProps {
   open: boolean;
@@ -29,6 +30,8 @@ export default function Drawer({
   footer,
   bodyClassName,
 }: DrawerProps) {
+  useEscapeKey(onClose, open);
+
   return (
     <>
       <div

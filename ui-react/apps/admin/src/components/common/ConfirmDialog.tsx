@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ export default function ConfirmDialog({
   confirmDisabled,
 }: ConfirmDialogProps) {
   const [confirming, setConfirming] = useState(false);
+  useEscapeKey(onClose, open);
 
   if (!open) return null;
 
