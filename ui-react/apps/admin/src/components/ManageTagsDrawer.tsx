@@ -71,7 +71,7 @@ export default function ManageTagsDrawer({
     TAG_PATTERN.test(editNameTrimmed);
   const editNameChanged = editingTag !== null && editNameTrimmed !== editingTag;
 
-  const handleRename = async (currentName: string) => {
+  const handleRename = async (currentName: string, fromBlur = false) => {
     const trimmed = editName.trim();
     if (!trimmed || trimmed === currentName) {
       setEditingTag(null);
@@ -82,6 +82,7 @@ export default function ManageTagsDrawer({
       trimmed.length > 255 ||
       !TAG_PATTERN.test(trimmed)
     ) {
+      if (fromBlur) setEditingTag(null);
       return;
     }
     setSubmitting(true);
@@ -241,7 +242,7 @@ export default function ManageTagsDrawer({
                             skipBlurRef.current = false;
                             return;
                           }
-                          handleRename(tag.name);
+                          handleRename(tag.name, true);
                         }}
                         autoFocus
                         className={`w-full px-2.5 py-1 bg-card border rounded-md text-sm text-text-primary focus:outline-none focus:ring-1 transition-all ${
