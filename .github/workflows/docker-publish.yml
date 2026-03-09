@@ -48,11 +48,19 @@ jobs:
         with:
           path: shellhub
 
+      - name: Generate cloud repo token
+        id: cloud-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          repositories: cloud
+
       - name: Checkout cloud source
         uses: actions/checkout@v6
         with:
           repository: shellhub-io/cloud
-          token: ${{ secrets.CLOUD_REPO_TOKEN }}
+          token: ${{ steps.cloud-token.outputs.token }}
           ref: ${{ github.ref_name }}
           path: cloud
 
