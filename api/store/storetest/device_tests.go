@@ -116,6 +116,106 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		assert.Len(t, devices, 3)
 	})
 
+	t.Run("succeeds when filtering by tags.name with contains array", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+
+		// Create tags
+		tagProd := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
+		tagBackend := s.CreateTag(t, WithTagName("backend"), WithTagTenant(tenantID))
+		tagFrontend := s.CreateTag(t, WithTagName("frontend"), WithTagTenant(tenantID))
+
+		// device-1: production + backend
+		dev1 := s.CreateDevice(t, WithDeviceName("device-1"), WithTenantID(tenantID))
+		require.NoError(t, st.TagPushToTarget(ctx, tagProd, store.TagTargetDevice, string(dev1)))
+		require.NoError(t, st.TagPushToTarget(ctx, tagBackend, store.TagTargetDevice, string(dev1)))
+
+		// device-2: production + frontend
+		dev2 := s.CreateDevice(t, WithDeviceName("device-2"), WithTenantID(tenantID))
+		require.NoError(t, st.TagPushToTarget(ctx, tagProd, store.TagTargetDevice, string(dev2)))
+		require.NoError(t, st.TagPushToTarget(ctx, tagFrontend, store.TagTargetDevice, string(dev2)))
+
+		// device-3: production only
+		dev3 := s.CreateDevice(t, WithDeviceName("device-3"), WithTenantID(tenantID))
+		require.NoError(t, st.TagPushToTarget(ctx, tagProd, store.TagTargetDevice, string(dev3)))
+
+		// device-4: no tags
+		s.CreateDevice(t, WithDeviceName("device-4"), WithTenantID(tenantID))
+
+		// Filter by ["production"] — should match device-1, device-2, device-3
+		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+			st.Options().InNamespace(tenantID),
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"production"}}},
+			}}),
+			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
+		assert.Len(t, devices, 3)
+
+		// Filter by ["production", "backend"] — AND semantics, should match only device-1
+		devices, count, err = st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+			st.Options().InNamespace(tenantID),
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"production", "backend"}}},
+			}}),
+			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		assert.Len(t, devices, 1)
+		assert.Equal(t, "device-1", devices[0].Name)
+
+		// Filter by ["nonexistent"] — should match nothing
+		devices, count, err = st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+			st.Options().InNamespace(tenantID),
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: []any{"nonexistent"}}},
+			}}),
+			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+		assert.Empty(t, devices)
+
+		_ = dev2
+		_ = dev3
+	})
+
+	t.Run("succeeds when filtering by tags.name with contains string", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+
+		tagProd := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
+		tagStaging := s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenantID))
+
+		dev1 := s.CreateDevice(t, WithDeviceName("device-1"), WithTenantID(tenantID))
+		require.NoError(t, st.TagPushToTarget(ctx, tagProd, store.TagTargetDevice, string(dev1)))
+
+		dev2 := s.CreateDevice(t, WithDeviceName("device-2"), WithTenantID(tenantID))
+		require.NoError(t, st.TagPushToTarget(ctx, tagStaging, store.TagTargetDevice, string(dev2)))
+
+		// Filter by substring "prod" — should match device-1
+		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+			st.Options().InNamespace(tenantID),
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "tags.name", Operator: "contains", Value: "prod"}},
+			}}),
+			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		assert.Len(t, devices, 1)
+		assert.Equal(t, "device-1", devices[0].Name)
+	})
+
 	t.Run("succeeds when filtering by status", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
