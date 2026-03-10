@@ -31,7 +31,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and publish '${{ matrix.project }}' to Docker Registry
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           tags: shellhubio/${{ matrix.project }}:latest,shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
           push: true
@@ -76,7 +76,7 @@ jobs:
           password: ${{ secrets.PORTUS_TOKEN }}
 
       - name: Build and publish 'api-enterprise' to Docker Registry
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           tags: registry.infra.ossystems.io/shellhub/api-enterprise:latest,registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
           push: true
