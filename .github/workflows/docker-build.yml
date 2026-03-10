@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.PORTUS_TOKEN }}
 
       - name: Build '${{ matrix.project }}' Docker container
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           tags: shellhubio/${{ matrix.project }}:latest
           push: false
