@@ -1,0 +1,76 @@
+name: Verify Fix
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  verify:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Configure Git for private repos
+        run: git config --global url."https://x-access-token:${{ secrets.PAT }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Verify each commit
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: true
+          GOPRIVATE: github.com/shellhub-io/cloud
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+
+          for COMMIT in $(git rev-list --reverse "$BASE"..HEAD); do
+            MSG=$(git log -1 --format=%s "$COMMIT")
+            SHORT=${COMMIT:0:12}
+            echo "::group::$MSG ($SHORT)"
+            git checkout -q "$COMMIT"
+
+            # Find which Go modules were touched in this commit.
+            MODULES=$(git diff-tree --no-commit-id --name-only -r "$COMMIT" | \
+              xargs -I{} dirname {} | \
+              while read -r DIR; do
+                while [ "$DIR" != "." ]; do
+                  [ -f "$DIR/go.mod" ] && echo "$DIR" && break
+                  DIR=$(dirname "$DIR")
+                done
+              done | sort -u)
+
+            if [ -z "$MODULES" ]; then
+              echo "No Go modules affected — skip"
+              echo "::endgroup::"
+              continue
+            fi
+
+            if [[ "$MSG" == test:* ]] || [[ "$MSG" == "test("* ]]; then
+              echo "Test-only commit — expecting failure"
+              FAILED=false
+              for MOD in $MODULES; do
+                echo "--- $MOD ---"
+                if ! (cd "$MOD" && go test -timeout 10m -count=1 ./... 2>&1); then
+                  FAILED=true
+                fi
+              done
+              if [ "$FAILED" = false ]; then
+                echo "::error::Test-only commit should fail but all tests passed: $MSG"
+                exit 1
+              fi
+              echo "Failed as expected ✓"
+            else
+              for MOD in $MODULES; do
+                echo "--- $MOD ---"
+                (cd "$MOD" && go test -timeout 10m -count=1 ./...)
+              done
+              echo "Passed ✓"
+            fi
+
+            echo "::endgroup::"
+          done
