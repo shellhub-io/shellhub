@@ -2,11 +2,11 @@
 # Default build: production multiarch
 # Development: use --target development
 
-ARG GOLANG_VERSION=1.24
+ARG GOLANG_VERSION=1.25
 ARG ALPINE_VERSION=3.22
 
 # Base stage for both development and production
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.24}-alpine${ALPINE_VERSION:-3.22} AS base
+FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION:-1.25}-alpine${ALPINE_VERSION:-3.22} AS base
 
 ARG GOPROXY
 ARG TARGETARCH
