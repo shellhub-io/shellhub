@@ -425,13 +425,13 @@ export default function Devices() {
       />
 
       {/* Action Dialog */}
-      {actionTarget && (
-        <DeviceActionDialog
-          device={actionTarget.device}
-          action={actionTarget.action}
-          onClose={() => setActionTarget(null)}
-        />
-      )}
+      <DeviceActionDialog
+        key={actionTarget ? `${actionTarget.action}/${actionTarget.device.uid}` : "closed"}
+        open={!!actionTarget}
+        device={actionTarget?.device ?? null}
+        action={actionTarget?.action ?? "accept"}
+        onClose={() => setActionTarget(null)}
+      />
 
       {/* Connect Drawer */}
       <ConnectDrawer
