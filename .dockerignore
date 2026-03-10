@@ -5,3 +5,5 @@
 ./bin
 ./ui/node_modules
 ./agent/tmp
+**/go.work
+**/go.work.sum
