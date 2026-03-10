@@ -1,23 +1,12 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import "./helpers/setup-dialog";
 
 // Mock the focus trap so it doesn't interfere with jsdom focus state
 vi.mock("@/hooks/useFocusTrap", () => ({
   useFocusTrap: vi.fn(),
 }));
-
-// jsdom doesn't implement showModal/close — stub them so they set/remove the
-// `open` attribute, which is what React Testing Library uses to resolve the
-// `dialog` role.
-HTMLDialogElement.prototype.showModal = vi.fn(function (
-  this: HTMLDialogElement,
-) {
-  this.setAttribute("open", "");
-});
-HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
-  this.removeAttribute("open");
-});
 
 // CopyButton calls navigator.clipboard — stub it to avoid jsdom errors
 Object.defineProperty(navigator, "clipboard", {
@@ -120,36 +109,43 @@ describe("CreateNamespaceDialog", () => {
   });
 
   describe("aria attributes", () => {
-    it("dialog has aria-labelledby='create-ns-title'", () => {
+    it("dialog aria-labelledby points to the heading element", () => {
       renderDialog(true);
-      expect(screen.getByRole("dialog")).toHaveAttribute(
-        "aria-labelledby",
-        "create-ns-title",
+      const dialog = screen.getByRole("dialog");
+      const labelId = dialog.getAttribute("aria-labelledby");
+      expect(labelId).toBeTruthy();
+      expect(document.getElementById(labelId!)).toHaveTextContent(
+        "Create a Namespace",
       );
     });
 
-    it("dialog has aria-describedby='create-ns-description'", () => {
+    it("dialog aria-describedby points to the description paragraph", () => {
       renderDialog(true);
-      expect(screen.getByRole("dialog")).toHaveAttribute(
-        "aria-describedby",
-        "create-ns-description",
+      const dialog = screen.getByRole("dialog");
+      const descId = dialog.getAttribute("aria-describedby");
+      expect(descId).toBeTruthy();
+      expect(document.getElementById(descId!)).toHaveTextContent(
+        /Community Edition uses the CLI to manage namespaces/i,
       );
     });
 
-    it("heading has id='create-ns-title'", () => {
+    it("heading id matches dialog's aria-labelledby", () => {
       renderDialog(true);
+      const dialog = screen.getByRole("dialog");
+      const labelId = dialog.getAttribute("aria-labelledby")!;
       expect(
         screen.getByRole("heading", { name: "Create a Namespace" }),
-      ).toHaveAttribute("id", "create-ns-title");
+      ).toHaveAttribute("id", labelId);
     });
 
-    it("description paragraph has id='create-ns-description'", () => {
+    it("description paragraph id matches dialog's aria-describedby", () => {
       renderDialog(true);
-      // The description text is the paragraph that introduces the CLI command
+      const dialog = screen.getByRole("dialog");
+      const descId = dialog.getAttribute("aria-describedby")!;
       const description = screen.getByText(
         /Community Edition uses the CLI to manage namespaces/i,
       );
-      expect(description).toHaveAttribute("id", "create-ns-description");
+      expect(description).toHaveAttribute("id", descId);
     });
   });
 
