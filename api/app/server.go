@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"context"
@@ -24,13 +24,9 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	log "github.com/sirupsen/logrus"
-
-	// Blank import triggers init() functions in cloud packages when built with -tags enterprise.
-	// In CE builds this package is empty and compiles to nothing.
-	_ "github.com/shellhub-io/shellhub/api/enterprise"
 )
 
-type env struct {
+type Env struct {
 	Database string `env:"DATABASE,default=mongo"`
 
 	// PostgresHost specifies the host for PostgreSQL.
@@ -83,7 +79,7 @@ type env struct {
 }
 
 type Server struct {
-	env    *env
+	env    *Env
 	router *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
 	worker worker.Server
 }
