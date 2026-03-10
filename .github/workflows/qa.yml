@@ -83,10 +83,16 @@ jobs:
           go-version: "1.24.9"
         id: go
 
+      - name: Configure Git for private repos [Go]
+        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
+        run: git config --global url."https://x-access-token:${{ secrets.PAT }}@github.com/".insteadOf "https://github.com/"
+
       - name: Get Go dependencies [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go mod download
+        env:
+          GOPRIVATE: github.com/shellhub-io/cloud
 
       - name: Ensure Go dependencies are complete [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
