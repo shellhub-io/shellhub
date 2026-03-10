@@ -82,6 +82,12 @@ func ParseFilterProperty(fp *query.FilterProperty) (string, []any, bool, error) 
 		return fromOnlineFilter(fp.Value)
 	}
 
+	// tags.name requires an EXISTS subquery through the device_tags junction table,
+	// because tags live in a separate table with a many-to-many relationship.
+	if fp.Name == "tags.name" {
+		return fromTagsFilter(fp.Operator, fp.Value)
+	}
+
 	var condition string
 	var args []any
 	var err error
@@ -106,6 +112,42 @@ func ParseFilterProperty(fp *query.FilterProperty) (string, []any, bool, error) 
 	}
 
 	return condition, args, true, nil
+}
+
+// fromTagsFilter handles "tags.name" filters by generating an EXISTS subquery
+// through the device_tags junction table. For "contains" with a string value, it
+// matches tag names using ILIKE. For "contains" with an array value, it checks
+// that the device has all specified tags. For "eq", it checks for an exact tag name.
+func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
+	const base = `EXISTS (SELECT 1 FROM "device_tags" JOIN "tags" ON "tags"."id" = "device_tags"."tag_id" WHERE "device_tags"."device_id" = "device"."id" AND `
+
+	switch operator {
+	case "contains":
+		switch v := value.(type) {
+		case string:
+			return base + `"tags"."name" ILIKE ?)`, []any{"%" + v + "%"}, true, nil
+		case []any:
+			strs := make([]string, len(v))
+			for i, item := range v {
+				s, ok := item.(string)
+				if !ok {
+					return "", nil, false, ErrUnsupportedContainsType
+				}
+				strs[i] = s
+			}
+
+			// Use a counting subquery to ensure AND semantics: the device must have ALL
+			// specified tags, consistent with MongoDB's $all and the generic PG @> operator.
+			return `(SELECT COUNT(DISTINCT "tags"."name") FROM "device_tags" JOIN "tags" ON "tags"."id" = "device_tags"."tag_id" WHERE "device_tags"."device_id" = "device"."id" AND "tags"."name" IN (?)) = ?`,
+				[]any{bun.List(strs), len(strs)}, true, nil
+		default:
+			return "", nil, false, ErrUnsupportedContainsType
+		}
+	case "eq":
+		return base + `"tags"."name" = ?)`, []any{value}, true, nil
+	default:
+		return "", nil, false, nil
+	}
 }
 
 // fromContains converts a "contains" JSON expression to an SQL expression. For strings, it uses ILIKE with '%value%'
