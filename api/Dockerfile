@@ -62,8 +62,7 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
             ./github.com/shellhub-io/shellhub/openapi \
             ./github.com/shellhub-io/shellhub/api \
             ./github.com/shellhub-io/cloud && \
-        cd /go/src/github.com/shellhub-io/shellhub/api && \
-        GOWORK=/go/src/go.work go build -tags enterprise -o /api . && \
+        GOWORK=/go/src/go.work go build -tags enterprise -o /api github.com/shellhub-io/cloud/cmd/api && \
         mjml /go/src/github.com/shellhub-io/cloud/templates/*.mjml -o /templates; \
     else \
         go build -o /api .; \
