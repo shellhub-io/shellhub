@@ -12,7 +12,7 @@ require (
 	github.com/labstack/echo/v4 v4.15.1
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/pires/go-proxyproto v0.11.0
-	github.com/shellhub-io/shellhub v0.13.4
+	github.com/shellhub-io/shellhub v0.0.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.48.0
