@@ -79,7 +79,7 @@ ENV GOPROXY=${GOPROXY}
 RUN apk add --update openssl build-base docker-cli npm
 RUN npm install -g mjml@${MJML_VERSION}
 RUN go install github.com/air-verse/air@v1.62 && \
-    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6 && \
+    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.4.0 && \
     go install github.com/vektra/mockery/v2/...@v2.53.2
 
 COPY ./api/entrypoint-dev.sh /entrypoint.sh
