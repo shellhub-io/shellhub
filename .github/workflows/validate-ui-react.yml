@@ -39,7 +39,7 @@ jobs:
 
       - name: Set up Node.JS 24.13.0 [${{ matrix.app }}]
         if: steps.filter.outputs[matrix.app] == 'true'
-        uses: actions/setup-node@v6.2.0
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: "24.13.0"
 
