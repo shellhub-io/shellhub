@@ -39,9 +39,9 @@ if [ -d "$CLOUD_DIR" ]; then
         "$WORKSPACE/shellhub/api" \
         "$WORKSPACE/cloud"
 
-    export GOFLAGS="-tags=enterprise"
-
-    exec air
+    # Use the cloud entry point, which blank-imports cloud extension packages
+    # before calling the community server.
+    exec air -build.cmd "go build -tags enterprise -o /tmp/air/main github.com/shellhub-io/cloud/cmd/api"
 else
     # Remove stale go.work left over from a previous enterprise run,
     # otherwise Go will try to load the cloud module that no longer exists.
