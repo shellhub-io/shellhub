@@ -20,7 +20,7 @@ jobs:
           token: ${{ secrets.PAT }}
       - uses: actions/setup-go@v6
         with:
-          go-version: "1.25.8"
+          go-version-file: go.mod
       - name: Configure Git for private repos
         run: git config --global url."https://x-access-token:${{ secrets.PAT }}@github.com/".insteadOf "https://github.com/"
       - name: Run prepare-release script to update Go modules
