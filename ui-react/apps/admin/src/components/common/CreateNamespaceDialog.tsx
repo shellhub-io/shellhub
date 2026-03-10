@@ -1,11 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useId } from "react";
 import {
   XMarkIcon,
   BookOpenIcon,
   FolderPlusIcon,
 } from "@heroicons/react/24/outline";
-import { useFocusTrap } from "@/hooks/useFocusTrap";
-import { useBackdropClose } from "@/hooks/useBackdropClose";
+import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
 
 const COMMAND = "./bin/cli namespace create <namespace> <owner>";
@@ -25,38 +24,17 @@ export default function CreateNamespaceDialog({
   open,
   onClose,
 }: CreateNamespaceDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const backdropHandlers = useBackdropClose(dialogRef, onClose);
-  useFocusTrap(dialogRef, open);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open) dialog.showModal();
-    else dialog.close();
-  }, [open]);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const handleCancel = (e: Event) => {
-      e.preventDefault();
-      onClose();
-    };
-    dialog.addEventListener("cancel", handleCancel);
-    return () => dialog.removeEventListener("cancel", handleCancel);
-  }, [onClose]);
-
-  if (!open) return null;
+  const autoId = useId();
+  const titleId = `create-ns-title-${autoId}`;
+  const descriptionId = `create-ns-description-${autoId}`;
 
   return (
-    <dialog
-      ref={dialogRef}
-      data-custom-backdrop
-      aria-labelledby="create-ns-title"
-      aria-describedby="create-ns-description"
-      {...backdropHandlers}
-      className="fixed inset-0 z-[70] m-auto bg-surface sm:border sm:border-border sm:rounded-2xl w-full h-full sm:h-fit sm:max-w-lg shadow-2xl shadow-black/40 flex flex-col animate-slide-up"
+    <BaseDialog
+      open={open}
+      onClose={onClose}
+      size="lg"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
     >
       {/* Header */}
       <header className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
@@ -65,7 +43,7 @@ export default function CreateNamespaceDialog({
             <FolderPlusIcon className="w-4 h-4" />
           </span>
           <h2
-            id="create-ns-title"
+            id={titleId}
             className="text-sm font-semibold text-text-primary"
           >
             Create a Namespace
@@ -84,7 +62,7 @@ export default function CreateNamespaceDialog({
       {/* Body */}
       <div className="px-6 py-5 space-y-5">
         <p
-          id="create-ns-description"
+          id={descriptionId}
           className="text-sm text-text-muted leading-relaxed"
         >
           Community Edition uses the CLI to manage namespaces. Run this
@@ -150,6 +128,6 @@ export default function CreateNamespaceDialog({
           Close
         </button>
       </footer>
-    </dialog>
+    </BaseDialog>
   );
 }
