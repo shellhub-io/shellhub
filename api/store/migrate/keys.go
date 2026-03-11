@@ -111,6 +111,7 @@ func (m *Migrator) migratePublicKeyTags(ctx context.Context) error {
 		for _, tagID := range doc.Filter.TagIDs {
 			e := &entity.PublicKeyTag{
 				PublicKeyFingerprint: doc.Fingerprint,
+				PublicKeyNamespaceID: doc.TenantID,
 				TagID:                ObjectIDToUUID(tagID),
 				CreatedAt:            doc.CreatedAt,
 			}
