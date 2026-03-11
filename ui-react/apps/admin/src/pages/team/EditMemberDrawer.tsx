@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import { useMembersStore } from "../../stores/membersStore";
 import { type NamespaceMember } from "../../types/namespace";
 import Drawer from "../../components/common/Drawer";
@@ -19,12 +20,13 @@ function EditMemberDrawer({
   member: NamespaceMember | null;
 }) {
   const updateRole = useMembersStore((s) => s.updateRole);
-  const [role, setRole] = useState(member?.role ?? "operator");
+  const [role, setRole] = useState("operator");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (open && member) setRole(member.role);
-  }, [open, member]);
+  useResetOnOpen(open, () => {
+    setRole(member?.role ?? "operator");
+    setSubmitting(false);
+  });
 
   const handleSubmit = async () => {
     if (!member) return;

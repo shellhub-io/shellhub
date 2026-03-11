@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { XMarkIcon, ArrowRightIcon, BookOpenIcon } from "@heroicons/react/24/outline";
-import BaseDialog from "@/components/common/BaseDialog";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useDevicesStore } from "@/stores/devicesStore";
 import { Device } from "@/types/device";
+import BaseDialog from "@/components/common/BaseDialog";
 import WizardStep1Welcome from "./WizardStep1Welcome";
 import WizardStep2Install from "./WizardStep2Install";
 import WizardStep3Device from "./WizardStep3Device";
@@ -20,21 +21,18 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
   const [pendingDevice, setPendingDevice] = useState<Device | null>(null);
   const [accepting, setAccepting] = useState(false);
 
+  useResetOnOpen(open, () => {
+    setStep(1);
+    setPendingDevice(null);
+    setAccepting(false);
+  });
+
   const { accept } = useDevicesStore();
 
   // Stable predicate: closing is allowed on steps 1–3 but blocked on step 4.
   // Memoized to prevent BaseDialog's cancel-event listener from re-attaching
   // on every render (the listener dep-array includes canClose).
   const canClose = useCallback(() => step < TOTAL_STEPS, [step]);
-
-  // Reset to step 1 whenever the dialog opens so it always starts fresh
-  useEffect(() => {
-    if (open) {
-      setStep(1);
-      setPendingDevice(null);
-      setAccepting(false);
-    }
-  }, [open]);
 
   const handleAccept = async () => {
     if (!pendingDevice) return;

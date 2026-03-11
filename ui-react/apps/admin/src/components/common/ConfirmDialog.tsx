@@ -1,4 +1,5 @@
-import { ReactNode, useEffect, useId, useState } from "react";
+import { ReactNode, useId, useState } from "react";
+import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
 
 interface ConfirmDialogProps {
@@ -69,11 +70,9 @@ export default function ConfirmDialog({
   const titleId = `confirm-dialog-title-${autoId}`;
   const descriptionId = `confirm-dialog-description-${autoId}`;
 
-  // Reset confirming when the dialog (re)opens so a closed-mid-flight dialog
-  // does not reopen with the button still disabled.
-  useEffect(() => {
-    if (open) setConfirming(false);
-  }, [open]);
+  useResetOnOpen(open, () => {
+    setConfirming(false);
+  });
 
   const handleConfirm = async () => {
     setConfirming(true);

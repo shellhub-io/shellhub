@@ -245,10 +245,9 @@ export default function CommandPalette() {
     return flat;
   }, [sections]);
 
-  /* Clamp active index */
-  useEffect(() => {
-    setActiveIndex((prev) => Math.min(prev, Math.max(flatList.length - 1, 0)));
-  }, [flatList.length]);
+  /* Clamp active index when the list shrinks */
+  const clampedIndex = Math.min(activeIndex, Math.max(flatList.length - 1, 0));
+  if (clampedIndex !== activeIndex) setActiveIndex(clampedIndex);
 
   /* Scroll active into view */
   useEffect(() => {

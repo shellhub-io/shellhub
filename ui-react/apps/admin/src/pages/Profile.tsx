@@ -1,4 +1,5 @@
-import { useEffect, useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useAuthStore } from "../stores/authStore";
 import { useNamespacesStore } from "../stores/namespacesStore";
 import PageHeader from "../components/common/PageHeader";
@@ -325,22 +326,21 @@ export function EditProfileDrawer({
   currentRecoveryEmail: string;
 }) {
   const updateProfile = useAuthStore((s) => s.updateProfile);
-  const [name, setName] = useState(currentName);
-  const [username, setUsername] = useState(currentUsername);
-  const [email, setEmail] = useState(currentEmail);
-  const [recoveryEmail, setRecoveryEmail] = useState(currentRecoveryEmail);
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [recoveryEmail, setRecoveryEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      setName(currentName);
-      setUsername(currentUsername);
-      setEmail(currentEmail);
-      setRecoveryEmail(currentRecoveryEmail);
-      setError("");
-    }
-  }, [open, currentName, currentUsername, currentEmail, currentRecoveryEmail]);
+  useResetOnOpen(open, () => {
+    setName(currentName);
+    setUsername(currentUsername);
+    setEmail(currentEmail);
+    setRecoveryEmail(currentRecoveryEmail);
+    setSubmitting(false);
+    setError("");
+  });
 
   const nameError = name !== currentName ? validateName(name) : null;
   const usernameError =
@@ -522,15 +522,14 @@ function ChangePasswordDrawer({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (open) {
-      setCurrent("");
-      setNewPw("");
-      setConfirmPw("");
-      setError("");
-      setSuccess(false);
-    }
-  }, [open]);
+  useResetOnOpen(open, () => {
+    setCurrent("");
+    setNewPw("");
+    setConfirmPw("");
+    setSubmitting(false);
+    setError("");
+    setSuccess(false);
+  });
 
   const newPwError = newPw ? validatePassword(newPw) : null;
   const confirmError =

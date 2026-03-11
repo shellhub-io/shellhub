@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, FormEvent } from "react";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useWebEndpointsStore } from "../stores/webEndpointsStore";
 import { WebEndpoint } from "../types/webEndpoint";
 import { Device } from "../types/device";
@@ -385,8 +386,7 @@ function EndpointDrawer({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
+  useResetOnOpen(open, () => {
     setDevice(null);
     setHostMode("localhost");
     setHost("127.0.0.1");
@@ -395,8 +395,9 @@ function EndpointDrawer({
     setTlsEnabled(false);
     setTlsVerify(false);
     setTlsDomain("");
+    setSubmitting(false);
     setError(null);
-  }, [open]);
+  });
 
   const hostError =
     host && !isValidHost(host)

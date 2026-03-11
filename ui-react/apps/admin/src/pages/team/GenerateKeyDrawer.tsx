@@ -1,4 +1,5 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
+import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { useApiKeysStore } from "../../stores/apiKeysStore";
@@ -33,16 +34,14 @@ function GenerateKeyDrawer({
   const [error, setError] = useState("");
   const [generatedKey, setGeneratedKey] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      setName("");
-      setRole("administrator");
-      setExpiresIn(30);
-      setNameError("");
-      setError("");
-      setGeneratedKey("");
-    }
-  }, [open]);
+  useResetOnOpen(open, () => {
+    setName("");
+    setRole("administrator");
+    setExpiresIn(30);
+    setNameError("");
+    setError("");
+    setGeneratedKey("");
+  });
 
   const handleNameChange = (value: string) => {
     setName(value);

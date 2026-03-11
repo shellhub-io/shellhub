@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, FormEvent } from "react";
+import { useState, useRef, useEffect, FormEvent } from "react";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useTagsStore } from "../stores/tagsStore";
 import { useDevicesStore } from "../stores/devicesStore";
 import axios from "axios";
@@ -31,13 +32,14 @@ export default function ManageTagsDrawer({
   const [error, setError] = useState<string | null>(null);
   const skipBlurRef = useRef(false);
 
+  useResetOnOpen(open, () => {
+    setNewName("");
+    setEditingTag(null);
+    setError(null);
+  });
+
   useEffect(() => {
-    if (open) {
-      fetch(1, 100);
-      setNewName("");
-      setEditingTag(null);
-      setError(null);
-    }
+    if (open) fetch(1, 100);
   }, [open, fetch]);
 
   const newNameValid =
