@@ -62,10 +62,16 @@ func (m *Migrator) Run(ctx context.Context) error {
 		}
 	}
 
-	log.Info("All tables migrated, running validation")
+	log.Info("All tables migrated, running count validation")
 
-	if err := m.validate(ctx); err != nil {
-		return fmt.Errorf("post-migration validation failed: %w", err)
+	if err := m.validateCounts(ctx); err != nil {
+		return fmt.Errorf("count validation failed: %w", err)
+	}
+
+	log.Info("Running deep validation")
+
+	if err := m.deepValidate(ctx); err != nil {
+		return fmt.Errorf("deep validation failed: %w", err)
 	}
 
 	log.Info("Running migration extensions")
