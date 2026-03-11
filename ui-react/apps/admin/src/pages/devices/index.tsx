@@ -242,11 +242,8 @@ export default function Devices() {
                   return (
                     <tr
                       key={device.uid}
-                      onClick={() => {
-                        if (device.status === "accepted")
-                          navigate(`/devices/${device.uid}`);
-                      }}
-                      className={`group hover:bg-hover-subtle transition-colors ${device.status === "accepted" ? "cursor-pointer" : ""}`}
+                      onClick={() => navigate(`/devices/${device.uid}`)}
+                      className="group hover:bg-hover-subtle transition-colors cursor-pointer"
                     >
                       {/* Online dot — accepted only */}
                       {status === "accepted" && (
