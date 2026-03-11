@@ -15,7 +15,7 @@ func init() {
 func migration012Up(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, `
 		DROP TYPE IF EXISTS session_type;
-		CREATE TYPE session_type AS ENUM ('shell', 'exec', 'none');
+		CREATE TYPE session_type AS ENUM ('shell', 'exec', 'scp', 'sftp', 'subsystem', 'term', 'web', 'none');
 	`)
 	if err != nil {
 		return err

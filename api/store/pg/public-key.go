@@ -25,12 +25,12 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 		// Insert relationships into the junction table
 		now := clock.Now()
 		for _, tag := range e.Tags {
-			pkTag := entity.NewPublicKeyTag(tag.ID, e.Fingerprint)
+			pkTag := entity.NewPublicKeyTag(tag.ID, e.Fingerprint, e.NamespaceID)
 			pkTag.CreatedAt = now
 
 			if _, err := db.NewInsert().
 				Model(pkTag).
-				On("CONFLICT (public_key_fingerprint, tag_id) DO NOTHING").
+				On("CONFLICT (public_key_fingerprint, public_key_namespace_id, tag_id) DO NOTHING").
 				Exec(ctx); err != nil {
 				return "", fromSQLError(err)
 			}

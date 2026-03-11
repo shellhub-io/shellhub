@@ -115,7 +115,8 @@ func TestNewDeviceTag(t *testing.T) {
 }
 
 func TestNewPublicKeyTag(t *testing.T) {
-	result := NewPublicKeyTag("tag-123", "fingerprint-456")
+	result := NewPublicKeyTag("tag-123", "fingerprint-456", "namespace-789")
 	assert.Equal(t, "tag-123", result.TagID)
 	assert.Equal(t, "fingerprint-456", result.PublicKeyFingerprint)
+	assert.Equal(t, "namespace-789", result.PublicKeyNamespaceID)
 }

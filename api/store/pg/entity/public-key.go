@@ -11,7 +11,7 @@ type PublicKey struct {
 	bun.BaseModel `bun:"table:public_keys"`
 
 	Fingerprint    string    `bun:"fingerprint,type:char(47),pk"`
-	NamespaceID    string    `bun:"namespace_id"`
+	NamespaceID    string    `bun:"namespace_id,pk"`
 	CreatedAt      time.Time `bun:"created_at"`
 	UpdatedAt      time.Time `bun:"updated_at"`
 	Name           string    `bun:"name"`

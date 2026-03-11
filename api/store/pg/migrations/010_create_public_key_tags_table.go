@@ -16,6 +16,7 @@ func migration010Up(ctx context.Context, db *bun.DB) error {
 	publicKeyTagsTable := &struct {
 		bun.BaseModel        `bun:"table:public_key_tags"`
 		PublicKeyFingerprint string    `bun:"public_key_fingerprint,type:char(47),pk"`
+		PublicKeyNamespaceID string    `bun:"public_key_namespace_id,type:uuid,pk"`
 		TagID                string    `bun:"tag_id,type:uuid,pk"`
 		CreatedAt            time.Time `bun:"created_at,type:timestamptz,notnull"`
 	}{}
@@ -23,7 +24,7 @@ func migration010Up(ctx context.Context, db *bun.DB) error {
 	if _, err := db.NewCreateTable().
 		Model(publicKeyTagsTable).
 		IfNotExists().
-		ForeignKey(`("public_key_fingerprint") REFERENCES public_keys("fingerprint") ON DELETE CASCADE`).
+		ForeignKey(`("public_key_fingerprint", "public_key_namespace_id") REFERENCES public_keys("fingerprint", "namespace_id") ON DELETE CASCADE`).
 		ForeignKey(`("tag_id") REFERENCES tags("id") ON DELETE CASCADE`).
 		Exec(ctx); err != nil {
 		log.WithError(err).Error("failed to create public_key_tags table in migration 010")
