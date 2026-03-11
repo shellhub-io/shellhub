@@ -1,4 +1,5 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
+import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import { useFirewallRulesStore } from "../../stores/firewallRulesStore";
 import { FirewallRule, FirewallFilter } from "../../types/firewallRule";
 import Drawer from "../../components/common/Drawer";
@@ -49,61 +50,38 @@ export default function RuleDrawer({
   const [priority, setPriority] = useState("");
   const [action, setAction] = useState<"allow" | "deny">("allow");
   const [active, setActive] = useState(true);
-  const [sourceIpOption, setSourceIpOption] = useState<"all" | "restrict">(
-    "all",
-  );
+  const [sourceIpOption, setSourceIpOption] = useState<"all" | "restrict">("all");
   const [sourceIp, setSourceIp] = useState("");
-  const [usernameOption, setUsernameOption] = useState<"all" | "restrict">(
-    "all",
-  );
+  const [usernameOption, setUsernameOption] = useState<"all" | "restrict">("all");
   const [username, setUsername] = useState("");
-  const [filterOption, setFilterOption] = useState<"all" | "hostname" | "tags">(
-    "all",
-  );
+  const [filterOption, setFilterOption] = useState<"all" | "hostname" | "tags">("all");
   const [hostname, setHostname] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    if (editRule) {
-      setPriority(String(editRule.priority));
-      setAction(editRule.action);
-      setActive(editRule.active);
-      setSourceIpOption(editRule.source_ip === ".*" ? "all" : "restrict");
-      setSourceIp(editRule.source_ip === ".*" ? "" : editRule.source_ip);
-      setUsernameOption(editRule.username === ".*" ? "all" : "restrict");
-      setUsername(editRule.username === ".*" ? "" : editRule.username);
-      if (editRule.filter.tags && editRule.filter.tags.length > 0) {
-        setFilterOption("tags");
-        setSelectedTags(editRule.filter.tags);
-      } else if (
-        editRule.filter.hostname &&
-        editRule.filter.hostname !== ".*"
-      ) {
-        setFilterOption("hostname");
-        setHostname(editRule.filter.hostname);
-      } else {
-        setFilterOption("all");
-        setHostname("");
-        setSelectedTags([]);
-      }
-      setError(null);
-    } else {
-      setPriority("");
-      setAction("allow");
-      setActive(true);
-      setSourceIpOption("all");
-      setSourceIp("");
-      setUsernameOption("all");
-      setUsername("");
-      setFilterOption("all");
-      setHostname("");
-      setSelectedTags([]);
-      setError(null);
-    }
-  }, [open, editRule]);
+  useResetOnOpen(open, () => {
+    const filterInit = editRule
+      ? editRule.filter.tags && editRule.filter.tags.length > 0
+        ? "tags"
+        : editRule.filter.hostname && editRule.filter.hostname !== ".*"
+          ? "hostname"
+          : "all"
+      : "all";
+
+    setPriority(editRule ? String(editRule.priority) : "");
+    setAction(editRule?.action ?? "allow");
+    setActive(editRule?.active ?? true);
+    setSourceIpOption(editRule ? (editRule.source_ip === ".*" ? "all" : "restrict") : "all");
+    setSourceIp(editRule && editRule.source_ip !== ".*" ? editRule.source_ip : "");
+    setUsernameOption(editRule ? (editRule.username === ".*" ? "all" : "restrict") : "all");
+    setUsername(editRule && editRule.username !== ".*" ? editRule.username : "");
+    setFilterOption(filterInit);
+    setHostname(editRule && filterInit === "hostname" ? (editRule.filter.hostname ?? "") : "");
+    setSelectedTags(editRule && filterInit === "tags" ? (editRule.filter.tags ?? []) : []);
+    setSubmitting(false);
+    setError(null);
+  });
 
   const buildFilter = (): FirewallFilter => {
     if (filterOption === "hostname" && hostname) return { hostname };

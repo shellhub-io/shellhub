@@ -1,4 +1,5 @@
 import { useEffect, useState, FormEvent } from "react";
+import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { Link } from "react-router-dom";
 import {
   CheckIcon,
@@ -107,16 +108,15 @@ function EditNameDrawer({
   tenantId: string;
 }) {
   const updateNamespace = useNamespacesStore((s) => s.updateNamespace);
-  const [name, setName] = useState(currentName);
+  const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      setName(currentName);
-      setError("");
-    }
-  }, [open, currentName]);
+  useResetOnOpen(open, () => {
+    setName(currentName);
+    setSubmitting(false);
+    setError("");
+  });
 
   const validationError = name !== currentName ? validateName(name) : null;
 

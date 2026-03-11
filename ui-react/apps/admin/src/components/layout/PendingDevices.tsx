@@ -39,6 +39,7 @@ export default function PendingDevices() {
 
   // Poll for pending count every 30s
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching
     fetchPending();
     const id = setInterval(fetchPending, 30000);
     return () => clearInterval(id);
@@ -46,6 +47,7 @@ export default function PendingDevices() {
 
   // Refetch when opened
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching
     if (open) fetchPending();
   }, [open, fetchPending]);
 

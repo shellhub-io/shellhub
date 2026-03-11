@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import { useApiKeysStore } from "../../stores/apiKeysStore";
 import { type ApiKey } from "../../types/apiKey";
 import Drawer from "../../components/common/Drawer";
@@ -17,16 +18,15 @@ function EditKeyDrawer({
   apiKey: ApiKey | null;
 }) {
   const update = useApiKeysStore((s) => s.update);
-  const [name, setName] = useState(apiKey?.name ?? "");
-  const [role, setRole] = useState(apiKey?.role ?? "administrator");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("administrator");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (open && apiKey) {
-      setName(apiKey.name);
-      setRole(apiKey.role);
-    }
-  }, [open, apiKey]);
+  useResetOnOpen(open, () => {
+    setName(apiKey?.name ?? "");
+    setRole(apiKey?.role ?? "administrator");
+    setSubmitting(false);
+  });
 
   const handleSubmit = async () => {
     if (!apiKey || !name.trim()) return;

@@ -1,4 +1,5 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { useVaultStore, DuplicateKeyError } from "@/stores/vaultStore";
 import { validatePrivateKey, getFingerprint, getAlgorithm } from "@/utils/ssh-keys";
@@ -28,23 +29,17 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    if (editKey) {
-      setName(editKey.name);
-      setKeyData(editKey.data);
-      setEncrypted(editKey.hasPassphrase);
-    } else {
-      setName("");
-      setKeyData("");
-      setEncrypted(false);
-    }
+  useResetOnOpen(open, () => {
+    setName(editKey?.name ?? "");
     setNameError(null);
+    setKeyData(editKey?.data ?? "");
+    setEncrypted(editKey?.hasPassphrase ?? false);
     setPassphrase("");
     setKeyError(null);
     setPassphraseError(null);
+    setSubmitting(false);
     setError(null);
-  }, [open, editKey]);
+  });
 
   const handleNameChange = (value: string) => {
     setName(value);

@@ -1,4 +1,5 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
+import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import {
   UserGroupIcon,
   UserIcon,
@@ -30,64 +31,46 @@ function KeyDrawer({
   const { create, update } = usePublicKeysStore();
   const isEdit = !!editKey;
 
-  const decodedKeyData = editKey
-    ? (() => {
-        try {
-          return atob(editKey.data);
-        } catch {
-          return editKey.data;
-        }
-      })()
-    : "";
-
   const [name, setName] = useState("");
   const [keyData, setKeyData] = useState("");
   const [keyError, setKeyError] = useState<string | null>(null);
-  const [usernameOption, setUsernameOption] = useState<"all" | "username">(
-    "all",
-  );
+  const [usernameOption, setUsernameOption] = useState<"all" | "username">("all");
   const [username, setUsername] = useState("");
-  const [filterOption, setFilterOption] = useState<"all" | "hostname" | "tags">(
-    "all",
-  );
+  const [filterOption, setFilterOption] = useState<"all" | "hostname" | "tags">("all");
   const [hostname, setHostname] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Populate on open / editKey change
-  useEffect(() => {
-    if (!open) return;
-    if (editKey) {
-      setName(editKey.name);
-      setKeyData(decodedKeyData);
-      setUsernameOption(editKey.username === ".*" ? "all" : "username");
-      setUsername(editKey.username === ".*" ? "" : editKey.username);
-      if (editKey.filter.tags && editKey.filter.tags.length > 0) {
-        setFilterOption("tags");
-        setSelectedTags(editKey.filter.tags);
-      } else if (editKey.filter.hostname && editKey.filter.hostname !== ".*") {
-        setFilterOption("hostname");
-        setHostname(editKey.filter.hostname);
-      } else {
-        setFilterOption("all");
-        setHostname("");
-        setSelectedTags([]);
-      }
-      setKeyError(null);
-      setError(null);
-    } else {
-      setName("");
-      setKeyData("");
-      setKeyError(null);
-      setUsernameOption("all");
-      setUsername("");
-      setFilterOption("all");
-      setHostname("");
-      setSelectedTags([]);
-      setError(null);
-    }
-  }, [open, editKey, decodedKeyData]);
+  useResetOnOpen(open, () => {
+    const decodedKeyData = editKey
+      ? (() => {
+          try {
+            return atob(editKey.data);
+          } catch {
+            return editKey.data;
+          }
+        })()
+      : "";
+    const filterInit = editKey
+      ? editKey.filter.tags && editKey.filter.tags.length > 0
+        ? "tags"
+        : editKey.filter.hostname && editKey.filter.hostname !== ".*"
+          ? "hostname"
+          : "all"
+      : "all";
+
+    setName(editKey?.name ?? "");
+    setKeyData(decodedKeyData);
+    setKeyError(null);
+    setUsernameOption(editKey ? (editKey.username === ".*" ? "all" : "username") : "all");
+    setUsername(editKey && editKey.username !== ".*" ? editKey.username : "");
+    setFilterOption(filterInit);
+    setHostname(editKey && filterInit === "hostname" ? (editKey.filter.hostname ?? "") : "");
+    setSelectedTags(editKey && filterInit === "tags" ? (editKey.filter.tags ?? []) : []);
+    setSubmitting(false);
+    setError(null);
+  });
 
   const handleKeyDataChange = (v: string) => {
     setKeyData(v);

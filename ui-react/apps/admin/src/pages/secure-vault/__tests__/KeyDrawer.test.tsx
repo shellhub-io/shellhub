@@ -196,8 +196,9 @@ describe("KeyDrawer", () => {
     it("clears fields when closed then reopened without editKey", async () => {
       const { rerender } = renderDrawer({ editKey: mockEntry });
 
-      // Reopen without editKey
+      // Close the drawer
       rerender(<KeyDrawer open={false} editKey={null} onClose={vi.fn()} />);
+      // Reopen — useResetOnOpen resets fields
       rerender(<KeyDrawer open editKey={null} onClose={vi.fn()} />);
 
       expect(screen.getByLabelText(/^name$/i)).toHaveValue("");

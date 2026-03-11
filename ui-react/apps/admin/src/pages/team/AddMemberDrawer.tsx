@@ -1,4 +1,5 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
+import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useMembersStore } from "../../stores/membersStore";
 import Drawer from "../../components/common/Drawer";
@@ -22,13 +23,11 @@ function AddMemberDrawer({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      setEmail("");
-      setRole("operator");
-      setError("");
-    }
-  }, [open]);
+  useResetOnOpen(open, () => {
+    setEmail("");
+    setRole("operator");
+    setError("");
+  });
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
