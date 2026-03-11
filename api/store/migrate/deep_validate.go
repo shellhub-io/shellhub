@@ -87,6 +87,15 @@ func (r *ValidationReport) CheckField(table, recordID, field string, expected, a
 	}
 }
 
+// CheckFieldRedacted compares two values but logs "[REDACTED]" instead of the actual values.
+func (r *ValidationReport) CheckFieldRedacted(table, recordID, field string, expected, actual any) {
+	e := fmt.Sprintf("%v", expected)
+	a := fmt.Sprintf("%v", actual)
+	if e != a {
+		r.AddMismatch(FieldMismatch{Table: table, RecordID: recordID, Field: field, Expected: "[REDACTED]", Actual: "[REDACTED]"})
+	}
+}
+
 // CheckTime compares two time.Time values truncated to millisecond precision.
 func (r *ValidationReport) CheckTime(table, recordID, field string, expected, actual time.Time) {
 	e := expected.Truncate(time.Millisecond).UTC()
