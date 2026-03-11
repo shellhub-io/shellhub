@@ -1,5 +1,5 @@
 {
-  "name": "@shellhub/admin",
+  "name": "@shellhub/console",
   "version": "0.0.0",
   "type": "module",
   "private": true,
