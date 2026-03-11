@@ -68,6 +68,12 @@ func (m *Migrator) Run(ctx context.Context) error {
 		return fmt.Errorf("post-migration validation failed: %w", err)
 	}
 
+	log.Info("Running migration extensions")
+
+	if err := applyMigrationExtensions(ctx, m.mongo, m.pg); err != nil {
+		return fmt.Errorf("migration extension failed: %w", err)
+	}
+
 	return nil
 }
 
