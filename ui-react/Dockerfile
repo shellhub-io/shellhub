@@ -9,7 +9,7 @@ WORKDIR /app
 # Copy workspace package files for npm install
 COPY ui-react/package.json ui-react/package-lock.json ./
 COPY ui-react/packages/design-system/package.json ./packages/design-system/
-COPY ui-react/apps/admin/package.json ./apps/admin/
+COPY ui-react/apps/console/package.json ./apps/console/
 
 RUN npm install
 
@@ -45,7 +45,7 @@ RUN apk add curl
 RUN rm /etc/nginx/conf.d/default.conf
 COPY ui-react/nginx.conf /etc/nginx/conf.d
 
-COPY --from=builder /app/apps/admin/dist /usr/share/nginx/html/ui
+COPY --from=builder /app/apps/console/dist /usr/share/nginx/html/ui
 
 COPY ui-react/scripts /scripts
 

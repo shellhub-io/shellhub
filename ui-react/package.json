@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev:admin": "npm run dev -w @shellhub/admin"
+    "dev:console": "npm run dev -w @shellhub/console"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
