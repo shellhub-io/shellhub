@@ -34,7 +34,9 @@ export default function MfaEnableDrawer({
 
   // Step 1: Recovery Email
   const [recoveryEmail, setRecoveryEmail] = useState("");
-  const [showRecoveryEmailInput, setShowRecoveryEmailInput] = useState(!currentRecoveryEmail);
+  const [userWantsNewEmail, setUserWantsNewEmail] = useState(false);
+  // Derived: show the email input when there's no existing email, or user wants to change it
+  const showRecoveryEmailInput = !currentRecoveryEmail || userWantsNewEmail;
 
   // Step 2: Recovery Codes
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
@@ -45,13 +47,6 @@ export default function MfaEnableDrawer({
   const [secret, setSecret] = useState("");
   const otp = useOtpInput(6);
   const { handleDownload, handleCopy } = useRecoveryCodeActions();
-
-  // Sync showRecoveryEmailInput when drawer opens or currentRecoveryEmail changes
-  useEffect(() => {
-    if (open) {
-      setShowRecoveryEmailInput(!currentRecoveryEmail);
-    }
-  }, [open, currentRecoveryEmail]);
 
   const handleConfirmExistingEmail = async () => {
     setError("");
@@ -149,14 +144,13 @@ export default function MfaEnableDrawer({
     };
   }, []);
 
-  const handleDone = (): void => {
-    onSuccess();
+  const handleClose = (): void => {
     onClose();
     // Reset state after drawer animation completes
     timeoutRef.current = setTimeout(() => {
       setStep(1);
       setRecoveryEmail("");
-      setShowRecoveryEmailInput(!currentRecoveryEmail);
+      setUserWantsNewEmail(false);
       setRecoveryCodes([]);
       setCodesSaved(false);
       setQrLink("");
@@ -166,12 +160,17 @@ export default function MfaEnableDrawer({
     }, 300);
   };
 
+  const handleDone = (): void => {
+    onSuccess();
+    handleClose();
+  };
+
   const isCodeComplete = otp.isComplete;
 
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       title="Enable MFA"
       subtitle="Secure your account with two-factor authentication"
       icon={<ShieldCheckIcon className="w-5 h-5 text-primary" />}
@@ -180,7 +179,7 @@ export default function MfaEnableDrawer({
         step === 1 ? (
           <>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
             >
               Cancel
@@ -212,7 +211,7 @@ export default function MfaEnableDrawer({
         ) : step === 2 ? (
           <>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-hover-subtle transition-colors"
             >
               Cancel
@@ -316,7 +315,7 @@ export default function MfaEnableDrawer({
                 </div>
 
                 <button
-                  onClick={() => setShowRecoveryEmailInput(true)}
+                  onClick={() => setUserWantsNewEmail(true)}
                   className="w-full px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary border border-border rounded-lg hover:bg-hover-subtle transition-colors"
                 >
                   Use a different recovery email

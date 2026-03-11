@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { FormEvent, useState } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { ShieldCheckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { completeMfaReset } from "../api/mfa";
 import { useAuthStore } from "../stores/authStore";
@@ -19,20 +19,9 @@ export default function MfaResetComplete() {
 
   const userId = searchParams.get("id");
 
-  // Redirect if no user ID in URL
-  useEffect(() => {
-    if (!userId) {
-      navigate("/login");
-    }
-  }, [userId, navigate]);
-
-  if (!userId) {
-    return null;
-  }
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!otpMain.isComplete || !otpRecovery.isComplete) return;
+    if (!userId || !otpMain.isComplete || !otpRecovery.isComplete) return;
 
     setLoading(true);
     setError(null);
@@ -55,6 +44,31 @@ export default function MfaResetComplete() {
       setLoading(false);
     }
   };
+
+  if (!userId) {
+    return (
+      <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
+        <div className="text-center mb-12 animate-fade-in">
+          <div className="animate-float mb-6 inline-block">
+            <div className="w-20 h-20 rounded-2xl bg-accent-red/15 border border-accent-red/25 flex items-center justify-center shadow-lg shadow-accent-red/10">
+              <ExclamationCircleIcon className="w-10 h-10 text-accent-red" strokeWidth={1.2} />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-text-primary mb-3">Invalid Reset Link</h1>
+          <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
+            This reset link is invalid or has expired. Please request a new one.
+          </p>
+        </div>
+        <Link
+          to="/mfa-reset-request"
+          className="text-sm text-primary hover:text-primary/80 transition-colors"
+        >
+          ← Request a new reset link
+        </Link>
+        <AuthFooterLinks />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
@@ -102,6 +116,7 @@ export default function MfaResetComplete() {
                   type="text"
                   maxLength={1}
                   value={char}
+                  aria-label={`Main email code character ${index + 1} of 5`}
                   onChange={(e) => otpMain.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpMain.handleKeyDown(index, e)}
                   autoFocus={index === 0}
@@ -127,6 +142,7 @@ export default function MfaResetComplete() {
                   type="text"
                   maxLength={1}
                   value={char}
+                  aria-label={`Recovery email code character ${index + 1} of 5`}
                   onChange={(e) => otpRecovery.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpRecovery.handleKeyDown(index, e)}
                   className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 uppercase"
