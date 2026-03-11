@@ -30,11 +30,13 @@ function DeviceActionDialog({
   device,
   action,
   onClose,
+  onSuccess,
   open,
 }: {
   device: Device | null;
   action: "accept" | "reject" | "remove";
   onClose: () => void;
+  onSuccess?: () => void;
   open: boolean;
 }) {
   const accept = useDevicesStore((s) => s.accept);
@@ -48,7 +50,6 @@ function DeviceActionDialog({
     setError(null);
     try {
       await { accept, reject, remove }[action](device.uid);
-      onClose();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
@@ -70,7 +71,10 @@ function DeviceActionDialog({
       } else {
         setError(`Failed to ${action} device.`);
       }
+      return;
     }
+    onSuccess?.();
+    onClose();
   };
 
   const description = device ? (

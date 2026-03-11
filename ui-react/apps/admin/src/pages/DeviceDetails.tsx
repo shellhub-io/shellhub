@@ -22,6 +22,8 @@ import {
 import { useDevicesStore } from "../stores/devicesStore";
 import { useNamespacesStore } from "../stores/namespacesStore";
 import { useTerminalStore } from "../stores/terminalStore";
+import { Device } from "../types/device";
+import DeviceActionDialog from "./devices/DeviceActionDialog";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
@@ -273,6 +275,10 @@ export default function DeviceDetails() {
   const [connectOpen, setConnectOpen] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [operation, setOperation] = useState<{
+    device: Device;
+    action: "accept" | "reject" | "remove";
+  } | null>(null);
 
   useEffect(() => {
     if (uid) fetchDevice(uid);
@@ -323,6 +329,13 @@ export default function DeviceDetails() {
     } catch {
       setDeleting(false);
     }
+  };
+
+  const handleDeviceActionSuccess = () => {
+    if (!operation || !uid) return;
+
+    if (operation.action === "remove") navigate("/devices");
+    else fetchDevice(uid);
   };
 
   return (
@@ -394,28 +407,62 @@ export default function DeviceDetails() {
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
           {device.status === "accepted" && (
-            <button
-              onClick={() => {
-                if (existingSession) {
-                  restoreTerminal(existingSession.id);
-                } else {
-                  setConnectOpen(true);
-                }
-              }}
-              disabled={!device.online}
-              className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
-            >
-              <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
-              Connect
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  if (existingSession) {
+                    restoreTerminal(existingSession.id);
+                  } else {
+                    setConnectOpen(true);
+                  }
+                }}
+                disabled={!device.online}
+                className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
+                Connect
+              </button>
+              <button
+                onClick={() => setShowDelete(true)}
+                className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
+                title="Delete device"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </>
           )}
-          <button
-            onClick={() => setShowDelete(true)}
-            className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
-            title="Delete device"
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
+          {device.status === "pending" && (
+            <>
+              <button
+                onClick={() => setOperation({ device, action: "accept" })}
+                className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
+              >
+                Accept
+              </button>
+              <button
+                onClick={() => setOperation({ device, action: "reject" })}
+                className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/90 hover:bg-accent-yellow text-white rounded-lg text-sm font-semibold transition-all"
+              >
+                Reject
+              </button>
+            </>
+          )}
+          {device.status === "rejected" && (
+            <>
+              <button
+                onClick={() => setOperation({ device, action: "accept" })}
+                className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
+              >
+                Accept
+              </button>
+              <button
+                onClick={() => setOperation({ device, action: "remove" })}
+                className="flex items-center gap-2 px-4 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold transition-all"
+              >
+                Remove
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -562,6 +609,16 @@ export default function DeviceDetails() {
         deviceUid={device.uid}
         deviceName={device.name}
         sshid={sshid}
+      />
+
+      {/* Action Dialog (accept/reject/remove for pending/rejected devices) */}
+      <DeviceActionDialog
+        key={operation ? `${operation.action}/${operation.device.uid}` : "closed"}
+        open={!!operation}
+        device={operation?.device ?? null}
+        action={operation?.action ?? "accept"}
+        onClose={() => setOperation(null)}
+        onSuccess={handleDeviceActionSuccess}
       />
     </div>
   );
