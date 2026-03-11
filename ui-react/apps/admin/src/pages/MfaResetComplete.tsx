@@ -9,7 +9,6 @@ import AuthFooterLinks from "../components/common/AuthFooterLinks";
 export default function MfaResetComplete() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { setSession, updateMfaStatus } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,9 +31,16 @@ export default function MfaResetComplete() {
         recovery_email_code: otpRecovery.getValue(),
       });
 
-      // Successful reset = authenticated
-      setSession({ token: data.token, tenant: data.tenant });
-      updateMfaStatus(data.mfa || false);
+      // Successful reset = authenticated — populate all identity fields
+      useAuthStore.setState({
+        token: data.token,
+        user: data.user,
+        userId: data.id,
+        email: data.email,
+        tenant: data.tenant,
+        name: data.name,
+        mfaEnabled: data.mfa || false,
+      });
       navigate("/dashboard");
     } catch {
       setError("Invalid verification codes. Please check and try again.");
