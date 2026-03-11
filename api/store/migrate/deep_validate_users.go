@@ -80,7 +80,7 @@ func (m *Migrator) compareUserBatch(ctx context.Context, r *ValidationReport, ba
 		r.CheckField(t, id, "Name", exp.Name, act.Name)
 		r.CheckField(t, id, "Username", exp.Username, act.Username)
 		r.CheckField(t, id, "Email", exp.Email, act.Email)
-		r.CheckField(t, id, "PasswordDigest", exp.PasswordDigest, act.PasswordDigest)
+		r.CheckFieldRedacted(t, id, "PasswordDigest", exp.PasswordDigest, act.PasswordDigest)
 		r.CheckField(t, id, "Admin", exp.Admin, act.Admin)
 		r.CheckTime(t, id, "CreatedAt", exp.CreatedAt, act.CreatedAt)
 		r.CheckTime(t, id, "LastLogin", exp.LastLogin, act.LastLogin)

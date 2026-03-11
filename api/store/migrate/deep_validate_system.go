@@ -2,6 +2,8 @@ package migrate
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/shellhub-io/shellhub/api/store/pg/entity"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,6 +29,12 @@ func (m *Migrator) deepValidateSystems(ctx context.Context, r *ValidationReport)
 
 	var actual entity.System
 	if err := m.pg.NewSelect().Model(&actual).Limit(1).Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			r.AddMissing("systems", "system_record")
+
+			return nil
+		}
+
 		return err
 	}
 
@@ -45,8 +53,8 @@ func (m *Migrator) deepValidateSystems(ctx context.Context, r *ValidationReport)
 	r.CheckStrings(t, id, "Auth.SAML.Idp.Certificates", expected.Authentication.SAML.Idp.Certificates, actual.Authentication.SAML.Idp.Certificates)
 	r.CheckStringMap(t, id, "Auth.SAML.Idp.Mappings", expected.Authentication.SAML.Idp.Mappings, actual.Authentication.SAML.Idp.Mappings)
 	r.CheckField(t, id, "Auth.SAML.Sp.SignAuthRequests", expected.Authentication.SAML.Sp.SignAuthRequests, actual.Authentication.SAML.Sp.SignAuthRequests)
-	r.CheckField(t, id, "Auth.SAML.Sp.Certificate", expected.Authentication.SAML.Sp.Certificate, actual.Authentication.SAML.Sp.Certificate)
-	r.CheckField(t, id, "Auth.SAML.Sp.PrivateKey", expected.Authentication.SAML.Sp.PrivateKey, actual.Authentication.SAML.Sp.PrivateKey)
+	r.CheckFieldRedacted(t, id, "Auth.SAML.Sp.Certificate", expected.Authentication.SAML.Sp.Certificate, actual.Authentication.SAML.Sp.Certificate)
+	r.CheckFieldRedacted(t, id, "Auth.SAML.Sp.PrivateKey", expected.Authentication.SAML.Sp.PrivateKey, actual.Authentication.SAML.Sp.PrivateKey)
 
 	return nil
 }
