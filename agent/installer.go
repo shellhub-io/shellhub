@@ -133,8 +133,6 @@ func agentInstall(cfg installerConfig) error {
 		return fmt.Errorf("systemd is not available on this system")
 	}
 
-	exec.Command("systemctl", "disable", "--now", agentServiceName).Run() //nolint:errcheck
-
 	exe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to resolve executable path: %w", err)
@@ -161,8 +159,12 @@ func agentInstall(cfg installerConfig) error {
 		return fmt.Errorf("failed to reload systemd daemon: %w", err)
 	}
 
-	if err := exec.Command("systemctl", "enable", "--now", agentServiceName).Run(); err != nil {
+	if err := exec.Command("systemctl", "enable", agentServiceName).Run(); err != nil {
 		return fmt.Errorf("failed to enable service: %w", err)
+	}
+
+	if err := exec.Command("systemctl", "restart", agentServiceName).Run(); err != nil {
+		return fmt.Errorf("failed to restart service: %w", err)
 	}
 
 	return nil
