@@ -3,10 +3,16 @@ docker-compose.override.yml
 
 *~
 */tmp
+*.orig
+
+# UI build and dependencies artifacts
 **/node_modules
+**/dist
 **/.vite
 **/.astro
-*.orig
+**/*.map
+**/*.tsbuildinfo
+**/vite.config.d.ts
 
 api_private_key
 api_public_key
