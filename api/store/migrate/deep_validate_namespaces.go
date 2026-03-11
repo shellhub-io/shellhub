@@ -2,6 +2,8 @@ package migrate
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/shellhub-io/shellhub/api/store/pg/entity"
 	"github.com/uptrace/bun"
@@ -114,10 +116,14 @@ func (m *Migrator) deepValidateMemberships(ctx context.Context, r *ValidationRep
 				Where("namespace_id = ?", exp.NamespaceID).
 				Scan(ctx)
 			if err != nil {
-				r.AddMissing("memberships", exp.UserID+"/"+exp.NamespaceID)
-				r.AddCompared("memberships", 1)
+				if errors.Is(err, sql.ErrNoRows) {
+					r.AddMissing("memberships", exp.UserID+"/"+exp.NamespaceID)
+					r.AddCompared("memberships", 1)
 
-				continue
+					continue
+				}
+
+				return err
 			}
 
 			r.AddCompared("memberships", 1)
