@@ -117,9 +117,9 @@ func agentInstall(cfg installerConfig) error {
 		return fmt.Errorf("systemd is not available on this system")
 	}
 
-	// Stop existing service before overwriting files (re-install / upgrade).
-	// Ignore error — service may not exist yet.
-	exec.Command("systemctl", "disable", "--now", agentServiceName).Run() //nolint:errcheck
+	// Best practice would be to disable service here before install/upgrade
+	// If upgrade performed over tunnel, ssh session disconnect, binary gets sighup.
+	// Service will restart at end of install/upgrade
 
 	exe, err := os.Executable()
 	if err != nil {
@@ -147,8 +147,14 @@ func agentInstall(cfg installerConfig) error {
 		return fmt.Errorf("failed to reload systemd daemon: %w", err)
 	}
 
-	if err := exec.Command("systemctl", "enable", "--now", agentServiceName).Run(); err != nil {
+	// For upgrade over tunnel support, just enable service, service reboot later
+	if err := exec.Command("systemctl", "enable", agentServiceName).Run(); err != nil {
 		return fmt.Errorf("failed to enable service: %w", err)
+	}
+
+	// Restarts service to upgraded binary, session dies but tunnel remains active.
+	if err := exec.Command("systemctl", "restart", agentServiceName).Run(); err != nil {
+		return fmt.Errorf("failed to restart service: %w", err)
 	}
 
 	return nil
