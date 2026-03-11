@@ -22,7 +22,7 @@ go.work
 go.work.sum
 
 # Generated at runtime by gen-config.sh from env vars
-ui-react/apps/admin/public/config.json
+ui-react/apps/console/public/config.json
 
 # Docker binaries
 agent/agent
