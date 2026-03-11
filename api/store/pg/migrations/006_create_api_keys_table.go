@@ -20,7 +20,7 @@ func migration006Up(ctx context.Context, db *bun.DB) error {
 		CreatedAt     time.Time `bun:"created_at,type:timestamptz,notnull"`
 		UpdatedAt     time.Time `bun:"updated_at,type:timestamptz,notnull"`
 		ExpiresIn     int64     `bun:"expires_in,type:bigint,nullzero"`
-		Name          string    `bun:"name,type:varchar,notnull,unique"`
+		Name          string    `bun:"name,type:varchar,notnull"`
 		Role          string    `bun:"role,type:membership_role,notnull"`
 		UserID        string    `bun:"user_id,type:uuid,notnull"`
 	}{}
@@ -31,6 +31,18 @@ func migration006Up(ctx context.Context, db *bun.DB) error {
 		ForeignKey(`("namespace_id") REFERENCES namespaces("id") ON DELETE CASCADE`).
 		Exec(ctx); err != nil {
 		log.WithError(err).Error("failed to apply migration 006")
+
+		return err
+	}
+
+	if _, err := db.NewCreateIndex().
+		Model(table).
+		Index("api_keys_namespace_id_name_unique").
+		Column("namespace_id", "name").
+		Unique().
+		IfNotExists().
+		Exec(ctx); err != nil {
+		log.WithError(err).Error("failed to create api_keys unique index")
 
 		return err
 	}

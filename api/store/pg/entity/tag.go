@@ -32,10 +32,11 @@ type DeviceTag struct {
 type PublicKeyTag struct {
 	bun.BaseModel        `bun:"table:public_key_tags"`
 	PublicKeyFingerprint string    `bun:"public_key_fingerprint,pk"`
+	PublicKeyNamespaceID string    `bun:"public_key_namespace_id,pk"`
 	TagID                string    `bun:"tag_id,pk"`
 	CreatedAt            time.Time `bun:"created_at"`
 
-	PublicKey *PublicKey `bun:"rel:belongs-to,join:public_key_fingerprint=fingerprint"`
+	PublicKey *PublicKey `bun:"rel:belongs-to,join:public_key_fingerprint=fingerprint,join:public_key_namespace_id=namespace_id"`
 	Tag       *Tag       `bun:"rel:belongs-to,join:tag_id=id"`
 }
 
@@ -63,6 +64,6 @@ func NewDeviceTag(tagID, deviceID string) *DeviceTag {
 	return &DeviceTag{TagID: tagID, DeviceID: deviceID}
 }
 
-func NewPublicKeyTag(tagID, fingerprint string) *PublicKeyTag {
-	return &PublicKeyTag{TagID: tagID, PublicKeyFingerprint: fingerprint}
+func NewPublicKeyTag(tagID, fingerprint, namespaceID string) *PublicKeyTag {
+	return &PublicKeyTag{TagID: tagID, PublicKeyFingerprint: fingerprint, PublicKeyNamespaceID: namespaceID}
 }

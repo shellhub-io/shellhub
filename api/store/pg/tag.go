@@ -160,19 +160,21 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 			return fromSQLError(err)
 		}
 	case store.TagTargetPublicKey:
-		// Check if public key exists
-		exists, err := db.NewSelect().Model((*entity.PublicKey)(nil)).Where("fingerprint = ?", targetID).Exists(ctx)
+		// targetID is "fingerprint:namespace_id" composite key
+		// But for now, we need the namespace_id from the tag's namespace
+		pk := new(entity.PublicKey)
+		err := db.NewSelect().Model(pk).
+			Where("fingerprint = ?", targetID).
+			Where("namespace_id = ?", tag.NamespaceID).
+			Scan(ctx)
 		if err != nil {
 			return fromSQLError(err)
 		}
-		if !exists {
-			return store.ErrNoDocuments
-		}
 
-		publickeyTag := entity.NewPublicKeyTag(tag.ID, targetID)
+		publickeyTag := entity.NewPublicKeyTag(tag.ID, pk.Fingerprint, pk.NamespaceID)
 		publickeyTag.CreatedAt = clock.Now()
 
-		if _, err := db.NewInsert().Model(publickeyTag).On("CONFLICT (public_key_id, tag_id) DO NOTHING").Exec(ctx); err != nil {
+		if _, err := db.NewInsert().Model(publickeyTag).On("CONFLICT (public_key_fingerprint, public_key_namespace_id, tag_id) DO NOTHING").Exec(ctx); err != nil {
 			return fromSQLError(err)
 		}
 	}
@@ -209,7 +211,7 @@ func (pg *Pg) TagPullFromTarget(ctx context.Context, id string, target store.Tag
 	case store.TagTargetPublicKey:
 		query := db.NewDelete().Model((*entity.PublicKeyTag)(nil)).Where("tag_id = ?", id)
 		if len(targetIDs) > 0 {
-			query = query.Where("public_key_id IN (?)", bun.List(targetIDs))
+			query = query.Where("public_key_fingerprint IN (?)", bun.List(targetIDs))
 		}
 
 		r, err := query.Exec(ctx)
