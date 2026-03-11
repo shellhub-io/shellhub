@@ -17,6 +17,11 @@ export default function MfaRecover() {
   const [recoveryCode, setRecoveryCode] = useState("");
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
 
+  // Clear stale error from previous session
+  useEffect(() => {
+    useAuthStore.setState({ error: null });
+  }, []);
+
   // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {
     if (!identifier && !mfaToken) {
@@ -52,6 +57,7 @@ export default function MfaRecover() {
 
   const handleCloseModal = () => {
     setShowTimeoutModal(false);
+    useAuthStore.setState({ mfaRecoveryExpiry: null });
     navigate("/dashboard");
   };
 

@@ -55,10 +55,9 @@ describe("MfaRecover", () => {
     });
   });
 
-  it("displays error message on invalid code", () => {
-    useAuthStore.setState({
-      error: "Invalid recovery code",
-    });
+  it("displays error message on invalid code", async () => {
+    const mockRecover = vi.fn().mockRejectedValue(new Error("Invalid recovery code"));
+    useAuthStore.setState({ recoverWithCode: mockRecover });
 
     render(
       <MemoryRouter>
@@ -66,7 +65,17 @@ describe("MfaRecover", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Invalid recovery code")).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText(/recovery code/i), {
+      target: { value: "BAD-CODE" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /recover/i }));
+
+    // Error is set in the store by recoverWithCode on failure
+    useAuthStore.setState({ error: "Invalid recovery code" });
+
+    await waitFor(() => {
+      expect(screen.getByText("Invalid recovery code")).toBeInTheDocument();
+    });
   });
 
   it("disables submit button when input is empty", () => {

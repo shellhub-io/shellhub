@@ -92,6 +92,7 @@ export default function MfaLogin() {
                   inputMode="numeric"
                   maxLength={1}
                   value={digit}
+                  aria-label={`Digit ${index + 1} of 6`}
                   onChange={(e) => otp.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otp.handleKeyDown(index, e)}
                   autoFocus={index === 0}

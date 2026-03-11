@@ -12,6 +12,11 @@ export default function MfaResetVerify() {
   const otpMain = useOtpInput(5, true);
   const otpRecovery = useOtpInput(5, true);
 
+  // Clear stale error from previous session
+  useEffect(() => {
+    useAuthStore.setState({ error: null });
+  }, []);
+
   // State guard: redirect if no reset session
   useEffect(() => {
     if (!mfaResetUserId) {
@@ -83,6 +88,7 @@ export default function MfaResetVerify() {
                   type="text"
                   maxLength={1}
                   value={char}
+                  aria-label={`Main email code character ${index + 1} of 5`}
                   onChange={(e) => otpMain.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpMain.handleKeyDown(index, e)}
                   autoFocus={index === 0}
@@ -108,6 +114,7 @@ export default function MfaResetVerify() {
                   type="text"
                   maxLength={1}
                   value={char}
+                  aria-label={`Recovery email code character ${index + 1} of 5`}
                   onChange={(e) => otpRecovery.handleChange(index, e.target.value)}
                   onKeyDown={(e) => otpRecovery.handleKeyDown(index, e)}
                   className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 uppercase"
