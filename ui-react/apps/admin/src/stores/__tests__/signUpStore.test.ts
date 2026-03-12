@@ -31,6 +31,8 @@ beforeEach(() => {
 
 describe("signUpStore", () => {
   describe("signUp", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {}); // Suppress expected warn logs during tests
+
     it("sets loading during request", async () => {
       let resolve: (v: { token: string; tenant: string }) => void;
       mockedSignUp.mockReturnValue(new Promise((r) => { resolve = r; }));
