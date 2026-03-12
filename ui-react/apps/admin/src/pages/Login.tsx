@@ -246,7 +246,7 @@ export default function Login() {
       </div>
 
       {/* Footer links */}
-      <AuthFooterLinks isCloud={isCloud} />
+      <AuthFooterLinks />
     </div>
   );
 }

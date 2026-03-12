@@ -1,11 +1,8 @@
+import { getConfig } from "@/env";
 import { BookOpenIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 
-interface AuthFooterLinksProps {
-  isCloud: boolean;
-}
-
-export default function AuthFooterLinks({ isCloud }: AuthFooterLinksProps) {
+export default function AuthFooterLinks() {
   return (
     <div
       className="flex items-center justify-center gap-6 mt-10 animate-fade-in"
@@ -32,7 +29,7 @@ export default function AuthFooterLinks({ isCloud }: AuthFooterLinksProps) {
         </svg>
         Community
       </a>
-      {isCloud && (
+      {getConfig().cloud && (
         <>
           <span className="w-px h-3 bg-border" />
           <Link
