@@ -3,6 +3,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaEnableDrawer from "../MfaEnableDrawer";
 
+vi.mock("qrcode");
+
 vi.mock("../../../api/mfa", () => ({
   generateMfa: vi.fn(),
   enableMfa: vi.fn(),
