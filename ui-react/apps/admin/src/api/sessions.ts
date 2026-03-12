@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient, { getTotalCount } from "./client";
 import { Session } from "../types/session";
 import { PaginatedResponse } from "../types/api";
 
@@ -9,8 +9,7 @@ export async function getSessions(
   const response = await apiClient.get<Session[]>("/api/sessions", {
     params: { page, per_page: perPage },
   });
-  const totalCount = parseInt(response.headers["x-total-count"] ?? "0", 10);
-  return { data: response.data, totalCount };
+  return { data: response.data, totalCount: getTotalCount(response) };
 }
 
 export async function getSession(uid: string): Promise<Session> {

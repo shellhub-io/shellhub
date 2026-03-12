@@ -84,8 +84,8 @@ const sections: NavSection[] = [
 
 function NavItemLink({ item }: { item: NavItem }) {
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
-  const showBadge =
-    item.premium && !getConfig().cloud && !getConfig().enterprise;
+  const showBadge
+    = item.premium && !getConfig().cloud && !getConfig().enterprise;
 
   return (
     <NavLink
@@ -96,8 +96,7 @@ function NavItemLink({ item }: { item: NavItem }) {
           isActive
             ? "bg-primary/10 text-primary border border-primary/20"
             : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle border border-transparent"
-        }`
-      }
+        }`}
     >
       {item.icon}
       <span className="flex-1">{item.label}</span>

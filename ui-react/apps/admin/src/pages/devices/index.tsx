@@ -67,7 +67,7 @@ export default function Devices() {
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
   useEffect(() => {
-    fetch();
+    void fetch();
   }, [fetch]);
 
   const totalPages = Math.ceil(totalCount / perPage);
@@ -75,15 +75,15 @@ export default function Devices() {
 
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
-    fetch(1, perPage, newStatus);
+    void fetch(1, perPage, newStatus);
   };
 
   const filtered = search
     ? devices.filter(
-        (d) =>
-          d.name.toLowerCase().includes(search.toLowerCase()) ||
-          d.uid.toLowerCase().includes(search.toLowerCase()),
-      )
+      (d) =>
+        d.name.toLowerCase().includes(search.toLowerCase())
+        || d.uid.toLowerCase().includes(search.toLowerCase()),
+    )
     : devices;
 
   return (
@@ -242,20 +242,22 @@ export default function Devices() {
                   return (
                     <tr
                       key={device.uid}
-                      onClick={() => navigate(`/devices/${device.uid}`)}
+                      onClick={() => void navigate(`/devices/${device.uid}`)}
                       className="group hover:bg-hover-subtle transition-colors cursor-pointer"
                     >
                       {/* Online dot — accepted only */}
                       {status === "accepted" && (
                         <td className="px-4 py-3.5 w-12">
-                          {device.online ? (
-                            <span className="relative flex h-2.5 w-2.5 mx-auto">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
-                            </span>
-                          ) : (
-                            <span className="block w-2.5 h-2.5 rounded-full mx-auto bg-text-muted/30" />
-                          )}
+                          {device.online
+                            ? (
+                              <span className="relative flex h-2.5 w-2.5 mx-auto">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
+                              </span>
+                            )
+                            : (
+                              <span className="block w-2.5 h-2.5 rounded-full mx-auto bg-text-muted/30" />
+                            )}
                         </td>
                       )}
 
@@ -297,7 +299,7 @@ export default function Devices() {
                       <td className="px-4 py-3.5">
                         <TagsPopover
                           device={device}
-                          onUpdated={() => fetch()}
+                          onUpdated={() => void fetch()}
                           onFilterTag={addFilterTag}
                         />
                       </td>
@@ -312,43 +314,45 @@ export default function Devices() {
                       {/* Connect — accepted only */}
                       {status === "accepted" && (
                         <td className="px-4 py-3.5 w-20">
-                          {device.online ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const existing = useTerminalStore
-                                  .getState()
-                                  .sessions.find(
-                                    (s) => s.deviceUid === device.uid,
-                                  );
-                                if (existing) {
-                                  useTerminalStore
+                          {device.online
+                            ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const existing = useTerminalStore
                                     .getState()
-                                    .restore(existing.id);
-                                } else {
-                                  const sshid = nsName
-                                    ? buildSshid(nsName, device.name)
-                                    : device.uid;
-                                  setConnectTarget({
-                                    uid: device.uid,
-                                    name: device.name,
-                                    sshid,
-                                  });
-                                }
-                              }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent-green/10 text-accent-green text-2xs font-semibold rounded-md hover:bg-accent-green/20 border border-accent-green/20 transition-all"
-                            >
-                              <ChevronDoubleRightIcon
-                                className="w-3 h-3"
-                                strokeWidth={2}
-                              />
-                              Connect
-                            </button>
-                          ) : (
-                            <span className="text-2xs text-text-muted/30 font-mono">
-                              Offline
-                            </span>
-                          )}
+                                    .sessions.find(
+                                      (s) => s.deviceUid === device.uid,
+                                    );
+                                  if (existing) {
+                                    useTerminalStore
+                                      .getState()
+                                      .restore(existing.id);
+                                  } else {
+                                    const sshid = nsName
+                                      ? buildSshid(nsName, device.name)
+                                      : device.uid;
+                                    setConnectTarget({
+                                      uid: device.uid,
+                                      name: device.name,
+                                      sshid,
+                                    });
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent-green/10 text-accent-green text-2xs font-semibold rounded-md hover:bg-accent-green/20 border border-accent-green/20 transition-all"
+                              >
+                                <ChevronDoubleRightIcon
+                                  className="w-3 h-3"
+                                  strokeWidth={2}
+                                />
+                                Connect
+                              </button>
+                            )
+                            : (
+                              <span className="text-2xs text-text-muted/30 font-mono">
+                                Offline
+                              </span>
+                            )}
                         </td>
                       )}
 
@@ -417,7 +421,7 @@ export default function Devices() {
         itemLabel="device"
         onPageChange={(p) => {
           setPage(p);
-          fetch(p);
+          void fetch(p);
         }}
       />
 
@@ -444,7 +448,7 @@ export default function Devices() {
         open={manageTagsOpen}
         onClose={() => {
           setManageTagsOpen(false);
-          fetch();
+          void fetch();
         }}
       />
     </div>

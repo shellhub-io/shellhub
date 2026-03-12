@@ -10,10 +10,10 @@ vi.mock("@/hooks/useFocusTrap", () => ({
 
 // jsdom doesn't implement showModal/close — stub them so they behave like the
 // open attribute (which testing-library uses to resolve the dialog's role)
-HTMLDialogElement.prototype.showModal = vi.fn(function(this: HTMLDialogElement) {
+HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
   this.setAttribute("open", "");
 });
-HTMLDialogElement.prototype.close = vi.fn(function(this: HTMLDialogElement) {
+HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
   this.removeAttribute("open");
 });
 
@@ -320,7 +320,7 @@ describe("WelcomeWizard", () => {
   });
 
   describe("Escape key", () => {
-    it("calls onClose when Escape is pressed on step 1", async () => {
+    it("calls onClose when Escape is pressed on step 1", () => {
       const { onClose } = renderWizard();
 
       // showModal dialogs fire a native "cancel" event on Escape

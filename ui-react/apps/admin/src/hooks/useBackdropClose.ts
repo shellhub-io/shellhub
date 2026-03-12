@@ -46,9 +46,9 @@ export function useBackdropClose(
     },
     onClick(e) {
       if (
-        enabled() &&
-        e.target === dialogRef.current &&
-        mouseDownTarget.current === dialogRef.current
+        enabled()
+        && e.target === dialogRef.current
+        && mouseDownTarget.current === dialogRef.current
       ) {
         onClose();
       }

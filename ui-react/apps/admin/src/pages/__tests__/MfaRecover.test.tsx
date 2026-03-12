@@ -27,7 +27,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText(/Account Recovery/i)).toBeInTheDocument();
@@ -41,7 +41,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const input = screen.getByPlaceholderText(/recovery code/i);
@@ -62,7 +62,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     fireEvent.change(screen.getByPlaceholderText(/recovery code/i), {
@@ -82,7 +82,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const submitBtn = screen.getByRole("button", { name: /recover/i });
@@ -93,7 +93,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const input = screen.getByPlaceholderText(/recovery code/i);
@@ -109,7 +109,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const input = screen.getByPlaceholderText(/recovery code/i);
@@ -122,7 +122,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const backLink = screen.getByText(/Back to verification/i);
@@ -137,7 +137,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const input = screen.getByPlaceholderText(/recovery code/i);
@@ -154,7 +154,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // The warning note is always rendered regardless of mfaRecoveryExpiry
@@ -174,7 +174,7 @@ describe("MfaRecover", () => {
           <Route path="/recover-mfa" element={<MfaRecover />} />
           <Route path="/login" element={<div>Login Page</div>} />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -195,7 +195,7 @@ describe("MfaRecover", () => {
           <Route path="/recover-mfa" element={<MfaRecover />} />
           <Route path="/login" element={<div>Login Page</div>} />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Should not redirect — mfaToken prevents redirect even without identifier
@@ -208,7 +208,7 @@ describe("MfaRecover", () => {
     render(
       <MemoryRouter>
         <MfaRecover />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Modal only appears after a successful recovery code submission
@@ -228,7 +228,7 @@ describe("MfaRecover", () => {
           <Route path="/recover-mfa" element={<MfaRecover />} />
           <Route path="/dashboard" element={<div>Dashboard</div>} />
         </Routes>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Enter and submit a recovery code

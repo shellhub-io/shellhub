@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient, { getTotalCount } from "./client";
 import { Tag } from "../types/tag";
 
 export async function getTags(
@@ -8,8 +8,7 @@ export async function getTags(
   const res = await apiClient.get<Tag[]>("/api/tags", {
     params: { page, per_page: perPage },
   });
-  const totalCount = parseInt(res.headers["x-total-count"] || "0", 10);
-  return { data: res.data, totalCount };
+  return { data: res.data, totalCount: getTotalCount(res) };
 }
 
 export async function createTag(name: string): Promise<void> {

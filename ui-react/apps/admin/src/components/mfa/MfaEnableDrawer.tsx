@@ -61,8 +61,8 @@ export default function MfaEnableDrawer({
     }
   };
 
-  const handleSaveRecoveryEmail = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSaveRecoveryEmail = async (e?: FormEvent) => {
+    e?.preventDefault();
     setError("");
     setLoading(true);
 
@@ -113,10 +113,8 @@ export default function MfaEnableDrawer({
     }
   };
 
-
-
-  const handleEnableMfa = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleEnableMfa = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!otp.isComplete) return;
 
     setError("");
@@ -186,7 +184,7 @@ export default function MfaEnableDrawer({
             </button>
             {showRecoveryEmailInput ? (
               <button
-                onClick={handleSaveRecoveryEmail}
+                onClick={() => void handleSaveRecoveryEmail()}
                 disabled={loading || !recoveryEmail.trim()}
                 className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
@@ -197,7 +195,7 @@ export default function MfaEnableDrawer({
               </button>
             ) : (
               <button
-                onClick={handleConfirmExistingEmail}
+                onClick={() => void handleConfirmExistingEmail()}
                 disabled={loading}
                 className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
@@ -217,7 +215,7 @@ export default function MfaEnableDrawer({
               Cancel
             </button>
             <button
-              onClick={handleNextToQr}
+              onClick={() => void handleNextToQr()}
               disabled={!codesSaved || loading || recoveryCodes.length === 0}
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
             >
@@ -233,7 +231,7 @@ export default function MfaEnableDrawer({
               Back
             </button>
             <button
-              onClick={handleEnableMfa}
+              onClick={() => void handleEnableMfa()}
               disabled={loading || !isCodeComplete || !qrLink || !secret}
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
@@ -269,12 +267,12 @@ export default function MfaEnableDrawer({
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-text-primary mb-2">
-                Step 1: {showRecoveryEmailInput ? 'Set Recovery Email' : 'Confirm Recovery Email'}
+                Step 1: {showRecoveryEmailInput ? "Set Recovery Email" : "Confirm Recovery Email"}
               </h3>
               <p className="text-xs text-text-muted leading-relaxed mb-4">
                 {showRecoveryEmailInput
-                  ? 'This email will be used to recover your account if you lose access to your authenticator device.'
-                  : 'Continue enabling MFA with your current recovery email, or change it below.'}
+                  ? "This email will be used to recover your account if you lose access to your authenticator device."
+                  : "Continue enabling MFA with your current recovery email, or change it below."}
               </p>
             </div>
 
@@ -353,13 +351,13 @@ export default function MfaEnableDrawer({
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleDownload(recoveryCodes)}
+                      onClick={() => void handleDownload(recoveryCodes)}
                       className="flex-1 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary border border-border rounded-md hover:bg-hover-subtle transition-colors"
                     >
                       Download
                     </button>
                     <button
-                      onClick={() => handleCopy(recoveryCodes)}
+                      onClick={() => void handleCopy(recoveryCodes)}
                       className="flex-1 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary border border-border rounded-md hover:bg-hover-subtle transition-colors"
                     >
                       Copy

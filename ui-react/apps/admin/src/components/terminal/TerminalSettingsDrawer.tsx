@@ -36,7 +36,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
   } = useTerminalThemeStore();
 
   useEffect(() => {
-    if (open) loadThemes();
+    if (open) void loadThemes();
   }, [open, loadThemes]);
 
   return (
@@ -46,16 +46,19 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
       title="Terminal Settings"
       width="sm"
       bodyClassName="flex-1 overflow-y-auto"
-      footer={
+      footer={(
         <>
           <span className="text-2xs font-mono text-text-muted mr-auto">
             {themeName}
           </span>
           <span className="text-2xs font-mono text-text-muted/60">
-            {fontFamily} {fontSize}px
+            {fontFamily}
+            {" "}
+            {fontSize}
+            px
           </span>
         </>
-      }
+      )}
     >
       {/* Theme Picker */}
       <div className="border-b border-border p-4">
@@ -159,15 +162,20 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
         >
           <div style={{ color: theme.colors.green }}>$ ssh root@device</div>
           <div style={{ color: theme.colors.foreground }}>
-            <span style={{ color: theme.colors.cyan }}>ShellHub</span>{" "}
+            <span style={{ color: theme.colors.cyan }}>ShellHub</span>
+            {" "}
             <span style={{ color: theme.colors.yellow }}>
               {getConfig().version || "v0.0.0"}
-            </span>{" "}
+            </span>
+            {" "}
             <span style={{ color: theme.colors.green }}>connected</span>
           </div>
           <div style={{ color: theme.colors.foreground }}>
-            <span style={{ color: theme.colors.brightBlack }}>~</span>{" "}
-            <span style={{ color: theme.colors.red }}>3</span> devices online
+            <span style={{ color: theme.colors.brightBlack }}>~</span>
+            {" "}
+            <span style={{ color: theme.colors.red }}>3</span>
+            {" "}
+            devices online
           </div>
           <div className="mt-1">
             <span style={{ color: theme.colors.green }}>$</span>

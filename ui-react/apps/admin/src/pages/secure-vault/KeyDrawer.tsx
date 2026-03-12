@@ -79,17 +79,17 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
     if (passphraseError) setPassphraseError(null);
   };
 
-  const canSubmit =
-    name.trim() &&
-    !nameError &&
-    keyData.trim() &&
-    !keyError &&
-    (!encrypted || passphrase.trim()) &&
-    !passphraseError &&
-    !submitting;
+  const canSubmit
+    = name.trim()
+      && !nameError
+      && keyData.trim()
+      && !keyError
+      && (!encrypted || passphrase.trim())
+      && !passphraseError
+      && !submitting;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!canSubmit) return;
 
     let fingerprint: string;
@@ -115,7 +115,6 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
     setError(null);
     setSubmitting(true);
     try {
-
       if (isEdit && editKey) {
         await updateKey(editKey.id, {
           name: name.trim(),
@@ -156,7 +155,7 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
       open={open}
       onClose={onClose}
       title={isEdit ? "Edit Private Key" : "Add Private Key"}
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -167,25 +166,29 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
           </button>
           <button
             type="submit"
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
           >
-            {submitting ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Saving...
-              </span>
-            ) : isEdit ? (
-              "Save Changes"
-            ) : (
-              "Add Key"
-            )}
+            {submitting
+              ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </span>
+              )
+              : isEdit
+                ? (
+                  "Save Changes"
+                )
+                : (
+                  "Add Key"
+                )}
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
           <label htmlFor="key-name" className={LABEL}>
             Name
@@ -247,19 +250,21 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
               }
               className={INPUT}
             />
-            {passphraseError ? (
-              <p
-                id="key-passphrase-error"
-                className="text-2xs text-accent-red mt-1.5 flex items-center gap-1"
-              >
-                <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
-                {passphraseError}
-              </p>
-            ) : (
-              <p id="key-passphrase-hint" className="text-2xs text-text-muted mt-1.5">
-                This key is encrypted. The passphrase is not stored.
-              </p>
-            )}
+            {passphraseError
+              ? (
+                <p
+                  id="key-passphrase-error"
+                  className="text-2xs text-accent-red mt-1.5 flex items-center gap-1"
+                >
+                  <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                  {passphraseError}
+                </p>
+              )
+              : (
+                <p id="key-passphrase-hint" className="text-2xs text-text-muted mt-1.5">
+                  This key is encrypted. The passphrase is not stored.
+                </p>
+              )}
           </div>
         )}
 

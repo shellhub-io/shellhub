@@ -80,8 +80,8 @@ export const useNamespacesStore = create<NamespacesState>((set) => ({
       useAuthStore.getState().setSession({ token, tenant: ns.tenant_id, role });
       window.location.reload();
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to create namespace";
+      const message
+        = err instanceof Error ? err.message : "Failed to create namespace";
       set({ loading: false, error: message });
       throw err;
     }

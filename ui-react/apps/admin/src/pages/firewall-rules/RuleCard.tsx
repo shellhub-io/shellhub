@@ -31,11 +31,13 @@ export default function RuleCard({
                 : "bg-accent-red/10"
             }`}
           >
-            {rule.action === "allow" ? (
-              <CheckCircleIcon className="w-4.5 h-4.5 text-accent-green" />
-            ) : (
-              <NoSymbolIcon className="w-4.5 h-4.5 text-accent-red" />
-            )}
+            {rule.action === "allow"
+              ? (
+                <CheckCircleIcon className="w-4.5 h-4.5 text-accent-green" />
+              )
+              : (
+                <NoSymbolIcon className="w-4.5 h-4.5 text-accent-red" />
+              )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -43,7 +45,9 @@ export default function RuleCard({
                 {rule.action === "allow" ? "Allow" : "Deny"}
               </h3>
               <span className="inline-flex items-center px-1.5 py-0.5 bg-hover-strong text-text-muted text-2xs rounded font-mono">
-                Priority {rule.priority}
+                Priority
+                {" "}
+                {rule.priority}
               </span>
               {!rule.active && (
                 <span className="inline-flex items-center px-1.5 py-0.5 bg-accent-yellow/10 text-accent-yellow text-2xs rounded font-medium">
@@ -57,20 +61,24 @@ export default function RuleCard({
               {/* Source IP */}
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-hover-medium text-text-muted text-2xs rounded">
                 <ComputerDesktopIcon className="w-2.5 h-2.5" strokeWidth={2} />
-                {rule.source_ip === ".*" ? (
-                  "Any IP"
-                ) : (
-                  <span className="font-mono">{rule.source_ip}</span>
-                )}
+                {rule.source_ip === ".*"
+                  ? (
+                    "Any IP"
+                  )
+                  : (
+                    <span className="font-mono">{rule.source_ip}</span>
+                  )}
               </span>
               {/* Username */}
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-hover-medium text-text-muted text-2xs rounded">
                 <UserIcon className="w-2.5 h-2.5" strokeWidth={2} />
-                {rule.username === ".*" ? (
-                  "All users"
-                ) : (
-                  <span className="font-mono">{rule.username}</span>
-                )}
+                {rule.username === ".*"
+                  ? (
+                    "All users"
+                  )
+                  : (
+                    <span className="font-mono">{rule.username}</span>
+                  )}
               </span>
               {/* Device filter */}
               <FilterBadge filter={rule.filter} />

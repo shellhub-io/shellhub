@@ -22,16 +22,16 @@ import { DockerIcon } from "../components/icons";
 import CopyButton from "../components/common/CopyButton";
 
 /* ─── Types ─── */
-type Method =
-  | "auto"
-  | "docker"
-  | "podman"
-  | "snap"
-  | "standalone"
-  | "wsl"
-  | "yocto"
-  | "buildroot"
-  | "freebsd";
+type Method
+  = | "auto"
+    | "docker"
+    | "podman"
+    | "snap"
+    | "standalone"
+    | "wsl"
+    | "yocto"
+    | "buildroot"
+    | "freebsd";
 
 interface MethodInfo {
   id: Method;
@@ -123,8 +123,8 @@ const METHODS: MethodInfo[] = [
 
 import { INPUT } from "../utils/styles";
 
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL
+  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 
 /* ─── Page ─── */
 export default function AddDevice() {
@@ -305,7 +305,9 @@ export default function AddDevice() {
                   Manual installation required
                 </p>
                 <p className="text-2xs text-text-muted leading-relaxed mb-3">
-                  {selectedMethod.label} requires manual setup. Follow the
+                  {selectedMethod.label}
+                  {" "}
+                  requires manual setup. Follow the
                   platform-specific documentation for step-by-step instructions.
                 </p>
                 <a
@@ -314,7 +316,11 @@ export default function AddDevice() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20 rounded-lg text-xs font-medium hover:bg-accent-yellow/15 transition-all"
                 >
-                  View {selectedMethod.label} guide
+                  View
+                  {" "}
+                  {selectedMethod.label}
+                  {" "}
+                  guide
                   <ArrowTopRightOnSquareIcon
                     className="w-3 h-3"
                     strokeWidth={2}
@@ -366,7 +372,8 @@ export default function AddDevice() {
             <div className="mt-3 bg-card border border-border rounded-xl p-4 space-y-4 animate-fade-in">
               <div>
                 <label className={`block ${LABEL} mb-1.5`}>
-                  Preferred Hostname{" "}
+                  Preferred Hostname
+                  {" "}
                   <span className="text-text-muted/50 normal-case tracking-normal">
                     (optional)
                   </span>
@@ -384,7 +391,8 @@ export default function AddDevice() {
               </div>
               <div>
                 <label className={`block ${LABEL} mb-1.5`}>
-                  Preferred Identity{" "}
+                  Preferred Identity
+                  {" "}
                   <span className="text-text-muted/50 normal-case tracking-normal">
                     (optional)
                   </span>
@@ -402,7 +410,8 @@ export default function AddDevice() {
               </div>
               <div>
                 <label className={`block ${LABEL} mb-1.5`}>
-                  Keep Alive Interval{" "}
+                  Keep Alive Interval
+                  {" "}
                   <span className="text-text-muted/50 normal-case tracking-normal">
                     (optional)
                   </span>
@@ -429,13 +438,15 @@ export default function AddDevice() {
       <div className="flex items-start gap-3 bg-primary/[0.04] border border-primary/15 rounded-xl px-4 py-3.5 mb-6">
         <InformationCircleIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <div className="text-xs text-text-secondary leading-relaxed">
-          After installing, your device will appear in the{" "}
+          After installing, your device will appear in the
+          {" "}
           <Link
             to="/devices"
             className="text-primary font-medium hover:text-primary/80 transition-colors"
           >
             Pending tab
-          </Link>{" "}
+          </Link>
+          {" "}
           and must be accepted before you can connect to it.
         </div>
       </div>

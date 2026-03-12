@@ -138,15 +138,15 @@ describe("validatePrivateKey", () => {
 
     it("rejects a public key presented as a private key", () => {
       // A minimal OpenSSH public key line — not a private key PEM block.
-      const publicKey =
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI fake+public+key test@host";
+      const publicKey
+        = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI fake+public+key test@host";
       const result = validatePrivateKey(publicKey);
       expect(result).toEqual({ valid: false, error: "Invalid private key format." });
     });
 
     it("rejects a PEM header without a body", () => {
-      const bare =
-        "-----BEGIN OPENSSH PRIVATE KEY-----\n-----END OPENSSH PRIVATE KEY-----";
+      const bare
+        = "-----BEGIN OPENSSH PRIVATE KEY-----\n-----END OPENSSH PRIVATE KEY-----";
       const result = validatePrivateKey(bare);
       expect(result).toEqual({ valid: false, error: "Invalid private key format." });
     });

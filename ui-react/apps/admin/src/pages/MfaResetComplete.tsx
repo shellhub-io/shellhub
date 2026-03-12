@@ -41,7 +41,7 @@ export default function MfaResetComplete() {
         name: data.name,
         mfaEnabled: data.mfa || false,
       });
-      navigate("/dashboard");
+      void navigate("/dashboard");
     } catch {
       setError("Invalid verification codes. Please check and try again.");
       otpMain.reset();
@@ -101,7 +101,7 @@ export default function MfaResetComplete() {
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
         style={{ animationDelay: "200ms" }}
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {error && (
             <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />

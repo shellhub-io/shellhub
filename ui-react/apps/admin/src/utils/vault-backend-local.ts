@@ -46,15 +46,15 @@ export class LocalVaultBackend implements IVaultBackend {
       null,
     );
     if (
-      !raw ||
-      raw.version !== 1 ||
-      typeof raw.salt !== "string" ||
-      typeof raw.iterations !== "number" ||
-      !Number.isInteger(raw.iterations) ||
-      raw.iterations < 100_000 ||
-      raw.iterations > 10_000_000 ||
-      typeof raw.verifier !== "string" ||
-      typeof raw.verifierIv !== "string"
+      !raw
+      || raw.version !== 1
+      || typeof raw.salt !== "string"
+      || typeof raw.iterations !== "number"
+      || !Number.isInteger(raw.iterations)
+      || raw.iterations < 100_000
+      || raw.iterations > 10_000_000
+      || typeof raw.verifier !== "string"
+      || typeof raw.verifierIv !== "string"
     )
       return null;
     return raw as unknown as VaultMeta;
@@ -87,12 +87,12 @@ export class LocalVaultBackend implements IVaultBackend {
     if (!Array.isArray(raw)) return [];
     return raw.filter(
       (item): item is LegacyPrivateKey =>
-        typeof item === "object" &&
-        item !== null &&
-        typeof (item as Record<string, unknown>).name === "string" &&
-        typeof (item as Record<string, unknown>).data === "string" &&
-        typeof (item as Record<string, unknown>).hasPassphrase === "boolean" &&
-        typeof (item as Record<string, unknown>).fingerprint === "string",
+        typeof item === "object"
+        && item !== null
+        && typeof (item as Record<string, unknown>).name === "string"
+        && typeof (item as Record<string, unknown>).data === "string"
+        && typeof (item as Record<string, unknown>).hasPassphrase === "boolean"
+        && typeof (item as Record<string, unknown>).fingerprint === "string",
     );
   }
 

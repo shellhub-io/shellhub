@@ -8,7 +8,7 @@ import "@xterm/xterm/css/xterm.css";
 import "font-logos/assets/font-logos.css";
 import "./index.css";
 
-loadConfig().then(() => {
+void loadConfig().then(() => {
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
       <ErrorBoundary>

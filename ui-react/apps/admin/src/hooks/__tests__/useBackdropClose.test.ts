@@ -10,7 +10,7 @@ afterEach(cleanup);
  * so we can control `e.target` vs `dialogRef.current` precisely.
  */
 function makeDialog(): HTMLDialogElement {
-  return document.createElement("dialog") as HTMLDialogElement;
+  return document.createElement("dialog");
 }
 
 function makeChild(dialog: HTMLDialogElement): HTMLDivElement {

@@ -56,7 +56,7 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
-        const data = error.response?.data;
+        const data: unknown = error.response?.data;
         if ((status === 400 || status === 409) && Array.isArray(data)) {
           const fields = data.filter((f): f is string => typeof f === "string");
           set({ signUpLoading: false, signUpServerFields: fields });

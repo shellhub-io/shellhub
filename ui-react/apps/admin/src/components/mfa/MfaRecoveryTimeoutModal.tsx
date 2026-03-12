@@ -91,7 +91,7 @@ export default function MfaRecoveryTimeoutModal({
             Close
           </button>
           <button
-            onClick={handleDisable}
+            onClick={() => void handleDisable()}
             disabled={hasAccess || disabling || isExpired}
             className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >

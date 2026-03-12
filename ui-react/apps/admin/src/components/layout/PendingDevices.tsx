@@ -40,15 +40,15 @@ export default function PendingDevices() {
   // Poll for pending count every 30s
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching
-    fetchPending();
-    const id = setInterval(fetchPending, 30000);
+    void fetchPending();
+    const id = setInterval(() => void fetchPending(), 30000);
     return () => clearInterval(id);
   }, [fetchPending]);
 
   // Refetch when opened
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching
-    if (open) fetchPending();
+    if (open) void fetchPending();
   }, [open, fetchPending]);
 
   useClickOutside(containerRef, () => setOpen(false));
@@ -60,9 +60,9 @@ export default function PendingDevices() {
       else await rejectDevice(uid);
 
       setFlash({ uid, action });
-      setTimeout(async () => {
+      setTimeout(() => {
         setFlash(null);
-        await fetchPending();
+        void fetchPending();
         setActing(null);
       }, 600);
     } catch {
@@ -162,48 +162,52 @@ export default function PendingDevices() {
                         </div>
 
                         {/* Actions */}
-                        {isFlashed ? (
-                          <span
-                            className={`text-2xs font-mono font-semibold ${
-                              flash.action === "accepted"
-                                ? "text-accent-green"
-                                : "text-accent-red"
-                            }`}
-                          >
-                            {flash.action === "accepted"
-                              ? "Accepted"
-                              : "Rejected"}
-                          </span>
-                        ) : (
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              onClick={() => handleAction(d.uid, "accepted")}
-                              disabled={isActing}
-                              className="p-1.5 rounded-md text-text-muted hover:text-accent-green hover:bg-accent-green/10 transition-colors disabled:opacity-soft"
-                              title="Accept"
+                        {isFlashed
+                          ? (
+                            <span
+                              className={`text-2xs font-mono font-semibold ${
+                                flash.action === "accepted"
+                                  ? "text-accent-green"
+                                  : "text-accent-red"
+                              }`}
                             >
-                              {isActing ? (
-                                <span className="block w-3.5 h-3.5 border-2 border-text-muted/30 border-t-text-muted rounded-full animate-spin" />
-                              ) : (
-                                <CheckIcon
+                              {flash.action === "accepted"
+                                ? "Accepted"
+                                : "Rejected"}
+                            </span>
+                          )
+                          : (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() => void handleAction(d.uid, "accepted")}
+                                disabled={isActing}
+                                className="p-1.5 rounded-md text-text-muted hover:text-accent-green hover:bg-accent-green/10 transition-colors disabled:opacity-soft"
+                                title="Accept"
+                              >
+                                {isActing
+                                  ? (
+                                    <span className="block w-3.5 h-3.5 border-2 border-text-muted/30 border-t-text-muted rounded-full animate-spin" />
+                                  )
+                                  : (
+                                    <CheckIcon
+                                      className="w-3.5 h-3.5"
+                                      strokeWidth={2.5}
+                                    />
+                                  )}
+                              </button>
+                              <button
+                                onClick={() => void handleAction(d.uid, "rejected")}
+                                disabled={isActing}
+                                className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-soft"
+                                title="Reject"
+                              >
+                                <XMarkIcon
                                   className="w-3.5 h-3.5"
                                   strokeWidth={2.5}
                                 />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleAction(d.uid, "rejected")}
-                              disabled={isActing}
-                              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-colors disabled:opacity-soft"
-                              title="Reject"
-                            >
-                              <XMarkIcon
-                                className="w-3.5 h-3.5"
-                                strokeWidth={2.5}
-                              />
-                            </button>
-                          </div>
-                        )}
+                              </button>
+                            </div>
+                          )}
                       </div>
                     </div>
                   );
@@ -218,7 +222,7 @@ export default function PendingDevices() {
               <button
                 onClick={() => {
                   setOpen(false);
-                  navigate("/devices");
+                  void navigate("/devices");
                 }}
                 className="w-full flex items-center justify-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
               >

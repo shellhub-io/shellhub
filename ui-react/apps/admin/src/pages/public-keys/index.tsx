@@ -33,8 +33,8 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
     deviceNode = (
       <span className="inline-flex items-center gap-1.5 flex-wrap">
         {pk.filter.tags.map((tag) => {
-          const label =
-            typeof tag === "string" ? tag : (tag as { name: string }).name;
+          const label
+            = typeof tag === "string" ? tag : (tag as { name: string }).name;
           return (
             <span
               key={label}
@@ -68,11 +68,13 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
       <span
         className={`inline-flex items-center gap-1 text-xs font-mono ${isAllUsers ? "text-text-muted" : "text-text-secondary"}`}
       >
-        {isAllUsers ? (
-          <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-        ) : (
-          <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-        )}
+        {isAllUsers
+          ? (
+            <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+          )
+          : (
+            <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+          )}
         {username}
       </span>
       <span className="text-text-muted/40 text-xs">→</span>
@@ -141,8 +143,8 @@ function KeyRow({
 /* ── page ────────────────────────────────────────── */
 
 export default function PublicKeys() {
-  const { publicKeys, totalCount, loading, page, perPage, fetch, remove } =
-    usePublicKeysStore();
+  const { publicKeys, totalCount, loading, page, perPage, fetch, remove }
+    = usePublicKeysStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -152,7 +154,7 @@ export default function PublicKeys() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch();
+    void fetch();
   }, [fetch]);
 
   const openNew = () => {
@@ -171,10 +173,10 @@ export default function PublicKeys() {
   const totalPages = Math.ceil(totalCount / perPage);
   const filtered = search
     ? publicKeys.filter(
-        (k) =>
-          k.name.toLowerCase().includes(search.toLowerCase()) ||
-          k.fingerprint.toLowerCase().includes(search.toLowerCase()),
-      )
+      (k) =>
+        k.name.toLowerCase().includes(search.toLowerCase())
+        || k.fingerprint.toLowerCase().includes(search.toLowerCase()),
+    )
     : publicKeys;
 
   return (
@@ -298,52 +300,55 @@ export default function PublicKeys() {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
-            <div className="py-12 text-center animate-fade-in">
-              <p className="text-sm text-text-muted">
-                No keys matching &ldquo;{search}&rdquo;
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="bg-card border border-border rounded-lg overflow-hidden animate-fade-in">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-surface/50">
-                      <th className={TH}>Name</th>
-                      <th className={TH}>Scope</th>
-                      <th className={TH}>Fingerprint</th>
-                      <th className={TH}>Added</th>
-                      <th className="px-4 py-3 w-16" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((key) => (
-                      <KeyRow
-                        key={key.fingerprint}
-                        pk={key}
-                        onEdit={() => openEdit(key)}
-                        onDelete={() =>
-                          setDeleteTarget({
-                            fingerprint: key.fingerprint,
-                            name: key.name,
-                          })
-                        }
-                      />
-                    ))}
-                  </tbody>
-                </table>
+          {filtered.length === 0
+            ? (
+              <div className="py-12 text-center animate-fade-in">
+                <p className="text-sm text-text-muted">
+                  No keys matching &ldquo;
+                  {search}
+                  &rdquo;
+                </p>
               </div>
+            )
+            : (
+              <>
+                <div className="bg-card border border-border rounded-lg overflow-hidden animate-fade-in">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border bg-surface/50">
+                        <th className={TH}>Name</th>
+                        <th className={TH}>Scope</th>
+                        <th className={TH}>Fingerprint</th>
+                        <th className={TH}>Added</th>
+                        <th className="px-4 py-3 w-16" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((key) => (
+                        <KeyRow
+                          key={key.fingerprint}
+                          pk={key}
+                          onEdit={() => openEdit(key)}
+                          onDelete={() =>
+                            setDeleteTarget({
+                              fingerprint: key.fingerprint,
+                              name: key.name,
+                            })}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                totalCount={totalCount}
-                itemLabel="key"
-                onPageChange={fetch}
-              />
-            </>
-          )}
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  itemLabel="key"
+                  onPageChange={(p) => void fetch(p)}
+                />
+              </>
+            )}
         </>
       )}
 
@@ -357,15 +362,16 @@ export default function PublicKeys() {
           setDeleteTarget(null);
         }}
         title="Delete Public Key"
-        description={
+        description={(
           <>
-            Are you sure you want to delete{" "}
+            Are you sure you want to delete
+            {" "}
             <span className="font-medium text-text-primary">
               {deleteTarget?.name}
             </span>
             ? This action cannot be undone.
           </>
-        }
+        )}
         confirmLabel="Delete"
       />
     </div>

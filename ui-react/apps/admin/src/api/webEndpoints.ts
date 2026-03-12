@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient, { getTotalCount } from "./client";
 import { WebEndpoint, WebEndpointCreate } from "../types/webEndpoint";
 
 export async function getWebEndpoints(
@@ -12,8 +12,7 @@ export async function getWebEndpoints(
   const res = await apiClient.get<WebEndpoint[]>("/api/web-endpoints", {
     params,
   });
-  const totalCount = parseInt(res.headers["x-total-count"] || "0", 10);
-  return { data: res.data, totalCount };
+  return { data: res.data, totalCount: getTotalCount(res) };
 }
 
 export async function createWebEndpoint(

@@ -37,16 +37,16 @@ interface FormState {
   keyError: string | null;
 }
 
-type FormAction =
-  | { type: "reset" }
-  | { type: "setUsername"; value: string }
-  | { type: "setAuthMethod"; value: "password" | "key" }
-  | { type: "setPassword"; value: string }
-  | { type: "setKeySource"; value: "vault" | "manual" }
-  | { type: "setSelectedKeyId"; value: string }
-  | { type: "setManualKey"; value: string; valid: boolean; encrypted: boolean }
-  | { type: "setPassphrase"; value: string }
-  | { type: "setKeyError"; value: string | null };
+type FormAction
+  = | { type: "reset" }
+    | { type: "setUsername"; value: string }
+    | { type: "setAuthMethod"; value: "password" | "key" }
+    | { type: "setPassword"; value: string }
+    | { type: "setKeySource"; value: "vault" | "manual" }
+    | { type: "setSelectedKeyId"; value: string }
+    | { type: "setManualKey"; value: string; valid: boolean; encrypted: boolean }
+    | { type: "setPassphrase"; value: string }
+    | { type: "setKeyError"; value: string | null };
 
 const initialState: FormState = {
   username: "",
@@ -118,13 +118,13 @@ export default function ConnectDrawer({
     ? vaultKeys.find((k) => k.id === state.selectedKeyId)
     : undefined;
 
-  const canConnect =
-    state.username.trim().length > 0 &&
-    (state.authMethod === "password"
-      ? state.password.trim().length > 0
-      : effectiveKeySource === "vault"
-        ? !!selectedVaultKey && (!selectedVaultKey.hasPassphrase || state.passphrase.trim().length > 0)
-        : state.manualKeyValid && (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
+  const canConnect
+    = state.username.trim().length > 0
+      && (state.authMethod === "password"
+        ? state.password.trim().length > 0
+        : effectiveKeySource === "vault"
+          ? !!selectedVaultKey && (!selectedVaultKey.hasPassphrase || state.passphrase.trim().length > 0)
+          : state.manualKeyValid && (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
 
   const handleManualKeyChange = (pem: string) => {
     if (!pem.trim()) {
@@ -193,7 +193,7 @@ export default function ConnectDrawer({
         onClose={onClose}
         title="Connect"
         subtitle={<span className="font-mono">{deviceName}</span>}
-        footer={
+        footer={(
           <>
             <button
               type="button"
@@ -212,7 +212,7 @@ export default function ConnectDrawer({
               Connect
             </button>
           </>
-        }
+        )}
       >
         <form onSubmit={handleConnect} className="space-y-5">
           {/* SSHID helper */}
@@ -220,7 +220,9 @@ export default function ConnectDrawer({
             <p className={LABEL}>Connect via terminal</p>
             <div className="flex items-center gap-2">
               <code className="text-xs font-mono text-accent-cyan flex-1 truncate">
-                ssh {sshid}
+                ssh
+                {" "}
+                {sshid}
               </code>
               <CopyButton text={`ssh ${sshid}`} />
             </div>

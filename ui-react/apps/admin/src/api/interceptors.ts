@@ -4,8 +4,12 @@ import { useConnectivityStore } from "../stores/connectivityStore";
 
 function isTokenExpired(token: string): boolean {
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return typeof payload.exp === "number" && payload.exp * 1000 < Date.now();
+    const payload: unknown = JSON.parse(atob(token.split(".")[1]));
+    if (typeof payload === "object" && payload !== null && "exp" in payload) {
+      const { exp } = payload as { exp: unknown };
+      return typeof exp === "number" && exp * 1000 < Date.now();
+    }
+    return false;
   } catch {
     return true;
   }
@@ -63,7 +67,7 @@ export function setupInterceptors(instance: AxiosInstance) {
     (error: AxiosError) => {
       if (error.response?.status === 401) {
         // Check for MFA token first (applies to any URL)
-        const mfaToken = error.response.headers["x-mfa-token"];
+        const mfaToken = String(error.response.headers["x-mfa-token"] ?? "");
         if (mfaToken) {
           useAuthStore.getState().setMfaToken(mfaToken);
           return Promise.reject(error);

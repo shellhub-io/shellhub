@@ -31,8 +31,8 @@ import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 
 /* ─── Shared styles ─── */
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL
+  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 /* ─── Info Row ─── */
@@ -118,8 +118,8 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
     <div>
       <h3 className={LABEL + " mb-2"}>Tags</h3>
       <div className="flex flex-wrap items-center gap-2">
-        {tags &&
-          tags.map((tag) => (
+        {tags
+          && tags.map((tag) => (
             <span
               key={tag}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-md font-medium"
@@ -127,7 +127,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
               <TagIcon className="w-3 h-3" strokeWidth={2} />
               {tag}
               <button
-                onClick={() => handleRemove(tag)}
+                onClick={() => void handleRemove(tag)}
                 className="hover:text-white transition-colors"
               >
                 <XMarkIcon className="w-3 h-3" strokeWidth={2} />
@@ -146,7 +146,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  handleAdd();
+                  void handleAdd();
                 }
               }}
               placeholder="Add tag..."
@@ -154,7 +154,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
               className="w-28 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
             />
             <button
-              onClick={handleAdd}
+              onClick={() => void handleAdd()}
               disabled={adding || !input.trim()}
               className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
             >
@@ -231,14 +231,14 @@ function RenameSection({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") handleSave();
+            if (e.key === "Enter") void handleSave();
             if (e.key === "Escape") setEditing(false);
           }}
           autoFocus
           className="text-2xl font-bold text-text-primary bg-transparent border-b-2 border-primary/50 focus:outline-none focus:border-primary w-full max-w-md"
         />
         <button
-          onClick={handleSave}
+          onClick={() => void handleSave()}
           disabled={saving}
           className="p-1.5 rounded-md text-accent-green hover:bg-accent-green/10 transition-all"
         >
@@ -281,14 +281,14 @@ export default function DeviceDetails() {
   } | null>(null);
 
   useEffect(() => {
-    if (uid) fetchDevice(uid);
+    if (uid) void fetchDevice(uid);
   }, [uid, fetchDevice]);
 
   // Auto-open connect drawer if ?connect=true (adjust during render)
-  const shouldAutoConnect =
-    searchParams.get("connect") === "true" &&
-    device?.online &&
-    !existingSession;
+  const shouldAutoConnect
+    = searchParams.get("connect") === "true"
+      && device?.online
+      && !existingSession;
 
   const [autoConnectDone, setAutoConnectDone] = useState(false);
   if (shouldAutoConnect && !autoConnectDone) {
@@ -302,9 +302,9 @@ export default function DeviceDetails() {
   // Restore existing terminal session (side effect only, no setState)
   useEffect(() => {
     if (
-      searchParams.get("connect") === "true" &&
-      device?.online &&
-      existingSession
+      searchParams.get("connect") === "true"
+      && device?.online
+      && existingSession
     ) {
       restoreTerminal(existingSession.id);
     }
@@ -325,7 +325,7 @@ export default function DeviceDetails() {
     setDeleting(true);
     try {
       await remove(device.uid);
-      navigate("/devices");
+      void navigate("/devices");
     } catch {
       setDeleting(false);
     }
@@ -334,8 +334,8 @@ export default function DeviceDetails() {
   const handleDeviceActionSuccess = () => {
     if (!operation || !uid) return;
 
-    if (operation.action === "remove") navigate("/devices");
-    else fetchDevice(uid);
+    if (operation.action === "remove") void navigate("/devices");
+    else void fetchDevice(uid);
   };
 
   return (
@@ -518,11 +518,13 @@ export default function DeviceDetails() {
             <div>
               <dt className={LABEL}>Platform</dt>
               <dd className="mt-1">
-                {device.info?.platform ? (
-                  <PlatformBadge platform={device.info.platform} />
-                ) : (
-                  <span className="text-sm text-text-muted">—</span>
-                )}
+                {device.info?.platform
+                  ? (
+                    <PlatformBadge platform={device.info.platform} />
+                  )
+                  : (
+                    <span className="text-sm text-text-muted">—</span>
+                  )}
               </dd>
             </div>
             <InfoItem label="Agent Version" value={device.info?.version} mono />
@@ -577,7 +579,8 @@ export default function DeviceDetails() {
               Delete Device
             </h2>
             <p className="text-sm text-text-muted mb-6">
-              Are you sure you want to delete{" "}
+              Are you sure you want to delete
+              {" "}
               <span className="font-medium text-text-primary">
                 {device.name}
               </span>
@@ -591,7 +594,7 @@ export default function DeviceDetails() {
                 Cancel
               </button>
               <button
-                onClick={handleDelete}
+                onClick={() => void handleDelete()}
                 disabled={deleting}
                 className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
               >

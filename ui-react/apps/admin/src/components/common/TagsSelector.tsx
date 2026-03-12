@@ -75,29 +75,33 @@ export default function TagsSelector({
       {error && <p className="mt-1 text-2xs text-accent-red">{error}</p>}
       {open && (
         <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-surface border border-border rounded-lg shadow-xl">
-          {loading ? (
-            <div className="px-3 py-2 text-xs text-text-muted">
-              Loading tags...
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-text-muted">
-              No tags found
-            </div>
-          ) : (
-            filtered.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => {
-                  toggle(tag);
-                  setSearch("");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-hover-medium transition-colors"
-              >
-                {tag}
-              </button>
-            ))
-          )}
+          {loading
+            ? (
+              <div className="px-3 py-2 text-xs text-text-muted">
+                Loading tags...
+              </div>
+            )
+            : filtered.length === 0
+              ? (
+                <div className="px-3 py-2 text-xs text-text-muted">
+                  No tags found
+                </div>
+              )
+              : (
+                filtered.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      toggle(tag);
+                      setSearch("");
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-hover-medium transition-colors"
+                  >
+                    {tag}
+                  </button>
+                ))
+              )}
         </div>
       )}
     </div>

@@ -22,7 +22,7 @@ function renderMfaLogin() {
         <Route path="/login" element={<div>Login Page</div>} />
         <Route path="/dashboard" element={<div>Dashboard</div>} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 

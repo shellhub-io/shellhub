@@ -76,67 +76,71 @@ export default function KeyFileInput({
         )}
       </div>
 
-      {inputMode === "file" && !disabled ? (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
-            dragging
-              ? "border-primary bg-primary/5"
-              : value
-                ? "border-accent-green/30 bg-accent-green/5"
-                : `border-border hover:border-primary/30 ${error ? "border-accent-red/30" : ""}`
-          }`}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            className="hidden"
-            onChange={handleFileInputChange}
+      {inputMode === "file" && !disabled
+        ? (
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+              dragging
+                ? "border-primary bg-primary/5"
+                : value
+                  ? "border-accent-green/30 bg-accent-green/5"
+                  : `border-border hover:border-primary/30 ${error ? "border-accent-red/30" : ""}`
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={accept}
+              className="hidden"
+              onChange={handleFileInputChange}
+            />
+            {value
+              ? (
+                <>
+                  <CheckCircleIcon className="w-5 h-5 text-accent-green" />
+                  <span className="text-xs text-accent-green font-medium">
+                    {loadedLabel}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChange("");
+                    }}
+                    className="text-2xs text-text-muted hover:text-text-primary transition-colors"
+                  >
+                    Clear
+                  </button>
+                </>
+              )
+              : (
+                <>
+                  <ArrowUpTrayIcon className="w-5 h-5 text-text-muted" />
+                  <span className="text-xs text-text-secondary">{emptyLabel}</span>
+                </>
+              )}
+          </div>
+        )
+        : (
+          <textarea
+            id={id}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={disabled ? "" : placeholder}
+            rows={rows}
+            disabled={disabled}
+            aria-invalid={!!error}
+            aria-describedby={error && id ? `${id}-error` : undefined}
+            className={`${INPUT_MONO} resize-none ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
           />
-          {value ? (
-            <>
-              <CheckCircleIcon className="w-5 h-5 text-accent-green" />
-              <span className="text-xs text-accent-green font-medium">
-                {loadedLabel}
-              </span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange("");
-                }}
-                className="text-2xs text-text-muted hover:text-text-primary transition-colors"
-              >
-                Clear
-              </button>
-            </>
-          ) : (
-            <>
-              <ArrowUpTrayIcon className="w-5 h-5 text-text-muted" />
-              <span className="text-xs text-text-secondary">{emptyLabel}</span>
-            </>
-          )}
-        </div>
-      ) : (
-        <textarea
-          id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={disabled ? "" : placeholder}
-          rows={rows}
-          disabled={disabled}
-          aria-invalid={!!error}
-          aria-describedby={error && id ? `${id}-error` : undefined}
-          className={`${INPUT_MONO} resize-none ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-        />
-      )}
+        )}
 
       {fileSizeError && (
         <p className="text-2xs text-accent-red mt-1.5 flex items-center gap-1">

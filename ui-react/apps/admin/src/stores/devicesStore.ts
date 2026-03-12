@@ -148,17 +148,17 @@ export const useDevicesStore = create<DevicesState>((set, get) => ({
     if (current.includes(tag)) return;
     const next = [...current, tag];
     set({ filterTags: next, page: 1 });
-    get().fetch(1, undefined, undefined, next);
+    void get().fetch(1, undefined, undefined, next);
   },
 
   removeFilterTag: (tag: string) => {
     const next = get().filterTags.filter((t) => t !== tag);
     set({ filterTags: next, page: 1 });
-    get().fetch(1, undefined, undefined, next);
+    void get().fetch(1, undefined, undefined, next);
   },
 
   clearFilterTags: () => {
     set({ filterTags: [], page: 1 });
-    get().fetch(1, undefined, undefined, []);
+    void get().fetch(1, undefined, undefined, []);
   },
 }));

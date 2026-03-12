@@ -2,10 +2,10 @@ import NodeRSA from "node-rsa";
 import * as sshpk from "sshpk";
 import { Buffer } from "buffer";
 
-export type KeyValidationResult =
-  | { valid: true; encrypted: false }
-  | { valid: true; encrypted: true }
-  | { valid: false; error: string };
+export type KeyValidationResult
+  = | { valid: true; encrypted: false }
+    | { valid: true; encrypted: true }
+    | { valid: false; error: string };
 
 export function validatePrivateKey(pem: string): KeyValidationResult {
   try {

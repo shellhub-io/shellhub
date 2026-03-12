@@ -45,11 +45,13 @@ vi.mock("../../../components/vault/VaultSetupDialog", () => ({
     open: boolean;
     onClose: () => void;
   }) =>
-    open ? (
-      <div role="dialog" aria-label="Setup Vault">
-        <button onClick={onClose}>Close Setup</button>
-      </div>
-    ) : null,
+    open
+      ? (
+        <div role="dialog" aria-label="Setup Vault">
+          <button onClick={onClose}>Close Setup</button>
+        </div>
+      )
+      : null,
 }));
 
 vi.mock("../../../components/vault/VaultUnlockDialog", () => ({
@@ -60,11 +62,13 @@ vi.mock("../../../components/vault/VaultUnlockDialog", () => ({
     open: boolean;
     onClose: () => void;
   }) =>
-    open ? (
-      <div role="dialog" aria-label="Unlock Vault">
-        <button onClick={onClose}>Close Unlock</button>
-      </div>
-    ) : null,
+    open
+      ? (
+        <div role="dialog" aria-label="Unlock Vault">
+          <button onClick={onClose}>Close Unlock</button>
+        </div>
+      )
+      : null,
 }));
 
 vi.mock("../../../components/vault/VaultSettingsSection", () => ({
@@ -83,14 +87,16 @@ vi.mock("../KeyDrawer", () => ({
     editKey: VaultKeyEntry | null;
     onClose: () => void;
   }) =>
-    open ? (
-      <div
-        role="dialog"
-        aria-label={editKey ? "Edit Private Key" : "Add Private Key"}
-      >
-        <button onClick={onClose}>Close Drawer</button>
-      </div>
-    ) : null,
+    open
+      ? (
+        <div
+          role="dialog"
+          aria-label={editKey ? "Edit Private Key" : "Add Private Key"}
+        >
+          <button onClick={onClose}>Close Drawer</button>
+        </div>
+      )
+      : null,
 }));
 
 vi.mock("../KeyDeleteDialog", () => ({
@@ -103,12 +109,14 @@ vi.mock("../KeyDeleteDialog", () => ({
     entry: VaultKeyEntry | null;
     onClose: () => void;
   }) =>
-    open ? (
-      <div role="dialog" aria-label="Delete Key Dialog">
-        {entry && <span>{entry.name}</span>}
-        <button onClick={onClose}>Close Delete</button>
-      </div>
-    ) : null,
+    open
+      ? (
+        <div role="dialog" aria-label="Delete Key Dialog">
+          {entry && <span>{entry.name}</span>}
+          <button onClick={onClose}>Close Delete</button>
+        </div>
+      )
+      : null,
 }));
 
 // CopyButton is used inside the key table — stub it out

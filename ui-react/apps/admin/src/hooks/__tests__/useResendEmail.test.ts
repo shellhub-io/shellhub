@@ -60,10 +60,10 @@ describe("useResendEmail", () => {
     await act(() => result.current.handleResend());
     expect(result.current.resendCooldown).toBe(RESEND_COOLDOWN_S);
 
-    await act(() => { vi.advanceTimersByTime(1000); });
+    act(() => { vi.advanceTimersByTime(1000); });
     expect(result.current.resendCooldown).toBe(RESEND_COOLDOWN_S - 1);
 
-    await act(() => { vi.advanceTimersByTime(1000); });
+    act(() => { vi.advanceTimersByTime(1000); });
     expect(result.current.resendCooldown).toBe(RESEND_COOLDOWN_S - 2);
   });
 

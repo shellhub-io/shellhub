@@ -19,7 +19,7 @@ export async function loadConfig(): Promise<ClientConfig> {
 
   try {
     const res = await fetch("/config.json");
-    cached = { ...defaultConfig, ...(await res.json()) };
+    cached = { ...defaultConfig, ...(await res.json() as Partial<ClientConfig>) };
   } catch {
     cached = defaultConfig;
   }

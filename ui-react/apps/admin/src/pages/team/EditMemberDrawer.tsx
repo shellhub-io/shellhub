@@ -49,7 +49,7 @@ function EditMemberDrawer({
       subtitle={
         member ? <span className="font-mono">{member.email}</span> : undefined
       }
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -59,14 +59,14 @@ function EditMemberDrawer({
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={role === member?.role || submitting}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
           >
             Save Changes
           </button>
         </>
-      }
+      )}
     >
       <label className={LABEL}>Role</label>
       <RoleSelector value={role} onChange={setRole} />

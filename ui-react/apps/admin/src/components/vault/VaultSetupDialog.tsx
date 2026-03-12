@@ -46,8 +46,8 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
 
   const passwordTooShort = password.length > 0 && password.length < 8;
   const passwordsMismatch = confirm.length > 0 && password !== confirm;
-  const canSubmit =
-    password.length >= 8 && password === confirm && !loading;
+  const canSubmit
+    = password.length >= 8 && password === confirm && !loading;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -87,14 +87,19 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
         <div className="flex items-start gap-2.5 bg-accent-yellow/[0.08] border border-accent-yellow/20 rounded-lg px-3.5 py-3 mb-5">
           <ExclamationTriangleIcon className="w-4 h-4 text-accent-yellow shrink-0 mt-0.5" />
           <p className="text-xs text-text-secondary">
-            <strong className="text-text-primary">{legacyCount}</strong>{" "}
-            existing {legacyCount === 1 ? "key" : "keys"} will be imported
+            <strong className="text-text-primary">{legacyCount}</strong>
+            {" "}
+            existing
+            {" "}
+            {legacyCount === 1 ? "key" : "keys"}
+            {" "}
+            will be imported
             and encrypted.
           </p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <div>
           <label
             htmlFor={`${instanceId}-password`}

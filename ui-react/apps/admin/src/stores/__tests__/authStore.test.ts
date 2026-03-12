@@ -329,7 +329,7 @@ describe("authStore", () => {
       useAuthStore.setState({ mfaToken: null });
 
       await expect(
-        useAuthStore.getState().loginWithMfa("123456")
+        useAuthStore.getState().loginWithMfa("123456"),
       ).rejects.toThrow("No MFA token available");
     });
 
@@ -337,7 +337,7 @@ describe("authStore", () => {
       mockedValidateMfa.mockRejectedValue(new Error("Invalid code"));
 
       await expect(
-        useAuthStore.getState().loginWithMfa("999999")
+        useAuthStore.getState().loginWithMfa("999999"),
       ).rejects.toThrow("Invalid verification code");
 
       const state = useAuthStore.getState();
@@ -403,7 +403,7 @@ describe("authStore", () => {
       useAuthStore.setState({ user: null, username: null });
 
       await expect(
-        useAuthStore.getState().recoverWithCode("recovery-code")
+        useAuthStore.getState().recoverWithCode("recovery-code"),
       ).rejects.toThrow("Username or email is required");
     });
 
@@ -411,7 +411,7 @@ describe("authStore", () => {
       mockedRecoverMfa.mockRejectedValue(new Error("Invalid"));
 
       await expect(
-        useAuthStore.getState().recoverWithCode("invalid-code")
+        useAuthStore.getState().recoverWithCode("invalid-code"),
       ).rejects.toThrow("Invalid recovery code or username");
 
       const state = useAuthStore.getState();

@@ -83,7 +83,7 @@ export default function Setup() {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(
-        () => navigate("/login", { replace: true }),
+        () => void navigate("/login", { replace: true }),
         3000,
       );
       return () => clearTimeout(timer);
@@ -98,7 +98,7 @@ export default function Setup() {
     touched[field] ? errors[field] : undefined;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("./bin/setup");
+    void navigator.clipboard.writeText("./bin/setup");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -131,10 +131,10 @@ export default function Setup() {
       setSuccess(true);
     } catch (err: unknown) {
       if (
-        err &&
-        typeof err === "object" &&
-        "response" in err &&
-        (err as { response?: { status?: number } }).response?.status === 409
+        err
+        && typeof err === "object"
+        && "response" in err
+        && (err as { response?: { status?: number } }).response?.status === 409
       ) {
         setError("Setup has already been completed.");
       } else {
@@ -244,14 +244,16 @@ export default function Setup() {
                     className="px-3 py-2.5 text-text-muted hover:text-text-secondary border-l border-border hover:bg-border/30 transition-colors"
                     title="Copy command"
                   >
-                    {copied ? (
-                      <CheckIcon
-                        className="w-4 h-4 text-accent-green"
-                        strokeWidth={2}
-                      />
-                    ) : (
-                      <DocumentDuplicateIcon className="w-4 h-4" />
-                    )}
+                    {copied
+                      ? (
+                        <CheckIcon
+                          className="w-4 h-4 text-accent-green"
+                          strokeWidth={2}
+                        />
+                      )
+                      : (
+                        <DocumentDuplicateIcon className="w-4 h-4" />
+                      )}
                   </button>
                 </div>
               </div>
@@ -319,7 +321,7 @@ export default function Setup() {
           )}
 
           {step === STEP_ACCOUNT && (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
               <p className="text-xs text-text-secondary leading-relaxed mb-1">
                 Set up your admin account with your personal information.
               </p>
@@ -384,8 +386,7 @@ export default function Setup() {
                 <button
                   type="button"
                   onClick={() =>
-                    setStep(showOnboarding ? STEP_ONBOARDING : STEP_SIGN)
-                  }
+                    setStep(showOnboarding ? STEP_ONBOARDING : STEP_SIGN)}
                   className="flex-1 bg-card hover:bg-border/50 border border-border text-text-secondary py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-200"
                 >
                   Back
@@ -395,14 +396,16 @@ export default function Setup() {
                   disabled={loading}
                   className="flex-[2] bg-primary hover:bg-primary-600 text-white py-2.5 px-4 rounded-md text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span className="font-mono text-xs">Creating...</span>
-                    </span>
-                  ) : (
-                    "Create Account"
-                  )}
+                  {loading
+                    ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="font-mono text-xs">Creating...</span>
+                      </span>
+                    )
+                    : (
+                      "Create Account"
+                    )}
                 </button>
               </div>
             </form>
@@ -534,11 +537,13 @@ function PasswordField({
           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
           tabIndex={-1}
         >
-          {visible ? (
-            <EyeSlashIcon className="w-4 h-4" />
-          ) : (
-            <EyeIcon className="w-4 h-4" />
-          )}
+          {visible
+            ? (
+              <EyeSlashIcon className="w-4 h-4" />
+            )
+            : (
+              <EyeIcon className="w-4 h-4" />
+            )}
         </button>
       </div>
       {error && (

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { VaultMeta, VaultData, VaultKeyEntry } from "../../types/vault";
 
-
 vi.mock("../../utils/vault-crypto", () => ({
   createVaultMeta: vi.fn(),
   verifyPassword: vi.fn(),
@@ -11,7 +10,6 @@ vi.mock("../../utils/vault-crypto", () => ({
   getSessionKey: vi.fn(),
   clearSessionKey: vi.fn(),
 }));
-
 
 vi.mock("../../utils/vault-backend-factory", () => ({
   getVaultBackend: vi.fn(),
@@ -36,7 +34,6 @@ import {
 import { getVaultBackend } from "../../utils/vault-backend-factory";
 
 import { useVaultStore, DuplicateKeyError } from "../vaultStore";
-
 
 const mockCrypto = vi.mocked(createVaultMeta);
 const mockVerify = vi.mocked(verifyPassword);
@@ -84,7 +81,6 @@ function makeFakeCryptoKey(label = "AES-GCM"): CryptoKey {
   return { type: "secret", extractable: false, algorithm: { name: label }, usages: ["encrypt", "decrypt"] } as CryptoKey;
 }
 
-
 beforeEach(() => {
   useVaultStore.setState({
     status: "uninitialized",
@@ -94,7 +90,6 @@ beforeEach(() => {
   });
   vi.clearAllMocks();
 });
-
 
 describe("vaultStore", () => {
   describe("refreshStatus", () => {

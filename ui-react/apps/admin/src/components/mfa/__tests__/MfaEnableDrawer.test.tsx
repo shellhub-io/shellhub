@@ -46,7 +46,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail={null}
-        />
+        />,
       );
 
       // Heading contains "Recovery Email"
@@ -62,7 +62,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       expect(screen.getByText(/recovery@example.com/)).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail={null}
-        />
+        />,
       );
 
       const emailInput = screen.getByPlaceholderText(/recovery@example\.com/i);
@@ -99,7 +99,7 @@ describe("MfaEnableDrawer", () => {
     it("shows error when email is already in use (409)", async () => {
       const user = userEvent.setup();
       mockedUpdateUser.mockRejectedValue(
-        Object.assign(new Error("Request failed with status code 409"), { isAxiosError: true, response: { status: 409 } })
+        Object.assign(new Error("Request failed with status code 409"), { isAxiosError: true, response: { status: 409 } }),
       );
 
       render(
@@ -108,7 +108,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail={null}
-        />
+        />,
       );
 
       const emailInput = screen.getByPlaceholderText(/recovery@example\.com/i);
@@ -130,7 +130,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       const continueButton = screen.getByRole("button", { name: /continue/i });
@@ -151,7 +151,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       // Proceed to step 2
@@ -201,7 +201,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       // Proceed to step 2
@@ -240,7 +240,7 @@ describe("MfaEnableDrawer", () => {
       // Find OTP inputs and enter code
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       // Type 6-digit code
@@ -274,7 +274,7 @@ describe("MfaEnableDrawer", () => {
       // Enter OTP
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "9");
@@ -302,7 +302,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       // Navigate through all steps
@@ -322,7 +322,7 @@ describe("MfaEnableDrawer", () => {
       // Enter OTP
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "1");
@@ -357,7 +357,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       // Proceed to step 2
@@ -372,7 +372,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       // Reopen drawer
@@ -382,7 +382,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       // Component state persists across open/close — step stays at 2 (recovery codes)
@@ -404,7 +404,7 @@ describe("MfaEnableDrawer", () => {
           onClose={onClose}
           onSuccess={onSuccess}
           currentRecoveryEmail="recovery@example.com"
-        />
+        />,
       );
 
       const continueButton = screen.getByRole("button", { name: /continue/i });

@@ -8,8 +8,8 @@ import { useClickOutside } from "../../hooks/useClickOutside";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 
 export default function NamespaceSelector() {
-  const { namespaces, currentNamespace, fetch, fetchCurrent, switchNamespace } =
-    useNamespacesStore();
+  const { namespaces, currentNamespace, fetch, fetchCurrent, switchNamespace }
+    = useNamespacesStore();
 
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -18,8 +18,8 @@ export default function NamespaceSelector() {
 
   useEffect(() => {
     const tenantId = useAuthStore.getState().tenant ?? "";
-    fetch();
-    if (tenantId) fetchCurrent(tenantId);
+    void fetch();
+    if (tenantId) void fetchCurrent(tenantId);
   }, [fetch, fetchCurrent]);
 
   useClickOutside(containerRef, () => setOpen(false));
@@ -36,7 +36,7 @@ export default function NamespaceSelector() {
   const handleCreate = () => {
     setOpen(false);
     if (getConfig().cloud || getConfig().enterprise) {
-      navigate("/dashboard");
+      void navigate("/dashboard");
     } else {
       setCreateOpen(true);
     }
@@ -55,18 +55,20 @@ export default function NamespaceSelector() {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2.5 h-9 px-3 rounded-md border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
       >
-        {currentNamespace ? (
-          <>
-            <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
-              {initials(currentNamespace.name)}
-            </span>
-            <span className="text-sm font-medium text-text-primary max-w-[180px] truncate">
-              {currentNamespace.name}
-            </span>
-          </>
-        ) : (
-          <span className="text-sm text-text-muted italic">No namespace</span>
-        )}
+        {currentNamespace
+          ? (
+            <>
+              <span className="w-6 h-6 rounded bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
+                {initials(currentNamespace.name)}
+              </span>
+              <span className="text-sm font-medium text-text-primary max-w-[180px] truncate">
+                {currentNamespace.name}
+              </span>
+            </>
+          )
+          : (
+            <span className="text-sm text-text-muted italic">No namespace</span>
+          )}
         <ChevronDownIcon
           className={`w-3 h-3 text-text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           strokeWidth={2.5}
@@ -107,7 +109,7 @@ export default function NamespaceSelector() {
               {others.map((ns) => (
                 <button
                   key={ns.tenant_id}
-                  onClick={() => handleSwitch(ns.tenant_id)}
+                  onClick={() => void handleSwitch(ns.tenant_id)}
                   className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
                 >
                   <span className="w-7 h-7 rounded bg-card border border-border flex items-center justify-center text-text-muted text-2xs font-bold font-mono group-hover:border-primary/30 group-hover:text-primary transition-colors shrink-0">
@@ -118,7 +120,9 @@ export default function NamespaceSelector() {
                       {ns.name}
                     </p>
                     <p className="text-2xs font-mono text-text-muted truncate">
-                      {ns.devices_accepted_count} device
+                      {ns.devices_accepted_count}
+                      {" "}
+                      device
                       {ns.devices_accepted_count !== 1 ? "s" : ""}
                     </p>
                   </div>

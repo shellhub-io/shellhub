@@ -19,12 +19,12 @@ export default function AccountCreated() {
     setSession({ token: signUpToken, tenant: signUpTenant });
 
     // TODO: replace "/accept-invite" with the real route once it is added to App.tsx.
-    const timer = setTimeout(() => { navigate("/accept-invite"); }, 5000);
+    const timer = setTimeout(() => { void navigate("/accept-invite"); }, 5000);
     return () => clearTimeout(timer);
   }, [signUpToken, signUpTenant, setSession, navigate]);
 
   const handleRedirect = () => {
-    navigate("/accept-invite"); // TODO: update when accept-invite route is added
+    void navigate("/accept-invite"); // TODO: update when accept-invite route is added
   };
 
   return (

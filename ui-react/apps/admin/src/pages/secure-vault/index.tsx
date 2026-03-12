@@ -120,10 +120,10 @@ export default function SecureVault() {
 
   const filtered = search
     ? keys.filter(
-        (k) =>
-          k.name.toLowerCase().includes(search.toLowerCase()) ||
-          k.fingerprint.toLowerCase().includes(search.toLowerCase()),
-      )
+      (k) =>
+        k.name.toLowerCase().includes(search.toLowerCase())
+        || k.fingerprint.toLowerCase().includes(search.toLowerCase()),
+    )
     : keys;
 
   if (status === "uninitialized") {
@@ -351,27 +351,29 @@ export default function SecureVault() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-16 text-center">
-                      <KeyIcon className="w-8 h-8 text-text-muted/30 mx-auto mb-2" />
-                      <p className="text-xs font-mono text-text-muted">
-                        {search
-                          ? `No keys matching "${search}"`
-                          : "No keys yet. Add your first SSH private key."}
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map((entry) => (
-                    <KeyRow
-                      key={entry.id}
-                      entry={entry}
-                      onEdit={() => openEdit(entry)}
-                      onDelete={() => setDeleteTarget(entry)}
-                    />
-                  ))
-                )}
+                {filtered.length === 0
+                  ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-16 text-center">
+                        <KeyIcon className="w-8 h-8 text-text-muted/30 mx-auto mb-2" />
+                        <p className="text-xs font-mono text-text-muted">
+                          {search
+                            ? `No keys matching "${search}"`
+                            : "No keys yet. Add your first SSH private key."}
+                        </p>
+                      </td>
+                    </tr>
+                  )
+                  : (
+                    filtered.map((entry) => (
+                      <KeyRow
+                        key={entry.id}
+                        entry={entry}
+                        onEdit={() => openEdit(entry)}
+                        onDelete={() => setDeleteTarget(entry)}
+                      />
+                    ))
+                  )}
               </tbody>
             </table>
           </div>

@@ -13,8 +13,8 @@ export default function WizardStep4Complete({ device }: WizardStep4CompleteProps
   const namespace = useNamespacesStore((s) => s.currentNamespace?.name);
   const hostname = window.location.hostname;
 
-  const sshCmd =
-    device && username && namespace
+  const sshCmd
+    = device && username && namespace
       ? `ssh ${username}@${namespace}.${device.name}@${hostname}`
       : null;
 
@@ -27,7 +27,9 @@ export default function WizardStep4Complete({ device }: WizardStep4CompleteProps
         </div>
         <div>
           <p className="text-base font-mono font-bold text-text-primary">
-            {device?.name ?? "Your device"} is online.
+            {device?.name ?? "Your device"}
+            {" "}
+            is online.
           </p>
           <p className="text-xs text-text-muted mt-1">
             Accepted and ready for SSH connections.

@@ -25,7 +25,7 @@ function mockFileReader(content: string) {
 
     readAsText(_file: File) {
       // Simulate async read with a microtask
-      Promise.resolve().then(() => {
+      void Promise.resolve().then(() => {
         this.result = content;
         if (this.onload) this.onload();
       });

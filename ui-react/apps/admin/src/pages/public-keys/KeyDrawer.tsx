@@ -45,12 +45,12 @@ function KeyDrawer({
   useResetOnOpen(open, () => {
     const decodedKeyData = editKey
       ? (() => {
-          try {
-            return atob(editKey.data);
-          } catch {
-            return editKey.data;
-          }
-        })()
+        try {
+          return atob(editKey.data);
+        } catch {
+          return editKey.data;
+        }
+      })()
       : "";
     const filterInit = editKey
       ? editKey.filter.tags && editKey.filter.tags.length > 0
@@ -90,29 +90,29 @@ function KeyDrawer({
     return { hostname: ".*" };
   };
 
-  const tagError =
-    selectedTags.length > 3
+  const tagError
+    = selectedTags.length > 3
       ? "You can select up to 3 tags"
       : filterOption === "tags" && selectedTags.length === 0
         ? "Select at least one tag"
         : undefined;
 
   const confirmDisabled = isEdit
-    ? !name.trim() ||
-      (usernameOption === "username" && !username.trim()) ||
-      (filterOption === "hostname" && !hostname.trim()) ||
-      (filterOption === "tags" &&
-        (selectedTags.length === 0 || selectedTags.length > 3))
-    : !name.trim() ||
-      !keyData.trim() ||
-      !!keyError ||
-      (usernameOption === "username" && !username.trim()) ||
-      (filterOption === "hostname" && !hostname.trim()) ||
-      (filterOption === "tags" &&
-        (selectedTags.length === 0 || selectedTags.length > 3));
+    ? !name.trim()
+    || (usernameOption === "username" && !username.trim())
+    || (filterOption === "hostname" && !hostname.trim())
+    || (filterOption === "tags"
+      && (selectedTags.length === 0 || selectedTags.length > 3))
+    : !name.trim()
+      || !keyData.trim()
+      || !!keyError
+      || (usernameOption === "username" && !username.trim())
+      || (filterOption === "hostname" && !hostname.trim())
+      || (filterOption === "tags"
+        && (selectedTags.length === 0 || selectedTags.length > 3));
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (confirmDisabled) return;
     setError(null);
     setSubmitting(true);
@@ -152,7 +152,7 @@ function KeyDrawer({
       open={open}
       onClose={onClose}
       title={isEdit ? "Edit Public Key" : "New Public Key"}
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -163,25 +163,29 @@ function KeyDrawer({
           </button>
           <button
             type="submit"
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={submitting || confirmDisabled}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
           >
-            {submitting ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Saving...
-              </span>
-            ) : isEdit ? (
-              "Save Changes"
-            ) : (
-              "Create Key"
-            )}
+            {submitting
+              ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </span>
+              )
+              : isEdit
+                ? (
+                  "Save Changes"
+                )
+                : (
+                  "Create Key"
+                )}
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         {/* Name */}
         <div>
           <label className={LABEL}>Name</label>

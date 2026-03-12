@@ -87,7 +87,7 @@ export const useAuthStore = create<AuthState>()(
           // Make direct API call to access response headers
           const response: AxiosResponse<LoginResponse> = await apiClient.post<LoginResponse>(
             "/api/login",
-            { username, password }
+            { username, password },
           );
 
           // Check for MFA token in response headers (with null safety)

@@ -77,17 +77,21 @@ function DeviceActionDialog({
     onClose();
   };
 
-  const description = device ? (
-    <>
-      {config.description}{" "}
-      <span className="font-medium text-text-primary">{device.name}</span>?
-      {action === "remove" && (
-        <p className="text-xs text-text-muted/70 mt-1">
-          This action cannot be undone.
-        </p>
-      )}
-    </>
-  ) : null;
+  const description = device
+    ? (
+      <>
+        {config.description}
+        {" "}
+        <span className="font-medium text-text-primary">{device.name}</span>
+        ?
+        {action === "remove" && (
+          <p className="text-xs text-text-muted/70 mt-1">
+            This action cannot be undone.
+          </p>
+        )}
+      </>
+    )
+    : null;
 
   return (
     <ConfirmDialog

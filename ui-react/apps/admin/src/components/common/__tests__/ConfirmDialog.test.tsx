@@ -176,7 +176,7 @@ describe("ConfirmDialog", () => {
       expect(confirmBtn).toBeDisabled();
       expect(screen.getByTestId("confirm-spinner")).toBeInTheDocument();
 
-      await act(async () => { resolve(); });
+      act(() => { resolve(); });
     });
 
     it("re-enables the confirm button after onConfirm resolves", async () => {

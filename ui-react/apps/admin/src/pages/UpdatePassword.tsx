@@ -26,8 +26,8 @@ export default function UpdatePassword() {
 
   const rawPasswordError = validatePassword(password);
   const passwordError = touched.password ? rawPasswordError : null;
-  const confirmError =
-    touched.confirm && password !== confirm ? "Passwords do not match" : null;
+  const confirmError
+    = touched.confirm && password !== confirm ? "Passwords do not match" : null;
 
   const isValid = !rawPasswordError && password === confirm;
 
@@ -38,7 +38,7 @@ export default function UpdatePassword() {
     setLoading(true);
     try {
       await updateRecoverPassword(uid, token, password);
-      navigate("/login", {
+      void navigate("/login", {
         state: { notice: "Password updated successfully. Please sign in." },
       });
     } catch {
@@ -94,7 +94,7 @@ export default function UpdatePassword() {
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
         style={{ animationDelay: "200ms" }}
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {error && (
             <div role="alert" className="flex items-start gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2} />
