@@ -9,6 +9,11 @@ import (
 )
 
 func (m *Migrator) deepValidateTags(ctx context.Context, r *ValidationReport) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("tags").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -21,6 +26,11 @@ func (m *Migrator) deepValidateTags(ctx context.Context, r *ValidationReport) er
 		var doc mongoTag
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		// Skip tags whose namespace was not migrated (orphaned).
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		batch = append(batch, doc)

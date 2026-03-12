@@ -9,6 +9,11 @@ import (
 )
 
 func (m *Migrator) deepValidateSessions(ctx context.Context, r *ValidationReport) error {
+	validDevices, err := m.loadValidDevices(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("sessions").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -21,6 +26,11 @@ func (m *Migrator) deepValidateSessions(ctx context.Context, r *ValidationReport
 		var doc mongoSession
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		// Skip sessions whose device was not migrated (orphaned).
+		if _, ok := validDevices[doc.DeviceUID]; !ok {
+			continue
 		}
 
 		batch = append(batch, doc)

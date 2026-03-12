@@ -32,7 +32,7 @@ func migration004Up(ctx context.Context, db *bun.DB) error {
 		DisconnectedAt time.Time  `bun:"disconnected_at,type:timestamptz,nullzero"`
 		Status         string     `bun:"status,type:device_status,notnull"`
 		Name           string     `bun:"name,type:varchar(64),notnull"`
-		Mac            string     `bun:"mac,type:varchar(24),notnull"`
+		Mac            string     `bun:"mac,type:varchar(64),notnull"`
 		PublicKey      string     `bun:"public_key,type:text,notnull"`
 		Identifier     string     `bun:"identifier,type:varchar,nullzero"`
 		PrettyName     string     `bun:"pretty_name,type:varchar(64),nullzero"`

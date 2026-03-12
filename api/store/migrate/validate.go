@@ -9,23 +9,25 @@ import (
 )
 
 // collectionTable maps MongoDB collection names to PostgreSQL table names.
+// allowSkip indicates the migration filters orphaned records, so PG < Mongo is expected.
 var collectionTable = []struct {
 	collection string
 	table      string
+	allowSkip  bool
 }{
-	{"system", "systems"},
-	{"namespaces", "namespaces"},
-	{"users", "users"},
-	{"tags", "tags"},
-	{"devices", "devices"},
-	{"sessions", "sessions"},
-	{"sessions_events", "session_events"},
-	{"api_keys", "api_keys"},
-	{"public_keys", "public_keys"},
+	{"system", "systems", false},
+	{"namespaces", "namespaces", false},
+	{"users", "users", false},
+	{"tags", "tags", true},
+	{"devices", "devices", true},
+	{"sessions", "sessions", true},
+	{"sessions_events", "session_events", true},
+	{"api_keys", "api_keys", true},
+	{"public_keys", "public_keys", true},
 }
 
 func (m *Migrator) validateCounts(ctx context.Context) error {
-	log.Info("Validating row counts")
+	log.WithField("scope", "core").Info("Validating row counts")
 
 	for _, ct := range collectionTable {
 		mongoCount, err := m.mongo.Collection(ct.collection).CountDocuments(ctx, bson.M{})
@@ -39,10 +41,11 @@ func (m *Migrator) validateCounts(ctx context.Context) error {
 		}
 
 		if err := setStateCounts(ctx, m.pg, ct.table, mongoCount, int64(pgCount)); err != nil {
-			log.WithError(err).WithField("table", ct.table).Warn("Failed to update state counts")
+			log.WithError(err).WithFields(log.Fields{"scope": "core", "table": ct.table}).Warn("Failed to update state counts")
 		}
 
 		l := log.WithFields(log.Fields{
+			"scope":      "core",
 			"collection": ct.collection,
 			"table":      ct.table,
 			"mongo":      mongoCount,
@@ -50,12 +53,16 @@ func (m *Migrator) validateCounts(ctx context.Context) error {
 		})
 
 		if mongoCount != int64(pgCount) {
-			l.Error("Row count mismatch")
+			if int64(pgCount) < mongoCount && ct.allowSkip {
+				l.Warn("Count: PG < Mongo (orphaned records skipped)")
+			} else {
+				l.Error("Count mismatch")
 
-			return fmt.Errorf("count mismatch for %s: mongo=%d postgres=%d", ct.table, mongoCount, pgCount)
+				return fmt.Errorf("count mismatch for %s: mongo=%d postgres=%d", ct.table, mongoCount, pgCount)
+			}
+		} else {
+			l.Info("Count matches")
 		}
-
-		l.Info("Row count matches")
 	}
 
 	// Validate relationship counts.
@@ -69,7 +76,7 @@ func (m *Migrator) validateCounts(ctx context.Context) error {
 		return err
 	}
 
-	log.Info("Count validations passed")
+	log.WithField("scope", "core").Info("Count validation passed")
 
 	return nil
 }
@@ -107,11 +114,16 @@ func (m *Migrator) validateMemberships(ctx context.Context) error {
 		return fmt.Errorf("failed to count memberships in PostgreSQL: %w", err)
 	}
 
+	l := log.WithFields(log.Fields{"scope": "core", "table": "memberships", "mongo": mongoCount, "postgres": pgCount})
 	if mongoCount != int64(pgCount) {
-		return fmt.Errorf("membership count mismatch: mongo=%d postgres=%d", mongoCount, pgCount)
+		if int64(pgCount) < mongoCount {
+			l.Warn("Count: PG < Mongo (orphaned records skipped)")
+		} else {
+			return fmt.Errorf("membership count mismatch: mongo=%d postgres=%d", mongoCount, pgCount)
+		}
+	} else {
+		l.Info("Count matches")
 	}
-
-	log.WithFields(log.Fields{"mongo": mongoCount, "postgres": pgCount}).Info("Membership count matches")
 
 	return nil
 }
@@ -148,11 +160,16 @@ func (m *Migrator) validateDeviceTags(ctx context.Context) error {
 		return fmt.Errorf("failed to count device_tags in PostgreSQL: %w", err)
 	}
 
+	l := log.WithFields(log.Fields{"scope": "core", "table": "device_tags", "mongo": mongoCount, "postgres": pgCount})
 	if mongoCount != int64(pgCount) {
-		return fmt.Errorf("device_tags count mismatch: mongo=%d postgres=%d", mongoCount, pgCount)
+		if int64(pgCount) < mongoCount {
+			l.Warn("Count: PG < Mongo (orphaned records skipped)")
+		} else {
+			return fmt.Errorf("device_tags count mismatch: mongo=%d postgres=%d", mongoCount, pgCount)
+		}
+	} else {
+		l.Info("Count matches")
 	}
-
-	log.WithFields(log.Fields{"mongo": mongoCount, "postgres": pgCount}).Info("Device tags count matches")
 
 	return nil
 }
@@ -189,11 +206,16 @@ func (m *Migrator) validatePublicKeyTags(ctx context.Context) error {
 		return fmt.Errorf("failed to count public_key_tags in PostgreSQL: %w", err)
 	}
 
+	l := log.WithFields(log.Fields{"scope": "core", "table": "public_key_tags", "mongo": mongoCount, "postgres": pgCount})
 	if mongoCount != int64(pgCount) {
-		return fmt.Errorf("public_key_tags count mismatch: mongo=%d postgres=%d", mongoCount, pgCount)
+		if int64(pgCount) < mongoCount {
+			l.Warn("Count: PG < Mongo (orphaned records skipped)")
+		} else {
+			return fmt.Errorf("public_key_tags count mismatch: mongo=%d postgres=%d", mongoCount, pgCount)
+		}
+	} else {
+		l.Info("Count matches")
 	}
-
-	log.WithFields(log.Fields{"mongo": mongoCount, "postgres": pgCount}).Info("Public key tags count matches")
 
 	return nil
 }

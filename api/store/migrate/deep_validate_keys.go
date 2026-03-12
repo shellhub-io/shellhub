@@ -12,6 +12,11 @@ import (
 )
 
 func (m *Migrator) deepValidatePublicKeys(ctx context.Context, r *ValidationReport) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("public_keys").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -24,6 +29,10 @@ func (m *Migrator) deepValidatePublicKeys(ctx context.Context, r *ValidationRepo
 		var doc mongoPublicKey
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		batch = append(batch, doc)
@@ -106,6 +115,11 @@ func (m *Migrator) comparePublicKeyBatch(ctx context.Context, r *ValidationRepor
 }
 
 func (m *Migrator) deepValidatePublicKeyTags(ctx context.Context, r *ValidationReport) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("public_keys").Find(ctx, bson.M{
 		"filter.tag_ids": bson.M{"$exists": true, "$ne": bson.A{}},
 	})
@@ -118,6 +132,10 @@ func (m *Migrator) deepValidatePublicKeyTags(ctx context.Context, r *ValidationR
 		var doc mongoPublicKey
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		expectedTags := make([]string, len(doc.Filter.TagIDs))
@@ -149,6 +167,11 @@ func (m *Migrator) deepValidatePublicKeyTags(ctx context.Context, r *ValidationR
 }
 
 func (m *Migrator) deepValidateAPIKeys(ctx context.Context, r *ValidationReport) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("api_keys").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -161,6 +184,10 @@ func (m *Migrator) deepValidateAPIKeys(ctx context.Context, r *ValidationReport)
 		var doc mongoAPIKey
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		batch = append(batch, doc)

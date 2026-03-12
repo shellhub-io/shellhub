@@ -26,7 +26,7 @@ func RegisterMigrationExtension(ext MigrationExtension) {
 func applyMigrationExtensions(ctx context.Context, mongo *mongo.Database, pg *bun.DB) error {
 	for _, ext := range migrationExtensions {
 		if err := ext(ctx, mongo, pg); err != nil {
-			log.WithError(err).Error("failed to apply migration extension")
+			log.WithError(err).WithField("scope", "core").Error("failed to apply migration extension")
 
 			return err
 		}

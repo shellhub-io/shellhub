@@ -37,7 +37,7 @@ func migration002Up(ctx context.Context, db *bun.DB) error {
 		ExternalID              string    `bun:"external_id,type:varchar,nullzero"`
 		Status                  string    `bun:"status,type:user_status,notnull"`
 		Name                    string    `bun:"name,type:varchar(64),notnull"`
-		Username                string    `bun:"username,type:varchar(32),notnull,unique"`
+		Username                string    `bun:"username,type:varchar(64),notnull,unique"`
 		Email                   string    `bun:"email,type:varchar(320),notnull,unique"`
 		SecurityEmail           string    `bun:"security_email,type:varchar(320),nullzero"`
 		PasswordDigest          string    `bun:"password_digest,type:char(72),notnull"`

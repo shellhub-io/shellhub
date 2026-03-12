@@ -84,6 +84,11 @@ func convertDevice(doc mongoDevice) *entity.Device {
 }
 
 func (m *Migrator) migrateDevices(ctx context.Context) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("devices").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -92,11 +97,23 @@ func (m *Migrator) migrateDevices(ctx context.Context) error {
 
 	batch := make([]*entity.Device, 0, batchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoDevice
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			log.WithFields(log.Fields{
+				"scope":     "core",
+				"device":    doc.UID,
+				"namespace": doc.TenantID,
+			}).Warn("Skipping device with orphaned namespace")
+			skipped++
+
+			continue
 		}
 
 		batch = append(batch, convertDevice(doc))
@@ -120,12 +137,21 @@ func (m *Migrator) migrateDevices(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated devices")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated devices")
 
 	return nil
 }
 
 func (m *Migrator) migrateDeviceTags(ctx context.Context) error {
+	validDevices, err := m.loadValidDevices(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("devices").Find(ctx, bson.M{"tag_ids": bson.M{"$exists": true, "$ne": bson.A{}}})
 	if err != nil {
 		return err
@@ -139,6 +165,10 @@ func (m *Migrator) migrateDeviceTags(ctx context.Context) error {
 		var doc mongoDevice
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validDevices[doc.UID]; !ok {
+			continue
 		}
 
 		for _, tagID := range doc.TagIDs {
@@ -170,7 +200,7 @@ func (m *Migrator) migrateDeviceTags(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated device_tags")
+	log.WithFields(log.Fields{"scope": "core", "count": total}).Info("Migrated device_tags")
 
 	return nil
 }
