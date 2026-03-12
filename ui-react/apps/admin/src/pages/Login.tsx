@@ -75,8 +75,8 @@ export default function Login() {
   const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
   const { login, loading } = useAuthStore();
   const navigate = useNavigate();
-  const { display: countdownDisplay, expired: lockoutExpired } =
-    useLoginCountdown(lockoutEndEpoch);
+  const { display: countdownDisplay, expired: lockoutExpired }
+    = useLoginCountdown(lockoutEndEpoch);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -87,9 +87,9 @@ export default function Login() {
 
       const state = useAuthStore.getState();
       if (state.mfaToken) {
-        navigate("/mfa-login");
+        void navigate("/mfa-login");
       } else {
-        navigate("/dashboard");
+        void navigate("/dashboard");
       }
     } catch (err) {
       if (err instanceof AxiosError) {
@@ -100,7 +100,7 @@ export default function Login() {
             );
             break;
           case 403:
-            navigate(
+            void navigate(
               `/confirm-account?username=${encodeURIComponent(username)}`,
             );
             break;
@@ -152,7 +152,7 @@ export default function Login() {
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
         style={{ animationDelay: "200ms" }}
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {lockoutExpired && (
             <div className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
@@ -174,7 +174,12 @@ export default function Login() {
               <span>
                 {error}
                 {countdownDisplay && (
-                  <span className="font-semibold"> ({countdownDisplay})</span>
+                  <span className="font-semibold">
+                    {" "}
+                    (
+                    {countdownDisplay}
+                    )
+                  </span>
                 )}
               </span>
             </div>
@@ -233,14 +238,16 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
           >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span className="font-mono text-xs">Authenticating...</span>
-              </span>
-            ) : (
-              "Sign In"
-            )}
+            {loading
+              ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="font-mono text-xs">Authenticating...</span>
+                </span>
+              )
+              : (
+                "Sign In"
+              )}
           </button>
         </form>
       </div>

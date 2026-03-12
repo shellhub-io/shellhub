@@ -22,7 +22,7 @@ export default function UserMenu() {
   const handleLogout = () => {
     setOpen(false);
     logout();
-    navigate("/login");
+    void navigate("/login");
   };
 
   const initials = (name: string) =>
@@ -74,7 +74,7 @@ export default function UserMenu() {
             <button
               onClick={() => {
                 setOpen(false);
-                navigate("/profile");
+                void navigate("/profile");
               }}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
             >
@@ -87,7 +87,7 @@ export default function UserMenu() {
               <button
                 onClick={() => {
                   setOpen(false);
-                  navigate("/settings");
+                  void navigate("/settings");
                 }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-left hover:bg-hover-medium transition-colors group"
               >

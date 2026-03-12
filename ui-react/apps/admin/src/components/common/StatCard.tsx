@@ -40,21 +40,27 @@ export default function StatCard(props: StatCardProps) {
         {value}
       </p>
 
-      {props.onClick ? (
-        <button
-          onClick={props.onClick}
-          className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
-        >
-          {linkLabel} &rarr;
-        </button>
-      ) : (
-        <Link
-          to={props.linkTo}
-          className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
-        >
-          {linkLabel} &rarr;
-        </Link>
-      )}
+      {props.onClick
+        ? (
+          <button
+            onClick={props.onClick}
+            className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
+          >
+            {linkLabel}
+            {" "}
+            &rarr;
+          </button>
+        )
+        : (
+          <Link
+            to={props.linkTo}
+            className="text-xs font-medium text-primary hover:text-primary-400 transition-colors"
+          >
+            {linkLabel}
+            {" "}
+            &rarr;
+          </Link>
+        )}
     </div>
   );
 }

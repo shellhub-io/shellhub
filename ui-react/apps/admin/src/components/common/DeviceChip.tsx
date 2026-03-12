@@ -32,17 +32,19 @@ export default function DeviceChip({
         group/chip
       "
     >
-      {osId ? (
-        <DistroIcon
-          id={osId}
-          className="text-[0.8rem] leading-none text-text-muted group-hover/chip:text-text-secondary shrink-0 transition-colors"
-        />
-      ) : (
-        <CpuChipIcon
-          className="w-3 h-3 text-text-muted group-hover/chip:text-primary shrink-0 transition-colors"
-          strokeWidth={2}
-        />
-      )}
+      {osId
+        ? (
+          <DistroIcon
+            id={osId}
+            className="text-[0.8rem] leading-none text-text-muted group-hover/chip:text-text-secondary shrink-0 transition-colors"
+          />
+        )
+        : (
+          <CpuChipIcon
+            className="w-3 h-3 text-text-muted group-hover/chip:text-primary shrink-0 transition-colors"
+            strokeWidth={2}
+          />
+        )}
 
       <span className="truncate max-w-[16ch]">{name}</span>
 

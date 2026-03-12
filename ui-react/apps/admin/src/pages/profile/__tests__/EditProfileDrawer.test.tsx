@@ -13,8 +13,7 @@ const defaultProps = {
 };
 
 beforeEach(() => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useAuthStore.setState({ updateProfile: vi.fn() } as any);
+  useAuthStore.setState({ updateProfile: vi.fn() } as Partial<ReturnType<typeof useAuthStore.getState>>);
 });
 
 afterEach(cleanup);

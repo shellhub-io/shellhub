@@ -123,7 +123,7 @@ export default function ConfirmDialog({
           {cancelLabel}
         </button>
         <button
-          onClick={handleConfirm}
+          onClick={() => void handleConfirm()}
           disabled={confirming || confirmDisabled}
           className={`px-5 py-2.5 ${VARIANT_CLASSES[variant]} rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2`}
         >

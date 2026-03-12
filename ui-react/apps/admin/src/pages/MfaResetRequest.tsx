@@ -19,7 +19,7 @@ export default function MfaResetRequest() {
   // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {
     if (!identifier && !mfaToken) {
-      navigate("/login");
+      void navigate("/login");
     }
   }, [identifier, mfaToken, navigate]);
 
@@ -65,7 +65,7 @@ export default function MfaResetRequest() {
         style={{ animationDelay: "200ms" }}
       >
         {!emailsSent ? (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             {error && (
               <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
                 <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />

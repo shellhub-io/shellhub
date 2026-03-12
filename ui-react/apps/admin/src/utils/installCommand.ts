@@ -10,6 +10,6 @@ export function buildInstallCommand(
     `curl -sSf ${serverAddress}/install.sh | \\`,
     `        TENANT_ID=${tenantId} \\`,
     `        SERVER_ADDRESS=${serverAddress} \\`,
-    `        sh`,
+    "        sh",
   ].join("\n");
 }

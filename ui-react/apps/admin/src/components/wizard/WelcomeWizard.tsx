@@ -121,19 +121,21 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
 
       {/* Footer */}
       <footer className="px-6 py-4 border-t border-border shrink-0 flex items-center justify-between">
-        {step === 2 ? (
-          <a
-            href="https://docs.shellhub.io/user-guides/devices/adding"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
-          >
-            <BookOpenIcon className="w-4 h-4" />
-            Docs
-          </a>
-        ) : (
-          <span />
-        )}
+        {step === 2
+          ? (
+            <a
+              href="https://docs.shellhub.io/user-guides/devices/adding"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-secondary transition-colors"
+            >
+              <BookOpenIcon className="w-4 h-4" />
+              Docs
+            </a>
+          )
+          : (
+            <span />
+          )}
 
         <div className="flex items-center gap-3">
           {step < TOTAL_STEPS && (
@@ -147,20 +149,24 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
 
           {step === 1 && (
             <PrimaryButton onClick={() => setStep(2)}>
-              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Next
+              {" "}
+              <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
             </PrimaryButton>
           )}
 
           {step === 2 && (
             // Disabled — polling in WizardStep2Install auto-advances to step 3
             <PrimaryButton disabled>
-              Next <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Next
+              {" "}
+              <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
             </PrimaryButton>
           )}
 
           {step === 3 && (
             <PrimaryButton
-              onClick={handleAccept}
+              onClick={() => void handleAccept()}
               disabled={!pendingDevice || accepting}
               loading={accepting}
             >
@@ -172,7 +178,9 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
             // Finish always closes directly. canClose blocks ESC/backdrop on
             // earlier steps; the Finish button is intentionally unrestricted.
             <PrimaryButton onClick={onClose}>
-              Finish <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Finish
+              {" "}
+              <ArrowRightIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
             </PrimaryButton>
           )}
         </div>

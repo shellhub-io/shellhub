@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient, { getTotalCount } from "./client";
 import { FirewallRule, FirewallFilter } from "../types/firewallRule";
 import { PaginatedResponse } from "../types/api";
 
@@ -9,8 +9,7 @@ export async function getFirewallRules(
   const res = await apiClient.get<FirewallRule[]>("/api/firewall/rules", {
     params: { page, per_page: perPage },
   });
-  const totalCount = parseInt(res.headers["x-total-count"] || "0", 10);
-  return { data: res.data, totalCount };
+  return { data: res.data, totalCount: getTotalCount(res) };
 }
 
 export async function createFirewallRule(payload: {

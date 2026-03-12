@@ -130,14 +130,19 @@ export function parseMessage(
   data: string,
 ): { kind: number; data: string } | null {
   try {
-    const msg = JSON.parse(data);
+    const msg: unknown = JSON.parse(data);
     if (
-      typeof msg === "object" &&
-      msg !== null &&
-      typeof msg.kind === "number" &&
-      typeof msg.data === "string"
+      typeof msg === "object"
+      && msg !== null
+      && "kind" in msg
+      && "data" in msg
+      && typeof (msg as { kind: unknown }).kind === "number"
+      && typeof (msg as { data: unknown }).data === "string"
     ) {
-      return { kind: msg.kind, data: msg.data };
+      return {
+        kind: (msg as { kind: number }).kind,
+        data: (msg as { data: string }).data,
+      };
     }
   } catch {
     // Not JSON — regular text frame

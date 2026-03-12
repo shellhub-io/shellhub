@@ -104,11 +104,13 @@ export default function WizardStep3Device({
             <span className="flex-1 text-sm font-mono font-semibold text-text-primary text-left">
               {device.name}
             </span>
-            {expanded ? (
-              <ChevronUpIcon className="w-4 h-4 text-text-muted shrink-0" />
-            ) : (
-              <ChevronDownIcon className="w-4 h-4 text-text-muted shrink-0" />
-            )}
+            {expanded
+              ? (
+                <ChevronUpIcon className="w-4 h-4 text-text-muted shrink-0" />
+              )
+              : (
+                <ChevronDownIcon className="w-4 h-4 text-text-muted shrink-0" />
+              )}
           </button>
 
           {/* Detail rows */}
@@ -117,14 +119,14 @@ export default function WizardStep3Device({
               <DetailRow label="OS" value={device.info?.pretty_name ?? "—"} />
               <DetailRow
                 label="UID"
-                value={
+                value={(
                   <span className="flex items-center gap-2 min-w-0">
                     <span className="font-mono text-2xs truncate">
                       {device.uid}
                     </span>
                     <CopyButton text={device.uid} size="sm" className="shrink-0" />
                   </span>
-                }
+                )}
               />
               <DetailRow label="MAC" value={device.identity?.mac ?? "—"} />
               <DetailRow label="Agent" value={device.info?.version ?? "—"} />

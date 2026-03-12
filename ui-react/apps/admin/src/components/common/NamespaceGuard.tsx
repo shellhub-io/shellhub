@@ -57,7 +57,8 @@ function FetchErrorPage({
           Could not load namespaces
         </h1>
         <p className="text-sm text-text-muted max-w-md leading-relaxed mb-8">
-          {error}. This is likely temporary — check your connection or try
+          {error}
+          . This is likely temporary — check your connection or try
           again.
         </p>
 
@@ -80,18 +81,18 @@ export default function NamespaceGuard() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    if (!loaded) fetch();
+    if (!loaded) void fetch();
   }, [loaded, fetch]);
 
   // Retry namespace fetch when API comes back online
   useEffect(() => {
     if (apiReachable && !loaded) {
-      fetch();
+      void fetch();
     }
   }, [apiReachable, loaded, fetch]);
 
   if (!loaded && !loading && error) {
-    return <FetchErrorPage error={error} onRetry={fetch} />;
+    return <FetchErrorPage error={error} onRetry={() => void fetch()} />;
   }
 
   if (!loaded) {

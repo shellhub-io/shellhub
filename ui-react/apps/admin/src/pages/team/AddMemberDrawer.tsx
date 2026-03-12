@@ -29,8 +29,8 @@ function AddMemberDrawer({
     setError("");
   });
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!email.trim()) return;
     setSubmitting(true);
     setError("");
@@ -49,7 +49,7 @@ function AddMemberDrawer({
       open={open}
       onClose={onClose}
       title="Add Member"
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -59,21 +59,23 @@ function AddMemberDrawer({
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={!email.trim() || submitting}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {submitting ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            )}
+            {submitting
+              ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )
+              : (
+                <PlusIcon className="w-4 h-4" strokeWidth={2} />
+              )}
             Add Member
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
           <label className={LABEL}>Email</label>
           <input

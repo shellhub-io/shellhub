@@ -50,7 +50,7 @@ function mockFileReader(content: string) {
     onload: (() => void) | null = null;
 
     readAsText() {
-      Promise.resolve().then(() => {
+      void Promise.resolve().then(() => {
         this.result = content;
         if (this.onload) this.onload();
       });
@@ -155,7 +155,7 @@ describe("KeyFileInput", () => {
       // Find the drop zone div by a stable child element
       const dropZone = container.querySelector(
         "[ondragover], .border-dashed",
-      ) as HTMLElement | null;
+      );
       if (!dropZone) throw new Error("drop zone not found");
 
       fireEvent.dragOver(dropZone, { preventDefault: () => {} });

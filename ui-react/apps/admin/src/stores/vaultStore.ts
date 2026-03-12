@@ -157,15 +157,15 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         if (!Array.isArray(parsed)) throw new Error("Vault data is corrupted");
         const isValid = parsed.every(
           (item: unknown) =>
-            typeof item === "object" &&
-            item !== null &&
-            typeof (item as Record<string, unknown>).id === "string" &&
-            typeof (item as Record<string, unknown>).name === "string" &&
-            typeof (item as Record<string, unknown>).data === "string" &&
-            typeof (item as Record<string, unknown>).fingerprint === "string" &&
-            typeof (item as Record<string, unknown>).hasPassphrase === "boolean" &&
-            typeof (item as Record<string, unknown>).createdAt === "string" &&
-            typeof (item as Record<string, unknown>).updatedAt === "string",
+            typeof item === "object"
+            && item !== null
+            && typeof (item as Record<string, unknown>).id === "string"
+            && typeof (item as Record<string, unknown>).name === "string"
+            && typeof (item as Record<string, unknown>).data === "string"
+            && typeof (item as Record<string, unknown>).fingerprint === "string"
+            && typeof (item as Record<string, unknown>).hasPassphrase === "boolean"
+            && typeof (item as Record<string, unknown>).createdAt === "string"
+            && typeof (item as Record<string, unknown>).updatedAt === "string",
         );
         if (!isValid) throw new Error("Vault data is corrupted");
         const keys = parsed as VaultKeyEntry[];

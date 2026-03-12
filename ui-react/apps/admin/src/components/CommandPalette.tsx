@@ -92,7 +92,7 @@ export default function CommandPalette() {
   const go = useCallback(
     (path: string) => {
       close();
-      navigate(path);
+      void navigate(path);
     },
     [close, navigate],
   );
@@ -169,14 +169,14 @@ export default function CommandPalette() {
 
     /* Terminal Sessions */
     terminalSessions.forEach((s) => {
-      const statusLabel =
-        s.connectionStatus === "connected"
+      const statusLabel
+        = s.connectionStatus === "connected"
           ? "Connected"
           : s.connectionStatus === "connecting"
             ? "Connecting"
             : "Disconnected";
-      const statusVariant: BadgeVariant =
-        s.connectionStatus === "connected"
+      const statusVariant: BadgeVariant
+        = s.connectionStatus === "connected"
           ? "green"
           : s.connectionStatus === "connecting"
             ? "yellow"
@@ -209,7 +209,7 @@ export default function CommandPalette() {
       onSelect: () => {
         close();
         logout();
-        navigate("/login");
+        void navigate("/login");
       },
     });
 
@@ -221,9 +221,9 @@ export default function CommandPalette() {
     if (!query.trim()) return items;
     return items.filter(
       (item) =>
-        fuzzyMatch(query, item.label) ||
-        (item.sublabel && fuzzyMatch(query, item.sublabel)) ||
-        fuzzyMatch(query, item.section),
+        fuzzyMatch(query, item.label)
+        || (item.sublabel && fuzzyMatch(query, item.sublabel))
+        || fuzzyMatch(query, item.section),
     );
   }, [items, query]);
 
@@ -325,72 +325,76 @@ export default function CommandPalette() {
           ref={listRef}
           className="max-h-[min(50vh,400px)] overflow-y-auto overscroll-contain"
         >
-          {flatList.length === 0 ? (
-            <div className="px-4 py-10 text-center">
-              <p className="text-sm text-text-muted">
-                No results for "{query}"
-              </p>
-              <p className="text-2xs text-text-muted/50 mt-1">
-                Try a different search term
-              </p>
-            </div>
-          ) : (
-            Array.from(sections.entries()).map(([section, sectionItems]) => (
-              <div key={section}>
-                <div className="px-4 pt-3 pb-1.5">
-                  <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/50">
-                    {section}
-                  </p>
-                </div>
-                {sectionItems.map((item) => {
-                  globalIdx++;
-                  const isActive = globalIdx === activeIndex;
-                  const idx = globalIdx;
-                  return (
-                    <button
-                      key={item.id}
-                      data-active={isActive}
-                      onClick={item.onSelect}
-                      onMouseEnter={() => setActiveIndex(idx)}
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75 ${
-                        isActive ? "bg-primary/[0.08]" : "hover:bg-hover-subtle"
-                      }`}
-                    >
-                      <span
-                        className={`shrink-0 ${isActive ? "text-primary" : "text-text-muted"} transition-colors duration-75`}
+          {flatList.length === 0
+            ? (
+              <div className="px-4 py-10 text-center">
+                <p className="text-sm text-text-muted">
+                  No results for "
+                  {query}
+                  "
+                </p>
+                <p className="text-2xs text-text-muted/50 mt-1">
+                  Try a different search term
+                </p>
+              </div>
+            )
+            : (
+              Array.from(sections.entries()).map(([section, sectionItems]) => (
+                <div key={section}>
+                  <div className="px-4 pt-3 pb-1.5">
+                    <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/50">
+                      {section}
+                    </p>
+                  </div>
+                  {sectionItems.map((item) => {
+                    globalIdx++;
+                    const isActive = globalIdx === activeIndex;
+                    const idx = globalIdx;
+                    return (
+                      <button
+                        key={item.id}
+                        data-active={isActive}
+                        onClick={item.onSelect}
+                        onMouseEnter={() => setActiveIndex(idx)}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-75 ${
+                          isActive ? "bg-primary/[0.08]" : "hover:bg-hover-subtle"
+                        }`}
                       >
-                        {item.icon}
-                      </span>
-                      <div className="flex-1 min-w-0">
                         <span
-                          className={`text-sm ${isActive ? "text-text-primary" : "text-text-secondary"} transition-colors duration-75`}
+                          className={`shrink-0 ${isActive ? "text-primary" : "text-text-muted"} transition-colors duration-75`}
                         >
-                          {item.label}
+                          {item.icon}
                         </span>
-                        {item.sublabel && (
-                          <span className="text-2xs text-text-muted/50 ml-2 font-mono">
-                            {item.sublabel}
+                        <div className="flex-1 min-w-0">
+                          <span
+                            className={`text-sm ${isActive ? "text-text-primary" : "text-text-secondary"} transition-colors duration-75`}
+                          >
+                            {item.label}
+                          </span>
+                          {item.sublabel && (
+                            <span className="text-2xs text-text-muted/50 ml-2 font-mono">
+                              {item.sublabel}
+                            </span>
+                          )}
+                        </div>
+                        {item.badge && (
+                          <span
+                            className={`shrink-0 text-2xs font-mono font-semibold px-1.5 py-0.5 rounded border ${badgeStyles[item.badge.variant]}`}
+                          >
+                            {item.badge.text}
                           </span>
                         )}
-                      </div>
-                      {item.badge && (
-                        <span
-                          className={`shrink-0 text-2xs font-mono font-semibold px-1.5 py-0.5 rounded border ${badgeStyles[item.badge.variant]}`}
-                        >
-                          {item.badge.text}
-                        </span>
-                      )}
-                      {isActive && (
-                        <kbd className="shrink-0 px-1.5 py-0.5 text-2xs font-mono text-text-muted/40 bg-hover-subtle border border-border/50 rounded">
-                          ↵
-                        </kbd>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            ))
-          )}
+                        {isActive && (
+                          <kbd className="shrink-0 px-1.5 py-0.5 text-2xs font-mono text-text-muted/40 bg-hover-subtle border border-border/50 rounded">
+                            ↵
+                          </kbd>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))
+            )}
         </div>
 
         {/* Footer */}

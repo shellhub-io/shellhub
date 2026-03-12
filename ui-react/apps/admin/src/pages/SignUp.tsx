@@ -77,9 +77,9 @@ export default function SignUp() {
 
   const isFormValid = useMemo(
     () =>
-      Object.keys(validationErrors).length === 0 &&
-      !Object.values(serverFieldErrors).some(Boolean) &&
-      acceptPrivacyPolicy,
+      Object.keys(validationErrors).length === 0
+      && !Object.values(serverFieldErrors).some(Boolean)
+      && acceptPrivacyPolicy,
     [validationErrors, serverFieldErrors, acceptPrivacyPolicy],
   );
 
@@ -115,7 +115,7 @@ export default function SignUp() {
     if (err !== null || fields.length > 0) return;
 
     if (!token) {
-      navigate(`/confirm-account?username=${encodeURIComponent(username)}`);
+      void navigate(`/confirm-account?username=${encodeURIComponent(username)}`);
       return;
     }
 
@@ -176,7 +176,7 @@ export default function SignUp() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4" aria-label="Create account">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4" aria-label="Create account">
             <InputField
               id="name"
               label="Name"

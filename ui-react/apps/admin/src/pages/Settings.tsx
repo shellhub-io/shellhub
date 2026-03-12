@@ -120,8 +120,8 @@ function EditNameDrawer({
 
   const validationError = name !== currentName ? validateName(name) : null;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     const err = validateName(name);
     if (err) {
       setError(err);
@@ -145,7 +145,7 @@ function EditNameDrawer({
       onClose={onClose}
       title="Rename Namespace"
       bodyClassName="flex-1 overflow-y-auto px-6 py-5"
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -155,26 +155,28 @@ function EditNameDrawer({
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={
-              !name.trim() ||
-              name === currentName ||
-              !!validationError ||
-              submitting
+              !name.trim()
+              || name === currentName
+              || !!validationError
+              || submitting
             }
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {submitting ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CheckIcon className="w-4 h-4" strokeWidth={2} />
-            )}
+            {submitting
+              ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )
+              : (
+                <CheckIcon className="w-4 h-4" strokeWidth={2} />
+              )}
             Save
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
           <label className={LABEL}>Namespace Name</label>
           <input
@@ -228,19 +230,24 @@ function DeleteDialog({
         }
       }}
       title="Delete Namespace"
-      description={
+      description={(
         <>
-          This action is{" "}
-          <span className="font-medium text-accent-red">permanent</span> and
+          This action is
+          {" "}
+          <span className="font-medium text-accent-red">permanent</span>
+          {" "}
+          and
           cannot be undone. All devices, sessions, and data will be lost.
         </>
-      }
+      )}
       confirmLabel="Delete Namespace"
       confirmDisabled={!canDelete}
     >
       <div className="mb-4">
         <label className={LABEL}>
-          Type &ldquo;{namespaceName}&rdquo; to confirm
+          Type &ldquo;
+          {namespaceName}
+          &rdquo; to confirm
         </label>
         <input
           type="text"
@@ -398,22 +405,22 @@ function BannerPreview({
 
 export default function Settings() {
   const { userId, tenant: tenantId, role: sessionRole } = useAuthStore();
-  const { currentNamespace, fetchCurrent, updateNamespace } =
-    useNamespacesStore();
+  const { currentNamespace, fetchCurrent, updateNamespace }
+    = useNamespacesStore();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [togglingRecord, setTogglingRecord] = useState(false);
 
   useEffect(() => {
-    if (tenantId) fetchCurrent(tenantId);
+    if (tenantId) void fetchCurrent(tenantId);
   }, [tenantId, fetchCurrent]);
 
   const ns = currentNamespace;
   const isOwner = ns?.owner === userId;
   const currentMember = ns?.members?.find((m) => m.id === userId);
-  const role =
-    currentMember?.role ?? (isOwner ? "owner" : (sessionRole ?? "observer"));
+  const role
+    = currentMember?.role ?? (isOwner ? "owner" : (sessionRole ?? "observer"));
   const canEdit = isOwner || role === "administrator";
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
@@ -519,7 +526,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (sessionRecord) handleToggleRecord();
+                    if (sessionRecord) void handleToggleRecord();
                   }}
                   className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
                     !sessionRecord
@@ -532,7 +539,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (!sessionRecord) handleToggleRecord();
+                    if (!sessionRecord) void handleToggleRecord();
                   }}
                   className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
                     sessionRecord
@@ -552,35 +559,37 @@ export default function Settings() {
 
         {/* ── Danger Zone ── */}
         <SettingsCard title="Danger Zone" danger>
-          {isOwner ? (
-            <SettingsRow
-              icon={<TrashIcon className="w-4 h-4 text-accent-red" />}
-              title="Delete Namespace"
-              description="Permanently removes all devices, sessions, keys, and configuration. This cannot be undone."
-            >
-              <button
-                onClick={() => setDeleteOpen(true)}
-                className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
+          {isOwner
+            ? (
+              <SettingsRow
+                icon={<TrashIcon className="w-4 h-4 text-accent-red" />}
+                title="Delete Namespace"
+                description="Permanently removes all devices, sessions, keys, and configuration. This cannot be undone."
               >
-                Delete
-              </button>
-            </SettingsRow>
-          ) : (
-            <SettingsRow
-              icon={
-                <ArrowRightStartOnRectangleIcon className="w-4 h-4 text-accent-red" />
-              }
-              title="Leave Namespace"
-              description="You will lose access immediately. To rejoin, someone will need to invite you again."
-            >
-              <button
-                onClick={() => setLeaveOpen(true)}
-                className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
+                <button
+                  onClick={() => setDeleteOpen(true)}
+                  className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
+                >
+                  Delete
+                </button>
+              </SettingsRow>
+            )
+            : (
+              <SettingsRow
+                icon={
+                  <ArrowRightStartOnRectangleIcon className="w-4 h-4 text-accent-red" />
+                }
+                title="Leave Namespace"
+                description="You will lose access immediately. To rejoin, someone will need to invite you again."
               >
-                Leave
-              </button>
-            </SettingsRow>
-          )}
+                <button
+                  onClick={() => setLeaveOpen(true)}
+                  className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
+                >
+                  Leave
+                </button>
+              </SettingsRow>
+            )}
         </SettingsCard>
       </div>
 

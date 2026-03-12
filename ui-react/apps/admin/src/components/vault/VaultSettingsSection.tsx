@@ -40,14 +40,14 @@ function ChangePasswordDrawer({
 
   const newTooShort = newPassword.length > 0 && newPassword.length < 8;
   const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
-  const canSubmit =
-    currentPassword.length > 0 &&
-    newPassword.length >= 8 &&
-    newPassword === confirmPassword &&
-    !loading;
+  const canSubmit
+    = currentPassword.length > 0
+      && newPassword.length >= 8
+      && newPassword === confirmPassword
+      && !loading;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!canSubmit) return;
     await changeMasterPassword(currentPassword, newPassword);
     if (!useVaultStore.getState().error) {
@@ -60,7 +60,7 @@ function ChangePasswordDrawer({
       open={open}
       onClose={onClose}
       title="Change Master Password"
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -71,7 +71,7 @@ function ChangePasswordDrawer({
           </button>
           <button
             type="submit"
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
@@ -81,9 +81,9 @@ function ChangePasswordDrawer({
             Update Password
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
           <label
             htmlFor="vault-current-password"
@@ -245,13 +245,20 @@ export default function VaultSettingsSection() {
           setResetOpen(false);
         }}
         title="Reset Secure Vault"
-        description={
+        description={(
           <>
             This will permanently delete all your stored SSH private keys. This
-            action <strong className="text-text-primary">cannot be undone</strong>.
-            Type <code className="text-accent-red font-mono">RESET</code> to confirm.
+            action
+            {" "}
+            <strong className="text-text-primary">cannot be undone</strong>
+            .
+            Type
+            {" "}
+            <code className="text-accent-red font-mono">RESET</code>
+            {" "}
+            to confirm.
           </>
-        }
+        )}
         confirmLabel="Reset Vault"
         confirmDisabled={resetConfirmText !== "RESET"}
       >

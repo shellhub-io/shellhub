@@ -30,7 +30,9 @@ export default function WizardStep1Welcome() {
     <div className="py-2">
       <div className="mb-6">
         <h2 className="text-xl font-mono font-bold text-text-primary mb-1">
-          Welcome{name ? `, ${name}` : ""}.
+          Welcome
+          {name ? `, ${name}` : ""}
+          .
         </h2>
         <p className="text-sm text-text-muted leading-relaxed">
           ShellHub gives you a single encrypted gateway to every Linux device

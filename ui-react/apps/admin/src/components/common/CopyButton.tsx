@@ -21,7 +21,7 @@ export default function CopyButton({
   const s = sizes[size];
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(text);
+    void navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -40,17 +40,19 @@ export default function CopyButton({
         } ${className}`}
       >
         <span className="flex items-center gap-1">
-          {copied ? (
-            <>
-              <CheckIcon className="w-3 h-3" strokeWidth={2.5} />
-              Copied
-            </>
-          ) : (
-            <>
-              <DocumentDuplicateIcon className="w-3 h-3" />
-              Copy
-            </>
-          )}
+          {copied
+            ? (
+              <>
+                <CheckIcon className="w-3 h-3" strokeWidth={2.5} />
+                Copied
+              </>
+            )
+            : (
+              <>
+                <DocumentDuplicateIcon className="w-3 h-3" />
+                Copy
+              </>
+            )}
         </span>
       </button>
     );
@@ -65,11 +67,13 @@ export default function CopyButton({
       className={`${s.button} text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all ${className}`}
       title="Copy"
     >
-      {copied ? (
-        <CheckIcon className={`${s.icon} text-accent-green`} strokeWidth={2} />
-      ) : (
-        <DocumentDuplicateIcon className={s.icon} />
-      )}
+      {copied
+        ? (
+          <CheckIcon className={`${s.icon} text-accent-green`} strokeWidth={2} />
+        )
+        : (
+          <DocumentDuplicateIcon className={s.icon} />
+        )}
     </button>
   );
 }

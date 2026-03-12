@@ -29,7 +29,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
       await updateNamespace(ns.tenant_id, {
         settings: { connection_announcement: text },
       });
-      navigate("/settings");
+      void navigate("/settings");
     } catch {
       setError("Failed to save. Please try again.");
       setSaving(false);
@@ -63,7 +63,9 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
           <span
             className={`text-2xs font-mono ${overLimit ? "text-accent-red font-semibold" : "text-text-muted/50"}`}
           >
-            {text.length.toLocaleString()}/{MAX_LENGTH.toLocaleString()}
+            {text.length.toLocaleString()}
+            /
+            {MAX_LENGTH.toLocaleString()}
           </span>
           {overLimit && (
             <span className="text-2xs text-accent-red">
@@ -95,15 +97,17 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
               Cancel
             </Link>
             <button
-              onClick={handleSave}
+              onClick={() => void handleSave()}
               disabled={!changed || overLimit || saving}
               className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
-              {saving ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <CheckIcon className="w-4 h-4" strokeWidth={2} />
-              )}
+              {saving
+                ? (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                )
+                : (
+                  <CheckIcon className="w-4 h-4" strokeWidth={2} />
+                )}
               Save
             </button>
           </div>
@@ -120,7 +124,7 @@ export default function BannerEdit() {
   const { currentNamespace: ns, fetchCurrent } = useNamespacesStore();
 
   useEffect(() => {
-    if (tenantId && !ns) fetchCurrent(tenantId);
+    if (tenantId && !ns) void fetchCurrent(tenantId);
   }, [tenantId, ns, fetchCurrent]);
 
   if (!ns) {
@@ -133,8 +137,8 @@ export default function BannerEdit() {
 
   const isOwner = ns.owner === userId;
   const currentMember = ns.members?.find((m) => m.id === userId);
-  const role =
-    currentMember?.role ?? (isOwner ? "owner" : (sessionRole ?? "observer"));
+  const role
+    = currentMember?.role ?? (isOwner ? "owner" : (sessionRole ?? "observer"));
   const canEdit = isOwner || role === "administrator";
 
   return (

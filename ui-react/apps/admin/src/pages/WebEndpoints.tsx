@@ -126,10 +126,10 @@ function DeviceSelector({
         .then(({ data: d }) => {
           const filtered = value
             ? d.filter(
-                (dev) =>
-                  dev.name.toLowerCase().includes(value.toLowerCase()) ||
-                  dev.uid.toLowerCase().includes(value.toLowerCase()),
-              )
+              (dev) =>
+                dev.name.toLowerCase().includes(value.toLowerCase())
+                || dev.uid.toLowerCase().includes(value.toLowerCase()),
+            )
             : d;
           setDevices(filtered);
         })
@@ -146,70 +146,76 @@ function DeviceSelector({
         } ${error ? "border-accent-red/50" : ""}`}
         onClick={() => setOpen(true)}
       >
-        {selected ? (
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <span
-              className={`w-2 h-2 rounded-full shrink-0 ${selected.online ? "bg-accent-green" : "bg-text-muted/40"}`}
+        {selected
+          ? (
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${selected.online ? "bg-accent-green" : "bg-text-muted/40"}`}
+              />
+              <span className="text-sm text-text-primary truncate">
+                {selected.name}
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange(null);
+                  setSearch("");
+                }}
+                className="ml-auto shrink-0 p-0.5 text-text-muted hover:text-text-primary transition-colors"
+              >
+                <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
+              </button>
+            </div>
+          )
+          : (
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              onFocus={() => setOpen(true)}
+              placeholder="Search devices..."
+              className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
             />
-            <span className="text-sm text-text-primary truncate">
-              {selected.name}
-            </span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange(null);
-                setSearch("");
-              }}
-              className="ml-auto shrink-0 p-0.5 text-text-muted hover:text-text-primary transition-colors"
-            >
-              <XMarkIcon className="w-3.5 h-3.5" strokeWidth={2} />
-            </button>
-          </div>
-        ) : (
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-            onFocus={() => setOpen(true)}
-            placeholder="Search devices..."
-            className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
-          />
-        )}
+          )}
       </div>
       {error && <p className="mt-1 text-2xs text-accent-red">{error}</p>}
       {open && !selected && (
         <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-surface border border-border rounded-lg shadow-xl">
-          {loading ? (
-            <div className="px-3 py-2 text-xs text-text-muted">
-              Loading devices...
-            </div>
-          ) : devices.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-text-muted">
-              No devices found
-            </div>
-          ) : (
-            devices.map((dev) => (
-              <button
-                key={dev.uid}
-                type="button"
-                onClick={() => {
-                  onChange(dev);
-                  setOpen(false);
-                  setSearch("");
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-hover-medium transition-colors flex items-center gap-2"
-              >
-                <span
-                  className={`w-2 h-2 rounded-full shrink-0 ${dev.online ? "bg-accent-green" : "bg-text-muted/40"}`}
-                />
-                <span className="truncate">{dev.name}</span>
-                <span className="text-2xs text-text-muted font-mono ml-auto shrink-0">
-                  {dev.uid.slice(0, 8)}
-                </span>
-              </button>
-            ))
-          )}
+          {loading
+            ? (
+              <div className="px-3 py-2 text-xs text-text-muted">
+                Loading devices...
+              </div>
+            )
+            : devices.length === 0
+              ? (
+                <div className="px-3 py-2 text-xs text-text-muted">
+                  No devices found
+                </div>
+              )
+              : (
+                devices.map((dev) => (
+                  <button
+                    key={dev.uid}
+                    type="button"
+                    onClick={() => {
+                      onChange(dev);
+                      setOpen(false);
+                      setSearch("");
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-hover-medium transition-colors flex items-center gap-2"
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 ${dev.online ? "bg-accent-green" : "bg-text-muted/40"}`}
+                    />
+                    <span className="truncate">{dev.name}</span>
+                    <span className="text-2xs text-text-muted font-mono ml-auto shrink-0">
+                      {dev.uid.slice(0, 8)}
+                    </span>
+                  </button>
+                ))
+              )}
         </div>
       )}
     </div>
@@ -293,74 +299,76 @@ function TimeoutSelector({
         </button>
       </div>
 
-      {hasExpiration ? (
-        <div className="space-y-2.5">
-          <div className="flex flex-wrap gap-1.5">
-            {EXPIRATION_PRESETS.map((preset) => (
+      {hasExpiration
+        ? (
+          <div className="space-y-2.5">
+            <div className="flex flex-wrap gap-1.5">
+              {EXPIRATION_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => {
+                    setCustomMode(false);
+                    setCustomError(null);
+                    onChange(preset.value);
+                  }}
+                  className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
+                    !customMode && preset.value === value
+                      ? "bg-primary/10 border-primary/30 text-primary font-medium"
+                      : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
               <button
-                key={preset.value}
                 type="button"
                 onClick={() => {
-                  setCustomMode(false);
+                  setCustomMode(true);
+                  setCustomValue("");
                   setCustomError(null);
-                  onChange(preset.value);
                 }}
                 className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
-                  !customMode && preset.value === value
+                  customMode
                     ? "bg-primary/10 border-primary/30 text-primary font-medium"
                     : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
                 }`}
               >
-                {preset.label}
+                Custom
               </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setCustomMode(true);
-                setCustomValue("");
-                setCustomError(null);
-              }}
-              className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
-                customMode
-                  ? "bg-primary/10 border-primary/30 text-primary font-medium"
-                  : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
-              }`}
-            >
-              Custom
-            </button>
-          </div>
-
-          {customMode && (
-            <div>
-              <input
-                type="number"
-                value={customValue}
-                onChange={(e) => {
-                  setCustomValue(e.target.value);
-                  setCustomError(null);
-                }}
-                onBlur={handleCustomSubmit}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCustomSubmit();
-                }}
-                placeholder="Value in seconds"
-                min={1}
-                max={MAX_CUSTOM_TTL}
-                className={INPUT_MONO}
-                autoFocus
-              />
-              {customError && (
-                <p className="mt-1 text-2xs text-accent-red">{customError}</p>
-              )}
             </div>
-          )}
-        </div>
-      ) : (
-        <p className="text-2xs text-text-muted">
-          This endpoint will never expire.
-        </p>
-      )}
+
+            {customMode && (
+              <div>
+                <input
+                  type="number"
+                  value={customValue}
+                  onChange={(e) => {
+                    setCustomValue(e.target.value);
+                    setCustomError(null);
+                  }}
+                  onBlur={handleCustomSubmit}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCustomSubmit();
+                  }}
+                  placeholder="Value in seconds"
+                  min={1}
+                  max={MAX_CUSTOM_TTL}
+                  className={INPUT_MONO}
+                  autoFocus
+                />
+                {customError && (
+                  <p className="mt-1 text-2xs text-accent-red">{customError}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )
+        : (
+          <p className="text-2xs text-text-muted">
+            This endpoint will never expire.
+          </p>
+        )}
     </div>
   );
 }
@@ -399,47 +407,47 @@ function EndpointDrawer({
     setError(null);
   });
 
-  const hostError =
-    host && !isValidHost(host)
+  const hostError
+    = host && !isValidHost(host)
       ? "Enter a valid IPv4 or IPv6 address"
       : undefined;
   const portNum = parseInt(port, 10);
-  const portError =
-    port && (isNaN(portNum) || portNum < 1 || portNum > 65535)
+  const portError
+    = port && (isNaN(portNum) || portNum < 1 || portNum > 65535)
       ? "Port must be 1-65535"
       : undefined;
-  const tlsDomainError =
-    tlsEnabled && tlsDomain && !isValidFQDN(tlsDomain)
+  const tlsDomainError
+    = tlsEnabled && tlsDomain && !isValidFQDN(tlsDomain)
       ? "Enter a valid domain (e.g. example.com)"
       : undefined;
 
-  const confirmDisabled =
-    !device ||
-    !host.trim() ||
-    !!hostError ||
-    !port.trim() ||
-    !!portError ||
-    (tlsEnabled && tlsDomain.trim() !== "" && !!tlsDomainError);
+  const confirmDisabled
+    = !device
+      || !host.trim()
+      || !!hostError
+      || !port.trim()
+      || !!portError
+      || (tlsEnabled && tlsDomain.trim() !== "" && !!tlsDomainError);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (confirmDisabled) return;
     setError(null);
     setSubmitting(true);
     try {
       await create({
-        uid: device!.uid,
+        uid: device.uid,
         host: host.trim(),
         port: portNum,
         ttl,
         ...(tlsEnabled
           ? {
-              tls: {
-                enabled: true,
-                verify: tlsVerify,
-                domain: tlsDomain.trim(),
-              },
-            }
+            tls: {
+              enabled: true,
+              verify: tlsVerify,
+              domain: tlsDomain.trim(),
+            },
+          }
           : {}),
       });
       onClose();
@@ -462,7 +470,7 @@ function EndpointDrawer({
       onClose={onClose}
       title="New Web Endpoint"
       subtitle="Tunnel HTTP traffic to a service on your device."
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -473,23 +481,25 @@ function EndpointDrawer({
           </button>
           <button
             type="submit"
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={submitting || confirmDisabled}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
           >
-            {submitting ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Creating...
-              </span>
-            ) : (
-              "Create Endpoint"
-            )}
+            {submitting
+              ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Creating...
+                </span>
+              )
+              : (
+                "Create Endpoint"
+              )}
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         {/* Device */}
         <div>
           <label className={LABEL}>Device</label>
@@ -782,7 +792,9 @@ function EndpointCard({
               {/* Host:Port */}
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-hover-medium text-text-muted text-2xs rounded font-mono">
                 <ServerStackIcon className="w-2.5 h-2.5" strokeWidth={2} />
-                {endpoint.host}:{endpoint.port}
+                {endpoint.host}
+                :
+                {endpoint.port}
               </span>
 
               {/* Device-side TLS indicator */}
@@ -836,8 +848,8 @@ function EndpointCard({
 
 /* ─── Page ─── */
 function WebEndpointsContent() {
-  const { webEndpoints, totalCount, loading, page, perPage, fetch, remove } =
-    useWebEndpointsStore();
+  const { webEndpoints, totalCount, loading, page, perPage, fetch, remove }
+    = useWebEndpointsStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     address: string;
@@ -846,7 +858,7 @@ function WebEndpointsContent() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch();
+    void fetch();
   }, [fetch]);
 
   const openNew = () => {
@@ -861,13 +873,13 @@ function WebEndpointsContent() {
 
   const filtered = search
     ? webEndpoints.filter(
-        (ep) =>
-          (ep.device?.name || "")
-            .toLowerCase()
-            .includes(search.toLowerCase()) ||
-          ep.full_address.toLowerCase().includes(search.toLowerCase()) ||
-          ep.address.toLowerCase().includes(search.toLowerCase()),
-      )
+      (ep) =>
+        (ep.device?.name || "")
+          .toLowerCase()
+          .includes(search.toLowerCase())
+          || ep.full_address.toLowerCase().includes(search.toLowerCase())
+          || ep.address.toLowerCase().includes(search.toLowerCase()),
+    )
     : webEndpoints;
 
   return (
@@ -1003,7 +1015,9 @@ function WebEndpointsContent() {
           {filtered.length === 0 ? (
             <div className="py-12 text-center animate-fade-in">
               <p className="text-sm text-text-muted">
-                No endpoints matching &ldquo;{search}&rdquo;
+                No endpoints matching &ldquo;
+                {search}
+                &rdquo;
               </p>
             </div>
           ) : (
@@ -1018,8 +1032,7 @@ function WebEndpointsContent() {
                       setDeleteTarget({
                         address: ep.address,
                         deviceName: ep.device?.name || ep.device_uid,
-                      })
-                    }
+                      })}
                   />
                 ))}
               </div>
@@ -1028,21 +1041,27 @@ function WebEndpointsContent() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4 px-1">
                   <span className="text-xs font-mono text-text-muted">
-                    {totalCount} endpoint{totalCount !== 1 ? "s" : ""}
+                    {totalCount}
+                    {" "}
+                    endpoint
+                    {totalCount !== 1 ? "s" : ""}
                   </span>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => fetch(page - 1)}
+                      onClick={() => void fetch(page - 1)}
                       disabled={page <= 1}
                       className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"
                     >
                       Prev
                     </button>
                     <span className="text-xs font-mono text-text-muted px-2">
-                      {page} / {totalPages}
+                      {page}
+                      {" "}
+                      /
+                      {totalPages}
                     </span>
                     <button
-                      onClick={() => fetch(page + 1)}
+                      onClick={() => void fetch(page + 1)}
                       disabled={page >= totalPages}
                       className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"
                     >
@@ -1068,15 +1087,16 @@ function WebEndpointsContent() {
           setDeleteTarget(null);
         }}
         title="Delete Web Endpoint"
-        description={
+        description={(
           <>
-            Are you sure you want to delete the endpoint for{" "}
+            Are you sure you want to delete the endpoint for
+            {" "}
             <span className="font-medium text-text-primary">
               {deleteTarget?.deviceName}
             </span>
             ? This action cannot be undone.
           </>
-        }
+        )}
         confirmLabel="Delete"
       />
     </div>

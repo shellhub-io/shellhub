@@ -101,12 +101,12 @@ export default function MfaDisableDialog({
     }
   };
 
-  const isComplete =
-    mode === "totp"
+  const isComplete
+    = mode === "totp"
       ? otp.isComplete
       : mode === "recovery"
-      ? recoveryCode.trim() !== ""
-      : otpMainEmail.isComplete && otpRecoveryEmail.isComplete;
+        ? recoveryCode.trim() !== ""
+        : otpMainEmail.isComplete && otpRecoveryEmail.isComplete;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center">
@@ -133,7 +133,7 @@ export default function MfaDisableDialog({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           {error && (
             <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono">
               <ExclamationTriangleIcon
@@ -226,7 +226,7 @@ export default function MfaDisableDialog({
 
                   <button
                     type="button"
-                    onClick={handleRequestEmailReset}
+                    onClick={() => void handleRequestEmailReset()}
                     disabled={requestingEmail}
                     className="w-full px-4 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-dim disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >

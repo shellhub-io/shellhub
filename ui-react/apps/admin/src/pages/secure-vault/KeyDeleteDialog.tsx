@@ -35,13 +35,15 @@ export default function KeyDeleteDialog({ open, entry, onClose }: Props) {
       onClose={handleClose}
       onConfirm={handleConfirm}
       title="Delete Private Key"
-      description={
+      description={(
         <>
-          Are you sure you want to delete{" "}
-          <strong className="text-text-primary">{entry?.name}</strong>? This
+          Are you sure you want to delete
+          {" "}
+          <strong className="text-text-primary">{entry?.name}</strong>
+          ? This
           action cannot be undone.
         </>
-      }
+      )}
       confirmLabel="Delete"
       variant="danger"
     >

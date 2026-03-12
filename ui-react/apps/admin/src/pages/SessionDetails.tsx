@@ -52,11 +52,13 @@ function buildTimeline(session: Session): TLEvent[] {
 
   events.push({
     id: "auth",
-    icon: session.authenticated ? (
-      <ShieldCheckIcon className="w-3.5 h-3.5" strokeWidth={2} />
-    ) : (
-      <ShieldExclamationIcon className="w-3.5 h-3.5" strokeWidth={2} />
-    ),
+    icon: session.authenticated
+      ? (
+        <ShieldCheckIcon className="w-3.5 h-3.5" strokeWidth={2} />
+      )
+      : (
+        <ShieldExclamationIcon className="w-3.5 h-3.5" strokeWidth={2} />
+      ),
     title: session.authenticated ? "Authenticated" : "Authentication failed",
     detail: `as ${session.username}`,
     status: session.authenticated ? "success" : "error",
@@ -134,9 +136,11 @@ function buildTimeline(session: Session): TLEvent[] {
 
   events.push({
     id: "end",
-    icon: session.active ? null : (
-      <CheckCircleIcon className="w-3.5 h-3.5" strokeWidth={2} />
-    ),
+    icon: session.active
+      ? null
+      : (
+        <CheckCircleIcon className="w-3.5 h-3.5" strokeWidth={2} />
+      ),
     title: session.active ? "Session active" : "Session closed",
     detail: session.active
       ? `started ${formatRelative(session.started_at)}`
@@ -157,8 +161,8 @@ const NODE_COLORS: Record<EventStatus, string> = {
   muted: "text-text-muted border-border bg-surface",
 };
 
-const LABEL =
-  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL
+  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 /* ── Info Row ── */
@@ -202,14 +206,16 @@ function TimelineNode({ event, isLast }: { event: TLEvent; isLast: boolean }) {
         <div
           className={`w-6 h-6 rounded-full border flex items-center justify-center ${NODE_COLORS[event.status]}`}
         >
-          {event.status === "active" && event.icon === null ? (
-            <span className="relative flex w-2 h-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-60" />
-              <span className="relative inline-flex rounded-full w-2 h-2 bg-accent-green" />
-            </span>
-          ) : (
-            event.icon
-          )}
+          {event.status === "active" && event.icon === null
+            ? (
+              <span className="relative flex w-2 h-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-60" />
+                <span className="relative inline-flex rounded-full w-2 h-2 bg-accent-green" />
+              </span>
+            )
+            : (
+              event.icon
+            )}
         </div>
         {!isLast && (
           <div className="w-px flex-1 bg-border/60 my-1 min-h-[20px]" />
@@ -292,7 +298,7 @@ export default function SessionDetails() {
   const [closeError, setCloseError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (uid) fetchOne(uid);
+    if (uid) void fetchOne(uid);
   }, [uid, fetchOne]);
 
   const handleClose = async () => {
@@ -323,7 +329,7 @@ export default function SessionDetails() {
         <XCircleIcon className="w-8 h-8 text-accent-red/60" />
         <p className="text-sm font-mono text-text-muted">{error}</p>
         <button
-          onClick={() => navigate("/sessions")}
+          onClick={() => void navigate("/sessions")}
           className="text-xs font-mono text-primary hover:underline"
         >
           ← Back to sessions
@@ -517,11 +523,14 @@ export default function SessionDetails() {
               </div>
             </div>
             <p className="text-sm text-text-muted mb-6">
-              Are you sure you want to close the session for{" "}
+              Are you sure you want to close the session for
+              {" "}
               <span className="font-medium text-text-primary">
                 {session.username}
-              </span>{" "}
-              on{" "}
+              </span>
+              {" "}
+              on
+              {" "}
               <span className="font-medium text-text-primary">
                 {session.device?.name ?? session.device_uid.substring(0, 8)}
               </span>
@@ -540,7 +549,7 @@ export default function SessionDetails() {
                 Cancel
               </button>
               <button
-                onClick={handleClose}
+                onClick={() => void handleClose()}
                 disabled={closing}
                 className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
               >

@@ -50,11 +50,11 @@ function ApiUnavailablePage() {
 }
 
 export default function ConnectivityGuard() {
-  const { initialCheckDone, initialGatePassed, checkInitial } =
-    useConnectivityStore();
+  const { initialCheckDone, initialGatePassed, checkInitial }
+    = useConnectivityStore();
 
   useEffect(() => {
-    if (!initialCheckDone) checkInitial();
+    if (!initialCheckDone) void checkInitial();
   }, [initialCheckDone, checkInitial]);
 
   if (!initialCheckDone) {

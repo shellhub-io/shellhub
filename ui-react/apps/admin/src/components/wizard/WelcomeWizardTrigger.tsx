@@ -27,22 +27,22 @@ export default function WelcomeWizardTrigger() {
   // Fetch stats once on mount (skipped if the tenant has already been welcomed)
   useEffect(() => {
     if (!tenant || hasSeenWelcome(tenant)) return;
-    fetchStats();
+    void fetchStats();
   }, [tenant, fetchStats]);
 
   // Derive open state during render — no setState-in-effect needed
-  const show =
-    !!stats &&
-    !!tenant &&
-    !dismissed &&
-    !hasSeenWelcome(tenant) &&
-    !hasAnyDevices(stats);
+  const show
+    = !!stats
+      && !!tenant
+      && !dismissed
+      && !hasSeenWelcome(tenant)
+      && !hasAnyDevices(stats);
 
   const handleClose = () => {
     if (tenant) markWelcomeSeen(tenant);
     setDismissed(true);
     // Refresh the shared store so the Dashboard re-renders with current data
-    fetchStats();
+    void fetchStats();
   };
 
   return <WelcomeWizard open={show} onClose={handleClose} />;

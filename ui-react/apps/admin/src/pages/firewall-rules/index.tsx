@@ -16,8 +16,8 @@ import {
 
 /* ─── Page ─── */
 export default function FirewallRules() {
-  const { rules, totalCount, loading, page, perPage, fetch, remove } =
-    useFirewallRulesStore();
+  const { rules, totalCount, loading, page, perPage, fetch, remove }
+    = useFirewallRulesStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -27,7 +27,7 @@ export default function FirewallRules() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch();
+    void fetch();
   }, [fetch]);
 
   const openNew = () => {
@@ -49,12 +49,12 @@ export default function FirewallRules() {
 
   const filtered = search
     ? rules.filter(
-        (r) =>
-          r.action.toLowerCase().includes(search.toLowerCase()) ||
-          r.source_ip.toLowerCase().includes(search.toLowerCase()) ||
-          r.username.toLowerCase().includes(search.toLowerCase()) ||
-          String(r.priority).includes(search),
-      )
+      (r) =>
+        r.action.toLowerCase().includes(search.toLowerCase())
+        || r.source_ip.toLowerCase().includes(search.toLowerCase())
+        || r.username.toLowerCase().includes(search.toLowerCase())
+        || String(r.priority).includes(search),
+    )
     : rules;
 
   return (
@@ -184,36 +184,39 @@ export default function FirewallRules() {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
-            <div className="py-12 text-center animate-fade-in">
-              <p className="text-sm text-text-muted">
-                No rules matching &ldquo;{search}&rdquo;
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-2 animate-fade-in">
-                {filtered.map((rule) => (
-                  <RuleCard
-                    key={rule.id}
-                    rule={rule}
-                    onEdit={() => openEdit(rule)}
-                    onDelete={() =>
-                      setDeleteTarget({ id: rule.id, priority: rule.priority })
-                    }
-                  />
-                ))}
+          {filtered.length === 0
+            ? (
+              <div className="py-12 text-center animate-fade-in">
+                <p className="text-sm text-text-muted">
+                  No rules matching &ldquo;
+                  {search}
+                  &rdquo;
+                </p>
               </div>
+            )
+            : (
+              <>
+                <div className="space-y-2 animate-fade-in">
+                  {filtered.map((rule) => (
+                    <RuleCard
+                      key={rule.id}
+                      rule={rule}
+                      onEdit={() => openEdit(rule)}
+                      onDelete={() =>
+                        setDeleteTarget({ id: rule.id, priority: rule.priority })}
+                    />
+                  ))}
+                </div>
 
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                totalCount={totalCount}
-                itemLabel="rule"
-                onPageChange={fetch}
-              />
-            </>
-          )}
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  itemLabel="rule"
+                  onPageChange={(p) => void fetch(p)}
+                />
+              </>
+            )}
         </>
       )}
 
@@ -233,15 +236,16 @@ export default function FirewallRules() {
           setDeleteTarget(null);
         }}
         title="Delete Firewall Rule"
-        description={
+        description={(
           <>
-            Are you sure you want to delete the rule with priority{" "}
+            Are you sure you want to delete the rule with priority
+            {" "}
             <span className="font-medium text-text-primary">
               {deleteTarget?.priority}
             </span>
             ? This action cannot be undone.
           </>
-        }
+        )}
         confirmLabel="Delete"
       />
     </div>

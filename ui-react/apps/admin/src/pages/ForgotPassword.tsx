@@ -67,7 +67,7 @@ export default function ForgotPassword() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
             <div>
               <label
                 htmlFor="account"

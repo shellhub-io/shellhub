@@ -35,7 +35,7 @@ vi.mock("../../../components/common/ConfirmDialog", () => ({
         <div>{description}</div>
         {children}
         <button onClick={onClose}>Cancel</button>
-        <button onClick={onConfirm}>{confirmLabel}</button>
+        <button onClick={() => void onConfirm()}>{confirmLabel}</button>
       </div>
     );
   },

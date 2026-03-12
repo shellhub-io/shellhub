@@ -25,7 +25,7 @@ export default function MfaRecover() {
   // Redirect to login if no identifier available (but only if not in active MFA session)
   useEffect(() => {
     if (!identifier && !mfaToken) {
-      navigate("/login");
+      void navigate("/login");
     }
   }, [identifier, mfaToken, navigate]);
 
@@ -52,13 +52,13 @@ export default function MfaRecover() {
     await disableMfa({ recovery_code: recoveryCode });
     updateMfaStatus(false);
     setShowTimeoutModal(false);
-    navigate("/dashboard");
+    void navigate("/dashboard");
   };
 
   const handleCloseModal = () => {
     setShowTimeoutModal(false);
     useAuthStore.setState({ mfaRecoveryExpiry: null });
-    navigate("/dashboard");
+    void navigate("/dashboard");
   };
 
   return (
@@ -90,7 +90,7 @@ export default function MfaRecover() {
         className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
         style={{ animationDelay: "200ms" }}
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {error && (
             <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <ExclamationCircleIcon

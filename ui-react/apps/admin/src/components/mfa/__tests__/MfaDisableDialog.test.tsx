@@ -23,7 +23,7 @@ describe("MfaDisableDialog", () => {
   describe("Mode Switching", () => {
     it("defaults to TOTP mode", () => {
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // TOTP mode shows "Verification Code" label and OTP inputs
@@ -34,7 +34,7 @@ describe("MfaDisableDialog", () => {
     it("switches to recovery code mode", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       const switchButton = screen.getByText(/use recovery code/i);
@@ -47,7 +47,7 @@ describe("MfaDisableDialog", () => {
     it("switches back to TOTP mode from recovery", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Switch to recovery mode
@@ -66,7 +66,7 @@ describe("MfaDisableDialog", () => {
     it("requires all 6 digits before enabling submit", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       const disableButton = screen.getByRole("button", { name: /disable mfa/i });
@@ -75,7 +75,7 @@ describe("MfaDisableDialog", () => {
       // Type 6 digits
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "1");
@@ -91,13 +91,13 @@ describe("MfaDisableDialog", () => {
     it("successfully disables MFA with valid TOTP", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Enter 6-digit code
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "1");
@@ -122,13 +122,13 @@ describe("MfaDisableDialog", () => {
       mockedDisableMfa.mockRejectedValue(new Error("Invalid code"));
 
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Enter 6-digit code
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "9");
@@ -154,7 +154,7 @@ describe("MfaDisableDialog", () => {
     it("requires recovery code before enabling submit", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Switch to recovery mode
@@ -174,7 +174,7 @@ describe("MfaDisableDialog", () => {
     it("successfully disables MFA with valid recovery code", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Switch to recovery mode
@@ -202,7 +202,7 @@ describe("MfaDisableDialog", () => {
       mockedDisableMfa.mockRejectedValue(new Error("Invalid recovery code"));
 
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Switch to recovery mode
@@ -228,7 +228,7 @@ describe("MfaDisableDialog", () => {
     it("closes when cancel button is clicked", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       const cancelButton = screen.getByText(/cancel/i);
@@ -241,7 +241,7 @@ describe("MfaDisableDialog", () => {
     it("closes when clicking outside (backdrop)", async () => {
       const user = userEvent.setup();
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Get the backdrop (absolute positioned div before the dialog card)
@@ -256,7 +256,7 @@ describe("MfaDisableDialog", () => {
 
     it("does not render when open is false", () => {
       const { container } = render(
-        <MfaDisableDialog open={false} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={false} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       expect(container.firstChild).toBeNull();
@@ -270,17 +270,17 @@ describe("MfaDisableDialog", () => {
       mockedDisableMfa.mockReturnValue(
         new Promise((resolve) => {
           resolveDisable = resolve as () => void;
-        })
+        }),
       );
 
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Enter code
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "1");
@@ -311,13 +311,13 @@ describe("MfaDisableDialog", () => {
       mockedDisableMfa.mockRejectedValue(new Error("Invalid code"));
 
       render(
-        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />
+        <MfaDisableDialog open={true} onClose={onClose} onSuccess={onSuccess} />,
       );
 
       // Try with invalid TOTP
       const inputs = screen.getAllByRole("textbox");
       const otpInputs = inputs.filter((input) =>
-        input.getAttribute("maxLength") === "1"
+        input.getAttribute("maxLength") === "1",
       );
 
       await user.type(otpInputs[0], "9");

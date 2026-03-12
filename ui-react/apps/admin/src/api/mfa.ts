@@ -12,7 +12,7 @@ import type {
 // Generate QR code and recovery codes
 export async function generateMfa(): Promise<MfaGenerateResponse> {
   const { data } = await apiClient.get<MfaGenerateResponse>(
-    "/api/user/mfa/generate"
+    "/api/user/mfa/generate",
   );
   return data;
 }
@@ -24,11 +24,11 @@ export async function enableMfa(payload: MfaEnableRequest): Promise<void> {
 
 // Validate MFA code after password login
 export async function validateMfa(
-  payload: MfaAuthRequest
+  payload: MfaAuthRequest,
 ): Promise<LoginResponse> {
   const { data } = await apiClient.post<LoginResponse>(
     "/api/user/mfa/auth",
-    payload
+    payload,
   );
   return data;
 }
@@ -40,11 +40,11 @@ export async function disableMfa(payload: MfaDisableRequest): Promise<void> {
 
 // Recover account with recovery code
 export async function recoverMfa(
-  payload: MfaRecoverRequest
+  payload: MfaRecoverRequest,
 ): Promise<{ data: LoginResponse; expiresAt: string }> {
   const response = await apiClient.post<LoginResponse>(
     "/api/user/mfa/recover",
-    payload
+    payload,
   );
   return {
     data: response.data,
@@ -62,11 +62,11 @@ export async function requestMfaReset(identifier: string): Promise<string> {
 // Complete MFA reset with email codes
 export async function completeMfaReset(
   userId: string,
-  payload: MfaResetRequest
+  payload: MfaResetRequest,
 ): Promise<LoginResponse> {
   const { data } = await apiClient.put<LoginResponse>(
     `/api/user/mfa/reset/${userId}`,
-    payload
+    payload,
   );
   return data;
 }

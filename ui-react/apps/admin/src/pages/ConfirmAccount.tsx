@@ -58,24 +58,27 @@ export default function ConfirmAccount() {
 
         <button
           type="button"
-          onClick={handleResend}
+          onClick={() => void handleResend()}
           disabled={resendLoading || resendCooldown > 0}
           className="w-full bg-primary hover:bg-primary/90 text-white py-2.5 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mb-5"
         >
-          {resendLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span className="font-mono text-xs">Sending...</span>
-            </span>
-          ) : resendCooldown > 0 ? (
-            `Resend Email (${resendCooldown}s)`
-          ) : (
-            "Resend Email"
-          )}
+          {resendLoading
+            ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="font-mono text-xs">Sending...</span>
+              </span>
+            ) : resendCooldown > 0 ? (
+              `Resend Email (${resendCooldown}s)`
+            )
+              : (
+                "Resend Email"
+              )}
         </button>
 
         <p className="text-xs text-text-muted">
-          Back to{" "}
+          Back to
+          {" "}
           <Link
             to="/login"
             className="text-primary hover:text-primary/80 font-medium transition-colors"

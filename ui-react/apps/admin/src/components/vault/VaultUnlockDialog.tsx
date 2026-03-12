@@ -57,7 +57,7 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <div>
           <label
             htmlFor={`${instanceId}-password`}
@@ -87,17 +87,19 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          {onReset ? (
-            <button
-              type="button"
-              onClick={onReset}
-              className="text-2xs text-text-muted hover:text-accent-red transition-colors"
-            >
-              Forgot password? Reset vault
-            </button>
-          ) : (
-            <div />
-          )}
+          {onReset
+            ? (
+              <button
+                type="button"
+                onClick={onReset}
+                className="text-2xs text-text-muted hover:text-accent-red transition-colors"
+              >
+                Forgot password? Reset vault
+              </button>
+            )
+            : (
+              <div />
+            )}
           <div className="flex gap-2">
             <button
               type="button"

@@ -63,26 +63,28 @@ export function useDevicePolling({
   // picks up the latest version without useCallback circular dependency.
   useEffect(() => {
     scheduleRef.current = (delay: number) => {
-      timeoutRef.current = setTimeout(async () => {
-        if (!activeRef.current) return;
-
-        try {
-          const stats = await getStats();
+      timeoutRef.current = setTimeout(() => {
+        void (async () => {
           if (!activeRef.current) return;
 
-          const shouldStop = onPollRef.current(stats);
-          if (shouldStop) {
-            stop();
-            return;
+          try {
+            const stats = await getStats();
+            if (!activeRef.current) return;
+
+            const shouldStop = onPollRef.current(stats);
+            if (shouldStop) {
+              stop();
+              return;
+            }
+          } catch {
+            // On error, keep polling but back off
           }
-        } catch {
-          // On error, keep polling but back off
-        }
 
-        if (!activeRef.current) return;
+          if (!activeRef.current) return;
 
-        const next = Math.min(delay * backoffFactor, maxInterval);
-        scheduleRef.current(next);
+          const next = Math.min(delay * backoffFactor, maxInterval);
+          scheduleRef.current(next);
+        })();
       }, delay);
     };
   }, [backoffFactor, maxInterval, stop]);

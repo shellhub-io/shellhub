@@ -50,7 +50,7 @@ vi.mock("../../../components/common/Drawer", () => ({
       <div>
         <h2>{title}</h2>
         <button onClick={onClose}>Close Drawer</button>
-        <div>{children as React.ReactNode}</div>
+        <div>{children}</div>
         {footer && <div>{footer as React.ReactNode}</div>}
       </div>
     );
@@ -102,8 +102,8 @@ const mockEntry: VaultKeyEntry = {
   updatedAt: "2024-01-01T00:00:00Z",
 };
 
-const VALID_KEY =
-  "-----BEGIN OPENSSH PRIVATE KEY-----\nvalid\n-----END OPENSSH PRIVATE KEY-----";
+const VALID_KEY
+  = "-----BEGIN OPENSSH PRIVATE KEY-----\nvalid\n-----END OPENSSH PRIVATE KEY-----";
 
 function setupStore() {
   (useVaultStore as unknown as { _state: Record<string, unknown> })._state = {
@@ -193,7 +193,7 @@ describe("KeyDrawer", () => {
   });
 
   describe("form state reset on open", () => {
-    it("clears fields when closed then reopened without editKey", async () => {
+    it("clears fields when closed then reopened without editKey", () => {
       const { rerender } = renderDrawer({ editKey: mockEntry });
 
       // Close the drawer

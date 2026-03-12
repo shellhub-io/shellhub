@@ -73,7 +73,7 @@ export default function TerminalInstance({
 
       let token: string;
       try {
-        const res = await apiClient.post("/ws/ssh", body);
+        const res = await apiClient.post<{ token: string }>("/ws/ssh", body);
         token = res.data.token;
       } catch {
         if (cancelled) return;
@@ -147,9 +147,10 @@ export default function TerminalInstance({
           registerResizeHandler();
         } else {
           // JSON text message = challenge-response or error
-          const msg = parseMessage(event.data);
+          const textData = String(event.data as unknown);
+          const msg = parseMessage(textData);
           if (!msg) {
-            if (!lastError) term.write(event.data);
+            if (!lastError) term.write(textData);
             return;
           }
 
@@ -223,7 +224,7 @@ export default function TerminalInstance({
       term.focus();
     }
 
-    connect();
+    void connect();
 
     return () => {
       cancelled = true;

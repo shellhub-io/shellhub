@@ -82,7 +82,8 @@ export default function CreateNamespaceDialog({
           </div>
           <div className="p-4 overflow-x-auto">
             <pre className="text-xs font-mono text-accent-cyan leading-relaxed whitespace-pre m-0">
-              <span className="text-text-muted select-none">$ </span>{COMMAND}
+              <span className="text-text-muted select-none">$ </span>
+              {COMMAND}
             </pre>
           </div>
         </div>

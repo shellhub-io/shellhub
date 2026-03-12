@@ -21,7 +21,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       expect(container.firstChild).toBeNull();
@@ -35,7 +35,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       expect(screen.getByText(/recovery window/i)).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       // useCountdown formats as "X minutes Y seconds remaining"
@@ -81,7 +81,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       const initialText = screen.getByText(/remaining/).textContent;
@@ -106,7 +106,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       act(() => {
@@ -127,7 +127,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       const disableButton = screen.getByRole("button", {
@@ -148,7 +148,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       act(() => {
@@ -174,7 +174,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       const disableButton = screen.getByRole("button", {
@@ -194,7 +194,7 @@ describe("MfaRecoveryTimeoutModal", () => {
       onDisable.mockReturnValue(
         new Promise<void>((resolve) => {
           resolveDisable = resolve;
-        })
+        }),
       );
 
       render(
@@ -203,7 +203,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       const disableButton = screen.getByRole("button", {
@@ -234,7 +234,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       // The dismiss button is labelled "Close" (not "Continue to dashboard")
@@ -254,13 +254,13 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       // The backdrop is intentionally non-dismissible (no onClick handler)
       // Modal has no role="dialog"; find inner container via heading
       const heading = screen.getByText(/recovery window active/i);
-      const dialog = heading.closest(".relative") as HTMLElement | null;
+      const dialog = heading.closest(".relative");
       const backdrop = dialog?.previousElementSibling as HTMLElement | null;
 
       if (backdrop) {
@@ -284,7 +284,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       act(() => {
@@ -307,7 +307,7 @@ describe("MfaRecoveryTimeoutModal", () => {
       onDisable.mockReturnValue(
         new Promise<void>((resolve) => {
           resolveDisable = resolve;
-        })
+        }),
       );
 
       render(
@@ -316,7 +316,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       const disableButton = screen.getByRole("button", {
@@ -369,7 +369,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       const disableButton = screen.getByRole("button", {
@@ -396,11 +396,11 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       expect(
-        screen.getByText(/successfully used a recovery code/i)
+        screen.getByText(/successfully used a recovery code/i),
       ).toBeInTheDocument();
     });
 
@@ -413,7 +413,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={expiresAt}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       expect(screen.getByText(/security measure/i)).toBeInTheDocument();
@@ -428,7 +428,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={NaN}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       // Should still render but show expired state
@@ -442,7 +442,7 @@ describe("MfaRecoveryTimeoutModal", () => {
           expiresAt={0}
           onClose={onClose}
           onDisable={onDisable}
-        />
+        />,
       );
 
       // Should still render

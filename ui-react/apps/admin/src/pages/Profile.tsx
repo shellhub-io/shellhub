@@ -55,7 +55,6 @@ function validateEmail(v: string): string | null {
   return null;
 }
 
-
 /* ─── Settings Card ─── */
 
 function SettingsCard({
@@ -137,7 +136,6 @@ function DeleteAccountDialog({
 
   const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
 
-
   const handleDelete = async () => {
     setError("");
     try {
@@ -217,11 +215,13 @@ function DeleteAccountWarningDialog({
       <div className="relative bg-surface border border-border rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-slide-up">
         <div className="flex items-start gap-3 mb-5">
           <span className="w-9 h-9 rounded-lg bg-hover-medium border border-border flex items-center justify-center shrink-0">
-            {isCommunity ? (
-              <CommandLineIcon className="w-5 h-5 text-text-muted" />
-            ) : (
-              <ShieldCheckIcon className="w-5 h-5 text-text-muted" />
-            )}
+            {isCommunity
+              ? (
+                <CommandLineIcon className="w-5 h-5 text-text-muted" />
+              )
+              : (
+                <ShieldCheckIcon className="w-5 h-5 text-text-muted" />
+              )}
           </span>
           <div>
             <h2 className="text-base font-semibold text-text-primary">
@@ -234,63 +234,70 @@ function DeleteAccountWarningDialog({
         </div>
 
         <div className="space-y-4 text-sm text-text-muted">
-          {isCommunity ? (
-            <>
+          {isCommunity
+            ? (
+              <>
+                <p>
+                  In Community instances, user accounts can only be deleted via
+                  the CLI. For detailed instructions, refer to our
+                  {" "}
+                  <a
+                    href="https://docs.shellhub.io/self-hosted/administration#delete-a-user"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1"
+                    data-test="docs-link"
+                  >
+                    administration documentation
+                    <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+                  </a>
+                  .
+                </p>
+                <div>
+                  <p className="text-2xs font-medium text-text-secondary mb-1.5">
+                    Run this command to delete your account:
+                  </p>
+                  <div className="flex items-center gap-2 bg-hover-medium border border-border rounded-lg px-3 py-2">
+                    <span className="flex-1 truncate font-mono text-2xs text-text-primary">
+                      {deleteCommand}
+                    </span>
+                    <CopyButton text={deleteCommand} size="sm" />
+                  </div>
+                </div>
+                {isNamespaceOwner && (
+                  <div className="p-3 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-start gap-2 text-accent-yellow">
+                    <ExclamationTriangleIcon
+                      className="w-4 h-4 shrink-0 mt-0.5"
+                      strokeWidth={2}
+                    />
+                    <span className="text-2xs">
+                      <strong>Namespace owner:</strong>
+                      {" "}
+                      You own one or more
+                      namespaces. You must delete all owned namespaces before
+                      deleting your account.
+                    </span>
+                  </div>
+                )}
+              </>
+            )
+            : (
               <p>
-                In Community instances, user accounts can only be deleted via
-                the CLI. For detailed instructions, refer to our{" "}
+                In Enterprise instances, user accounts can only be deleted via
+                the Admin Console. Please access your
+                {" "}
                 <a
-                  href="https://docs.shellhub.io/self-hosted/administration#delete-a-user"
+                  href="/admin/users"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-1"
-                  data-test="docs-link"
+                  className="font-medium text-primary hover:underline"
                 >
-                  administration documentation
-                  <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+                  Admin Console
                 </a>
-                .
+                {" "}
+                or contact your system administrator for assistance.
               </p>
-              <div>
-                <p className="text-2xs font-medium text-text-secondary mb-1.5">
-                  Run this command to delete your account:
-                </p>
-                <div className="flex items-center gap-2 bg-hover-medium border border-border rounded-lg px-3 py-2">
-                  <span className="flex-1 truncate font-mono text-2xs text-text-primary">
-                    {deleteCommand}
-                  </span>
-                  <CopyButton text={deleteCommand} size="sm" />
-                </div>
-              </div>
-              {isNamespaceOwner && (
-                <div className="p-3 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-start gap-2 text-accent-yellow">
-                  <ExclamationTriangleIcon
-                    className="w-4 h-4 shrink-0 mt-0.5"
-                    strokeWidth={2}
-                  />
-                  <span className="text-2xs">
-                    <strong>Namespace owner:</strong> You own one or more
-                    namespaces. You must delete all owned namespaces before
-                    deleting your account.
-                  </span>
-                </div>
-              )}
-            </>
-          ) : (
-            <p>
-              In Enterprise instances, user accounts can only be deleted via
-              the Admin Console. Please access your{" "}
-              <a
-                href="/admin/users"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-primary hover:underline"
-              >
-                Admin Console
-              </a>{" "}
-              or contact your system administrator for assistance.
-            </p>
-          )}
+            )}
         </div>
 
         <div className="flex justify-end mt-6">
@@ -342,27 +349,27 @@ export function EditProfileDrawer({
   });
 
   const nameError = name !== currentName ? validateName(name) : null;
-  const usernameError =
-    username !== currentUsername ? validateUsername(username) : null;
+  const usernameError
+    = username !== currentUsername ? validateUsername(username) : null;
   const emailError = email !== currentEmail ? validateEmail(email) : null;
-  const recoveryEmailError =
-    recoveryEmail !== currentRecoveryEmail || email !== currentEmail
+  const recoveryEmailError
+    = recoveryEmail !== currentRecoveryEmail || email !== currentEmail
       ? validateRecoveryEmail(recoveryEmail, email)
       : null;
 
-  const hasValidationErrors =
-    !!nameError || !!usernameError || !!emailError || !!recoveryEmailError;
+  const hasValidationErrors
+    = !!nameError || !!usernameError || !!emailError || !!recoveryEmailError;
 
-  const hasChanges =
-    name !== currentName ||
-    username !== currentUsername ||
-    email !== currentEmail ||
-    recoveryEmail !== currentRecoveryEmail;
+  const hasChanges
+    = name !== currentName
+      || username !== currentUsername
+      || email !== currentEmail
+      || recoveryEmail !== currentRecoveryEmail;
 
   const canSubmit = hasChanges && !hasValidationErrors && !submitting;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!canSubmit) return;
     setSubmitting(true);
     setError("");
@@ -404,7 +411,7 @@ export function EditProfileDrawer({
       open={open}
       onClose={onClose}
       title="Edit Profile"
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -414,21 +421,23 @@ export function EditProfileDrawer({
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {submitting ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CheckIcon className="w-4 h-4" strokeWidth={2} />
-            )}
+            {submitting
+              ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )
+              : (
+                <CheckIcon className="w-4 h-4" strokeWidth={2} />
+              )}
             Save
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
           <label className={LABEL}>Name</label>
           <input
@@ -531,18 +540,18 @@ function ChangePasswordDrawer({
   });
 
   const newPwError = newPw ? validatePassword(newPw) : null;
-  const confirmError =
-    confirmPw && newPw !== confirmPw ? "Passwords do not match" : null;
-  const canSubmit =
-    current &&
-    newPw &&
-    confirmPw &&
-    !newPwError &&
-    !confirmError &&
-    !submitting;
+  const confirmError
+    = confirmPw && newPw !== confirmPw ? "Passwords do not match" : null;
+  const canSubmit
+    = current
+      && newPw
+      && confirmPw
+      && !newPwError
+      && !confirmError
+      && !submitting;
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     if (!canSubmit) return;
     setSubmitting(true);
     setError("");
@@ -566,7 +575,7 @@ function ChangePasswordDrawer({
       open={open}
       onClose={onClose}
       title="Change Password"
-      footer={
+      footer={(
         <>
           <button
             type="button"
@@ -576,21 +585,23 @@ function ChangePasswordDrawer({
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {submitting ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <CheckIcon className="w-4 h-4" strokeWidth={2} />
-            )}
+            {submitting
+              ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )
+              : (
+                <CheckIcon className="w-4 h-4" strokeWidth={2} />
+              )}
             Change Password
           </button>
         </>
-      }
+      )}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
           <label className={LABEL}>Current Password</label>
           <input
@@ -656,7 +667,7 @@ export default function Profile() {
   const [mfaDisableOpen, setMfaDisableOpen] = useState(false);
 
   useEffect(() => {
-    fetchUser();
+    void fetchUser();
   }, [fetchUser]);
 
   if (!name && !username) {
@@ -703,11 +714,11 @@ export default function Profile() {
             icon={<UserCircleIcon className="w-4 h-4" />}
             title="Username"
             description="Legacy login identifier. Use email to sign in instead."
-            badge={
+            badge={(
               <span className="px-1.5 py-0.5 text-3xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
                 Deprecated
               </span>
-            }
+            )}
           >
             <span className="text-sm font-mono text-text-secondary">
               {username}
@@ -788,11 +799,11 @@ export default function Profile() {
               icon={<ShieldCheckIcon className="w-4 h-4" />}
               title="Multi-Factor Authentication"
               description="Enhance your account security with TOTP-based 2FA"
-              badge={
+              badge={(
                 <span className="px-1.5 py-0.5 text-2xs font-mono font-semibold uppercase tracking-wider rounded bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
                   Pro
                 </span>
-              }
+              )}
             >
               <a
                 href="https://www.shellhub.io/pricing"
@@ -840,25 +851,27 @@ export default function Profile() {
         open={pwDrawerOpen}
         onClose={() => setPwDrawerOpen(false)}
       />
-      {isCloud ? (
-        <DeleteAccountDialog
-          key={String(deleteDialogOpen)}
-          open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-        />
-      ) : (
-        <DeleteAccountWarningDialog
-          open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-          isCommunity={isCommunity}
-        />
-      )}
+      {isCloud
+        ? (
+          <DeleteAccountDialog
+            key={String(deleteDialogOpen)}
+            open={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)}
+          />
+        )
+        : (
+          <DeleteAccountWarningDialog
+            open={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)}
+            isCommunity={isCommunity}
+          />
+        )}
       <MfaEnableDrawer
         open={mfaEnableOpen}
         onClose={() => setMfaEnableOpen(false)}
         onSuccess={() => {
           setMfaEnableOpen(false);
-          fetchUser(); // Refresh to update mfaEnabled
+          void fetchUser(); // Refresh to update mfaEnabled
         }}
         currentRecoveryEmail={recoveryEmail ?? null}
       />
@@ -867,7 +880,7 @@ export default function Profile() {
         onClose={() => setMfaDisableOpen(false)}
         onSuccess={() => {
           setMfaDisableOpen(false);
-          fetchUser(); // Refresh to update mfaEnabled
+          void fetchUser(); // Refresh to update mfaEnabled
         }}
       />
     </div>

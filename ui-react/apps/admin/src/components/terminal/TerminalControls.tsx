@@ -13,8 +13,8 @@ import TerminalSettingsDrawer from "./TerminalSettingsDrawer";
 export function TerminalInfo({ session }: { session: TerminalSession }) {
   const status = useTerminalStore(
     (s) =>
-      s.sessions.find((ss) => ss.id === session.id)?.connectionStatus ??
-      "disconnected",
+      s.sessions.find((ss) => ss.id === session.id)?.connectionStatus
+      ?? "disconnected",
   );
 
   return (
@@ -75,35 +75,37 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
             className="w-3.5 h-3.5 rounded-full bg-[#28c840] border border-[#1aab29] flex items-center justify-center transition-all hover:brightness-110 active:brightness-90"
             title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
           >
-            {isFullscreen ? (
-              <svg
-                className="w-2 h-2 text-[#006500] opacity-0 group-hover/lights:opacity-100 transition-opacity"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={3}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 9V5M9 9H5m10 6v4m0-4h4"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-2 h-2 text-[#006500] opacity-0 group-hover/lights:opacity-100 transition-opacity"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={3}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 4l7 7m9-9l-7 7M4 20l7-7m9 9l-7-7"
-                />
-              </svg>
-            )}
+            {isFullscreen
+              ? (
+                <svg
+                  className="w-2 h-2 text-[#006500] opacity-0 group-hover/lights:opacity-100 transition-opacity"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 9V5M9 9H5m10 6v4m0-4h4"
+                  />
+                </svg>
+              )
+              : (
+                <svg
+                  className="w-2 h-2 text-[#006500] opacity-0 group-hover/lights:opacity-100 transition-opacity"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 4l7 7m9-9l-7 7M4 20l7-7m9 9l-7-7"
+                  />
+                </svg>
+              )}
           </button>
         </div>
 

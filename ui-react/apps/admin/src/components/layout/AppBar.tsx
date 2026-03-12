@@ -75,11 +75,13 @@ export default function AppBar() {
         onTransitionEnd={handleTransitionEnd}
         className={`min-w-0 transition-all duration-150 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
       >
-        {displayed ? (
-          <TerminalInfo session={displayed} />
-        ) : (
-          <NamespaceSelector />
-        )}
+        {displayed
+          ? (
+            <TerminalInfo session={displayed} />
+          )
+          : (
+            <NamespaceSelector />
+          )}
       </div>
 
       <div className="flex items-center gap-1">

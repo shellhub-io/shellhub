@@ -1,5 +1,5 @@
 import axios from "axios";
-import apiClient from "./client";
+import apiClient, { getTotalCount } from "./client";
 import { Device } from "../types/device";
 import { PaginatedResponse } from "../types/api";
 
@@ -11,10 +11,10 @@ function normalizeTags(device: Device): Device {
     ...device,
     tags: Array.isArray(device.tags)
       ? device.tags.map((t: unknown) =>
-          typeof t === "object" && t !== null && "name" in t
-            ? (t as { name: string }).name
-            : String(t),
-        )
+        typeof t === "object" && t !== null && "name" in t
+          ? (t as { name: string }).name
+          : String(t),
+      )
       : device.tags,
   };
 }
@@ -38,8 +38,7 @@ export async function getDevices(
   if (filterTags.length > 0) params.filter = buildFilter(filterTags);
 
   const response = await apiClient.get<Device[]>("/api/devices", { params });
-  const totalCount = parseInt(response.headers["x-total-count"] ?? "0", 10);
-  return { data: response.data.map(normalizeTags), totalCount };
+  return { data: response.data.map(normalizeTags), totalCount: getTotalCount(response) };
 }
 
 export async function getDevice(uid: string): Promise<Device> {

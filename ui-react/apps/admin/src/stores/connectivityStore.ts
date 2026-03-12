@@ -23,11 +23,11 @@ function startPolling() {
       useConnectivityStore.getState().markUp();
       polling = false;
     } catch {
-      setTimeout(poll, 5000);
+      setTimeout(() => void poll(), 5000);
     }
   };
 
-  setTimeout(poll, 5000);
+  setTimeout(() => void poll(), 5000);
 }
 
 export const useConnectivityStore = create<ConnectivityState>()((set) => ({

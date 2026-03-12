@@ -46,7 +46,7 @@ function CloudForm() {
   const displayError = validationError || error;
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={(e) => void handleSubmit(e)} className="w-full">
       <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5">
         Namespace Name
       </label>
@@ -69,11 +69,13 @@ function CloudForm() {
           disabled={loading || name.length < 3}
           className="px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 shrink-0"
         >
-          {loading ? (
-            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
-          ) : (
-            "Create"
-          )}
+          {loading
+            ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+            )
+            : (
+              "Create"
+            )}
         </button>
       </div>
 
@@ -99,7 +101,7 @@ function CopyBlock({ command }: { command: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(command);
+    void navigator.clipboard.writeText(command);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -113,14 +115,16 @@ function CopyBlock({ command }: { command: string }) {
         className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
         title="Copy command"
       >
-        {copied ? (
-          <CheckIcon
-            className="w-3.5 h-3.5 text-accent-green"
-            strokeWidth={2}
-          />
-        ) : (
-          <ClipboardDocumentIcon className="w-3.5 h-3.5" strokeWidth={2} />
-        )}
+        {copied
+          ? (
+            <CheckIcon
+              className="w-3.5 h-3.5 text-accent-green"
+              strokeWidth={2}
+            />
+          )
+          : (
+            <ClipboardDocumentIcon className="w-3.5 h-3.5" strokeWidth={2} />
+          )}
       </button>
     </div>
   );
@@ -147,13 +151,13 @@ function CommunityInstructions() {
         // ignore
       }
     };
-    const interval = setInterval(check, 5000);
+    const interval = setInterval(() => void check(), 5000);
     return () => clearInterval(interval);
   }, []);
 
   const handleContinue = () => {
     if (tenantId) {
-      switchNamespace(tenantId);
+      void switchNamespace(tenantId);
     }
   };
 
@@ -179,8 +183,14 @@ function CommunityInstructions() {
         </p>
         <CopyBlock command={addCmd} />
         <p className="mt-1.5 text-2xs text-text-muted">
-          Roles: <span className="text-text-secondary">observer</span>,{" "}
-          <span className="text-text-secondary">operator</span>,{" "}
+          Roles:
+          {" "}
+          <span className="text-text-secondary">observer</span>
+          ,
+          {" "}
+          <span className="text-text-secondary">operator</span>
+          ,
+          {" "}
           <span className="text-text-secondary">administrator</span>
         </p>
       </div>
@@ -194,21 +204,24 @@ function CommunityInstructions() {
             : "bg-primary/30 text-white/50 cursor-not-allowed"
         }`}
       >
-        {ready ? (
-          "You're in! Go to dashboard"
-        ) : (
-          <>
-            <span className="w-4 h-4 border-2 border-white/20 border-t-white/50 rounded-full animate-spin" />
-            Waiting for namespace access...
-          </>
-        )}
+        {ready
+          ? (
+            "You're in! Go to dashboard"
+          )
+          : (
+            <>
+              <span className="w-4 h-4 border-2 border-white/20 border-t-white/50 rounded-full animate-spin" />
+              Waiting for namespace access...
+            </>
+          )}
       </button>
 
       {/* Upgrade tip */}
       <div className="flex items-start gap-2.5 bg-primary/5 border border-primary/10 rounded-lg p-3">
         <SparklesIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <p className="text-2xs text-text-secondary leading-relaxed">
-          <span className="font-medium text-text-primary">Tip:</span>{" "}
+          <span className="font-medium text-text-primary">Tip:</span>
+          {" "}
           <a
             href="https://www.shellhub.io/pricing"
             target="_blank"
@@ -216,7 +229,8 @@ function CommunityInstructions() {
             className="text-primary hover:text-primary-400 transition-colors"
           >
             ShellHub Cloud and Enterprise
-          </a>{" "}
+          </a>
+          {" "}
           let you create and manage namespaces directly from the UI.
         </p>
       </div>

@@ -131,7 +131,7 @@ describe("useFocusTrap", () => {
   });
 
   describe("cleanup on unmount", () => {
-    it("removes the keydown listener when the component unmounts", async () => {
+    it("removes the keydown listener when the component unmounts", () => {
       const removeListener = vi.spyOn(HTMLDivElement.prototype, "removeEventListener");
 
       const { unmount } = render(<Trap active={true} />);
