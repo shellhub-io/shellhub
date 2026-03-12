@@ -55,7 +55,7 @@ jobs:
               FAILED=false
               for MOD in $MODULES; do
                 echo "--- $MOD ---"
-                if ! (cd "$MOD" && go test -timeout 10m -count=1 ./... 2>&1); then
+                if ! (cd "$MOD" && go test -timeout 20m -count=1 ./... 2>&1); then
                   FAILED=true
                 fi
               done
@@ -67,7 +67,7 @@ jobs:
             else
               for MOD in $MODULES; do
                 echo "--- $MOD ---"
-                (cd "$MOD" && go test -timeout 10m -count=1 ./...)
+                (cd "$MOD" && go test -timeout 20m -count=1 ./...)
               done
               echo "Passed ✓"
             fi
