@@ -9,6 +9,11 @@ import (
 )
 
 func (m *Migrator) deepValidateUsers(ctx context.Context, r *ValidationReport) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("users").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -25,7 +30,7 @@ func (m *Migrator) deepValidateUsers(ctx context.Context, r *ValidationReport) e
 
 		batch = append(batch, doc)
 		if len(batch) >= batchSize {
-			if err := m.compareUserBatch(ctx, r, batch); err != nil {
+			if err := m.compareUserBatch(ctx, r, batch, validNS); err != nil {
 				return err
 			}
 			batch = batch[:0]
@@ -37,13 +42,13 @@ func (m *Migrator) deepValidateUsers(ctx context.Context, r *ValidationReport) e
 	}
 
 	if len(batch) > 0 {
-		return m.compareUserBatch(ctx, r, batch)
+		return m.compareUserBatch(ctx, r, batch, validNS)
 	}
 
 	return nil
 }
 
-func (m *Migrator) compareUserBatch(ctx context.Context, r *ValidationReport, batch []mongoUser) error {
+func (m *Migrator) compareUserBatch(ctx context.Context, r *ValidationReport, batch []mongoUser, validNS map[string]struct{}) error {
 	ids := make([]string, len(batch))
 	expected := make(map[string]*entity.User, len(batch))
 	for i, doc := range batch {
@@ -84,7 +89,17 @@ func (m *Migrator) compareUserBatch(ctx context.Context, r *ValidationReport, ba
 		r.CheckField(t, id, "Admin", exp.Admin, act.Admin)
 		r.CheckTime(t, id, "CreatedAt", exp.CreatedAt, act.CreatedAt)
 		r.CheckTime(t, id, "LastLogin", exp.LastLogin, act.LastLogin)
-		r.CheckField(t, id, "PreferredNamespace", exp.Preferences.PreferredNamespace, act.Preferences.PreferredNamespace)
+
+		// PreferredNamespace may have been cleared during migration if it
+		// pointed to a namespace that no longer exists.
+		expNS := exp.Preferences.PreferredNamespace
+		actNS := act.Preferences.PreferredNamespace
+		if _, nsExists := validNS[expNS]; actNS == "" && !nsExists {
+			// Cleared dangling reference — expected.
+		} else {
+			r.CheckField(t, id, "PreferredNamespace", expNS, actNS)
+		}
+
 		r.CheckStrings(t, id, "AuthMethods", exp.Preferences.AuthMethods, act.Preferences.AuthMethods)
 		r.CheckField(t, id, "SecurityEmail", exp.Preferences.SecurityEmail, act.Preferences.SecurityEmail)
 		r.CheckField(t, id, "MaxNamespaces", exp.Preferences.MaxNamespaces, act.Preferences.MaxNamespaces)

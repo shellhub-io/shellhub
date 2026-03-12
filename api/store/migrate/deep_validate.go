@@ -173,8 +173,9 @@ func (r *ValidationReport) HasErrors() bool {
 }
 
 // Log prints a summary of the validation report.
-func (r *ValidationReport) Log() {
+func (r *ValidationReport) Log(scope string) {
 	log.WithFields(log.Fields{
+		"scope":          scope,
 		"total_compared": r.TotalCompared,
 		"total_mismatch": r.TotalMismatch,
 		"total_missing":  r.TotalMissing,
@@ -182,6 +183,7 @@ func (r *ValidationReport) Log() {
 
 	for name, t := range r.PerTable {
 		log.WithFields(log.Fields{
+			"scope":      scope,
 			"table":      name,
 			"compared":   t.Compared,
 			"mismatches": len(t.Mismatches),
@@ -237,13 +239,13 @@ func (m *Migrator) deepValidate(ctx context.Context) error {
 	}
 
 	for _, v := range validators {
-		log.WithField("table", v.name).Info("Deep validating")
+		log.WithFields(log.Fields{"scope": "core", "table": v.name}).Info("Deep validating")
 		if err := v.fn(ctx, report); err != nil {
 			return fmt.Errorf("deep validation of %s failed: %w", v.name, err)
 		}
 	}
 
-	report.Log()
+	report.Log("core")
 
 	if report.HasErrors() {
 		return fmt.Errorf("deep validation found %d mismatches and %d missing records",

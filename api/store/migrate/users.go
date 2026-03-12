@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store/pg/entity"
@@ -40,18 +41,36 @@ type mongoUserPrefs struct {
 	AuthMethods        []string `bson:"auth_methods"`
 }
 
+// usernameOrFallback returns the username if non-empty, otherwise falls back
+// to the email address. This handles legacy users created via SSO/API that
+// have NULL usernames in MongoDB.
+func usernameOrFallback(username, email string) string {
+	if username != "" {
+		return username
+	}
+
+	if email != "" {
+		return email
+	}
+
+	return "unknown"
+}
+
 func convertUser(doc mongoUser) *entity.User {
-	origin := doc.Origin
+	origin := strings.ToLower(doc.Origin)
 	if origin == "" {
 		origin = "local"
 	}
 
-	status := doc.Status
+	status := strings.ToLower(doc.Status)
 	if status == "" {
 		status = "confirmed"
 	}
 
-	authMethods := doc.Preferences.AuthMethods
+	authMethods := make([]string, len(doc.Preferences.AuthMethods))
+	for i, m := range doc.Preferences.AuthMethods {
+		authMethods[i] = strings.ToLower(m)
+	}
 	if len(authMethods) == 0 {
 		authMethods = []string{"local"}
 	}
@@ -65,7 +84,7 @@ func convertUser(doc mongoUser) *entity.User {
 		ExternalID:     doc.ExternalID,
 		Status:         status,
 		Name:           doc.Name,
-		Username:       doc.Username,
+		Username:       usernameOrFallback(doc.Username, doc.Email),
 		Email:          doc.Email,
 		PasswordDigest: doc.Password,
 		Admin:          doc.Admin,
@@ -80,6 +99,13 @@ func convertUser(doc mongoUser) *entity.User {
 }
 
 func (m *Migrator) migrateUsers(ctx context.Context) error {
+	// Load valid namespace IDs so we can clear dangling
+	// preferred_namespace references that would violate the FK.
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("users").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -88,6 +114,7 @@ func (m *Migrator) migrateUsers(ctx context.Context) error {
 
 	batch := make([]*entity.User, 0, batchSize)
 	total := 0
+	cleared := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoUser
@@ -95,7 +122,20 @@ func (m *Migrator) migrateUsers(ctx context.Context) error {
 			return err
 		}
 
-		batch = append(batch, convertUser(doc))
+		u := convertUser(doc)
+		if u.Preferences.PreferredNamespace != "" {
+			if _, ok := validNS[u.Preferences.PreferredNamespace]; !ok {
+				log.WithFields(log.Fields{
+					"scope":     "core",
+					"user":      u.Username,
+					"namespace": u.Preferences.PreferredNamespace,
+				}).Warn("Clearing dangling preferred_namespace_id")
+				u.Preferences.PreferredNamespace = ""
+				cleared++
+			}
+		}
+
+		batch = append(batch, u)
 		if len(batch) >= batchSize {
 			if _, err := m.pg.NewInsert().Model(&batch).Exec(ctx); err != nil {
 				return err
@@ -116,7 +156,11 @@ func (m *Migrator) migrateUsers(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated users")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"cleared": cleared,
+	}).Info("Migrated users")
 
 	return nil
 }

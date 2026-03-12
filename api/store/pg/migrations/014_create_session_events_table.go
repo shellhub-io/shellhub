@@ -13,25 +13,13 @@ func init() {
 }
 
 func migration014Up(ctx context.Context, db *bun.DB) error {
-	_, err := db.ExecContext(ctx, `
-		DROP TYPE IF EXISTS session_event_type;
-		CREATE TYPE session_event_type AS ENUM (
-			'pty-output', 'pty-req', 'window-change', 'exit-code',
-			'exit-status', 'exit-signal', 'env', 'shell', 'exec',
-			'subsystem', 'signal', 'tcpip-forward', 'auth-agent-req'
-		);
-	`)
-	if err != nil {
-		return err
-	}
-
 	table := &struct {
 		bun.BaseModel `bun:"table:session_events"`
 		ID            string    `bun:"id,type:uuid,pk"`
-		SessionID     string    `bun:"session_id,type:char(64),notnull"`
-		Type          string    `bun:"type,type:session_event_type,notnull"`
+		SessionID     string    `bun:"session_id,type:varchar(128),notnull"`
+		Type          string    `bun:"type,type:varchar(64),notnull"`
 		Seat          int       `bun:"seat,type:integer,notnull"`
-		Data          string    `bun:"data,type:jsonb,nullzero"`
+		Data          string    `bun:"data,type:text,nullzero"`
 		CreatedAt     time.Time `bun:"created_at,type:timestamptz,notnull,default:now()"`
 	}{}
 
@@ -45,7 +33,7 @@ func migration014Up(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
-	_, err = db.NewCreateIndex().
+	_, err := db.NewCreateIndex().
 		Model((*struct {
 			bun.BaseModel `bun:"table:session_events"`
 		})(nil)).
@@ -84,22 +72,12 @@ func migration014Up(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
-	_, err = db.ExecContext(ctx, `
-		CREATE INDEX session_events_data_gin_idx ON session_events USING GIN (data);
-	`)
-	if err != nil {
-		log.WithError(err).Error("failed to create data GIN index in migration 014")
-
-		return err
-	}
-
 	return nil
 }
 
 func migration014Down(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, `
 		DROP TABLE IF EXISTS session_events;
-		DROP TYPE IF EXISTS session_event_type;
 	`)
 	if err != nil {
 		log.WithError(err).Error("failed to revert migration 014")

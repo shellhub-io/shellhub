@@ -29,6 +29,11 @@ func convertTag(doc mongoTag) *entity.Tag {
 }
 
 func (m *Migrator) migrateTags(ctx context.Context) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("tags").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -37,11 +42,23 @@ func (m *Migrator) migrateTags(ctx context.Context) error {
 
 	batch := make([]*entity.Tag, 0, batchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoTag
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			log.WithFields(log.Fields{
+				"scope":     "core",
+				"tag":       doc.Name,
+				"namespace": doc.TenantID,
+			}).Warn("Skipping tag with orphaned namespace")
+			skipped++
+
+			continue
 		}
 
 		batch = append(batch, convertTag(doc))
@@ -65,7 +82,11 @@ func (m *Migrator) migrateTags(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated tags")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated tags")
 
 	return nil
 }

@@ -51,6 +51,11 @@ func convertAPIKey(doc mongoAPIKey) *entity.APIKey {
 }
 
 func (m *Migrator) migratePublicKeys(ctx context.Context) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("public_keys").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -59,11 +64,18 @@ func (m *Migrator) migratePublicKeys(ctx context.Context) error {
 
 	batch := make([]*entity.PublicKey, 0, batchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoPublicKey
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			skipped++
+
+			continue
 		}
 
 		batch = append(batch, convertPublicKey(doc))
@@ -87,12 +99,21 @@ func (m *Migrator) migratePublicKeys(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated public_keys")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated public_keys")
 
 	return nil
 }
 
 func (m *Migrator) migratePublicKeyTags(ctx context.Context) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("public_keys").Find(ctx, bson.M{"filter.tag_ids": bson.M{"$exists": true, "$ne": bson.A{}}})
 	if err != nil {
 		return err
@@ -106,6 +127,10 @@ func (m *Migrator) migratePublicKeyTags(ctx context.Context) error {
 		var doc mongoPublicKey
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		for _, tagID := range doc.Filter.TagIDs {
@@ -138,7 +163,7 @@ func (m *Migrator) migratePublicKeyTags(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated public_key_tags")
+	log.WithFields(log.Fields{"scope": "core", "count": total}).Info("Migrated public_key_tags")
 
 	return nil
 }
@@ -155,6 +180,11 @@ type mongoAPIKey struct {
 }
 
 func (m *Migrator) migrateAPIKeys(ctx context.Context) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("api_keys").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -163,11 +193,18 @@ func (m *Migrator) migrateAPIKeys(ctx context.Context) error {
 
 	batch := make([]*entity.APIKey, 0, batchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoAPIKey
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNS[doc.TenantID]; !ok {
+			skipped++
+
+			continue
 		}
 
 		batch = append(batch, convertAPIKey(doc))
@@ -191,7 +228,11 @@ func (m *Migrator) migrateAPIKeys(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated api_keys")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated api_keys")
 
 	return nil
 }

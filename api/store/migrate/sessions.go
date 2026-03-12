@@ -80,7 +80,28 @@ func convertSessionEvent(doc mongoSessionEvent) *entity.SessionEvent {
 	}
 }
 
+func (m *Migrator) loadValidDevices(ctx context.Context) (map[string]struct{}, error) {
+	var ids []struct {
+		ID string `bun:"id"`
+	}
+	if err := m.pg.NewSelect().TableExpr("devices").Column("id").Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+
+	valid := make(map[string]struct{}, len(ids))
+	for _, d := range ids {
+		valid[d.ID] = struct{}{}
+	}
+
+	return valid, nil
+}
+
 func (m *Migrator) migrateSessions(ctx context.Context) error {
+	validDevices, err := m.loadValidDevices(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("sessions").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -89,11 +110,23 @@ func (m *Migrator) migrateSessions(ctx context.Context) error {
 
 	batch := make([]*entity.Session, 0, batchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoSession
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validDevices[doc.DeviceUID]; !ok {
+			log.WithFields(log.Fields{
+				"scope":   "core",
+				"session": doc.UID,
+				"device":  doc.DeviceUID,
+			}).Warn("Skipping session with orphaned device")
+			skipped++
+
+			continue
 		}
 
 		batch = append(batch, convertSession(doc))
@@ -117,7 +150,11 @@ func (m *Migrator) migrateSessions(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated sessions")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated sessions")
 
 	return nil
 }
@@ -130,9 +167,30 @@ type mongoSessionEvent struct {
 	Seat      int       `bson:"seat"`
 }
 
+func (m *Migrator) loadValidSessions(ctx context.Context) (map[string]struct{}, error) {
+	var ids []struct {
+		ID string `bun:"id"`
+	}
+	if err := m.pg.NewSelect().TableExpr("sessions").Column("id").Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+
+	valid := make(map[string]struct{}, len(ids))
+	for _, s := range ids {
+		valid[s.ID] = struct{}{}
+	}
+
+	return valid, nil
+}
+
 const sessionEventBatchSize = 5000
 
 func (m *Migrator) migrateSessionEvents(ctx context.Context) error {
+	validSessions, err := m.loadValidSessions(ctx)
+	if err != nil {
+		return err
+	}
+
 	// Disable triggers for bulk insert performance.
 	if _, err := m.pg.ExecContext(ctx, "ALTER TABLE session_events DISABLE TRIGGER ALL"); err != nil {
 		return err
@@ -140,7 +198,7 @@ func (m *Migrator) migrateSessionEvents(ctx context.Context) error {
 
 	defer func() {
 		if _, err := m.pg.ExecContext(ctx, "ALTER TABLE session_events ENABLE TRIGGER ALL"); err != nil {
-			log.WithError(err).Error("Failed to re-enable triggers on session_events")
+			log.WithError(err).WithField("scope", "core").Error("Failed to re-enable triggers on session_events")
 		}
 	}()
 
@@ -152,11 +210,18 @@ func (m *Migrator) migrateSessionEvents(ctx context.Context) error {
 
 	batch := make([]*entity.SessionEvent, 0, sessionEventBatchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoSessionEvent
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validSessions[doc.Session]; !ok {
+			skipped++
+
+			continue
 		}
 
 		batch = append(batch, convertSessionEvent(doc))
@@ -167,7 +232,7 @@ func (m *Migrator) migrateSessionEvents(ctx context.Context) error {
 			total += len(batch)
 
 			if total%10000 == 0 {
-				log.WithField("count", total).Info("Session events migration progress")
+				log.WithFields(log.Fields{"scope": "core", "count": total}).Info("Session events migration progress")
 			}
 
 			batch = batch[:0]
@@ -185,7 +250,11 @@ func (m *Migrator) migrateSessionEvents(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated session_events")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated session_events")
 
 	return nil
 }

@@ -10,6 +10,11 @@ import (
 )
 
 func (m *Migrator) deepValidateDevices(ctx context.Context, r *ValidationReport) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("devices").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -22,6 +27,11 @@ func (m *Migrator) deepValidateDevices(ctx context.Context, r *ValidationReport)
 		var doc mongoDevice
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		// Skip devices whose namespace was not migrated (orphaned).
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		batch = append(batch, doc)
@@ -98,6 +108,11 @@ func (m *Migrator) compareDeviceBatch(ctx context.Context, r *ValidationReport, 
 }
 
 func (m *Migrator) deepValidateDeviceTags(ctx context.Context, r *ValidationReport) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("devices").Find(ctx, bson.M{
 		"tag_ids": bson.M{"$exists": true, "$ne": bson.A{}},
 	})
@@ -110,6 +125,11 @@ func (m *Migrator) deepValidateDeviceTags(ctx context.Context, r *ValidationRepo
 		var doc mongoDevice
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		// Skip devices whose namespace was not migrated (orphaned).
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		expectedTags := make([]string, len(doc.TagIDs))

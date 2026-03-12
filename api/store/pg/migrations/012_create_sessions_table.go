@@ -15,7 +15,7 @@ func init() {
 func migration012Up(ctx context.Context, db *bun.DB) error {
 	_, err := db.ExecContext(ctx, `
 		DROP TYPE IF EXISTS session_type;
-		CREATE TYPE session_type AS ENUM ('shell', 'exec', 'scp', 'sftp', 'subsystem', 'term', 'web', 'none');
+		CREATE TYPE session_type AS ENUM ('shell', 'exec', 'scp', 'sftp', 'subsystem', 'term', 'web', 'heredoc', 'unknown', 'none');
 	`)
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func migration012Up(ctx context.Context, db *bun.DB) error {
 
 	table := &struct {
 		bun.BaseModel `bun:"table:sessions"`
-		ID            string    `bun:"id,type:char(64),pk"`
+		ID            string    `bun:"id,type:varchar(128),pk"`
 		DeviceID      string    `bun:"device_id,type:varchar,notnull"`
 		Username      string    `bun:"username,type:varchar(64),notnull"`
 		IPAddress     string    `bun:"ip_address,type:inet,notnull"`

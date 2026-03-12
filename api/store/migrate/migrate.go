@@ -62,25 +62,43 @@ func (m *Migrator) Run(ctx context.Context) error {
 		}
 	}
 
-	log.Info("All tables migrated, running count validation")
+	log.WithField("scope", "core").Info("Migration complete, validating row counts")
 
 	if err := m.validateCounts(ctx); err != nil {
 		return fmt.Errorf("count validation failed: %w", err)
 	}
 
-	log.Info("Running deep validation")
+	log.WithField("scope", "core").Info("Running deep validation")
 
 	if err := m.deepValidate(ctx); err != nil {
 		return fmt.Errorf("deep validation failed: %w", err)
 	}
 
-	log.Info("Running migration extensions")
+	log.WithField("scope", "core").Info("Core validation passed, running extensions")
 
 	if err := applyMigrationExtensions(ctx, m.mongo, m.pg); err != nil {
 		return fmt.Errorf("migration extension failed: %w", err)
 	}
 
 	return nil
+}
+
+// loadValidNamespaces returns the set of namespace IDs already migrated to PG.
+// Used to skip orphaned records that reference deleted namespaces.
+func (m *Migrator) loadValidNamespaces(ctx context.Context) (map[string]struct{}, error) {
+	var nsIDs []struct {
+		ID string `bun:"id"`
+	}
+	if err := m.pg.NewSelect().TableExpr("namespaces").Column("id").Scan(ctx, &nsIDs); err != nil {
+		return nil, err
+	}
+
+	valid := make(map[string]struct{}, len(nsIDs))
+	for _, ns := range nsIDs {
+		valid[ns.ID] = struct{}{}
+	}
+
+	return valid, nil
 }
 
 // migrateTable handles the state machine for a single table: skip if completed, truncate+retry if
@@ -91,14 +109,16 @@ func (m *Migrator) migrateTable(ctx context.Context, t tableFunc) error {
 		return err
 	}
 
+	cl := log.WithFields(log.Fields{"scope": "core", "table": t.name})
+
 	if state != nil && state.Status == statusCompleted {
-		log.WithField("table", t.name).Info("Already migrated, skipping")
+		cl.Info("Already migrated, skipping")
 
 		return nil
 	}
 
 	if state != nil && state.Status == statusInProgress {
-		log.WithField("table", t.name).Warn("Previous migration was interrupted, truncating and retrying")
+		cl.Warn("Previous migration was interrupted, truncating and retrying")
 
 		if _, err := m.pg.NewTruncateTable().TableExpr(t.name).Cascade().Exec(ctx); err != nil {
 			return fmt.Errorf("failed to truncate %s: %w", t.name, err)
@@ -109,7 +129,7 @@ func (m *Migrator) migrateTable(ctx context.Context, t tableFunc) error {
 		return err
 	}
 
-	log.WithField("table", t.name).Info("Starting migration")
+	cl.Info("Starting migration")
 
 	if err := t.fn(ctx); err != nil {
 		return err
@@ -119,7 +139,7 @@ func (m *Migrator) migrateTable(ctx context.Context, t tableFunc) error {
 		return err
 	}
 
-	log.WithField("table", t.name).Info("Migration completed")
+	cl.Info("Migration completed")
 
 	return nil
 }

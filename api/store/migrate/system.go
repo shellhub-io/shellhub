@@ -108,7 +108,7 @@ func (m *Migrator) migrateSystems(ctx context.Context) error {
 		}
 	}
 
-	log.WithField("count", len(batch)).Info("Migrated systems")
+	log.WithFields(log.Fields{"scope": "core", "count": len(batch)}).Info("Migrated systems")
 
 	return nil
 }

@@ -2,6 +2,7 @@ package migrate
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/shellhub-io/shellhub/api/store/pg/entity"
@@ -66,7 +67,7 @@ func convertNamespace(doc mongoNamespace) *entity.Namespace {
 }
 
 func convertMembership(tenantID string, member mongoMember) *entity.Membership {
-	role := member.Role
+	role := strings.ToLower(member.Role)
 	if role == "" {
 		role = "observer"
 	}
@@ -117,12 +118,33 @@ func (m *Migrator) migrateNamespaces(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated namespaces")
+	log.WithFields(log.Fields{"scope": "core", "count": total}).Info("Migrated namespaces")
 
 	return nil
 }
 
+func (m *Migrator) loadValidUsers(ctx context.Context) (map[string]struct{}, error) {
+	var ids []struct {
+		ID string `bun:"id"`
+	}
+	if err := m.pg.NewSelect().TableExpr("users").Column("id").Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+
+	valid := make(map[string]struct{}, len(ids))
+	for _, u := range ids {
+		valid[u.ID] = struct{}{}
+	}
+
+	return valid, nil
+}
+
 func (m *Migrator) migrateMemberships(ctx context.Context) error {
+	validUsers, err := m.loadValidUsers(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("namespaces").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -131,6 +153,7 @@ func (m *Migrator) migrateMemberships(ctx context.Context) error {
 
 	batch := make([]*entity.Membership, 0, batchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoNamespace
@@ -139,7 +162,19 @@ func (m *Migrator) migrateMemberships(ctx context.Context) error {
 		}
 
 		for _, member := range doc.Members {
-			batch = append(batch, convertMembership(doc.TenantID, member))
+			mb := convertMembership(doc.TenantID, member)
+			if _, ok := validUsers[mb.UserID]; !ok {
+				log.WithFields(log.Fields{
+					"scope":     "core",
+					"user":      mb.UserID,
+					"namespace": doc.TenantID,
+				}).Warn("Skipping membership with orphaned user")
+				skipped++
+
+				continue
+			}
+
+			batch = append(batch, mb)
 
 			if len(batch) >= batchSize {
 				if _, err := m.pg.NewInsert().Model(&batch).Exec(ctx); err != nil {
@@ -162,7 +197,11 @@ func (m *Migrator) migrateMemberships(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithField("count", total).Info("Migrated memberships")
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated memberships")
 
 	return nil
 }
