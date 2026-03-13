@@ -11,6 +11,11 @@ import (
 )
 
 func (m *Migrator) deepValidateNamespaces(ctx context.Context, r *ValidationReport) error {
+	validUsers, err := m.loadValidUsers(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("namespaces").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -23,6 +28,12 @@ func (m *Migrator) deepValidateNamespaces(ctx context.Context, r *ValidationRepo
 		var doc mongoNamespace
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		// Skip namespaces whose owner was not migrated (same filter as migration).
+		ownerID := ObjectIDToUUID(doc.Owner)
+		if _, ok := validUsers[ownerID]; !ok {
+			continue
 		}
 
 		batch = append(batch, doc)
@@ -98,6 +109,11 @@ func (m *Migrator) deepValidateMemberships(ctx context.Context, r *ValidationRep
 		return err
 	}
 
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("namespaces").Find(ctx, bson.M{
 		"members": bson.M{"$exists": true, "$ne": bson.A{}},
 	})
@@ -110,6 +126,11 @@ func (m *Migrator) deepValidateMemberships(ctx context.Context, r *ValidationRep
 		var doc mongoNamespace
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		// Skip namespaces not migrated (orphaned owner).
+		if _, ok := validNS[doc.TenantID]; !ok {
+			continue
 		}
 
 		for _, member := range doc.Members {

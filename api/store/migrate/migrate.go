@@ -13,13 +13,39 @@ import (
 
 // Migrator orchestrates the migration of data from MongoDB to PostgreSQL.
 type Migrator struct {
-	mongo *mongo.Database
-	pg    *bun.DB
+	mongo   *mongo.Database
+	pg      *bun.DB
+	orphans map[string]int // tracks orphaned records skipped per table
 }
 
 // New creates a new Migrator instance.
 func New(mongo *mongo.Database, pg *bun.DB) *Migrator {
-	return &Migrator{mongo: mongo, pg: pg}
+	return &Migrator{mongo: mongo, pg: pg, orphans: make(map[string]int)}
+}
+
+// addOrphans records that n orphaned records were skipped for the given table.
+func (m *Migrator) addOrphans(table string, n int) {
+	m.orphans[table] += n
+}
+
+// logOrphanSummary prints a summary of all orphaned records found during migration.
+func (m *Migrator) logOrphanSummary() {
+	total := 0
+	for _, n := range m.orphans {
+		total += n
+	}
+
+	if total == 0 {
+		log.WithField("scope", "core").Info("No orphaned records found in MongoDB")
+
+		return
+	}
+
+	log.WithFields(log.Fields{"scope": "core", "total": total}).Warn("Orphaned records found in MongoDB (skipped during migration)")
+
+	for table, n := range m.orphans {
+		log.WithFields(log.Fields{"scope": "core", "table": table, "orphans": n}).Warn("Orphaned records skipped")
+	}
 }
 
 // tableFunc represents a function that migrates a single table.
@@ -38,21 +64,22 @@ func (m *Migrator) Run(ctx context.Context) error {
 	tables := []tableFunc{
 		// Phase 1: no dependencies
 		{"systems", m.migrateSystems},
-		// Phase 2
-		{"namespaces", m.migrateNamespaces},
-		// Phase 3: depends on namespaces
 		{"users", m.migrateUsers},
+		// Phase 2: depends on users
+		{"namespaces", m.migrateNamespaces},
 		{"tags", m.migrateTags},
-		// Phase 4: depends on users + namespaces
+		// Phase 2b: backfill preferred_namespace now that namespaces exist
+		{"user_preferences", m.restorePreferredNamespaces},
+		// Phase 3: depends on users + namespaces
 		{"memberships", m.migrateMemberships},
 		{"api_keys", m.migrateAPIKeys},
 		{"public_keys", m.migratePublicKeys},
 		{"devices", m.migrateDevices},
-		// Phase 5: depends on phase 4
+		// Phase 4: depends on phase 3
 		{"device_tags", m.migrateDeviceTags},
 		{"public_key_tags", m.migratePublicKeyTags},
 		{"sessions", m.migrateSessions},
-		// Phase 6: depends on sessions
+		// Phase 5: depends on sessions
 		{"session_events", m.migrateSessionEvents},
 	}
 
@@ -61,6 +88,8 @@ func (m *Migrator) Run(ctx context.Context) error {
 			return fmt.Errorf("migration of %s failed: %w", t.name, err)
 		}
 	}
+
+	m.logOrphanSummary()
 
 	log.WithField("scope", "core").Info("Migration complete, validating row counts")
 

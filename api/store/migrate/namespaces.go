@@ -82,6 +82,11 @@ func convertMembership(tenantID string, member mongoMember) *entity.Membership {
 }
 
 func (m *Migrator) migrateNamespaces(ctx context.Context) error {
+	validUsers, err := m.loadValidUsers(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("namespaces").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -90,6 +95,7 @@ func (m *Migrator) migrateNamespaces(ctx context.Context) error {
 
 	batch := make([]*entity.Namespace, 0, batchSize)
 	total := 0
+	skipped := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoNamespace
@@ -97,7 +103,20 @@ func (m *Migrator) migrateNamespaces(ctx context.Context) error {
 			return err
 		}
 
-		batch = append(batch, convertNamespace(doc))
+		ns := convertNamespace(doc)
+		if _, ok := validUsers[ns.OwnerID]; !ok {
+			log.WithFields(log.Fields{
+				"scope":     "core",
+				"owner":     ns.OwnerID,
+				"namespace": doc.TenantID,
+				"name":      doc.Name,
+			}).Warn("Skipping namespace with orphaned owner")
+			skipped++
+
+			continue
+		}
+
+		batch = append(batch, ns)
 		if len(batch) >= batchSize {
 			if _, err := m.pg.NewInsert().Model(&batch).Exec(ctx); err != nil {
 				return err
@@ -118,7 +137,15 @@ func (m *Migrator) migrateNamespaces(ctx context.Context) error {
 		total += len(batch)
 	}
 
-	log.WithFields(log.Fields{"scope": "core", "count": total}).Info("Migrated namespaces")
+	if skipped > 0 {
+		m.addOrphans("namespaces", skipped)
+	}
+
+	log.WithFields(log.Fields{
+		"scope":   "core",
+		"count":   total,
+		"skipped": skipped,
+	}).Info("Migrated namespaces")
 
 	return nil
 }
@@ -145,6 +172,11 @@ func (m *Migrator) migrateMemberships(ctx context.Context) error {
 		return err
 	}
 
+	validNamespaces, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
 	cursor, err := m.mongo.Collection("namespaces").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -159,6 +191,12 @@ func (m *Migrator) migrateMemberships(ctx context.Context) error {
 		var doc mongoNamespace
 		if err := cursor.Decode(&doc); err != nil {
 			return err
+		}
+
+		if _, ok := validNamespaces[doc.TenantID]; !ok {
+			skipped += len(doc.Members)
+
+			continue
 		}
 
 		for _, member := range doc.Members {
@@ -195,6 +233,10 @@ func (m *Migrator) migrateMemberships(ctx context.Context) error {
 			return err
 		}
 		total += len(batch)
+	}
+
+	if skipped > 0 {
+		m.addOrphans("memberships", skipped)
 	}
 
 	log.WithFields(log.Fields{

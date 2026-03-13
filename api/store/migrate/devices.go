@@ -137,6 +137,10 @@ func (m *Migrator) migrateDevices(ctx context.Context) error {
 		total += len(batch)
 	}
 
+	if skipped > 0 {
+		m.addOrphans("devices", skipped)
+	}
+
 	log.WithFields(log.Fields{
 		"scope":   "core",
 		"count":   total,

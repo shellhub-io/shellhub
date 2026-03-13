@@ -99,6 +99,10 @@ func (m *Migrator) migratePublicKeys(ctx context.Context) error {
 		total += len(batch)
 	}
 
+	if skipped > 0 {
+		m.addOrphans("public_keys", skipped)
+	}
+
 	log.WithFields(log.Fields{
 		"scope":   "core",
 		"count":   total,
@@ -226,6 +230,10 @@ func (m *Migrator) migrateAPIKeys(ctx context.Context) error {
 			return err
 		}
 		total += len(batch)
+	}
+
+	if skipped > 0 {
+		m.addOrphans("api_keys", skipped)
 	}
 
 	log.WithFields(log.Fields{
