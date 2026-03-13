@@ -9,7 +9,7 @@ import vitestPlugin from "@vitest/eslint-plugin";
 import globals from "globals";
 
 export default defineConfig([
-  globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "packages/design-system/**"]),
+  globalIgnores(["**/dist", "**/node_modules", "**/.astro", "**/.vite", "packages/design-system/**", "**/src/client"]),
   js.configs.recommended,
   {
     extends: [...tseslint.configs.recommendedTypeChecked],
