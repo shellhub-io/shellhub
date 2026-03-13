@@ -504,8 +504,8 @@ func (fakeAddr) String() string  { return "revdialconn" }
 // to use in messages to the listener.
 func ConnHandler(upgrader websocket.Upgrader) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		dialerUniq := r.FormValue(dialerUniqParam)
-		uuid := r.FormValue("uuid")
+		dialerUniq := r.FormValue(dialerUniqParam) //nolint:gosec // G120: internal websocket handler, body size limited upstream
+		uuid := r.FormValue("uuid")                //nolint:gosec // G120: internal websocket handler, body size limited upstream
 
 		d, ok := dialers.Load(dialerUniq)
 		if !ok {

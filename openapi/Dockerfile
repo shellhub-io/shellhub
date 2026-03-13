@@ -14,7 +14,7 @@ RUN npm install -g @stoplight/prism-cli@4.6.1
 RUN npm install -g prettier@2.8.7
 
 RUN go install github.com/air-verse/air@v1.62 && \
-    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.4.0 && \
+    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3 && \
     go install github.com/vektra/mockery/v2/...@v2.53.2
 
 FROM base AS development

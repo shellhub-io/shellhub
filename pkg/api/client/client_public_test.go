@@ -175,7 +175,7 @@ func TestAuthDevice(t *testing.T) {
 				},
 			},
 			requiredMocks: func() {
-				responder, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{
+				responder, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{ //nolint:gosec // G101: test fixture
 					UID:       "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 					Token:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 					Name:      "83-18-77-25-78-0d",
@@ -185,7 +185,7 @@ func TestAuthDevice(t *testing.T) {
 				mock.RegisterResponder("POST", "/api/devices/auth", responder)
 			},
 			expected: Expected{
-				response: &models.DeviceAuthResponse{
+				response: &models.DeviceAuthResponse{ //nolint:gosec // G101: test fixture
 					UID:       "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 					Token:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 					Name:      "83-18-77-25-78-0d",
@@ -215,7 +215,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func() {
 				fail, _ := mock.NewJsonResponder(404, nil)
-				success, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{
+				success, _ := mock.NewJsonResponder(200, models.DeviceAuthResponse{ //nolint:gosec // G101: test fixture
 					UID:       "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 					Token:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 					Name:      "83-18-77-25-78-0d",
@@ -229,7 +229,7 @@ func TestAuthDevice(t *testing.T) {
 				mock.RegisterResponder("POST", "/api/devices/auth", responder)
 			},
 			expected: Expected{
-				response: &models.DeviceAuthResponse{
+				response: &models.DeviceAuthResponse{ //nolint:gosec // G101: test fixture
 					UID:       "3a471bd84c88b28c4e4f8e27caee40e7b14798325e6dd85aa62d54e27fd11117",
 					Token:     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 					Name:      "83-18-77-25-78-0d",
@@ -339,7 +339,7 @@ func TestAuthPublicKey(t *testing.T) {
 				err:      ErrUnauthorized,
 			},
 		},
-		{
+		{ //nolint:gosec // G101: test fixture
 			description: "fail to auth public key when a request field is not set",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			request: &models.PublicKeyAuthRequest{
@@ -355,7 +355,7 @@ func TestAuthPublicKey(t *testing.T) {
 				err:      ErrBadRequest,
 			},
 		},
-		{
+		{ //nolint:gosec // G101: test fixture
 			description: "fail to auth public key when the key is not found",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			request: &models.PublicKeyAuthRequest{
@@ -372,7 +372,7 @@ func TestAuthPublicKey(t *testing.T) {
 				err:      ErrNotFound,
 			},
 		},
-		{
+		{ //nolint:gosec // G101: test fixture
 			description: "success to auth public key",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			request: &models.PublicKeyAuthRequest{
@@ -429,7 +429,7 @@ func TestReverseListener(t *testing.T) {
 			requiredMocks: func() {},
 			expected:      errors.New("token is empty"),
 		},
-		{
+		{ //nolint:gosec // G101: well-known jwt.io example token, not a real credential
 			description: "fail when cannot auth the agent on the SSH server",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			requiredMocks: func() {
@@ -437,7 +437,7 @@ func TestReverseListener(t *testing.T) {
 			},
 			expected: errors.New(""),
 		},
-		{
+		{ //nolint:gosec // G101: well-known jwt.io example token, not a real credential
 			description: "fail when cannot create a new reverse listener",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			requiredMocks: func() {
@@ -447,7 +447,7 @@ func TestReverseListener(t *testing.T) {
 			},
 			expected: errors.New(""),
 		},
-		{
+		{ //nolint:gosec // G101: well-known jwt.io example token, not a real credential
 			description: "success to create a new reverse listener",
 			token:       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
 			requiredMocks: func() {

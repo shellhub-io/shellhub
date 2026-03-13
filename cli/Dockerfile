@@ -34,7 +34,7 @@ FROM builder AS development
 
 RUN apk add --update openssl build-base docker-cli
 RUN go install github.com/air-verse/air@v1.62 && \
-    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.4.0
+    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 

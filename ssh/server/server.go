@@ -118,7 +118,7 @@ func NewServer(dialer *dialer.Dialer, cache cache.Cache, opts *Options) *Server 
 		},
 	}
 
-	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) {
+	if _, err := os.Stat(os.Getenv("PRIVATE_KEY")); os.IsNotExist(err) { //nolint:gosec // G703: path comes from trusted env var
 		log.WithError(err).Fatal("private key not found!")
 	}
 

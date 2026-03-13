@@ -127,7 +127,7 @@ func TestUpdateUser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			data, err := json.Marshal(tc.body)
+			data, err := json.Marshal(tc.body) //nolint:gosec // G117: test request serialization
 			require.NoError(t, err)
 
 			req := httptest.NewRequest(http.MethodPatch, "/api/users", strings.NewReader(string(data)))
@@ -185,7 +185,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		{
 			title: "fails when validate because the tag does not have a max of 32 characters",
 			uid:   "123",
-			updatePayloadMock: requests.UserPasswordUpdate{
+			updatePayloadMock: requests.UserPasswordUpdate{ //nolint:gosec // G101: test fixture
 				UserParam: requests.UserParam{
 					ID: "123",
 				},
@@ -211,7 +211,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		{
 			title: "fails when validate because the tag does not have a max of 32 characters",
 			uid:   "123",
-			updatePayloadMock: requests.UserPasswordUpdate{
+			updatePayloadMock: requests.UserPasswordUpdate{ //nolint:gosec // G101: test fixture
 				UserParam: requests.UserParam{
 					ID: "123",
 				},
