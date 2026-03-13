@@ -3,7 +3,6 @@ package migrations
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 	migrate "github.com/xakep666/mongo-migrate"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,13 +15,20 @@ var migration107 = migrate.Migration{
 	Up: migrate.MigrationFunc(func(ctx context.Context, db *mongo.Database) error {
 		log.WithFields(log.Fields{"component": "migration", "version": 107, "action": "Up"}).Info("Applying migration")
 
-		system := &models.System{}
-		if err := db.Collection("system").FindOne(ctx, bson.M{}).Decode(system); err != nil {
+		var doc struct {
+			Authentication struct {
+				SAML struct {
+					Enabled bool `bson:"enabled"`
+				} `bson:"saml"`
+			} `bson:"authentication"`
+		}
+
+		if err := db.Collection("system").FindOne(ctx, bson.M{}).Decode(&doc); err != nil {
 			return err
 		}
 
 		preferred := ""
-		if system.Authentication.SAML.Enabled {
+		if doc.Authentication.SAML.Enabled {
 			preferred = "post"
 		}
 
