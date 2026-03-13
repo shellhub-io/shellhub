@@ -150,6 +150,10 @@ func (m *Migrator) migrateSessions(ctx context.Context) error {
 		total += len(batch)
 	}
 
+	if skipped > 0 {
+		m.addOrphans("sessions", skipped)
+	}
+
 	log.WithFields(log.Fields{
 		"scope":   "core",
 		"count":   total,
@@ -248,6 +252,10 @@ func (m *Migrator) migrateSessionEvents(ctx context.Context) error {
 			return err
 		}
 		total += len(batch)
+	}
+
+	if skipped > 0 {
+		m.addOrphans("session_events", skipped)
 	}
 
 	log.WithFields(log.Fields{

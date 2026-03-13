@@ -99,13 +99,6 @@ func convertUser(doc mongoUser) *entity.User {
 }
 
 func (m *Migrator) migrateUsers(ctx context.Context) error {
-	// Load valid namespace IDs so we can clear dangling
-	// preferred_namespace references that would violate the FK.
-	validNS, err := m.loadValidNamespaces(ctx)
-	if err != nil {
-		return err
-	}
-
 	cursor, err := m.mongo.Collection("users").Find(ctx, bson.M{})
 	if err != nil {
 		return err
@@ -114,7 +107,6 @@ func (m *Migrator) migrateUsers(ctx context.Context) error {
 
 	batch := make([]*entity.User, 0, batchSize)
 	total := 0
-	cleared := 0
 
 	for cursor.Next(ctx) {
 		var doc mongoUser
@@ -123,17 +115,11 @@ func (m *Migrator) migrateUsers(ctx context.Context) error {
 		}
 
 		u := convertUser(doc)
-		if u.Preferences.PreferredNamespace != "" {
-			if _, ok := validNS[u.Preferences.PreferredNamespace]; !ok {
-				log.WithFields(log.Fields{
-					"scope":     "core",
-					"user":      u.Username,
-					"namespace": u.Preferences.PreferredNamespace,
-				}).Warn("Clearing dangling preferred_namespace_id")
-				u.Preferences.PreferredNamespace = ""
-				cleared++
-			}
-		}
+
+		// Clear preferred_namespace on insert; namespaces haven't been
+		// migrated yet so the FK would fail. A follow-up pass restores
+		// valid references after namespaces are in place.
+		u.Preferences.PreferredNamespace = ""
 
 		batch = append(batch, u)
 		if len(batch) >= batchSize {
@@ -157,10 +143,66 @@ func (m *Migrator) migrateUsers(ctx context.Context) error {
 	}
 
 	log.WithFields(log.Fields{
+		"scope": "core",
+		"count": total,
+	}).Info("Migrated users")
+
+	return nil
+}
+
+// restorePreferredNamespaces updates users' preferred_namespace_id from MongoDB
+// after both users and namespaces have been migrated to PG.
+func (m *Migrator) restorePreferredNamespaces(ctx context.Context) error {
+	validNS, err := m.loadValidNamespaces(ctx)
+	if err != nil {
+		return err
+	}
+
+	cursor, err := m.mongo.Collection("users").Find(ctx, bson.M{
+		"preferences.preferred_namespace": bson.M{"$exists": true, "$ne": ""},
+	})
+	if err != nil {
+		return err
+	}
+	defer cursor.Close(ctx)
+
+	total := 0
+	skipped := 0
+
+	for cursor.Next(ctx) {
+		var doc mongoUser
+		if err := cursor.Decode(&doc); err != nil {
+			return err
+		}
+
+		ns := doc.Preferences.PreferredNamespace
+		if _, ok := validNS[ns]; !ok {
+			skipped++
+
+			continue
+		}
+
+		userID := ObjectIDToUUID(doc.ID.Hex())
+		if _, err := m.pg.NewUpdate().
+			TableExpr("users").
+			Set("preferred_namespace_id = ?", ns).
+			Where("id = ?", userID).
+			Exec(ctx); err != nil {
+			return err
+		}
+
+		total++
+	}
+
+	if err := cursor.Err(); err != nil {
+		return err
+	}
+
+	log.WithFields(log.Fields{
 		"scope":   "core",
 		"count":   total,
-		"cleared": cleared,
-	}).Info("Migrated users")
+		"skipped": skipped,
+	}).Info("Restored preferred_namespace references")
 
 	return nil
 }

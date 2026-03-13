@@ -16,7 +16,7 @@ var collectionTable = []struct {
 	allowSkip  bool
 }{
 	{"system", "systems", false},
-	{"namespaces", "namespaces", false},
+	{"namespaces", "namespaces", true},
 	{"users", "users", false},
 	{"tags", "tags", true},
 	{"devices", "devices", true},

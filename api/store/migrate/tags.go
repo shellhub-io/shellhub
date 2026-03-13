@@ -82,6 +82,10 @@ func (m *Migrator) migrateTags(ctx context.Context) error {
 		total += len(batch)
 	}
 
+	if skipped > 0 {
+		m.addOrphans("tags", skipped)
+	}
+
 	log.WithFields(log.Fields{
 		"scope":   "core",
 		"count":   total,
