@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useDevicesStore } from "../../stores/devicesStore";
+import { useState } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useDevices, type NormalizedDevice } from "../../hooks/useDevices";
 import { useNamespacesStore } from "../../stores/namespacesStore";
 import { useTerminalStore } from "../../stores/terminalStore";
-import { Device } from "../../types/device";
 import PageHeader from "../../components/common/PageHeader";
 import ConnectDrawer from "../../components/ConnectDrawer";
 import ManageTagsDrawer from "../../components/ManageTagsDrawer";
@@ -33,30 +32,20 @@ const statusTabs = [
 ];
 
 const TH = `${TH_BASE} whitespace-nowrap`;
+const PER_PAGE = 10;
 
 /* ─── Page ─── */
+const VALID_STATUSES = new Set(["accepted", "pending", "rejected"]);
+
 export default function Devices() {
-  const {
-    devices,
-    totalCount,
-    loading,
-    error,
-    page,
-    perPage,
-    status,
-    filterTags,
-    fetch,
-    setPage,
-    setStatus,
-    addFilterTag,
-    removeFilterTag,
-    clearFilterTags,
-  } = useDevicesStore();
-  const { currentNamespace } = useNamespacesStore();
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialStatus = searchParams.get("status") ?? "accepted";
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState(VALID_STATUSES.has(initialStatus) ? initialStatus : "accepted");
+  const [filterTags, setFilterTags] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [actionTarget, setActionTarget] = useState<{
-    device: Device;
+    device: NormalizedDevice;
     action: "accept" | "reject" | "remove";
   } | null>(null);
   const [connectTarget, setConnectTarget] = useState<{
@@ -66,16 +55,37 @@ export default function Devices() {
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
-  useEffect(() => {
-    void fetch();
-  }, [fetch]);
+  const { devices, totalCount, isLoading, error, refetch } = useDevices({
+    page,
+    perPage: PER_PAGE,
+    status,
+    filterTags,
+  });
 
-  const totalPages = Math.ceil(totalCount / perPage);
+  const { currentNamespace } = useNamespacesStore();
+  const navigate = useNavigate();
+
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
   const nsName = currentNamespace?.name ?? "";
 
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
-    void fetch(1, perPage, newStatus);
+    setPage(1);
+  };
+
+  const addFilterTag = (tag: string) => {
+    setFilterTags((prev) => prev.includes(tag) ? prev : [...prev, tag]);
+    setPage(1);
+  };
+
+  const removeFilterTag = (tag: string) => {
+    setFilterTags((prev) => prev.filter((t) => t !== tag));
+    setPage(1);
+  };
+
+  const clearFilterTags = () => {
+    setFilterTags([]);
+    setPage(1);
   };
 
   const filtered = search
@@ -184,7 +194,7 @@ export default function Devices() {
             className="w-3.5 h-3.5 shrink-0"
             strokeWidth={2}
           />
-          {error}
+          {error.message}
         </div>
       )}
 
@@ -207,7 +217,7 @@ export default function Devices() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {loading && devices.length === 0 ? (
+              {isLoading && devices.length === 0 ? (
                 <tr>
                   <td
                     colSpan={status === "accepted" ? 7 : 5}
@@ -298,8 +308,8 @@ export default function Devices() {
                       {/* Tags */}
                       <td className="px-4 py-3.5">
                         <TagsPopover
-                          device={device}
-                          onUpdated={() => void fetch()}
+                          device={device as never}
+                          onUpdated={() => void refetch()}
                           onFilterTag={addFilterTag}
                         />
                       </td>
@@ -419,10 +429,7 @@ export default function Devices() {
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="device"
-        onPageChange={(p) => {
-          setPage(p);
-          void fetch(p);
-        }}
+        onPageChange={setPage}
       />
 
       {/* Action Dialog */}
@@ -448,7 +455,13 @@ export default function Devices() {
         open={manageTagsOpen}
         onClose={() => {
           setManageTagsOpen(false);
-          void fetch();
+          void refetch();
+        }}
+        onTagRenamed={(oldName, newName) => {
+          setFilterTags((prev) => prev.map((t) => t === oldName ? newName : t));
+        }}
+        onTagDeleted={(name) => {
+          setFilterTags((prev) => prev.filter((t) => t !== name));
         }}
       />
     </div>

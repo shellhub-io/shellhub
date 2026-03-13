@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDevicesStore } from "../stores/devicesStore";
+import { useDevices } from "../hooks/useDevices";
 import { useTerminalStore } from "../stores/terminalStore";
 import { useAuthStore } from "../stores/authStore";
 import {
@@ -78,7 +78,7 @@ export default function CommandPalette() {
   const backdropRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const devices = useDevicesStore((s) => s.devices);
+  const { devices } = useDevices({ page: 1, perPage: 50, status: "accepted" });
   const terminalSessions = useTerminalStore((s) => s.sessions);
   const restoreTerminal = useTerminalStore((s) => s.restore);
   const logout = useAuthStore((s) => s.logout);

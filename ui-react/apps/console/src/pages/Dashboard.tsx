@@ -8,7 +8,6 @@ import {
   CommandLineIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { useDevicesStore } from "../stores/devicesStore";
 import { useNamespacesStore } from "../stores/namespacesStore";
 import { useSessionsStore } from "../stores/sessionsStore";
 import { useStatsStore } from "../stores/statsStore";
@@ -23,7 +22,6 @@ import { sessionType } from "../utils/session";
 import { TH } from "../utils/styles";
 
 export default function Dashboard() {
-  const { setStatus: setDevicesStatus } = useDevicesStore();
   const { currentNamespace } = useNamespacesStore();
   const { sessions, fetch: fetchSessions } = useSessionsStore();
   const { stats, loading: statsLoading, error: statsError, fetch: fetchStats } = useStatsStore();
@@ -44,8 +42,7 @@ export default function Dashboard() {
   }
 
   const goToPending = () => {
-    setDevicesStatus("pending");
-    void navigate("/devices");
+    void navigate("/devices?status=pending");
   };
 
   return (

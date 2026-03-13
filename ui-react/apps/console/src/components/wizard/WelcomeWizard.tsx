@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { XMarkIcon, ArrowRightIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useDevicesStore } from "@/stores/devicesStore";
+import { useAcceptDevice } from "@/hooks/useDeviceMutations";
 import { Device } from "@/types/device";
 import BaseDialog from "@/components/common/BaseDialog";
 import WizardStep1Welcome from "./WizardStep1Welcome";
@@ -27,7 +27,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
     setAccepting(false);
   });
 
-  const { accept } = useDevicesStore();
+  const acceptMutation = useAcceptDevice();
 
   // Stable predicate: closing is allowed on steps 1–3 but blocked on step 4.
   // Memoized to prevent BaseDialog's cancel-event listener from re-attaching
@@ -38,7 +38,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
     if (!pendingDevice) return;
     setAccepting(true);
     try {
-      await accept(pendingDevice.uid);
+      await acceptMutation.mutateAsync({ path: { uid: pendingDevice.uid } });
       setStep(4);
     } catch {
       // Keep on step 3 — user can retry

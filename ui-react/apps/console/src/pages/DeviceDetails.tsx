@@ -19,10 +19,15 @@ import {
   CpuChipIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
-import { useDevicesStore } from "../stores/devicesStore";
+import { useDevice } from "../hooks/useDevice";
+import {
+  useRenameDevice,
+  useAddDeviceTag,
+  useRemoveDeviceTag,
+  useRemoveDevice,
+} from "../hooks/useDeviceMutations";
 import { useNamespacesStore } from "../stores/namespacesStore";
 import { useTerminalStore } from "../stores/terminalStore";
-import { Device } from "../types/device";
 import DeviceActionDialog from "./devices/DeviceActionDialog";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
@@ -68,7 +73,8 @@ function InfoItem({
 
 /* ─── Tags Section ─── */
 function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
-  const { addTag, removeTag } = useDevicesStore();
+  const addTagMutation = useAddDeviceTag();
+  const removeTagMutation = useRemoveDeviceTag();
   const [input, setInput] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +104,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
 
     setAdding(true);
     try {
-      await addTag(uid, tag);
+      await addTagMutation.mutateAsync({ path: { uid, name: tag } });
       setInput("");
     } catch {
       setError("Failed to add tag.");
@@ -108,9 +114,9 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
 
   const handleRemove = async (tag: string) => {
     try {
-      await removeTag(uid, tag);
+      await removeTagMutation.mutateAsync({ path: { uid, name: tag } });
     } catch {
-      /* handled by store */
+      /* invalidation handles UI update */
     }
   };
 
@@ -183,7 +189,7 @@ function RenameSection({
   uid: string;
   currentName: string;
 }) {
-  const { rename } = useDevicesStore();
+  const renameMutation = useRenameDevice();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(currentName);
   const [saving, setSaving] = useState(false);
@@ -197,7 +203,7 @@ function RenameSection({
     setSaving(true);
     setError(null);
     try {
-      await rename(uid, name.trim());
+      await renameMutation.mutateAsync({ path: { uid }, body: { name: name.trim() } });
       setEditing(false);
     } catch {
       setError("Failed to rename device.");
@@ -261,12 +267,8 @@ export default function DeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const {
-    currentDevice: device,
-    deviceLoading,
-    fetchDevice,
-    remove,
-  } = useDevicesStore();
+  const { device, isLoading } = useDevice(uid ?? "");
+  const removeMutation = useRemoveDevice();
   const { currentNamespace } = useNamespacesStore();
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
@@ -276,13 +278,9 @@ export default function DeviceDetails() {
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [operation, setOperation] = useState<{
-    device: Device;
+    device: { uid: string; name: string };
     action: "accept" | "reject" | "remove";
   } | null>(null);
-
-  useEffect(() => {
-    if (uid) void fetchDevice(uid);
-  }, [uid, fetchDevice]);
 
   // Auto-open connect drawer if ?connect=true (adjust during render)
   const shouldAutoConnect
@@ -310,7 +308,7 @@ export default function DeviceDetails() {
     }
   }, [searchParams, device, existingSession, restoreTerminal]);
 
-  if (deviceLoading || !device) {
+  if (isLoading || !device) {
     return (
       <div className="flex items-center justify-center py-24">
         <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -321,10 +319,17 @@ export default function DeviceDetails() {
   const nsName = currentNamespace?.name ?? "";
   const sshid = nsName ? buildSshid(nsName, device.name) : device.uid;
 
+  const tags: string[] = Array.isArray(device.tags)
+    ? device.tags.map((t) =>
+      typeof t === "object" && t !== null && "name" in t ? t.name : String(t),
+    )
+    : [];
+
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await remove(device.uid);
+      await removeMutation.mutateAsync({ path: { uid: device.uid } });
+      setShowDelete(false);
       void navigate("/devices");
     } catch {
       setDeleting(false);
@@ -332,10 +337,9 @@ export default function DeviceDetails() {
   };
 
   const handleDeviceActionSuccess = () => {
-    if (!operation || !uid) return;
+    if (!operation) return;
 
     if (operation.action === "remove") void navigate("/devices");
-    else void fetchDevice(uid);
   };
 
   return (
@@ -496,11 +500,11 @@ export default function DeviceDetails() {
             />
             <InfoItem
               label="MAC Address"
-              value={device.identity?.mac}
+              value={device.identity?.mac ?? ""}
               mono
               copyable
             />
-            <InfoItem label="Remote Address" value={device.remote_addr} mono />
+            <InfoItem label="Remote Address" value={device.remote_addr ?? ""} mono />
           </dl>
         </div>
 
@@ -512,9 +516,9 @@ export default function DeviceDetails() {
           <dl className="space-y-3">
             <InfoItem
               label="Operating System"
-              value={device.info?.pretty_name}
+              value={device.info?.pretty_name ?? ""}
             />
-            <InfoItem label="Architecture" value={device.info?.arch} mono />
+            <InfoItem label="Architecture" value={device.info?.arch ?? ""} mono />
             <div>
               <dt className={LABEL}>Platform</dt>
               <dd className="mt-1">
@@ -527,7 +531,7 @@ export default function DeviceDetails() {
                   )}
               </dd>
             </div>
-            <InfoItem label="Agent Version" value={device.info?.version} mono />
+            <InfoItem label="Agent Version" value={device.info?.version ?? ""} mono />
           </dl>
         </div>
 
@@ -555,7 +559,7 @@ export default function DeviceDetails() {
             <div>
               <dt className={LABEL}>Status Updated</dt>
               <dd className={VALUE}>
-                {formatDateFull(device.status_updated_at)}
+                {formatDateFull(device.status_update_at ?? "")}
               </dd>
             </div>
           </dl>
@@ -564,7 +568,7 @@ export default function DeviceDetails() {
 
       {/* Tags */}
       <div className="bg-card border border-border rounded-xl p-5 mb-6">
-        <TagsSection uid={device.uid} tags={device.tags || []} />
+        <TagsSection uid={device.uid} tags={tags} />
       </div>
 
       {/* Delete Dialog */}

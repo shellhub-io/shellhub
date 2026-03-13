@@ -51,9 +51,11 @@ client.interceptors.request.use((request) => {
 });
 
 client.interceptors.response.use((response) => {
-  cancelMarkDown();
-  if (!useConnectivityStore.getState().apiReachable) {
-    useConnectivityStore.getState().markUp();
+  if (!isApiDown(response.status)) {
+    cancelMarkDown();
+    if (!useConnectivityStore.getState().apiReachable) {
+      useConnectivityStore.getState().markUp();
+    }
   }
 
   if (response.status === 401) {
@@ -77,6 +79,13 @@ client.interceptors.response.use((response) => {
 client.interceptors.error.use((error, response) => {
   if (!response) {
     scheduleMarkDown();
+    return error;
+  }
+
+  // Attach HTTP status to the error so mutation handlers can distinguish
+  // error codes (e.g., 402 vs 403 vs 409 on device accept).
+  if (typeof error === "object" && error !== null) {
+    (error as Record<string, unknown>).status = response.status;
   }
   return error;
 });
