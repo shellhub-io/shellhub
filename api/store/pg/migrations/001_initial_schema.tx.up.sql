@@ -8,15 +8,6 @@ CREATE TYPE device_status AS ENUM (
 
 --bun:split
 
-CREATE TYPE membership_invitation_status AS ENUM (
-    'pending',
-    'accepted',
-    'rejected',
-    'cancelled'
-);
-
---bun:split
-
 CREATE TYPE membership_role AS ENUM (
     'owner',
     'administrator',
@@ -364,44 +355,4 @@ CREATE INDEX session_events_session_id_created_at_idx ON session_events USING bt
 
 CREATE INDEX session_events_type_created_at_idx ON session_events USING btree (type, created_at);
 
---bun:split
-
-CREATE TABLE user_invitations (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    email character varying(254) NOT NULL,
-    status character varying(32) DEFAULT 'pending'::character varying NOT NULL,
-    invitations bigint DEFAULT 1 NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE (email)
-);
-
---bun:split
-
-CREATE TABLE membership_invitations (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    tenant_id uuid NOT NULL,
-    user_id uuid NOT NULL,
-    invited_by uuid NOT NULL,
-    role membership_role NOT NULL,
-    status membership_invitation_status DEFAULT 'pending'::membership_invitation_status NOT NULL,
-    status_updated_at timestamp with time zone NOT NULL,
-    expires_at timestamp with time zone,
-    invitations bigint DEFAULT 1 NOT NULL,
-    created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (tenant_id) REFERENCES namespaces(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE CASCADE
-);
-
---bun:split
-
-CREATE INDEX membership_invitations_status_idx ON membership_invitations USING btree (status);
-
---bun:split
-
-CREATE INDEX membership_invitations_tenant_user_idx ON membership_invitations USING btree (tenant_id, user_id);
 

@@ -1,11 +1,3 @@
-DROP TABLE IF EXISTS membership_invitations;
-
---bun:split
-
-DROP TABLE IF EXISTS user_invitations;
-
---bun:split
-
 DROP TABLE IF EXISTS session_events;
 
 --bun:split
@@ -83,10 +75,6 @@ DROP TYPE IF EXISTS namespace_scope;
 --bun:split
 
 DROP TYPE IF EXISTS membership_role;
-
---bun:split
-
-DROP TYPE IF EXISTS membership_invitation_status;
 
 --bun:split
 

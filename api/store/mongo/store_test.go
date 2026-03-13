@@ -94,10 +94,6 @@ func TestMongoStore(t *testing.T) {
 		suite.TestGetStats(t)
 	})
 
-	runSubSuite(t, "UserInvitationsStore", func(suite *storetest.Suite, t *testing.T) {
-		suite.TestUserInvitationsUpsert(t)
-	})
-
 	runSubSuite(t, "PrivateKeyStore", func(suite *storetest.Suite, t *testing.T) {
 		suite.TestPrivateKeyCreate(t)
 		suite.TestPrivateKeyGet(t)
@@ -107,12 +103,6 @@ func TestMongoStore(t *testing.T) {
 		suite.TestNamespaceCreateMembership(t)
 		suite.TestNamespaceUpdateMembership(t)
 		suite.TestNamespaceDeleteMembership(t)
-	})
-
-	runSubSuite(t, "MembershipInvitationStore", func(suite *storetest.Suite, t *testing.T) {
-		suite.TestMembershipInvitationCreate(t)
-		suite.TestMembershipInvitationResolve(t)
-		suite.TestMembershipInvitationUpdate(t)
 	})
 
 	runSubSuite(t, "SystemStore", func(suite *storetest.Suite, t *testing.T) {
