@@ -17,8 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - app: admin
-            workspace: "@shellhub/admin"
+          - app: console
+            workspace: "@shellhub/console"
 
     runs-on: ubuntu-latest
 
@@ -30,8 +30,8 @@ jobs:
         id: filter
         with:
           filters: |
-            admin:
-              - 'ui-react/apps/admin/**'
+            console:
+              - 'ui-react/apps/console/**'
               - 'ui-react/packages/**'
               - 'ui-react/package.json'
               - 'ui-react/package-lock.json'
