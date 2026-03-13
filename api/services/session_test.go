@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"testing"
+	"time"
 
 	goerrors "errors"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
+	clockmock "github.com/shellhub-io/shellhub/pkg/clock/mocks"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	mocksGeoIp "github.com/shellhub-io/shellhub/pkg/geoip/mocks"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -308,6 +311,145 @@ func TestDeactivateSession(t *testing.T) {
 
 			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 			err := service.DeactivateSession(ctx, tc.uid)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
+
+func TestKeepAliveSession(t *testing.T) {
+	mock := new(storemock.Store)
+
+	ctx := context.TODO()
+
+	now := time.Now()
+	clockMock := new(clockmock.Clock)
+	clockMock.On("Now").Return(now)
+	clock.DefaultBackend = clockMock
+
+	cases := []struct {
+		name          string
+		uid           models.UID
+		requiredMocks func()
+		expected      error
+	}{
+		{
+			name: "fails when session is not found",
+			uid:  models.UID("_uid"),
+			requiredMocks: func() {
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(nil, goerrors.New("error")).Once()
+			},
+			expected: NewErrSessionNotFound("_uid", goerrors.New("error")),
+		},
+		{
+			name: "fails when session update fails",
+			uid:  models.UID("_uid"),
+			requiredMocks: func() {
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(&models.Session{
+						UID: "_uid",
+					}, nil).Once()
+
+				mock.On("SessionUpdate", ctx, &models.Session{
+					UID:      "_uid",
+					LastSeen: now,
+				}).
+					Return(goerrors.New("update error")).Once()
+			},
+			expected: goerrors.New("update error"),
+		},
+		{
+			name: "succeeds when active session is not found",
+			uid:  models.UID("_uid"),
+			requiredMocks: func() {
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(&models.Session{
+						UID: "_uid",
+					}, nil).Once()
+
+				mock.On("SessionUpdate", ctx, &models.Session{
+					UID:      "_uid",
+					LastSeen: now,
+				}).
+					Return(nil).Once()
+
+				mock.On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(nil, goerrors.New("not found")).Once()
+
+				mock.On("ActiveSessionCreate", ctx, &models.Session{
+					UID:      "_uid",
+					LastSeen: now,
+				}).
+					Return(nil).Once()
+			},
+			expected: nil,
+		},
+		{
+			name: "succeeds when active session update fails",
+			uid:  models.UID("_uid"),
+			requiredMocks: func() {
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(&models.Session{
+						UID: "_uid",
+					}, nil).Once()
+
+				mock.On("SessionUpdate", ctx, &models.Session{
+					UID:      "_uid",
+					LastSeen: now,
+				}).
+					Return(nil).Once()
+
+				mock.On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(&models.ActiveSession{
+						UID: "_uid",
+					}, nil).Once()
+
+				mock.On("ActiveSessionUpdate", ctx, &models.ActiveSession{
+					UID:      "_uid",
+					LastSeen: now,
+				}).
+					Return(goerrors.New("update error")).Once()
+			},
+			expected: nil,
+		},
+		{
+			name: "succeeds",
+			uid:  models.UID("_uid"),
+			requiredMocks: func() {
+				mock.On("SessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(&models.Session{
+						UID: "_uid",
+					}, nil).Once()
+
+				mock.On("SessionUpdate", ctx, &models.Session{
+					UID:      "_uid",
+					LastSeen: now,
+				}).
+					Return(nil).Once()
+
+				mock.On("ActiveSessionResolve", ctx, store.SessionUIDResolver, "_uid").
+					Return(&models.ActiveSession{
+						UID: "_uid",
+					}, nil).Once()
+
+				mock.On("ActiveSessionUpdate", ctx, &models.ActiveSession{
+					UID:      "_uid",
+					LastSeen: now,
+				}).
+					Return(nil).Once()
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.requiredMocks()
+
+			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			err := service.KeepAliveSession(ctx, tc.uid)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
