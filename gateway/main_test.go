@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -34,7 +35,7 @@ func TestMain_smoke(t *testing.T) {
 		ContainerRequest: req,
 		Started:          true,
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer func() {
 		if err := container.Terminate(ctx); err != nil {
@@ -43,10 +44,10 @@ func TestMain_smoke(t *testing.T) {
 	}()
 
 	host, err := container.Host(ctx)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	port, err := container.MappedPort(ctx, "80")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	baseURL := fmt.Sprintf("http://%s:%s", host, port.Port())
 
@@ -57,7 +58,7 @@ func TestMain_smoke(t *testing.T) {
 	client := http.Client{Timeout: 5 * time.Second}
 
 	resp, err := client.Get(healthURL)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	defer resp.Body.Close()
 
