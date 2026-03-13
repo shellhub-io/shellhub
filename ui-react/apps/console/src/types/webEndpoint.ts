@@ -1,4 +1,4 @@
-import { Device } from "./device";
+import type { Device } from "../client";
 
 export interface WebEndpointTLS {
   enabled: boolean;

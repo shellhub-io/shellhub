@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   XMarkIcon,
@@ -7,16 +7,13 @@ import {
   CpuChipIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import { getDevices, acceptDevice, rejectDevice } from "../../api/devices";
-import { Device } from "../../types/device";
+import { useDevices } from "../../hooks/useDevices";
+import { useAcceptDevice, useRejectDevice } from "../../hooks/useDeviceMutations";
 import { useClickOutside } from "../../hooks/useClickOutside";
 
 export default function PendingDevices() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [acting, setActing] = useState<string | null>(null);
   const [flash, setFlash] = useState<{
     uid: string;
@@ -24,45 +21,29 @@ export default function PendingDevices() {
   } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchPending = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data: d, totalCount } = await getDevices(1, 5, "pending");
-      setDevices(d);
-      setCount(totalCount);
-    } catch {
-      /* silent */
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { devices, totalCount: count, isLoading: loading } = useDevices({
+    page: 1,
+    perPage: 5,
+    status: "pending",
+  });
 
-  // Poll for pending count every 30s
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching
-    void fetchPending();
-    const id = setInterval(() => void fetchPending(), 30000);
-    return () => clearInterval(id);
-  }, [fetchPending]);
-
-  // Refetch when opened
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching
-    if (open) void fetchPending();
-  }, [open, fetchPending]);
+  const acceptMutation = useAcceptDevice();
+  const rejectMutation = useRejectDevice();
 
   useClickOutside(containerRef, () => setOpen(false));
 
   const handleAction = async (uid: string, action: "accepted" | "rejected") => {
     setActing(uid);
     try {
-      if (action === "accepted") await acceptDevice(uid);
-      else await rejectDevice(uid);
+      if (action === "accepted") {
+        await acceptMutation.mutateAsync({ path: { uid } });
+      } else {
+        await rejectMutation.mutateAsync({ path: { uid, status: "reject" } });
+      }
 
       setFlash({ uid, action });
       setTimeout(() => {
         setFlash(null);
-        void fetchPending();
         setActing(null);
       }, 600);
     } catch {

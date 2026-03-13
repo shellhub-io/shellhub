@@ -6,21 +6,22 @@ import {
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
-import { addDeviceTag, removeDeviceTag } from "../../api/devices";
 import { getTags } from "../../api/tags";
-import { Device } from "../../types/device";
+import { useAddDeviceTag, useRemoveDeviceTag } from "../../hooks/useDeviceMutations";
+import type { NormalizedDevice } from "../../hooks/useDevices";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 
 /* ─── Tags Popover (portal-based, no table layout bugs) ─── */
 function TagsPopover({
   device,
-  onUpdated,
   onFilterTag,
 }: {
-  device: Device;
-  onUpdated: () => void;
+  device: NormalizedDevice;
   onFilterTag: (tag: string) => void;
 }) {
+  const addTag = useAddDeviceTag();
+  const removeTag = useRemoveDeviceTag();
+
   const [open, setOpen] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [input, setInput] = useState("");
@@ -90,11 +91,10 @@ function TagsPopover({
     setLoading(true);
     setError(null);
     try {
-      await addDeviceTag(device.uid, tag);
+      await addTag.mutateAsync({ path: { uid: device.uid, name: tag } });
       if (!allTags.includes(tag)) {
         setAllTags((prev) => [...prev, tag]);
       }
-      onUpdated();
       setInput("");
     } catch {
       setError(`Failed to add "${tag}"`);
@@ -106,8 +106,7 @@ function TagsPopover({
     setLoading(true);
     setError(null);
     try {
-      await removeDeviceTag(device.uid, tag);
-      onUpdated();
+      await removeTag.mutateAsync({ path: { uid: device.uid, name: tag } });
     } catch {
       setError(`Failed to remove "${tag}"`);
     }

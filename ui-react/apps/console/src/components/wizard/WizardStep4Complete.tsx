@@ -1,11 +1,11 @@
 import { CheckCircleIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespacesStore } from "@/stores/namespacesStore";
-import { Device } from "@/types/device";
+import type { NormalizedDevice } from "@/hooks/useDevices";
 import CopyButton from "@/components/common/CopyButton";
 
 interface WizardStep4CompleteProps {
-  device: Device | null;
+  device: NormalizedDevice | null;
 }
 
 export default function WizardStep4Complete({ device }: WizardStep4CompleteProps) {

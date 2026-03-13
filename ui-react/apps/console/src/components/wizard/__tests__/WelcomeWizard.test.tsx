@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useDevicesStore } from "@/stores/devicesStore";
+
+const mockMutateAsync = vi.fn();
+vi.mock("@/hooks/useDeviceMutations", () => ({
+  useAcceptDevice: () => ({ mutateAsync: mockMutateAsync }),
+}));
 
 // Mock the focus trap so it doesn't interfere with jsdom focus state
 vi.mock("@/hooks/useFocusTrap", () => ({
@@ -58,11 +62,8 @@ vi.mock("../WizardStep4Complete", () => ({
 
 import WelcomeWizard from "../WelcomeWizard";
 
-const mockAccept = vi.fn();
-
 beforeEach(() => {
   vi.clearAllMocks();
-  useDevicesStore.setState({ accept: mockAccept } as never);
 });
 
 afterEach(cleanup);
@@ -215,7 +216,7 @@ describe("WelcomeWizard", () => {
     });
 
     it("clicking 'Accept' after loading a device calls accept(uid) and advances to step 4", async () => {
-      mockAccept.mockResolvedValue(undefined);
+      mockMutateAsync.mockResolvedValue(undefined);
       const { user } = await goToStep3();
 
       // Load a device first
@@ -224,13 +225,13 @@ describe("WelcomeWizard", () => {
       await user.click(screen.getByRole("button", { name: /^accept$/i }));
 
       await waitFor(() => {
-        expect(mockAccept).toHaveBeenCalledWith("dev-uid-123");
+        expect(mockMutateAsync).toHaveBeenCalledWith({ path: { uid: "dev-uid-123" } });
         expect(screen.getByRole("progressbar", { name: /step 4 of 4/i })).toBeInTheDocument();
       });
     });
 
     it("stays on step 3 when accept() throws", async () => {
-      mockAccept.mockRejectedValue(new Error("API error"));
+      mockMutateAsync.mockRejectedValue(new Error("API error"));
       const { user } = await goToStep3();
 
       await user.click(screen.getByTestId("simulate-device-loaded"));
@@ -247,13 +248,13 @@ describe("WelcomeWizard", () => {
       await user.click(screen.getByRole("button", { name: /^close$/i }));
 
       expect(onClose).toHaveBeenCalledOnce();
-      expect(mockAccept).not.toHaveBeenCalled();
+      expect(mockMutateAsync).not.toHaveBeenCalled();
     });
   });
 
   describe("Step 4", () => {
     async function goToStep4() {
-      mockAccept.mockResolvedValue(undefined);
+      mockMutateAsync.mockResolvedValue(undefined);
       const user = userEvent.setup();
       const result = renderWizard();
       // 1 → 2
@@ -343,7 +344,7 @@ describe("WelcomeWizard", () => {
     });
 
     it("does NOT call onClose when Escape is pressed on step 4", async () => {
-      mockAccept.mockResolvedValue(undefined);
+      mockMutateAsync.mockResolvedValue(undefined);
       const user = userEvent.setup();
       const { onClose } = renderWizard();
 
@@ -376,7 +377,7 @@ describe("WelcomeWizard", () => {
     });
 
     it("does NOT call onClose when backdrop is clicked on step 4", async () => {
-      mockAccept.mockResolvedValue(undefined);
+      mockMutateAsync.mockResolvedValue(undefined);
       const user = userEvent.setup();
       const { onClose } = renderWizard();
 
