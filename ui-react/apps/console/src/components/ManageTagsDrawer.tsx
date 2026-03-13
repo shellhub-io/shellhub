@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, FormEvent } from "react";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useTagsStore } from "../stores/tagsStore";
-import { useDevicesStore } from "../stores/devicesStore";
 import axios from "axios";
 import Drawer from "./common/Drawer";
 import ConfirmDialog from "./common/ConfirmDialog";
@@ -19,9 +18,13 @@ const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
 export default function ManageTagsDrawer({
   open,
   onClose,
+  onTagRenamed,
+  onTagDeleted,
 }: {
   open: boolean;
   onClose: () => void;
+  onTagRenamed?: (oldName: string, newName: string) => void;
+  onTagDeleted?: (name: string) => void;
 }) {
   const { tags, loading, fetch, create, update, remove } = useTagsStore();
   const [newName, setNewName] = useState("");
@@ -94,13 +97,7 @@ export default function ManageTagsDrawer({
       skipBlurRef.current = true;
       setEditName("");
       setEditingTag(null);
-      const { filterTags } = useDevicesStore.getState();
-      if (filterTags.includes(currentName)) {
-        const next = filterTags.map((t) =>
-          t === currentName ? trimmed : t,
-        );
-        useDevicesStore.setState({ filterTags: next, page: 1 });
-      }
+      onTagRenamed?.(currentName, trimmed);
     } catch {
       setError(`Failed to rename "${currentName}".`);
     } finally {
@@ -114,10 +111,7 @@ export default function ManageTagsDrawer({
     try {
       await remove(name);
       setDeletingTag(null);
-      const { filterTags, removeFilterTag } = useDevicesStore.getState();
-      if (filterTags.includes(name)) {
-        removeFilterTag(name);
-      }
+      onTagDeleted?.(name);
     } catch {
       setError(`Failed to delete "${name}".`);
     } finally {

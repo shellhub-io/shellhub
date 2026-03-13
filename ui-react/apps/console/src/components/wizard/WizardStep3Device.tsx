@@ -5,49 +5,34 @@ import {
   ChevronUpIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { getFirstPendingDevice } from "@/api/devices";
-import { Device } from "@/types/device";
+import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import DistroIcon from "@/components/common/DistroIcon";
 import CopyButton from "@/components/common/CopyButton";
 
 interface WizardStep3DeviceProps {
-  device: Device | null;
-  onDeviceLoaded: (device: Device) => void;
+  device: NormalizedDevice | null;
+  onDeviceLoaded: (device: NormalizedDevice) => void;
 }
 
 export default function WizardStep3Device({
   device,
   onDeviceLoaded,
 }: WizardStep3DeviceProps) {
-  const [loading, setLoading] = useState(device === null);
-  const [fetchError, setFetchError] = useState(false);
+  const { devices, isLoading } = useDevices({
+    page: 1,
+    perPage: 1,
+    status: "pending",
+  });
   const [expanded, setExpanded] = useState(true);
 
+  const loading = device === null && isLoading;
+  const fetchError = device === null && !isLoading && devices.length === 0;
+
   useEffect(() => {
-    if (device !== null) return;
-
-    let cancelled = false;
-
-    getFirstPendingDevice()
-      .then((d) => {
-        if (cancelled) return;
-        if (d) {
-          onDeviceLoaded(d);
-        } else {
-          setFetchError(true);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setFetchError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [device, onDeviceLoaded]);
+    if (device === null && devices.length > 0) {
+      onDeviceLoaded(devices[0]);
+    }
+  }, [device, devices, onDeviceLoaded]);
 
   return (
     <div className="py-2 flex flex-col gap-5">

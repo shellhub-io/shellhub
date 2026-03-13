@@ -2,8 +2,7 @@ import { useEffect, useState, useRef, FormEvent } from "react";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useWebEndpointsStore } from "../stores/webEndpointsStore";
 import { WebEndpoint } from "../types/webEndpoint";
-import { Device } from "../types/device";
-import { getDevices } from "../api/devices";
+import { useDevices, type NormalizedDevice } from "../hooks/useDevices";
 import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
@@ -91,52 +90,24 @@ function DeviceSelector({
   onChange,
   error,
 }: {
-  selected: Device | null;
-  onChange: (device: Device | null) => void;
+  selected: NormalizedDevice | null;
+  onChange: (device: NormalizedDevice | null) => void;
   error?: string;
 }) {
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { devices, isLoading: loading } = useDevices({ page: 1, perPage: 20, status: "accepted" });
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   useClickOutside(wrapperRef, () => setOpen(false));
 
-  useEffect(() => {
-    if (!open) return;
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setLoading(true);
-      getDevices(1, 20, "accepted")
-        .then(({ data: d }) => setDevices(d))
-        .catch(() => setDevices([]))
-        .finally(() => setLoading(false));
-    }, 300);
-    return () => clearTimeout(debounceRef.current);
-  }, [open]);
-
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setLoading(true);
-      getDevices(1, 20, "accepted")
-        .then(({ data: d }) => {
-          const filtered = value
-            ? d.filter(
-              (dev) =>
-                dev.name.toLowerCase().includes(value.toLowerCase())
-                || dev.uid.toLowerCase().includes(value.toLowerCase()),
-            )
-            : d;
-          setDevices(filtered);
-        })
-        .catch(() => setDevices([]))
-        .finally(() => setLoading(false));
-    }, 300);
-  };
+  const filtered = search
+    ? devices.filter(
+      (dev) =>
+        dev.name.toLowerCase().includes(search.toLowerCase())
+        || dev.uid.toLowerCase().includes(search.toLowerCase()),
+    )
+    : devices;
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -172,7 +143,7 @@ function DeviceSelector({
             <input
               type="text"
               value={search}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               onFocus={() => setOpen(true)}
               placeholder="Search devices..."
               className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
@@ -188,14 +159,14 @@ function DeviceSelector({
                 Loading devices...
               </div>
             )
-            : devices.length === 0
+            : filtered.length === 0
               ? (
                 <div className="px-3 py-2 text-xs text-text-muted">
                   No devices found
                 </div>
               )
               : (
-                devices.map((dev) => (
+                filtered.map((dev) => (
                   <button
                     key={dev.uid}
                     type="button"
@@ -383,7 +354,7 @@ function EndpointDrawer({
 }) {
   const { create } = useWebEndpointsStore();
 
-  const [device, setDevice] = useState<Device | null>(null);
+  const [device, setDevice] = useState<NormalizedDevice | null>(null);
   const [hostMode, setHostMode] = useState<"localhost" | "custom">("localhost");
   const [host, setHost] = useState("127.0.0.1");
   const [port, setPort] = useState("");

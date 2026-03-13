@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { useDevicesStore } from "../../stores/devicesStore";
-import { Device } from "../../types/device";
+import { useAcceptDevice, useRejectDevice, useRemoveDevice } from "../../hooks/useDeviceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import axios from "axios";
+
+interface ActionDevice {
+  uid: string;
+  name: string;
+}
 
 const ACTION_CONFIG = {
   accept: {
@@ -26,6 +29,13 @@ const ACTION_CONFIG = {
   },
 };
 
+function getErrorStatus(err: unknown): number | undefined {
+  if (typeof err === "object" && err !== null && "status" in err) {
+    return (err as { status: number }).status;
+  }
+  return undefined;
+}
+
 function DeviceActionDialog({
   device,
   action,
@@ -33,15 +43,15 @@ function DeviceActionDialog({
   onSuccess,
   open,
 }: {
-  device: Device | null;
+  device: ActionDevice | null;
   action: "accept" | "reject" | "remove";
   onClose: () => void;
   onSuccess?: () => void;
   open: boolean;
 }) {
-  const accept = useDevicesStore((s) => s.accept);
-  const reject = useDevicesStore((s) => s.reject);
-  const remove = useDevicesStore((s) => s.remove);
+  const acceptMutation = useAcceptDevice();
+  const rejectMutation = useRejectDevice();
+  const removeMutation = useRemoveDevice();
   const [error, setError] = useState<string | null>(null);
   const config = ACTION_CONFIG[action];
 
@@ -49,25 +59,27 @@ function DeviceActionDialog({
     if (!device) return;
     setError(null);
     try {
-      await { accept, reject, remove }[action](device.uid);
+      if (action === "accept") {
+        await acceptMutation.mutateAsync({ path: { uid: device.uid } });
+      } else if (action === "reject") {
+        await rejectMutation.mutateAsync({ path: { uid: device.uid, status: "reject" } });
+      } else {
+        await removeMutation.mutateAsync({ path: { uid: device.uid } });
+      }
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const status = err.response?.status;
-        if (action === "accept" && status === 402) {
-          setError(
-            "Couldn't accept the device. Check your billing status and try again.",
-          );
-        } else if (action === "accept" && status === 403) {
-          setError(
-            "You reached the maximum amount of accepted devices in this namespace.",
-          );
-        } else if (action === "accept" && status === 409) {
-          setError(
-            "A device with that name already exists. Rename it and try again.",
-          );
-        } else {
-          setError(`Failed to ${action} device.`);
-        }
+      const status = getErrorStatus(err);
+      if (action === "accept" && status === 402) {
+        setError(
+          "Couldn't accept the device. Check your billing status and try again.",
+        );
+      } else if (action === "accept" && status === 403) {
+        setError(
+          "You reached the maximum amount of accepted devices in this namespace.",
+        );
+      } else if (action === "accept" && status === 409) {
+        setError(
+          "A device with that name already exists. Rename it and try again.",
+        );
       } else {
         setError(`Failed to ${action} device.`);
       }

@@ -51,9 +51,11 @@ client.interceptors.request.use((request) => {
 });
 
 client.interceptors.response.use((response) => {
-  cancelMarkDown();
-  if (!useConnectivityStore.getState().apiReachable) {
-    useConnectivityStore.getState().markUp();
+  if (!isApiDown(response.status)) {
+    cancelMarkDown();
+    if (!useConnectivityStore.getState().apiReachable) {
+      useConnectivityStore.getState().markUp();
+    }
   }
 
   if (response.status === 401) {
