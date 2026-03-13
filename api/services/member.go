@@ -4,14 +4,12 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/api/store/mongo"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 )
@@ -73,127 +71,32 @@ func (s *service) AddNamespaceMember(ctx context.Context, req *requests.Namespac
 		return nil, NewErrRoleInvalid()
 	}
 
-	// In cloud instances, if the target user does not exist, we need to create a new user
-	// with the specified email. We use the inserted ID to identify the user once they complete
-	// the registration and accepts the invitation.
-	passiveUser, err := s.store.UserResolve(ctx, store.UserEmailResolver, strings.ToLower(req.MemberEmail))
-	if err != nil {
-		if !envs.IsCloud() || !errors.Is(err, store.ErrNoDocuments) {
+	if len(memberAddHooks) > 0 {
+		if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+			return fireMemberAdd(ctx, namespace, req)
+		}); err != nil {
+			return nil, err
+		}
+	} else {
+		passiveUser, err := s.store.UserResolve(ctx, store.UserEmailResolver, strings.ToLower(req.MemberEmail))
+		if err != nil {
 			return nil, NewErrUserNotFound(req.MemberEmail, err)
 		}
 
-		passiveUser = &models.User{}
-		passiveUser.ID, err = s.store.UserInvitationsUpsert(ctx, strings.ToLower(req.MemberEmail))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if _, ok := namespace.FindMember(passiveUser.ID); ok {
-		return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
-	}
-
-	var callback store.TransactionCb
-	if !envs.IsCloud() {
-		callback = s.addMember(namespace, passiveUser.ID, req)
-	} else {
-		invitation, err := s.store.MembershipInvitationResolve(ctx, req.TenantID, passiveUser.ID)
-		if err != nil && !errors.Is(err, store.ErrNoDocuments) {
-			return nil, err
-		}
-
-		switch {
-		case invitation == nil, !invitation.IsPending():
-			callback = s.addMember(namespace, passiveUser.ID, req)
-		case invitation.IsExpired():
-			callback = s.resendMembershipInvite(invitation, req)
-		default:
+		if _, ok := namespace.FindMember(passiveUser.ID); ok {
 			return nil, NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
-	}
 
-	if err := s.store.WithTransaction(ctx, callback); err != nil {
-		return nil, err
-	}
+		if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+			member := &models.Member{ID: passiveUser.ID, AddedAt: clock.Now(), Role: req.MemberRole}
 
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
-	if err != nil {
-		return nil, err
-	}
-
-	return n, nil
-}
-
-// addMember returns a transaction callback that adds a member to a namespace.
-//
-// In all environments, it creates a membership_invitation record for audit purposes:
-// - Cloud: Creates pending invitation with expiration and sends email
-// - Community/Enterprise: Creates accepted invitation and adds member directly to namespace
-func (s *service) addMember(namespace *models.Namespace, userID string, req *requests.NamespaceAddMember) store.TransactionCb {
-	return func(ctx context.Context) error {
-		now := clock.Now()
-
-		invitation := &models.MembershipInvitation{
-			TenantID:        req.TenantID,
-			UserID:          userID,
-			InvitedBy:       namespace.Owner,
-			Role:            req.MemberRole,
-			CreatedAt:       now,
-			UpdatedAt:       now,
-			StatusUpdatedAt: now,
-			Invitations:     1,
+			return s.store.NamespaceCreateMembership(ctx, req.TenantID, member)
+		}); err != nil {
+			return nil, err
 		}
-
-		if envs.IsCloud() {
-			expiresAt := now.Add(7 * (24 * time.Hour))
-			invitation.Status = models.MembershipInvitationStatusPending
-			invitation.ExpiresAt = &expiresAt
-			if err := s.store.MembershipInvitationCreate(ctx, invitation); err != nil {
-				return err
-			}
-
-			if err := s.client.InviteMember(ctx, req.TenantID, userID, req.FowardedHost); err != nil {
-				return err
-			}
-		} else {
-			invitation.Status = models.MembershipInvitationStatusAccepted
-			invitation.ExpiresAt = nil
-			if err := s.store.MembershipInvitationCreate(ctx, invitation); err != nil {
-				return err
-			}
-
-			member := &models.Member{ID: userID, AddedAt: now, Role: req.MemberRole}
-			if err := s.store.NamespaceCreateMembership(ctx, req.TenantID, member); err != nil {
-				return err
-			}
-		}
-
-		return nil
 	}
-}
 
-// resendMembershipInvite returns a transaction callback that resends a membership invitation.
-//
-// This function updates an existing invitation to pending status, extends the expiration date,
-// increments the invitation counter, and sends a new invitation email (cloud only).
-func (s *service) resendMembershipInvite(invitation *models.MembershipInvitation, req *requests.NamespaceAddMember) store.TransactionCb {
-	return func(ctx context.Context) error {
-		now := clock.Now()
-
-		expiresAt := now.Add(7 * (24 * time.Hour))
-		invitation.Status = models.MembershipInvitationStatusPending
-		invitation.Role = req.MemberRole
-		invitation.ExpiresAt = &expiresAt
-		invitation.UpdatedAt = now
-		invitation.StatusUpdatedAt = now
-		invitation.Invitations++
-
-		if err := s.store.MembershipInvitationUpdate(ctx, invitation); err != nil {
-			return err
-		}
-
-		return s.client.InviteMember(ctx, req.TenantID, invitation.UserID, req.FowardedHost)
-	}
+	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {

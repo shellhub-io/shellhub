@@ -96,10 +96,6 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestGetStats(t)
 	})
 
-	t.Run("UserInvitationsStore", func(t *testing.T) {
-		s.TestUserInvitationsUpsert(t)
-	})
-
 	t.Run("PrivateKeyStore", func(t *testing.T) {
 		s.TestPrivateKeyCreate(t)
 		s.TestPrivateKeyGet(t)
@@ -109,12 +105,6 @@ func (s *Suite) Run(t *testing.T) {
 		s.TestNamespaceCreateMembership(t)
 		s.TestNamespaceUpdateMembership(t)
 		s.TestNamespaceDeleteMembership(t)
-	})
-
-	t.Run("MembershipInvitationStore", func(t *testing.T) {
-		s.TestMembershipInvitationCreate(t)
-		s.TestMembershipInvitationResolve(t)
-		s.TestMembershipInvitationUpdate(t)
 	})
 
 	t.Run("SystemStore", func(t *testing.T) {

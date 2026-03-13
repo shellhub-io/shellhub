@@ -9,7 +9,6 @@ func Entities() []any {
 		(*APIKey)(nil),
 		(*Device)(nil),
 		(*Membership)(nil),
-		(*MembershipInvitation)(nil),
 		(*Namespace)(nil),
 		(*PrivateKey)(nil),
 		(*PublicKey)(nil),
@@ -19,6 +18,5 @@ func Entities() []any {
 		(*System)(nil),
 		(*Tag)(nil),
 		(*User)(nil),
-		(*UserInvitation)(nil),
 	}
 }

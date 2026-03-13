@@ -552,72 +552,6 @@ func (_m *Store) GetStats(ctx context.Context, tenantID string) (*models.Stats, 
 	return r0, r1
 }
 
-// MembershipInvitationCreate provides a mock function with given fields: ctx, invitation
-func (_m *Store) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
-	ret := _m.Called(ctx, invitation)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MembershipInvitationCreate")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.MembershipInvitation) error); ok {
-		r0 = rf(ctx, invitation)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MembershipInvitationResolve provides a mock function with given fields: ctx, tenantID, userID
-func (_m *Store) MembershipInvitationResolve(ctx context.Context, tenantID string, userID string) (*models.MembershipInvitation, error) {
-	ret := _m.Called(ctx, tenantID, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MembershipInvitationResolve")
-	}
-
-	var r0 *models.MembershipInvitation
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*models.MembershipInvitation, error)); ok {
-		return rf(ctx, tenantID, userID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *models.MembershipInvitation); ok {
-		r0 = rf(ctx, tenantID, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.MembershipInvitation)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, tenantID, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MembershipInvitationUpdate provides a mock function with given fields: ctx, invitation
-func (_m *Store) MembershipInvitationUpdate(ctx context.Context, invitation *models.MembershipInvitation) error {
-	ret := _m.Called(ctx, invitation)
-
-	if len(ret) == 0 {
-		panic("no return value specified for MembershipInvitationUpdate")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *models.MembershipInvitation) error); ok {
-		r0 = rf(ctx, invitation)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // NamespaceConflicts provides a mock function with given fields: ctx, target
 func (_m *Store) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
 	ret := _m.Called(ctx, target)
@@ -1758,34 +1692,6 @@ func (_m *Store) UserGetInfo(ctx context.Context, id string) (*models.UserInfo, 
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserInvitationsUpsert provides a mock function with given fields: ctx, email
-func (_m *Store) UserInvitationsUpsert(ctx context.Context, email string) (string, error) {
-	ret := _m.Called(ctx, email)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserInvitationsUpsert")
-	}
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
-		return rf(ctx, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
-		r0 = rf(ctx, email)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}
