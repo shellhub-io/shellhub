@@ -524,10 +524,10 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 	// Generate a unique fingerprint (simulating SSH key fingerprint format)
 	timestamp := time.Now().UnixNano()
 	fingerprint := fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32),
-		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp),
-		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32),
-		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp))
+		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32), //nolint:gosec // G115
+		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp), //nolint:gosec // G115
+		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32), //nolint:gosec // G115
+		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp)) //nolint:gosec // G115
 
 	// Default public key
 	key := &models.PublicKey{
@@ -589,10 +589,10 @@ func (s *Suite) CreatePrivateKey(t *testing.T, opts ...PrivateKeyOption) string 
 	// Generate a unique fingerprint (similar format to PublicKey)
 	timestamp := time.Now().UnixNano()
 	fingerprint := fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32),
-		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp),
-		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32),
-		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp))
+		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32), //nolint:gosec // G115
+		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp), //nolint:gosec // G115
+		byte(timestamp>>56), byte(timestamp>>48), byte(timestamp>>40), byte(timestamp>>32), //nolint:gosec // G115
+		byte(timestamp>>24), byte(timestamp>>16), byte(timestamp>>8), byte(timestamp)) //nolint:gosec // G115
 
 	// Default private key
 	key := &models.PrivateKey{

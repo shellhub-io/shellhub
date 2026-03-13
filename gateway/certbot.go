@@ -40,7 +40,7 @@ func NewExecutor() Executor {
 
 // Command creates a new *exec.Cmd with the given name and arguments.
 func (e *executor) Command(name string, arg ...string) *exec.Cmd {
-	return exec.Command(name, arg...)
+	return exec.Command(name, arg...) //nolint:gosec // G204: arguments are controlled by internal callers
 }
 
 // Run executes the given command and waits for it to complete.

@@ -310,7 +310,7 @@ func httpProxyHandlerV1(agent *Agent) func(c echo.Context) error {
 
 		// NOTE: Gets the to address to connect to. This address can be just a port, :8080, or the host and port,
 		// localhost:8080.
-		addr := fmt.Sprintf("%s:%s", host, port)
+		addr := net.JoinHostPort(host, port)
 
 		in, err := net.Dial(ProxyHandlerNetwork, addr)
 		if err != nil {

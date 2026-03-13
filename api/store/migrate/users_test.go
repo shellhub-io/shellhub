@@ -13,7 +13,7 @@ func TestConvertUser(t *testing.T) {
 	oid := primitive.NewObjectID()
 
 	t.Run("all fields populated", func(t *testing.T) {
-		doc := mongoUser{
+		doc := mongoUser{ //nolint:gosec // G101: test fixture, not a real credential
 			ID:             oid,
 			Origin:         "saml",
 			ExternalID:     "ext-123",

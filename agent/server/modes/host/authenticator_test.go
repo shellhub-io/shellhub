@@ -269,7 +269,7 @@ func TestPassword(t *testing.T) {
 		},
 		{
 			ctx: &testSSHContext{user: "test"},
-			authenticator: &Authenticator{
+			authenticator: &Authenticator{ //nolint:gosec // G101: test fixture, not a real credential
 				singleUserPassword: "$6$Ntq5PynhGPFJuhxn$emiTnyA.GTsvK6JjjrecwDSB3jywkoHky9ZuJAYwSGFlZU2npTFOEMVPYG7CsDLRyvUE7OzbqFidYuKO274DC.",
 			},
 			name:          "return true when single user is enabled and password is valid",

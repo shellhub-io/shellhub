@@ -321,7 +321,7 @@ func TestAuthLocalUser(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.mocks()
 
-			jsonData, err := json.Marshal(tc.req)
+			jsonData, err := json.Marshal(tc.req) //nolint:gosec // G117: test request serialization
 			if err != nil {
 				assert.NoError(t, err)
 			}

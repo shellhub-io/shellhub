@@ -8,7 +8,7 @@ import (
 )
 
 func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	signBytes, err := os.ReadFile(os.Getenv("PRIVATE_KEY"))
+	signBytes, err := os.ReadFile(os.Getenv("PRIVATE_KEY")) //nolint:gosec // G703: path comes from trusted env var
 	if err != nil {
 		return nil, nil, err
 	}
@@ -18,7 +18,7 @@ func LoadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 		return nil, nil, err
 	}
 
-	verifyBytes, err := os.ReadFile(os.Getenv("PUBLIC_KEY"))
+	verifyBytes, err := os.ReadFile(os.Getenv("PUBLIC_KEY")) //nolint:gosec // G703: path comes from trusted env var
 	if err != nil {
 		return nil, nil, err
 	}
