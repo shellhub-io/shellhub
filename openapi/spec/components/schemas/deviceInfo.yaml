@@ -24,3 +24,9 @@ properties:
       - docker
       - native
     example: docker
+required:
+  - id
+  - pretty_name
+  - version
+  - arch
+  - platform

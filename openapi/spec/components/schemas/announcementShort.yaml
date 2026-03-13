@@ -7,6 +7,10 @@ properties:
   date:
     type: string
     format: date-time
+required:
+  - uuid
+  - title
+  - date
 example:
   title: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
   date: 2017-07-21T17:32:28Z

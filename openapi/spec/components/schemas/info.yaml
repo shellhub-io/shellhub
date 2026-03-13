@@ -6,6 +6,7 @@ properties:
     example: 'v0.20.0'
   endpoints:
     type: object
+    nullable: true
     description: Network endpoints for the ShellHub instance.
     properties:
       ssh:
@@ -23,6 +24,7 @@ properties:
   authentication:
     description: Authentication methods available for the ShellHub instance.
     type: object
+    nullable: true
     properties:
       local:
         description: Indicates if local authentication using email and password is enabled.
@@ -32,3 +34,8 @@ properties:
         description: Indicates if SAML-based single sign-on (SSO) is enabled.
         type: boolean
         example: false
+required:
+  - version
+  - endpoints
+  - setup
+  - authentication
