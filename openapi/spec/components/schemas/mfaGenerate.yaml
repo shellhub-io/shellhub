@@ -20,3 +20,7 @@ properties:
       - IBWGL3IN42LTS3PP
       - 6DIGYYGM3JM7GXC4
       - 6UIHAIN3CYUEFY5X
+required:
+  - link
+  - secret
+  - recovery_codes

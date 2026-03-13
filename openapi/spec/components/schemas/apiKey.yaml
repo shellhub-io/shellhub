@@ -39,3 +39,11 @@ properties:
       The UTC date when the key was last updated. It is updated whenever the key is modified.
     format: date
     example: 2020-05-01
+required:
+  - tenant_id
+  - created_by
+  - role
+  - name
+  - expires_in
+  - created_at
+  - updated_at

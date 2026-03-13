@@ -10,3 +10,8 @@ properties:
   date:
     type: string
     format: date-time
+required:
+  - uuid
+  - title
+  - content
+  - date

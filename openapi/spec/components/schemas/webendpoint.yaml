@@ -11,7 +11,9 @@ properties:
   device_uid:
     $ref: deviceUID.yaml
   device:
-    $ref: device.yaml
+    nullable: true
+    allOf:
+      - $ref: device.yaml
   host:
     $ref: webendpointHost.yaml
   port:
@@ -30,3 +32,14 @@ properties:
     type: string
     format: date-time
     example: 2020-05-01T00:00:00.000Z
+required:
+  - address
+  - full_address
+  - namespace
+  - device_uid
+  - host
+  - port
+  - tls
+  - ttl
+  - expires_in
+  - created_at

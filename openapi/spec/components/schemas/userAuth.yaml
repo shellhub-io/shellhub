@@ -32,3 +32,16 @@ properties:
     example: false
   max_namespaces:
     $ref: maxNamespaces.yaml
+required:
+  - token
+  - id
+  - origin
+  - user
+  - name
+  - email
+  - recovery_email
+  - tenant
+  - role
+  - mfa
+  - max_namespaces
+  - admin

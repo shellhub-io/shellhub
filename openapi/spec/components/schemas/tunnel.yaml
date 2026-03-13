@@ -26,3 +26,13 @@ properties:
     type: string
     format: date-time
     example: 2020-05-01T00:00:00.000Z
+required:
+  - address
+  - full_address
+  - namespace
+  - device
+  - host
+  - port
+  - ttl
+  - expires_in
+  - created_at

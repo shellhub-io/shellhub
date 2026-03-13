@@ -12,3 +12,6 @@ properties:
     maxLength: 4096
     format: alphanumunicode
     example: my awesome connection announcement
+required:
+  - session_record
+  - connection_announcement

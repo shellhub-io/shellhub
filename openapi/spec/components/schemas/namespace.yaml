@@ -58,16 +58,14 @@ properties:
           description: Member's email.
           example: john.doe@test.com
   settings:
-    $ref: namespaceSettings.yaml
+    nullable: true
+    allOf:
+      - $ref: namespaceSettings.yaml
   max_devices:
     description: Namespace's max device numbers
     type: integer
     minimum: 3
     default: 3
-  device_count:
-    description: Namespace's total devices
-    type: integer
-    minimum: 0
   created_at:
     description: Namespace's creation date
     type: string
@@ -76,6 +74,7 @@ properties:
   billing:
     description: Namespace's billing
     type: object
+    nullable: true
     example: null
   devices_pending_count:
     description: Number of devices currently in pending status awaiting approval
@@ -92,3 +91,15 @@ properties:
     type: integer
     minimum: 0
     example: 0
+required:
+  - name
+  - owner
+  - tenant_id
+  - members
+  - settings
+  - max_devices
+  - created_at
+  - billing
+  - devices_pending_count
+  - devices_accepted_count
+  - devices_rejected_count

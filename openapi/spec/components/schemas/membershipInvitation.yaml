@@ -8,11 +8,11 @@ properties:
       tenant_id:
         description: The namespace tenant ID
         type: string
-        example: "00000000-0000-4000-0000-000000000000"
+        example: '00000000-0000-4000-0000-000000000000'
       name:
         description: The namespace name
         type: string
-        example: "my-namespace"
+        example: 'my-namespace'
     required:
       - tenant_id
       - name
@@ -23,18 +23,18 @@ properties:
       id:
         description: The ID of the invited user
         type: string
-        example: "507f1f77bcf86cd799439011"
+        example: '507f1f77bcf86cd799439011'
       email:
         description: The email of the invited user
         type: string
-        example: "user@example.com"
+        example: 'user@example.com'
     required:
       - id
       - email
   invited_by:
     description: The ID of the user who sent the invitation
     type: string
-    example: "507f1f77bcf86cd799439012"
+    example: '507f1f77bcf86cd799439012'
   created_at:
     description: When the invitation was created
     type: string
@@ -63,3 +63,13 @@ properties:
     format: date-time
   role:
     $ref: ./namespaceMemberRole.yaml
+required:
+  - namespace
+  - user
+  - invited_by
+  - created_at
+  - updated_at
+  - expires_at
+  - status
+  - status_updated_at
+  - role

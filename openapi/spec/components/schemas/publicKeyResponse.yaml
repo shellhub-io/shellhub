@@ -19,3 +19,11 @@ properties:
     $ref: publicKeyFilter.yaml
   username:
     $ref: publicKeyUsername.yaml
+required:
+  - data
+  - fingerprint
+  - created_at
+  - tenant_id
+  - name
+  - filter
+  - username

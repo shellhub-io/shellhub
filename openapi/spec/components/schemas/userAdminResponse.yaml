@@ -31,3 +31,11 @@ properties:
     type: string
     minLength: 64
     maxLength: 64
+required:
+  - id
+  - admin
+  - created_at
+  - last_login
+  - name
+  - email
+  - username
