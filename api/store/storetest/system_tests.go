@@ -24,11 +24,6 @@ func (s *Suite) TestSystemGet(t *testing.T) {
 				Local: &models.SystemAuthenticationLocal{
 					Enabled: true,
 				},
-				SAML: &models.SystemAuthenticationSAML{
-					Enabled: false,
-					Idp:     &models.SystemIdpSAML{Binding: &models.SystemAuthenticationBinding{}},
-					Sp:      &models.SystemSpSAML{},
-				},
 			},
 		}
 
@@ -60,11 +55,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 				Local: &models.SystemAuthenticationLocal{
 					Enabled: true,
 				},
-				SAML: &models.SystemAuthenticationSAML{
-					Enabled: false,
-					Idp:     &models.SystemIdpSAML{Binding: &models.SystemAuthenticationBinding{}},
-					Sp:      &models.SystemSpSAML{},
-				},
 			},
 		}
 
@@ -87,11 +77,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 				Local: &models.SystemAuthenticationLocal{
 					Enabled: true,
 				},
-				SAML: &models.SystemAuthenticationSAML{
-					Enabled: false,
-					Idp:     &models.SystemIdpSAML{Binding: &models.SystemAuthenticationBinding{}},
-					Sp:      &models.SystemSpSAML{},
-				},
 			},
 		}
 
@@ -104,11 +89,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 			Authentication: &models.SystemAuthentication{
 				Local: &models.SystemAuthenticationLocal{
 					Enabled: false,
-				},
-				SAML: &models.SystemAuthenticationSAML{
-					Enabled: true,
-					Idp:     &models.SystemIdpSAML{Binding: &models.SystemAuthenticationBinding{}},
-					Sp:      &models.SystemSpSAML{},
 				},
 			},
 		}
@@ -131,11 +111,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 			Authentication: &models.SystemAuthentication{
 				Local: &models.SystemAuthenticationLocal{
 					Enabled: true,
-				},
-				SAML: &models.SystemAuthenticationSAML{
-					Enabled: false,
-					Idp:     &models.SystemIdpSAML{Binding: &models.SystemAuthenticationBinding{}},
-					Sp:      &models.SystemSpSAML{},
 				},
 			},
 		}

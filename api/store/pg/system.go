@@ -22,11 +22,6 @@ func (pg *Pg) SystemGet(ctx context.Context) (*models.System, error) {
 					Local: &models.SystemAuthenticationLocal{
 						Enabled: true,
 					},
-					SAML: &models.SystemAuthenticationSAML{
-						Enabled: false,
-						Idp:     &models.SystemIdpSAML{Binding: &models.SystemAuthenticationBinding{}},
-						Sp:      &models.SystemSpSAML{},
-					},
 				},
 			}
 

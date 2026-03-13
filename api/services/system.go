@@ -36,7 +36,6 @@ func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo
 		},
 		Authentication: &responses.SystemAuthenticationInfo{
 			Local: system.Authentication.Local.Enabled,
-			SAML:  system.Authentication.SAML.Enabled,
 		},
 	}
 

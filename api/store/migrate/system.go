@@ -16,36 +16,10 @@ type mongoSystem struct {
 
 type mongoSystemAuth struct {
 	Local *mongoSystemAuthLocal `bson:"local"`
-	SAML  *mongoSystemAuthSAML  `bson:"saml"`
 }
 
 type mongoSystemAuthLocal struct {
 	Enabled bool `bson:"enabled"`
-}
-
-type mongoSystemAuthSAML struct {
-	Enabled bool            `bson:"enabled"`
-	Idp     *mongoSystemIdp `bson:"idp"`
-	Sp      *mongoSystemSp  `bson:"sp"`
-}
-
-type mongoSystemIdp struct {
-	EntityID     string              `bson:"entity_id"`
-	Binding      *mongoSystemBinding `bson:"binding"`
-	Certificates []string            `bson:"certificates"`
-	Mappings     map[string]string   `bson:"mappings"`
-}
-
-type mongoSystemBinding struct {
-	Post      string `bson:"post"`
-	Redirect  string `bson:"redirect"`
-	Preferred string `bson:"preferred"`
-}
-
-type mongoSystemSp struct {
-	SignAuthRequests bool   `bson:"sign_auth_requests"`
-	Certificate      string `bson:"certificate"`
-	PrivateKey       string `bson:"private_key"`
 }
 
 func convertSystem(doc mongoSystem) *entity.System {
@@ -57,24 +31,6 @@ func convertSystem(doc mongoSystem) *entity.System {
 	if doc.Authentication != nil {
 		if doc.Authentication.Local != nil {
 			e.Authentication.Local.Enabled = doc.Authentication.Local.Enabled
-		}
-		if doc.Authentication.SAML != nil {
-			e.Authentication.SAML.Enabled = doc.Authentication.SAML.Enabled
-			if doc.Authentication.SAML.Idp != nil {
-				e.Authentication.SAML.Idp.EntityID = doc.Authentication.SAML.Idp.EntityID
-				e.Authentication.SAML.Idp.Certificates = doc.Authentication.SAML.Idp.Certificates
-				e.Authentication.SAML.Idp.Mappings = doc.Authentication.SAML.Idp.Mappings
-				if doc.Authentication.SAML.Idp.Binding != nil {
-					e.Authentication.SAML.Idp.Binding.Post = doc.Authentication.SAML.Idp.Binding.Post
-					e.Authentication.SAML.Idp.Binding.Redirect = doc.Authentication.SAML.Idp.Binding.Redirect
-					e.Authentication.SAML.Idp.Binding.Preferred = doc.Authentication.SAML.Idp.Binding.Preferred
-				}
-			}
-			if doc.Authentication.SAML.Sp != nil {
-				e.Authentication.SAML.Sp.SignAuthRequests = doc.Authentication.SAML.Sp.SignAuthRequests
-				e.Authentication.SAML.Sp.Certificate = doc.Authentication.SAML.Sp.Certificate
-				e.Authentication.SAML.Sp.PrivateKey = doc.Authentication.SAML.Sp.PrivateKey
-			}
 		}
 	}
 

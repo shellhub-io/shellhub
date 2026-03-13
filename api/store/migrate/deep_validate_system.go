@@ -45,16 +45,6 @@ func (m *Migrator) deepValidateSystems(ctx context.Context, r *ValidationReport)
 
 	r.CheckField(t, id, "Setup", expected.Setup, actual.Setup)
 	r.CheckField(t, id, "Auth.Local.Enabled", expected.Authentication.Local.Enabled, actual.Authentication.Local.Enabled)
-	r.CheckField(t, id, "Auth.SAML.Enabled", expected.Authentication.SAML.Enabled, actual.Authentication.SAML.Enabled)
-	r.CheckField(t, id, "Auth.SAML.Idp.EntityID", expected.Authentication.SAML.Idp.EntityID, actual.Authentication.SAML.Idp.EntityID)
-	r.CheckField(t, id, "Auth.SAML.Idp.Binding.Post", expected.Authentication.SAML.Idp.Binding.Post, actual.Authentication.SAML.Idp.Binding.Post)
-	r.CheckField(t, id, "Auth.SAML.Idp.Binding.Redirect", expected.Authentication.SAML.Idp.Binding.Redirect, actual.Authentication.SAML.Idp.Binding.Redirect)
-	r.CheckField(t, id, "Auth.SAML.Idp.Binding.Preferred", expected.Authentication.SAML.Idp.Binding.Preferred, actual.Authentication.SAML.Idp.Binding.Preferred)
-	r.CheckStrings(t, id, "Auth.SAML.Idp.Certificates", expected.Authentication.SAML.Idp.Certificates, actual.Authentication.SAML.Idp.Certificates)
-	r.CheckStringMap(t, id, "Auth.SAML.Idp.Mappings", expected.Authentication.SAML.Idp.Mappings, actual.Authentication.SAML.Idp.Mappings)
-	r.CheckField(t, id, "Auth.SAML.Sp.SignAuthRequests", expected.Authentication.SAML.Sp.SignAuthRequests, actual.Authentication.SAML.Sp.SignAuthRequests)
-	r.CheckFieldRedacted(t, id, "Auth.SAML.Sp.Certificate", expected.Authentication.SAML.Sp.Certificate, actual.Authentication.SAML.Sp.Certificate)
-	r.CheckFieldRedacted(t, id, "Auth.SAML.Sp.PrivateKey", expected.Authentication.SAML.Sp.PrivateKey, actual.Authentication.SAML.Sp.PrivateKey)
 
 	return nil
 }
