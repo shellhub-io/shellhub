@@ -82,7 +82,27 @@ func (s *service) KeepAliveSession(ctx context.Context, uid models.UID) error {
 
 	session.LastSeen = clock.Now()
 
-	return s.store.SessionUpdate(ctx, session)
+	if err := s.store.SessionUpdate(ctx, session); err != nil {
+		return err
+	}
+
+	activeSession, err := s.store.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	if err != nil {
+		// Active session was TTL-deleted; recreate it.
+		if err := s.store.ActiveSessionCreate(ctx, session); err != nil {
+			log.WithError(err).WithField("session_uid", uid).Warn("failed to recreate active session")
+		}
+
+		return nil
+	}
+
+	activeSession.LastSeen = session.LastSeen
+
+	if err := s.store.ActiveSessionUpdate(ctx, activeSession); err != nil {
+		log.WithError(err).WithField("session_uid", uid).Warn("failed to update active session's last seen")
+	}
+
+	return nil
 }
 
 func (s *service) UpdateSession(ctx context.Context, uid models.UID, model models.SessionUpdate) error {

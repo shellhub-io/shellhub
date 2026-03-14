@@ -439,8 +439,11 @@ func (ln *Listener) grabConn(path string) {
 		return
 	}
 
+	c := wsconnadapter.New(wsConn)
+	c.Ping()
+
 	select {
-	case ln.connc <- wsconnadapter.New(wsConn):
+	case ln.connc <- c:
 	case <-ln.donec:
 	}
 }
