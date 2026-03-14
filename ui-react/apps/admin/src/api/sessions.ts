@@ -17,6 +17,9 @@ export async function getSession(uid: string): Promise<Session> {
   return response.data;
 }
 
-export async function closeSession(uid: string): Promise<void> {
-  await apiClient.post(`/api/sessions/${uid}/finish`);
+export async function closeSession(
+  uid: string,
+  deviceUid: string,
+): Promise<void> {
+  await apiClient.post(`/api/sessions/${uid}/close`, { device: deviceUid });
 }

@@ -52,13 +52,11 @@ function buildTimeline(session: Session): TLEvent[] {
 
   events.push({
     id: "auth",
-    icon: session.authenticated
-      ? (
-        <ShieldCheckIcon className="w-3.5 h-3.5" strokeWidth={2} />
-      )
-      : (
-        <ShieldExclamationIcon className="w-3.5 h-3.5" strokeWidth={2} />
-      ),
+    icon: session.authenticated ? (
+      <ShieldCheckIcon className="w-3.5 h-3.5" strokeWidth={2} />
+    ) : (
+      <ShieldExclamationIcon className="w-3.5 h-3.5" strokeWidth={2} />
+    ),
     title: session.authenticated ? "Authenticated" : "Authentication failed",
     detail: `as ${session.username}`,
     status: session.authenticated ? "success" : "error",
@@ -136,11 +134,9 @@ function buildTimeline(session: Session): TLEvent[] {
 
   events.push({
     id: "end",
-    icon: session.active
-      ? null
-      : (
-        <CheckCircleIcon className="w-3.5 h-3.5" strokeWidth={2} />
-      ),
+    icon: session.active ? null : (
+      <CheckCircleIcon className="w-3.5 h-3.5" strokeWidth={2} />
+    ),
     title: session.active ? "Session active" : "Session closed",
     detail: session.active
       ? `started ${formatRelative(session.started_at)}`
@@ -206,16 +202,14 @@ function TimelineNode({ event, isLast }: { event: TLEvent; isLast: boolean }) {
         <div
           className={`w-6 h-6 rounded-full border flex items-center justify-center ${NODE_COLORS[event.status]}`}
         >
-          {event.status === "active" && event.icon === null
-            ? (
-              <span className="relative flex w-2 h-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-60" />
-                <span className="relative inline-flex rounded-full w-2 h-2 bg-accent-green" />
-              </span>
-            )
-            : (
-              event.icon
-            )}
+          {event.status === "active" && event.icon === null ? (
+            <span className="relative flex w-2 h-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-60" />
+              <span className="relative inline-flex rounded-full w-2 h-2 bg-accent-green" />
+            </span>
+          ) : (
+            event.icon
+          )}
         </div>
         {!isLast && (
           <div className="w-px flex-1 bg-border/60 my-1 min-h-[20px]" />
@@ -302,11 +296,11 @@ export default function SessionDetails() {
   }, [uid, fetchOne]);
 
   const handleClose = async () => {
-    if (!uid) return;
+    if (!uid || !session) return;
     setClosing(true);
     setCloseError(null);
     try {
-      await close(uid);
+      await close(uid, session.device_uid);
       setShowClose(false);
     } catch {
       setCloseError("Failed to close session. Check your permissions.");
@@ -523,14 +517,11 @@ export default function SessionDetails() {
               </div>
             </div>
             <p className="text-sm text-text-muted mb-6">
-              Are you sure you want to close the session for
-              {" "}
+              Are you sure you want to close the session for{" "}
               <span className="font-medium text-text-primary">
                 {session.username}
-              </span>
-              {" "}
-              on
-              {" "}
+              </span>{" "}
+              on{" "}
               <span className="font-medium text-text-primary">
                 {session.device?.name ?? session.device_uid.substring(0, 8)}
               </span>
