@@ -39,7 +39,7 @@ podman_install() {
   esac
 
   if [ -z "$MODE" ]; then
-    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub-agent/shellhub.key}"
 
     echo "🚀 Starting ShellHub container in Agent mode..."
   fi
@@ -106,7 +106,7 @@ docker_install() {
   esac
 
   if [ -z "$MODE" ]; then
-    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub-agent/shellhub.key}"
 
     echo "🚀 Starting ShellHub container in Agent mode..."
   fi
@@ -165,7 +165,7 @@ snap_install() {
 
     sudo snap set shellhub server-address="$SERVER_ADDRESS"
     sudo snap set shellhub tenant-id="$TENANT_ID"
-    sudo snap set shellhub private-key="${PRIVATE_KEY:-/etc/shellhub.key}"
+    sudo snap set shellhub private-key="${PRIVATE_KEY:-/etc/shellhub-agent/shellhub.key}"
 
     sudo snap start shellhub
   } || {
