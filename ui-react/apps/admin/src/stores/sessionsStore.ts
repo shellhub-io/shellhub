@@ -12,7 +12,7 @@ interface SessionsState {
   perPage: number;
   fetch: (page?: number, perPage?: number) => Promise<void>;
   fetchOne: (uid: string) => Promise<void>;
-  close: (uid: string) => Promise<void>;
+  close: (uid: string, deviceUid: string) => Promise<void>;
   setPage: (page: number) => void;
 }
 
@@ -47,8 +47,8 @@ export const useSessionsStore = create<SessionsState>((set, get) => ({
     }
   },
 
-  close: async (uid: string) => {
-    await closeSession(uid);
+  close: async (uid: string, deviceUid: string) => {
+    await closeSession(uid, deviceUid);
     const current = get().session;
     if (current?.uid === uid) {
       set({ session: { ...current, active: false } });

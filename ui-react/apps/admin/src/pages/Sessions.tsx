@@ -95,134 +95,128 @@ export default function Sessions() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
-            {loading
-              ? (
-                <tr>
-                  <td colSpan={COL_SPAN} className="px-4 py-12 text-center">
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-xs font-mono text-text-muted">
-                        Loading sessions…
+            {loading ? (
+              <tr>
+                <td colSpan={COL_SPAN} className="px-4 py-12 text-center">
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <span className="text-xs font-mono text-text-muted">
+                      Loading sessions…
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ) : sessions.length === 0 ? (
+              <tr>
+                <td colSpan={COL_SPAN} className="px-4 py-12 text-center">
+                  <p className="text-xs font-mono text-text-muted">
+                    No sessions found
+                  </p>
+                </td>
+              </tr>
+            ) : (
+              sessions.map((session) => {
+                const type = sessionType(session);
+                const suspicious = !session.authenticated;
+                return (
+                  <tr
+                    key={session.uid}
+                    onClick={() => void navigate(`/sessions/${session.uid}`)}
+                    className={`transition-colors group cursor-pointer relative ${
+                      suspicious
+                        ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"
+                        : "hover:bg-hover-subtle border-l-2 border-l-transparent"
+                    }`}
+                  >
+                    <td className="px-4 py-3.5">
+                      <span
+                        className={`w-2 h-2 rounded-full inline-block ${
+                          session.active
+                            ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
+                            : "bg-text-muted/40"
+                        }`}
+                      />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      {session.device?.uid ? (
+                        <DeviceChip
+                          uid={session.device.uid}
+                          name={
+                            session.device.name
+                            ?? session.device_uid.substring(0, 8)
+                          }
+                          online={session.device.online}
+                          osId={session.device.info?.id}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span className="text-xs font-mono text-text-primary">
+                          {session.device?.name
+                            ?? session.device_uid.substring(0, 8)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-1.5">
+                        {suspicious && (
+                          <ExclamationTriangleIcon
+                            className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
+                            strokeWidth={2}
+                            title="Not authenticated"
+                          />
+                        )}
+                        <code
+                          className={`text-xs font-mono ${
+                            suspicious
+                              ? "text-accent-red/60"
+                              : "text-text-secondary"
+                          }`}
+                        >
+                          {session.username}
+                        </code>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <code className="text-xs font-mono text-text-muted bg-surface px-1.5 py-0.5 rounded">
+                        {session.ip_address}
+                      </code>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      {type ? (
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
+                        >
+                          {type.label}
+                        </span>
+                      ) : (
+                        <span className="text-2xs text-text-muted">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="text-xs text-text-secondary">
+                        {formatDate(session.started_at)}
                       </span>
-                    </div>
-                  </td>
-                </tr>
-              )
-              : sessions.length === 0
-                ? (
-                  <tr>
-                    <td colSpan={COL_SPAN} className="px-4 py-12 text-center">
-                      <p className="text-xs font-mono text-text-muted">
-                        No sessions found
-                      </p>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="text-xs font-mono text-text-secondary tabular-nums">
+                        {formatDuration(
+                          session.started_at,
+                          session.last_seen,
+                          session.active,
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-right">
+                      {session.active && (
+                        <CloseButton
+                          onClose={() => close(session.uid, session.device_uid)}
+                        />
+                      )}
                     </td>
                   </tr>
-                )
-                : (
-                  sessions.map((session) => {
-                    const type = sessionType(session);
-                    const suspicious = !session.authenticated;
-                    return (
-                      <tr
-                        key={session.uid}
-                        onClick={() => void navigate(`/sessions/${session.uid}`)}
-                        className={`transition-colors group cursor-pointer relative ${
-                          suspicious
-                            ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"
-                            : "hover:bg-hover-subtle border-l-2 border-l-transparent"
-                        }`}
-                      >
-                        <td className="px-4 py-3.5">
-                          <span
-                            className={`w-2 h-2 rounded-full inline-block ${
-                              session.active
-                                ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-                                : "bg-text-muted/40"
-                            }`}
-                          />
-                        </td>
-                        <td className="px-4 py-3.5">
-                          {session.device?.uid
-                            ? (
-                              <DeviceChip
-                                uid={session.device.uid}
-                                name={
-                                  session.device.name
-                                  ?? session.device_uid.substring(0, 8)
-                                }
-                                online={session.device.online}
-                                osId={session.device.info?.id}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            )
-                            : (
-                              <span className="text-xs font-mono text-text-primary">
-                                {session.device?.name
-                                  ?? session.device_uid.substring(0, 8)}
-                              </span>
-                            )}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-1.5">
-                            {suspicious && (
-                              <ExclamationTriangleIcon
-                                className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
-                                strokeWidth={2}
-                                title="Not authenticated"
-                              />
-                            )}
-                            <code
-                              className={`text-xs font-mono ${
-                                suspicious
-                                  ? "text-accent-red/60"
-                                  : "text-text-secondary"
-                              }`}
-                            >
-                              {session.username}
-                            </code>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <code className="text-xs font-mono text-text-muted bg-surface px-1.5 py-0.5 rounded">
-                            {session.ip_address}
-                          </code>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          {type
-                            ? (
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
-                              >
-                                {type.label}
-                              </span>
-                            )
-                            : (
-                              <span className="text-2xs text-text-muted">—</span>
-                            )}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="text-xs text-text-secondary">
-                            {formatDate(session.started_at)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="text-xs font-mono text-text-secondary tabular-nums">
-                            {formatDuration(
-                              session.started_at,
-                              session.last_seen,
-                              session.active,
-                            )}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          {session.active && (
-                            <CloseButton onClose={() => close(session.uid)} />
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
