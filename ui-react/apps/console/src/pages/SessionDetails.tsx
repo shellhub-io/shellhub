@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ChevronRightIcon,
@@ -19,12 +19,13 @@ import {
   InformationCircleIcon,
   CpuChipIcon,
 } from "@heroicons/react/24/outline";
-import { useSessionsStore } from "../stores/sessionsStore";
+import { useSession } from "../hooks/useSession";
+import { useCloseSession } from "../hooks/useSessionMutations";
 import CopyButton from "../components/common/CopyButton";
 import DeviceChip from "../components/common/DeviceChip";
 import DistroIcon from "../components/common/DistroIcon";
 import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
-import type { Session } from "../types/session";
+import type { Session } from "../client";
 
 /* ── timeline builder ────────────────────────────── */
 
@@ -286,30 +287,24 @@ function DurationStat({
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
-  const { session, loading, error, fetchOne, close } = useSessionsStore();
+  const { session, isLoading, error } = useSession(uid!);
+  const closeSession = useCloseSession();
   const [showClose, setShowClose] = useState(false);
-  const [closing, setClosing] = useState(false);
-  const [closeError, setCloseError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (uid) void fetchOne(uid);
-  }, [uid, fetchOne]);
 
   const handleClose = async () => {
     if (!uid || !session) return;
-    setClosing(true);
-    setCloseError(null);
     try {
-      await close(uid, session.device_uid);
+      await closeSession.mutateAsync({
+        path: { uid },
+        body: { device: session.device_uid ?? session.device?.uid ?? "" },
+      });
       setShowClose(false);
     } catch {
-      setCloseError("Failed to close session. Check your permissions.");
-    } finally {
-      setClosing(false);
+      // error is available via closeSession.error
     }
   };
 
-  if (loading || !session) {
+  if (isLoading || !session) {
     return (
       <div className="flex items-center justify-center py-24">
         <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -321,7 +316,7 @@ export default function SessionDetails() {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
         <XCircleIcon className="w-8 h-8 text-accent-red/60" />
-        <p className="text-sm font-mono text-text-muted">{error}</p>
+        <p className="text-sm font-mono text-text-muted">{error.message}</p>
         <button
           onClick={() => void navigate("/sessions")}
           className="text-xs font-mono text-primary hover:underline"
@@ -455,7 +450,7 @@ export default function SessionDetails() {
                 <DeviceChip
                   uid={session.device.uid}
                   name={
-                    session.device.name ?? session.device_uid.substring(0, 8)
+                    session.device.name ?? (session.device_uid ?? "").substring(0, 8)
                   }
                   online={session.device.online}
                   osId={session.device.info?.id}
@@ -523,13 +518,13 @@ export default function SessionDetails() {
               </span>{" "}
               on{" "}
               <span className="font-medium text-text-primary">
-                {session.device?.name ?? session.device_uid.substring(0, 8)}
+                {session.device?.name ?? (session.device_uid ?? "").substring(0, 8)}
               </span>
               ?
             </p>
-            {closeError && (
+            {closeSession.error != null && (
               <p className="text-xs text-accent-red mb-4 font-mono">
-                {closeError}
+                Failed to close session. Check your permissions.
               </p>
             )}
             <div className="flex justify-end gap-2">
@@ -541,10 +536,10 @@ export default function SessionDetails() {
               </button>
               <button
                 onClick={() => void handleClose()}
-                disabled={closing}
+                disabled={closeSession.isPending}
                 className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
               >
-                {closing ? "Closing…" : "Close Session"}
+                {closeSession.isPending ? "Closing…" : "Close Session"}
               </button>
             </div>
           </div>

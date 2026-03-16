@@ -9,7 +9,7 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { useNamespacesStore } from "../stores/namespacesStore";
-import { useSessionsStore } from "../stores/sessionsStore";
+import { useSessions } from "../hooks/useSessions";
 import { useStatsStore } from "../stores/statsStore";
 import { hasAnyDevices } from "../utils/stats";
 import { formatDate } from "../utils/date";
@@ -23,14 +23,13 @@ import { TH } from "../utils/styles";
 
 export default function Dashboard() {
   const { currentNamespace } = useNamespacesStore();
-  const { sessions, fetch: fetchSessions } = useSessionsStore();
+  const { sessions } = useSessions({ page: 1, perPage: 5 });
   const { stats, loading: statsLoading, error: statsError, fetch: fetchStats } = useStatsStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    void fetchSessions(1, 5);
     void fetchStats();
-  }, [fetchSessions, fetchStats]);
+  }, [fetchStats]);
 
   // Suppress flash: while stats are loading, don't render the full dashboard
   if (statsLoading) return null;
@@ -162,7 +161,7 @@ export default function Dashboard() {
                               uid={session.device.uid}
                               name={
                                 session.device.name
-                                ?? session.device_uid.substring(0, 8)
+                                ?? (session.device_uid ?? "").substring(0, 8)
                               }
                               online={session.device.online}
                               osId={session.device.info?.id}
@@ -172,7 +171,7 @@ export default function Dashboard() {
                           : (
                             <span className="text-xs font-mono text-text-primary">
                               {session.device?.name
-                                ?? session.device_uid.substring(0, 8)}
+                                ?? (session.device_uid ?? "").substring(0, 8)}
                             </span>
                           )}
                       </td>
