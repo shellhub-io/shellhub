@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { hasAnyDevices } from "../stats";
-import { Stats } from "@/types/stats";
+import type { GetStatusDevicesResponse } from "@/client";
 
-const emptyStats: Stats = {
+const emptyStats: GetStatusDevicesResponse = {
   registered_devices: 0,
   pending_devices: 0,
   rejected_devices: 0,

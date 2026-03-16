@@ -23,7 +23,7 @@ export default function WizardStep2Install({
 
   const { isPolling, start } = useDevicePolling({
     onPoll: (stats) => {
-      if (stats.pending_devices > 0) {
+      if ((stats.pending_devices ?? 0) > 0) {
         onDeviceDetected();
         return true;
       }

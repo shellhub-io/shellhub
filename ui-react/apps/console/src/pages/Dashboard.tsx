@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ClockIcon,
@@ -10,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useNamespacesStore } from "../stores/namespacesStore";
 import { useSessions } from "../hooks/useSessions";
-import { useStatsStore } from "../stores/statsStore";
+import { useStats } from "../hooks/useStats";
 import { hasAnyDevices } from "../utils/stats";
 import { formatDate } from "../utils/date";
 import PageHeader from "../components/common/PageHeader";
@@ -24,12 +23,8 @@ import { TH } from "../utils/styles";
 export default function Dashboard() {
   const { currentNamespace } = useNamespacesStore();
   const { sessions } = useSessions({ page: 1, perPage: 5 });
-  const { stats, loading: statsLoading, error: statsError, fetch: fetchStats } = useStatsStore();
+  const { stats, isLoading: statsLoading, error: statsError } = useStats();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    void fetchStats();
-  }, [fetchStats]);
 
   // Suppress flash: while stats are loading, don't render the full dashboard
   if (statsLoading) return null;
