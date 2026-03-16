@@ -1,7 +1,8 @@
 import { useState, FormEvent } from "react";
 import { useResetOnOpen } from "../../hooks/useResetOnOpen";
-import { useFirewallRulesStore } from "../../stores/firewallRulesStore";
-import { FirewallRule, FirewallFilter } from "../../types/firewallRule";
+import { useCreateFirewallRule, useUpdateFirewallRule } from "../../hooks/useFirewallRuleMutations";
+import type { FirewallRule } from "../../hooks/useFirewallRules";
+import type { FirewallRulesRequest, Tag } from "../../client";
 import Drawer from "../../components/common/Drawer";
 import { LABEL, INPUT, INPUT_MONO } from "../../utils/styles";
 import RadioCard from "../../components/common/RadioCard";
@@ -44,7 +45,8 @@ export default function RuleDrawer({
   editRule: FirewallRule | null;
   onClose: () => void;
 }) {
-  const { create, update } = useFirewallRulesStore();
+  const createRule = useCreateFirewallRule();
+  const updateRule = useUpdateFirewallRule();
   const isEdit = !!editRule;
 
   const [priority, setPriority] = useState("");
@@ -83,10 +85,12 @@ export default function RuleDrawer({
     setError(null);
   });
 
-  const buildFilter = (): FirewallFilter => {
+  // The OpenAPI spec types filter.tags as Tag[] (full objects),
+  // but the server accepts objects with just the name field.
+  const buildFilter = (): FirewallRulesRequest["filter"] => {
     if (filterOption === "hostname" && hostname) return { hostname };
     if (filterOption === "tags" && selectedTags.length > 0)
-      return { tags: selectedTags };
+      return { tags: selectedTags.map((name) => ({ name })) as Tag[] };
     return { hostname: ".*" };
   };
 
@@ -117,19 +121,19 @@ export default function RuleDrawer({
     if (confirmDisabled) return;
     setError(null);
     setSubmitting(true);
-    const payload = {
+    const body = {
       priority: priorityNum,
       action,
       active,
       source_ip: sourceIpOption === "all" ? ".*" : sourceIp.trim(),
       username: usernameOption === "all" ? ".*" : username.trim(),
       filter: buildFilter(),
-    };
+    } satisfies FirewallRulesRequest;
     try {
       if (isEdit && editRule) {
-        await update(editRule.id, payload);
+        await updateRule.mutateAsync({ path: { id: editRule.id }, body });
       } else {
-        await create(payload);
+        await createRule.mutateAsync({ body });
       }
       onClose();
     } catch (err: unknown) {

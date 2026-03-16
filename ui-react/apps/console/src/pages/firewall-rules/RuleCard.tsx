@@ -6,7 +6,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { FirewallRule } from "../../types/firewallRule";
+import type { FirewallRule } from "../../hooks/useFirewallRules";
 import FilterBadge from "../../components/common/FilterBadge";
 
 /* --- Rule Card --- */
