@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useWebEndpointsStore } from "../stores/webEndpointsStore";
-import { WebEndpoint } from "../types/webEndpoint";
+import { useWebEndpoints } from "../hooks/useWebEndpoints";
+import { useCreateWebEndpoint, useDeleteWebEndpoint } from "../hooks/useWebEndpointMutations";
+import type { Webendpoint } from "../client";
 import { useDevices, type NormalizedDevice } from "../hooks/useDevices";
 import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
@@ -22,8 +23,6 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-
-import axios from "axios";
 
 /* ─── Constants ─── */
 
@@ -352,7 +351,7 @@ function EndpointDrawer({
   open: boolean;
   onClose: () => void;
 }) {
-  const { create } = useWebEndpointsStore();
+  const createEndpoint = useCreateWebEndpoint();
 
   const [device, setDevice] = useState<NormalizedDevice | null>(null);
   const [hostMode, setHostMode] = useState<"localhost" | "custom">("localhost");
@@ -406,24 +405,26 @@ function EndpointDrawer({
     setError(null);
     setSubmitting(true);
     try {
-      await create({
-        uid: device.uid,
-        host: host.trim(),
-        port: portNum,
-        ttl,
-        ...(tlsEnabled
-          ? {
-            tls: {
-              enabled: true,
-              verify: tlsVerify,
-              domain: tlsDomain.trim(),
-            },
-          }
-          : {}),
+      await createEndpoint.mutateAsync({
+        body: {
+          uid: device.uid,
+          host: host.trim(),
+          port: portNum,
+          ttl,
+          ...(tlsEnabled
+            ? {
+              tls: {
+                enabled: true,
+                verify: tlsVerify,
+                domain: tlsDomain.trim(),
+              },
+            }
+            : {}),
+        },
       });
       onClose();
     } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
+      if ((err as { status?: number }).status === 409) {
         setError("A web endpoint with this configuration already exists.");
       } else {
         setError(
@@ -713,7 +714,7 @@ function EndpointCard({
   endpoint,
   onDelete,
 }: {
-  endpoint: WebEndpoint;
+  endpoint: Webendpoint;
   onDelete: () => void;
 }) {
   const expired = isExpired(endpoint.expires_in);
@@ -819,18 +820,15 @@ function EndpointCard({
 
 /* ─── Page ─── */
 function WebEndpointsContent() {
-  const { webEndpoints, totalCount, loading, page, perPage, fetch, remove }
-    = useWebEndpointsStore();
+  const [page, setPage] = useState(1);
+  const { webEndpoints, totalCount, isLoading } = useWebEndpoints({ page });
+  const deleteEndpoint = useDeleteWebEndpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     address: string;
     deviceName: string;
   } | null>(null);
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    void fetch();
-  }, [fetch]);
 
   const openNew = () => {
     setDrawerOpen(true);
@@ -840,7 +838,7 @@ function WebEndpointsContent() {
     setDrawerOpen(false);
   };
 
-  const totalPages = Math.ceil(totalCount / perPage);
+  const totalPages = Math.ceil(totalCount / 10);
 
   const filtered = search
     ? webEndpoints.filter(
@@ -856,7 +854,7 @@ function WebEndpointsContent() {
   return (
     <div>
       {/* Content */}
-      {loading && webEndpoints.length === 0 ? (
+      {isLoading && webEndpoints.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
@@ -1019,7 +1017,7 @@ function WebEndpointsContent() {
                   </span>
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() => void fetch(page - 1)}
+                      onClick={() => setPage(page - 1)}
                       disabled={page <= 1}
                       className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"
                     >
@@ -1032,7 +1030,7 @@ function WebEndpointsContent() {
                       {totalPages}
                     </span>
                     <button
-                      onClick={() => void fetch(page + 1)}
+                      onClick={() => setPage(page + 1)}
                       disabled={page >= totalPages}
                       className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"
                     >
@@ -1054,7 +1052,8 @@ function WebEndpointsContent() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={async () => {
-          await remove(deleteTarget!.address);
+          await deleteEndpoint.mutateAsync({ path: { address: deleteTarget!.address } });
+          if (webEndpoints.length === 1 && page > 1) setPage(page - 1);
           setDeleteTarget(null);
         }}
         title="Delete Web Endpoint"
