@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "../../hooks/useResetOnOpen";
-import { useApiKeysStore } from "../../stores/apiKeysStore";
-import { type ApiKey } from "../../types/apiKey";
+import { useUpdateApiKey } from "../../hooks/useApiKeyMutations";
+import { type ApiKey } from "../../client";
 import Drawer from "../../components/common/Drawer";
 import { LABEL, INPUT } from "../../utils/styles";
 import { RoleSelector } from "./constants";
@@ -17,25 +18,28 @@ function EditKeyDrawer({
   onClose: () => void;
   apiKey: ApiKey | null;
 }) {
-  const update = useApiKeysStore((s) => s.update);
+  const updateKey = useUpdateApiKey();
   const [name, setName] = useState("");
   const [role, setRole] = useState("administrator");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useResetOnOpen(open, () => {
     setName(apiKey?.name ?? "");
     setRole(apiKey?.role ?? "administrator");
     setSubmitting(false);
+    setError(null);
   });
 
   const handleSubmit = async () => {
     if (!apiKey || !name.trim()) return;
     setSubmitting(true);
+    setError(null);
     try {
-      await update(apiKey.name, name.trim(), role);
+      await updateKey.mutateAsync({ path: { key: apiKey.name }, body: { name: name.trim(), role } });
       onClose();
-    } catch {
-      /* */
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update API key.");
     } finally {
       setSubmitting(false);
     }
@@ -80,6 +84,13 @@ function EditKeyDrawer({
           <label className={LABEL}>Role</label>
           <RoleSelector value={role} onChange={setRole} />
         </div>
+
+        {error && (
+          <p className="text-xs font-mono text-accent-red flex items-center gap-1.5">
+            <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+            {error}
+          </p>
+        )}
       </div>
     </Drawer>
   );
