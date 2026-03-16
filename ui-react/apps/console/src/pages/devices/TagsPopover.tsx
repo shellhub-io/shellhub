@@ -6,7 +6,7 @@ import {
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
-import { getTags } from "../../api/tags";
+import { useTags } from "../../hooks/useTags";
 import { useAddDeviceTag, useRemoveDeviceTag } from "../../hooks/useDeviceMutations";
 import type { NormalizedDevice } from "../../hooks/useDevices";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
@@ -22,8 +22,10 @@ function TagsPopover({
   const addTag = useAddDeviceTag();
   const removeTag = useRemoveDeviceTag();
 
+  const { tags: tagObjects } = useTags();
+  const allTags = tagObjects.map((t) => t.name);
+
   const [open, setOpen] = useState(false);
-  const [allTags, setAllTags] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +55,6 @@ function TagsPopover({
   useEffect(() => {
     if (!open) return;
     updatePosition();
-    getTags(1, 100)
-      .then(({ data }) => setAllTags(data.map((t) => t.name)))
-      .catch(() => {});
-
     const onScroll = () => updatePosition();
     const onResize = () => updatePosition();
     window.addEventListener("scroll", onScroll, true);
@@ -92,9 +90,6 @@ function TagsPopover({
     setError(null);
     try {
       await addTag.mutateAsync({ path: { uid: device.uid, name: tag } });
-      if (!allTags.includes(tag)) {
-        setAllTags((prev) => [...prev, tag]);
-      }
       setInput("");
     } catch {
       setError(`Failed to add "${tag}"`);

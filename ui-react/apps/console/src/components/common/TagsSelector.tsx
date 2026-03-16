@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { getTags } from "../../api/tags";
+import { useTags } from "../../hooks/useTags";
 import { useClickOutside } from "../../hooks/useClickOutside";
 
 export default function TagsSelector({
@@ -12,18 +12,11 @@ export default function TagsSelector({
   onChange: (tags: string[]) => void;
   error?: string;
 }) {
-  const [tags, setTags] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { tags: allTags, isLoading: loading } = useTags();
+  const tags = allTags.map((t) => t.name);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    getTags(1, 100)
-      .then(({ data }) => setTags(data.map((t) => t.name)))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
 
   useClickOutside(wrapperRef, () => setOpen(false));
 

@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useTagsStore } from "../stores/tagsStore";
-import axios from "axios";
+import { useTags } from "../hooks/useTags";
+import { useCreateTag, useUpdateTag, useDeleteTag } from "../hooks/useTagMutations";
 import Drawer from "./common/Drawer";
 import ConfirmDialog from "./common/ConfirmDialog";
 import {
@@ -26,7 +26,10 @@ export default function ManageTagsDrawer({
   onTagRenamed?: (oldName: string, newName: string) => void;
   onTagDeleted?: (name: string) => void;
 }) {
-  const { tags, loading, fetch, create, update, remove } = useTagsStore();
+  const { tags, isLoading } = useTags();
+  const createTag = useCreateTag();
+  const updateTag = useUpdateTag();
+  const deleteTag = useDeleteTag();
   const [newName, setNewName] = useState("");
   const [editingTag, setEditingTag] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
@@ -41,10 +44,6 @@ export default function ManageTagsDrawer({
     setError(null);
   });
 
-  useEffect(() => {
-    if (open) void fetch(1, 100);
-  }, [open, fetch]);
-
   const newNameValid
     = newName.trim().length >= 3
       && newName.trim().length <= 255
@@ -56,10 +55,10 @@ export default function ManageTagsDrawer({
     setSubmitting(true);
     setError(null);
     try {
-      await create(newName.trim());
+      await createTag.mutateAsync({ body: { name: newName.trim() } });
       setNewName("");
     } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
+      if ((err as { status?: number }).status === 409) {
         setError("A tag with this name already exists.");
       } else {
         setError("Failed to create tag.");
@@ -93,7 +92,7 @@ export default function ManageTagsDrawer({
     setSubmitting(true);
     setError(null);
     try {
-      await update(currentName, trimmed);
+      await updateTag.mutateAsync({ path: { name: currentName }, body: { name: trimmed } });
       skipBlurRef.current = true;
       setEditName("");
       setEditingTag(null);
@@ -109,7 +108,7 @@ export default function ManageTagsDrawer({
     setSubmitting(true);
     setError(null);
     try {
-      await remove(name);
+      await deleteTag.mutateAsync({ path: { name } });
       setDeletingTag(null);
       onTagDeleted?.(name);
     } catch {
@@ -199,7 +198,7 @@ export default function ManageTagsDrawer({
 
         {/* Tag list */}
         <div className="flex-1 overflow-y-auto">
-          {loading && tags.length === 0
+          {isLoading && tags.length === 0
             ? (
               <div className="flex items-center justify-center py-12">
                 <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />

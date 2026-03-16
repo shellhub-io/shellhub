@@ -6,7 +6,7 @@ import {
   CheckIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { getTags } from "../../api/tags";
+import { useTags } from "../../hooks/useTags";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 
 function TagFilterDropdown({
@@ -22,8 +22,9 @@ function TagFilterDropdown({
   onClearAll: () => void;
   onManageTags: () => void;
 }) {
+  const { tags: tagObjects } = useTags();
+  const allTags = tagObjects.map((t) => t.name);
   const [open, setOpen] = useState(false);
-  const [allTags, setAllTags] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -49,9 +50,6 @@ function TagFilterDropdown({
   useEffect(() => {
     if (!open) return;
     updatePosition();
-    getTags(1, 100)
-      .then(({ data }) => setAllTags(data.map((t) => t.name)))
-      .catch(() => {});
     const onScroll = () => updatePosition();
     const onResize = () => updatePosition();
     window.addEventListener("scroll", onScroll, true);
