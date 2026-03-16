@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useFirewallRulesStore } from "../../stores/firewallRulesStore";
-import { FirewallRule } from "../../types/firewallRule";
+import { useState } from "react";
+import { useFirewallRules, type FirewallRule } from "../../hooks/useFirewallRules";
+import { useDeleteFirewallRule } from "../../hooks/useFirewallRuleMutations";
 import PageHeader from "../../components/common/PageHeader";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import RuleDrawer from "./RuleDrawer";
@@ -16,8 +16,9 @@ import {
 
 /* ─── Page ─── */
 export default function FirewallRules() {
-  const { rules, totalCount, loading, page, perPage, fetch, remove }
-    = useFirewallRulesStore();
+  const [page, setPage] = useState(1);
+  const { rules, totalCount, isLoading } = useFirewallRules({ page });
+  const deleteRule = useDeleteFirewallRule();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -25,10 +26,6 @@ export default function FirewallRules() {
     priority: number;
   } | null>(null);
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    void fetch();
-  }, [fetch]);
 
   const openNew = () => {
     setEditTarget(null);
@@ -45,7 +42,7 @@ export default function FirewallRules() {
     setEditTarget(null);
   };
 
-  const totalPages = Math.ceil(totalCount / perPage);
+  const totalPages = Math.ceil(totalCount / 10);
 
   const filtered = search
     ? rules.filter(
@@ -59,7 +56,7 @@ export default function FirewallRules() {
 
   return (
     <div>
-      {loading && rules.length === 0 ? (
+      {isLoading && rules.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
@@ -213,7 +210,7 @@ export default function FirewallRules() {
                   totalPages={totalPages}
                   totalCount={totalCount}
                   itemLabel="rule"
-                  onPageChange={(p) => void fetch(p)}
+                  onPageChange={setPage}
                 />
               </>
             )}
@@ -232,7 +229,8 @@ export default function FirewallRules() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={async () => {
-          await remove(deleteTarget!.id);
+          await deleteRule.mutateAsync({ path: { id: deleteTarget!.id } });
+          if (rules.length === 1 && page > 1) setPage(page - 1);
           setDeleteTarget(null);
         }}
         title="Delete Firewall Rule"
