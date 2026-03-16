@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getStats } from "@/api/stats";
-import { Stats } from "@/types/stats";
+import { getStatusDevices, type GetStatusDevicesResponse } from "@/client";
 
 interface UseDevicePollingOptions {
   /** Called after each successful poll. Return `true` to stop polling. */
-  onPoll: (stats: Stats) => boolean;
+  onPoll: (stats: GetStatusDevicesResponse) => boolean;
   /** Initial delay between polls in ms. Default: 2000 */
   initialInterval?: number;
   /** Maximum delay between polls in ms (backoff cap). Default: 10000 */
@@ -68,7 +67,7 @@ export function useDevicePolling({
           if (!activeRef.current) return;
 
           try {
-            const stats = await getStats();
+            const { data: stats } = await getStatusDevices({ throwOnError: true });
             if (!activeRef.current) return;
 
             const shouldStop = onPollRef.current(stats);

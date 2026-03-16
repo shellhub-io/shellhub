@@ -7,7 +7,7 @@ function useInvalidateSessions() {
     const key = query.queryKey[0];
     if (typeof key === "object" && key !== null && "_id" in key) {
       const id = (key as { _id: string })._id;
-      return id === "getSessions" || id === "getSession" || id === "getStats";
+      return id === "getSessions" || id === "getSession" || id === "getStatusDevices";
     }
     return false;
   } });

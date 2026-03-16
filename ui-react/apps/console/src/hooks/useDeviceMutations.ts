@@ -14,7 +14,7 @@ function useInvalidateDevices() {
     const key = query.queryKey[0];
     if (typeof key === "object" && key !== null && "_id" in key) {
       const id = (key as { _id: string })._id;
-      return id === "getDevices" || id === "getDevice" || id === "getStats";
+      return id === "getDevices" || id === "getDevice" || id === "getStatusDevices";
     }
     return false;
   } });
