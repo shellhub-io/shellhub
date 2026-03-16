@@ -4,7 +4,7 @@ export const EXPIRY_OPTIONS = [
   { label: "90 days", value: 90 },
   { label: "1 year", value: 365 },
   { label: "Never", value: -1 },
-];
+] as const;
 
 export const ROLES = ["administrator", "operator", "observer"] as const;
 

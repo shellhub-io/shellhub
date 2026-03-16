@@ -1,7 +1,5 @@
-import apiClient, { getTotalCount } from "./client";
-import { PaginatedResponse } from "../types/api";
+import apiClient from "./client";
 import { Namespace, NamespaceMember } from "../types/namespace";
-import { ApiKey } from "../types/apiKey";
 
 /* ─── Members ─── */
 
@@ -32,41 +30,4 @@ export async function removeMember(
   userId: string,
 ): Promise<void> {
   await apiClient.delete(`/api/namespaces/${tenantId}/members/${userId}`);
-}
-
-/* ─── API Keys ─── */
-
-export async function getApiKeys(
-  page = 1,
-  perPage = 10,
-  sort = "expires_in",
-  order: "asc" | "desc" = "desc",
-): Promise<PaginatedResponse<ApiKey>> {
-  const res = await apiClient.get<ApiKey[]>("/api/namespaces/api-key", {
-    params: { page, per_page: perPage, sort, order },
-  });
-  return { data: res.data, totalCount: getTotalCount(res) };
-}
-
-export async function generateApiKey(payload: {
-  name: string;
-  role: string;
-  expires_at: number;
-}): Promise<ApiKey> {
-  const { data } = await apiClient.post<ApiKey>(
-    "/api/namespaces/api-key",
-    payload,
-  );
-  return data;
-}
-
-export async function updateApiKey(
-  name: string,
-  payload: { name?: string; role?: string },
-): Promise<void> {
-  await apiClient.patch(`/api/namespaces/api-key/${name}`, payload);
-}
-
-export async function deleteApiKey(name: string): Promise<void> {
-  await apiClient.delete(`/api/namespaces/api-key/${name}`);
 }

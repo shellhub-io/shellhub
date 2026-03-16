@@ -1,8 +1,8 @@
 import { useState, FormEvent } from "react";
 import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
-import axios from "axios";
-import { useApiKeysStore } from "../../stores/apiKeysStore";
+import { useCreateApiKey } from "../../hooks/useApiKeyMutations";
+import { type ApiKeyCreate } from "../../client";
 import CopyButton from "../../components/common/CopyButton";
 import Drawer from "../../components/common/Drawer";
 import { LABEL, INPUT } from "../../utils/styles";
@@ -25,10 +25,10 @@ function GenerateKeyDrawer({
   open: boolean;
   onClose: () => void;
 }) {
-  const generate = useApiKeysStore((s) => s.generate);
+  const createKey = useCreateApiKey();
   const [name, setName] = useState("");
   const [role, setRole] = useState("administrator");
-  const [expiresIn, setExpiresIn] = useState(30);
+  const [expiresIn, setExpiresIn] = useState<ApiKeyCreate["expires_at"]>(30);
   const [submitting, setSubmitting] = useState(false);
   const [nameError, setNameError] = useState("");
   const [error, setError] = useState("");
@@ -63,10 +63,10 @@ function GenerateKeyDrawer({
     setNameError("");
     setError("");
     try {
-      const id = await generate(name.trim(), role, expiresIn);
-      setGeneratedKey(id);
+      const result = await createKey.mutateAsync({ body: { name: name.trim(), role, expires_at: expiresIn } });
+      setGeneratedKey(result.id);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 400) {
+      if ((err as { status?: number }).status === 400) {
         setNameError("Name must be 3–20 characters with no spaces.");
       } else {
         setError("Failed to generate API key. The name may already exist.");

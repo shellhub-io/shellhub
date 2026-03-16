@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
-import { useApiKeysStore } from "../../stores/apiKeysStore";
-import { type ApiKey } from "../../types/apiKey";
+import { useState } from "react";
+import { useApiKeys } from "../../hooks/useApiKeys";
+import { useDeleteApiKey } from "../../hooks/useApiKeyMutations";
+import { type ApiKey } from "../../client";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import { RoleBadge } from "./constants";
 import { isExpired } from "./helpers";
@@ -19,30 +20,14 @@ import Pagination from "../../components/common/Pagination";
 /* ─── API Keys Tab ─── */
 
 function ApiKeysTab() {
-  const {
-    apiKeys,
-    totalCount,
-    loading,
-    page: currentPage,
-    perPage,
-    fetch: fetchApiKeys,
-    setPage,
-    remove: deleteApiKey,
-  } = useApiKeysStore();
+  const [page, setPage] = useState(1);
+  const { apiKeys, totalCount, isLoading } = useApiKeys({ page });
+  const deleteKey = useDeleteApiKey();
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
 
-  useEffect(() => {
-    void fetchApiKeys();
-  }, [fetchApiKeys]);
-
-  const totalPages = Math.ceil(totalCount / perPage);
-
-  const handlePageChange = (page: number) => {
-    setPage(page);
-    void fetchApiKeys(page);
-  };
+  const totalPages = Math.ceil(totalCount / 10);
 
   return (
     <div className="animate-fade-in">
@@ -62,7 +47,7 @@ function ApiKeysTab() {
         </button>
       </div>
 
-      {loading
+      {isLoading
         ? (
           <div className="flex items-center justify-center py-16">
             <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -95,7 +80,7 @@ function ApiKeysTab() {
                     const expired = isExpired(key.expires_in);
                     return (
                       <tr
-                        key={key.id}
+                        key={key.name}
                         className={`group transition-colors ${expired ? "bg-accent-red/[0.02]" : "hover:bg-hover-subtle"}`}
                       >
                         <td className="px-4 py-3.5">
@@ -154,9 +139,9 @@ function ApiKeysTab() {
               </table>
 
               <Pagination
-                page={currentPage}
+                page={page}
                 totalPages={totalPages}
-                onPageChange={handlePageChange}
+                onPageChange={setPage}
               />
             </div>
           )}
@@ -174,7 +159,8 @@ function ApiKeysTab() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={async () => {
-          await deleteApiKey(deleteTarget!.name);
+          await deleteKey.mutateAsync({ path: { key: deleteTarget!.name } });
+          if (apiKeys.length === 1 && page > 1) setPage(page - 1);
           setDeleteTarget(null);
         }}
         title="Delete API Key"
