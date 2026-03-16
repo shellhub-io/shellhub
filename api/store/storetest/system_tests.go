@@ -41,6 +41,25 @@ func (s *Suite) TestSystemGet(t *testing.T) {
 	})
 }
 
+// TestSystemGetDefault tests that SystemGet returns default config when DB is empty
+func (s *Suite) TestSystemGetDefault(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("returns default when no system exists", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		system, err := st.SystemGet(ctx)
+		require.NoError(t, err)
+		require.NotNil(t, system)
+
+		assert.False(t, system.Setup)
+		assert.NotNil(t, system.Authentication)
+		assert.NotNil(t, system.Authentication.Local)
+		assert.True(t, system.Authentication.Local.Enabled)
+	})
+}
+
 // TestSystemSet tests setting system configuration
 func (s *Suite) TestSystemSet(t *testing.T) {
 	ctx := context.Background()

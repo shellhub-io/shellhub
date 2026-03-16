@@ -138,4 +138,38 @@ func (s *Suite) TestNamespaceDeleteMembership(t *testing.T) {
 		err = st.NamespaceDeleteMembership(ctx, tenantID, member)
 		assert.NoError(t, err)
 	})
+
+	t.Run("clears preferred namespace on delete", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		// Create user, namespace, and membership
+		userID := s.CreateUser(t)
+		tenantID := s.CreateNamespace(t, WithOwner(userID))
+		s.CreateMembership(t, tenantID, userID, "observer")
+
+		// Set preferred namespace
+		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		user.Preferences.PreferredNamespace = tenantID
+		err = st.UserUpdate(ctx, user)
+		require.NoError(t, err)
+
+		// Verify preferred is set
+		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, tenantID, user.Preferences.PreferredNamespace)
+
+		// Delete membership
+		member := &models.Member{
+			ID:   userID,
+			Role: authorizer.RoleObserver,
+		}
+		err = st.NamespaceDeleteMembership(ctx, tenantID, member)
+		require.NoError(t, err)
+
+		// Verify preferred namespace is cleared
+		user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Empty(t, user.Preferences.PreferredNamespace)
+	})
 }

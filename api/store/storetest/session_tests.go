@@ -171,6 +171,16 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 		assert.True(t, session.Authenticated)
 	})
 
+	t.Run("fails when session is not found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.SessionUpdate(ctx, &models.Session{
+			UID:           "nonexistent-session-uid",
+			Authenticated: true,
+		})
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
 	t.Run("succeeds when setting Authenticated to true", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

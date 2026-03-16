@@ -216,6 +216,124 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		assert.Equal(t, "device-1", devices[0].Name)
 	})
 
+	t.Run("acceptable mode FromRemoved", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateDevice(t, WithDeviceName("dev-accepted"), WithDeviceStatus(models.DeviceStatusAccepted))
+		s.CreateDevice(t, WithDeviceName("dev-pending"), WithDeviceStatus(models.DeviceStatusPending))
+		removedAt := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+		s.CreateDevice(t, WithDeviceName("dev-removed"), WithDeviceStatus(models.DeviceStatusRemoved), WithDeviceRemovedAt(&removedAt))
+
+		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableFromRemoved,
+			st.Options().Match(&query.Filters{}),
+			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
+
+		for _, d := range devices {
+			if d.Status == models.DeviceStatusRemoved {
+				assert.True(t, d.Acceptable, "removed device should be acceptable in FromRemoved mode")
+			} else {
+				assert.False(t, d.Acceptable, "non-removed device should not be acceptable in FromRemoved mode")
+			}
+		}
+	})
+
+	t.Run("acceptable mode AsFalse", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateDevice(t, WithDeviceName("dev-accepted"), WithDeviceStatus(models.DeviceStatusAccepted))
+		s.CreateDevice(t, WithDeviceName("dev-pending"), WithDeviceStatus(models.DeviceStatusPending))
+
+		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableAsFalse,
+			st.Options().Match(&query.Filters{}),
+			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+
+		for _, d := range devices {
+			assert.False(t, d.Acceptable, "all devices should have acceptable=false in AsFalse mode")
+		}
+	})
+
+	t.Run("acceptable mode default", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateDevice(t, WithDeviceName("dev-accepted"), WithDeviceStatus(models.DeviceStatusAccepted))
+		s.CreateDevice(t, WithDeviceName("dev-pending"), WithDeviceStatus(models.DeviceStatusPending))
+
+		// Use a value outside the known constants to trigger the default branch
+		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptable(0),
+			st.Options().Match(&query.Filters{}),
+			st.Options().Sort(&query.Sorter{By: "name", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+
+		for _, d := range devices {
+			assert.True(t, d.Acceptable, "all devices should have acceptable=true in default mode")
+		}
+	})
+
+	t.Run("succeeds with AND filter operator", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		s.CreateDevice(t, WithDeviceName("alpha"), WithDeviceStatus(models.DeviceStatusAccepted), WithTenantID(tenantID))
+		s.CreateDevice(t, WithDeviceName("beta"), WithDeviceStatus(models.DeviceStatusAccepted), WithTenantID(tenantID))
+		s.CreateDevice(t, WithDeviceName("alpha-pending"), WithDeviceStatus(models.DeviceStatusPending), WithTenantID(tenantID))
+
+		// AND: status = "accepted" AND status != "pending" (effectively filters to accepted)
+		// We use "status" which is unambiguous in the device query
+		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+			st.Options().InNamespace(tenantID),
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusAccepted)}},
+				{Type: query.FilterTypeOperator, Params: &query.FilterOperator{Name: "and"}},
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "ne", Value: string(models.DeviceStatusPending)}},
+			}}),
+			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+		assert.Len(t, devices, 2)
+	})
+
+	t.Run("succeeds with OR filter operator", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		s.CreateDevice(t, WithDeviceName("alpha"), WithDeviceStatus(models.DeviceStatusAccepted), WithTenantID(tenantID))
+		s.CreateDevice(t, WithDeviceName("beta"), WithDeviceStatus(models.DeviceStatusPending), WithTenantID(tenantID))
+		s.CreateDevice(t, WithDeviceName("gamma"), WithDeviceStatus(models.DeviceStatusRejected), WithTenantID(tenantID))
+
+		// OR: status = "accepted" OR status = "rejected"
+		devices, count, err := st.DeviceList(ctx, store.DeviceAcceptableIfNotAccepted,
+			st.Options().InNamespace(tenantID),
+			st.Options().Match(&query.Filters{Data: []query.Filter{
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusAccepted)}},
+				{Type: query.FilterTypeOperator, Params: &query.FilterOperator{Name: "or"}},
+				{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "status", Operator: "eq", Value: string(models.DeviceStatusRejected)}},
+			}}),
+			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+		assert.Len(t, devices, 2)
+	})
+
 	t.Run("succeeds when filtering by status", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -672,6 +790,29 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		session3, err := st.SessionResolve(ctx, store.SessionUIDResolver, string(session3UID))
 		require.NoError(t, err)
 		assert.Equal(t, string(session3UID), session3.UID)
+	})
+
+	t.Run("succeeds when called within transaction", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		uid1 := s.CreateDevice(t, WithDeviceName("device-tx-1"))
+		uid2 := s.CreateDevice(t, WithDeviceName("device-tx-2"))
+
+		var deletedCount int64
+		err := st.WithTransaction(ctx, func(ctx context.Context) error {
+			var err error
+			deletedCount, err = st.DeviceDeleteMany(ctx, []string{string(uid1), string(uid2)})
+
+			return err
+		})
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), deletedCount)
+
+		// Verify deletions
+		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid1))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid2))
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
 	t.Run("succeeds with mix of existing and non-existing UIDs", func(t *testing.T) {
