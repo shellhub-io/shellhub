@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useResetOnOpen } from "../../hooks/useResetOnOpen";
-import { useMembersStore } from "../../stores/membersStore";
-import { type NamespaceMember } from "../../types/namespace";
+import { useUpdateMemberRole } from "../../hooks/useMemberMutations";
+import { type NamespaceMember } from "../../hooks/useNamespaces";
+import type { NamespaceMemberRole } from "../../client";
 import Drawer from "../../components/common/Drawer";
 import { LABEL } from "../../utils/styles";
 import { RoleSelector } from "./constants";
@@ -19,7 +20,7 @@ function EditMemberDrawer({
   tenantId: string;
   member: NamespaceMember | null;
 }) {
-  const updateRole = useMembersStore((s) => s.updateRole);
+  const updateRole = useUpdateMemberRole();
   const [role, setRole] = useState("operator");
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,7 +33,7 @@ function EditMemberDrawer({
     if (!member) return;
     setSubmitting(true);
     try {
-      await updateRole(tenantId, member.id, role);
+      await updateRole.mutateAsync({ path: { tenant: tenantId, uid: member.id }, body: { role: role as NamespaceMemberRole } });
       onClose();
     } catch {
       /* */
