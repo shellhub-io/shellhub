@@ -7,7 +7,8 @@ import {
   CommandLineIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespacesStore } from "../stores/namespacesStore";
+import { useNamespace } from "../hooks/useNamespaces";
+import { useAuthStore } from "../stores/authStore";
 import { useSessions } from "../hooks/useSessions";
 import { useStats } from "../hooks/useStats";
 import { hasAnyDevices } from "../utils/stats";
@@ -21,7 +22,8 @@ import { sessionType } from "../utils/session";
 import { TH } from "../utils/styles";
 
 export default function Dashboard() {
-  const { currentNamespace } = useNamespacesStore();
+  const tenantId = useAuthStore((s) => s.tenant) ?? "";
+  const { namespace: currentNamespace } = useNamespace(tenantId);
   const { sessions } = useSessions({ page: 1, perPage: 5 });
   const { stats, isLoading: statsLoading, error: statsError } = useStats();
   const navigate = useNavigate();

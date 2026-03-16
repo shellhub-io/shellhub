@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CheckIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { useNamespacesStore } from "../stores/namespacesStore";
+import { useNamespace } from "../hooks/useNamespaces";
+import type { Namespace } from "../hooks/useNamespaces";
+import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
-import { Namespace } from "../types/namespace";
 
 const MAX_LENGTH = 4096;
 
 /* --- Editor (mounts only after namespace is loaded) --- */
 
 function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
-  const updateNamespace = useNamespacesStore((s) => s.updateNamespace);
+  const editNs = useEditNamespace();
   const navigate = useNavigate();
 
   const banner = ns.settings?.connection_announcement ?? "";
@@ -26,8 +27,9 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     setSaving(true);
     setError("");
     try {
-      await updateNamespace(ns.tenant_id, {
-        settings: { connection_announcement: text },
+      await editNs.mutateAsync({
+        path: { tenant: ns.tenant_id },
+        body: { settings: { connection_announcement: text, session_record: ns.settings?.session_record ?? false } },
       });
       void navigate("/settings");
     } catch {
@@ -121,11 +123,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
 
 export default function BannerEdit() {
   const { userId, tenant: tenantId, role: sessionRole } = useAuthStore();
-  const { currentNamespace: ns, fetchCurrent } = useNamespacesStore();
-
-  useEffect(() => {
-    if (tenantId && !ns) void fetchCurrent(tenantId);
-  }, [tenantId, ns, fetchCurrent]);
+  const { namespace: ns } = useNamespace(tenantId ?? "");
 
   if (!ns) {
     return (

@@ -4,12 +4,12 @@ import AppBar from "./AppBar";
 import TerminalManager from "../terminal/TerminalManager";
 import ConnectivityBanner from "../common/ConnectivityBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
-import { useNamespacesStore } from "../../stores/namespacesStore";
+import { useNamespaces } from "../../hooks/useNamespaces";
 import { useTerminalStore } from "../../stores/terminalStore";
 
 export default function AppLayout() {
   const { pathname } = useLocation();
-  const namespaces = useNamespacesStore((s) => s.namespaces);
+  const { namespaces } = useNamespaces();
   const hasVisibleTerminal = useTerminalStore((s) =>
     s.sessions.some((t) => t.state !== "minimized"),
   );

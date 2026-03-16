@@ -3,8 +3,13 @@ import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "../../../stores/authStore";
-import { useNamespacesStore } from "../../../stores/namespacesStore";
 import UserMenu from "../UserMenu";
+
+const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
+
+vi.mock("../../../hooks/useNamespaces", () => ({
+  useNamespaces: () => mockUseNamespaces(),
+}));
 
 afterEach(cleanup);
 
@@ -22,12 +27,11 @@ beforeEach(() => {
     loading: false,
   });
 
-  useNamespacesStore.setState({
-    namespaces: [{ tenant_id: "t1", name: "ns1" }] as never,
-    currentNamespace: null,
-    loading: false,
-    loaded: true,
+  mockUseNamespaces.mockReturnValue({
+    namespaces: [{ tenant_id: "t1", name: "ns1" }],
+    isLoading: false,
     error: null,
+    refetch: vi.fn(),
   });
 
   vi.clearAllMocks();
@@ -81,7 +85,12 @@ describe("UserMenu", () => {
 
   describe("dropdown — without namespaces", () => {
     beforeEach(() => {
-      useNamespacesStore.setState({ namespaces: [], loaded: true });
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
+      });
     });
 
     it("still shows Profile", async () => {

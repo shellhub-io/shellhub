@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { useNamespacesStore } from "../../../stores/namespacesStore";
 import { useConnectivityStore } from "../../../stores/connectivityStore";
 import NamespaceGuard from "../NamespaceGuard";
+
+const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
+
+vi.mock("../../../hooks/useNamespaces", () => ({
+  useNamespaces: () => mockUseNamespaces(),
+}));
 
 vi.mock("../CreateNamespace", () => ({
   default: () => <div data-testid="create-namespace" />,
@@ -16,12 +21,11 @@ vi.mock("../../layout/UserMenu", () => ({
 afterEach(cleanup);
 
 beforeEach(() => {
-  useNamespacesStore.setState({
+  mockUseNamespaces.mockReturnValue({
     namespaces: [],
-    currentNamespace: null,
-    loading: false,
-    loaded: true,
+    isLoading: false,
     error: null,
+    refetch: vi.fn(),
   });
 
   useConnectivityStore.getState().markUp();
@@ -43,13 +47,23 @@ function renderGuard(initialPath = "/dashboard") {
 describe("NamespaceGuard", () => {
   describe("loading state", () => {
     it("shows a loading spinner while namespaces are not yet loaded", () => {
-      useNamespacesStore.setState({ loaded: false });
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [],
+        isLoading: true,
+        error: null,
+        refetch: vi.fn(),
+      });
       renderGuard();
       expect(screen.getByText(/loading/i)).toBeInTheDocument();
     });
 
     it("does not render the outlet while loading", () => {
-      useNamespacesStore.setState({ loaded: false });
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [],
+        isLoading: true,
+        error: null,
+        refetch: vi.fn(),
+      });
       renderGuard();
       expect(screen.queryByText("dashboard content")).not.toBeInTheDocument();
     });
@@ -57,18 +71,22 @@ describe("NamespaceGuard", () => {
 
   describe("with namespaces", () => {
     it("renders the outlet when namespaces exist", () => {
-      useNamespacesStore.setState({
-        namespaces: [{ tenant_id: "t1", name: "ns1" }] as never,
-        loaded: true,
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [{ tenant_id: "t1", name: "ns1" }],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
       });
       renderGuard();
       expect(screen.getByText("dashboard content")).toBeInTheDocument();
     });
 
     it("does not show the create-namespace screen when namespaces exist", () => {
-      useNamespacesStore.setState({
-        namespaces: [{ tenant_id: "t1", name: "ns1" }] as never,
-        loaded: true,
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [{ tenant_id: "t1", name: "ns1" }],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
       });
       renderGuard();
       expect(screen.queryByTestId("create-namespace")).not.toBeInTheDocument();

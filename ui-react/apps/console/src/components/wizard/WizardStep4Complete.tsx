@@ -1,6 +1,6 @@
 import { CheckCircleIcon, BookOpenIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespacesStore } from "@/stores/namespacesStore";
+import { useNamespace } from "@/hooks/useNamespaces";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import CopyButton from "@/components/common/CopyButton";
 
@@ -10,7 +10,9 @@ interface WizardStep4CompleteProps {
 
 export default function WizardStep4Complete({ device }: WizardStep4CompleteProps) {
   const username = useAuthStore((s) => s.username);
-  const namespace = useNamespacesStore((s) => s.currentNamespace?.name);
+  const tenantId = useAuthStore((s) => s.tenant) ?? "";
+  const { namespace: ns } = useNamespace(tenantId);
+  const namespace = ns?.name;
   const hostname = window.location.hostname;
 
   const sshCmd

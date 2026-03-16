@@ -8,12 +8,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../../stores/authStore";
 import { useClickOutside } from "../../hooks/useClickOutside";
-import { useNamespacesStore } from "../../stores/namespacesStore";
+import { useNamespaces } from "../../hooks/useNamespaces";
 
 export default function UserMenu() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const namespaces = useNamespacesStore((s) => s.namespaces);
+  const { namespaces } = useNamespaces();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 

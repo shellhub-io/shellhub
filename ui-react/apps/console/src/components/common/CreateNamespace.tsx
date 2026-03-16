@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useNamespacesStore } from "../../stores/namespacesStore";
-import { getNamespaces } from "../../api/namespaces";
+import { useCreateNamespace, useSwitchNamespace } from "../../hooks/useNamespaceMutations";
+import { getNamespaces } from "../../client";
 import { getConfig } from "../../env";
 import {
   ExclamationCircleIcon,
@@ -26,7 +26,7 @@ function validate(name: string): string | null {
 function CloudForm() {
   const [name, setName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const { createNamespace, loading, error } = useNamespacesStore();
+  const createNs = useCreateNamespace();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,13 +37,13 @@ function CloudForm() {
     }
     setValidationError(null);
     try {
-      await createNamespace(name);
+      await createNs.mutateAsync(name);
     } catch {
-      // error is set in store
+      // error is set in mutation
     }
   };
 
-  const displayError = validationError || error;
+  const displayError = validationError || (createNs.error?.message ?? null);
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="w-full">
@@ -66,10 +66,10 @@ function CloudForm() {
         />
         <button
           type="submit"
-          disabled={loading || name.length < 3}
+          disabled={createNs.isPending || name.length < 3}
           className="px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 shrink-0"
         >
-          {loading
+          {createNs.isPending
             ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
             )
@@ -131,7 +131,7 @@ function CopyBlock({ command }: { command: string }) {
 }
 
 function CommunityInstructions() {
-  const { switchNamespace } = useNamespacesStore();
+  const switchNs = useSwitchNamespace();
   const [ready, setReady] = useState(false);
   const [tenantId, setTenantId] = useState<string | null>(null);
 
@@ -142,10 +142,10 @@ function CommunityInstructions() {
   useEffect(() => {
     const check = async () => {
       try {
-        const ns = await getNamespaces(1, 1);
-        if (ns.length > 0) {
+        const { data } = await getNamespaces({ query: { page: 1, per_page: 1 }, throwOnError: true });
+        if (data.length > 0) {
           setReady(true);
-          setTenantId(ns[0].tenant_id);
+          setTenantId(data[0].tenant_id);
         }
       } catch {
         // ignore
@@ -157,7 +157,7 @@ function CommunityInstructions() {
 
   const handleContinue = () => {
     if (tenantId) {
-      void switchNamespace(tenantId);
+      void switchNs.mutateAsync(tenantId);
     }
   };
 

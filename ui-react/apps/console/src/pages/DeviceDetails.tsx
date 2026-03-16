@@ -26,7 +26,8 @@ import {
   useRemoveDeviceTag,
   useRemoveDevice,
 } from "../hooks/useDeviceMutations";
-import { useNamespacesStore } from "../stores/namespacesStore";
+import { useNamespace } from "../hooks/useNamespaces";
+import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import DeviceActionDialog from "./devices/DeviceActionDialog";
 import ConnectDrawer from "../components/ConnectDrawer";
@@ -269,7 +270,8 @@ export default function DeviceDetails() {
   const [searchParams] = useSearchParams();
   const { device, isLoading } = useDevice(uid ?? "");
   const removeMutation = useRemoveDevice();
-  const { currentNamespace } = useNamespacesStore();
+  const tenantId = useAuthStore((s) => s.tenant) ?? "";
+  const { namespace: currentNamespace } = useNamespace(tenantId);
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
   );
