@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   PlusIcon,
   UserGroupIcon,
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useMembersStore } from "../../stores/membersStore";
 import { useAuthStore } from "../../stores/authStore";
-import { type NamespaceMember } from "../../types/namespace";
+import { useNamespace, type NamespaceMember } from "../../hooks/useNamespaces";
+import { useRemoveMember } from "../../hooks/useMemberMutations";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import { RoleBadge } from "./constants";
 import { initials } from "./helpers";
@@ -18,12 +18,8 @@ import { TH } from "../../utils/styles";
 /* --- Members Tab --- */
 
 function MembersTab({ tenantId }: { tenantId: string }) {
-  const {
-    members,
-    loading: membersLoading,
-    fetch: fetchMembers,
-    remove: removeMember,
-  } = useMembersStore();
+  const { namespace, isLoading: membersLoading } = useNamespace(tenantId);
+  const removeMember = useRemoveMember();
   const currentUserEmail = useAuthStore((s) => s.email);
   const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<NamespaceMember | null>(null);
@@ -31,9 +27,9 @@ function MembersTab({ tenantId }: { tenantId: string }) {
     null,
   );
 
-  useEffect(() => {
-    void fetchMembers(tenantId);
-  }, [tenantId, fetchMembers]);
+  const members = (namespace?.members ?? []).filter(
+    (m): m is NamespaceMember => !!m.id && !!m.role && !!m.email,
+  );
 
   // Filter out owner, sort alphabetically
   const sorted = members
@@ -158,7 +154,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
         open={!!removeTarget}
         onClose={() => setRemoveTarget(null)}
         onConfirm={async () => {
-          await removeMember(tenantId, removeTarget!.id);
+          await removeMember.mutateAsync({ path: { tenant: tenantId, uid: removeTarget!.id } });
           setRemoveTarget(null);
         }}
         title="Remove Member"

@@ -3,9 +3,17 @@ import {
   getNamespacesOptions,
   getNamespaceOptions,
 } from "../client/@tanstack/react-query.gen";
-import type { Namespace as GeneratedNamespace } from "../client";
+import type { Namespace as GeneratedNamespace, NamespaceMemberRole } from "../client";
 
 export type Namespace = GeneratedNamespace & { type?: string };
+
+export interface NamespaceMember {
+  id: string;
+  role: NamespaceMemberRole;
+  email: string;
+  added_at?: string;
+  status?: "accepted" | "pending";
+}
 
 export function useNamespaces() {
   const result = useQuery({
