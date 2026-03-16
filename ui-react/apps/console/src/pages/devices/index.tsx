@@ -64,7 +64,8 @@ export default function Devices() {
     filterTags,
   });
 
-  const { currentNamespace } = useNamespacesStore();
+  const tenantId = useAuthStore((s) => s.tenant) ?? "";
+  const { namespace: currentNamespace } = useNamespace(tenantId);
   const navigate = useNavigate();
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);

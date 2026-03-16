@@ -1,26 +1,23 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { useNamespacesStore } from "../../stores/namespacesStore";
+import { useNamespaces, useNamespace } from "../../hooks/useNamespaces";
+import { useSwitchNamespace } from "../../hooks/useNamespaceMutations";
 import { useAuthStore } from "../../stores/authStore";
 import { getConfig } from "../../env";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 
 export default function NamespaceSelector() {
-  const { namespaces, currentNamespace, fetch, fetchCurrent, switchNamespace }
-    = useNamespacesStore();
+  const { namespaces } = useNamespaces();
+  const tenantId = useAuthStore((s) => s.tenant) ?? "";
+  const { namespace: currentNamespace } = useNamespace(tenantId);
+  const switchNs = useSwitchNamespace();
 
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const tenantId = useAuthStore.getState().tenant ?? "";
-    void fetch();
-    if (tenantId) void fetchCurrent(tenantId);
-  }, [fetch, fetchCurrent]);
 
   useClickOutside(containerRef, () => setOpen(false));
 
@@ -28,9 +25,9 @@ export default function NamespaceSelector() {
     (ns) => ns.tenant_id !== currentNamespace?.tenant_id,
   );
 
-  const handleSwitch = async (tenantId: string) => {
+  const handleSwitch = async (id: string) => {
     setOpen(false);
-    await switchNamespace(tenantId);
+    await switchNs.mutateAsync(id);
   };
 
   const handleCreate = () => {

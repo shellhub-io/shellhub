@@ -2,8 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useNamespacesStore } from "../../../stores/namespacesStore";
 import AppLayout from "../AppLayout";
+
+const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
+
+vi.mock("../../../hooks/useNamespaces", () => ({
+  useNamespaces: () => mockUseNamespaces(),
+}));
 
 vi.mock("../Sidebar", () => ({
   default: () => <nav data-testid="sidebar" />,
@@ -24,12 +29,11 @@ vi.mock("../../common/ConnectivityBanner", () => ({
 afterEach(cleanup);
 
 beforeEach(() => {
-  useNamespacesStore.setState({
+  mockUseNamespaces.mockReturnValue({
     namespaces: [],
-    currentNamespace: null,
-    loading: false,
-    loaded: true,
+    isLoading: false,
     error: null,
+    refetch: vi.fn(),
   });
 });
 
@@ -47,9 +51,11 @@ function renderLayout() {
 describe("AppLayout", () => {
   describe("Sidebar", () => {
     it("renders when namespaces exist", () => {
-      useNamespacesStore.setState({
-        namespaces: [{ tenant_id: "t1", name: "ns1" }] as never,
-        loaded: true,
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [{ tenant_id: "t1", name: "ns1" }],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
       });
       renderLayout();
       expect(screen.getByTestId("sidebar")).toBeInTheDocument();
@@ -68,9 +74,11 @@ describe("AppLayout", () => {
     });
 
     it("renders alongside the sidebar when namespaces exist", () => {
-      useNamespacesStore.setState({
-        namespaces: [{ tenant_id: "t1", name: "ns1" }] as never,
-        loaded: true,
+      mockUseNamespaces.mockReturnValue({
+        namespaces: [{ tenant_id: "t1", name: "ns1" }],
+        isLoading: false,
+        error: null,
+        refetch: vi.fn(),
       });
       renderLayout();
       expect(screen.getByTestId("app-bar")).toBeInTheDocument();

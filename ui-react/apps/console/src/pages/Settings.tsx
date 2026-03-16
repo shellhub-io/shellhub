@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { Link } from "react-router-dom";
 import {
@@ -14,7 +14,8 @@ import {
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespacesStore } from "../stores/namespacesStore";
+import { useNamespace } from "../hooks/useNamespaces";
+import { useEditNamespace, useDeleteNamespace, useLeaveNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import PageHeader from "../components/common/PageHeader";
 import CopyButton from "../components/common/CopyButton";
@@ -107,7 +108,7 @@ function EditNameDrawer({
   currentName: string;
   tenantId: string;
 }) {
-  const updateNamespace = useNamespacesStore((s) => s.updateNamespace);
+  const editNs = useEditNamespace();
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -130,7 +131,7 @@ function EditNameDrawer({
     setSubmitting(true);
     setError("");
     try {
-      await updateNamespace(tenantId, { name });
+      await editNs.mutateAsync({ path: { tenant: tenantId }, body: { name } });
       onClose();
     } catch {
       setError("Failed to rename namespace. The name may already be taken.");
@@ -210,7 +211,7 @@ function DeleteDialog({
   tenantId: string;
   onClose: () => void;
 }) {
-  const deleteNs = useNamespacesStore((s) => s.deleteNamespace);
+  const deleteNs = useDeleteNamespace();
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
 
@@ -223,7 +224,7 @@ function DeleteDialog({
       onConfirm={async () => {
         setError("");
         try {
-          await deleteNs(tenantId);
+          await deleteNs.mutateAsync(tenantId);
         } catch {
           setError("Failed to delete namespace.");
           throw new Error();
@@ -272,7 +273,7 @@ function LeaveDialog({
   tenantId: string;
   onClose: () => void;
 }) {
-  const leaveNs = useNamespacesStore((s) => s.leaveNamespace);
+  const leaveNs = useLeaveNamespace();
   const [error, setError] = useState("");
 
   return (
@@ -282,7 +283,7 @@ function LeaveDialog({
       onConfirm={async () => {
         setError("");
         try {
-          await leaveNs(tenantId);
+          await leaveNs.mutateAsync(tenantId);
         } catch {
           setError("Failed to leave namespace.");
           throw new Error();
@@ -405,18 +406,12 @@ function BannerPreview({
 
 export default function Settings() {
   const { userId, tenant: tenantId, role: sessionRole } = useAuthStore();
-  const { currentNamespace, fetchCurrent, updateNamespace }
-    = useNamespacesStore();
+  const { namespace: ns } = useNamespace(tenantId ?? "");
+  const editNs = useEditNamespace();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [togglingRecord, setTogglingRecord] = useState(false);
-
-  useEffect(() => {
-    if (tenantId) void fetchCurrent(tenantId);
-  }, [tenantId, fetchCurrent]);
-
-  const ns = currentNamespace;
   const isOwner = ns?.owner === userId;
   const currentMember = ns?.members?.find((m) => m.id === userId);
   const role
@@ -430,8 +425,9 @@ export default function Settings() {
     if (!tenantId || togglingRecord) return;
     setTogglingRecord(true);
     try {
-      await updateNamespace(tenantId, {
-        settings: { session_record: !sessionRecord },
+      await editNs.mutateAsync({
+        path: { tenant: tenantId },
+        body: { settings: { session_record: !sessionRecord, connection_announcement: banner } },
       });
     } catch {
       /* state didn't change */

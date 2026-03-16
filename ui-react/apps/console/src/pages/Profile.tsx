@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useAuthStore } from "../stores/authStore";
-import { useNamespacesStore } from "../stores/namespacesStore";
+import { useNamespaces } from "../hooks/useNamespaces";
 import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
@@ -131,7 +131,7 @@ function DeleteAccountDialog({
 }) {
   const deleteUser = useAuthStore((s) => s.deleteUser);
   const userId = useAuthStore((s) => s.userId);
-  const namespaces = useNamespacesStore((s) => s.namespaces);
+  const { namespaces } = useNamespaces();
   const [error, setError] = useState("");
 
   const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
@@ -199,7 +199,7 @@ function DeleteAccountWarningDialog({
 }) {
   const username = useAuthStore((s) => s.username);
   const userId = useAuthStore((s) => s.userId);
-  const namespaces = useNamespacesStore((s) => s.namespaces);
+  const { namespaces } = useNamespaces();
 
   const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
   const deleteCommand = `./bin/cli user delete ${username ?? ""}`;

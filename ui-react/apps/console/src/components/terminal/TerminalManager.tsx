@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTerminalStore } from "../../stores/terminalStore";
-import { useNamespacesStore } from "../../stores/namespacesStore";
+import { useNamespace } from "../../hooks/useNamespaces";
+import { useAuthStore } from "../../stores/authStore";
 import ConnectDrawer from "../ConnectDrawer";
 import { buildSshid } from "../../utils/sshid";
 import TerminalInstance from "./TerminalInstance";
@@ -11,7 +12,8 @@ export default function TerminalManager() {
   const sessions = useTerminalStore((s) => s.sessions);
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
   const reconnectTarget = useTerminalStore((s) => s.reconnectTarget);
-  const currentNamespace = useNamespacesStore((s) => s.currentNamespace);
+  const tenantId = useAuthStore((s) => s.tenant) ?? "";
+  const { namespace: currentNamespace } = useNamespace(tenantId);
 
   const [connectTarget, setConnectTarget] = useState<{
     uid: string;

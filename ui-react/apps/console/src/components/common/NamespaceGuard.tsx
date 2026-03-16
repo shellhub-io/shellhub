@@ -4,7 +4,7 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespacesStore } from "../../stores/namespacesStore";
+import { useNamespaces } from "../../hooks/useNamespaces";
 import { useConnectivityStore } from "../../stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
@@ -76,26 +76,26 @@ function FetchErrorPage({
 }
 
 export default function NamespaceGuard() {
-  const { namespaces, loaded, loading, error, fetch } = useNamespacesStore();
+  const { namespaces, isLoading, error, refetch } = useNamespaces();
   const apiReachable = useConnectivityStore((s) => s.apiReachable);
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    if (!loaded) void fetch();
-  }, [loaded, fetch]);
-
   // Retry namespace fetch when API comes back online
   useEffect(() => {
-    if (apiReachable && !loaded) {
-      void fetch();
+    if (apiReachable && error) {
+      void refetch();
     }
-  }, [apiReachable, loaded, fetch]);
+  }, [apiReachable, error, refetch]);
 
-  if (!loaded && !loading && error) {
-    return <FetchErrorPage error={error} onRetry={() => void fetch()} />;
+  if (error && !isLoading) {
+    const apiDown = !apiReachable;
+    const message = apiDown
+      ? "Unable to reach the API"
+      : "Failed to load namespaces";
+    return <FetchErrorPage error={message} onRetry={() => void refetch()} />;
   }
 
-  if (!loaded) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-3">
