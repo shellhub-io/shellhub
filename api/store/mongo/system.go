@@ -2,8 +2,10 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
@@ -25,6 +27,17 @@ func (s *Store) SystemGet(ctx context.Context) (*models.System, error) {
 
 	result := s.db.Collection(SystemCollection).FindOne(ctx, bson.M{})
 	if result.Err() != nil {
+		if errors.Is(FromMongoError(result.Err()), store.ErrNoDocuments) {
+			return &models.System{
+				Setup: false,
+				Authentication: &models.SystemAuthentication{
+					Local: &models.SystemAuthenticationLocal{
+						Enabled: true,
+					},
+				},
+			}, nil
+		}
+
 		return nil, FromMongoError(result.Err())
 	}
 

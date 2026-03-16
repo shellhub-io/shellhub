@@ -102,7 +102,7 @@ func (s *Store) NamespaceDeleteMembership(ctx context.Context, tenantID string, 
 
 		_, err = s.db.
 			Collection("users").
-			UpdateOne(ctx, bson.M{"_id": objID, "preferred_namespace": tenantID}, bson.M{"$set": bson.M{"preferred_namespace": ""}})
+			UpdateOne(ctx, bson.M{"_id": objID, "preferences.preferred_namespace": tenantID}, bson.M{"$set": bson.M{"preferences.preferred_namespace": ""}})
 
 		return nil, FromMongoError(err)
 	}

@@ -49,11 +49,23 @@ func (*queryOptions) WithDeviceStatus(status models.DeviceStatus) store.QueryOpt
 	}
 }
 
-// WithMember is a no-op in Mongo because filtering by member is done implicitly
-// via gateway.IDFromContext in NamespaceList. This method exists for interface
-// compatibility with the PostgreSQL implementation.
-func (*queryOptions) WithMember(_ string) store.QueryOption {
-	return func(_ context.Context) error {
+func (*queryOptions) WithMember(userID string) store.QueryOption {
+	return func(ctx context.Context) error {
+		pipeline, ok := ctx.Value("query").(*[]bson.M)
+		if !ok {
+			return errors.New("query not found in context")
+		}
+
+		stage := bson.M{
+			"$match": bson.M{
+				"members": bson.M{
+					"$elemMatch": bson.M{"id": userID},
+				},
+			},
+		}
+
+		*pipeline = append([]bson.M{stage}, *pipeline...)
+
 		return nil
 	}
 }
@@ -109,7 +121,9 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 			return errors.New("query not found in context")
 		}
 
-		conditions, stages := make([]bson.M, 0), make([]bson.M, 0)
+		conditions := make([]bson.M, 0)
+		currentOperator := "$or"
+
 		for _, data := range filters.Data {
 			switch data.Type {
 			case query.FilterTypeProperty:
@@ -136,18 +150,20 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 					continue
 				}
 
-				stages = append(stages, bson.M{"$match": bson.M{operator: conditions}})
-				conditions = nil
+				if operator != currentOperator && len(conditions) > 0 {
+					*pipeline = append(*pipeline, bson.M{"$match": bson.M{currentOperator: conditions}})
+					conditions = make([]bson.M, 0)
+				}
+
+				currentOperator = operator
 			default:
 				return query.ErrFilterInvalid
 			}
 		}
 
 		if len(conditions) > 0 {
-			stages = append(stages, bson.M{"$match": bson.M{"$or": conditions}})
+			*pipeline = append(*pipeline, bson.M{"$match": bson.M{currentOperator: conditions}})
 		}
-
-		*pipeline = append(*pipeline, stages...)
 
 		return nil
 	}

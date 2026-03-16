@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -18,24 +17,6 @@ import (
 
 func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	query := []bson.M{}
-
-	// Only match for the respective tenant if requested
-	if id := gateway.IDFromContext(ctx); id != nil {
-		user, err := s.UserResolve(ctx, store.UserIDResolver, id.ID)
-		if err != nil {
-			return nil, 0, err
-		}
-
-		query = append(query, bson.M{
-			"$match": bson.M{
-				"members": bson.M{
-					"$elemMatch": bson.M{
-						"id": user.ID,
-					},
-				},
-			},
-		})
-	}
 
 	query = append(query,
 		bson.M{

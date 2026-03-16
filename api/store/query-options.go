@@ -19,7 +19,6 @@ type QueryOptions interface {
 	WithDeviceStatus(models.DeviceStatus) QueryOption
 
 	// WithMember filters namespaces where the given user is a member.
-	// Note: In Mongo, this is a no-op because filtering is done implicitly via gateway.IDFromContext.
 	WithMember(userID string) QueryOption
 
 	// Match applies the provided query filters to match records

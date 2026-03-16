@@ -84,6 +84,12 @@ func (s *Store) DeviceList(ctx context.Context, acceptable store.DeviceAcceptabl
 				},
 			},
 		})
+	default:
+		query = append(query, bson.M{
+			"$addFields": bson.M{
+				"acceptable": true,
+			},
+		})
 	}
 
 	count, err := CountAllMatchingDocuments(ctx, s.db.Collection("devices"), query)
