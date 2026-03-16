@@ -168,7 +168,7 @@ loop:
 		select {
 		case <-ticker.C:
 			if conn, ok := session.Context().Value(gliderssh.ContextKeyConn).(gossh.Conn); ok {
-				if _, _, err := conn.SendRequest("keepalive", false, nil); err != nil {
+				if _, _, err := conn.SendRequest("keepalive", true, nil); err != nil {
 					log.Error(err)
 				}
 			}
