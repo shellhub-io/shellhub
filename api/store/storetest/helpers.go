@@ -540,6 +540,7 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 			Username: "",
 			Filter: models.PublicKeyFilter{
 				Hostname: ".*",
+				Taggable: models.Taggable{TagIDs: []string{}},
 			},
 		},
 	}

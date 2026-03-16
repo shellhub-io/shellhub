@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/assert"
@@ -53,6 +54,32 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		assert.Contains(t, names, "namespace-2")
 		assert.Contains(t, names, "namespace-3")
 		assert.Contains(t, names, "namespace-4")
+	})
+
+	t.Run("returns only namespaces where user is member", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+		otherUserID := s.CreateUser(t)
+
+		// namespace where user is member
+		tenant1 := s.CreateNamespace(t, WithNamespaceName("ns-member"))
+		s.CreateMembership(t, tenant1, userID, "observer")
+
+		// namespace where user is NOT member
+		tenant2 := s.CreateNamespace(t, WithNamespaceName("ns-other"))
+		s.CreateMembership(t, tenant2, otherUserID, "observer")
+
+		namespaces, count, err := st.NamespaceList(ctx,
+			st.Options().WithMember(userID),
+			st.Options().Match(&query.Filters{}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		assert.Len(t, namespaces, 1)
+		assert.Equal(t, "ns-member", namespaces[0].Name)
 	})
 
 	t.Run("pagination works correctly - page 1", func(t *testing.T) {
@@ -185,6 +212,64 @@ func (s *Suite) TestNamespaceGetPreferred(t *testing.T) {
 func (s *Suite) TestNamespaceCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
+
+	t.Run("creates with pre-set tenant ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+		presetTenantID := "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee"
+
+		namespace := &models.Namespace{
+			Name:       "preset-tenant-ns",
+			TenantID:   presetTenantID,
+			Owner:      userID,
+			MaxDevices: -1,
+			Settings:   &models.NamespaceSettings{SessionRecord: true},
+		}
+
+		tenantID, err := st.NamespaceCreate(ctx, namespace)
+		require.NoError(t, err)
+		assert.Equal(t, presetTenantID, tenantID)
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, presetTenantID)
+		require.NoError(t, err)
+		assert.Equal(t, "preset-tenant-ns", ns.Name)
+	})
+
+	t.Run("creates with initial memberships", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+		memberID := s.CreateUser(t)
+
+		namespace := &models.Namespace{
+			Name:  "ns-with-members",
+			Owner: userID,
+			Members: []models.Member{
+				{ID: memberID, Role: authorizer.RoleObserver},
+			},
+			MaxDevices: -1,
+			Settings:   &models.NamespaceSettings{SessionRecord: true},
+		}
+
+		tenantID, err := st.NamespaceCreate(ctx, namespace)
+		require.NoError(t, err)
+		assert.NotEmpty(t, tenantID)
+
+		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		assert.Equal(t, "ns-with-members", ns.Name)
+
+		// Verify member exists
+		found := false
+		for _, m := range ns.Members {
+			if m.ID == memberID {
+				found = true
+				assert.Equal(t, authorizer.RoleObserver, m.Role)
+			}
+		}
+		assert.True(t, found, "member should be present in namespace")
+	})
 
 	t.Run("creates namespace successfully", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
@@ -507,6 +592,46 @@ func (s *Suite) TestNamespaceSyncDeviceCounts(t *testing.T) {
 func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
+
+	t.Run("succeeds with empty list", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateNamespace(t, WithNamespaceName("ns-1"))
+
+		deleted, err := st.NamespaceDeleteMany(ctx, []string{})
+		require.NoError(t, err)
+		assert.Equal(t, int64(0), deleted)
+
+		// Verify ns-1 still exists
+		namespaces, count, err := st.NamespaceList(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, 1, count)
+		assert.Len(t, namespaces, 1)
+	})
+
+	t.Run("succeeds when called within transaction", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant1 := s.CreateNamespace(t, WithNamespaceName("ns-tx-1"))
+		tenant2 := s.CreateNamespace(t, WithNamespaceName("ns-tx-2"))
+		s.CreateNamespace(t, WithNamespaceName("ns-tx-3"))
+
+		var deleted int64
+		err := st.WithTransaction(ctx, func(ctx context.Context) error {
+			var err error
+			deleted, err = st.NamespaceDeleteMany(ctx, []string{tenant1, tenant2})
+
+			return err
+		})
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), deleted)
+
+		// Verify deletions
+		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant1)
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant2)
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
 
 	t.Run("deletes multiple namespaces", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))

@@ -108,7 +108,12 @@ func (s *Suite) Run(t *testing.T) {
 	})
 
 	t.Run("SystemStore", func(t *testing.T) {
+		s.TestSystemGetDefault(t)
 		s.TestSystemGet(t)
 		s.TestSystemSet(t)
+	})
+
+	t.Run("TransactionStore", func(t *testing.T) {
+		s.TestWithTransaction(t)
 	})
 }

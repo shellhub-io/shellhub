@@ -332,23 +332,20 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 	t.Run("returns owned namespaces for user who owns namespaces", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		// Create user and namespaces (user will be owner by default in CreateNamespace)
 		userID := s.CreateUser(t, WithUsername("owner"))
 
-		// Create namespaces - the CreateNamespace helper creates them with an owner
-		s.CreateNamespace(t, WithNamespaceName("ns1"))
-		s.CreateNamespace(t, WithNamespaceName("ns2"))
+		tenant1 := s.CreateNamespace(t, WithNamespaceName("ns1"), WithOwner(userID))
+		tenant2 := s.CreateNamespace(t, WithNamespaceName("ns2"), WithOwner(userID))
 
-		// Get user info - note: namespaces created by CreateNamespace have their own owner
-		// We'll verify the structure works correctly
+		s.CreateMembership(t, tenant1, userID, "owner")
+		s.CreateMembership(t, tenant2, userID, "owner")
+
 		userInfo, err := st.UserGetInfo(ctx, userID)
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)
 
-		// At least verify the method returns without error
-		// The actual ownership depends on the namespace creation logic
-		assert.NotNil(t, userInfo.OwnedNamespaces)
-		assert.NotNil(t, userInfo.AssociatedNamespaces)
+		assert.Len(t, userInfo.OwnedNamespaces, 2)
+		assert.Empty(t, userInfo.AssociatedNamespaces)
 	})
 
 	t.Run("returns associated namespaces for member users", func(t *testing.T) {

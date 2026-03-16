@@ -107,8 +107,13 @@ func TestPgStore(t *testing.T) {
 	})
 
 	runSubSuite(t, "SystemStore", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestSystemGetDefault(t)
 		suite.TestSystemGet(t)
 		suite.TestSystemSet(t)
+	})
+
+	runSubSuite(t, "TransactionStore", func(suite *storetest.Suite, t *testing.T) {
+		suite.TestWithTransaction(t)
 	})
 }
 

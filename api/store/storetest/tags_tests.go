@@ -285,6 +285,27 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
+	t.Run("fails when public key does not exist", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		tagID := s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenantID))
+
+		err := st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, "nonexistent-fingerprint")
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("succeeds to push a tag to public key", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		fingerprint := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
+		tagID := s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenantID))
+
+		err := st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fingerprint)
+		require.NoError(t, err)
+	})
+
 	t.Run("succeeds to push a tag to device", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -333,6 +354,41 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		// Try to pull tag from non-existent device
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("succeeds to pull a tag from public key", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		fingerprint := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
+		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
+
+		// Push tag to public key
+		err := st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fingerprint)
+		require.NoError(t, err)
+
+		// Pull tag from public key
+		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetPublicKey, fingerprint)
+		require.NoError(t, err)
+	})
+
+	t.Run("succeeds to pull tag from all public keys", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		fp1 := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
+		fp2 := s.CreatePublicKey(t, WithPublicKeyTenant(tenantID))
+		tagID := s.CreateTag(t, WithTagName("production"), WithTagTenant(tenantID))
+
+		// Push tag to both public keys
+		err := st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fp1)
+		require.NoError(t, err)
+		err = st.TagPushToTarget(ctx, tagID, store.TagTargetPublicKey, fp2)
+		require.NoError(t, err)
+
+		// Pull from all targets (no targetIDs)
+		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetPublicKey)
+		require.NoError(t, err)
 	})
 
 	t.Run("succeeds to pull a tag from device", func(t *testing.T) {
