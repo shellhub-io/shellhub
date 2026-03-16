@@ -8,13 +8,13 @@ import {
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "../../components/icons";
-import { usePublicKeysStore } from "../../stores/publicKeysStore";
-import { PublicKey, PublicKeyFilter } from "../../types/publicKey";
+import { useCreatePublicKey, useUpdatePublicKey } from "../../hooks/usePublicKeyMutations";
+import type { PublicKey } from "../../hooks/usePublicKeys";
+import type { PublicKeyRequest, Tag } from "../../client";
 import { isPublicKeyValid } from "../../utils/sshKeys";
 import RadioCard from "../../components/common/RadioCard";
 import TagsSelector from "../../components/common/TagsSelector";
 import Drawer from "../../components/common/Drawer";
-import axios from "axios";
 import { LABEL, INPUT, INPUT_MONO } from "../../utils/styles";
 import KeyDataInput from "./KeyDataInput";
 
@@ -28,7 +28,8 @@ function KeyDrawer({
   editKey: PublicKey | null;
   onClose: () => void;
 }) {
-  const { create, update } = usePublicKeysStore();
+  const createKey = useCreatePublicKey();
+  const updateKey = useUpdatePublicKey();
   const isEdit = !!editKey;
 
   const [name, setName] = useState("");
@@ -83,10 +84,12 @@ function KeyDrawer({
     if (!name) setName(filename || "Imported Public Key");
   };
 
-  const buildFilter = (): PublicKeyFilter => {
+  // The OpenAPI spec types filter.tags as Tag[] (full objects),
+  // but the server accepts objects with just the name field.
+  const buildFilter = (): PublicKeyRequest["filter"] => {
     if (filterOption === "hostname" && hostname) return { hostname };
     if (filterOption === "tags" && selectedTags.length > 0)
-      return { tags: selectedTags };
+      return { tags: selectedTags.map((name) => ({ name })) as Tag[] };
     return { hostname: ".*" };
   };
 
@@ -118,22 +121,27 @@ function KeyDrawer({
     setSubmitting(true);
     try {
       if (isEdit && editKey) {
-        await update(editKey.fingerprint, {
-          name: name.trim(),
-          username: usernameOption === "all" ? ".*" : username.trim(),
-          filter: buildFilter(),
+        await updateKey.mutateAsync({
+          path: { fingerprint: editKey.fingerprint },
+          body: {
+            name: name.trim(),
+            username: usernameOption === "all" ? ".*" : username.trim(),
+            filter: buildFilter(),
+          },
         });
       } else {
-        await create({
-          name: name.trim(),
-          data: btoa(keyData.trim()),
-          username: usernameOption === "all" ? ".*" : username.trim(),
-          filter: buildFilter(),
+        await createKey.mutateAsync({
+          body: {
+            name: name.trim(),
+            data: btoa(keyData.trim()),
+            username: usernameOption === "all" ? ".*" : username.trim(),
+            filter: buildFilter(),
+          },
         });
       }
       onClose();
     } catch (err: unknown) {
-      if (!isEdit && axios.isAxiosError(err) && err.response?.status === 409) {
+      if (!isEdit && (err as { status?: number }).status === 409) {
         setKeyError("This public key already exists.");
       } else {
         setError(

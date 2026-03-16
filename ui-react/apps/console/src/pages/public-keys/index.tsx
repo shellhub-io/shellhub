@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { usePublicKeysStore } from "../../stores/publicKeysStore";
-import { PublicKey } from "../../types/publicKey";
+import { useState } from "react";
+import { usePublicKeys, type PublicKey } from "../../hooks/usePublicKeys";
+import { useDeletePublicKey } from "../../hooks/usePublicKeyMutations";
 import PageHeader from "../../components/common/PageHeader";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import CopyButton from "../../components/common/CopyButton";
@@ -143,8 +143,9 @@ function KeyRow({
 /* ── page ────────────────────────────────────────── */
 
 export default function PublicKeys() {
-  const { publicKeys, totalCount, loading, page, perPage, fetch, remove }
-    = usePublicKeysStore();
+  const [page, setPage] = useState(1);
+  const { publicKeys, totalCount, isLoading } = usePublicKeys({ page });
+  const deleteKey = useDeletePublicKey();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -152,10 +153,6 @@ export default function PublicKeys() {
     name: string;
   } | null>(null);
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    void fetch();
-  }, [fetch]);
 
   const openNew = () => {
     setEditTarget(null);
@@ -170,7 +167,7 @@ export default function PublicKeys() {
     setEditTarget(null);
   };
 
-  const totalPages = Math.ceil(totalCount / perPage);
+  const totalPages = Math.ceil(totalCount / 10);
   const filtered = search
     ? publicKeys.filter(
       (k) =>
@@ -181,7 +178,7 @@ export default function PublicKeys() {
 
   return (
     <div>
-      {loading && publicKeys.length === 0 ? (
+      {isLoading && publicKeys.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
@@ -345,7 +342,7 @@ export default function PublicKeys() {
                   totalPages={totalPages}
                   totalCount={totalCount}
                   itemLabel="key"
-                  onPageChange={(p) => void fetch(p)}
+                  onPageChange={setPage}
                 />
               </>
             )}
@@ -358,7 +355,8 @@ export default function PublicKeys() {
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={async () => {
-          await remove(deleteTarget!.fingerprint);
+          await deleteKey.mutateAsync({ path: { fingerprint: deleteTarget!.fingerprint } });
+          if (publicKeys.length === 1 && page > 1) setPage(page - 1);
           setDeleteTarget(null);
         }}
         title="Delete Public Key"
