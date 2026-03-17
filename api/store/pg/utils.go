@@ -29,6 +29,12 @@ func fromSQLError(err error) error {
 	}
 }
 
+type ctxKey string
+
+// CtxTableAlias is the context key used to pass a table alias to query options
+// like InNamespace, avoiding column ambiguity in queries with JOINs.
+const CtxTableAlias ctxKey = "table_alias"
+
 // queryWrapper wraps a SelectQuery pointer to allow mutations
 type queryWrapper struct {
 	query *bun.SelectQuery

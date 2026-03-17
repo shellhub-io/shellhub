@@ -15,6 +15,7 @@ type Session struct {
 	bun.BaseModel `bun:"table:sessions"`
 
 	ID            string    `bun:"id,pk"`
+	NamespaceID   string    `bun:"namespace_id"`
 	DeviceID      string    `bun:"device_id"`
 	Username      string    `bun:"username"`
 	IPAddress     string    `bun:"ip_address"`
@@ -36,7 +37,8 @@ type Session struct {
 	// EventSeats is a comma-separated list of unique seats as integers
 	EventSeats string `bun:"event_seats,scanonly"`
 
-	Device *Device `bun:"rel:belongs-to,join:device_id=id"`
+	Device    *Device    `bun:"rel:belongs-to,join:device_id=id"`
+	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 }
 
 func SessionFromModel(model *models.Session) *Session {
@@ -50,6 +52,7 @@ func SessionFromModel(model *models.Session) *Session {
 
 	session := &Session{
 		ID:            model.UID,
+		NamespaceID:   model.TenantID,
 		DeviceID:      string(model.DeviceUID),
 		Username:      model.Username,
 		IPAddress:     model.IPAddress,
@@ -72,6 +75,7 @@ func SessionFromModel(model *models.Session) *Session {
 func SessionToModel(entity *Session) *models.Session {
 	session := &models.Session{
 		UID:           strings.TrimSpace(entity.ID),
+		TenantID:      entity.NamespaceID,
 		DeviceUID:     models.UID(strings.TrimSpace(entity.DeviceID)),
 		Username:      entity.Username,
 		IPAddress:     entity.IPAddress,
@@ -95,7 +99,6 @@ func SessionToModel(entity *Session) *models.Session {
 
 	if entity.Device != nil {
 		session.Device = DeviceToModel(entity.Device)
-		session.TenantID = entity.Device.NamespaceID
 	}
 
 	return session
@@ -125,8 +128,8 @@ func ActiveSessionToModel(entity *ActiveSession) *models.ActiveSession {
 		LastSeen: entity.SeenAt,
 	}
 
-	if entity.Session != nil && entity.Session.Device != nil {
-		activeSession.TenantID = entity.Session.Device.NamespaceID
+	if entity.Session != nil {
+		activeSession.TenantID = entity.Session.NamespaceID
 	}
 
 	return activeSession

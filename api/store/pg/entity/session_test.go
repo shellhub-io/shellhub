@@ -96,6 +96,7 @@ func TestSessionToModel(t *testing.T) {
 			name: "full fields with Device",
 			entity: &Session{
 				ID:            "session-uid-1",
+				NamespaceID:   "ns-id-1",
 				DeviceID:      "device-uid-1",
 				Username:      "root",
 				IPAddress:     "192.168.1.1",
@@ -234,6 +235,7 @@ func TestActiveSessionToModel(t *testing.T) {
 				SessionID: "active-session-1",
 				SeenAt:    now,
 				Session: &Session{
+					NamespaceID: "ns-id-1",
 					Device: &Device{
 						NamespaceID: "ns-id-1",
 					},
