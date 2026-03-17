@@ -7,9 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Drawer from "../common/Drawer";
 import { QRCodeDisplay } from "./QRCodeDisplay";
-import { generateMfa, enableMfa } from "../../api/mfa";
-import { updateUser } from "../../api/auth";
-import type { MfaGenerateResponse } from "../../types/mfa";
+import { generateMfa, enableMfa, updateUser } from "../../client";
 import { useOtpInput } from "../../hooks/useOtpInput";
 import { useRecoveryCodeActions } from "../../hooks/useRecoveryCodeActions";
 
@@ -67,7 +65,7 @@ export default function MfaEnableDrawer({
     setLoading(true);
 
     try {
-      await updateUser({ recovery_email: recoveryEmail });
+      await updateUser({ body: { recovery_email: recoveryEmail }, throwOnError: true });
       await handleGenerateMfa();
       setStep(2);
     } catch (err) {
@@ -83,7 +81,7 @@ export default function MfaEnableDrawer({
 
   const handleGenerateMfa = async () => {
     try {
-      const data: MfaGenerateResponse = await generateMfa();
+      const { data } = await generateMfa({ throwOnError: true });
       setQrLink(data.link);
       setSecret(data.secret);
       setRecoveryCodes(data.recovery_codes);
@@ -121,7 +119,7 @@ export default function MfaEnableDrawer({
     setLoading(true);
 
     try {
-      await enableMfa({ code: otp.getValue(), secret, recovery_codes: recoveryCodes });
+      await enableMfa({ body: { code: otp.getValue(), secret, recovery_codes: recoveryCodes }, throwOnError: true });
       setStep(4);
     } catch {
       setError("Invalid verification code");

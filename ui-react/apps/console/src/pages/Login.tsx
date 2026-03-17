@@ -1,6 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { AxiosError } from "axios";
 import {
   ExclamationCircleIcon,
   CheckCircleIcon,
@@ -92,8 +91,9 @@ export default function Login() {
         void navigate("/dashboard");
       }
     } catch (err) {
-      if (err instanceof AxiosError) {
-        switch (err.response?.status) {
+      const status = (err as { status?: number }).status;
+      if (status) {
+        switch (status) {
           case 401:
             setError(
               "Invalid login credentials. Your password is incorrect or this account doesn't exist.",
@@ -105,7 +105,8 @@ export default function Login() {
             );
             break;
           case 429: {
-            const epoch = Number(err.response.headers["x-account-lockout"]);
+            const headers = (err as { headers?: Headers }).headers;
+            const epoch = Number(headers?.get("x-account-lockout"));
             setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
             setError(
               "Too many failed login attempts. Please wait before trying again.",

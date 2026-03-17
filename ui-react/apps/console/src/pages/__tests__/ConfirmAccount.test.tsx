@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { resendEmail as apiResendEmail } from "../../api/users";
 import { useSignUpStore } from "../../stores/signUpStore";
 import ConfirmAccount from "../ConfirmAccount";
 
@@ -15,13 +14,24 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual };
 });
 
-vi.mock("../../api/users", () => ({
+vi.mock("../../client", () => ({
+  registerUser: vi.fn(),
   resendEmail: vi.fn(),
-  signUp: vi.fn(),
-  validateAccount: vi.fn(),
+  getValidateAccount: vi.fn(),
 }));
 
+import { resendEmail as apiResendEmail } from "../../client";
 const mockedResendEmail = vi.mocked(apiResendEmail);
+
+type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+
+function mockSdkResponse<T>(data: T): SdkResponse<T> {
+  return {
+    data,
+    request: new Request("http://localhost"),
+    response: new Response(),
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -77,12 +87,12 @@ describe("ConfirmAccount", () => {
 
   describe("resend email", () => {
     it("calls resendEmail with the username and shows success message", async () => {
-      mockedResendEmail.mockResolvedValue(undefined);
+      mockedResendEmail.mockResolvedValue(mockSdkResponse(undefined));
 
       renderConfirmAccount("admin");
       await userEvent.click(screen.getByRole("button", { name: /resend email/i }));
 
-      expect(mockedResendEmail).toHaveBeenCalledWith("admin");
+      expect(mockedResendEmail).toHaveBeenCalledWith({ body: { username: "admin" }, throwOnError: true });
       await waitFor(() =>
         expect(screen.getByText(/confirmation email sent successfully/i)).toBeInTheDocument(),
       );
@@ -102,8 +112,8 @@ describe("ConfirmAccount", () => {
     it("shows Sending... and disables the button while the request is in flight", async () => {
       let resolveResend!: () => void;
       mockedResendEmail.mockReturnValue(
-        new Promise((resolve) => {
-          resolveResend = () => resolve(undefined);
+        new Promise<SdkResponse>((resolve) => {
+          resolveResend = () => resolve(mockSdkResponse(undefined));
         }),
       );
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
-import { getInfo } from "../../api/system";
+import { getInfo } from "../../client";
 import { getConfig } from "../../env";
 
 export default function SetupGuard() {
@@ -12,8 +12,8 @@ export default function SetupGuard() {
   useEffect(() => {
     if (isCloud) return;
 
-    getInfo()
-      .then((info) => setSetupDone(info.setup))
+    getInfo({ throwOnError: true })
+      .then(({ data }) => setSetupDone(data.setup))
       .catch(() => setSetupDone(true))
       .finally(() => setLoading(false));
   }, [isCloud, location.pathname]);

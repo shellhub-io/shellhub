@@ -4,15 +4,25 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import MfaRecover from "../MfaRecover";
 
-vi.mock("../../api/mfa", () => ({
+vi.mock("../../client", () => ({
   disableMfa: vi.fn(),
 }));
 
-import { disableMfa } from "../../api/mfa";
+import { disableMfa } from "../../client";
 const mockedDisableMfa = vi.mocked(disableMfa);
 
+type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+
+function mockSdkResponse<T>(data: T): SdkResponse<T> {
+  return {
+    data,
+    request: new Request("http://localhost"),
+    response: new Response(),
+  };
+}
+
 beforeEach(() => {
-  mockedDisableMfa.mockResolvedValue(undefined);
+  mockedDisableMfa.mockResolvedValue(mockSdkResponse(undefined));
   useAuthStore.setState({
     user: "admin",
     loading: false,
@@ -246,7 +256,7 @@ describe("MfaRecover", () => {
     fireEvent.click(screen.getByRole("button", { name: /disable mfa/i }));
 
     await waitFor(() => {
-      expect(mockedDisableMfa).toHaveBeenCalledWith({ recovery_code: "MY-RECOVERY-CODE" });
+      expect(mockedDisableMfa).toHaveBeenCalledWith({ body: { recovery_code: "MY-RECOVERY-CODE" }, throwOnError: true });
     });
   });
 });

@@ -5,23 +5,30 @@ import MfaEnableDrawer from "../MfaEnableDrawer";
 
 vi.mock("qrcode");
 
-vi.mock("../../../api/mfa", () => ({
+vi.mock("../../../client", () => ({
   generateMfa: vi.fn(),
   enableMfa: vi.fn(),
-}));
-
-vi.mock("../../../api/auth", () => ({
   updateUser: vi.fn(),
 }));
 
-import { generateMfa, enableMfa } from "../../../api/mfa";
-import { updateUser } from "../../../api/auth";
+import { generateMfa, enableMfa, updateUser } from "../../../client";
+import type { MfaGenerate } from "../../../client";
 
 const mockedGenerateMfa = vi.mocked(generateMfa);
 const mockedEnableMfa = vi.mocked(enableMfa);
 const mockedUpdateUser = vi.mocked(updateUser);
 
-const mockMfaData = {
+type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+
+function mockSdkResponse<T>(data: T): SdkResponse<T> {
+  return {
+    data,
+    request: new Request("http://localhost"),
+    response: new Response(),
+  };
+}
+
+const mockMfaData: MfaGenerate = {
   link: "otpauth://totp/ShellHub:user@example.com?secret=ABCD1234&issuer=ShellHub",
   secret: "ABCD1234",
   recovery_codes: ["code1", "code2", "code3", "code4", "code5", "code6"],
@@ -33,9 +40,9 @@ describe("MfaEnableDrawer", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedGenerateMfa.mockResolvedValue(mockMfaData);
-    mockedEnableMfa.mockResolvedValue(undefined);
-    mockedUpdateUser.mockResolvedValue(undefined);
+    mockedGenerateMfa.mockResolvedValue(mockSdkResponse(mockMfaData));
+    mockedEnableMfa.mockResolvedValue(mockSdkResponse(undefined));
+    mockedUpdateUser.mockResolvedValue(mockSdkResponse(undefined));
   });
 
   describe("Step 1: Recovery Email", () => {
@@ -90,7 +97,8 @@ describe("MfaEnableDrawer", () => {
 
       await waitFor(() => {
         expect(mockedUpdateUser).toHaveBeenCalledWith({
-          recovery_email: "new-recovery@example.com",
+          body: { recovery_email: "new-recovery@example.com" },
+          throwOnError: true,
         });
         expect(mockedGenerateMfa).toHaveBeenCalled();
       });
@@ -99,7 +107,7 @@ describe("MfaEnableDrawer", () => {
     it("shows error when email is already in use (409)", async () => {
       const user = userEvent.setup();
       mockedUpdateUser.mockRejectedValue(
-        Object.assign(new Error("Request failed with status code 409"), { isAxiosError: true, response: { status: 409 } }),
+        Object.assign(new Error("409"), { status: 409 }),
       );
 
       render(
@@ -256,9 +264,12 @@ describe("MfaEnableDrawer", () => {
 
       await waitFor(() => {
         expect(mockedEnableMfa).toHaveBeenCalledWith({
-          code: "123456",
-          secret: mockMfaData.secret,
-          recovery_codes: mockMfaData.recovery_codes,
+          body: {
+            code: "123456",
+            secret: mockMfaData.secret,
+            recovery_codes: mockMfaData.recovery_codes,
+          },
+          throwOnError: true,
         });
       });
     });

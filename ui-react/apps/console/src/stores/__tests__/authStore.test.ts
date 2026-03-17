@@ -1,38 +1,57 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createAxiosError } from "../../test/createAxiosError";
 import { useAuthStore } from "../authStore";
+import type { UserAuth } from "../../client";
 
-vi.mock("../../api/client", () => ({
-  default: {
-    post: vi.fn(),
-    get: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
-
-vi.mock("../../api/auth", () => ({
-  getAuthUser: vi.fn(),
+vi.mock("../../client", () => ({
   login: vi.fn(),
+  getUserInfo: vi.fn(),
   updateUser: vi.fn(),
-  updatePassword: vi.fn(),
+  deleteUser: vi.fn(),
+  authMfa: vi.fn(),
+  mfaRecover: vi.fn(),
+  requestResetMfa: vi.fn(),
+  resetMfa: vi.fn(),
 }));
 
-vi.mock("../../api/mfa", () => ({
-  validateMfa: vi.fn(),
-  recoverMfa: vi.fn(),
-}));
+import {
+  login as loginSdk,
+  getUserInfo,
+  authMfa,
+  mfaRecover,
+} from "../../client";
 
-import apiClient from "../../api/client";
-import { getAuthUser, login as apiLogin } from "../../api/auth";
-import { validateMfa, recoverMfa } from "../../api/mfa";
+const mockedLogin = vi.mocked(loginSdk);
+const mockedGetUserInfo = vi.mocked(getUserInfo);
+const mockedAuthMfa = vi.mocked(authMfa);
+const mockedMfaRecover = vi.mocked(mfaRecover);
 
-const mockedLogin = vi.mocked(apiLogin);
-const mockedApiClientPost = vi.mocked(apiClient.post);
-const mockedGetAuthUser = vi.mocked(getAuthUser);
-const mockedValidateMfa = vi.mocked(validateMfa);
-const mockedRecoverMfa = vi.mocked(recoverMfa);
+type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+
+function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
+  return {
+    token: "jwt-token",
+    id: "user-123",
+    origin: "local",
+    user: "admin",
+    name: "Admin User",
+    email: "admin@test.com",
+    recovery_email: "recovery@test.com",
+    tenant: "tenant-456",
+    role: "owner",
+    mfa: false,
+    admin: false,
+    max_namespaces: -1,
+    ...overrides,
+  };
+}
+
+function mockSdkResponse<T>(data: T, headers: HeadersInit = {}): SdkResponse<T> {
+  return {
+    data,
+    request: new Request("http://localhost"),
+    response: new Response(null, { headers }),
+  };
+}
 
 beforeEach(() => {
   useAuthStore.setState({
@@ -57,17 +76,7 @@ beforeEach(() => {
 describe("authStore", () => {
   describe("login", () => {
     it("sets token and user data on success", async () => {
-      mockedApiClientPost.mockResolvedValueOnce({
-        data: {
-          token: "jwt-token",
-          user: "admin",
-          id: "user-123",
-          email: "admin@test.com",
-          tenant: "tenant-456",
-          name: "Admin User",
-        },
-        headers: {},
-      });
+      mockedLogin.mockResolvedValueOnce(mockSdkResponse(mockUserAuth()));
 
       await useAuthStore.getState().login("admin", "password");
 
@@ -81,7 +90,7 @@ describe("authStore", () => {
     });
 
     it("re-throws error and resets loading on failure", async () => {
-      mockedApiClientPost.mockRejectedValueOnce(new Error("401"));
+      mockedLogin.mockRejectedValueOnce(new Error("401"));
 
       await expect(
         useAuthStore.getState().login("admin", "wrong"),
@@ -93,7 +102,7 @@ describe("authStore", () => {
     });
 
     it("re-throws on 403 (Login page handles redirect)", async () => {
-      mockedLogin.mockRejectedValue(createAxiosError(403));
+      mockedLogin.mockRejectedValue(Object.assign(new Error("403"), { status: 403 }));
 
       await expect(
         useAuthStore.getState().login("admin", "password"),
@@ -110,19 +119,9 @@ describe("authStore", () => {
 
       // Capture mfaToken state at the start of the request
       let mfaTokenDuringRequest: string | null = "not-checked";
-      mockedApiClientPost.mockImplementationOnce(async () => {
+      mockedLogin.mockImplementationOnce(async () => {
         mfaTokenDuringRequest = useAuthStore.getState().mfaToken;
-        return {
-          data: {
-            token: "jwt-token",
-            user: "admin",
-            id: "user-123",
-            email: "admin@test.com",
-            tenant: "tenant-456",
-            name: "Admin User",
-          },
-          headers: {},
-        };
+        return mockSdkResponse(mockUserAuth());
       });
 
       await useAuthStore.getState().login("admin", "password");
@@ -132,10 +131,9 @@ describe("authStore", () => {
     });
 
     it("sets loading during request", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let resolveLogin: (v: any) => void;
-      mockedApiClientPost.mockReturnValueOnce(
-        new Promise((r) => {
+      let resolveLogin: (v: SdkResponse<UserAuth>) => void;
+      mockedLogin.mockReturnValueOnce(
+        new Promise<SdkResponse<UserAuth>>((r) => {
           resolveLogin = r;
         }),
       );
@@ -143,17 +141,14 @@ describe("authStore", () => {
       const promise = useAuthStore.getState().login("admin", "password");
       expect(useAuthStore.getState().loading).toBe(true);
 
-      resolveLogin!({
-        data: { token: "t", user: "u", id: "i", email: "e", tenant: "t", name: "n" },
-        headers: {},
-      });
+      resolveLogin!(mockSdkResponse(mockUserAuth()));
       await promise;
 
       expect(useAuthStore.getState().loading).toBe(false);
     });
 
     it("detects MFA requirement when interceptor sets mfaToken before reject", async () => {
-      mockedApiClientPost.mockImplementationOnce(() => {
+      mockedLogin.mockImplementationOnce((): Promise<never> => {
         useAuthStore.getState().setMfaToken("mfa-temp-token");
         return Promise.reject(new Error("401"));
       });
@@ -218,14 +213,12 @@ describe("authStore", () => {
 
   describe("fetchUser", () => {
     it("updates user data from API", async () => {
-      mockedGetAuthUser.mockResolvedValue({
+      mockedGetUserInfo.mockResolvedValue(mockSdkResponse(mockUserAuth({
         user: "admin",
-        id: "user-123",
         email: "admin@test.com",
         recovery_email: "backup@test.com",
         name: "Admin User",
-        tenant: "tenant-456",
-      });
+      })));
 
       await useAuthStore.getState().fetchUser();
 
@@ -237,7 +230,7 @@ describe("authStore", () => {
     });
 
     it("silently ignores errors (interceptor handles redirect)", async () => {
-      mockedGetAuthUser.mockRejectedValue(new Error("401"));
+      mockedGetUserInfo.mockRejectedValue(new Error("401"));
 
       // Should not throw
       await useAuthStore.getState().fetchUser();
@@ -303,14 +296,7 @@ describe("authStore", () => {
     });
 
     it("completes MFA login with valid code", async () => {
-      mockedValidateMfa.mockResolvedValue({
-        token: "jwt-token",
-        user: "admin",
-        id: "user-123",
-        email: "admin@test.com",
-        tenant: "tenant-456",
-        name: "Admin User",
-      });
+      mockedAuthMfa.mockResolvedValue(mockSdkResponse(mockUserAuth()));
 
       await useAuthStore.getState().loginWithMfa("123456");
 
@@ -319,9 +305,9 @@ describe("authStore", () => {
       expect(state.mfaToken).toBeNull(); // Temp token cleared
       expect(state.mfaEnabled).toBe(true);
       expect(state.loading).toBe(false);
-      expect(mockedValidateMfa).toHaveBeenCalledWith({
-        token: "mfa-temp-token-123",
-        code: "123456",
+      expect(mockedAuthMfa).toHaveBeenCalledWith({
+        body: { token: "mfa-temp-token-123", code: "123456" },
+        throwOnError: true,
       });
     });
 
@@ -334,7 +320,7 @@ describe("authStore", () => {
     });
 
     it("sets error on invalid code", async () => {
-      mockedValidateMfa.mockRejectedValue(new Error("Invalid code"));
+      mockedAuthMfa.mockRejectedValue(new Error("Invalid code"));
 
       await expect(
         useAuthStore.getState().loginWithMfa("999999"),
@@ -355,17 +341,10 @@ describe("authStore", () => {
 
     it("authenticates with valid recovery code", async () => {
       const futureExpiry = Math.floor(Date.now() / 1000) + 3600;
-      mockedRecoverMfa.mockResolvedValue({
-        data: {
-          token: "recovered-jwt",
-          user: "admin",
-          id: "user-123",
-          email: "admin@test.com",
-          tenant: "tenant-456",
-          name: "Admin User",
-        },
-        expiresAt: futureExpiry.toString(),
-      });
+      mockedMfaRecover.mockResolvedValue(mockSdkResponse(
+        mockUserAuth({ token: "recovered-jwt" }),
+        { "x-expires-at": futureExpiry.toString() },
+      ));
 
       await useAuthStore.getState().recoverWithCode("recovery-code-abc");
 
@@ -373,26 +352,19 @@ describe("authStore", () => {
       expect(state.token).toBe("recovered-jwt");
       expect(state.mfaRecoveryExpiry).toBe(futureExpiry);
       expect(state.loading).toBe(false);
-      expect(mockedRecoverMfa).toHaveBeenCalledWith({
-        identifier: "admin",
-        recovery_code: "recovery-code-abc",
+      expect(mockedMfaRecover).toHaveBeenCalledWith({
+        body: { identifier: "admin", recovery_code: "recovery-code-abc" },
+        throwOnError: true,
       });
     });
 
     it("clears mfaToken on successful recovery to prevent stale token re-use", async () => {
       const futureExpiry = Math.floor(Date.now() / 1000) + 3600;
       useAuthStore.setState({ mfaToken: "mfa-temp-token", user: "admin" });
-      mockedRecoverMfa.mockResolvedValue({
-        data: {
-          token: "recovered-jwt",
-          user: "admin",
-          id: "user-123",
-          email: "admin@test.com",
-          tenant: "tenant-456",
-          name: "Admin User",
-        },
-        expiresAt: futureExpiry.toString(),
-      });
+      mockedMfaRecover.mockResolvedValue(mockSdkResponse(
+        mockUserAuth({ token: "recovered-jwt" }),
+        { "x-expires-at": futureExpiry.toString() },
+      ));
 
       await useAuthStore.getState().recoverWithCode("recovery-code-abc");
 
@@ -408,7 +380,7 @@ describe("authStore", () => {
     });
 
     it("sets error on invalid recovery code", async () => {
-      mockedRecoverMfa.mockRejectedValue(new Error("Invalid"));
+      mockedMfaRecover.mockRejectedValue(new Error("Invalid"));
 
       await expect(
         useAuthStore.getState().recoverWithCode("invalid-code"),
@@ -445,36 +417,15 @@ describe("authStore", () => {
 
   describe("login with mfa field", () => {
     it("sets mfaEnabled true when server reports mfa: true", async () => {
-      mockedApiClientPost.mockResolvedValueOnce({
-        data: {
-          token: "jwt-token",
-          user: "admin",
-          id: "user-123",
-          email: "admin@test.com",
-          tenant: "tenant-456",
-          name: "Admin User",
-          mfa: true,
-        },
-        headers: {},
-      });
+      mockedLogin.mockResolvedValueOnce(mockSdkResponse(mockUserAuth({ mfa: true })));
 
       await useAuthStore.getState().login("admin", "password");
 
       expect(useAuthStore.getState().mfaEnabled).toBe(true);
     });
 
-    it("sets mfaEnabled false when mfa field is absent", async () => {
-      mockedApiClientPost.mockResolvedValueOnce({
-        data: {
-          token: "jwt-token",
-          user: "admin",
-          id: "user-123",
-          email: "admin@test.com",
-          tenant: "tenant-456",
-          name: "Admin User",
-        },
-        headers: {},
-      });
+    it("sets mfaEnabled false when mfa is false", async () => {
+      mockedLogin.mockResolvedValueOnce(mockSdkResponse(mockUserAuth()));
 
       await useAuthStore.getState().login("admin", "password");
 

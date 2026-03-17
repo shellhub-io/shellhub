@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import apiClient from "../api/client";
+import { getInfo } from "../client";
 
 interface ConnectivityState {
   apiReachable: boolean;
@@ -19,7 +19,7 @@ function startPolling() {
 
   const poll = async () => {
     try {
-      await apiClient.get("/info", { timeout: 5000 });
+      await getInfo({ throwOnError: true });
       useConnectivityStore.getState().markUp();
       polling = false;
     } catch {
@@ -37,7 +37,7 @@ export const useConnectivityStore = create<ConnectivityState>()((set) => ({
 
   checkInitial: async () => {
     try {
-      await apiClient.get("/info", { timeout: 5000 });
+      await getInfo({ throwOnError: true });
       set({
         apiReachable: true,
         initialCheckDone: true,

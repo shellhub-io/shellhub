@@ -1,6 +1,6 @@
 import { useState, FormEvent } from "react";
 import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
-import { disableMfa } from "../../api/mfa";
+import { disableMfa } from "../../client";
 import { useOtpInput } from "../../hooks/useOtpInput";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -57,16 +57,10 @@ export default function MfaDisableDialog({
     try {
       if (mode === "totp") {
         if (!otp.isComplete) return;
-        await disableMfa({ code: otp.getValue() });
+        await disableMfa({ body: { code: otp.getValue() }, throwOnError: true });
       } else if (mode === "recovery") {
         if (!recoveryCode.trim()) return;
-        await disableMfa({ recovery_code: recoveryCode });
-      } else if (mode === "email-reset") {
-        if (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete) return;
-        await disableMfa({
-          main_email_code: otpMainEmail.getValue(),
-          recovery_email_code: otpRecoveryEmail.getValue(),
-        });
+        await disableMfa({ body: { recovery_code: recoveryCode }, throwOnError: true });
       }
 
       onSuccess();

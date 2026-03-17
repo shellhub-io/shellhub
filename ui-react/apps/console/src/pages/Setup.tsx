@@ -7,7 +7,7 @@ import {
   EyeSlashIcon,
   EyeIcon,
 } from "@heroicons/react/24/outline";
-import { setup } from "../api/system";
+import { setup } from "../client";
 import { getConfig } from "../env";
 import { validate, type FormErrors } from "./setup/validate";
 
@@ -127,15 +127,10 @@ export default function Setup() {
     setError("");
 
     try {
-      await setup(sign, { name, username, email, password });
+      await setup({ query: { sign }, body: { name, username, email, password }, throwOnError: true });
       setSuccess(true);
     } catch (err: unknown) {
-      if (
-        err
-        && typeof err === "object"
-        && "response" in err
-        && (err as { response?: { status?: number } }).response?.status === 409
-      ) {
+      if ((err as { status?: number }).status === 409) {
         setError("Setup has already been completed.");
       } else {
         setError(
