@@ -23,6 +23,8 @@ type Services interface {
 	UserDelete(ctx context.Context, input *inputs.UserDelete) error
 	// UserUpdate updates a user's data based on the provided username.
 	UserUpdate(ctx context.Context, input *inputs.UserUpdate) error
+	// UserList lists all users across all namespaces
+	UserList(ctx context.Context) ([]models.User, error)
 	// NamespaceCreate initializes a new namespace, making the specified user its owner.
 	// The tenant defaults to a UUID if not provided.
 	// Max device limit is based on the envs.IsCloud() setting.
