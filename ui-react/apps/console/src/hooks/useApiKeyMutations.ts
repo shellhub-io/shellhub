@@ -1,23 +1,13 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   apiKeyCreateMutation,
   apiKeyUpdateMutation,
   apiKeyDeleteMutation,
 } from "../client/@tanstack/react-query.gen";
-
-function useInvalidateApiKeys() {
-  const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ predicate: (query) => {
-    const key = query.queryKey[0];
-    if (typeof key === "object" && key !== null && "_id" in key) {
-      return (key as { _id: string })._id === "apiKeyList";
-    }
-    return false;
-  } });
-}
+import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreateApiKey() {
-  const invalidate = useInvalidateApiKeys();
+  const invalidate = useInvalidateByIds("apiKeyList");
   return useMutation({
     ...apiKeyCreateMutation(),
     onSuccess: invalidate,
@@ -25,7 +15,7 @@ export function useCreateApiKey() {
 }
 
 export function useUpdateApiKey() {
-  const invalidate = useInvalidateApiKeys();
+  const invalidate = useInvalidateByIds("apiKeyList");
   return useMutation({
     ...apiKeyUpdateMutation(),
     onSuccess: invalidate,
@@ -33,7 +23,7 @@ export function useUpdateApiKey() {
 }
 
 export function useDeleteApiKey() {
-  const invalidate = useInvalidateApiKeys();
+  const invalidate = useInvalidateByIds("apiKeyList");
   return useMutation({
     ...apiKeyDeleteMutation(),
     onSuccess: invalidate,

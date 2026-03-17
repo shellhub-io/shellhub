@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { isSdkError } from "../api/errors";
 import {
   acceptDeviceMutation,
@@ -8,21 +8,10 @@ import {
   pullTagFromDeviceMutation,
 } from "../client/@tanstack/react-query.gen";
 import { createTag, pushTagToDevice } from "../client";
-
-function useInvalidateDevices() {
-  const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ predicate: (query) => {
-    const key = query.queryKey[0];
-    if (typeof key === "object" && key !== null && "_id" in key) {
-      const id = (key as { _id: string })._id;
-      return id === "getDevices" || id === "getDevice" || id === "getStatusDevices";
-    }
-    return false;
-  } });
-}
+import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useAcceptDevice() {
-  const invalidate = useInvalidateDevices();
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
   return useMutation({
     ...acceptDeviceMutation(),
     onSuccess: invalidate,
@@ -30,7 +19,7 @@ export function useAcceptDevice() {
 }
 
 export function useRejectDevice() {
-  const invalidate = useInvalidateDevices();
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
   return useMutation({
     ...updateDeviceStatusMutation(),
     onSuccess: invalidate,
@@ -38,7 +27,7 @@ export function useRejectDevice() {
 }
 
 export function useRemoveDevice() {
-  const invalidate = useInvalidateDevices();
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
   return useMutation({
     ...deleteDeviceMutation(),
     onSuccess: invalidate,
@@ -46,7 +35,7 @@ export function useRemoveDevice() {
 }
 
 export function useRenameDevice() {
-  const invalidate = useInvalidateDevices();
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
   return useMutation({
     ...updateDeviceMutation(),
     onSuccess: invalidate,
@@ -54,8 +43,7 @@ export function useRenameDevice() {
 }
 
 export function useAddDeviceTag() {
-  const queryClient = useQueryClient();
-  const invalidateDevices = useInvalidateDevices();
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices", "getTags");
   return useMutation({
     mutationFn: async (options: { path: { uid: string; name: string } }) => {
       try {
@@ -65,21 +53,12 @@ export function useAddDeviceTag() {
       }
       return pushTagToDevice({ ...options, throwOnError: true });
     },
-    onSuccess: async () => {
-      await invalidateDevices();
-      await queryClient.invalidateQueries({ predicate: (query) => {
-        const key = query.queryKey[0];
-        if (typeof key === "object" && key !== null && "_id" in key) {
-          return (key as { _id: string })._id === "getTags";
-        }
-        return false;
-      } });
-    },
+    onSuccess: invalidate,
   });
 }
 
 export function useRemoveDeviceTag() {
-  const invalidate = useInvalidateDevices();
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
   return useMutation({
     ...pullTagFromDeviceMutation(),
     onSuccess: invalidate,

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   editNamespaceMutation,
 } from "../client/@tanstack/react-query.gen";
@@ -9,21 +9,10 @@ import {
   leaveNamespace as leaveNamespaceSdk,
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
-
-function useInvalidateNamespaces() {
-  const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ predicate: (query) => {
-    const key = query.queryKey[0];
-    if (typeof key === "object" && key !== null && "_id" in key) {
-      const id = (key as { _id: string })._id;
-      return id === "getNamespaces" || id === "getNamespace";
-    }
-    return false;
-  } });
-}
+import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useEditNamespace() {
-  const invalidate = useInvalidateNamespaces();
+  const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
   return useMutation({
     ...editNamespaceMutation(),
     onSuccess: invalidate,
