@@ -148,3 +148,13 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 
 	return nil
 }
+
+// UserList lists all users across all namespaces
+func (s *service) UserList(ctx context.Context) ([]models.User, error) {
+	users, _, err := s.store.UserList(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}

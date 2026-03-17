@@ -19,6 +19,7 @@ func UserCommands(service services.Services) *cobra.Command {
 	cmd.AddCommand(userCreate(service))
 	cmd.AddCommand(userResetPassword(service))
 	cmd.AddCommand(userDelete(service))
+	cmd.AddCommand(userList(service))
 
 	return cmd
 }
@@ -107,6 +108,44 @@ func userDelete(service services.Services) *cobra.Command {
 
 			cmd.Println("User deleted successfully")
 			cmd.Println("Username:", input.Username)
+
+			return nil
+		},
+	}
+}
+
+func userList(service services.Services) *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "Lists all users",
+		Long:  "Lists all users across all namespaces",
+		Example: `# List all users
+cli user list
+
+# Show only the first 5 users
+cli user list | head -n 6
+
+# Show only the last 5 users
+cli user list | tail -n 5
+
+# Search users containing 'admin'
+cli user list | grep admin`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			users, err := service.UserList(cmd.Context())
+			if err != nil {
+				return err
+			}
+
+			if len(users) == 0 {
+				cmd.Println(
+					"You don't have any users yet. Try `./bin/cli user create -h`",
+					"or use the UI to add users.",
+				)
+
+				return nil
+			}
+
+			printUsersTable(cmd.OutOrStdout(), users)
 
 			return nil
 		},

@@ -442,3 +442,84 @@ func TestUserResetPassword(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestUserList(t *testing.T) {
+	mock := new(mocks.Store)
+	ctx := context.TODO()
+
+	storeErr := errors.New("store error")
+
+	users := []models.User{
+		{
+			ID: "507f191e810c19729de860ea",
+			UserData: models.UserData{
+				Name:     "John Doe",
+				Email:    "john.doe@test.com",
+				Username: "john_doe",
+			},
+		},
+		{
+			ID: "507f191e810c19729de860eb",
+			UserData: models.UserData{
+				Name:     "Jane Doe",
+				Email:    "jane.doe@test.com",
+				Username: "jane_doe",
+			},
+		},
+	}
+
+	cases := []struct {
+		description   string
+		requiredMocks func()
+		expectedUsers []models.User
+		expectedErr   error
+	}{
+		{
+			description: "fails when store returns error",
+			requiredMocks: func() {
+				mock.
+					On("UserList", ctx).
+					Return(nil, 0, storeErr).
+					Once()
+			},
+			expectedUsers: nil,
+			expectedErr:   storeErr,
+		},
+		{
+			description: "returns empty list",
+			requiredMocks: func() {
+				mock.
+					On("UserList", ctx).
+					Return([]models.User{}, 0, nil).
+					Once()
+			},
+			expectedUsers: []models.User{},
+			expectedErr:   nil,
+		},
+		{
+			description: "successfully returns users",
+			requiredMocks: func() {
+				mock.
+					On("UserList", ctx).
+					Return(users, 2, nil).
+					Once()
+			},
+			expectedUsers: users,
+			expectedErr:   nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			service := NewService(store.Store(mock))
+			result, err := service.UserList(ctx)
+
+			assert.Equal(t, tc.expectedUsers, result)
+			assert.Equal(t, tc.expectedErr, err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
