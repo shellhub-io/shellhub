@@ -1,4 +1,5 @@
 import { useState, useRef, FormEvent } from "react";
+import { isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useTags } from "../hooks/useTags";
 import { useCreateTag, useUpdateTag, useDeleteTag } from "../hooks/useTagMutations";
@@ -58,7 +59,7 @@ export default function ManageTagsDrawer({
       await createTag.mutateAsync({ body: { name: newName.trim() } });
       setNewName("");
     } catch (err: unknown) {
-      if ((err as { status?: number }).status === 409) {
+      if (isSdkError(err) && err.status === 409) {
         setError("A tag with this name already exists.");
       } else {
         setError("Failed to create tag.");

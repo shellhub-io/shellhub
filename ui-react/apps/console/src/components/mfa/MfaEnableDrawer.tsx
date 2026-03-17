@@ -8,6 +8,7 @@ import {
 import Drawer from "../common/Drawer";
 import { QRCodeDisplay } from "./QRCodeDisplay";
 import { generateMfa, enableMfa, updateUser } from "../../client";
+import { isSdkError } from "../../api/errors";
 import { useOtpInput } from "../../hooks/useOtpInput";
 import { useRecoveryCodeActions } from "../../hooks/useRecoveryCodeActions";
 
@@ -69,11 +70,7 @@ export default function MfaEnableDrawer({
       await handleGenerateMfa();
       setStep(2);
     } catch (err) {
-      if (err instanceof Error && err.message.includes("409")) {
-        setError("Email already in use");
-      } else {
-        setError("Failed to save recovery email");
-      }
+      setError(isSdkError(err) && err.status === 409 ? "Email already in use" : "Failed to save recovery email");
     } finally {
       setLoading(false);
     }

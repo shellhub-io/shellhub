@@ -41,9 +41,10 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-/** Creates a mock SDK error with status and optional body. */
+/** Creates a mock SDK error matching the hey-api shape: the response body itself with .status patched on. */
 function createSdkError(status: number, body?: unknown) {
-  return Object.assign(new Error(String(status)), { status, body: body ?? {} });
+  const base = typeof body === "object" && body !== null ? body : {};
+  return Object.assign(base, { status });
 }
 
 describe("signUpStore", () => {

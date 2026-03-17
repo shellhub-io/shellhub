@@ -55,9 +55,6 @@ export const useConnectivityStore = create<ConnectivityState>()((set) => ({
   },
 
   markUp: () => {
-    set((s) => ({
-      apiReachable: true,
-      initialGatePassed: s.initialGatePassed || true,
-    }));
+    set({ apiReachable: true, initialGatePassed: true });
   },
 }));

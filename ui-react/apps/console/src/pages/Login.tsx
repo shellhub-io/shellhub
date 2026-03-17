@@ -1,4 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
+import { isSdkError } from "../api/errors";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   ExclamationCircleIcon,
@@ -91,33 +92,26 @@ export default function Login() {
         void navigate("/dashboard");
       }
     } catch (err) {
-      const status = (err as { status?: number }).status;
-      if (status) {
-        switch (status) {
-          case 401:
-            setError(
-              "Invalid login credentials. Your password is incorrect or this account doesn't exist.",
-            );
-            break;
-          case 403:
-            void navigate(
-              `/confirm-account?username=${encodeURIComponent(username)}`,
-            );
-            break;
-          case 429: {
-            const headers = (err as { headers?: Headers }).headers;
-            const epoch = Number(headers?.get("x-account-lockout"));
-            setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
-            setError(
-              "Too many failed login attempts. Please wait before trying again.",
-            );
-            break;
-          }
-          default:
-            setError("Something went wrong on our end. Please try again later.");
-        }
-      } else {
+      if (!isSdkError(err)) {
         setError("Something went wrong. Please try again later.");
+        return;
+      }
+
+      switch (err.status) {
+        case 401:
+          setError("Invalid login credentials. Your password is incorrect or this account doesn't exist.");
+          break;
+        case 403:
+          void navigate(`/confirm-account?username=${encodeURIComponent(username)}`);
+          break;
+        case 429: {
+          const epoch = Number(err.headers.get("x-account-lockout"));
+          setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
+          setError("Too many failed login attempts. Please wait before trying again.");
+          break;
+        }
+        default:
+          setError("Something went wrong on our end. Please try again later.");
       }
     }
     // Else: error is already set in store

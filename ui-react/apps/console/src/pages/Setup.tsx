@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
+import { isSdkError } from "../api/errors";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckIcon,
@@ -130,7 +131,7 @@ export default function Setup() {
       await setup({ query: { sign }, body: { name, username, email, password }, throwOnError: true });
       setSuccess(true);
     } catch (err: unknown) {
-      if ((err as { status?: number }).status === 409) {
+      if (isSdkError(err) && err.status === 409) {
         setError("Setup has already been completed.");
       } else {
         setError(

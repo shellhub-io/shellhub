@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isSdkError } from "../../api/errors";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { useAcceptDevice, useRejectDevice, useRemoveDevice } from "../../hooks/useDeviceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -30,10 +31,7 @@ const ACTION_CONFIG = {
 };
 
 function getErrorStatus(err: unknown): number | undefined {
-  if (typeof err === "object" && err !== null && "status" in err) {
-    return (err as { status: number }).status;
-  }
-  return undefined;
+  return isSdkError(err) ? err.status : undefined;
 }
 
 function DeviceActionDialog({

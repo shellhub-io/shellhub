@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { isSdkError } from "../../api/errors";
 import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import {
   UserGroupIcon,
@@ -141,7 +142,7 @@ function KeyDrawer({
       }
       onClose();
     } catch (err: unknown) {
-      if (!isEdit && (err as { status?: number }).status === 409) {
+      if (!isEdit && isSdkError(err) && err.status === 409) {
         setKeyError("This public key already exists.");
       } else {
         setError(
