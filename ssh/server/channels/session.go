@@ -173,6 +173,12 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 					// always keeping the prefix "keepalive". So, to maintain the retro compatibility, we check if this
 					// prefix exists and perform the necessary operations.
 					case strings.HasPrefix(req.Type, KeepAliveRequestTypePrefix):
+						if req.WantReply {
+							if err := req.Reply(true, nil); err != nil {
+								logger.WithError(err).Error("failed to reply to keepalive request from agent")
+							}
+						}
+
 						if _, err := client.Channel.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
 							logger.Error("failed to send the keepalive request received from agent to client")
 
