@@ -61,7 +61,7 @@ jobs:
           username: ${{ secrets.PORTUS_USERNAME }}
           password: ${{ secrets.PORTUS_TOKEN }}
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           # inline YAML or path to separate file (e.g.: .github/filters.yaml)
