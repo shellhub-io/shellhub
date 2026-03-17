@@ -141,7 +141,12 @@ func (*queryOptions) InNamespace(namespaceID string) store.QueryOption {
 			return ErrQueryNotFound
 		}
 
-		wrapper.query = wrapper.query.Where("namespace_id = ?", namespaceID)
+		col := "namespace_id"
+		if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
+			col = alias + ".namespace_id"
+		}
+
+		wrapper.query = wrapper.query.Where(col+" = ?", namespaceID)
 
 		return nil
 	}

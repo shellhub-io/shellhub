@@ -2,6 +2,7 @@ package storetest
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -48,6 +49,92 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 4, count)
 		assert.Len(t, sessions, 4)
+	})
+
+	t.Run("returns all sessions across tenants without filter", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant1 := s.CreateNamespace(t)
+		tenant2 := s.CreateNamespace(t)
+
+		device1 := s.CreateDevice(t, WithTenantID(tenant1))
+		device2 := s.CreateDevice(t, WithTenantID(tenant2))
+
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user1"))
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user2"))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionUser("user3"))
+
+		sessions, count, err := st.SessionList(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, 3, count)
+		assert.Len(t, sessions, 3)
+	})
+
+	t.Run("succeeds when tenant filter applied", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant1 := s.CreateNamespace(t)
+		tenant2 := s.CreateNamespace(t)
+
+		device1 := s.CreateDevice(t, WithTenantID(tenant1))
+		device2 := s.CreateDevice(t, WithTenantID(tenant2))
+
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user1"))
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user2"))
+		s.CreateSession(t, WithSessionDevice(device2), WithSessionUser("user3"))
+
+		sessions, count, err := st.SessionList(ctx, st.Options().InNamespace(tenant1))
+		require.NoError(t, err)
+		assert.Equal(t, 2, count)
+		assert.Len(t, sessions, 2)
+
+		for _, session := range sessions {
+			assert.Equal(t, tenant1, session.TenantID)
+		}
+	})
+
+	t.Run("returns no sessions from other tenant", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant1 := s.CreateNamespace(t)
+		tenant2 := s.CreateNamespace(t)
+
+		device1 := s.CreateDevice(t, WithTenantID(tenant1))
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user1"))
+		s.CreateSession(t, WithSessionDevice(device1), WithSessionUser("user2"))
+
+		sessions, count, err := st.SessionList(ctx, st.Options().InNamespace(tenant2))
+		require.NoError(t, err)
+		assert.Equal(t, 0, count)
+		assert.Empty(t, sessions)
+	})
+
+	t.Run("succeeds with pagination", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant := s.CreateNamespace(t)
+		device := s.CreateDevice(t, WithTenantID(tenant))
+
+		for i := 0; i < 5; i++ {
+			s.CreateSession(t, WithSessionDevice(device),
+				WithSessionUser(fmt.Sprintf("user%d", i)))
+		}
+
+		sessions, count, err := st.SessionList(ctx,
+			st.Options().InNamespace(tenant),
+			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 2}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 5, count)
+		assert.Len(t, sessions, 2)
+
+		sessions, count, err = st.SessionList(ctx,
+			st.Options().InNamespace(tenant),
+			st.Options().Paginate(&query.Paginator{Page: 3, PerPage: 2}),
+		)
+		require.NoError(t, err)
+		assert.Equal(t, 5, count)
+		assert.Len(t, sessions, 1)
 	})
 }
 

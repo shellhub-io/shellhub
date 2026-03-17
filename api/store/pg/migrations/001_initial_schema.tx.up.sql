@@ -282,6 +282,7 @@ CREATE TABLE systems (
 
 CREATE TABLE sessions (
     id character varying(128) NOT NULL,
+    namespace_id uuid NOT NULL,
     device_id character varying NOT NULL,
     username character varying(64) NOT NULL,
     ip_address inet NOT NULL,
@@ -297,8 +298,13 @@ CREATE TABLE sessions (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     PRIMARY KEY (id),
+    FOREIGN KEY (namespace_id) REFERENCES namespaces(id),
     FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
 );
+
+--bun:split
+
+CREATE INDEX sessions_namespace_id_idx ON sessions USING btree (namespace_id);
 
 --bun:split
 

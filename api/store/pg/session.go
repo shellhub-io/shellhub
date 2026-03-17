@@ -14,11 +14,13 @@ import (
 func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]models.Session, int, error) {
 	db := pg.GetConnection(ctx)
 
+	// Sessions and devices both have namespace_id; qualify the column to
+	// avoid ambiguity when SessionSelectQuery JOINs the devices table.
+	ctx = context.WithValue(ctx, CtxTableAlias, "session")
+
 	entities := make([]entity.Session, 0)
 	query := db.NewSelect().
-		Model(&entities).
-		Relation("Device").
-		Relation("Device.Namespace")
+		Model(&entities)
 
 	var err error
 	query, err = applyOptions(ctx, query, opts...)
