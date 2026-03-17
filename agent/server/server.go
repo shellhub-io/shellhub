@@ -168,9 +168,12 @@ loop:
 		select {
 		case <-ticker.C:
 			if conn, ok := session.Context().Value(gliderssh.ContextKeyConn).(gossh.Conn); ok {
-				if _, _, err := conn.SendRequest("keepalive", true, nil); err != nil {
+				ok, _, err := conn.SendRequest("keepalive", true, nil)
+				if err != nil {
 					log.Error(err)
 				}
+
+				log.WithField("reply", ok).Info("keepalive sent with WantReply=true")
 			}
 		case <-session.Context().Done():
 			log.Debug("Stopping keep alive loop after session closed")
