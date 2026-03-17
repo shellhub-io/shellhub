@@ -1,21 +1,16 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { AxiosResponse } from "axios";
 import {
-  getAuthUser,
-  updateUser,
-  updatePassword as apiUpdatePassword,
-  deleteUser as apiDeleteUser,
-} from "../api/auth";
+  login as loginSdk,
+  getUserInfo,
+  updateUser as updateUserSdk,
+  deleteUser as deleteUserSdk,
+  authMfa,
+  mfaRecover,
+  requestResetMfa,
+  resetMfa,
+} from "../client";
 import { useVaultStore } from "./vaultStore";
-import {
-  validateMfa,
-  recoverMfa,
-  requestMfaReset,
-  completeMfaReset,
-} from "../api/mfa";
-import type { LoginResponse } from "../types/mfa";
-import apiClient from "../api/client";
 
 interface AuthState {
   token: string | null;
@@ -84,14 +79,13 @@ export const useAuthStore = create<AuthState>()(
       login: async (username: string, password: string) => {
         set({ loading: true, mfaToken: null });
         try {
-          // Make direct API call to access response headers
-          const response: AxiosResponse<LoginResponse> = await apiClient.post<LoginResponse>(
-            "/api/login",
-            { username, password },
-          );
+          const { data, response } = await loginSdk({
+            body: { username, password },
+            throwOnError: true,
+          });
 
-          // Check for MFA token in response headers (with null safety)
-          const mfaToken = response.headers["x-mfa-token"] as string | undefined;
+          // Check for MFA token in response headers
+          const mfaToken = response.headers.get("x-mfa-token");
 
           if (mfaToken) {
             // MFA required - store token temporarily, don't persist
@@ -105,15 +99,15 @@ export const useAuthStore = create<AuthState>()(
           }
 
           // Normal login without MFA
-          const data = response.data;
+          const userData = data;
           set({
-            token: data.token,
-            user: data.user,
-            userId: data.id,
-            email: data.email,
-            tenant: data.tenant,
-            name: data.name,
-            mfaEnabled: data.mfa || false,
+            token: userData.token,
+            user: userData.user,
+            userId: userData.id,
+            email: userData.email,
+            tenant: userData.tenant,
+            name: userData.name,
+            mfaEnabled: userData.mfa || false,
             loading: false,
           });
         } catch (err) {
@@ -138,7 +132,8 @@ export const useAuthStore = create<AuthState>()(
 
       fetchUser: async () => {
         try {
-          const user = await getAuthUser();
+          const { data } = await getUserInfo({ throwOnError: true });
+          const user = data;
           set({
             user: user.user,
             username: user.user,
@@ -159,16 +154,19 @@ export const useAuthStore = create<AuthState>()(
       },
 
       updateProfile: async (data) => {
-        await updateUser(data);
+        await updateUserSdk({ body: data, throwOnError: true });
         await get().fetchUser();
       },
 
       updatePassword: async (currentPassword, newPassword) => {
-        await apiUpdatePassword(currentPassword, newPassword);
+        await updateUserSdk({
+          body: { current_password: currentPassword, password: newPassword },
+          throwOnError: true,
+        });
       },
 
       deleteUser: async () => {
-        await apiDeleteUser();
+        await deleteUserSdk({ throwOnError: true });
         get().logout();
         window.location.replace("/login");
       },
@@ -181,7 +179,10 @@ export const useAuthStore = create<AuthState>()(
 
         set({ loading: true, error: null });
         try {
-          const data = await validateMfa({ token: mfaToken, code });
+          const { data } = await authMfa({
+            body: { token: mfaToken, code },
+            throwOnError: true,
+          });
           set({
             token: data.token,
             user: data.user,
@@ -209,10 +210,13 @@ export const useAuthStore = create<AuthState>()(
 
         set({ loading: true, error: null });
         try {
-          const { data, expiresAt } = await recoverMfa({
-            identifier: username,
-            recovery_code: code,
+          const { data, response } = await mfaRecover({
+            body: { identifier: username, recovery_code: code },
+            throwOnError: true,
           });
+
+          const userData = data;
+          const expiresAt = response.headers.get("x-expires-at") || "";
 
           // Parse expiry time with validation
           let expiryValue: number | null = null;
@@ -222,12 +226,12 @@ export const useAuthStore = create<AuthState>()(
           }
 
           set({
-            token: data.token,
-            user: data.user,
-            userId: data.id,
-            email: data.email,
-            tenant: data.tenant,
-            name: data.name,
+            token: userData.token,
+            user: userData.user,
+            userId: userData.id,
+            email: userData.email,
+            tenant: userData.tenant,
+            name: userData.name,
             mfaEnabled: true,
             mfaToken: null,
             mfaRecoveryExpiry: expiryValue,
@@ -242,9 +246,12 @@ export const useAuthStore = create<AuthState>()(
       requestMfaReset: async (identifier: string) => {
         set({ loading: true, error: null });
         try {
-          const userId = await requestMfaReset(identifier);
+          await requestResetMfa({
+            body: { identifier },
+            throwOnError: true,
+          });
           set({
-            mfaResetUserId: userId,
+            mfaResetUserId: identifier,
             mfaResetIdentifier: identifier,
             loading: false,
           });
@@ -263,20 +270,22 @@ export const useAuthStore = create<AuthState>()(
 
         set({ loading: true, error: null });
         try {
-          const data = await completeMfaReset(mfaResetUserId, {
-            main_email_code: mainEmailCode,
-            recovery_email_code: recoveryEmailCode,
+          const { data } = await resetMfa({
+            path: { "user-id": mfaResetUserId },
+            body: { main_email_code: mainEmailCode, recovery_email_code: recoveryEmailCode },
+            throwOnError: true,
           });
 
+          const userData = data;
           // Successful reset = authenticated, same as login
           set({
-            token: data.token,
-            user: data.user,
-            userId: data.id,
-            email: data.email,
-            tenant: data.tenant,
-            name: data.name,
-            mfaEnabled: data.mfa || false,
+            token: userData.token,
+            user: userData.user,
+            userId: userData.id,
+            email: userData.email,
+            tenant: userData.tenant,
+            name: userData.name,
+            mfaEnabled: userData.mfa || false,
             mfaResetUserId: null,
             mfaResetIdentifier: null,
             loading: false,

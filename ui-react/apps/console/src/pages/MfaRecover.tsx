@@ -5,7 +5,7 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
-import { disableMfa } from "../api/mfa";
+import { disableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
@@ -49,7 +49,7 @@ export default function MfaRecover() {
 
   const handleDisableMfa = async () => {
     // Use the recovery code that was just entered
-    await disableMfa({ recovery_code: recoveryCode });
+    await disableMfa({ body: { recovery_code: recoveryCode }, throwOnError: true });
     updateMfaStatus(false);
     setShowTimeoutModal(false);
     void navigate("/dashboard");

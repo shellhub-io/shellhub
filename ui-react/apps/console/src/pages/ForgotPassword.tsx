@@ -5,7 +5,7 @@ import {
   CheckCircleIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import { recoverPassword } from "../api/auth";
+import { recoverPassword } from "../client";
 
 export default function ForgotPassword() {
   const [account, setAccount] = useState("");
@@ -17,7 +17,7 @@ export default function ForgotPassword() {
     if (loading) return;
     setLoading(true);
     try {
-      await recoverPassword(account.trim());
+      await recoverPassword({ body: { username: account.trim() }, throwOnError: true });
     } catch {
       // Silently ignore to prevent user enumeration.
     } finally {

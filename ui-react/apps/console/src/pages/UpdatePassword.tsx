@@ -6,7 +6,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
-import { updateRecoverPassword } from "../api/auth";
+import { updateRecoverPassword } from "../client";
 import { validatePassword } from "../utils/validation";
 
 export default function UpdatePassword() {
@@ -37,7 +37,7 @@ export default function UpdatePassword() {
     setError("");
     setLoading(true);
     try {
-      await updateRecoverPassword(uid, token, password);
+      await updateRecoverPassword({ path: { uid }, body: { token, password }, throwOnError: true });
       void navigate("/login", {
         state: { notice: "Password updated successfully. Please sign in." },
       });

@@ -3,13 +3,23 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaDisableDialog from "../MfaDisableDialog";
 
-vi.mock("../../../api/mfa", () => ({
+vi.mock("../../../client", () => ({
   disableMfa: vi.fn(),
 }));
 
-import { disableMfa } from "../../../api/mfa";
+import { disableMfa } from "../../../client";
 
 const mockedDisableMfa = vi.mocked(disableMfa);
+
+type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+
+function mockSdkResponse<T>(data: T): SdkResponse<T> {
+  return {
+    data,
+    request: new Request("http://localhost"),
+    response: new Response(),
+  };
+}
 
 describe("MfaDisableDialog", () => {
   const onClose = vi.fn();
@@ -17,7 +27,7 @@ describe("MfaDisableDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedDisableMfa.mockResolvedValue(undefined);
+    mockedDisableMfa.mockResolvedValue(mockSdkResponse(undefined));
   });
 
   describe("Mode Switching", () => {
@@ -111,7 +121,7 @@ describe("MfaDisableDialog", () => {
       await user.click(disableButton);
 
       await waitFor(() => {
-        expect(mockedDisableMfa).toHaveBeenCalledWith({ code: "123456" });
+        expect(mockedDisableMfa).toHaveBeenCalledWith({ body: { code: "123456" }, throwOnError: true });
         expect(onSuccess).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
       });
@@ -190,7 +200,8 @@ describe("MfaDisableDialog", () => {
 
       await waitFor(() => {
         expect(mockedDisableMfa).toHaveBeenCalledWith({
-          recovery_code: "valid-recovery-code",
+          body: { recovery_code: "valid-recovery-code" },
+          throwOnError: true,
         });
         expect(onSuccess).toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
@@ -266,10 +277,10 @@ describe("MfaDisableDialog", () => {
   describe("Loading State", () => {
     it("disables submit button while submitting", async () => {
       const user = userEvent.setup();
-      let resolveDisable: () => void;
+      let resolveDisable: (v: SdkResponse) => void;
       mockedDisableMfa.mockReturnValue(
-        new Promise((resolve) => {
-          resolveDisable = resolve as () => void;
+        new Promise<SdkResponse>((resolve) => {
+          resolveDisable = resolve;
         }),
       );
 
@@ -297,7 +308,7 @@ describe("MfaDisableDialog", () => {
       expect(disableButton).toBeDisabled();
 
       // Resolve the promise
-      resolveDisable!();
+      resolveDisable!(mockSdkResponse(undefined));
 
       await waitFor(() => {
         expect(onSuccess).toHaveBeenCalled();

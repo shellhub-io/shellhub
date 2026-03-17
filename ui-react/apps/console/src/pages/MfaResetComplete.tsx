@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { ShieldCheckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { completeMfaReset } from "../api/mfa";
+import { resetMfa } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
@@ -26,9 +26,13 @@ export default function MfaResetComplete() {
     setError(null);
 
     try {
-      const data = await completeMfaReset(userId, {
-        main_email_code: otpMain.getValue(),
-        recovery_email_code: otpRecovery.getValue(),
+      const { data } = await resetMfa({
+        path: { "user-id": userId },
+        body: {
+          main_email_code: otpMain.getValue(),
+          recovery_email_code: otpRecovery.getValue(),
+        },
+        throwOnError: true,
       });
 
       // Successful reset = authenticated — populate all identity fields

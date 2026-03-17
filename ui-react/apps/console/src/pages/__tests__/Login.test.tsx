@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { AxiosError } from "axios";
 import { useAuthStore } from "../../stores/authStore";
+import type { UserAuth } from "../../client";
 import Login from "../Login";
 
 /* ------------------------------------------------------------------ */
@@ -17,38 +17,60 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("../../api/client", () => ({
-  default: { post: vi.fn() },
-}));
-
-vi.mock("../../api/auth", () => ({
-  getAuthUser: vi.fn(),
+vi.mock("../../client", () => ({
+  login: vi.fn(),
+  getUserInfo: vi.fn(),
   updateUser: vi.fn(),
-  updatePassword: vi.fn(),
   deleteUser: vi.fn(),
+  authMfa: vi.fn(),
+  mfaRecover: vi.fn(),
+  requestResetMfa: vi.fn(),
+  resetMfa: vi.fn(),
   resendEmail: vi.fn(),
 }));
 
-import apiClient from "../../api/client";
-const mockedPost = vi.mocked(apiClient.post);
+import { login as loginSdk } from "../../client";
+const mockedLogin = vi.mocked(loginSdk);
+
+type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+
+function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
+  return {
+    token: "jwt-token",
+    id: "uid",
+    origin: "local",
+    user: "admin",
+    name: "Admin",
+    email: "admin@test.com",
+    recovery_email: "recovery@test.com",
+    tenant: "tenant-1",
+    role: "owner",
+    mfa: false,
+    admin: false,
+    max_namespaces: -1,
+    ...overrides,
+  };
+}
+
+function mockSdkResponse<T>(data: T, headers: HeadersInit = {}): SdkResponse<T> {
+  return {
+    data,
+    request: new Request("http://localhost"),
+    response: new Response(null, { headers }),
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-function makeAxiosError(
+/** Creates a mock SDK error with status and optional headers. */
+function makeSdkError(
   status: number,
-  headers: Record<string, string> = {},
-): AxiosError {
-  const error = new AxiosError("Request failed");
-  error.response = {
-    status,
-    data: {},
-    headers: headers as never,
-    config: {} as never,
-    statusText: "Error",
-  };
-  return error;
+  headers?: Record<string, string>,
+) {
+  const headerObj = new Headers(headers);
+  return Object.assign(new Error("Request failed"), { status, headers: headerObj });
 }
 
 function renderLogin() {
@@ -77,7 +99,7 @@ afterEach(cleanup);
 
 beforeEach(() => {
   mockNavigate.mockReset();
-  mockedPost.mockReset();
+  mockedLogin.mockReset();
   useAuthStore.setState({
     token: null,
     user: null,
@@ -121,10 +143,7 @@ describe("Login", () => {
 
   describe("successful login", () => {
     it("navigates to /dashboard on success", async () => {
-      mockedPost.mockResolvedValue({
-        data: { token: "jwt", user: "admin", id: "uid", email: "admin@test.com", tenant: "tenant-1", name: "Admin" },
-        headers: {},
-      });
+      mockedLogin.mockResolvedValue(mockSdkResponse(mockUserAuth({ token: "jwt" })));
 
       renderLogin();
       await fillAndSubmit();
@@ -136,10 +155,9 @@ describe("Login", () => {
   describe("loading state", () => {
     it("shows Authenticating... and disables the button while the request is in flight", async () => {
       let resolveLogin!: () => void;
-      mockedPost.mockReturnValue(
-        new Promise((resolve) => {
-          resolveLogin = () =>
-            resolve({ data: { token: "t", user: "u", id: "i", email: "e@e.com", tenant: "t", name: "n" }, headers: {} });
+      mockedLogin.mockReturnValue(
+        new Promise<SdkResponse<UserAuth>>((resolve) => {
+          resolveLogin = () => resolve(mockSdkResponse(mockUserAuth()));
         }),
       );
 
@@ -163,7 +181,7 @@ describe("Login", () => {
 
   describe("error handling", () => {
     it("shows invalid credentials error on 401", async () => {
-      mockedPost.mockRejectedValue(makeAxiosError(401));
+      mockedLogin.mockRejectedValue(makeSdkError(401));
 
       renderLogin();
       await fillAndSubmit();
@@ -176,8 +194,8 @@ describe("Login", () => {
 
     it("shows rate-limit error on 429", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 60;
-      mockedPost.mockRejectedValue(
-        makeAxiosError(429, { "x-account-lockout": String(epoch) }),
+      mockedLogin.mockRejectedValue(
+        makeSdkError(429, { "x-account-lockout": String(epoch) }),
       );
 
       renderLogin();
@@ -190,7 +208,7 @@ describe("Login", () => {
     });
 
     it("shows generic server error on unexpected status codes", async () => {
-      mockedPost.mockRejectedValue(makeAxiosError(500));
+      mockedLogin.mockRejectedValue(makeSdkError(500));
 
       renderLogin();
       await fillAndSubmit();
@@ -202,7 +220,7 @@ describe("Login", () => {
     });
 
     it("shows generic error on non-axios errors", async () => {
-      mockedPost.mockRejectedValue(new Error("Network error"));
+      mockedLogin.mockRejectedValue(new Error("Network error"));
 
       renderLogin();
       await fillAndSubmit();
@@ -214,11 +232,8 @@ describe("Login", () => {
     });
 
     it("clears the error when a new submit is attempted", async () => {
-      mockedPost.mockRejectedValueOnce(makeAxiosError(401));
-      mockedPost.mockResolvedValueOnce({
-        data: { token: "jwt", user: "admin", id: "uid", email: "admin@test.com", tenant: "tenant-1", name: "Admin" },
-        headers: {},
-      });
+      mockedLogin.mockRejectedValueOnce(makeSdkError(401));
+      mockedLogin.mockResolvedValueOnce(mockSdkResponse(mockUserAuth({ token: "jwt" })));
 
       const user = userEvent.setup();
       renderLogin();
@@ -240,8 +255,8 @@ describe("Login", () => {
     it("displays the remaining lockout time after the first interval tick", async () => {
       // 30 seconds from now — first tick should show "29 seconds"
       const epoch = Math.floor(Date.now() / 1000) + 30;
-      mockedPost.mockRejectedValue(
-        makeAxiosError(429, { "x-account-lockout": String(epoch) }),
+      mockedLogin.mockRejectedValue(
+        makeSdkError(429, { "x-account-lockout": String(epoch) }),
       );
 
       renderLogin();
@@ -263,8 +278,8 @@ describe("Login", () => {
     it("shows lockout-expired alert when the countdown reaches zero", async () => {
       // 1 second lockout so the test completes quickly
       const epoch = Math.floor(Date.now() / 1000) + 1;
-      mockedPost.mockRejectedValue(
-        makeAxiosError(429, { "x-account-lockout": String(epoch) }),
+      mockedLogin.mockRejectedValue(
+        makeSdkError(429, { "x-account-lockout": String(epoch) }),
       );
 
       renderLogin();

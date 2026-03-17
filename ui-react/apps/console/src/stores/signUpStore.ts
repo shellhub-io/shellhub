@@ -1,13 +1,20 @@
 import { create } from "zustand";
-import axios from "axios";
 import {
-  signUp as apiSignUp,
-  resendEmail as apiResendEmail,
-  validateAccount as apiValidateAccount,
-  type SignUpPayload,
-} from "../api/users";
+  registerUser,
+  resendEmail as resendEmailSdk,
+  getValidateAccount,
+} from "../client";
 
 export type ValidationStatus = "idle" | "processing" | "success" | "failed" | "failed-token";
+
+interface SignUpPayload {
+  name: string;
+  email: string;
+  username: string;
+  password: string;
+  email_marketing: boolean;
+  sig?: string;
+}
 
 interface SignUpState {
   signUpToken: string | null;
@@ -46,7 +53,11 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   signUp: async (payload) => {
     set({ signUpLoading: true, signUpError: null, signUpServerFields: [], signUpToken: null, signUpTenant: null });
     try {
-      const response = await apiSignUp(payload);
+      const { data } = await registerUser({
+        body: payload,
+        throwOnError: true,
+      });
+      const response = (data ?? {}) as { token?: string; tenant?: string };
       set({
         signUpLoading: false,
         signUpToken: response.token ?? null,
@@ -54,17 +65,17 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
       });
       return response.token ?? null;
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        const data: unknown = error.response?.data;
-        if ((status === 400 || status === 409) && Array.isArray(data)) {
-          const fields = data.filter((f): f is string => typeof f === "string");
+      const status = (error as { status?: number }).status;
+      if ((status === 400 || status === 409) && error !== null && typeof error === "object" && "body" in error) {
+        const body: unknown = (error as { body: unknown }).body;
+        if (Array.isArray(body)) {
+          const fields = body.filter((f): f is string => typeof f === "string");
           set({ signUpLoading: false, signUpServerFields: fields });
           return null;
         }
-        if (import.meta.env.DEV) {
-          console.warn("Unhandled sign-up error response:", { status, data });
-        }
+      }
+      if (import.meta.env.DEV && status) {
+        console.warn("Unhandled sign-up error response:", { status });
       }
       set({ signUpLoading: false, signUpError: "An error occurred. Please try again." });
       return null;
@@ -79,7 +90,7 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   resendEmail: async (username) => {
     set({ resendLoading: true, resendError: null });
     try {
-      await apiResendEmail(username);
+      await resendEmailSdk({ body: { username }, throwOnError: true });
       set({ resendLoading: false });
       return true;
     } catch {
@@ -91,12 +102,12 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   validateAccount: async (email, token, signal) => {
     set({ validationStatus: "processing" });
     try {
-      await apiValidateAccount(email, token, signal);
+      await getValidateAccount({ query: { email, token }, signal, throwOnError: true });
       set({ validationStatus: "success" });
     } catch (error: unknown) {
       // Ignore aborted requests (AbortController cleanup in Strict Mode / unmount).
-      if (axios.isCancel(error)) return;
-      const status = axios.isAxiosError(error) ? error.response?.status : null;
+      if (signal?.aborted) return;
+      const status = (error as { status?: number }).status;
       // 400 = expired/invalid token, 401 = wrong token; both show "token" guidance.
       // 404 = user not found (wrong email); falls through to generic "failed".
       set({ validationStatus: (status === 400 || status === 401) ? "failed-token" : "failed" });
