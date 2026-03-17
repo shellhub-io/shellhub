@@ -1,23 +1,13 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   createPublicKeyMutation,
   updatePublicKeyMutation,
   deletePublicKeyMutation,
 } from "../client/@tanstack/react-query.gen";
-
-function useInvalidatePublicKeys() {
-  const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ predicate: (query) => {
-    const key = query.queryKey[0];
-    if (typeof key === "object" && key !== null && "_id" in key) {
-      return (key as { _id: string })._id === "getPublicKeys";
-    }
-    return false;
-  } });
-}
+import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreatePublicKey() {
-  const invalidate = useInvalidatePublicKeys();
+  const invalidate = useInvalidateByIds("getPublicKeys");
   return useMutation({
     ...createPublicKeyMutation(),
     onSuccess: invalidate,
@@ -25,7 +15,7 @@ export function useCreatePublicKey() {
 }
 
 export function useUpdatePublicKey() {
-  const invalidate = useInvalidatePublicKeys();
+  const invalidate = useInvalidateByIds("getPublicKeys");
   return useMutation({
     ...updatePublicKeyMutation(),
     onSuccess: invalidate,
@@ -33,7 +23,7 @@ export function useUpdatePublicKey() {
 }
 
 export function useDeletePublicKey() {
-  const invalidate = useInvalidatePublicKeys();
+  const invalidate = useInvalidateByIds("getPublicKeys");
   return useMutation({
     ...deletePublicKeyMutation(),
     onSuccess: invalidate,

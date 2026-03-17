@@ -1,20 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { clsoeSessionMutation } from "../client/@tanstack/react-query.gen";
-
-function useInvalidateSessions() {
-  const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ predicate: (query) => {
-    const key = query.queryKey[0];
-    if (typeof key === "object" && key !== null && "_id" in key) {
-      const id = (key as { _id: string })._id;
-      return id === "getSessions" || id === "getSession" || id === "getStatusDevices";
-    }
-    return false;
-  } });
-}
+import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCloseSession() {
-  const invalidate = useInvalidateSessions();
+  const invalidate = useInvalidateByIds("getSessions", "getSession", "getStatusDevices");
   return useMutation({
     ...clsoeSessionMutation(),
     onSuccess: invalidate,

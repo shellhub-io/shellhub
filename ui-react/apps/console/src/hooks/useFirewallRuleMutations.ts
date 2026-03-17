@@ -1,23 +1,13 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   createFirewallRuleMutation,
   updateFirewallRuleMutation,
   deleteFirewallRuleMutation,
 } from "../client/@tanstack/react-query.gen";
-
-function useInvalidateFirewallRules() {
-  const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ predicate: (query) => {
-    const key = query.queryKey[0];
-    if (typeof key === "object" && key !== null && "_id" in key) {
-      return (key as { _id: string })._id === "getFirewallRules";
-    }
-    return false;
-  } });
-}
+import { useInvalidateByIds } from "./useInvalidateQueries";
 
 export function useCreateFirewallRule() {
-  const invalidate = useInvalidateFirewallRules();
+  const invalidate = useInvalidateByIds("getFirewallRules");
   return useMutation({
     ...createFirewallRuleMutation(),
     onSuccess: invalidate,
@@ -25,7 +15,7 @@ export function useCreateFirewallRule() {
 }
 
 export function useUpdateFirewallRule() {
-  const invalidate = useInvalidateFirewallRules();
+  const invalidate = useInvalidateByIds("getFirewallRules");
   return useMutation({
     ...updateFirewallRuleMutation(),
     onSuccess: invalidate,
@@ -33,7 +23,7 @@ export function useUpdateFirewallRule() {
 }
 
 export function useDeleteFirewallRule() {
-  const invalidate = useInvalidateFirewallRules();
+  const invalidate = useInvalidateByIds("getFirewallRules");
   return useMutation({
     ...deleteFirewallRuleMutation(),
     onSuccess: invalidate,
