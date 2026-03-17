@@ -177,6 +177,8 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 							if err := req.Reply(true, nil); err != nil {
 								logger.WithError(err).Error("failed to reply to keepalive request from agent")
 							}
+
+							logger.Info("replied to keepalive request from agent")
 						}
 
 						if _, err := client.Channel.SendRequest(KeepAliveRequestType, req.WantReply, req.Payload); err != nil {
