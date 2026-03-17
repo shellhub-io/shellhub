@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { isSdkError } from "../api/errors";
 import {
   acceptDeviceMutation,
   updateDeviceStatusMutation,
@@ -60,8 +61,7 @@ export function useAddDeviceTag() {
       try {
         await createTag({ body: { name: options.path.name }, throwOnError: true });
       } catch (e) {
-        const status = (e as { status?: number }).status;
-        if (status !== 409) throw e;
+        if (!isSdkError(e) || e.status !== 409) throw e;
       }
       return pushTagToDevice({ ...options, throwOnError: true });
     },

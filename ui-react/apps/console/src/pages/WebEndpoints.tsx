@@ -1,4 +1,5 @@
 import { useState, useRef, FormEvent } from "react";
+import { isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useWebEndpoints } from "../hooks/useWebEndpoints";
 import { useCreateWebEndpoint, useDeleteWebEndpoint } from "../hooks/useWebEndpointMutations";
@@ -424,7 +425,7 @@ function EndpointDrawer({
       });
       onClose();
     } catch (err: unknown) {
-      if ((err as { status?: number }).status === 409) {
+      if (isSdkError(err) && err.status === 409) {
         setError("A web endpoint with this configuration already exists.");
       } else {
         setError(

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { isSdkError } from "../api/errors";
 import {
   registerUser,
   resendEmail as resendEmailSdk,
@@ -65,17 +66,13 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
       });
       return response.token ?? null;
     } catch (error: unknown) {
-      const status = (error as { status?: number }).status;
-      if ((status === 400 || status === 409) && error !== null && typeof error === "object" && "body" in error) {
-        const body: unknown = (error as { body: unknown }).body;
-        if (Array.isArray(body)) {
-          const fields = body.filter((f): f is string => typeof f === "string");
-          set({ signUpLoading: false, signUpServerFields: fields });
-          return null;
-        }
+      if (isSdkError(error) && (error.status === 400 || error.status === 409) && Array.isArray(error)) {
+        const fields = (error as unknown[]).filter((f): f is string => typeof f === "string");
+        set({ signUpLoading: false, signUpServerFields: fields });
+        return null;
       }
-      if (import.meta.env.DEV && status) {
-        console.warn("Unhandled sign-up error response:", { status });
+      if (import.meta.env.DEV && isSdkError(error)) {
+        console.warn("Unhandled sign-up error response:", { status: error.status });
       }
       set({ signUpLoading: false, signUpError: "An error occurred. Please try again." });
       return null;
@@ -107,7 +104,7 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
     } catch (error: unknown) {
       // Ignore aborted requests (AbortController cleanup in Strict Mode / unmount).
       if (signal?.aborted) return;
-      const status = (error as { status?: number }).status;
+      const status = isSdkError(error) ? error.status : undefined;
       // 400 = expired/invalid token, 401 = wrong token; both show "token" guidance.
       // 404 = user not found (wrong email); falls through to generic "failed".
       set({ validationStatus: (status === 400 || status === 401) ? "failed-token" : "failed" });

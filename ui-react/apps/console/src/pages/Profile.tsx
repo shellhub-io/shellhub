@@ -6,7 +6,7 @@ import PageHeader from "../components/common/PageHeader";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import CopyButton from "../components/common/CopyButton";
-import { AxiosError } from "axios";
+import { isSdkError } from "../api/errors";
 import { LABEL, INPUT } from "../utils/styles";
 import { validatePassword } from "../utils/validation";
 import { validateRecoveryEmail } from "./profile/validate";
@@ -141,7 +141,7 @@ function DeleteAccountDialog({
     try {
       await deleteUser();
     } catch (err) {
-      if (err instanceof AxiosError && err.response?.status === 403) {
+      if (isSdkError(err) && err.status === 403) {
         setError(
           "You cannot delete your account while you have active namespaces.",
         );
@@ -390,17 +390,10 @@ export function EditProfileDrawer({
       await updateProfile(data);
       onClose();
     } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.response?.status === 409) {
-          setError("That username or email is already in use.");
-        } else if (err.response?.status === 400) {
-          setError("Some fields have invalid values. Review and try again.");
-        } else {
-          setError("Failed to update profile.");
-        }
-      } else {
-        setError("Failed to update profile.");
-      }
+      const status = isSdkError(err) ? err.status : undefined;
+      if (status === 409) setError("That username or email is already in use.");
+      else if (status === 400) setError("Some fields have invalid values. Review and try again.");
+      else setError("Failed to update profile.");
     } finally {
       setSubmitting(false);
     }
@@ -560,7 +553,7 @@ function ChangePasswordDrawer({
       setSuccess(true);
       setTimeout(onClose, 1200);
     } catch (err) {
-      if (err instanceof AxiosError && err.response?.status === 403) {
+      if (isSdkError(err) && err.status === 403) {
         setError("Current password is incorrect.");
       } else {
         setError("Failed to change password.");

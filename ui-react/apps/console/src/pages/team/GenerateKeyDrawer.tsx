@@ -1,4 +1,5 @@
 import { useState, FormEvent } from "react";
+import { isSdkError } from "../../api/errors";
 import { useResetOnOpen } from "../../hooks/useResetOnOpen";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { useCreateApiKey } from "../../hooks/useApiKeyMutations";
@@ -66,7 +67,7 @@ function GenerateKeyDrawer({
       const result = await createKey.mutateAsync({ body: { name: name.trim(), role, expires_at: expiresIn } });
       setGeneratedKey(result.id);
     } catch (err) {
-      if ((err as { status?: number }).status === 400) {
+      if (isSdkError(err) && err.status === 400) {
         setNameError("Name must be 3–20 characters with no spaces.");
       } else {
         setError("Failed to generate API key. The name may already exist.");
