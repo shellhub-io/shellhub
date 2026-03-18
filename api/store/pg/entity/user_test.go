@@ -66,11 +66,6 @@ func TestUserFromModel(t *testing.T) {
 					MaxNamespaces:      5,
 					EmailMarketing:     true,
 				},
-				MFA: UserMFA{
-					Enabled:       true,
-					Secret:        "mfa-secret",
-					RecoveryCodes: []string{"code1", "code2"},
-				},
 			},
 		},
 		{
@@ -126,9 +121,6 @@ func TestUserFromModel(t *testing.T) {
 			assert.Equal(t, tt.expected.Preferences.SecurityEmail, result.Preferences.SecurityEmail)
 			assert.Equal(t, tt.expected.Preferences.MaxNamespaces, result.Preferences.MaxNamespaces)
 			assert.Equal(t, tt.expected.Preferences.EmailMarketing, result.Preferences.EmailMarketing)
-			assert.Equal(t, tt.expected.MFA.Enabled, result.MFA.Enabled)
-			assert.Equal(t, tt.expected.MFA.Secret, result.MFA.Secret)
-			assert.Equal(t, tt.expected.MFA.RecoveryCodes, result.MFA.RecoveryCodes)
 			assert.True(t, result.UpdatedAt.IsZero(), "UpdatedAt should be zero")
 		})
 	}
@@ -163,11 +155,6 @@ func TestUserToModel(t *testing.T) {
 					MaxNamespaces:      5,
 					EmailMarketing:     true,
 				},
-				MFA: UserMFA{
-					Enabled:       true,
-					Secret:        "mfa-secret",
-					RecoveryCodes: []string{"code1", "code2"},
-				},
 			},
 			expected: &models.User{
 				ID:             "user-id-1",
@@ -187,11 +174,6 @@ func TestUserToModel(t *testing.T) {
 				},
 				Password: models.UserPassword{
 					Hash: "hashed-password-123",
-				},
-				MFA: models.UserMFA{
-					Enabled:       true,
-					Secret:        "mfa-secret",
-					RecoveryCodes: []string{"code1", "code2"},
 				},
 				Preferences: models.UserPreferences{
 					PreferredNamespace: "ns-id-1",
@@ -215,7 +197,6 @@ func TestUserToModel(t *testing.T) {
 				Status:   models.UserStatusNotConfirmed,
 				UserData: models.UserData{},
 				Password: models.UserPassword{},
-				MFA:      models.UserMFA{},
 				Preferences: models.UserPreferences{
 					AuthMethods: []models.UserAuthMethod{},
 				},

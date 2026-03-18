@@ -22,7 +22,6 @@ type User struct {
 	Email          string          `bun:"email"`
 	PasswordDigest string          `bun:"password_digest"`
 	Preferences    UserPreferences `bun:"embed:"`
-	MFA            UserMFA         `bun:"-"`
 	Admin          bool            `bun:"admin"`
 	Namespaces     int             `bun:"namespaces,scanonly"`
 }
@@ -33,12 +32,6 @@ type UserPreferences struct {
 	SecurityEmail      string   `bun:"security_email,nullzero"`
 	MaxNamespaces      int      `bun:"namespace_ownership_limit"`
 	EmailMarketing     bool     `bun:"email_marketing"`
-}
-
-type UserMFA struct {
-	Enabled       bool     `bun:"enabled"`
-	Secret        string   `bun:"secret,nullzero"`
-	RecoveryCodes []string `bun:"recovery_codes,nullzero,array"`
 }
 
 func UserFromModel(model *models.User) *User {
@@ -79,11 +72,6 @@ func UserFromModel(model *models.User) *User {
 			MaxNamespaces:      model.MaxNamespaces,
 			EmailMarketing:     model.EmailMarketing,
 		},
-		MFA: UserMFA{
-			Enabled:       model.MFA.Enabled,
-			Secret:        model.MFA.Secret,
-			RecoveryCodes: model.MFA.RecoveryCodes,
-		},
 	}
 }
 
@@ -111,11 +99,6 @@ func UserToModel(entity *User) *models.User {
 		},
 		Password: models.UserPassword{
 			Hash: entity.PasswordDigest,
-		},
-		MFA: models.UserMFA{
-			Enabled:       entity.MFA.Enabled,
-			Secret:        entity.MFA.Secret,
-			RecoveryCodes: entity.MFA.RecoveryCodes,
 		},
 		Preferences: models.UserPreferences{
 			PreferredNamespace: entity.Preferences.PreferredNamespace,

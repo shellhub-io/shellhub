@@ -38,7 +38,7 @@ func New(ctx context.Context, uri string, opts ...options.Option) (store.Store, 
 		return nil, err
 	}
 
-	pg := &Pg{driver: bun.NewDB(stdlib.OpenDBFromPool(pool), pgdialect.New()), options: &queryOptions{}}
+	pg := &Pg{driver: bun.NewDB(stdlib.OpenDBFromPool(pool), pgdialect.New(), bun.WithDiscardUnknownColumns()), options: &queryOptions{}}
 	if err := pg.driver.Ping(); err != nil {
 		return nil, err
 	}
