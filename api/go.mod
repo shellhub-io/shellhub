@@ -24,7 +24,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.41.0
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.40.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.41.0
-	github.com/uptrace/bun v1.2.17
+	github.com/uptrace/bun v1.2.18
 	github.com/uptrace/bun/dialect/pgdialect v1.2.17
 	github.com/xakep666/mongo-migrate v0.3.2
 	go.mongodb.org/mongo-driver v1.17.8
@@ -43,7 +43,6 @@ require (
 	github.com/bodgit/sevenzip v1.3.0 // indirect
 	github.com/bodgit/windows v1.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/connesc/cipherio v0.2.1 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
