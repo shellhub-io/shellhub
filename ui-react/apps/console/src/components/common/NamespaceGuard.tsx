@@ -4,7 +4,7 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespaces } from "../../hooks/useNamespaces";
+import { useNamespaces, useInitRole } from "../../hooks/useNamespaces";
 import { useConnectivityStore } from "../../stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
@@ -76,6 +76,7 @@ function FetchErrorPage({
 }
 
 export default function NamespaceGuard() {
+  useInitRole();
   const { namespaces, isLoading, error, refetch } = useNamespaces();
   const apiReachable = useConnectivityStore((s) => s.apiReachable);
   const { pathname } = useLocation();

@@ -8,6 +8,7 @@ const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; n
 
 vi.mock("../../../hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
+  useInitRole: () => {},
 }));
 
 vi.mock("../Sidebar", () => ({
