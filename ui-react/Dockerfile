@@ -26,6 +26,14 @@ COPY ui-react/scripts /scripts
 
 CMD ["/scripts/entrypoint-dev.sh"]
 
+# Bundle OpenAPI spec from YAML sources
+FROM node:24.13.0-alpine3.22 AS spec-bundler
+RUN npm install -g @redocly/cli@1.0.0-beta.100
+WORKDIR /spec
+COPY openapi/spec ./spec
+COPY openapi/redocly.yaml .
+RUN redocly bundle spec/cloud-openapi.yaml -o openapi.json
+
 FROM base AS builder
 
 ARG NPM_CONFIG_REGISTRY
@@ -35,7 +43,9 @@ WORKDIR /app
 COPY ui-react/. .
 
 COPY --from=base /app/node_modules ./node_modules
+COPY --from=spec-bundler /spec/openapi.json ./apps/console/openapi.json
 
+RUN OPENAPI_SPEC_PATH=./openapi.json npm run generate -w @shellhub/console
 RUN npm run build
 
 FROM nginx:1.29.4-alpine AS production

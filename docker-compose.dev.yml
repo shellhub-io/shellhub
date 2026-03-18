@@ -59,6 +59,7 @@ services:
         - NPM_CONFIG_REGISTRY=${SHELLHUB_NPM_REGISTRY:-}
     volumes:
       - ./ui-react:/src
+      - ./openapi:/openapi:ro
   gateway:
     image: gateway
     build:
