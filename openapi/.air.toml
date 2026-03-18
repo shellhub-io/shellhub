@@ -3,5 +3,6 @@ tmp_dir = "/tmp/air"
 
 [build]
 cmd = "go build -gcflags=\"all=-N -l\" -o /tmp/air/main ."
+bin = "/tmp/air/main"
 exclude_regex = ["_test.go"]
 include_ext = ["html", "go", "yml", "yaml"]
