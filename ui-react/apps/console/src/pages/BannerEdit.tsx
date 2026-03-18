@@ -5,6 +5,7 @@ import { useNamespace } from "../hooks/useNamespaces";
 import type { Namespace } from "../hooks/useNamespaces";
 import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
+import { useHasPermission } from "../hooks/useHasPermission";
 
 const MAX_LENGTH = 4096;
 
@@ -122,8 +123,9 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
 /* --- Page --- */
 
 export default function BannerEdit() {
-  const { userId, tenant: tenantId, role: sessionRole } = useAuthStore();
+  const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
+  const canEdit = useHasPermission("namespace:editBanner");
 
   if (!ns) {
     return (
@@ -132,12 +134,6 @@ export default function BannerEdit() {
       </div>
     );
   }
-
-  const isOwner = ns.owner === userId;
-  const currentMember = ns.members?.find((m) => m.id === userId);
-  const role
-    = currentMember?.role ?? (isOwner ? "owner" : (sessionRole ?? "observer"));
-  const canEdit = isOwner || role === "administrator";
 
   return (
     <div className="flex flex-col flex-1 min-h-0">

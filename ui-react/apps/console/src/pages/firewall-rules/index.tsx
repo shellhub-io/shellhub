@@ -6,6 +6,7 @@ import ConfirmDialog from "../../components/common/ConfirmDialog";
 import RuleDrawer from "./RuleDrawer";
 import RuleCard from "./RuleCard";
 import Pagination from "../../components/common/Pagination";
+import RestrictedAction from "../../components/common/RestrictedAction";
 import {
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
@@ -135,13 +136,15 @@ export default function FirewallRules() {
                 className="text-center animate-slide-up"
                 style={{ animationDelay: "450ms" }}
               >
-                <button
-                  onClick={openNew}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20"
-                >
-                  <PlusIcon className="w-4 h-4" strokeWidth={2} />
-                  Add your first rule
-                </button>
+                <RestrictedAction action="firewall:create">
+                  <button
+                    onClick={openNew}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20"
+                  >
+                    <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                    Add your first rule
+                  </button>
+                </RestrictedAction>
                 <p className="mt-4 text-2xs text-text-muted">
                   Rules are evaluated by priority before connections reach
                   devices.
@@ -158,13 +161,15 @@ export default function FirewallRules() {
             title="Firewall Rules"
             description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
           >
-            <button
-              onClick={openNew}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
-            >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-              Add Rule
-            </button>
+            <RestrictedAction action="firewall:create">
+              <button
+                onClick={openNew}
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+              >
+                <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                Add Rule
+              </button>
+            </RestrictedAction>
           </PageHeader>
 
           {/* Search bar */}

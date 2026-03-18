@@ -17,6 +17,7 @@ import {
 import { useNamespace } from "../hooks/useNamespaces";
 import { useEditNamespace, useDeleteNamespace, useLeaveNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
+import { useHasPermission } from "../hooks/useHasPermission";
 import PageHeader from "../components/common/PageHeader";
 import CopyButton from "../components/common/CopyButton";
 import Drawer from "../components/common/Drawer";
@@ -405,18 +406,19 @@ function BannerPreview({
 /* ─── Page ─── */
 
 export default function Settings() {
-  const { userId, tenant: tenantId, role: sessionRole } = useAuthStore();
+  const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
   const editNs = useEditNamespace();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [togglingRecord, setTogglingRecord] = useState(false);
-  const isOwner = ns?.owner === userId;
-  const currentMember = ns?.members?.find((m) => m.id === userId);
-  const role
-    = currentMember?.role ?? (isOwner ? "owner" : (sessionRole ?? "observer"));
-  const canEdit = isOwner || role === "administrator";
+
+  const canRename = useHasPermission("namespace:rename");
+  const canUpdateRecording = useHasPermission("namespace:updateSessionRecording");
+  const canEditBanner = useHasPermission("namespace:editBanner");
+  const canDelete = useHasPermission("namespace:delete");
+
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
   const banner = settings?.connection_announcement ?? "";
@@ -465,7 +467,7 @@ export default function Settings() {
               <span className="text-sm font-mono text-text-secondary">
                 {ns.name}
               </span>
-              {canEdit && (
+              {canRename && (
                 <button
                   onClick={() => setEditNameOpen(true)}
                   className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
@@ -517,7 +519,7 @@ export default function Settings() {
               description="Record SSH sessions for audit and playback"
             >
               <div
-                className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canEdit || togglingRecord ? "opacity-40 pointer-events-none" : ""}`}
+                className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateRecording || togglingRecord ? "opacity-40 pointer-events-none" : ""}`}
               >
                 <button
                   type="button"
@@ -550,12 +552,12 @@ export default function Settings() {
           )}
 
           {/* SSH Banner */}
-          <BannerPreview banner={banner} canEdit={canEdit} />
+          <BannerPreview banner={banner} canEdit={canEditBanner} />
         </SettingsCard>
 
         {/* ── Danger Zone ── */}
         <SettingsCard title="Danger Zone" danger>
-          {isOwner
+          {canDelete
             ? (
               <SettingsRow
                 icon={<TrashIcon className="w-4 h-4 text-accent-red" />}

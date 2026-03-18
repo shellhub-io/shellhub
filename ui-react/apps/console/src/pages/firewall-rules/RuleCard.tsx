@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import type { FirewallRule } from "../../hooks/useFirewallRules";
 import FilterBadge from "../../components/common/FilterBadge";
+import RestrictedAction from "../../components/common/RestrictedAction";
 
 /* --- Rule Card --- */
 export default function RuleCard({
@@ -88,20 +89,24 @@ export default function RuleCard({
 
         {/* Right: actions */}
         <div className="flex items-center gap-0.5 shrink-0">
-          <button
-            onClick={onEdit}
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-            title="Edit"
-          >
-            <PencilSquareIcon className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-            title="Delete"
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
+          <RestrictedAction action="firewall:edit">
+            <button
+              onClick={onEdit}
+              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+              title="Edit"
+            >
+              <PencilSquareIcon className="w-4 h-4" />
+            </button>
+          </RestrictedAction>
+          <RestrictedAction action="firewall:remove">
+            <button
+              onClick={onDelete}
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+              title="Delete"
+            >
+              <TrashIcon className="w-4 h-4" />
+            </button>
+          </RestrictedAction>
         </div>
       </div>
     </div>

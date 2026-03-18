@@ -10,6 +10,7 @@ import { useTags } from "../../hooks/useTags";
 import { useAddDeviceTag, useRemoveDeviceTag } from "../../hooks/useDeviceMutations";
 import type { NormalizedDevice } from "../../hooks/useDevices";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
+import { useHasPermission } from "../../hooks/useHasPermission";
 
 /* ─── Tags Popover (portal-based, no table layout bugs) ─── */
 function TagsPopover({
@@ -32,6 +33,7 @@ function TagsPopover({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
+  const canEditTags = useHasPermission("tag:edit");
   const tags = device.tags || [];
 
   const updatePosition = useCallback(() => {
@@ -148,17 +150,19 @@ function TagsPopover({
               No tags
             </span>
           )}
-        <button
-          ref={triggerRef}
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpen(!open);
-          }}
-          className="p-0.5 rounded text-text-muted/20 group-hover/tags:text-text-muted hover:!text-primary hover:bg-primary/10 transition-all shrink-0"
-          title="Manage tags"
-        >
-          <PencilIcon className="w-3 h-3" strokeWidth={2} />
-        </button>
+        {canEditTags && (
+          <button
+            ref={triggerRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(!open);
+            }}
+            className="p-0.5 rounded text-text-muted/20 group-hover/tags:text-text-muted hover:!text-primary hover:bg-primary/10 transition-all shrink-0"
+            title="Manage tags"
+          >
+            <PencilIcon className="w-3 h-3" strokeWidth={2} />
+          </button>
+        )}
       </div>
 
       {/* Popover — portaled to body */}

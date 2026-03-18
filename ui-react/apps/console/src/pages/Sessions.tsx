@@ -14,6 +14,7 @@ import { formatDate, formatDuration } from "../utils/date";
 import { sessionType } from "../utils/session";
 import { TH } from "../utils/styles";
 import Pagination from "../components/common/Pagination";
+import RestrictedAction from "../components/common/RestrictedAction";
 
 function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   const [closing, setClosing] = useState(false);
@@ -206,7 +207,9 @@ export default function Sessions() {
                         </td>
                         <td className="px-4 py-3.5 text-right">
                           {session.active && (
-                            <CloseButton onClose={() => closeSession.mutateAsync({ path: { uid: session.uid }, body: { device: session.device_uid ?? session.device?.uid ?? "" } })} />
+                            <RestrictedAction action="session:close">
+                              <CloseButton onClose={() => closeSession.mutateAsync({ path: { uid: session.uid }, body: { device: session.device_uid ?? session.device?.uid ?? "" } })} />
+                            </RestrictedAction>
                           )}
                         </td>
                       </tr>

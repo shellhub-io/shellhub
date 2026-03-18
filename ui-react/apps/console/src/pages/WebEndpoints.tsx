@@ -24,6 +24,7 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import RestrictedAction from "../components/common/RestrictedAction";
 
 /* ─── Constants ─── */
 
@@ -806,13 +807,15 @@ function EndpointCard({
 
         {/* Right: delete action */}
         <div className="flex items-center shrink-0">
-          <button
-            onClick={onDelete}
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-            title="Delete"
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
+          <RestrictedAction action="webEndpoint:delete">
+            <button
+              onClick={onDelete}
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+              title="Delete"
+            >
+              <TrashIcon className="w-4 h-4" />
+            </button>
+          </RestrictedAction>
         </div>
       </div>
     </div>
@@ -937,13 +940,15 @@ function WebEndpointsContent() {
                 className="text-center animate-slide-up"
                 style={{ animationDelay: "450ms" }}
               >
-                <button
-                  onClick={openNew}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20"
-                >
-                  <PlusIcon className="w-4 h-4" strokeWidth={2} />
-                  Create your first endpoint
-                </button>
+                <RestrictedAction action="webEndpoint:create">
+                  <button
+                    onClick={openNew}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20"
+                  >
+                    <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                    Create your first endpoint
+                  </button>
+                </RestrictedAction>
                 <p className="mt-4 text-2xs text-text-muted">
                   No VPN, no SSH port forwarding — just a URL.
                 </p>
@@ -959,13 +964,15 @@ function WebEndpointsContent() {
             title="Web Endpoints"
             description="Unique URLs that tunnel HTTP traffic to services on your devices."
           >
-            <button
-              onClick={openNew}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
-            >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-              New Endpoint
-            </button>
+            <RestrictedAction action="webEndpoint:create">
+              <button
+                onClick={openNew}
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+              >
+                <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                New Endpoint
+              </button>
+            </RestrictedAction>
           </PageHeader>
 
           {/* Search bar */}
