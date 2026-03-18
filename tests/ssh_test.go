@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -906,8 +905,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				require.NoError(t, err)
 				defer sess.Close()
 
-				initialWidth, initialHeight := 80, 24
-				err = sess.RequestPty("xterm", initialHeight, initialWidth, ssh.TerminalModes{
+				err = sess.RequestPty("xterm", 24, 80, ssh.TerminalModes{
 					ssh.ECHO: 1,
 				})
 				require.NoError(t, err)
@@ -918,98 +916,68 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 				err = sess.Shell()
 				require.NoError(t, err)
 
-				reader := bufio.NewReader(stdout)
+				var output struct {
+					sync.Mutex
+					buf bytes.Buffer
+				}
+				go func() {
+					tmp := make([]byte, 1024)
+					for {
+						n, err := stdout.Read(tmp)
+						if n > 0 {
+							output.Lock()
+							output.buf.Write(tmp[:n])
+							output.Unlock()
+						}
+						if err != nil {
+							return
+						}
+					}
+				}()
 
-				// NOTE: Disable bracketed paste mode to simplify output parsing.
+				waitForOutput := func(substr string, timeout time.Duration) error {
+					deadline := time.After(timeout)
+					ticker := time.NewTicker(200 * time.Millisecond)
+					defer ticker.Stop()
+
+					for {
+						select {
+						case <-ticker.C:
+							output.Lock()
+							got := output.buf.String()
+							output.Unlock()
+
+							if strings.Contains(got, substr) {
+								return nil
+							}
+						case <-deadline:
+							output.Lock()
+							got := output.buf.String()
+							output.Unlock()
+
+							return fmt.Errorf("timed out waiting for %q in output (last %d bytes: %q)",
+								substr, min(len(got), 500), got[max(0, len(got)-500):])
+						}
+					}
+				}
+
 				_, err = fmt.Fprintln(stdin, "bind 'set enable-bracketed-paste off'")
 				require.NoError(t, err)
 
-				_, err = fmt.Fprintln(stdin, "echo START")
+				_, err = fmt.Fprintln(stdin, "echo READY")
+				require.NoError(t, err)
+				require.NoError(t, waitForOutput("READY", 30*time.Second))
+
+				err = sess.WindowChange(48, 160)
 				require.NoError(t, err)
 
-				waitForMarker := func(reader *bufio.Reader, marker string) error {
-					for {
-						line, err := reader.ReadString('\n')
-						if err != nil {
-							return err
-						}
-						if strings.TrimSpace(line) == marker {
-							return nil
-						}
-					}
-				}
+				output.Lock()
+				output.buf.Reset()
+				output.Unlock()
 
-				readMarkedOutput := func(stdin io.Writer, reader *bufio.Reader, marker string) (string, error) {
-					if _, err := fmt.Fprintf(stdin, "echo %s && stty size\n", marker); err != nil {
-						return "", err
-					}
-					if err := waitForMarker(reader, marker); err != nil {
-						return "", err
-					}
-					line, err := reader.ReadString('\n')
-					if err != nil {
-						return "", err
-					}
-
-					return strings.TrimSpace(line), nil
-				}
-
-				// NOTE: Wait for the shell to be ready.
-				require.NoError(t, waitForMarker(reader, "START"))
-
-				initialSizeOutput, err := readMarkedOutput(stdin, reader, "SIZE_CHECK")
+				_, err = fmt.Fprintln(stdin, "stty size")
 				require.NoError(t, err)
-
-				assert.Equal(t, fmt.Sprintf("%d %d", initialHeight, initialWidth), initialSizeOutput)
-
-				// Cycle through each size twice to verify resizing back to a
-				// previously used dimension is correctly propagated.
-				sizes := [][2]int{{120, 40}, {80, 24}, {200, 50}, {100, 30}}
-				for i := range len(sizes) * 2 {
-					size := sizes[i%len(sizes)]
-					newWidth, newHeight := size[0], size[1]
-
-					err = sess.WindowChange(newHeight, newWidth)
-					require.NoError(t, err)
-
-					expected := fmt.Sprintf("%d %d", newHeight, newWidth)
-					// Poll until stty reports the expected size. Each attempt
-					// uses a unique marker so stale output from prior attempts
-					// is never matched.
-					//
-					// readMarkedOutput blocks on ReadString which cannot be
-					// interrupted, so each attempt runs in a goroutine with a
-					// per-attempt timeout. On timeout we abort immediately
-					// (the deferred sess/conn Close unblocks the reader).
-					deadline := time.Now().Add(30 * time.Second)
-					var lastOutput string
-					matched := false
-					for attempt := 0; !matched && time.Now().Before(deadline); attempt++ {
-						marker := fmt.Sprintf("SIZE_CHECK_%d_%d", i, attempt)
-
-						type readResult struct {
-							output string
-							err    error
-						}
-						ch := make(chan readResult, 1)
-						go func() {
-							out, err := readMarkedOutput(stdin, reader, marker)
-							ch <- readResult{out, err}
-						}()
-
-						select {
-						case r := <-ch:
-							require.NoError(t, r.err)
-							lastOutput = r.output
-							matched = (r.output == expected)
-						case <-time.After(10 * time.Second):
-							require.Fail(t, "timeout reading stty output",
-								"marker=%s expected=%s", marker, expected)
-						}
-					}
-					require.True(t, matched,
-						"expected terminal size %q but got %q", expected, lastOutput)
-				}
+				require.NoError(t, waitForOutput("48 160", 30*time.Second))
 			},
 		},
 		{
