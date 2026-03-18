@@ -24,6 +24,9 @@ go.work.sum
 # Generated at runtime by gen-config.sh from env vars
 ui-react/apps/console/public/config.json
 
+# Generated OpenAPI client (hey-api/openapi-ts)
+ui-react/apps/console/src/client/
+
 # Docker binaries
 agent/agent
 api/api
