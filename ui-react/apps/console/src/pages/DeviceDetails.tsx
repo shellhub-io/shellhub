@@ -35,6 +35,8 @@ import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
 import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
+import { useHasPermission } from "../hooks/useHasPermission";
+import RestrictedAction from "../components/common/RestrictedAction";
 
 /* ─── Shared styles ─── */
 const LABEL
@@ -76,6 +78,7 @@ function InfoItem({
 function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
   const addTagMutation = useAddDeviceTag();
   const removeTagMutation = useRemoveDeviceTag();
+  const canEditTags = useHasPermission("tag:edit");
   const [input, setInput] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,15 +136,17 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
             >
               <TagIcon className="w-3 h-3" strokeWidth={2} />
               {tag}
-              <button
-                onClick={() => void handleRemove(tag)}
-                className="hover:text-white transition-colors"
-              >
-                <XMarkIcon className="w-3 h-3" strokeWidth={2} />
-              </button>
+              {canEditTags && (
+                <button
+                  onClick={() => void handleRemove(tag)}
+                  className="hover:text-white transition-colors"
+                >
+                  <XMarkIcon className="w-3 h-3" strokeWidth={2} />
+                </button>
+              )}
             </span>
           ))}
-        {(!tags || tags.length < 3) && (
+        {canEditTags && (!tags || tags.length < 3) && (
           <div className="flex items-center gap-1.5">
             <input
               type="text"
@@ -191,6 +196,7 @@ function RenameSection({
   currentName: string;
 }) {
   const renameMutation = useRenameDevice();
+  const canRename = useHasPermission("device:rename");
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(currentName);
   const [saving, setSaving] = useState(false);
@@ -216,16 +222,18 @@ function RenameSection({
     return (
       <div className="flex items-center gap-2">
         <h1 className="text-2xl font-bold text-text-primary">{currentName}</h1>
-        <button
-          onClick={() => {
-            setName(currentName);
-            setEditing(true);
-          }}
-          className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-          title="Rename"
-        >
-          <PencilSquareIcon className="w-4 h-4" />
-        </button>
+        {canRename && (
+          <button
+            onClick={() => {
+              setName(currentName);
+              setEditing(true);
+            }}
+            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+            title="Rename"
+          >
+            <PencilSquareIcon className="w-4 h-4" />
+          </button>
+        )}
       </div>
     );
   }
@@ -414,59 +422,71 @@ export default function DeviceDetails() {
         <div className="flex items-center gap-2 shrink-0">
           {device.status === "accepted" && (
             <>
-              <button
-                onClick={() => {
-                  if (existingSession) {
-                    restoreTerminal(existingSession.id);
-                  } else {
-                    setConnectOpen(true);
-                  }
-                }}
-                disabled={!device.online}
-                className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
-                Connect
-              </button>
-              <button
-                onClick={() => setShowDelete(true)}
-                className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
-                title="Delete device"
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
+              <RestrictedAction action="device:connect">
+                <button
+                  onClick={() => {
+                    if (existingSession) {
+                      restoreTerminal(existingSession.id);
+                    } else {
+                      setConnectOpen(true);
+                    }
+                  }}
+                  disabled={!device.online}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronDoubleRightIcon className="w-4 h-4" strokeWidth={2} />
+                  Connect
+                </button>
+              </RestrictedAction>
+              <RestrictedAction action="device:remove">
+                <button
+                  onClick={() => setShowDelete(true)}
+                  className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
+                  title="Delete device"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </RestrictedAction>
             </>
           )}
           {device.status === "pending" && (
             <>
-              <button
-                onClick={() => setOperation({ device, action: "accept" })}
-                className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
-              >
-                Accept
-              </button>
-              <button
-                onClick={() => setOperation({ device, action: "reject" })}
-                className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/90 hover:bg-accent-yellow text-white rounded-lg text-sm font-semibold transition-all"
-              >
-                Reject
-              </button>
+              <RestrictedAction action="device:accept">
+                <button
+                  onClick={() => setOperation({ device, action: "accept" })}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
+                >
+                  Accept
+                </button>
+              </RestrictedAction>
+              <RestrictedAction action="device:reject">
+                <button
+                  onClick={() => setOperation({ device, action: "reject" })}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-yellow/90 hover:bg-accent-yellow text-white rounded-lg text-sm font-semibold transition-all"
+                >
+                  Reject
+                </button>
+              </RestrictedAction>
             </>
           )}
           {device.status === "rejected" && (
             <>
-              <button
-                onClick={() => setOperation({ device, action: "accept" })}
-                className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
-              >
-                Accept
-              </button>
-              <button
-                onClick={() => setOperation({ device, action: "remove" })}
-                className="flex items-center gap-2 px-4 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold transition-all"
-              >
-                Remove
-              </button>
+              <RestrictedAction action="device:accept">
+                <button
+                  onClick={() => setOperation({ device, action: "accept" })}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold transition-all"
+                >
+                  Accept
+                </button>
+              </RestrictedAction>
+              <RestrictedAction action="device:remove">
+                <button
+                  onClick={() => setOperation({ device, action: "remove" })}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold transition-all"
+                >
+                  Remove
+                </button>
+              </RestrictedAction>
             </>
           )}
         </div>

@@ -26,6 +26,7 @@ import DeviceChip from "../components/common/DeviceChip";
 import DistroIcon from "../components/common/DistroIcon";
 import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
 import type { Session } from "../client";
+import RestrictedAction from "../components/common/RestrictedAction";
 
 /* ── timeline builder ────────────────────────────── */
 
@@ -383,13 +384,15 @@ export default function SessionDetails() {
                 active={session.active}
               />
               {session.active && (
-                <button
-                  onClick={() => setShowClose(true)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 border border-accent-red/30 text-accent-red hover:bg-accent-red/10 rounded-md text-2xs font-mono font-medium transition-all"
-                >
-                  <XCircleIcon className="w-3 h-3" strokeWidth={2} />
-                  close
-                </button>
+                <RestrictedAction action="session:close">
+                  <button
+                    onClick={() => setShowClose(true)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 border border-accent-red/30 text-accent-red hover:bg-accent-red/10 rounded-md text-2xs font-mono font-medium transition-all"
+                  >
+                    <XCircleIcon className="w-3 h-3" strokeWidth={2} />
+                    close
+                  </button>
+                </RestrictedAction>
               )}
             </div>
           </div>

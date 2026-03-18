@@ -26,6 +26,7 @@ import {
   CpuChipIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
+import RestrictedAction from "../../components/common/RestrictedAction";
 
 const statusTabs: { label: string; value: DeviceStatus }[] = [
   { label: "Accepted", value: "accepted" },
@@ -107,13 +108,15 @@ export default function Devices() {
         title="Devices"
         description="Manage and monitor all devices connected to your namespace"
       >
-        <Link
-          to="/devices/add"
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
-        >
-          <PlusIcon className="w-4 h-4" strokeWidth={2} />
-          Add Device
-        </Link>
+        <RestrictedAction action="device:add">
+          <Link
+            to="/devices/add"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+          >
+            <PlusIcon className="w-4 h-4" strokeWidth={2} />
+            Add Device
+          </Link>
+        </RestrictedAction>
       </PageHeader>
 
       {/* Filter bar */}
@@ -328,37 +331,39 @@ export default function Devices() {
                         <td className="px-4 py-3.5 w-20">
                           {device.online
                             ? (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const existing = useTerminalStore
-                                    .getState()
-                                    .sessions.find(
-                                      (s) => s.deviceUid === device.uid,
-                                    );
-                                  if (existing) {
-                                    useTerminalStore
+                              <RestrictedAction action="device:connect">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const existing = useTerminalStore
                                       .getState()
-                                      .restore(existing.id);
-                                  } else {
-                                    const sshid = nsName
-                                      ? buildSshid(nsName, device.name)
-                                      : device.uid;
-                                    setConnectTarget({
-                                      uid: device.uid,
-                                      name: device.name,
-                                      sshid,
-                                    });
-                                  }
-                                }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent-green/10 text-accent-green text-2xs font-semibold rounded-md hover:bg-accent-green/20 border border-accent-green/20 transition-all"
-                              >
-                                <ChevronDoubleRightIcon
-                                  className="w-3 h-3"
-                                  strokeWidth={2}
-                                />
-                                Connect
-                              </button>
+                                      .sessions.find(
+                                        (s) => s.deviceUid === device.uid,
+                                      );
+                                    if (existing) {
+                                      useTerminalStore
+                                        .getState()
+                                        .restore(existing.id);
+                                    } else {
+                                      const sshid = nsName
+                                        ? buildSshid(nsName, device.name)
+                                        : device.uid;
+                                      setConnectTarget({
+                                        uid: device.uid,
+                                        name: device.name,
+                                        sshid,
+                                      });
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent-green/10 text-accent-green text-2xs font-semibold rounded-md hover:bg-accent-green/20 border border-accent-green/20 transition-all"
+                                >
+                                  <ChevronDoubleRightIcon
+                                    className="w-3 h-3"
+                                    strokeWidth={2}
+                                  />
+                                  Connect
+                                </button>
+                              </RestrictedAction>
                             )
                             : (
                               <span className="text-2xs text-text-muted/30 font-mono">
@@ -372,48 +377,56 @@ export default function Devices() {
                       {status === "pending" && (
                         <td className="px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActionTarget({ device, action: "accept" });
-                              }}
-                              className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
-                            >
-                              Accept
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActionTarget({ device, action: "reject" });
-                              }}
-                              className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/20 border border-accent-yellow/20 transition-all"
-                            >
-                              Reject
-                            </button>
+                            <RestrictedAction action="device:accept">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActionTarget({ device, action: "accept" });
+                                }}
+                                className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
+                              >
+                                Accept
+                              </button>
+                            </RestrictedAction>
+                            <RestrictedAction action="device:reject">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActionTarget({ device, action: "reject" });
+                                }}
+                                className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/20 border border-accent-yellow/20 transition-all"
+                              >
+                                Reject
+                              </button>
+                            </RestrictedAction>
                           </div>
                         </td>
                       )}
                       {status === "rejected" && (
                         <td className="px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActionTarget({ device, action: "accept" });
-                              }}
-                              className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
-                            >
-                              Accept
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActionTarget({ device, action: "remove" });
-                              }}
-                              className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-red/10 text-accent-red hover:bg-accent-red/20 border border-accent-red/20 transition-all"
-                            >
-                              Remove
-                            </button>
+                            <RestrictedAction action="device:accept">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActionTarget({ device, action: "accept" });
+                                }}
+                                className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
+                              >
+                                Accept
+                              </button>
+                            </RestrictedAction>
+                            <RestrictedAction action="device:remove">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActionTarget({ device, action: "remove" });
+                                }}
+                                className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-red/10 text-accent-red hover:bg-accent-red/20 border border-accent-red/20 transition-all"
+                              >
+                                Remove
+                              </button>
+                            </RestrictedAction>
                           </div>
                         </td>
                       )}

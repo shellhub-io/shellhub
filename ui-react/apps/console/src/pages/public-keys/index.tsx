@@ -8,6 +8,7 @@ import KeyDrawer from "./KeyDrawer";
 import { formatDate } from "../../utils/date";
 import { TH } from "../../utils/styles";
 import Pagination from "../../components/common/Pagination";
+import RestrictedAction from "../../components/common/RestrictedAction";
 import {
   KeyIcon,
   MagnifyingGlassIcon,
@@ -120,20 +121,24 @@ function KeyRow({
       </td>
       <td className="px-4 py-3.5 text-right">
         <div className="flex items-center justify-end gap-0.5">
-          <button
-            onClick={onEdit}
-            title="Edit"
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-          >
-            <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
-          <button
-            onClick={onDelete}
-            title="Delete"
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-          >
-            <TrashIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
+          <RestrictedAction action="publicKey:edit">
+            <button
+              onClick={onEdit}
+              title="Edit"
+              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+            >
+              <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
+            </button>
+          </RestrictedAction>
+          <RestrictedAction action="publicKey:remove">
+            <button
+              onClick={onDelete}
+              title="Delete"
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+            >
+              <TrashIcon className="w-4 h-4" strokeWidth={2} />
+            </button>
+          </RestrictedAction>
         </div>
       </td>
     </tr>
@@ -253,13 +258,15 @@ export default function PublicKeys() {
                 className="text-center animate-slide-up"
                 style={{ animationDelay: "450ms" }}
               >
-                <button
-                  onClick={openNew}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20"
-                >
-                  <PlusIcon className="w-4 h-4" strokeWidth={2} />
-                  Add your first key
-                </button>
+                <RestrictedAction action="publicKey:create">
+                  <button
+                    onClick={openNew}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20"
+                  >
+                    <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                    Add your first key
+                  </button>
+                </RestrictedAction>
                 <p className="mt-4 text-2xs text-text-muted">
                   Supports RSA, DSA, ECDSA, and ED25519 key types.
                 </p>
@@ -275,13 +282,15 @@ export default function PublicKeys() {
             title="Public Keys"
             description="Manage SSH public keys for passwordless authentication to your devices."
           >
-            <button
-              onClick={openNew}
-              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-            >
-              <PlusIcon className="w-4 h-4" strokeWidth={2} />
-              Add Public Key
-            </button>
+            <RestrictedAction action="publicKey:create">
+              <button
+                onClick={openNew}
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+              >
+                <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                Add Public Key
+              </button>
+            </RestrictedAction>
           </PageHeader>
 
           <div className="mb-4 animate-fade-in">

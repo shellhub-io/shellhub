@@ -16,6 +16,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import Pagination from "../../components/common/Pagination";
+import RestrictedAction from "../../components/common/RestrictedAction";
 
 /* ─── API Keys Tab ─── */
 
@@ -38,13 +39,15 @@ function ApiKeysTab() {
           key
           {totalCount !== 1 ? "s" : ""}
         </p>
-        <button
-          onClick={() => setGenerateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-        >
-          <KeyIcon className="w-4 h-4" strokeWidth={2} />
-          Generate Key
-        </button>
+        <RestrictedAction action="apiKey:create">
+          <button
+            onClick={() => setGenerateOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+          >
+            <KeyIcon className="w-4 h-4" strokeWidth={2} />
+            Generate Key
+          </button>
+        </RestrictedAction>
       </div>
 
       {isLoading
@@ -116,20 +119,24 @@ function ApiKeysTab() {
                         </td>
                         <td className="px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => setEditTarget(key)}
-                              className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-                              title="Edit"
-                            >
-                              <PencilSquareIcon className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setDeleteTarget(key)}
-                              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-                              title="Delete"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
+                            <RestrictedAction action="apiKey:edit">
+                              <button
+                                onClick={() => setEditTarget(key)}
+                                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
+                                title="Edit"
+                              >
+                                <PencilSquareIcon className="w-4 h-4" />
+                              </button>
+                            </RestrictedAction>
+                            <RestrictedAction action="apiKey:delete">
+                              <button
+                                onClick={() => setDeleteTarget(key)}
+                                className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
+                                title="Delete"
+                              >
+                                <TrashIcon className="w-4 h-4" />
+                              </button>
+                            </RestrictedAction>
                           </div>
                         </td>
                       </tr>

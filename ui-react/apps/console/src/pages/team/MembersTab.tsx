@@ -14,6 +14,7 @@ import { initials } from "./helpers";
 import AddMemberDrawer from "./AddMemberDrawer";
 import EditMemberDrawer from "./EditMemberDrawer";
 import { TH } from "../../utils/styles";
+import RestrictedAction from "../../components/common/RestrictedAction";
 
 /* --- Members Tab --- */
 
@@ -45,13 +46,15 @@ function MembersTab({ tenantId }: { tenantId: string }) {
           member
           {sorted.length !== 1 ? "s" : ""}
         </p>
-        <button
-          onClick={() => setAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-        >
-          <PlusIcon className="w-4 h-4" strokeWidth={2} />
-          Add Member
-        </button>
+        <RestrictedAction action="namespace:addMember">
+          <button
+            onClick={() => setAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
+          >
+            <PlusIcon className="w-4 h-4" strokeWidth={2} />
+            Add Member
+          </button>
+        </RestrictedAction>
       </div>
 
       {membersLoading
@@ -114,20 +117,24 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                         <td className="px-4 py-3.5 text-right">
                           {!isSelf && (
                             <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => setEditTarget(m)}
-                                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-                                title="Edit role"
-                              >
-                                <PencilSquareIcon className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setRemoveTarget(m)}
-                                className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-                                title="Remove"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
+                              <RestrictedAction action="namespace:editMember">
+                                <button
+                                  onClick={() => setEditTarget(m)}
+                                  className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
+                                  title="Edit role"
+                                >
+                                  <PencilSquareIcon className="w-4 h-4" />
+                                </button>
+                              </RestrictedAction>
+                              <RestrictedAction action="namespace:removeMember">
+                                <button
+                                  onClick={() => setRemoveTarget(m)}
+                                  className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
+                                  title="Remove"
+                                >
+                                  <TrashIcon className="w-4 h-4" />
+                                </button>
+                              </RestrictedAction>
                             </div>
                           )}
                         </td>
