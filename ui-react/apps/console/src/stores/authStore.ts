@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { type Role } from "../utils/permission";
 import {
   login as loginSdk,
   getUserInfo,
@@ -20,7 +21,7 @@ interface AuthState {
   username: string | null;
   recoveryEmail: string | null;
   tenant: string | null;
-  role: string | null;
+  role: Role | null;
   name: string | null;
   loading: boolean;
   error: string | null;
@@ -32,7 +33,7 @@ interface AuthState {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
-  setSession: (data: { token: string; tenant: string; role?: string }) => void;
+  setSession: (data: { token: string; tenant: string; role?: Role }) => void;
   updateProfile: (data: {
     name?: string;
     username?: string;

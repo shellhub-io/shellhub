@@ -192,12 +192,12 @@ describe("authStore", () => {
     it("updates token, tenant, and role", () => {
       useAuthStore
         .getState()
-        .setSession({ token: "new-jwt", tenant: "new-tenant", role: "admin" });
+        .setSession({ token: "new-jwt", tenant: "new-tenant", role: "administrator" });
 
       const state = useAuthStore.getState();
       expect(state.token).toBe("new-jwt");
       expect(state.tenant).toBe("new-tenant");
-      expect(state.role).toBe("admin");
+      expect(state.role).toBe("administrator");
     });
 
     it("preserves existing role when not provided", () => {
