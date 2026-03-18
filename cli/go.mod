@@ -55,8 +55,8 @@ require (
 	github.com/therootcompany/xz v1.0.1 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/ulikunitz/xz v0.5.14 // indirect
-	github.com/uptrace/bun v1.2.17 // indirect
-	github.com/uptrace/bun/dialect/pgdialect v1.2.17 // indirect
+	github.com/uptrace/bun v1.2.18 // indirect
+	github.com/uptrace/bun/dialect/pgdialect v1.2.18 // indirect
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
