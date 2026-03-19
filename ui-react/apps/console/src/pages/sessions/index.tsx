@@ -6,15 +6,18 @@ import {
   ExclamationTriangleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useSessions } from "../hooks/useSessions";
-import { useCloseSession } from "../hooks/useSessionMutations";
-import PageHeader from "../components/common/PageHeader";
-import DeviceChip from "../components/common/DeviceChip";
-import { formatDate, formatDuration } from "../utils/date";
-import { sessionType } from "../utils/session";
-import { TH } from "../utils/styles";
-import Pagination from "../components/common/Pagination";
-import RestrictedAction from "../components/common/RestrictedAction";
+import { PlayIcon } from "@heroicons/react/24/solid";
+import { useSessions } from "../../hooks/useSessions";
+import { useCloseSession } from "../../hooks/useSessionMutations";
+import { useSessionRecording } from "../../hooks/useSessionRecording";
+import PageHeader from "../../components/common/PageHeader";
+import DeviceChip from "../../components/common/DeviceChip";
+import SessionPlayerDialog from "./SessionPlayerDialog";
+import RestrictedAction from "../../components/common/RestrictedAction";
+import { formatDate, formatDuration } from "../../utils/date";
+import { sessionType } from "../../utils/session";
+import { TH } from "../../utils/styles";
+import Pagination from "../../components/common/Pagination";
 
 function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   const [closing, setClosing] = useState(false);
@@ -49,8 +52,16 @@ export default function Sessions() {
   const { sessions, totalCount, isLoading, error } = useSessions({ page, perPage });
   const closeSession = useCloseSession();
   const navigate = useNavigate();
+  const [playTarget, setPlayTarget] = useState<string | null>(null);
+  const { logs: sessionLogs, isLoading: logsLoading, error: logsError, fetchLogs, clearLogs } = useSessionRecording();
 
   const totalPages = Math.ceil(totalCount / perPage);
+
+  const handlePlayClick = async (e: React.MouseEvent, uid: string) => {
+    e.stopPropagation();
+    setPlayTarget(uid);
+    await fetchLogs(uid);
+  };
 
   return (
     <div>
@@ -71,6 +82,16 @@ export default function Sessions() {
         </div>
       )}
 
+      {logsError && (
+        <div className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono mb-4 animate-slide-down">
+          <ExclamationCircleIcon
+            className="w-3.5 h-3.5 shrink-0"
+            strokeWidth={2}
+          />
+          {logsError}
+        </div>
+      )}
+
       <div className="bg-card border border-border rounded-lg overflow-hidden animate-fade-in">
         <table className="w-full">
           <thead>
@@ -82,7 +103,7 @@ export default function Sessions() {
               <th className={TH}>Type</th>
               <th className={TH}>Started</th>
               <th className={TH}>Duration</th>
-              <th className="px-4 py-3 w-16" />
+              <th className="px-4 py-3 w-28" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -205,12 +226,34 @@ export default function Sessions() {
                             )}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-right">
-                          {session.active && (
-                            <RestrictedAction action="session:close">
-                              <CloseButton onClose={() => closeSession.mutateAsync({ path: { uid: session.uid }, body: { device: session.device_uid ?? session.device?.uid ?? "" } })} />
-                            </RestrictedAction>
-                          )}
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center justify-end gap-1">
+                            {session.recorded && (
+                              <RestrictedAction action="session:play">
+                                <button
+                                  onClick={(e) => void handlePlayClick(e, session.uid)}
+                                  disabled={logsLoading && playTarget === session.uid}
+                                  title="Play recording"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-2xs font-semibold rounded-md hover:bg-primary/20 border border-primary/20 transition-all disabled:opacity-dim"
+                                >
+                                  {logsLoading && playTarget === session.uid
+                                    ? <span className="w-3 h-3 border border-primary/40 border-t-primary rounded-full animate-spin" />
+                                    : <PlayIcon className="w-3 h-3" />}
+                                  Play
+                                </button>
+                              </RestrictedAction>
+                            )}
+                            {session.active && (
+                              <RestrictedAction action="session:close">
+                                <CloseButton
+                                  onClose={() => closeSession.mutateAsync({
+                                    path: { uid: session.uid },
+                                    body: { device: session.device_uid ?? session.device?.uid ?? "" },
+                                  })}
+                                />
+                              </RestrictedAction>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -227,6 +270,17 @@ export default function Sessions() {
         itemLabel="session"
         onPageChange={setPage}
       />
+
+      {playTarget && !logsLoading && sessionLogs && (
+        <SessionPlayerDialog
+          open
+          onClose={() => {
+            setPlayTarget(null);
+            clearLogs();
+          }}
+          logs={sessionLogs}
+        />
+      )}
     </div>
   );
 }
