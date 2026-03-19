@@ -2,7 +2,7 @@ import { defineConfig } from "@hey-api/openapi-ts";
 
 export default defineConfig({
   input:
-    process.env.OPENAPI_SPEC_PATH || "http://openapi:8080/openapi/openapi.json",
+    process.env.OPENAPI_SPEC_PATH || "../../../openapi/spec/openapi.yaml",
   output: "src/client",
   plugins: [
     "@hey-api/typescript",
