@@ -308,8 +308,12 @@ export default function SessionDetails() {
   };
 
   const handleDeleteLogs = async () => {
-    await deleteRecording.mutateAsync(uid!);
-    setShowDeleteLogs(false);
+    try {
+      await deleteRecording.mutateAsync(uid!);
+      setShowDeleteLogs(false);
+    } catch {
+      // error surfaced via deleteRecording.error
+    }
   };
 
   const handleClose = async () => {
