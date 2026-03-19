@@ -18,9 +18,13 @@ import {
   SignalIcon,
   InformationCircleIcon,
   CpuChipIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
+import { PlayIcon } from "@heroicons/react/24/solid";
 import { useSession } from "../hooks/useSession";
-import { useCloseSession } from "../hooks/useSessionMutations";
+import { useCloseSession, useDeleteSessionRecording } from "../hooks/useSessionMutations";
+import { useSessionRecording } from "../hooks/useSessionRecording";
+import SessionPlayerDialog from "./sessions/SessionPlayerDialog";
 import CopyButton from "../components/common/CopyButton";
 import DeviceChip from "../components/common/DeviceChip";
 import DistroIcon from "../components/common/DistroIcon";
@@ -290,7 +294,23 @@ export default function SessionDetails() {
   const navigate = useNavigate();
   const { session, isLoading, error } = useSession(uid!);
   const closeSession = useCloseSession();
+  const deleteRecording = useDeleteSessionRecording();
+  const { logs: sessionLogs, isLoading: logsLoading, error: logsError, fetchLogs, clearLogs } = useSessionRecording();
   const [showClose, setShowClose] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
+  const [showDeleteLogs, setShowDeleteLogs] = useState(false);
+
+  const handlePlayRecording = async () => {
+    const ok = await fetchLogs(uid!);
+    if (ok) {
+      setShowPlayer(true);
+    }
+  };
+
+  const handleDeleteLogs = async () => {
+    await deleteRecording.mutateAsync(uid!);
+    setShowDeleteLogs(false);
+  };
 
   const handleClose = async () => {
     if (!uid || !session) return;
@@ -349,16 +369,43 @@ export default function SessionDetails() {
         </span>
       </div>
 
-      {/* Body */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Timeline */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2">
-              <ClockIcon className="w-4 h-4 text-primary" />
-              Session flow
-            </h3>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+        <div className="flex items-start gap-4">
+          {/* Session icon with status */}
+          <div className="relative shrink-0">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <CommandLineIcon className="w-7 h-7 text-primary" />
+            </div>
+            <span
+              className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${
+                session.active
+                  ? "bg-accent-green shadow-[0_0_8px_rgba(130,165,104,0.5)]"
+                  : "bg-text-muted/40"
+              }`}
+            />
+          </div>
+
+          <div>
             <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-text-primary font-mono">
+                {session.uid.slice(0, 8)}
+              </h1>
+              <CopyButton text={session.uid} />
+            </div>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-semibold rounded-md ${
+                  session.active
+                    ? "bg-accent-green/10 text-accent-green border border-accent-green/20"
+                    : "bg-text-muted/10 text-text-muted border border-border"
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${session.active ? "bg-accent-green" : "bg-text-muted/60"}`}
+                />
+                {session.active ? "Active" : "Closed"}
+              </span>
               {!session.authenticated && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-mono font-semibold rounded-md bg-accent-red/10 text-accent-red border border-accent-red/20">
                   <ShieldExclamationIcon className="w-3 h-3" strokeWidth={2} />
@@ -366,18 +413,6 @@ export default function SessionDetails() {
                 </span>
               )}
               <SessionTypeBadge types={session.events?.types ?? []} />
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 text-2xs font-mono font-semibold rounded-md border ${
-                  session.active
-                    ? "bg-accent-green/10 text-accent-green border-accent-green/20"
-                    : "bg-surface text-text-muted border-border"
-                }`}
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${session.active ? "bg-accent-green" : "bg-text-muted/50"}`}
-                />
-                {session.active ? "active" : "closed"}
-              </span>
               <DurationStat
                 startedAt={session.started_at}
                 lastSeen={session.last_seen}
@@ -396,6 +431,55 @@ export default function SessionDetails() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {session.recorded && (
+            <>
+              <RestrictedAction action="session:play">
+                <button
+                  onClick={() => void handlePlayRecording()}
+                  disabled={logsLoading}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-primary/90 hover:bg-primary text-white rounded-lg text-sm font-semibold disabled:opacity-dim transition-all"
+                >
+                  <PlayIcon className="w-4 h-4" />
+                  {logsLoading ? "Loading…" : "Play Recording"}
+                </button>
+              </RestrictedAction>
+              <RestrictedAction action="session:removeRecord">
+                <button
+                  onClick={() => setShowDeleteLogs(true)}
+                  className="p-2.5 rounded-lg text-text-muted hover:text-accent-red hover:bg-accent-red/10 border border-border transition-all"
+                  title="Delete recording"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </RestrictedAction>
+            </>
+          )}
+          {session.active && (
+            <RestrictedAction action="session:close">
+              <button
+                onClick={() => setShowClose(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-hover-subtle text-accent-red border border-accent-red/30 rounded-lg text-sm font-semibold transition-all"
+              >
+                <XCircleIcon className="w-4 h-4" strokeWidth={2} />
+                Close Session
+              </button>
+            </RestrictedAction>
+          )}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Timeline */}
+        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
+          <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2 mb-5">
+            <ClockIcon className="w-4 h-4 text-primary" />
+            Session flow
+          </h3>
           {timeline.map((event, i) => (
             <TimelineNode
               key={event.id}
@@ -490,6 +574,55 @@ export default function SessionDetails() {
         </div>
       </div>
 
+      {/* Delete Recording Dialog */}
+      {showDeleteLogs && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowDeleteLogs(false)}
+          />
+          <div className="relative bg-surface border border-border rounded-2xl w-full max-w-sm mx-4 p-6 shadow-2xl animate-slide-up">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-accent-red/10 border border-accent-red/20 flex items-center justify-center shrink-0">
+                <TrashIcon className="w-5 h-5 text-accent-red" strokeWidth={2} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-text-primary">
+                  Delete Recording
+                </h2>
+                <p className="text-xs text-text-muted mt-0.5">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+            <p className="text-sm text-text-muted mb-6">
+              Are you sure you want to delete the session recording? The
+              recording will be permanently removed.
+            </p>
+            {deleteRecording.error != null && (
+              <p className="text-xs text-accent-red mb-4 font-mono">
+                Failed to delete recording. Check your permissions.
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteLogs(false)}
+                className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-lg hover:bg-card transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void handleDeleteLogs()}
+                disabled={deleteRecording.isPending}
+                className="px-5 py-2.5 bg-accent-red/90 hover:bg-accent-red text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-all"
+              >
+                {deleteRecording.isPending ? "Deleting…" : "Delete Recording"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Close Session Dialog */}
       {showClose && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center">
@@ -547,6 +680,22 @@ export default function SessionDetails() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Recording error banner */}
+      {logsError && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[90] px-4 py-2.5 bg-accent-red/10 border border-accent-red/30 text-accent-red text-sm font-mono rounded-lg shadow-lg">
+          {logsError}
+        </div>
+      )}
+
+      {/* Session Player Dialog */}
+      {showPlayer && sessionLogs && (
+        <SessionPlayerDialog
+          open={showPlayer}
+          onClose={() => { setShowPlayer(false); clearLogs(); }}
+          logs={sessionLogs}
+        />
       )}
     </div>
   );

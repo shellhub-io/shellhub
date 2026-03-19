@@ -15,6 +15,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@hey-api/openapi-ts": "^0.94.1",
+    "asciinema-player": "^3.9.0",
     "@shellhub/design-system": "*",
     "@tanstack/react-query": "^5.90.21",
     "@xterm/addon-fit": "^0.11.0",
