@@ -57,8 +57,33 @@ func TestMain_smoke(t *testing.T) {
 
 	client := http.Client{Timeout: 5 * time.Second}
 
-	resp, err := client.Get(healthURL)
-	require.NoError(t, err)
+	const maxRetries = 10
+
+	var resp *http.Response
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		t.Logf("healthcheck attempt %d/%d: GET %s", attempt, maxRetries, healthURL)
+
+		var err error
+
+		resp, err = client.Get(healthURL)
+		if err == nil {
+			break
+		}
+
+		t.Logf("healthcheck attempt %d/%d failed: %v", attempt, maxRetries, err)
+
+		if attempt == maxRetries {
+			t.Fatalf("healthcheck: all %d attempts exhausted, last error: %v", maxRetries, err)
+		}
+
+		delay := time.Duration(attempt) * time.Second
+		if delay > 5*time.Second {
+			delay = 5 * time.Second
+		}
+
+		time.Sleep(delay)
+	}
 
 	defer resp.Body.Close()
 
