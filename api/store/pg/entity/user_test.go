@@ -36,11 +36,6 @@ func TestUserFromModel(t *testing.T) {
 				Password: models.UserPassword{
 					Hash: "hashed-password-123",
 				},
-				MFA: models.UserMFA{
-					Enabled:       true,
-					Secret:        "mfa-secret",
-					RecoveryCodes: []string{"code1", "code2"},
-				},
 				Preferences: models.UserPreferences{
 					PreferredNamespace: "ns-id-1",
 					AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal, models.UserAuthMethodSAML},
@@ -223,8 +218,6 @@ func TestUserToModel(t *testing.T) {
 			assert.Equal(t, tt.expected.RecoveryEmail, result.RecoveryEmail)
 			// Password
 			assert.Equal(t, tt.expected.Password.Hash, result.Password.Hash)
-			// MFA
-			assert.Equal(t, tt.expected.MFA, result.MFA)
 			// Preferences
 			assert.Equal(t, tt.expected.Preferences, result.Preferences)
 			// entity.Namespaces is scanonly (populated by DB queries) and intentionally not mapped by UserToModel.
