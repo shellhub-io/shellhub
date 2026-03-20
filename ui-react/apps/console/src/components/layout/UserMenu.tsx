@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from "../../stores/authStore";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { useNamespaces } from "../../hooks/useNamespaces";
+import { getInitials } from "../../utils/string";
 
 export default function UserMenu() {
   const { user, logout } = useAuthStore();
@@ -25,13 +26,6 @@ export default function UserMenu() {
     void navigate("/login");
   };
 
-  const initials = (name: string) =>
-    name
-      .split(/[\s-_@.]+/)
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? "")
-      .join("");
-
   if (!user) return null;
 
   return (
@@ -41,7 +35,7 @@ export default function UserMenu() {
         className="flex items-center gap-2 h-8 pl-1 pr-2.5 rounded-lg border border-transparent hover:border-border hover:bg-hover-subtle transition-all duration-150"
       >
         <span className="w-6 h-6 rounded-md bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-2xs font-bold font-mono">
-          {initials(user)}
+          {getInitials(user)}
         </span>
         <span className="text-xs font-medium text-text-secondary max-w-[120px] truncate">
           {user}
@@ -58,7 +52,7 @@ export default function UserMenu() {
           <div className="p-3.5 border-b border-border">
             <div className="flex items-center gap-3">
               <span className="w-9 h-9 rounded-lg bg-primary/15 border border-primary/20 flex items-center justify-center text-primary text-xs font-bold font-mono shrink-0">
-                {initials(user)}
+                {getInitials(user)}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-text-primary truncate">
