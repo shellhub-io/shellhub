@@ -22,6 +22,7 @@ interface AuthState {
   recoveryEmail: string | null;
   tenant: string | null;
   role: Role | null;
+  isAdmin: boolean;
   name: string | null;
   loading: boolean;
   error: string | null;
@@ -62,6 +63,7 @@ const initialState = {
   recoveryEmail: null,
   tenant: null,
   role: null,
+  isAdmin: false,
   name: null,
   loading: false,
   error: null,
@@ -108,6 +110,7 @@ export const useAuthStore = create<AuthState>()(
             email: userData.email,
             tenant: userData.tenant,
             name: userData.name,
+            isAdmin: userData.admin ?? false,
             mfaEnabled: userData.mfa || false,
             loading: false,
           });
@@ -127,7 +130,6 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         useVaultStore.getState().lock();
         set(initialState);
-        // Clear persisted session data from localStorage
         localStorage.removeItem("shellhub-session");
       },
 
@@ -143,6 +145,7 @@ export const useAuthStore = create<AuthState>()(
             recoveryEmail: user.recovery_email,
             name: user.name,
             tenant: user.tenant,
+            isAdmin: user.admin ?? false,
             mfaEnabled: user.mfa || false,
           });
         } catch {
@@ -191,6 +194,7 @@ export const useAuthStore = create<AuthState>()(
             email: data.email,
             tenant: data.tenant,
             name: data.name,
+            isAdmin: data.admin ?? false,
             mfaToken: null, // Clear temporary token
             mfaEnabled: true,
             loading: false,
@@ -233,6 +237,7 @@ export const useAuthStore = create<AuthState>()(
             email: userData.email,
             tenant: userData.tenant,
             name: userData.name,
+            isAdmin: userData.admin ?? false,
             mfaEnabled: true,
             mfaToken: null,
             mfaRecoveryExpiry: expiryValue,
@@ -286,6 +291,7 @@ export const useAuthStore = create<AuthState>()(
             email: userData.email,
             tenant: userData.tenant,
             name: userData.name,
+            isAdmin: userData.admin ?? false,
             mfaEnabled: userData.mfa || false,
             mfaResetUserId: null,
             mfaResetIdentifier: null,
@@ -316,6 +322,7 @@ export const useAuthStore = create<AuthState>()(
         email: state.email,
         tenant: state.tenant,
         role: state.role,
+        isAdmin: state.isAdmin,
         name: state.name,
         mfaEnabled: state.mfaEnabled,
         // Do NOT persist: username, recoveryEmail (fetched fresh via fetchUser)
