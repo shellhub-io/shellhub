@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { getConfig } from "../env";
+import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
 interface CountdownState {
@@ -86,10 +87,16 @@ export default function Login() {
       await login(username, password);
 
       const state = useAuthStore.getState();
+      const params = new URLSearchParams(location.search);
+      const redirect = getSafeRedirect(params);
+
       if (state.mfaToken) {
-        void navigate("/mfa-login");
+        const mfaPath = redirect !== "/dashboard"
+          ? `/mfa-login?redirect=${encodeURIComponent(redirect)}`
+          : "/mfa-login";
+        void navigate(mfaPath);
       } else {
-        void navigate("/dashboard");
+        void navigate(redirect);
       }
     } catch (err) {
       if (!isSdkError(err)) {
