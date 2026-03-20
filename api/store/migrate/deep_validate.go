@@ -236,6 +236,7 @@ func (m *Migrator) deepValidate(ctx context.Context) error {
 		{"public_keys", m.deepValidatePublicKeys},
 		{"public_key_tags", m.deepValidatePublicKeyTags},
 		{"api_keys", m.deepValidateAPIKeys},
+		{"session_events", m.deepValidateSessionEvents},
 	}
 
 	for _, v := range validators {
