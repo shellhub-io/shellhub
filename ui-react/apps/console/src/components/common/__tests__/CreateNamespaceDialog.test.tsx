@@ -31,7 +31,7 @@ const mockUseCreateNamespace = vi.mocked(useCreateNamespace);
 
 beforeEach(() => {
   // Default to CE (no cloud/enterprise features)
-  mockGetConfig.mockReturnValue({ cloud: false, enterprise: false, version: "", onboardingUrl: "" });
+  mockGetConfig.mockReturnValue({ cloud: false, enterprise: false, version: "", onboardingUrl: "", announcements: false });
   mockUseCreateNamespace.mockReturnValue({
     mutateAsync: vi.fn(),
     isPending: false,
@@ -193,7 +193,7 @@ describe("CreateNamespaceDialog", () => {
 
 describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   beforeEach(() => {
-    mockGetConfig.mockReturnValue({ cloud: false, enterprise: true, version: "", onboardingUrl: "" });
+    mockGetConfig.mockReturnValue({ cloud: false, enterprise: true, version: "", onboardingUrl: "", announcements: false });
   });
 
   it("renders the creation form instead of CLI instructions", () => {
@@ -338,7 +338,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
 describe("CreateNamespaceDialog (cloud: true, enterprise: false)", () => {
   beforeEach(() => {
-    mockGetConfig.mockReturnValue({ cloud: true, enterprise: false, version: "", onboardingUrl: "" });
+    mockGetConfig.mockReturnValue({ cloud: true, enterprise: false, version: "", onboardingUrl: "", announcements: false });
   });
 
   it("renders the creation form (cloud branch of isCloud)", () => {
