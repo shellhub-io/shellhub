@@ -156,9 +156,7 @@ function CommunityInstructions() {
   }, []);
 
   const handleContinue = () => {
-    if (tenantId) {
-      void switchNs.mutateAsync(tenantId);
-    }
+    if (tenantId) void switchNs.mutateAsync({ tenantId });
   };
 
   return (
