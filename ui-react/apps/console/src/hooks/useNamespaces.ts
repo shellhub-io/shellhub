@@ -20,7 +20,7 @@ export interface NamespaceMember {
 
 export function useNamespaces() {
   const result = useQuery({
-    ...getNamespacesOptions({ query: { page: 1, per_page: 30 } }),
+    ...getNamespacesOptions({ query: { page: 1, per_page: 100 } }),
   });
 
   return {
