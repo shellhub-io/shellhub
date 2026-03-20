@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../../stores/authStore";
 import { getInitials } from "../../utils/string";
+import NamespaceSelector from "./NamespaceSelector";
 
 export default function AdminAppBar() {
   const user = useAuthStore((s) => s.user);
@@ -16,11 +17,7 @@ export default function AdminAppBar() {
 
   return (
     <header className="h-14 bg-surface border-b border-border px-5 flex items-center justify-between shrink-0">
-      <div className="flex items-center gap-2">
-        <span className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60">
-          Admin Panel
-        </span>
-      </div>
+      <NamespaceSelector isAdminContext />
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="w-6 h-6 rounded-md bg-accent-red/15 border border-accent-red/20 flex items-center justify-center text-accent-red text-2xs font-bold font-mono">
