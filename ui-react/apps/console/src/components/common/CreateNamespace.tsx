@@ -155,11 +155,7 @@ function CommunityInstructions() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleContinue = () => {
-    if (tenantId) {
-      void switchNs.mutateAsync(tenantId);
-    }
-  };
+  const handleContinue = () => { if (tenantId) void switchNs.mutateAsync({ tenantId }); };
 
   return (
     <div className="w-full space-y-5">
