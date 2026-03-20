@@ -1,17 +1,19 @@
 import { FormEvent, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   ExclamationCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { useOtpInput } from "../hooks/useOtpInput";
+import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 
 export default function MfaLogin() {
   const otp = useOtpInput(6);
   const { loginWithMfa, loading, error, mfaToken } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Redirect if no MFA token
   useEffect(() => {
@@ -31,7 +33,8 @@ export default function MfaLogin() {
 
     try {
       await loginWithMfa(otp.getValue());
-      void navigate("/dashboard");
+      const params = new URLSearchParams(location.search);
+      void navigate(getSafeRedirect(params));
     } catch {
       // Error is set in store
       otp.reset();
