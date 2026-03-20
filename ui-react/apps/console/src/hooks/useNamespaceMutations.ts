@@ -21,7 +21,13 @@ export function useEditNamespace() {
 
 export function useSwitchNamespace() {
   return useMutation({
-    mutationFn: async (tenantId: string) => {
+    mutationFn: async ({
+      tenantId,
+      redirectTo,
+    }: {
+      tenantId: string;
+      redirectTo?: string;
+    }) => {
       const { data } = await getNamespaceToken({
         path: { tenant: tenantId },
         throwOnError: true,
@@ -31,7 +37,8 @@ export function useSwitchNamespace() {
         tenant: tenantId,
         role: data.role,
       });
-      window.location.reload();
+      if (redirectTo) window.location.href = redirectTo;
+      else window.location.reload();
     },
   });
 }
