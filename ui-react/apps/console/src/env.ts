@@ -2,6 +2,7 @@ export interface ClientConfig {
   version: string;
   enterprise: boolean;
   cloud: boolean;
+  announcements: boolean;
   onboardingUrl: string;
 }
 
@@ -9,6 +10,7 @@ const defaultConfig: ClientConfig = {
   version: "",
   enterprise: false,
   cloud: false,
+  announcements: false,
   onboardingUrl: "",
 };
 
