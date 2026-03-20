@@ -105,7 +105,7 @@ export default function WelcomeWizard({ open, onClose }: WelcomeWizardProps) {
       </div>
 
       {/* Scrollable content */}
-      <main className="flex-1 overflow-y-auto px-6 min-h-0">
+      <main className="flex-auto overflow-y-auto px-6 min-h-0">
         {step === 1 && <WizardStep1Welcome />}
         {step === 2 && (
           <WizardStep2Install onDeviceDetected={() => setStep(3)} />
