@@ -40,6 +40,7 @@ func convertSession(doc mongoSession) *entity.Session {
 
 	e := &entity.Session{
 		ID:            doc.UID,
+		NamespaceID:   doc.TenantID,
 		DeviceID:      doc.DeviceUID,
 		Username:      doc.Username,
 		IPAddress:     doc.IPAddress,
