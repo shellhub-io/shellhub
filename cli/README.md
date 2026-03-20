@@ -1,10 +1,9 @@
 # CLI Service
 
-CLI Service is the backend system for the scripts presented on bin here you can see the implementation
-of the functions to add, delete and modify data on the database.
+The CLI Service is the backend component that powers the scripts available in [bin](../bin/). It implements the logic for creating, updating, and deleting data in the database.
 
 ## Disclaimer
 
-This service running in background and is not supposed to be accessed directly unless you know what are you doing.
+This service runs in the background and is not intended to be accessed directly unless you know what you are doing.
 
-To access this service in the right way, we provide a help documentation that can be accessed here: [How to managing your data](https://docs.shellhub.io/self-hosted/administration).
+To interact with this service properly, use the provided CLI tools and refer to the official documentation: [How to manage your data](https://docs.shellhub.io/self-hosted/administration).
