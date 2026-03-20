@@ -60,7 +60,7 @@ jobs:
         if: steps.filter.outputs[matrix.app] == 'true'
         working-directory: ui-react
         run: |
-          npx @redocly/cli@1.0.0-beta.100 bundle ../openapi/spec/cloud-openapi.yaml -o /tmp/openapi.json --force
+          npx @redocly/cli@1.0.0-beta.100 bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w ${{ matrix.workspace }}
 
       - name: Unit test [${{ matrix.app }}]
