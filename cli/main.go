@@ -63,7 +63,13 @@ func main() {
 	case "mongo":
 		store, err = mongo.NewStore(ctx, cfg.MongoURI, cache)
 	case "postgres":
-		uri := pg.URI(cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUsername, cfg.PostgresPassword, cfg.PostgresDatabase)
+		uri := pg.URI(
+			cfg.PostgresHost,
+			cfg.PostgresPort,
+			cfg.PostgresUsername,
+			cfg.PostgresPassword,
+			cfg.PostgresDatabase,
+		)
 		store, err = pg.New(ctx, uri, pgoptions.Log("INFO", true)) // TODO: Log envs
 	default:
 		log.WithField("database", cfg.Database).Fatal("invalid database")
@@ -76,8 +82,11 @@ func main() {
 	service := services.NewService(store)
 
 	rootCmd := &cobra.Command{Use: "cli"}
-	rootCmd.AddCommand(cmd.UserCommands(service))
-	rootCmd.AddCommand(cmd.NamespaceCommands(service))
+	rootCmd.AddCommand(
+		cmd.UserCommands(service),
+		cmd.NamespaceCommands(service),
+	)
+
 	// WARN: this is deprecated and will be removed soon
 	cmd.DeprecatedCommands(rootCmd, service)
 
