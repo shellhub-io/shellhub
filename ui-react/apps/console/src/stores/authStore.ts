@@ -149,7 +149,7 @@ export const useAuthStore = create<AuthState>()(
             mfaEnabled: user.mfa || false,
           });
         } catch {
-          /* session expired — interceptor handles redirect */
+          set({ isAdmin: false });
         }
       },
 
