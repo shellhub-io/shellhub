@@ -86,10 +86,17 @@ export default function Login() {
       await login(username, password);
 
       const state = useAuthStore.getState();
+      const params = new URLSearchParams(location.search);
+      const raw = params.get("redirect");
+      const redirect = raw?.startsWith("/") && !raw.startsWith("//") ? raw : null;
+
       if (state.mfaToken) {
-        void navigate("/mfa-login");
+        const mfaPath = redirect
+          ? `/mfa-login?redirect=${encodeURIComponent(redirect)}`
+          : "/mfa-login";
+        void navigate(mfaPath);
       } else {
-        void navigate("/dashboard");
+        void navigate(redirect || "/dashboard");
       }
     } catch (err) {
       if (!isSdkError(err)) {
