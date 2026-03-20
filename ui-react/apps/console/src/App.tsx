@@ -22,7 +22,7 @@ const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
 const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
-const Sessions = lazy(() => import("./pages/Sessions"));
+const Sessions = lazy(() => import("./pages/sessions"));
 const SessionDetails = lazy(() => import("./pages/SessionDetails"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PublicKeys = lazy(() => import("./pages/public-keys"));
@@ -44,7 +44,6 @@ export default function App() {
           <Route element={<SetupGuard />}>
             <Route element={<LoginLayout />}>
               <Route path="/login" element={<Login />} />
-              <Route path="/confirm-account" element={<ConfirmAccount />} />
               <Route path="/mfa-login" element={<MfaLogin />} />
               <Route path="/mfa-recover" element={<MfaRecover />} />
               <Route path="/mfa-reset-request" element={<MfaResetRequest />} />
