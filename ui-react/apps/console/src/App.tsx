@@ -16,6 +16,9 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import NamespaceGuard from "./components/common/NamespaceGuard";
 import SetupGuard from "./components/common/SetupGuard";
 import SignUpGuard from "./components/common/SignUpGuard";
+import AdminRoute from "./components/common/AdminRoute";
+import AdminLayout from "./components/layout/AdminLayout";
+import LicenseGuard from "./components/common/LicenseGuard";
 
 const SignUp = lazy(() => import("./pages/SignUp"));
 const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
@@ -35,6 +38,8 @@ const Profile = lazy(() => import("./pages/Profile"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminLicense = lazy(() => import("./pages/admin/License"));
 
 export default function App() {
   return (
@@ -64,6 +69,21 @@ export default function App() {
               )}
             </Route>
             <Route element={<ProtectedRoute />}>
+              {/* Admin panel */}
+              <Route element={<AdminRoute />}>
+                <Route element={<AdminLayout />}>
+                  <Route path="/admin/license" element={<AdminLicense />} />
+                  <Route element={<LicenseGuard />}>
+                    <Route
+                      path="/admin"
+                      element={<Navigate to="/admin/dashboard" replace />}
+                    />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  </Route>
+                </Route>
+              </Route>
+
+              {/* User console */}
               <Route element={<NamespaceGuard />}>
                 <Route element={<AppLayout />}>
                   <Route
