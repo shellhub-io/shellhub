@@ -15,13 +15,13 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@hey-api/openapi-ts": "^0.94.1",
-    "asciinema-player": "^3.9.0",
     "@shellhub/design-system": "*",
     "@tanstack/react-query": "^5.90.21",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-web-links": "^0.12.0",
     "@xterm/addon-webgl": "^0.19.0",
     "@xterm/xterm": "^6.0.0",
+    "asciinema-player": "^3.9.0",
     "axios": "^1.7.9",
     "font-logos": "^1.3.0",
     "node-rsa": "^1.1.1",
@@ -38,6 +38,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.0",
+    "ansi-styles": "^5.2.0",
     "jsdom": "^28.1.0",
     "vitest": "^4.0.18"
   }
