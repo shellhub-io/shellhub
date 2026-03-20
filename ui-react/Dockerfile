@@ -32,7 +32,7 @@ RUN npm install -g @redocly/cli@1.0.0-beta.100
 WORKDIR /spec
 COPY openapi/spec ./spec
 COPY openapi/redocly.yaml .
-RUN redocly bundle spec/cloud-openapi.yaml -o openapi.json
+RUN redocly bundle spec/openapi.yaml -o openapi.json
 
 FROM base AS builder
 
