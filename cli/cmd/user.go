@@ -1,25 +1,30 @@
 package cmd
 
 import (
+	"fmt"
+	"text/tabwriter"
+
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/spf13/cobra"
 )
 
-// UserCommands is a factory function that creates and returns a new command with
-// create, update and delete subcommands dedicated to user management. It receives a service
-// for handling business logic.
+// UserCommands creates and returns a Cobra command for user management.
+// It registers user-related subcommands and uses the provided service
+// to handle the underlying business logic.
 func UserCommands(service services.Services) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "user",
-		Short: "Manage users",
-		Long:  `Provides an interface for managing users in the system, such as creating, updating, and deleting user accounts.`,
+		Short: "Manage user accounts",
+		Long:  `Manage user accounts in the system, including creating, listing, deleting, and other user-related operations.`,
 	}
 
-	cmd.AddCommand(userCreate(service))
-	cmd.AddCommand(userResetPassword(service))
-	cmd.AddCommand(userDelete(service))
-	cmd.AddCommand(userList(service))
+	cmd.AddCommand(
+		userCreate(service),
+		userResetPassword(service),
+		userDelete(service),
+		userList(service),
+	)
 
 	return cmd
 }
@@ -30,9 +35,9 @@ func userCreate(service services.Services) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create <username> <password> <email>",
 		Args:  cobra.ExactArgs(3),
-		Short: "Create a user.",
-		Long: `Creates a new user in the system using the provided username, password, and email.
-The username must be unique, and the password should meet the system's security requirements.`,
+		Short: "Create a user",
+		Long: `Create a new user with the specified username, password, and email.
+The username must be unique, and the password must meet the system's security requirements.`,
 		Example: `cli user create john_doe Secret123!- john.doe@test.com
 cli user create john_doe Secret123!- john.doe@test.com --admin`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -66,7 +71,7 @@ func userResetPassword(service services.Services) *cobra.Command {
 	return &cobra.Command{
 		Use:     "password <username> <password>",
 		Args:    cobra.ExactArgs(2),
-		Short:   "Change user's password",
+		Short:   "Change a user's password",
 		Long:    `Updates the password for an existing user identified by the given username.`,
 		Example: `cli user password john_doe Secret123!-`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -117,18 +122,11 @@ func userDelete(service services.Services) *cobra.Command {
 func userList(service services.Services) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
-		Short: "Lists all users",
-		Long:  "Lists all users across all namespaces",
-		Example: `# List all users
-cli user list
-
-# Show only the first 5 users
-cli user list | head -n 6
-
-# Show only the last 5 users
+		Short: "List all users",
+		Long:  "List all users in the system",
+		Example: `cli user list
+cli user list | head -n 5
 cli user list | tail -n 5
-
-# Search users containing 'admin'
 cli user list | grep admin`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			users, err := service.UserList(cmd.Context())
@@ -137,15 +135,21 @@ cli user list | grep admin`,
 			}
 
 			if len(users) == 0 {
-				cmd.Println(
-					"You don't have any users yet. Try `./bin/cli user create -h`",
-					"or use the UI to add users.",
-				)
+				cmd.Println("No users found. Use `cli user create --help` for more information.")
 
 				return nil
 			}
 
-			printUsersTable(cmd.OutOrStdout(), users)
+			w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
+			fmt.Fprintln(w, "USERNAME\tEMAIL\tROLE")
+			for _, u := range users {
+				role := "user"
+				if u.Admin {
+					role = "admin"
+				}
+				fmt.Fprintf(w, "%s\t%s\t%s\n", u.Username, u.Email, role)
+			}
+			w.Flush()
 
 			return nil
 		},
