@@ -3,8 +3,10 @@ package app
 import (
 	"context"
 	"errors"
+	"net/http"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v4"
@@ -120,13 +122,31 @@ func (s *Server) Setup(ctx context.Context) error {
 		}
 
 		migrator := migrate.New(mongoStore.(*mongo.Store).GetDB(), pgStore.(*pg.Pg).Driver())
-		if err := migrator.Run(ctx); err != nil {
-			log.WithError(err).Fatal("migration failed")
+
+		var status atomic.Value
+		status.Store("running")
+		go func() {
+			if err := migrator.Run(ctx); err != nil {
+				log.WithError(err).Error("migration failed")
+				status.Store("failed")
+
+				return
+			}
+
+			log.Info("Migration completed successfully")
+			status.Store("completed")
+		}()
+
+		e := echo.New()
+		e.GET("/api/migration/status", func(c echo.Context) error {
+			return c.JSON(200, map[string]string{"status": status.Load().(string)})
+		})
+
+		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.WithError(err).Fatal("migration status server failed")
 		}
 
-		log.Info("Migration completed successfully")
-
-		os.Exit(0)
+		return nil
 	default:
 		log.WithField("database", s.env.Database).Error("invalid database")
 
