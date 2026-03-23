@@ -1,10 +1,8 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useNamespaces, useNamespace } from "../../hooks/useNamespaces";
 import { useSwitchNamespace } from "../../hooks/useNamespaceMutations";
 import { useAuthStore } from "../../stores/authStore";
-import { getConfig } from "../../env";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 
@@ -17,7 +15,6 @@ export default function NamespaceSelector() {
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   useClickOutside(containerRef, () => setOpen(false));
 
@@ -32,11 +29,7 @@ export default function NamespaceSelector() {
 
   const handleCreate = () => {
     setOpen(false);
-    if (getConfig().cloud || getConfig().enterprise) {
-      void navigate("/dashboard");
-    } else {
-      setCreateOpen(true);
-    }
+    setCreateOpen(true);
   };
 
   const initials = (name: string) =>
