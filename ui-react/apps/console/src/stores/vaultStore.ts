@@ -12,6 +12,7 @@ import {
 import { getVaultBackend } from "@/utils/vault-backend-factory";
 import type { IVaultBackend } from "@/utils/vault-backend";
 import { useAuthStore } from "@/stores/authStore";
+import { generateRandomUUID } from "@/utils/random-uuid";
 
 function getBackend() {
   const { user, tenant } = useAuthStore.getState();
@@ -71,7 +72,7 @@ function checkDuplicates(
 function migrateLegacyKeys(legacy: LegacyPrivateKey[]): VaultKeyEntry[] {
   const now = new Date().toISOString();
   return legacy.map((entry) => ({
-    id: crypto.randomUUID(),
+    id: generateRandomUUID(),
     name: entry.name,
     data: entry.data,
     hasPassphrase: entry.hasPassphrase,
@@ -198,7 +199,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     const now = new Date().toISOString();
     const newKey: VaultKeyEntry = {
       ...entry,
-      id: crypto.randomUUID(),
+      id: generateRandomUUID(),
       createdAt: now,
       updatedAt: now,
     };
