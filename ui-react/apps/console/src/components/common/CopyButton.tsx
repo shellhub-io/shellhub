@@ -29,6 +29,7 @@ export default function CopyButton({
   if (showLabel) {
     return (
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation();
           handleCopy();
@@ -60,6 +61,7 @@ export default function CopyButton({
 
   return (
     <button
+      type="button"
       onClick={(e) => {
         e.stopPropagation();
         handleCopy();
