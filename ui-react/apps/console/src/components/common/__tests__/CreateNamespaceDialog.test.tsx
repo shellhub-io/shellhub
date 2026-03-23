@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
 
@@ -8,13 +8,36 @@ vi.mock("@/hooks/useFocusTrap", () => ({
   useFocusTrap: vi.fn(),
 }));
 
+vi.mock("@/env", () => ({
+  getConfig: vi.fn(),
+}));
+
+vi.mock("@/hooks/useNamespaceMutations", () => ({
+  useCreateNamespace: vi.fn(),
+}));
+
 // CopyButton calls navigator.clipboard — stub it to avoid jsdom errors
 Object.defineProperty(navigator, "clipboard", {
   value: { writeText: vi.fn().mockResolvedValue(undefined) },
   configurable: true,
 });
 
+import { getConfig } from "@/env";
+import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
 import CreateNamespaceDialog from "../CreateNamespaceDialog";
+
+const mockGetConfig = vi.mocked(getConfig);
+const mockUseCreateNamespace = vi.mocked(useCreateNamespace);
+
+beforeEach(() => {
+  // Default to CE (no cloud/enterprise features)
+  mockGetConfig.mockReturnValue({ cloud: false, enterprise: false, version: "", onboardingUrl: "" });
+  mockUseCreateNamespace.mockReturnValue({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    error: null,
+  } as unknown as ReturnType<typeof useCreateNamespace>);
+});
 
 afterEach(cleanup);
 
@@ -164,5 +187,127 @@ describe("CreateNamespaceDialog", () => {
       const link = screen.getByRole("link", { name: /administration guide/i });
       expect(link).toHaveAttribute("target", "_blank");
     });
+  });
+});
+
+describe("CreateNamespaceDialog (cloud/enterprise)", () => {
+  beforeEach(() => {
+    mockGetConfig.mockReturnValue({ cloud: false, enterprise: true, version: "", onboardingUrl: "" });
+  });
+
+  it("renders the creation form instead of CLI instructions", () => {
+    renderDialog(true);
+    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    expect(screen.queryByText(/Community Edition uses the CLI/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the name input and Create button", () => {
+    renderDialog(true);
+    expect(screen.getByPlaceholderText("my-namespace")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create" })).toBeInTheDocument();
+  });
+
+  it("Create button is disabled when name is fewer than 3 characters", () => {
+    renderDialog(true);
+    expect(screen.getByRole("button", { name: "Create" })).toBeDisabled();
+  });
+
+  it("Create button is disabled while mutation is pending", () => {
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: true,
+      error: null,
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    renderDialog(true);
+    fireEvent.change(screen.getByPlaceholderText("my-namespace"), { target: { value: "my-ns" } });
+    // When pending the button renders a spinner with no text; query by type
+    expect(document.querySelector("button[type='submit']")).toBeDisabled();
+  });
+
+  it("shows a validation error when name is too short on submit", async () => {
+    renderDialog(true);
+
+    fireEvent.change(screen.getByPlaceholderText("my-namespace"), { target: { value: "ab" } });
+    // Button is disabled for names < 3 chars; submit the form directly
+    fireEvent.submit(screen.getByPlaceholderText("my-namespace").closest("form")!);
+
+    await waitFor(() =>
+      expect(screen.getByText("Name must be at least 3 characters")).toBeInTheDocument(),
+    );
+  });
+
+  it("shows a validation error for names with invalid characters", async () => {
+    const user = userEvent.setup();
+    renderDialog(true);
+
+    const input = screen.getByPlaceholderText("my-namespace");
+    await user.type(input, "-badname");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    expect(
+      screen.getByText(/Only lowercase letters, numbers, and hyphens/i),
+    ).toBeInTheDocument();
+  });
+
+  it("calls mutateAsync with the namespace name on valid submission", async () => {
+    const mutateAsync = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+      error: null,
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    const user = userEvent.setup();
+    renderDialog(true);
+
+    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith("my-ns"));
+  });
+
+  it("forces lowercase on input", async () => {
+    const user = userEvent.setup();
+    renderDialog(true);
+
+    await user.type(screen.getByPlaceholderText("my-namespace"), "MyNS");
+    expect(screen.getByPlaceholderText("my-namespace")).toHaveValue("myns");
+  });
+
+  it("shows the mutation error message when creation fails", async () => {
+    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(new Error("name already taken"));
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+      error: new Error("name already taken"),
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    const user = userEvent.setup();
+    renderDialog(true);
+
+    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("name already taken")).toBeInTheDocument(),
+    );
+  });
+
+  it("calls onClose after successful creation", async () => {
+    const mutateAsync = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+      error: null,
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    const user = userEvent.setup();
+    const { onClose } = renderDialog(true);
+
+    await user.type(screen.getByPlaceholderText("my-namespace"), "my-ns");
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
   });
 });
