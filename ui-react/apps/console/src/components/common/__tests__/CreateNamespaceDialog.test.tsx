@@ -36,6 +36,7 @@ beforeEach(() => {
     mutateAsync: vi.fn(),
     isPending: false,
     error: null,
+    reset: vi.fn(),
   } as unknown as ReturnType<typeof useCreateNamespace>);
 });
 
@@ -217,6 +218,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
       mutateAsync: vi.fn(),
       isPending: true,
       error: null,
+      reset: vi.fn(),
     } as unknown as ReturnType<typeof useCreateNamespace>);
 
     renderDialog(true);
@@ -256,6 +258,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
       mutateAsync,
       isPending: false,
       error: null,
+      reset: vi.fn(),
     } as unknown as ReturnType<typeof useCreateNamespace>);
 
     const user = userEvent.setup();
@@ -281,6 +284,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
       mutateAsync,
       isPending: false,
       error: new Error("name already taken"),
+      reset: vi.fn(),
     } as unknown as ReturnType<typeof useCreateNamespace>);
 
     const user = userEvent.setup();
@@ -294,12 +298,32 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     );
   });
 
+  it("clears the mutation error when the user types in the input", async () => {
+    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(new Error("name already taken"));
+    const reset = vi.fn();
+    mockUseCreateNamespace.mockReturnValue({
+      mutateAsync,
+      isPending: false,
+      error: new Error("name already taken"),
+      reset,
+    } as unknown as ReturnType<typeof useCreateNamespace>);
+
+    const user = userEvent.setup();
+    renderDialog(true);
+
+    // Type to trigger onChange
+    await user.type(screen.getByPlaceholderText("my-namespace"), "a");
+
+    expect(reset).toHaveBeenCalled();
+  });
+
   it("calls onClose after successful creation", async () => {
     const mutateAsync = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
       error: null,
+      reset: vi.fn(),
     } as unknown as ReturnType<typeof useCreateNamespace>);
 
     const user = userEvent.setup();

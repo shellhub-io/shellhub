@@ -66,6 +66,7 @@ function CloudForm({ onClose }: { onClose: () => void }) {
             onChange={(e) => {
               setName(e.target.value.toLowerCase());
               setValidationError(null);
+              createNs.reset();
             }}
             placeholder="my-namespace"
             maxLength={30}
