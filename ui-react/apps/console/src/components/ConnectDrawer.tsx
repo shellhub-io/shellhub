@@ -204,7 +204,7 @@ export default function ConnectDrawer({
             </button>
             <button
               type="submit"
-              onClick={handleConnect}
+              form={`connect-form-${deviceUid}`}
               disabled={!canConnect}
               className="px-5 py-2.5 bg-accent-green/90 hover:bg-accent-green text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
@@ -214,7 +214,7 @@ export default function ConnectDrawer({
           </>
         )}
       >
-        <form onSubmit={handleConnect} className="space-y-5">
+        <form id={`connect-form-${deviceUid}`} onSubmit={handleConnect} className="space-y-5">
           {/* SSHID helper */}
           <div className="bg-card border border-border rounded-lg p-3.5">
             <p className={LABEL}>Connect via terminal</p>
