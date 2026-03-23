@@ -32,6 +32,8 @@ exit_if_not_running() {
 
 set -o allexport
 
+. ./.env
+
 env_override=${ENV_OVERRIDE:-./.env.override}
 if [ -f "$env_override" ]; then
     echo "INFO: Loading $env_override" >&2
@@ -51,8 +53,11 @@ COMPOSE_FILE="docker-compose.yml"
 
 SHELLHUB_DATABASE=${SHELLHUB_DATABASE:-mongo}
 case "$SHELLHUB_DATABASE" in
-    mongo|postgres|migrate)
+    mongo|postgres)
         COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SHELLHUB_DATABASE}.yml"
+        ;;
+    migrate)
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.mongo.yml:docker-compose.postgres.yml"
         ;;
     *)
         echo "⚠️ WARNING: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Defaulting to mongodb."
