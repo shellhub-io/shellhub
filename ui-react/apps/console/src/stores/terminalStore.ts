@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { generateRandomUUID } from "@/utils/random-uuid";
 
 export type TerminalWindowState = "docked" | "minimized" | "fullscreen";
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
@@ -49,17 +50,12 @@ function demoteOthers(
   });
 }
 
-function generateId(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(8));
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 export const useTerminalStore = create<TerminalState>((set) => ({
   sessions: [],
   reconnectTarget: null,
 
   open: (params) => {
-    const id = generateId();
+    const id = generateRandomUUID();
     set((state) => ({
       reconnectTarget: null,
       sessions: [
