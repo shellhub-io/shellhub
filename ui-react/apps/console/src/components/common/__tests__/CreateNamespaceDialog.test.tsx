@@ -311,3 +311,15 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
   });
 });
+
+describe("CreateNamespaceDialog (cloud: true, enterprise: false)", () => {
+  beforeEach(() => {
+    mockGetConfig.mockReturnValue({ cloud: true, enterprise: false, version: "", onboardingUrl: "" });
+  });
+
+  it("renders the creation form (cloud branch of isCloud)", () => {
+    renderDialog(true);
+    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    expect(screen.queryByText(/Community Edition uses the CLI/i)).not.toBeInTheDocument();
+  });
+});

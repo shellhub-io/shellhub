@@ -29,6 +29,7 @@ const rules = [
 ];
 
 function CloudForm({ onClose }: { onClose: () => void }) {
+  const inputId = useId();
   const [name, setName] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const createNs = useCreateNamespace();
@@ -54,11 +55,12 @@ function CloudForm({ onClose }: { onClose: () => void }) {
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
       <div>
-        <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
+        <label htmlFor={inputId} className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
           Namespace Name
         </label>
         <div className="flex gap-2">
           <input
+            id={inputId}
             type="text"
             value={name}
             onChange={(e) => {
