@@ -49,12 +49,17 @@ function demoteOthers(
   });
 }
 
+function generateId(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export const useTerminalStore = create<TerminalState>((set) => ({
   sessions: [],
   reconnectTarget: null,
 
   open: (params) => {
-    const id = crypto.randomUUID();
+    const id = generateId();
     set((state) => ({
       reconnectTarget: null,
       sessions: [
