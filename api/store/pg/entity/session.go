@@ -48,8 +48,6 @@ func SessionFromModel(model *models.Session) *Session {
 		sessionType = "shell"
 	}
 
-	now := clock.Now()
-
 	session := &Session{
 		ID:            model.UID,
 		NamespaceID:   model.TenantID,
@@ -65,8 +63,7 @@ func SessionFromModel(model *models.Session) *Session {
 		Term:          model.Term,
 		Longitude:     model.Position.Longitude,
 		Latitude:      model.Position.Latitude,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		UpdatedAt:     clock.Now(),
 	}
 
 	return session
