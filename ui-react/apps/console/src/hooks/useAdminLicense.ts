@@ -4,6 +4,7 @@ import {
   getLicenseQueryKey,
 } from "../client/@tanstack/react-query.gen";
 import { useAuthStore } from "../stores/authStore";
+import { isSdkError } from "../api/errors";
 
 export { getLicenseQueryKey };
 
@@ -14,6 +15,9 @@ export function useAdminLicense() {
     ...getLicenseOptions(),
     enabled: isAdmin,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
+    // 400 means no license stored — deterministic, no point retrying.
+    retry: (count, err) => isSdkError(err) && err.status === 400 ? false : count < 1,
+    // Prevent refetch when the OS file picker closes and returns focus to the window.
+    refetchOnWindowFocus: false,
   });
 }

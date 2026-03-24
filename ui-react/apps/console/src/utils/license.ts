@@ -31,7 +31,7 @@ export function getDisplayFeatures(features: Features): DisplayFeature[] {
 }
 
 export function validateLicenseFile(file: File): string | null {
-  if (!file.name.endsWith(".dat")) return "Only .dat files are allowed";
+  if (!file.name.toLowerCase().endsWith(".dat")) return "Only .dat files are allowed";
   if (file.size >= 32 * 1024) return "File must be smaller than 32 KB";
   return null;
 }
