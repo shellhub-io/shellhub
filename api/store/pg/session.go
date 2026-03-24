@@ -99,6 +99,7 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 	session.TenantID = device.TenantID
 
 	e := entity.SessionFromModel(&session)
+	e.CreatedAt = clock.Now()
 	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
 		return "", fromSQLError(err)
 	}
@@ -110,7 +111,15 @@ func (pg *Pg) SessionUpdate(ctx context.Context, session *models.Session) error 
 	db := pg.GetConnection(ctx)
 
 	e := entity.SessionFromModel(session)
-	result, err := db.NewUpdate().Model(e).OmitZero().Where("id = ?", e.ID).Exec(ctx)
+	result, err := db.NewUpdate().
+		Model(e).
+		OmitZero().
+		ExcludeColumn("closed", "authenticated", "recorded").
+		Set("closed = ?", e.Closed).
+		Set("authenticated = ?", e.Authenticated).
+		Set("recorded = ?", e.Recorded).
+		Where("id = ?", e.ID).
+		Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}

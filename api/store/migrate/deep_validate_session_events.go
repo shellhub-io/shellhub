@@ -171,7 +171,7 @@ func convertSessionEventData(data any) string {
 		return ""
 	}
 
-	b, err := json.Marshal(data)
+	b, err := json.Marshal(bsonToJSON(data))
 	if err != nil {
 		return ""
 	}

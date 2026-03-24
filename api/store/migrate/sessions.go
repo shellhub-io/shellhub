@@ -63,10 +63,38 @@ func convertSession(doc mongoSession) *entity.Session {
 	return e
 }
 
+// bsonToJSON converts BSON types (bson.D, bson.A) into standard Go types
+// (map, slice) so that json.Marshal produces the expected JSON format.
+//
+// Without this, json.Marshal(bson.D{{"key","val"}}) produces
+// [{"Key":"key","Value":"val"}] instead of {"key":"val"}, because bson.D
+// is []bson.E and bson.E has exported Key/Value fields with no custom
+// MarshalJSON in the v1 driver.
+func bsonToJSON(v any) any {
+	switch val := v.(type) {
+	case bson.D:
+		m := make(map[string]any, len(val))
+		for _, e := range val {
+			m[e.Key] = bsonToJSON(e.Value)
+		}
+
+		return m
+	case bson.A:
+		a := make([]any, len(val))
+		for i, e := range val {
+			a[i] = bsonToJSON(e)
+		}
+
+		return a
+	default:
+		return v
+	}
+}
+
 func convertSessionEvent(doc mongoSessionEvent) *entity.SessionEvent {
 	var data string
 	if doc.Data != nil {
-		if dataBytes, err := json.Marshal(doc.Data); err == nil {
+		if dataBytes, err := json.Marshal(bsonToJSON(doc.Data)); err == nil {
 			data = string(dataBytes)
 		}
 	}

@@ -57,7 +57,7 @@ func TestSessionFromModel(t *testing.T) {
 				assert.Equal(t, "xterm-256color", result.Term)
 				assert.InDelta(t, 1.23, result.Longitude, 0.001)
 				assert.InDelta(t, 4.56, result.Latitude, 0.001)
-				assert.Equal(t, now, result.CreatedAt)
+				assert.True(t, result.CreatedAt.IsZero())
 				assert.Equal(t, now, result.UpdatedAt)
 			},
 		},
