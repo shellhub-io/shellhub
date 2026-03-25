@@ -24,6 +24,7 @@ Object.defineProperty(navigator, "clipboard", {
 
 import { getConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
+import { ClipboardProvider } from "../ClipboardProvider";
 import CreateNamespaceDialog from "../CreateNamespaceDialog";
 
 const mockGetConfig = vi.mocked(getConfig);
@@ -43,7 +44,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 function renderDialog(open: boolean, onClose = vi.fn()) {
-  return { onClose, ...render(<CreateNamespaceDialog open={open} onClose={onClose} />) };
+  return { onClose, ...render(<ClipboardProvider><CreateNamespaceDialog open={open} onClose={onClose} /></ClipboardProvider>) };
 }
 
 describe("CreateNamespaceDialog", () => {
