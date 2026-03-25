@@ -2,36 +2,34 @@ import { Link } from "react-router-dom";
 import { CpuChipIcon } from "@heroicons/react/24/outline";
 import DistroIcon from "./DistroIcon";
 
-interface DeviceChipProps {
-  uid: string;
+interface DeviceChipBaseProps {
   name: string;
   online?: boolean;
   osId?: string;
+}
+
+interface DeviceChipLinkProps extends DeviceChipBaseProps {
+  uid: string;
+  disableLink?: false;
   onClick?: (e: React.MouseEvent) => void;
 }
 
-export default function DeviceChip({
-  uid,
-  name,
-  online,
-  osId,
-  onClick,
-}: DeviceChipProps) {
-  return (
-    <Link
-      to={`/devices/${uid}`}
-      onClick={onClick}
-      className="
-        inline-flex items-center gap-1.5
-        px-2 py-1
-        bg-surface border border-border
-        rounded-md
-        text-xs font-mono font-medium text-text-secondary
-        hover:text-text-primary hover:border-primary/40 hover:bg-primary/5
-        transition-all duration-150
-        group/chip
-      "
-    >
+interface DeviceChipNoLinkProps extends DeviceChipBaseProps {
+  uid?: string;
+  disableLink: true;
+  onClick?: never;
+}
+
+type DeviceChipProps = DeviceChipLinkProps | DeviceChipNoLinkProps;
+
+const BASE
+  = "inline-flex items-center gap-1.5 px-2 py-1 bg-surface border border-border rounded-md text-xs font-mono font-medium text-text-secondary";
+
+export default function DeviceChip(props: DeviceChipProps) {
+  const { name, online, osId } = props;
+
+  const inner = (
+    <>
       {osId
         ? (
           <DistroIcon
@@ -48,7 +46,6 @@ export default function DeviceChip({
 
       <span className="truncate max-w-[16ch]">{name}</span>
 
-      {/* online dot */}
       {online !== undefined && (
         <span
           className={`w-1.5 h-1.5 rounded-full shrink-0 ${
@@ -58,6 +55,20 @@ export default function DeviceChip({
           }`}
         />
       )}
+    </>
+  );
+
+  if (props.disableLink) {
+    return <span className={BASE}>{inner}</span>;
+  }
+
+  return (
+    <Link
+      to={`/devices/${props.uid}`}
+      onClick={props.onClick}
+      className={`${BASE} hover:text-text-primary hover:border-primary/40 hover:bg-primary/5 transition-all duration-150 group/chip`}
+    >
+      {inner}
     </Link>
   );
 }
