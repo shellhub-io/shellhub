@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import ErrorBoundary from "./components/common/ErrorBoundary";
+import { ClipboardProvider } from "./components/common/ClipboardProvider";
 import { loadConfig } from "./env";
 import "./api/fetchInterceptors";
 import "@xterm/xterm/css/xterm.css";
@@ -29,9 +30,11 @@ void loadConfig().then(() => {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>
-          <BrowserRouter basename="/">
-            <App />
-          </BrowserRouter>
+          <ClipboardProvider>
+            <BrowserRouter basename="/">
+              <App />
+            </BrowserRouter>
+          </ClipboardProvider>
         </ErrorBoundary>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

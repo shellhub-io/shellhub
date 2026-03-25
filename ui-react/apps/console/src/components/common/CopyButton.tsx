@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { useCopy } from "./ClipboardProvider";
 
 const sizes = {
   sm: { button: "p-1 rounded", icon: "w-3.5 h-3.5" },
@@ -17,14 +17,8 @@ export default function CopyButton({
   showLabel?: boolean;
   className?: string;
 }) {
-  const [copied, setCopied] = useState(false);
+  const { copy, copied } = useCopy();
   const s = sizes[size];
-
-  const handleCopy = () => {
-    void navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
 
   if (showLabel) {
     return (
@@ -32,7 +26,7 @@ export default function CopyButton({
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          handleCopy();
+          copy(text);
         }}
         className={`shrink-0 px-3 py-1.5 rounded-md text-2xs font-semibold transition-all ${
           copied
@@ -64,7 +58,7 @@ export default function CopyButton({
       type="button"
       onClick={(e) => {
         e.stopPropagation();
-        handleCopy();
+        copy(text);
       }}
       className={`${s.button} text-text-muted hover:text-text-primary hover:bg-hover-medium transition-all ${className}`}
       title="Copy"
