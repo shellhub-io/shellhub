@@ -32,6 +32,7 @@ export function ClipboardProvider({ children }: { children: ReactNode }) {
   const descId = useId();
 
   const triggerWarning = useCallback(() => setShowDialog(true), []);
+  const handleClose = useCallback(() => setShowDialog(false), []);
   const ctxValue = useMemo(() => ({ triggerWarning }), [triggerWarning]);
 
   return (
@@ -40,7 +41,7 @@ export function ClipboardProvider({ children }: { children: ReactNode }) {
 
       <BaseDialog
         open={showDialog}
-        onClose={() => setShowDialog(false)}
+        onClose={handleClose}
         size="sm"
         aria-labelledby={titleId}
         aria-describedby={descId}
