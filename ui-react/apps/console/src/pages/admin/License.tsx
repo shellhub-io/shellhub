@@ -198,7 +198,8 @@ function LicenseUpload() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    selectFile(e.target.files?.[0] ?? null);
+    const selected = e.target.files?.[0];
+    if (selected) selectFile(selected);
   };
 
   const handleDrop = (e: React.DragEvent) => {
