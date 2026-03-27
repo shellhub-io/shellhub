@@ -4,9 +4,11 @@
 # The CLI service contains a set of commands to manage users, namespaces and members.
 
 . "$(dirname "$0")/utils"
-
 cd $(dirname $(readlink_f $0))/../
-
 exit_if_not_running
 
-exec docker compose exec cli /cli "$@"
+# If stdout is NOT a terminal (it's a pipe/file), use -T
+TTY_FLAG=""
+[ ! -t 1 ] && TTY_FLAG="-T"
+
+exec docker compose exec $TTY_FLAG cli /cli "$@"
