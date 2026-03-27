@@ -219,18 +219,46 @@ export default function ConnectDrawer({
           <div className="bg-card border border-border rounded-lg p-3.5">
             <p className={LABEL}>Connect via terminal</p>
             <div className="flex items-center gap-2">
-              <code className="text-xs font-mono text-accent-cyan flex-1 truncate">
-                ssh
-                {" "}
-                {sshid}
+              <code className="text-xs font-mono flex-1 truncate">
+                <span className="text-accent-cyan">ssh </span>
+                {state.username.trim() ? (
+                  <span className="text-accent-cyan">
+                    {state.username.trim()}
+                    @
+                    {sshid}
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-text-muted italic">&lt;username&gt;</span>
+                    <span className="text-accent-cyan">
+                      @
+                      {sshid}
+                    </span>
+                  </>
+                )}
               </code>
-              <CopyButton text={`ssh ${sshid}`} />
+              <CopyButton
+                text={
+                  state.username.trim()
+                    ? `ssh ${state.username.trim()}@${sshid}`
+                    : `ssh <username>@${sshid}`
+                }
+              />
             </div>
+            {state.username.trim() ? (
+              <p className="text-2xs text-accent-green mt-2">
+                Command ready — copy and run in your terminal.
+              </p>
+            ) : (
+              <p className="text-2xs text-text-muted mt-2">
+                Enter your device OS username below to complete this command.
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-border" />
-            <span className="text-2xs text-text-muted font-mono uppercase tracking-wider">
+            <span className="text-2xs text-text-secondary font-medium uppercase tracking-wider">
               or connect via web
             </span>
             <div className="flex-1 h-px bg-border" />
