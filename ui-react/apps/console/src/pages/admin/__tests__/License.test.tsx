@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import AdminLicense from "../License";
+import { ClipboardProvider } from "../../../components/common/ClipboardProvider";
 import { useAdminLicense } from "../../../hooks/useAdminLicense";
 import { useUploadLicense } from "../../../hooks/useUploadLicense";
 
@@ -56,9 +57,11 @@ function setupHooks({
 
 function renderPage() {
   const result = render(
-    <MemoryRouter>
-      <AdminLicense />
-    </MemoryRouter>,
+    <ClipboardProvider>
+      <MemoryRouter>
+        <AdminLicense />
+      </MemoryRouter>
+    </ClipboardProvider>,
   );
   const fileInput = () => result.container.querySelector<HTMLInputElement>("#license-file")!;
   return { ...result, fileInput };
