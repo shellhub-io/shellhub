@@ -41,6 +41,8 @@ const SecureVault = lazy(() => import("./pages/secure-vault"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminLicense = lazy(() => import("./pages/admin/License"));
 const AdminUnauthorized = lazy(() => import("./pages/admin/Unauthorized"));
+const AdminUsers = lazy(() => import("./pages/admin/users"));
+const AdminUserDetails = lazy(() => import("./pages/admin/users/UserDetails"));
 
 export default function App() {
   return (
@@ -59,7 +61,10 @@ export default function App() {
               <Route element={<SignUpGuard />}>
                 <Route path="/sign-up" element={<SignUp />} />
                 <Route path="/confirm-account" element={<ConfirmAccount />} />
-                <Route path="/validation-account" element={<ValidationAccount />} />
+                <Route
+                  path="/validation-account"
+                  element={<ValidationAccount />}
+                />
               </Route>
               {getConfig().cloud && (
                 <>
@@ -71,7 +76,10 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               {/* Admin panel — layout wraps all /admin routes including unauthorized */}
               <Route element={<AdminLayout />}>
-                <Route path="/admin/unauthorized" element={<AdminUnauthorized />} />
+                <Route
+                  path="/admin/unauthorized"
+                  element={<AdminUnauthorized />}
+                />
                 <Route element={<AdminRoute />}>
                   <Route path="/admin/license" element={<AdminLicense />} />
                   <Route element={<LicenseGuard />}>
@@ -79,7 +87,15 @@ export default function App() {
                       path="/admin"
                       element={<Navigate to="/admin/dashboard" replace />}
                     />
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route
+                      path="/admin/dashboard"
+                      element={<AdminDashboard />}
+                    />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route
+                      path="/admin/users/:id"
+                      element={<AdminUserDetails />}
+                    />
                   </Route>
                 </Route>
               </Route>
