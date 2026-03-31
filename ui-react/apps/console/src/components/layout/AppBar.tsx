@@ -65,7 +65,7 @@ export default function AppBar() {
 
   return (
     <header
-      className={`relative z-10 h-14 border-b px-5 flex items-center justify-between shrink-0 transition-colors duration-300 ${
+      className={`relative z-50 h-14 border-b px-5 flex items-center justify-between shrink-0 transition-colors duration-300 ${
         displayed ? "border-transparent" : "bg-surface border-border"
       }`}
       style={displayed ? { backgroundColor: themeBg } : undefined}

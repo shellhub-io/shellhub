@@ -67,7 +67,7 @@ export default function TerminalManager() {
           <div
             key={s.id}
             className={[
-              "fixed top-14 bottom-0 right-0 z-50 flex flex-col bg-background",
+              "fixed top-14 bottom-0 right-0 z-40 flex flex-col bg-background",
               "transition-[opacity,transform,left] duration-200 ease-out",
               isFullscreen ? "left-0" : "left-[220px]",
               isVisible

@@ -8,7 +8,7 @@ export default function TerminalTaskbar() {
   if (minimized.length === 0) return null;
 
   return (
-    <div className="fixed bottom-0 left-[220px] right-0 z-40 h-11 flex items-center gap-1.5 px-3 bg-surface border-t border-border animate-slide-up">
+    <div className="fixed bottom-0 left-[220px] right-0 z-30 h-11 flex items-center gap-1.5 px-3 bg-surface border-t border-border animate-slide-up">
       {minimized.map((s) => {
         const isConnected = s.connectionStatus === "connected";
 
