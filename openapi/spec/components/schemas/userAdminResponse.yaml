@@ -6,11 +6,18 @@ properties:
     description: User's integer of owned namespaces.
     type: integer
     minimum: 0
-  confirmed:
-    description: User's confirmation.
-    type: boolean
+  status:
+    description: User's account status.
+    type: string
+    enum: [confirmed, not-confirmed]
   admin:
     description: User's admin status.
+    type: boolean
+  max_namespaces:
+    description: Maximum number of namespaces the user can own.
+    type: integer
+  email_marketing:
+    description: Whether the user has opted in to marketing emails.
     type: boolean
   created_at:
     description: User's creating date.
@@ -33,6 +40,7 @@ properties:
     maxLength: 64
 required:
   - id
+  - status
   - admin
   - created_at
   - last_login

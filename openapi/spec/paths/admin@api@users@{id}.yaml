@@ -90,9 +90,12 @@ get:
               id:
                 $ref: ../components/schemas/userID.yaml
               status:
-                description: User's status
+                description: User's account status
                 type: string
-                enum: [confirmed, pending]
+                enum: [confirmed, not-confirmed]
+              admin:
+                description: Whether the user has admin privileges
+                type: boolean
               max_namespaces:
                 description: Maximum number of namespaces the user can own
                 type: integer
@@ -143,6 +146,7 @@ get:
             required:
               - id
               - status
+              - admin
               - max_namespaces
               - created_at
               - last_login
@@ -157,6 +161,7 @@ get:
               value:
                 id: '68ada99d2f96ee43fd86306a'
                 status: 'confirmed'
+                admin: true
                 max_namespaces: 0
                 created_at: '2025-08-26T12:33:33.19Z'
                 last_login: '2025-10-27T13:10:59.458Z'
@@ -170,10 +175,11 @@ get:
                 preferences:
                   auth_methods:
                     - 'local'
-            user_pending:
+            user_not_confirmed:
               value:
                 id: '507f1f77bcf86cd799439012'
-                status: 'pending'
+                status: 'not-confirmed'
+                admin: false
                 max_namespaces: 5
                 created_at: '2025-01-15T10:00:00.000Z'
                 last_login: '2025-01-20T15:30:00.000Z'
