@@ -75,37 +75,21 @@ export function TerminalActions({ session }: { session: TerminalSession }) {
             className="w-3.5 h-3.5 rounded-full bg-[#28c840] border border-[#1aab29] flex items-center justify-center transition-all hover:brightness-110 active:brightness-90"
             title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
           >
-            {isFullscreen
-              ? (
-                <svg
-                  className="w-2 h-2 text-[#006500] opacity-0 group-hover/lights:opacity-100 transition-opacity"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 9V5M9 9H5m10 6v4m0-4h4"
-                  />
-                </svg>
-              )
-              : (
-                <svg
-                  className="w-2 h-2 text-[#006500] opacity-0 group-hover/lights:opacity-100 transition-opacity"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M4 4l7 7m9-9l-7 7M4 20l7-7m9 9l-7-7"
-                  />
-                </svg>
-              )}
+            <svg
+              className="w-2 h-2 text-[#006500] opacity-0 group-hover/lights:opacity-100 transition-opacity"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={3}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d={isFullscreen
+                  ? "M8 4v4H4M20 8h-4V4M16 20v-4h4M4 16h4v4"
+                  : "M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"}
+              />
+            </svg>
           </button>
         </div>
 
