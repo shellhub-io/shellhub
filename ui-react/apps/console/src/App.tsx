@@ -43,6 +43,10 @@ const AdminLicense = lazy(() => import("./pages/admin/License"));
 const AdminUnauthorized = lazy(() => import("./pages/admin/Unauthorized"));
 const AdminUsers = lazy(() => import("./pages/admin/users"));
 const AdminUserDetails = lazy(() => import("./pages/admin/users/UserDetails"));
+const AdminNamespaces = lazy(() => import("./pages/admin/namespaces"));
+const AdminNamespaceDetails = lazy(
+  () => import("./pages/admin/namespaces/NamespaceDetails"),
+);
 
 export default function App() {
   return (
@@ -95,6 +99,14 @@ export default function App() {
                     <Route
                       path="/admin/users/:id"
                       element={<AdminUserDetails />}
+                    />
+                    <Route
+                      path="/admin/namespaces"
+                      element={<AdminNamespaces />}
+                    />
+                    <Route
+                      path="/admin/namespaces/:id"
+                      element={<AdminNamespaceDetails />}
                     />
                   </Route>
                 </Route>
