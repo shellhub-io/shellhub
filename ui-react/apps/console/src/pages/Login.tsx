@@ -1,6 +1,11 @@
 import { useState, useEffect, FormEvent } from "react";
 import { isSdkError } from "../api/errors";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import {
+  useNavigate,
+  Link,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import {
   ExclamationCircleIcon,
   CheckCircleIcon,
@@ -62,7 +67,12 @@ export default function Login() {
   const isCloud = getConfig().cloud;
   const location = useLocation();
   const rawState = location.state as Record<string, unknown> | null;
-  const notice = typeof rawState?.notice === "string" ? rawState.notice : undefined;
+  const notice
+    = typeof rawState?.notice === "string" ? rawState.notice : undefined;
+
+  const [searchParams] = useSearchParams();
+  const queryToken = searchParams.get("token");
+  const [tokenLoading, setTokenLoading] = useState(!!queryToken);
 
   useEffect(() => {
     if (notice) {
@@ -79,6 +89,20 @@ export default function Login() {
   const { display: countdownDisplay, expired: lockoutExpired }
     = useLoginCountdown(lockoutEndEpoch);
 
+  useEffect(() => {
+    if (!queryToken) return;
+
+    const { logout, loginWithToken } = useAuthStore.getState();
+    logout();
+
+    loginWithToken(queryToken)
+      .then(() => navigate("/dashboard"))
+      .catch(() => {
+        setTokenLoading(false);
+        setError("Failed to authenticate with the provided token.");
+      });
+  }, [queryToken, navigate]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -91,9 +115,10 @@ export default function Login() {
       const redirect = getSafeRedirect(params);
 
       if (state.mfaToken) {
-        const mfaPath = redirect !== "/dashboard"
-          ? `/mfa-login?redirect=${encodeURIComponent(redirect)}`
-          : "/mfa-login";
+        const mfaPath
+          = redirect !== "/dashboard"
+            ? `/mfa-login?redirect=${encodeURIComponent(redirect)}`
+            : "/mfa-login";
         void navigate(mfaPath);
       } else {
         void navigate(redirect);
@@ -106,15 +131,21 @@ export default function Login() {
 
       switch (err.status) {
         case 401:
-          setError("Invalid login credentials. Your password is incorrect or this account doesn't exist.");
+          setError(
+            "Invalid login credentials. Your password is incorrect or this account doesn't exist.",
+          );
           break;
         case 403:
-          void navigate(`/confirm-account?username=${encodeURIComponent(username)}`);
+          void navigate(
+            `/confirm-account?username=${encodeURIComponent(username)}`,
+          );
           break;
         case 429: {
           const epoch = Number(err.headers.get("x-account-lockout"));
           setLockoutEndEpoch(isNaN(epoch) ? null : epoch);
-          setError("Too many failed login attempts. Please wait before trying again.");
+          setError(
+            "Too many failed login attempts. Please wait before trying again.",
+          );
           break;
         }
         default:
@@ -123,6 +154,14 @@ export default function Login() {
     }
     // Else: error is already set in store
   };
+
+  if (tokenLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <span className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
@@ -157,18 +196,30 @@ export default function Login() {
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
           {lockoutExpired && (
             <div className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
-              <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+              <CheckCircleIcon
+                className="w-3.5 h-3.5 shrink-0"
+                strokeWidth={2}
+              />
               Your timeout has finished. Please try to log back in.
             </div>
           )}
           {notice && (
-            <div role="alert" className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
-              <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+            <div
+              role="alert"
+              className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down"
+            >
+              <CheckCircleIcon
+                className="w-3.5 h-3.5 shrink-0"
+                strokeWidth={2}
+              />
               {notice}
             </div>
           )}
           {error && !lockoutExpired && (
-            <div role="alert" className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
+            <div
+              role="alert"
+              className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down"
+            >
               <ExclamationCircleIcon
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
@@ -176,12 +227,7 @@ export default function Login() {
               <span>
                 {error}
                 {countdownDisplay && (
-                  <span className="font-semibold">
-                    {" "}
-                    (
-                    {countdownDisplay}
-                    )
-                  </span>
+                  <span className="font-semibold"> ({countdownDisplay})</span>
                 )}
               </span>
             </div>
@@ -240,16 +286,14 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
           >
-            {loading
-              ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span className="font-mono text-xs">Authenticating...</span>
-                </span>
-              )
-              : (
-                "Sign In"
-              )}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="font-mono text-xs">Authenticating...</span>
+              </span>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
       </div>
