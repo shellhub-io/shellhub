@@ -39,6 +39,8 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminSessions = lazy(() => import("./pages/admin/Sessions"));
+const AdminSessionDetails = lazy(() => import("./pages/admin/SessionDetails"));
 const AdminLicense = lazy(() => import("./pages/admin/License"));
 const AdminUnauthorized = lazy(() => import("./pages/admin/Unauthorized"));
 const AdminUsers = lazy(() => import("./pages/admin/users"));
@@ -107,6 +109,14 @@ export default function App() {
                     <Route
                       path="/admin/namespaces/:id"
                       element={<AdminNamespaceDetails />}
+                    />
+                    <Route
+                      path="/admin/sessions"
+                      element={<AdminSessions />}
+                    />
+                    <Route
+                      path="/admin/sessions/:uid"
+                      element={<AdminSessionDetails />}
                     />
                   </Route>
                 </Route>
