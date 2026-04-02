@@ -47,6 +47,10 @@ const AdminNamespaces = lazy(() => import("./pages/admin/namespaces"));
 const AdminNamespaceDetails = lazy(
   () => import("./pages/admin/namespaces/NamespaceDetails"),
 );
+const AdminDevices = lazy(() => import("./pages/admin/devices"));
+const AdminDeviceDetails = lazy(
+  () => import("./pages/admin/devices/AdminDeviceDetails"),
+);
 
 export default function App() {
   return (
@@ -107,6 +111,11 @@ export default function App() {
                     <Route
                       path="/admin/namespaces/:id"
                       element={<AdminNamespaceDetails />}
+                    />
+                    <Route path="/admin/devices" element={<AdminDevices />} />
+                    <Route
+                      path="/admin/devices/:uid"
+                      element={<AdminDeviceDetails />}
                     />
                   </Route>
                 </Route>
