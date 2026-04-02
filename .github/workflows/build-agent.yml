@@ -98,6 +98,49 @@ jobs:
           path: rootfs/*.tar.gz
 
 
+  sbom:
+    if: "contains(github.ref, 'refs/tags/v')"
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Set release version
+        run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Generate SBOM for agent image
+        uses: anchore/sbom-action@v0
+        with:
+          image: shellhubio/agent:${{ env.RELEASE_VERSION }}
+          format: cyclonedx-json
+          output-file: sbom-agent-${{ env.RELEASE_VERSION }}.cdx.json
+          artifact-name: ""
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-agent
+          path: sbom-agent-*.cdx.json
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Attach SBOM to agent image
+        run: |
+          cosign attach sbom \
+            --sbom sbom-agent-${{ env.RELEASE_VERSION }}.cdx.json \
+            --type cyclonedx \
+            shellhubio/agent:${{ env.RELEASE_VERSION }}
+
   build-binaries:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
@@ -158,6 +201,9 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v6
 
+      - name: Set release version
+        run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
+
       - name: export agent tarball
         run: |
           cd ./agent && go mod vendor && cd .. && tar czf shellhub-agent.tar.gz agent
@@ -168,10 +214,26 @@ jobs:
           name: shellhub-agent
           path: shellhub-agent.tar.gz
 
+      - name: Generate source SBOM from Go modules
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./agent
+          format: cyclonedx-json
+          output-file: sbom-agent-source-${{ env.RELEASE_VERSION }}.cdx.json
+          artifact-name: ""
+
+      - name: Upload source SBOM artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-agent-source
+          path: sbom-agent-source-*.cdx.json
+
   draft:
     if: "contains(github.ref, 'refs/tags/v')"
-    needs: [build-binaries, vendored-tarball]
+    needs: [build-binaries, vendored-tarball, sbom]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: download rootfs artifacts
         uses: actions/download-artifact@v8
@@ -186,6 +248,14 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: shellhub-agent
+      - name: download agent SBOM
+        uses: actions/download-artifact@v8
+        with:
+          name: sbom-agent
+      - name: download agent source SBOM
+        uses: actions/download-artifact@v8
+        with:
+          name: sbom-agent-source
       - name: release draft
         uses: softprops/action-gh-release@v2
         with:
@@ -195,3 +265,4 @@ jobs:
             rootfs-*.tar.gz
             shellhub-agent-*.gz
             shellhub-agent.tar.gz
+            sbom-*.cdx.json
