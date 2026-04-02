@@ -32,6 +32,7 @@ interface AuthState {
   mfaResetUserId: string | null;
   mfaResetIdentifier: string | null;
   login: (username: string, password: string) => Promise<void>;
+  loginWithToken: (token: string) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
   setSession: (data: { token: string; tenant: string; role?: Role }) => void;
@@ -124,6 +125,26 @@ export const useAuthStore = create<AuthState>()(
           }
           set({ loading: false });
           throw err;
+        }
+      },
+
+      loginWithToken: async (token: string) => {
+        set({ loading: true, token });
+        try {
+          const { data } = await getUserInfo({ throwOnError: true });
+          set({
+            user: data.user,
+            userId: data.id,
+            email: data.email,
+            tenant: data.tenant,
+            name: data.name,
+            isAdmin: data.admin ?? false,
+            mfaEnabled: data.mfa || false,
+            loading: false,
+          });
+        } catch {
+          set({ ...initialState });
+          throw new Error("Token login failed");
         }
       },
 

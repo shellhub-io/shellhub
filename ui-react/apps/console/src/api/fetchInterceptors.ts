@@ -41,8 +41,13 @@ client.interceptors.request.use((request) => {
   const token = useAuthStore.getState().token;
   if (token) {
     if (isTokenExpired(token)) {
-      useAuthStore.getState().logout();
-      window.location.href = "/login";
+      const isTokenLogin = new URLSearchParams(window.location.search).has(
+        "token",
+      );
+      if (!isTokenLogin) {
+        useAuthStore.getState().logout();
+        window.location.href = "/login";
+      }
       throw new Error("Token expired");
     }
     request.headers.set("Authorization", `Bearer ${token}`);
@@ -64,7 +69,10 @@ client.interceptors.response.use((response) => {
       useAuthStore.getState().setMfaToken(mfaToken);
     } else {
       const isLoginRequest = response.url.includes("/api/login");
-      if (!isLoginRequest) {
+      const isTokenLogin = new URLSearchParams(window.location.search).has(
+        "token",
+      );
+      if (!isLoginRequest && !isTokenLogin) {
         useAuthStore.getState().logout();
         window.location.href = "/login";
       }
