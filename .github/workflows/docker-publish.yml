@@ -5,6 +5,11 @@ on:
     tags:
       - v*
 
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
 jobs:
   build:
     name: Build and publish '${{ matrix.project }}' to Docker Registry
@@ -36,6 +41,38 @@ jobs:
           tags: shellhubio/${{ matrix.project }}:latest,shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
           push: true
           file: ${{ matrix.project }}/Dockerfile
+
+      - name: Generate SBOM for '${{ matrix.project }}' image
+        uses: anchore/sbom-action@v0
+        with:
+          image: shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
+          format: cyclonedx-json
+          output-file: sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json
+          artifact-name: ""
+
+      - name: Generate SBOM for '${{ matrix.project }}' source
+        uses: anchore/sbom-action@v0
+        with:
+          path: ${{ matrix.project }}
+          format: cyclonedx-json
+          output-file: sbom-${{ matrix.project }}-source-${{ env.RELEASE_VERSION }}.cdx.json
+          artifact-name: ""
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-${{ matrix.project }}
+          path: sbom-${{ matrix.project }}-*.cdx.json
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Attach SBOM to '${{ matrix.project }}' image
+        run: |
+          cosign attach sbom \
+            --sbom sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json \
+            --type cyclonedx \
+            shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
 
   publish-enterprise:
     name: Build and publish 'api-enterprise' to Docker Registry
@@ -84,3 +121,46 @@ jobs:
           file: shellhub/api/Dockerfile
           build-args: EDITION=enterprise
           build-contexts: cloud-src=./cloud
+
+      - name: Generate SBOM for api-enterprise image
+        uses: anchore/sbom-action@v0
+        with:
+          image: registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
+          format: cyclonedx-json
+          output-file: sbom-api-enterprise-${{ env.RELEASE_VERSION }}.cdx.json
+          artifact-name: ""
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-api-enterprise
+          path: sbom-api-enterprise-*.cdx.json
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Attach SBOM to api-enterprise image
+        run: |
+          cosign attach sbom \
+            --sbom sbom-api-enterprise-${{ env.RELEASE_VERSION }}.cdx.json \
+            --type cyclonedx \
+            registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
+
+  release-sboms:
+    name: Attach SBOMs to GitHub Release
+    needs: [build, publish-enterprise]
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download all SBOM artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: sbom-*
+          merge-multiple: true
+
+      - name: Attach SBOMs to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          files: sbom-*.cdx.json
