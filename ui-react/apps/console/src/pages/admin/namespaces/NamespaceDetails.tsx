@@ -185,8 +185,10 @@ export default function NamespaceDetails() {
             {namespace.settings?.connection_announcement && (
               <div>
                 <dt className={LABEL}>Connection Announcement</dt>
-                <dd className="text-sm text-text-primary mt-0.5">
-                  {namespace.settings.connection_announcement}
+                <dd className="mt-1.5 overflow-x-auto rounded-lg bg-surface border border-border p-3">
+                  <pre className="text-xs font-mono text-text-primary whitespace-pre">
+                    {namespace.settings.connection_announcement}
+                  </pre>
                 </dd>
               </div>
             )}
