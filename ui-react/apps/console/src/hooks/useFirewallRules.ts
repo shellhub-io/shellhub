@@ -24,18 +24,24 @@ export interface FirewallRule {
   filter: FirewallFilter;
 }
 
-function normalizeFirewallRule(rule: FirewallRulesResponse & { id: string }): FirewallRule {
+export function normalizeFirewallRule(
+  rule: FirewallRulesResponse & { id: string },
+): FirewallRule {
   let filter: FirewallFilter;
-  if ("tags" in rule.filter) {
+  if (
+    "tags" in rule.filter
+    && Array.isArray(rule.filter.tags)
+    && rule.filter.tags.length > 0
+  ) {
     filter = {
       tags: rule.filter.tags.map((t) =>
-        typeof t === "object" && t !== null && "name" in t
-          ? t.name
-          : String(t),
+        typeof t === "object" && t !== null && "name" in t ? t.name : String(t),
       ),
     };
-  } else {
+  } else if ("hostname" in rule.filter) {
     filter = { hostname: rule.filter.hostname };
+  } else {
+    filter = { hostname: ".*" };
   }
 
   return {
@@ -53,7 +59,9 @@ export function useFirewallRules({
   page = 1,
   perPage = 10,
 }: UseFirewallRulesParams = {}) {
-  const options = { query: { page, per_page: perPage } satisfies GetFirewallRulesData["query"] };
+  const options = {
+    query: { page, per_page: perPage } satisfies GetFirewallRulesData["query"],
+  };
 
   const result = useQuery<PaginatedResult<FirewallRulesResponse>>({
     queryKey: getFirewallRulesQueryKey(options),
@@ -61,9 +69,13 @@ export function useFirewallRules({
   });
 
   const rules = useMemo(
-    () => result.data?.data
-      .filter((r): r is FirewallRulesResponse & { id: string } => r.id !== undefined)
-      .map(normalizeFirewallRule) ?? [],
+    () =>
+      result.data?.data
+        .filter(
+          (r): r is FirewallRulesResponse & { id: string } =>
+            r.id !== undefined,
+        )
+        .map(normalizeFirewallRule) ?? [],
     [result.data],
   );
 

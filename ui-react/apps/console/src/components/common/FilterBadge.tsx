@@ -1,6 +1,6 @@
 import {
   TagIcon,
-  ClipboardDocumentListIcon,
+  CpuChipIcon,
   GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 
@@ -28,7 +28,7 @@ export default function FilterBadge({
   if (filter.hostname && filter.hostname !== ".*") {
     return (
       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-yellow/10 text-accent-yellow text-2xs rounded font-mono">
-        <ClipboardDocumentListIcon className="w-2.5 h-2.5" strokeWidth={2} />
+        <CpuChipIcon className="w-2.5 h-2.5" strokeWidth={2} />
         {filter.hostname}
       </span>
     );
