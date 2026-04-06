@@ -51,6 +51,12 @@ const AdminDevices = lazy(() => import("./pages/admin/devices"));
 const AdminDeviceDetails = lazy(
   () => import("./pages/admin/devices/AdminDeviceDetails"),
 );
+const AdminFirewallRules = lazy(
+  () => import("./pages/admin/firewall-rules"),
+);
+const AdminFirewallRuleDetails = lazy(
+  () => import("./pages/admin/firewall-rules/AdminFirewallRuleDetails"),
+);
 
 export default function App() {
   return (
@@ -116,6 +122,14 @@ export default function App() {
                     <Route
                       path="/admin/devices/:uid"
                       element={<AdminDeviceDetails />}
+                    />
+                    <Route
+                      path="/admin/firewall-rules"
+                      element={<AdminFirewallRules />}
+                    />
+                    <Route
+                      path="/admin/firewall-rules/:id"
+                      element={<AdminFirewallRuleDetails />}
                     />
                   </Route>
                 </Route>
