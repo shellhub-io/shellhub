@@ -155,3 +155,14 @@ func (s *service) UserList(ctx context.Context) ([]models.User, error) {
 
 	return users, err
 }
+
+// UserResolve retrieves a user by their ID. It returns ErrUserNotFound
+// if no matching user exists.
+func (s *service) UserResolve(ctx context.Context, id string) (*models.User, error) {
+	u, err := s.store.UserResolve(ctx, store.UserIDResolver, id)
+	if err != nil {
+		return nil, ErrUserNotFound
+	}
+
+	return u, nil
+}

@@ -149,3 +149,21 @@ func (s *service) NamespaceList(ctx context.Context) ([]models.Namespace, error)
 
 	return namespaces, nil
 }
+
+// NamespaceResolve retrieves a namespace using the specified resolver
+func (s *service) NamespaceResolve(ctx context.Context, resolver NamespaceResolver, value string) (*models.Namespace, error) {
+	var storeResolver store.NamespaceResolver
+
+	if resolver == NamespaceResolverTenantID {
+		storeResolver = store.NamespaceTenantIDResolver
+	} else {
+		storeResolver = store.NamespaceNameResolver
+	}
+
+	namespace, err := s.store.NamespaceResolve(ctx, storeResolver, value)
+	if err != nil {
+		return nil, ErrNamespaceNotFound
+	}
+
+	return namespace, nil
+}

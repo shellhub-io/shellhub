@@ -15,6 +15,13 @@ const (
 	MaxNumberDevicesUnlimited    = -1 // MaxNumberDevicesUnlimited defines a unlimited number of devices for enterprise and community environment.
 )
 
+type NamespaceResolver string
+
+const (
+	NamespaceResolverName     NamespaceResolver = "name"
+	NamespaceResolverTenantID NamespaceResolver = "tenant-id"
+)
+
 type Services interface {
 	// UserCreate adds a new user based on the provided user's data. This method validates data and
 	// checks for conflicts.
@@ -25,6 +32,9 @@ type Services interface {
 	UserUpdate(ctx context.Context, input *inputs.UserUpdate) error
 	// UserList lists all users in the system
 	UserList(ctx context.Context) ([]models.User, error)
+	// UserResolve retrieves a user by their ID. It returns ErrUserNotFound
+	// if no matching user exists.
+	UserResolve(ctx context.Context, id string) (*models.User, error)
 	// NamespaceCreate initializes a new namespace, making the specified user its owner.
 	// The tenant defaults to a UUID if not provided.
 	// Max device limit is based on the envs.IsCloud() setting.
@@ -33,6 +43,8 @@ type Services interface {
 	NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error
 	// NamespaceList retrieves all namespaces available to the user
 	NamespaceList(ctx context.Context) ([]models.Namespace, error)
+	// NamespaceResolve retrieves a namespace using the specified resolver
+	NamespaceResolve(ctx context.Context, resolver NamespaceResolver, value string) (*models.Namespace, error)
 	// NamespaceAddMember adds a new member with a specified role to a namespace.
 	NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error)
 	// NamespaceRemoveMember removes a member from a namespace.

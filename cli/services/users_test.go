@@ -523,3 +523,58 @@ func TestUserList(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestUserResolve(t *testing.T) {
+	type Expected struct {
+		user *models.User
+		err  error
+	}
+
+	mock := new(mocks.Store)
+	ctx := context.TODO()
+
+	cases := []struct {
+		description   string
+		id            string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "fails when store returns error",
+			id:          "user-id",
+			requiredMocks: func() {
+				mock.
+					On("UserResolve", ctx, store.UserIDResolver, "user-id").
+					Return(nil, errors.New("error")).
+					Once()
+			},
+			expected: Expected{nil, ErrUserNotFound},
+		},
+		{
+			description: "successfully resolves user",
+			id:          "user-id",
+			requiredMocks: func() {
+				user := &models.User{ID: "user-id"}
+
+				mock.
+					On("UserResolve", ctx, store.UserIDResolver, "user-id").
+					Return(user, nil).
+					Once()
+			},
+			expected: Expected{&models.User{ID: "user-id"}, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			service := NewService(store.Store(mock))
+			user, err := service.UserResolve(ctx, tc.id)
+
+			assert.Equal(t, tc.expected, Expected{user, err})
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
