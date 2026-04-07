@@ -31,6 +31,8 @@ type Services interface {
 	NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error)
 	// NamespaceDelete deletes a namespace based on the provided namespace name.
 	NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error
+	// NamespaceList retrieves all namespaces available to the user
+	NamespaceList(ctx context.Context) ([]models.Namespace, error)
 	// NamespaceAddMember adds a new member with a specified role to a namespace.
 	NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error)
 	// NamespaceRemoveMember removes a member from a namespace.

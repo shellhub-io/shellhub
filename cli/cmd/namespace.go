@@ -1,14 +1,17 @@
 package cmd
 
 import (
+	"fmt"
+	"text/tabwriter"
+
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/spf13/cobra"
 )
 
-// NamespaceCommands a factory function that creates and returns a new command with
-// create and delete subcommands dedicated to namespaces management. It receives a service
-// for handling business logic.
+// NamespaceCommands creates and returns a Cobra command for namespace management.
+// It registers namespace-related subcommands and uses the provided service
+// to handle the underlying business logic.
 func NamespaceCommands(service services.Services) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "namespace",
@@ -16,9 +19,12 @@ func NamespaceCommands(service services.Services) *cobra.Command {
 		Long:  `Provides an interface for managing namespaces within the system, such as creating new namespaces or deleting existing ones.`,
 	}
 
-	cmd.AddCommand(namespaceCreate(service))
-	cmd.AddCommand(namespaceDelete(service))
-	cmd.AddCommand(memberCommands(service))
+	cmd.AddCommand(
+		namespaceCreate(service),
+		namespaceDelete(service),
+		namespaceList(service),
+		memberCommands(service),
+	)
 
 	return cmd
 }
@@ -94,6 +100,87 @@ func namespaceDelete(service services.Services) *cobra.Command {
 			return nil
 		},
 	}
+}
+
+func namespaceList(service services.Services) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List namespaces",
+		Long:    "List all namespaces in the system",
+		Example: `cli namespace list
+cli namespace ls
+cli namespace ls -q
+cli namespace ls -q tenant-id`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			out := cmd.OutOrStdout()
+			validFields := map[string]bool{
+				"name":      true,
+				"tenant-id": true,
+			}
+
+			quiet, err := cmd.Flags().GetBool("quiet")
+			if err != nil {
+				return err
+			}
+
+			field := "name"
+			if len(args) == 1 {
+				field = args[0]
+			}
+
+			if !quiet && len(args) == 1 {
+				return fmt.Errorf("field argument requires -q")
+			}
+
+			if !validFields[field] {
+				return fmt.Errorf("invalid field: %s (allowed: name, tenant-id)", field)
+			}
+
+			namespaces, err := service.NamespaceList(cmd.Context())
+			if err != nil {
+				return err
+			}
+
+			if len(namespaces) == 0 {
+				if !quiet {
+					fmt.Fprintln(out, "No namespaces to list")
+				}
+				return nil
+			}
+
+			if quiet {
+				for _, ns := range namespaces {
+					var v string
+					if field == "tenant-id" {
+						v = ns.TenantID
+					} else {
+						v = ns.Name
+					}
+					fmt.Fprintln(out, v)
+				}
+
+				return nil
+			}
+
+			// non-quiet output
+			w := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
+			fmt.Fprintln(w, "NAME\tTENANT ID")
+
+			for _, ns := range namespaces {
+				fmt.Fprintf(w, "%s\t%s\n", ns.Name, ns.TenantID)
+			}
+			w.Flush()
+
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolP("quiet", "q", false,
+		"Output only a single field (default: name, options: name, tenant-id)")
+
+	return cmd
 }
 
 // memberCommands factory function that creates and returns a new command with
