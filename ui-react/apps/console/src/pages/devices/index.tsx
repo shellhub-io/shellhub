@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useDevices, type NormalizedDevice } from "../../hooks/useDevices";
 import type { DeviceStatus } from "../../client";
@@ -36,6 +36,7 @@ const statusTabs: { label: string; value: DeviceStatus }[] = [
 
 const TH = `${TH_BASE} whitespace-nowrap`;
 const PER_PAGE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 /* ─── Page ─── */
 const VALID_STATUSES = new Set<string>(["accepted", "pending", "rejected"]);
@@ -44,9 +45,14 @@ export default function Devices() {
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") ?? "accepted";
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState<DeviceStatus>(VALID_STATUSES.has(initialStatus) ? initialStatus as DeviceStatus : "accepted");
+  const [status, setStatus] = useState<DeviceStatus>(
+    VALID_STATUSES.has(initialStatus)
+      ? (initialStatus as DeviceStatus)
+      : "accepted",
+  );
   const [filterTags, setFilterTags] = useState<string[]>([]);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [actionTarget, setActionTarget] = useState<{
     device: NormalizedDevice;
     action: "accept" | "reject" | "remove";
@@ -58,10 +64,18 @@ export default function Devices() {
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   const { devices, totalCount, isLoading, error, refetch } = useDevices({
     page,
     perPage: PER_PAGE,
     status,
+    search: debouncedSearch,
     filterTags,
   });
 
@@ -78,7 +92,7 @@ export default function Devices() {
   };
 
   const addFilterTag = (tag: string) => {
-    setFilterTags((prev) => prev.includes(tag) ? prev : [...prev, tag]);
+    setFilterTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
     setPage(1);
   };
 
@@ -91,14 +105,6 @@ export default function Devices() {
     setFilterTags([]);
     setPage(1);
   };
-
-  const filtered = search
-    ? devices.filter(
-      (d) =>
-        d.name.toLowerCase().includes(search.toLowerCase())
-        || d.uid.toLowerCase().includes(search.toLowerCase()),
-    )
-    : devices;
 
   return (
     <div>
@@ -153,8 +159,11 @@ export default function Devices() {
             />
             <input
               type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search devices..."
               className="h-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200 w-56"
             />
@@ -237,21 +246,21 @@ export default function Devices() {
                     </div>
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : devices.length === 0 ? (
                 <tr>
                   <td
                     colSpan={status === "accepted" ? 7 : 5}
                     className="px-4 py-16 text-center"
                   >
                     <p className="text-xs font-mono text-text-muted">
-                      {search
-                        ? `No devices matching "${search}"`
+                      {debouncedSearch
+                        ? `No devices matching "${debouncedSearch}"`
                         : "No devices found"}
                     </p>
                   </td>
                 </tr>
               ) : (
-                filtered.map((device) => {
+                devices.map((device) => {
                   const sshid = nsName
                     ? buildSshid(nsName, device.name)
                     : device.uid.substring(0, 8);
@@ -264,16 +273,14 @@ export default function Devices() {
                       {/* Online dot — accepted only */}
                       {status === "accepted" && (
                         <td className="px-4 py-3.5 w-12">
-                          {device.online
-                            ? (
-                              <span className="relative flex h-2.5 w-2.5 mx-auto">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
-                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
-                              </span>
-                            )
-                            : (
-                              <span className="block w-2.5 h-2.5 rounded-full mx-auto bg-text-muted/30" />
-                            )}
+                          {device.online ? (
+                            <span className="relative flex h-2.5 w-2.5 mx-auto">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
+                            </span>
+                          ) : (
+                            <span className="block w-2.5 h-2.5 rounded-full mx-auto bg-text-muted/30" />
+                          )}
                         </td>
                       )}
 
@@ -329,47 +336,45 @@ export default function Devices() {
                       {/* Connect — accepted only */}
                       {status === "accepted" && (
                         <td className="px-4 py-3.5 w-20">
-                          {device.online
-                            ? (
-                              <RestrictedAction action="device:connect">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const existing = useTerminalStore
+                          {device.online ? (
+                            <RestrictedAction action="device:connect">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const existing = useTerminalStore
+                                    .getState()
+                                    .sessions.find(
+                                      (s) => s.deviceUid === device.uid,
+                                    );
+                                  if (existing) {
+                                    useTerminalStore
                                       .getState()
-                                      .sessions.find(
-                                        (s) => s.deviceUid === device.uid,
-                                      );
-                                    if (existing) {
-                                      useTerminalStore
-                                        .getState()
-                                        .restore(existing.id);
-                                    } else {
-                                      const sshid = nsName
-                                        ? buildSshid(nsName, device.name)
-                                        : device.uid;
-                                      setConnectTarget({
-                                        uid: device.uid,
-                                        name: device.name,
-                                        sshid,
-                                      });
-                                    }
-                                  }}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent-green/10 text-accent-green text-2xs font-semibold rounded-md hover:bg-accent-green/20 border border-accent-green/20 transition-all"
-                                >
-                                  <ChevronDoubleRightIcon
-                                    className="w-3 h-3"
-                                    strokeWidth={2}
-                                  />
-                                  Connect
-                                </button>
-                              </RestrictedAction>
-                            )
-                            : (
-                              <span className="text-2xs text-text-muted/30 font-mono">
-                                Offline
-                              </span>
-                            )}
+                                      .restore(existing.id);
+                                  } else {
+                                    const sshid = nsName
+                                      ? buildSshid(nsName, device.name)
+                                      : device.uid;
+                                    setConnectTarget({
+                                      uid: device.uid,
+                                      name: device.name,
+                                      sshid,
+                                    });
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent-green/10 text-accent-green text-2xs font-semibold rounded-md hover:bg-accent-green/20 border border-accent-green/20 transition-all"
+                              >
+                                <ChevronDoubleRightIcon
+                                  className="w-3 h-3"
+                                  strokeWidth={2}
+                                />
+                                Connect
+                              </button>
+                            </RestrictedAction>
+                          ) : (
+                            <span className="text-2xs text-text-muted/30 font-mono">
+                              Offline
+                            </span>
+                          )}
                         </td>
                       )}
 
@@ -449,7 +454,11 @@ export default function Devices() {
 
       {/* Action Dialog */}
       <DeviceActionDialog
-        key={actionTarget ? `${actionTarget.action}/${actionTarget.device.uid}` : "closed"}
+        key={
+          actionTarget
+            ? `${actionTarget.action}/${actionTarget.device.uid}`
+            : "closed"
+        }
         open={!!actionTarget}
         device={actionTarget?.device ?? null}
         action={actionTarget?.action ?? "accept"}
@@ -473,7 +482,9 @@ export default function Devices() {
           void refetch();
         }}
         onTagRenamed={(oldName, newName) => {
-          setFilterTags((prev) => prev.map((t) => t === oldName ? newName : t));
+          setFilterTags((prev) =>
+            prev.map((t) => (t === oldName ? newName : t)),
+          );
         }}
         onTagDeleted={(name) => {
           setFilterTags((prev) => prev.filter((t) => t !== name));
