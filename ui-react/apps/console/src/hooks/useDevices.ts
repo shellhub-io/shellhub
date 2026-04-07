@@ -11,12 +11,21 @@ import type { Device as GeneratedDevice } from "../client";
 
 export type NormalizedDevice = Omit<GeneratedDevice, "tags"> & { tags: string[] };
 
-function buildTagFilter(tags: string[]): string {
-  const filter = [{
-    type: "property",
-    params: { name: "tags.name", operator: "contains", value: tags },
-  }];
-  return btoa(JSON.stringify(filter));
+export function buildFilter(search: string, tags: string[]): string {
+  const filters: Record<string, unknown>[] = [];
+  if (search) {
+    filters.push({
+      type: "property",
+      params: { name: "name", operator: "contains", value: search },
+    });
+  }
+  if (tags.length > 0) {
+    filters.push({
+      type: "property",
+      params: { name: "tags.name", operator: "contains", value: tags },
+    });
+  }
+  return btoa(JSON.stringify(filters));
 }
 
 function normalizeDevice(device: GeneratedDevice): NormalizedDevice {
@@ -36,6 +45,7 @@ interface UseDevicesParams {
   page?: number;
   perPage?: number;
   status?: DeviceStatus | "";
+  search?: string;
   filterTags?: string[];
 }
 
@@ -43,11 +53,12 @@ export function useDevices({
   page = 1,
   perPage = 10,
   status = "",
+  search = "",
   filterTags = [],
 }: UseDevicesParams = {}) {
   const query: GetDevicesData["query"] = { page, per_page: perPage };
   if (status) query.status = status;
-  if (filterTags.length > 0) query.filter = buildTagFilter(filterTags);
+  if (search || filterTags.length > 0) query.filter = buildFilter(search, filterTags);
 
   const options = { query };
 
