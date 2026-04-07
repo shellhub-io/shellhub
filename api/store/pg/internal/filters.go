@@ -17,6 +17,16 @@ var (
 	ErrUnsupportedNumericType  = errors.New("unsupported value type for numeric comparison")  // ErrUnsupportedNumericType is returned when a 'gt' filter receives an unsupported value type
 )
 
+// qualifyColumn returns a bun.Ident for the given column, optionally prefixed
+// with a table alias (e.g. "device.name") to avoid ambiguity in JOINed queries.
+func qualifyColumn(column, tableAlias string) bun.Ident {
+	if tableAlias != "" {
+		return bun.Ident(tableAlias + "." + column)
+	}
+
+	return bun.Ident(column)
+}
+
 // TODO: remove when MongoDB support is dropped.
 // Maps Mongo-style paths (e.g. "info.platform") to Postgres columns ("platform").
 var legacyMongoFieldMapping = map[string]string{
@@ -74,9 +84,12 @@ func ParseFilterOperator(op *query.FilterOperator) (string, bool) {
 	return strings.ToUpper(op.Name), slices.Contains([]string{"AND", "OR"}, strings.ToUpper(op.Name))
 }
 
-// ParseFilterProperty constructs the SQL representation of a property filter. It returns a SQL condition string, SQL
-// arguments array, boolean indicating if the operator is valid and an error, if any
-func ParseFilterProperty(fp *query.FilterProperty) (string, []any, bool, error) {
+// ParseFilterProperty constructs the SQL representation of a property filter.
+// tableAlias, when non-empty, qualifies column names to avoid ambiguity in
+// queries with JOINs (e.g. "device.name" instead of just "name").
+// It returns a SQL condition string, SQL arguments array, boolean indicating
+// if the operator is valid and an error, if any.
+func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, []any, bool, error) {
 	// Handle virtual fields that don't exist as real columns (see fromOnlineFilter for details)
 	if fp.Name == "online" {
 		return fromOnlineFilter(fp.Value)
@@ -94,15 +107,15 @@ func ParseFilterProperty(fp *query.FilterProperty) (string, []any, bool, error) 
 
 	switch fp.Operator {
 	case "contains":
-		condition, args, err = fromContains(fp.Name, fp.Value)
+		condition, args, err = fromContains(fp.Name, fp.Value, tableAlias)
 	case "eq":
-		condition, args, err = fromEq(fp.Name, fp.Value)
+		condition, args, err = fromEq(fp.Name, fp.Value, tableAlias)
 	case "bool":
-		condition, args, err = fromBool(fp.Name, fp.Value)
+		condition, args, err = fromBool(fp.Name, fp.Value, tableAlias)
 	case "gt":
-		condition, args, err = fromGt(fp.Name, fp.Value)
+		condition, args, err = fromGt(fp.Name, fp.Value, tableAlias)
 	case "ne":
-		condition, args, err = fromNe(fp.Name, fp.Value)
+		condition, args, err = fromNe(fp.Name, fp.Value, tableAlias)
 	default:
 		return "", nil, false, nil
 	}
@@ -153,14 +166,14 @@ func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 // fromContains converts a "contains" JSON expression to an SQL expression. For strings, it uses ILIKE with '%value%'
 // for case-insensitive substring matching. For arrays, it uses the @> (contains) operator to check if the column
 // contains all the values in the array. Returns SQL condition string, arguments array, and error if any.
-func fromContains(column string, value any) (string, []any, error) {
+func fromContains(column string, value any, tableAlias string) (string, []any, error) {
 	column = mapColumnFromLegacyMongo(column)
 
 	switch v := value.(type) {
 	case string:
-		return "? ILIKE ?", []any{bun.Ident(column), "%" + v + "%"}, nil
+		return "? ILIKE ?", []any{qualifyColumn(column, tableAlias), "%" + v + "%"}, nil
 	case []any:
-		return "? @> ?", []any{bun.Ident(column), v}, nil
+		return "? @> ?", []any{qualifyColumn(column, tableAlias), v}, nil
 	}
 
 	return "", nil, ErrUnsupportedContainsType
@@ -168,8 +181,8 @@ func fromContains(column string, value any) (string, []any, error) {
 
 // fromEq converts an "eq" (equals) JSON expression to an SQL expression using =.
 // Returns SQL condition string, arguments array, and error if any.
-func fromEq(column string, value any) (string, []any, error) {
-	return "? = ?", []any{bun.Ident(mapColumnFromLegacyMongo(column)), value}, nil
+func fromEq(column string, value any, tableAlias string) (string, []any, error) {
+	return "? = ?", []any{qualifyColumn(mapColumnFromLegacyMongo(column), tableAlias), value}, nil
 }
 
 // fromBool converts a "bool" JSON expression to an SQL expression. It handles various input types (int, string, bool)
@@ -182,7 +195,7 @@ func fromEq(column string, value any) (string, []any, error) {
 // - For booleans: uses the value directly
 //
 // Returns SQL condition string, arguments array, and error if any.
-func fromBool(column string, value any) (string, []any, error) {
+func fromBool(column string, value any, tableAlias string) (string, []any, error) {
 	var boolValue bool
 
 	switch v := value.(type) {
@@ -200,18 +213,18 @@ func fromBool(column string, value any) (string, []any, error) {
 		return "", nil, ErrUnsupportedBoolType
 	}
 
-	return "? = ?", []any{bun.Ident(mapColumnFromLegacyMongo(column)), boolValue}, nil
+	return "? = ?", []any{qualifyColumn(mapColumnFromLegacyMongo(column), tableAlias), boolValue}, nil
 }
 
 // fromGt converts a "gt" (greater than) JSON expression to an SQL expression using >. It handles various numeric types
 // (int, float, etc.) and string representations of numbers. For strings, it attempts to convert to int first, then to
 // float if int conversion fails. Returns SQL condition string, arguments array, and error if any.
-func fromGt(column string, value any) (string, []any, error) {
+func fromGt(column string, value any, tableAlias string) (string, []any, error) {
 	column = mapColumnFromLegacyMongo(column)
 
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
-		return "? > ?", []any{bun.Ident(column), v}, nil
+		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
 	case string:
 		var num any
 		var err error
@@ -224,7 +237,7 @@ func fromGt(column string, value any) (string, []any, error) {
 			}
 		}
 
-		return "? > ?", []any{bun.Ident(column), num}, nil
+		return "? > ?", []any{qualifyColumn(column, tableAlias), num}, nil
 	default:
 		return "", nil, ErrUnsupportedNumericType
 	}
@@ -232,6 +245,6 @@ func fromGt(column string, value any) (string, []any, error) {
 
 // fromNe converts a "ne" (not equals) JSON expression to an SQL expression using <>. Returns SQL condition string,
 // arguments array, and error if any.
-func fromNe(column string, value any) (string, []any, error) {
-	return "? <> ?", []any{bun.Ident(mapColumnFromLegacyMongo(column)), value}, nil
+func fromNe(column string, value any, tableAlias string) (string, []any, error) {
+	return "? <> ?", []any{qualifyColumn(mapColumnFromLegacyMongo(column), tableAlias), value}, nil
 }
