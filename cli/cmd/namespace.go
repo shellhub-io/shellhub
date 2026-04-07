@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -23,6 +24,7 @@ func NamespaceCommands(service services.Services) *cobra.Command {
 		namespaceCreate(service),
 		namespaceDelete(service),
 		namespaceList(service),
+		namespaceInspect(service),
 		memberCommands(service),
 	)
 
@@ -147,6 +149,7 @@ cli namespace ls -q tenant-id`,
 				if !quiet {
 					fmt.Fprintln(out, "No namespaces to list")
 				}
+
 				return nil
 			}
 
@@ -179,6 +182,122 @@ cli namespace ls -q tenant-id`,
 
 	cmd.Flags().BoolP("quiet", "q", false,
 		"Output only a single field (default: name, options: name, tenant-id)")
+
+	return cmd
+}
+
+func namespaceInspect(service services.Services) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "inspect <namespace>",
+		Short: "Inspect a namespace",
+		Long:  "Inspect a namespace by either name or tenant-id",
+		Example: `cli namespace inspect dev
+cli namespace inspect --tenant-id 8f3c2e1a...
+cli namespace inspect $(cli namespace ls -q | sed -n '2p')
+cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			out := cmd.OutOrStdout()
+
+			tenantID, err := cmd.Flags().GetString("tenant-id")
+			if err != nil {
+				return err
+			}
+
+			if tenantID != "" {
+				if _, err := uuid.Parse(tenantID); err != nil {
+					return fmt.Errorf("invalid tenant ID: must be a valid UUID")
+				}
+			}
+
+			if tenantID != "" && len(args) > 0 {
+				return fmt.Errorf("cannot provide both a namespace name and --tenant-id")
+			}
+
+			if len(args) > 0 {
+				if _, err := uuid.Parse(args[0]); err == nil {
+					return fmt.Errorf("it looks like you provided a tenant ID; use the --tenant-id flag")
+				}
+			}
+
+			if tenantID == "" && len(args) == 0 {
+				return fmt.Errorf("please provide either a namespace name or --tenant-id")
+			}
+
+			resolver := services.NamespaceResolverName
+			value := ""
+
+			if tenantID != "" {
+				resolver = services.NamespaceResolverTenantID
+				value = tenantID
+			} else {
+				value = args[0]
+			}
+
+			ns, err := service.NamespaceResolve(cmd.Context(), resolver, value)
+			if err != nil {
+				return err
+			}
+
+			owner, err := service.UserResolve(cmd.Context(), ns.Owner)
+			if err != nil {
+				return err
+			}
+
+			totalDevices := ns.DevicesAcceptedCount +
+				ns.DevicesPendingCount +
+				ns.DevicesRejectedCount +
+				ns.DevicesRemovedCount
+
+			fmt.Fprintf(out, `Namespace:
+  Name:        %s
+  Type:        %s
+  Owner:       %s
+  Tenant ID:   %s
+  Created At:  %s
+
+Devices:
+  Accepted:    %d
+  Pending:     %d
+  Rejected:    %d
+  Removed:     %d
+  Total:       %d
+
+Members: %d
+`,
+				ns.Name,
+				ns.Type,
+				owner.Username,
+				ns.TenantID,
+				ns.CreatedAt.Format("2006-01-02"),
+				ns.DevicesAcceptedCount,
+				ns.DevicesPendingCount,
+				ns.DevicesRejectedCount,
+				ns.DevicesRemovedCount,
+				totalDevices,
+				len(ns.Members),
+			)
+
+			for _, m := range ns.Members {
+				user, err := service.UserResolve(cmd.Context(), m.ID)
+				if err != nil {
+					return err
+				}
+				fmt.Fprintf(out, "  %-12s (%s)\n", user.Username, m.Role)
+			}
+
+			fmt.Fprintln(out, "\nLimits:")
+			if ns.MaxDevices == -1 {
+				fmt.Fprintln(out, "  Max Devices: unlimited")
+			} else {
+				fmt.Fprintf(out, "  Max Devices: %d\n", ns.MaxDevices)
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().String("tenant-id", "", "Inspect namespace by tenant ID")
 
 	return cmd
 }

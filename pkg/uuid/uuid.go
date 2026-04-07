@@ -28,3 +28,7 @@ type goUUID struct{}
 func (g *goUUID) Generate() string {
 	return uuid.NewString()
 }
+
+func Parse(s string) (uuid.UUID, error) {
+	return uuid.Parse(s)
+}

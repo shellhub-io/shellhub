@@ -804,3 +804,78 @@ func TestNamespaceList(t *testing.T) {
 		})
 	}
 }
+
+func TestNamespaceResolve(t *testing.T) {
+	type Expected struct {
+		namespace *models.Namespace
+		err       error
+	}
+
+	mock := new(mocks.Store)
+	ctx := context.TODO()
+
+	cases := []struct {
+		description   string
+		resolver      NamespaceResolver
+		value         string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "fails when store returns error using name resolver",
+			resolver:    NamespaceResolverName,
+			value:       "namespace",
+			requiredMocks: func() {
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
+					Return(nil, errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrNamespaceNotFound},
+		},
+		{
+			description: "fails when store returns error using tenant-id resolver",
+			resolver:    NamespaceResolverTenantID,
+			value:       "tenant-id",
+			requiredMocks: func() {
+				mock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant-id").
+					Return(nil, errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrNamespaceNotFound},
+		},
+		{
+			description: "succeeds using name resolver",
+			resolver:    NamespaceResolverName,
+			value:       "namespace",
+			requiredMocks: func() {
+				ns := &models.Namespace{Name: "namespace"}
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
+					Return(ns, nil).Once()
+			},
+			expected: Expected{&models.Namespace{Name: "namespace"}, nil},
+		},
+		{
+			description: "succeeds using tenant-id resolver",
+			resolver:    NamespaceResolverTenantID,
+			value:       "tenant-id",
+			requiredMocks: func() {
+				ns := &models.Namespace{TenantID: "tenant-id"}
+				mock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant-id").
+					Return(ns, nil).Once()
+			},
+			expected: Expected{&models.Namespace{TenantID: "tenant-id"}, nil},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			s := NewService(store.Store(mock))
+			ns, err := s.NamespaceResolve(ctx, tc.resolver, tc.value)
+
+			assert.Equal(t, tc.expected.namespace, ns)
+			assert.Equal(t, tc.expected.err, err)
+		})
+	}
+
+	mock.AssertExpectations(t)
+}
