@@ -79,6 +79,8 @@ func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable,
 		ColumnExpr(onlineExpr, onlineThreshold).
 		ColumnExpr(deviceExprAcceptable(acceptable))
 
+	ctx = context.WithValue(ctx, CtxTableAlias, "device")
+
 	var err error
 	query, err = applyOptions(ctx, query, opts...)
 	if err != nil {
@@ -117,6 +119,8 @@ func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, 
 		Relation("Namespace").
 		Relation("Tags").
 		ColumnExpr(onlineExpr, onlineThreshold)
+
+	ctx = context.WithValue(ctx, CtxTableAlias, "device")
 
 	query, err = applyOptions(ctx, query, opts...)
 	if err != nil {

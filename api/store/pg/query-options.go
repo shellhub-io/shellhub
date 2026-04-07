@@ -47,10 +47,18 @@ func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 			return ErrQueryNotFound
 		}
 
+		qualifyCol := func(col string) bun.Ident {
+			if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
+				return bun.Ident(alias + "." + col)
+			}
+
+			return bun.Ident(col)
+		}
+
 		if sorter.Tiebreak != "" {
-			wrapper.query = wrapper.query.OrderExpr("? ?, ? DESC", bun.Ident(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)), bun.Ident(sorter.Tiebreak))
+			wrapper.query = wrapper.query.OrderExpr("? ?, ? DESC", qualifyCol(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)), qualifyCol(sorter.Tiebreak))
 		} else {
-			wrapper.query = wrapper.query.OrderExpr("? ?", bun.Ident(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)))
+			wrapper.query = wrapper.query.OrderExpr("? ?", qualifyCol(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)))
 		}
 
 		return nil
@@ -66,6 +74,11 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
+		}
+
+		var tableAlias string
+		if alias, ok := ctx.Value(CtxTableAlias).(string); ok {
+			tableAlias = alias
 		}
 
 		var filterErr error
@@ -93,7 +106,7 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 						return nil
 					}
 
-					condition, args, valid, err := internal.ParseFilterProperty(param)
+					condition, args, valid, err := internal.ParseFilterProperty(param, tableAlias)
 					if err != nil || !valid {
 						filterErr = err
 
@@ -163,7 +176,12 @@ func (*queryOptions) WithDeviceStatus(status models.DeviceStatus) store.QueryOpt
 			return ErrQueryNotFound
 		}
 
-		wrapper.query = wrapper.query.Where("status = ?", string(status))
+		col := "status"
+		if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
+			col = alias + ".status"
+		}
+
+		wrapper.query = wrapper.query.Where(col+" = ?", string(status))
 
 		return nil
 	}
