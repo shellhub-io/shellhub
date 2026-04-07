@@ -21,7 +21,9 @@ oneOf:
         description: Public key's tags.
         type: array
         items:
-          $ref: tag.yaml
+          type: string
+          minLength: 3
+          maxLength: 255
         minItems: 1
         maxItems: 3
         uniqueItems: true
