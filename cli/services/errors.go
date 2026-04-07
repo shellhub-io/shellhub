@@ -22,4 +22,5 @@ var (
 	ErrNamespaceInvalid            = errors.New("namespace is invalid")
 	ErrFailedNamespaceAddMember    = errors.New("could not add this member to this namespace")
 	ErrUserUnhandledDuplicate      = errors.New("unhandled duplicated field for the user")
+	ErrFailedListNamespace         = errors.New("failed to list namespaces")
 )

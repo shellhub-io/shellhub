@@ -750,3 +750,57 @@ func TestNamespaceDelete(t *testing.T) {
 
 	mock.AssertExpectations(t)
 }
+
+func TestNamespaceList(t *testing.T) {
+	type Expected struct {
+		namespaces []models.Namespace
+		err        error
+	}
+
+	mock := new(mocks.Store)
+	ctx := context.TODO()
+
+	cases := []struct {
+		description   string
+		requiredMocks func()
+		expected      Expected
+	}{
+		{
+			description: "returns an error when store fails",
+			requiredMocks: func() {
+				mock.On("NamespaceList", ctx).Return(nil, 0, errors.New("store error")).Once()
+			},
+			expected: Expected{nil, ErrFailedListNamespace},
+		},
+		{
+			description: "returns namespaces successfully",
+			requiredMocks: func() {
+				namespaces := []models.Namespace{
+					{Name: "namespace1"},
+					{Name: "namespace2"},
+				}
+				mock.On("NamespaceList", ctx).Return(namespaces, len(namespaces), nil).Once()
+			},
+			expected: Expected{
+				[]models.Namespace{
+					{Name: "namespace1"},
+					{Name: "namespace2"},
+				},
+				nil,
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			s := NewService(store.Store(mock))
+			namespaces, err := s.NamespaceList(ctx)
+			assert.Equal(t, tc.expected.namespaces, namespaces)
+			assert.Equal(t, tc.expected.err, err)
+
+			mock.AssertExpectations(t)
+		})
+	}
+}

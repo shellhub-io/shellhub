@@ -139,3 +139,13 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 
 	return nil
 }
+
+// NamespaceList retrieves all namespaces available to the user
+func (s *service) NamespaceList(ctx context.Context) ([]models.Namespace, error) {
+	namespaces, _, err := s.store.NamespaceList(ctx)
+	if err != nil {
+		return nil, ErrFailedListNamespace
+	}
+
+	return namespaces, nil
+}
