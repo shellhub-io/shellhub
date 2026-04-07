@@ -24,23 +24,11 @@ export interface PublicKey {
 }
 
 function normalizePublicKey(pk: PublicKeyResponse): PublicKey {
-  let filter: PublicKeyFilter;
-  if ("tags" in pk.filter) {
-    filter = {
-      tags: pk.filter.tags.map((t) =>
-        typeof t === "object" && t !== null && "name" in t
-          ? t.name
-          : String(t),
-      ),
-    };
-  } else {
-    filter = { hostname: pk.filter.hostname };
-  }
+  const filter: PublicKeyFilter = "tags" in pk.filter
+    ? { tags: pk.filter.tags }
+    : { hostname: pk.filter.hostname };
 
-  return {
-    ...pk,
-    filter,
-  };
+  return { ...pk, filter };
 }
 
 interface UsePublicKeysParams {

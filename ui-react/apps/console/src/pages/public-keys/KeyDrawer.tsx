@@ -11,7 +11,7 @@ import {
 import { DevicesIcon } from "../../components/icons";
 import { useCreatePublicKey, useUpdatePublicKey } from "../../hooks/usePublicKeyMutations";
 import type { PublicKey } from "../../hooks/usePublicKeys";
-import type { PublicKeyRequest, Tag } from "../../client";
+import type { PublicKeyRequest } from "../../client";
 import { isPublicKeyValid } from "../../utils/sshKeys";
 import RadioCard from "../../components/common/RadioCard";
 import TagsSelector from "../../components/common/TagsSelector";
@@ -85,12 +85,9 @@ function KeyDrawer({
     if (!name) setName(filename || "Imported Public Key");
   };
 
-  // The OpenAPI spec types filter.tags as Tag[] (full objects),
-  // but the server accepts objects with just the name field.
   const buildFilter = (): PublicKeyRequest["filter"] => {
     if (filterOption === "hostname" && hostname) return { hostname };
-    if (filterOption === "tags" && selectedTags.length > 0)
-      return { tags: selectedTags.map((name) => ({ name })) as Tag[] };
+    if (filterOption === "tags" && selectedTags.length > 0) return { tags: selectedTags };
     return { hostname: ".*" };
   };
 
