@@ -81,8 +81,9 @@ func (s *service) deviceCleanup() store.TransactionCb {
 		}
 
 		sorter := &query.Sorter{
-			By:    "removed_at",
-			Order: query.OrderAsc,
+			By:       "removed_at",
+			Order:    query.OrderAsc,
+			Tiebreak: "id",
 		}
 
 		_, totalCount, err := s.store.DeviceList(ctx, store.DeviceAcceptableAsFalse, s.store.Options().Match(filter))

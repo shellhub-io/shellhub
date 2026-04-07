@@ -47,7 +47,11 @@ func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 			return ErrQueryNotFound
 		}
 
-		wrapper.query = wrapper.query.OrderExpr("? ?", bun.Ident(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)))
+		if sorter.Tiebreak != "" {
+			wrapper.query = wrapper.query.OrderExpr("? ?, ? DESC", bun.Ident(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)), bun.Ident(sorter.Tiebreak))
+		} else {
+			wrapper.query = wrapper.query.OrderExpr("? ?", bun.Ident(sorter.By), bun.Safe(strings.ToUpper(sorter.Order)))
+		}
 
 		return nil
 	}

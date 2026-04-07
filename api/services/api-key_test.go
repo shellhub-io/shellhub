@@ -428,7 +428,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc, Tiebreak: "key_digest"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -459,7 +459,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc, Tiebreak: "key_digest"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.

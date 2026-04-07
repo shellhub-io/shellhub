@@ -450,7 +450,7 @@ func TestService_ListTags(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -491,7 +491,7 @@ func TestService_ListTags(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.

@@ -28,7 +28,7 @@ func (s *service) ListSessions(ctx context.Context, req *requests.ListSessions) 
 		opts = append(opts, s.store.Options().InNamespace(req.TenantID))
 	}
 
-	opts = append(opts, s.store.Options().Sort(&query.Sorter{By: "started_at", Order: query.OrderDesc}))
+	opts = append(opts, s.store.Options().Sort(&query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}))
 	opts = append(opts, s.store.Options().Paginate(&req.Paginator))
 
 	return s.store.SessionList(ctx, opts...)

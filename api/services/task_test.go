@@ -146,7 +146,7 @@ func TestService_DeviceCleanup(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock)
 
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	sorter := query.Sorter{By: "removed_at", Order: query.OrderAsc}
+	sorter := query.Sorter{By: "removed_at", Order: query.OrderAsc, Tiebreak: "id"}
 
 	cases := []struct {
 		description   string

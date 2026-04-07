@@ -103,6 +103,8 @@ func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]model
 		req.Sorter.Order = query.OrderDesc
 	}
 
+	req.Sorter.Tiebreak = "id"
+
 	opts := []store.QueryOption{
 		s.store.Options().InNamespace(req.TenantID),
 		s.store.Options().Match(&req.Filters),
