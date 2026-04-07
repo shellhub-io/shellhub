@@ -51,11 +51,19 @@ const AdminDevices = lazy(() => import("./pages/admin/devices"));
 const AdminDeviceDetails = lazy(
   () => import("./pages/admin/devices/AdminDeviceDetails"),
 );
-const AdminFirewallRules = lazy(
-  () => import("./pages/admin/firewall-rules"),
-);
+const AdminFirewallRules = lazy(() => import("./pages/admin/firewall-rules"));
 const AdminFirewallRuleDetails = lazy(
   () => import("./pages/admin/firewall-rules/AdminFirewallRuleDetails"),
+);
+const AdminAnnouncements = lazy(() => import("./pages/admin/announcements"));
+const AdminAnnouncementDetails = lazy(
+  () => import("./pages/admin/announcements/AnnouncementDetails"),
+);
+const NewAnnouncement = lazy(
+  () => import("./pages/admin/announcements/NewAnnouncement"),
+);
+const EditAnnouncement = lazy(
+  () => import("./pages/admin/announcements/EditAnnouncement"),
 );
 
 export default function App() {
@@ -131,6 +139,26 @@ export default function App() {
                       path="/admin/firewall-rules/:id"
                       element={<AdminFirewallRuleDetails />}
                     />
+                    {getConfig().announcements && (
+                      <>
+                        <Route
+                          path="/admin/announcements"
+                          element={<AdminAnnouncements />}
+                        />
+                        <Route
+                          path="/admin/announcements/new"
+                          element={<NewAnnouncement />}
+                        />
+                        <Route
+                          path="/admin/announcements/:uuid"
+                          element={<AdminAnnouncementDetails />}
+                        />
+                        <Route
+                          path="/admin/announcements/:uuid/edit"
+                          element={<EditAnnouncement />}
+                        />
+                      </>
+                    )}
                   </Route>
                 </Route>
               </Route>
