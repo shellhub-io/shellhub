@@ -71,6 +71,8 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 		req.Sorter.By = "last_seen"
 	}
 
+	req.Sorter.Tiebreak = "id"
+
 	opts = append(opts, s.store.Options().Match(&req.Filters), s.store.Options().Sort(&req.Sorter), s.store.Options().Paginate(&req.Paginator))
 
 	if req.DeviceStatus == models.DeviceStatusRemoved {

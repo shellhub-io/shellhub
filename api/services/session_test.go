@@ -50,7 +50,7 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc}).
+					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -83,7 +83,7 @@ func TestListSessions(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc}).
+					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.

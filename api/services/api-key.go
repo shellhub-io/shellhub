@@ -94,6 +94,12 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 }
 
 func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]models.APIKey, int, error) {
+	if req.Sorter.By == "" {
+		req.Sorter.By = "created_at"
+	}
+
+	req.Sorter.Tiebreak = "key_digest"
+
 	return s.store.APIKeyList(
 		ctx,
 		s.store.Options().InNamespace(req.TenantID),

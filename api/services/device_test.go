@@ -57,7 +57,7 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -94,7 +94,7 @@ func TestListDevices(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -169,7 +169,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -210,7 +210,7 @@ func TestListDevices_status_removed(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -289,7 +289,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -330,7 +330,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -383,7 +383,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -436,7 +436,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.
@@ -489,7 +489,7 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 					Return(nil).
 					Once()
 				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc}).
+					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
 					Return(nil).
 					Once()
 				queryOptionsMock.

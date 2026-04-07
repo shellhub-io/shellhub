@@ -7,8 +7,9 @@ const (
 
 // Sorter represents the sorting order in a query.
 type Sorter struct {
-	By    string `query:"sort_by"`
-	Order string `query:"order_by" validate:"omitempty,oneof=asc desc"`
+	By       string `query:"sort_by"`
+	Order    string `query:"order_by" validate:"omitempty,oneof=asc desc"`
+	Tiebreak string // stable secondary sort column, set by service layer
 }
 
 // NewOrder creates and returns a new Sort instance with the default descending order.
