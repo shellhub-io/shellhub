@@ -50,13 +50,20 @@ export default defineConfig([
       "@stylistic/multiline-ternary": "off",
       "@stylistic/jsx-one-expression-per-line": "off",
       "@stylistic/quotes": ["error", "double", { avoidEscape: true }],
-      "@stylistic/indent": ["error", 2],
       "@stylistic/semi": ["error", "always"],
       "@stylistic/brace-style": ["error", "1tbs", { allowSingleLine: true }],
       "@stylistic/max-statements-per-line": "off",
       "@stylistic/member-delimiter-style": "off",
       "@stylistic/arrow-parens": ["error", "always"],
       "@stylistic/quote-props": ["error", "as-needed"],
+
+      // Disabled — Prettier controls these and cannot be configured to match
+      "@stylistic/indent": "off",
+      "@stylistic/indent-binary-ops": "off",
+      "@stylistic/jsx-indent-props": "off",
+      "@stylistic/operator-linebreak": "off",
+      "@stylistic/jsx-wrap-multilines": "off",
+      "@stylistic/jsx-curly-newline": "off",
     },
   },
 
