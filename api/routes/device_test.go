@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -377,6 +378,93 @@ func TestGetDeviceList(t *testing.T) {
 
 			require.Equal(t, tc.expected.status, rec.Result().StatusCode)
 			require.Equal(t, tc.expected.devices, devices)
+		})
+	}
+}
+
+func TestGetDeviceListConnectorFilterOrder(t *testing.T) {
+	cases := []struct {
+		description string
+		connector   string
+		userFilter  []query.Filter
+	}{
+		{
+			description: "connector filter has AND before property when user filter is present",
+			connector:   "",
+			userFilter: []query.Filter{
+				{
+					Type:   query.FilterTypeProperty,
+					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
+				},
+			},
+		},
+		{
+			description: "connector=true filter has AND before property when user filter is present",
+			connector:   "true",
+			userFilter: []query.Filter{
+				{
+					Type:   query.FilterTypeProperty,
+					Params: &query.FilterProperty{Name: "name", Operator: "contains", Value: "foo"},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			mock := new(mocks.Service)
+
+			var captured *requests.DeviceList
+			mock.
+				On("ListDevices", gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
+				Run(func(args gomock.Arguments) {
+					captured = args.Get(1).(*requests.DeviceList)
+				}).
+				Return([]models.Device{}, 0, nil).
+				Once()
+
+			filterJSON, err := json.Marshal(tc.userFilter)
+			require.NoError(t, err)
+
+			filterB64 := base64.StdEncoding.EncodeToString(filterJSON)
+
+			urlVal := &url.Values{}
+			urlVal.Set("page", "1")
+			urlVal.Set("per_page", "10")
+			urlVal.Set("sort_by", "name")
+			urlVal.Set("order_by", "asc")
+			urlVal.Set("status", "accepted")
+			urlVal.Set("filter", filterB64)
+			if tc.connector != "" {
+				urlVal.Set("connector", tc.connector)
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
+			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+
+			rec := httptest.NewRecorder()
+			e := NewRouter(mock)
+			e.ServeHTTP(rec, req)
+
+			require.Equal(t, http.StatusOK, rec.Result().StatusCode)
+			require.NotNil(t, captured)
+
+			// The connector/platform filter is appended after the user
+			// filters. The AND operator MUST come before the platform
+			// property so it applies to it; otherwise the platform
+			// condition gets OR'd with user filters, returning all
+			// devices regardless of the user's filter.
+			data := captured.Filters.Data
+			require.GreaterOrEqual(t, len(data), 3)
+
+			lastTwo := data[len(data)-2:]
+			require.Equal(t, query.FilterTypeOperator, lastTwo[0].Type, "AND operator must precede the platform property filter")
+			require.Equal(t, query.FilterTypeProperty, lastTwo[1].Type, "platform property filter must follow the AND operator")
+
+			op, ok := lastTwo[0].Params.(*query.FilterOperator)
+			require.True(t, ok)
+			require.Equal(t, "and", op.Name)
 		})
 	}
 }
