@@ -48,7 +48,7 @@ jobs:
           image: shellhubio/${{ matrix.project }}:${{ env.RELEASE_VERSION }}
           format: cyclonedx-json
           output-file: sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json
-          artifact-name: ""
+          upload-artifact: false
 
       - name: Generate SBOM for '${{ matrix.project }}' source
         uses: anchore/sbom-action@v0
@@ -56,7 +56,7 @@ jobs:
           path: ${{ matrix.project }}
           format: cyclonedx-json
           output-file: sbom-${{ matrix.project }}-source-${{ env.RELEASE_VERSION }}.cdx.json
-          artifact-name: ""
+          upload-artifact: false
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v7
@@ -128,7 +128,7 @@ jobs:
           image: registry.infra.ossystems.io/shellhub/api-enterprise:${{ env.RELEASE_VERSION }}
           format: cyclonedx-json
           output-file: sbom-api-enterprise-${{ env.RELEASE_VERSION }}.cdx.json
-          artifact-name: ""
+          upload-artifact: false
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v7

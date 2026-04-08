@@ -123,7 +123,7 @@ jobs:
           image: shellhubio/agent:${{ env.RELEASE_VERSION }}
           format: cyclonedx-json
           output-file: sbom-agent-${{ env.RELEASE_VERSION }}.cdx.json
-          artifact-name: ""
+          upload-artifact: false
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v7
@@ -220,7 +220,7 @@ jobs:
           path: ./agent
           format: cyclonedx-json
           output-file: sbom-agent-source-${{ env.RELEASE_VERSION }}.cdx.json
-          artifact-name: ""
+          upload-artifact: false
 
       - name: Upload source SBOM artifact
         uses: actions/upload-artifact@v7
