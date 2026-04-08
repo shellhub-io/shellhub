@@ -114,6 +114,8 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 		condition, args, err = fromBool(fp.Name, fp.Value, tableAlias)
 	case "gt":
 		condition, args, err = fromGt(fp.Name, fp.Value, tableAlias)
+	case "lt":
+		condition, args, err = fromLt(fp.Name, fp.Value, tableAlias)
 	case "ne":
 		condition, args, err = fromNe(fp.Name, fp.Value, tableAlias)
 	default:
@@ -225,6 +227,8 @@ func fromGt(column string, value any, tableAlias string) (string, []any, error) 
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
 		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
+	case time.Time:
+		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
 	case string:
 		var num any
 		var err error
@@ -238,6 +242,34 @@ func fromGt(column string, value any, tableAlias string) (string, []any, error) 
 		}
 
 		return "? > ?", []any{qualifyColumn(column, tableAlias), num}, nil
+	default:
+		return "", nil, ErrUnsupportedNumericType
+	}
+}
+
+// fromLt converts a "lt" (less than) JSON expression to an SQL expression using <. It handles numeric types,
+// strings, and time.Time values. Returns SQL condition string, arguments array, and error if any.
+func fromLt(column string, value any, tableAlias string) (string, []any, error) {
+	column = mapColumnFromLegacyMongo(column)
+
+	switch v := value.(type) {
+	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
+		return "? < ?", []any{qualifyColumn(column, tableAlias), v}, nil
+	case time.Time:
+		return "? < ?", []any{qualifyColumn(column, tableAlias), v}, nil
+	case string:
+		var num any
+		var err error
+
+		num, err = strconv.Atoi(v)
+		if err != nil {
+			num, err = strconv.ParseFloat(v, 64)
+			if err != nil {
+				return "", nil, err
+			}
+		}
+
+		return "? < ?", []any{qualifyColumn(column, tableAlias), num}, nil
 	default:
 		return "", nil, ErrUnsupportedNumericType
 	}
