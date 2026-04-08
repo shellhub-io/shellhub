@@ -236,6 +236,18 @@ func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun
 	}
 }
 
+// DeviceOnlineThreshold is the base duration used to determine if a device
+// is online. A device is considered online when its last_seen timestamp is
+// within 2 × DeviceOnlineThreshold of the current time.
+const DeviceOnlineThreshold = time.Minute
+
+// DeviceIsOnline reports whether the device should be considered online
+// based on the given threshold time. A device is online when it has not
+// been explicitly disconnected and was last seen after the threshold.
+func DeviceIsOnline(d *entity.Device, threshold time.Time) bool {
+	return d.DisconnectedAt.IsZero() && d.LastSeen.After(threshold)
+}
+
 // deviceExprOnline returns the SQL expression for the "online" field.
 func deviceExprOnline(threshold time.Time) (string, time.Time) {
 	return `CASE
