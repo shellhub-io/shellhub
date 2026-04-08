@@ -12,6 +12,7 @@ cat > "$OUTPUT" <<EOF
   "version": "${SHELLHUB_VERSION:-}",
   "enterprise": ${SHELLHUB_ENTERPRISE:-false},
   "cloud": ${SHELLHUB_CLOUD:-false},
-  "onboardingUrl": "${SHELLHUB_ONBOARDING_URL:-}"
+  "onboardingUrl": "${SHELLHUB_ONBOARDING_URL:-}",
+  "announcements": ${SHELLHUB_ANNOUNCEMENTS:-false}
 }
 EOF
