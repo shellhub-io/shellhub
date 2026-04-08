@@ -44,8 +44,12 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 		return nil, 0, fromSQLError(err)
 	}
 
+	threshold := clock.Now().Add(-2 * DeviceOnlineThreshold)
 	sessions := make([]models.Session, len(entities))
 	for i, e := range entities {
+		if e.Device != nil {
+			e.Device.Online = DeviceIsOnline(e.Device, threshold)
+		}
 		sessions[i] = *entity.SessionToModel(&e)
 	}
 
@@ -75,6 +79,10 @@ func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver
 
 	if err = query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
+	}
+
+	if e.Device != nil {
+		e.Device.Online = DeviceIsOnline(e.Device, clock.Now().Add(-2*DeviceOnlineThreshold))
 	}
 
 	return entity.SessionToModel(e), nil
