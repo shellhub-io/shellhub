@@ -12,6 +12,8 @@ export interface INamespaceMember {
 export interface INamespaceSettings {
   connection_announcement?: string;
   session_record: boolean;
+  disable_password: boolean;
+  disable_public_key: boolean;
 }
 
 interface INamespaceBilling {

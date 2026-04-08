@@ -16,6 +16,8 @@ export const editNamespace = async (data: INamespaceEdit) => namespacesApi.editN
   settings: {
     connection_announcement: data.settings?.connection_announcement,
     session_record: data.settings?.session_record,
+    disable_password: data.settings?.disable_password,
+    disable_public_key: data.settings?.disable_public_key,
   },
 });
 

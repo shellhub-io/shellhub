@@ -28,6 +28,8 @@ const mockNamespace: Namespace = {
   settings: {
     session_record: true,
     connection_announcement: "hello",
+    disable_password: false,
+    disable_public_key: false,
   },
   max_devices: 10,
   created_at: "2024-01-01T00:00:00Z",

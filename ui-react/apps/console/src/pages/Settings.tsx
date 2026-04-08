@@ -11,6 +11,8 @@ import {
   TagIcon,
   FingerPrintIcon,
   VideoCameraIcon,
+  LockClosedIcon,
+  LockOpenIcon,
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
@@ -413,14 +415,20 @@ export default function Settings() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [togglingRecord, setTogglingRecord] = useState(false);
+  const [togglingDisablePassword, setTogglingDisablePassword] = useState(false);
+  const [togglingDisablePublicKey, setTogglingDisablePublicKey] = useState(false);
 
   const canRename = useHasPermission("namespace:rename");
   const canUpdateRecording = useHasPermission("namespace:updateSessionRecording");
+  const canUpdateDisablePassword = useHasPermission("namespace:updateDisablePassword");
+  const canUpdateDisablePublicKey = useHasPermission("namespace:updateDisablePublicKey");
   const canEditBanner = useHasPermission("namespace:editBanner");
   const canDelete = useHasPermission("namespace:delete");
 
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
+  const disablePassword = settings?.disable_password ?? false;
+  const disablePublicKey = settings?.disable_public_key ?? false;
   const banner = settings?.connection_announcement ?? "";
 
   const handleToggleRecord = async () => {
@@ -429,12 +437,42 @@ export default function Settings() {
     try {
       await editNs.mutateAsync({
         path: { tenant: tenantId },
-        body: { settings: { session_record: !sessionRecord, connection_announcement: banner } },
+        body: { settings: { session_record: !sessionRecord, connection_announcement: banner, disable_password: disablePassword, disable_public_key: disablePublicKey } },
       });
     } catch {
       /* state didn't change */
     } finally {
       setTogglingRecord(false);
+    }
+  };
+
+  const handleToggleDisablePassword = async () => {
+    if (!tenantId || togglingDisablePassword) return;
+    setTogglingDisablePassword(true);
+    try {
+      await editNs.mutateAsync({
+        path: { tenant: tenantId },
+        body: { settings: { session_record: sessionRecord, connection_announcement: banner, disable_password: !disablePassword, disable_public_key: disablePublicKey } },
+      });
+    } catch {
+      /* state didn't change */
+    } finally {
+      setTogglingDisablePassword(false);
+    }
+  };
+
+  const handleToggleDisablePublicKey = async () => {
+    if (!tenantId || togglingDisablePublicKey) return;
+    setTogglingDisablePublicKey(true);
+    try {
+      await editNs.mutateAsync({
+        path: { tenant: tenantId },
+        body: { settings: { session_record: sessionRecord, connection_announcement: banner, disable_password: disablePassword, disable_public_key: !disablePublicKey } },
+      });
+    } catch {
+      /* state didn't change */
+    } finally {
+      setTogglingDisablePublicKey(false);
     }
   };
 
@@ -553,6 +591,83 @@ export default function Settings() {
 
           {/* SSH Banner */}
           <BannerPreview banner={banner} canEdit={canEditBanner} />
+
+          {/* Disable SSH password */}
+          <SettingsRow
+            icon={disablePassword ? <LockClosedIcon className="w-4 h-4 text-accent-red" /> : <LockOpenIcon className="w-4 h-4" />}
+            title="Disable Password Authentication"
+            description="Block SSH connections using password for all devices in this namespace"
+          >
+            <div
+              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateDisablePassword || togglingDisablePassword ? "opacity-40 pointer-events-none" : ""}`}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (disablePassword) void handleToggleDisablePassword();
+                }}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  !disablePassword
+                    ? "bg-hover-strong text-text-secondary border border-border-light"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                Off
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!disablePassword) void handleToggleDisablePassword();
+                }}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  disablePassword
+                    ? "bg-accent-red/15 text-accent-red border border-accent-red/25"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                On
+              </button>
+            </div>
+          </SettingsRow>
+
+          {/* Disable SSH public key */}
+          <SettingsRow
+            icon={disablePublicKey ? <LockClosedIcon className="w-4 h-4 text-accent-red" /> : <LockOpenIcon className="w-4 h-4" />}
+            title="Disable Public Key Authentication"
+            description="Block SSH connections using public key for all devices in this namespace"
+          >
+            <div
+              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateDisablePublicKey || togglingDisablePublicKey ? "opacity-40 pointer-events-none" : ""}`}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (disablePublicKey) void handleToggleDisablePublicKey();
+                }}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  !disablePublicKey
+                    ? "bg-hover-strong text-text-secondary border border-border-light"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                Off
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!disablePublicKey) void handleToggleDisablePublicKey();
+                }}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  disablePublicKey
+                    ? "bg-accent-red/15 text-accent-red border border-accent-red/25"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                On
+              </button>
+            </div>
+          </SettingsRow>
+
         </SettingsCard>
 
         {/* ── Danger Zone ── */}

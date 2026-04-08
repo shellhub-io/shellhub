@@ -51,6 +51,8 @@ func (n *Namespace) FindMember(id string) (*Member, bool) {
 type NamespaceSettings struct {
 	SessionRecord          bool   `json:"session_record" bson:"session_record,omitempty"`
 	ConnectionAnnouncement string `json:"connection_announcement" bson:"connection_announcement"`
+	DisablePassword        bool   `json:"disable_password" bson:"disable_password,omitempty"`
+	DisablePublicKey       bool   `json:"disable_public_key" bson:"disable_public_key,omitempty"`
 }
 
 // default Announcement Message for the shellhub namespace

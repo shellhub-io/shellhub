@@ -52,6 +52,8 @@ type NamespaceEdit struct {
 	Settings struct {
 		SessionRecord          *bool   `json:"session_record" validate:"omitempty"`
 		ConnectionAnnouncement *string `json:"connection_announcement" validate:"omitempty,min=0,max=4096"`
+		DisablePassword        *bool   `json:"disable_password" validate:"omitempty"`
+		DisablePublicKey       *bool   `json:"disable_public_key" validate:"omitempty"`
 	} `json:"settings"`
 }
 

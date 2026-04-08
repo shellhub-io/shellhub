@@ -50,6 +50,8 @@ export default function EditNamespaceDrawer({
             connection_announcement:
               namespace.settings?.connection_announcement ?? "",
             session_record: sessionRecord,
+            disable_password: namespace.settings?.disable_password ?? false,
+            disable_public_key: namespace.settings?.disable_public_key ?? false,
           },
         },
       });

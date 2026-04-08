@@ -158,9 +158,41 @@
         data-test="record-item"
       >
         <SettingSessionRecording
-          :tenant-id
+          :tenant-id="tenantId"
           class="mr-sm-4"
           data-test="session-recording-setting-component"
+        />
+      </SettingsRow>
+      <v-divider />
+      <SettingsRow
+        icon="mdi-lock-off-outline"
+        icon-test-id="disable-password-icon"
+        title="Disable Password Authentication"
+        title-test-id="disable-password-title"
+        subtitle="Disable password authentication for all devices in this namespace. Only public key authentication will be allowed."
+        subtitle-test-id="disable-password-description"
+        data-test="disable-password-item"
+      >
+        <SettingDisablePassword
+          :tenant-id="tenantId"
+          class="mr-sm-4"
+          data-test="disable-password-setting-component"
+        />
+      </SettingsRow>
+      <v-divider />
+      <SettingsRow
+        icon="mdi-key-off"
+        icon-test-id="disable-public-key-icon"
+        title="Disable Public Key Authentication"
+        title-test-id="disable-public-key-title"
+        subtitle="Disable public key authentication for all devices in this namespace. Only password authentication will be allowed."
+        subtitle-test-id="disable-public-key-description"
+        data-test="disable-public-key-item"
+      >
+        <SettingDisablePublicKey
+          :tenant-id="tenantId"
+          class="mr-sm-4"
+          data-test="disable-public-key-setting-component"
         />
       </SettingsRow>
       <v-divider />
@@ -206,6 +238,8 @@ import { useField } from "vee-validate";
 import { useDisplay } from "vuetify";
 import hasPermission from "@/utils/permission";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
+import SettingDisablePassword from "./SettingDisablePassword.vue";
+import SettingDisablePublicKey from "./SettingDisablePublicKey.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import ConnectionAnnouncementEdit from "../Namespace/ConnectionAnnouncementEdit.vue";
 import PageHeader from "../PageHeader.vue";

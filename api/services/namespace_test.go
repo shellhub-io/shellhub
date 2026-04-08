@@ -1026,7 +1026,13 @@ func TestEditNamespace(t *testing.T) {
 		requiredMocks func()
 		tenantID      string
 		namespaceName string
-		expected      Expected
+		settings      struct {
+			SessionRecord          *bool
+			ConnectionAnnouncement *string
+			DisablePassword        *bool
+			DisablePublicKey       *bool
+		}
+		expected Expected
 	}{
 		{
 			description:   "fails when namespace does not exist",
@@ -1112,9 +1118,111 @@ func TestEditNamespace(t *testing.T) {
 			},
 		},
 		{
+			description: "succeeds changing DisablePassword",
+			tenantID:    "xxxxx",
+			settings: struct {
+				SessionRecord          *bool
+				ConnectionAnnouncement *string
+				DisablePassword        *bool
+				DisablePublicKey       *bool
+			}{
+				DisablePassword: func(b bool) *bool { return &b }(true),
+			},
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{DisablePassword: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.DisablePassword = true
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+
+				finalNamespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{DisablePassword: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(finalNamespace, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{DisablePassword: true},
+				},
+				nil,
+			},
+		},
+		{
+			description: "succeeds changing DisablePublicKey",
+			tenantID:    "xxxxx",
+			settings: struct {
+				SessionRecord          *bool
+				ConnectionAnnouncement *string
+				DisablePassword        *bool
+				DisablePublicKey       *bool
+			}{
+				DisablePublicKey: func(b bool) *bool { return &b }(true),
+			},
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{DisablePublicKey: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.DisablePublicKey = true
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+
+				finalNamespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{DisablePublicKey: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(finalNamespace, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{DisablePublicKey: true},
+				},
+				nil,
+			},
+		},
+		{
 			description:   "succeeds",
 			namespaceName: "newname",
 			tenantID:      "xxxxx",
+			settings: struct {
+				SessionRecord          *bool
+				ConnectionAnnouncement *string
+				DisablePassword        *bool
+				DisablePublicKey       *bool
+			}{},
 			requiredMocks: func() {
 				namespace := &models.Namespace{
 					TenantID: "xxxxx",
@@ -1163,6 +1271,11 @@ func TestEditNamespace(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: tc.tenantID},
 				Name:        tc.namespaceName,
 			}
+			req.Settings.SessionRecord = tc.settings.SessionRecord
+			req.Settings.ConnectionAnnouncement = tc.settings.ConnectionAnnouncement
+			req.Settings.DisablePassword = tc.settings.DisablePassword
+			req.Settings.DisablePublicKey = tc.settings.DisablePublicKey
+
 			namespace, err := service.EditNamespace(ctx, req)
 
 			assert.Equal(t, tc.expected, Expected{namespace, err})

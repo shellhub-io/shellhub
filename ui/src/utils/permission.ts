@@ -41,6 +41,8 @@ const permissions = {
   "namespace:editInvitation": Roles.ADMINISTRATOR,
   "namespace:cancelInvitation": Roles.ADMINISTRATOR,
   "namespace:updateSessionRecording": Roles.ADMINISTRATOR,
+  "namespace:updateDisablePassword": Roles.ADMINISTRATOR,
+  "namespace:updateDisablePublicKey": Roles.ADMINISTRATOR,
   "namespace:delete": Roles.OWNER,
 
   "tag:edit": Roles.OPERATOR,

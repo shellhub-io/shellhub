@@ -33,7 +33,7 @@
 
       <v-select
         v-model="authenticationMethod"
-        :items="[TerminalAuthMethods.Password, TerminalAuthMethods.PrivateKey]"
+        :items="isPasswordDisabled ? [TerminalAuthMethods.PrivateKey] : [TerminalAuthMethods.Password, TerminalAuthMethods.PrivateKey]"
         label="Authentication method"
         data-test="auth-method-select"
         hide-details
@@ -49,7 +49,7 @@
       />
 
       <v-text-field
-        v-else
+        v-if="!isPasswordDisabled && authenticationMethod === TerminalAuthMethods.Password"
         v-model="password"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         :error-messages="passwordError"
@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
@@ -145,7 +145,23 @@ const emit = defineEmits<{
 const showDialog = defineModel<boolean>({ required: true });
 const isConnecting = defineModel<boolean>("loading", { default: false });
 const { privateKeys } = usePrivateKeysStore();
-const authenticationMethod = ref(TerminalAuthMethods.Password);
+const namespacesStore = useNamespacesStore();
+
+const isPasswordDisabled = computed(
+  () => namespacesStore.currentNamespace.settings?.disable_password || false,
+);
+
+const authenticationMethod = ref(
+  isPasswordDisabled.value ? TerminalAuthMethods.PrivateKey : TerminalAuthMethods.Password,
+);
+
+watch(isPasswordDisabled, (isDisabled) => {
+  if (isDisabled && authenticationMethod.value === TerminalAuthMethods.Password) {
+    authenticationMethod.value = TerminalAuthMethods.PrivateKey;
+    togglePassphraseField();
+  }
+});
+
 const showPassword = ref(false);
 const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
 const showPassphraseField = ref(false);
@@ -211,7 +227,7 @@ const resetFields = () => {
   resetUsernameField();
   resetPasswordField();
   resetPassphraseField();
-  authenticationMethod.value = TerminalAuthMethods.Password;
+  authenticationMethod.value = isPasswordDisabled.value ? TerminalAuthMethods.PrivateKey : TerminalAuthMethods.Password;
   selectedPrivateKeyName.value = privateKeys[0]?.name || "";
   showPassphraseField.value = false;
 };

@@ -12,6 +12,12 @@ properties:
     maxLength: 4096
     format: alphanumunicode
     example: my awesome connection announcement
-required:
-  - session_record
-  - connection_announcement
+  disable_password:
+    description: The disable password define when the namespace should block or not password authentication.
+    type: boolean
+    example: false
+  disable_public_key:
+    description: The disable public key define when the namespace should block or not public key authentication.
+    type: boolean
+    example: false
+required: []

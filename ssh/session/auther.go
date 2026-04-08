@@ -76,6 +76,10 @@ func (*publicKeyAuth) Auth() authFunc {
 }
 
 func (p *publicKeyAuth) Evaluate(session *Session) error {
+	if session.Namespace.Settings.DisablePublicKey {
+		return ErrPublicKeyDisabled
+	}
+
 	// Versions earlier than 0.6.0 do not validate the user when receiving a public key
 	// authentication request. This implies that requests with invalid users are
 	// treated as "authenticated" because the connection does not raise any error.
@@ -137,7 +141,10 @@ func (p *passwordAuth) Auth() authFunc {
 	}
 }
 
-func (*passwordAuth) Evaluate(*Session) error {
-	// We don't need (yet) to do any evaluation when authenticating with password.
+func (*passwordAuth) Evaluate(session *Session) error {
+	if session.Namespace.Settings.DisablePassword {
+		return ErrPasswordDisabled
+	}
+
 	return nil
 }

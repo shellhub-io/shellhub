@@ -66,6 +66,8 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          true,
 			ConnectionAnnouncement: "",
+			DisablePassword:        false,
+			DisablePublicKey:       false,
 		},
 		TenantID: req.TenantID,
 		Type:     models.NewDefaultType(),
@@ -174,6 +176,14 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 
 	if req.Settings.ConnectionAnnouncement != nil {
 		namespace.Settings.ConnectionAnnouncement = *req.Settings.ConnectionAnnouncement
+	}
+
+	if req.Settings.DisablePassword != nil {
+		namespace.Settings.DisablePassword = *req.Settings.DisablePassword
+	}
+
+	if req.Settings.DisablePublicKey != nil {
+		namespace.Settings.DisablePublicKey = *req.Settings.DisablePublicKey
 	}
 
 	if err := s.store.NamespaceUpdate(ctx, namespace); err != nil {
