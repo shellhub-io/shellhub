@@ -6,7 +6,6 @@ import (
 	"time"
 
 	asynqlib "github.com/hibiken/asynq"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/redis"
@@ -16,12 +15,7 @@ func TestServer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	image := "docker.io/redis:7"
-	if envs.DefaultBackend.Get("CI") == "true" {
-		image = "registry.infra.ossystems.io/cache/redis:7"
-	}
-
-	redisContainer, err := redis.Run(ctx, image)
+	redisContainer, err := redis.Run(ctx, "docker.io/redis:7")
 	require.NoError(t, err)
 
 	redisConnStr, err := redisContainer.ConnectionString(ctx)
