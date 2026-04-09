@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:18.0
     command: postgres -c io_method=io_uring
+    restart: unless-stopped
     security_opt:
       # Disable seccomp to allow io_uring syscalls (io_uring_setup, io_uring_enter, io_uring_register)
       # which are blocked by Docker's default seccomp profile for security reasons.
