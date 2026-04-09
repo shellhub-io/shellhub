@@ -9,82 +9,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
 import PageHeader from "@/components/common/PageHeader";
-import Pagination from "@/components/common/Pagination";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import DeleteAnnouncementDialog from "./DeleteAnnouncementDialog";
-import { TH as TH_BASE } from "@/utils/styles";
 import { formatDateShort } from "@/utils/date";
 import type { AnnouncementShort } from "@/client";
 
-const TH = `${TH_BASE} whitespace-nowrap`;
 const PER_PAGE = 10;
-
-function AnnouncementRow({
-  announcement,
-  onEdit,
-  onDelete,
-}: {
-  announcement: AnnouncementShort;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const navigate = useNavigate();
-
-  return (
-    <tr
-      onClick={() => void navigate(`/admin/announcements/${announcement.uuid}`)}
-      className="group hover:bg-hover-subtle transition-colors cursor-pointer"
-    >
-      {/* UUID */}
-      <td className="px-4 py-3.5">
-        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium max-w-[120px] truncate">
-          {announcement.uuid.slice(0, 8)}
-        </span>
-      </td>
-
-      {/* Title */}
-      <td className="px-4 py-3.5">
-        <span className="text-sm text-text-primary truncate block max-w-[400px]">
-          {announcement.title}
-        </span>
-      </td>
-
-      {/* Date */}
-      <td className="px-4 py-3.5">
-        <span className="text-xs text-text-secondary font-mono">
-          {formatDateShort(announcement.date)}
-        </span>
-      </td>
-
-      {/* Actions */}
-      <td className="px-4 py-3.5 text-right">
-        <div className="flex items-center justify-end gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/5 transition-colors"
-            title="Edit announcement"
-            aria-label={`Edit ${announcement.title}`}
-          >
-            <PencilSquareIcon className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-            title="Delete announcement"
-            aria-label={`Delete ${announcement.title}`}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
 
 export default function AdminAnnouncements() {
   const navigate = useNavigate();
@@ -101,6 +31,67 @@ export default function AdminAnnouncements() {
   );
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
+
+  const columns: Column<AnnouncementShort>[] = [
+    {
+      key: "uuid",
+      header: "UUID",
+      render: (a) => (
+        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium max-w-[120px] truncate">
+          {a.uuid.slice(0, 8)}
+        </span>
+      ),
+    },
+    {
+      key: "title",
+      header: "Title",
+      render: (a) => (
+        <span className="text-sm text-text-primary truncate block max-w-[400px]">
+          {a.title}
+        </span>
+      ),
+    },
+    {
+      key: "date",
+      header: "Date",
+      render: (a) => (
+        <span className="text-xs text-text-secondary font-mono">
+          {formatDateShort(a.date)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      render: (a) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              void navigate(`/admin/announcements/${a.uuid}/edit`);
+            }}
+            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/5 transition-colors"
+            title="Edit announcement"
+            aria-label={`Edit ${a.title}`}
+          >
+            <PencilSquareIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteTarget(a);
+            }}
+            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
+            title="Delete announcement"
+            aria-label={`Delete ${a.title}`}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -132,68 +123,30 @@ export default function AdminAnnouncements() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
-        <div className="overflow-x-auto">
-          <table className="w-full" aria-label="Announcements">
-            <thead>
-              <tr className="border-b border-border bg-surface/50">
-                <th className={TH}>UUID</th>
-                <th className={TH}>Title</th>
-                <th className={TH}>Date</th>
-                <th className={`${TH} text-right`}>Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {isLoading && announcements.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-16 text-center">
-                    <div
-                      className="flex items-center justify-center gap-3"
-                      role="status"
-                    >
-                      <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-xs font-mono text-text-muted">
-                        Loading announcements...
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ) : announcements.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-4 py-16 text-center">
-                    <MegaphoneIcon
-                      className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-                      strokeWidth={1}
-                    />
-                    <p className="text-xs font-mono text-text-muted">
-                      No announcements found
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                announcements.map((a) => (
-                  <AnnouncementRow
-                    key={a.uuid}
-                    announcement={a}
-                    onEdit={() =>
-                      void navigate(`/admin/announcements/${a.uuid}/edit`)
-                    }
-                    onDelete={() => setDeleteTarget(a)}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <Pagination
+      <DataTable
+        columns={columns}
+        data={announcements}
+        rowKey={(a) => a.uuid}
+        label="Announcements"
+        isLoading={isLoading}
+        loadingMessage="Loading announcements..."
         page={page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="announcement"
         onPageChange={setPage}
+        onRowClick={(a) => void navigate(`/admin/announcements/${a.uuid}`)}
+        emptyState={
+          <div className="text-center">
+            <MegaphoneIcon
+              className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
+              strokeWidth={1}
+            />
+            <p className="text-xs font-mono text-text-muted">
+              No announcements found
+            </p>
+          </div>
+        }
       />
 
       <DeleteAnnouncementDialog
