@@ -1,17 +1,19 @@
 name: Verify Fix
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [master]
 
 jobs:
   verify:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    environment: ${{ github.event.pull_request.head.repo.fork && 'fork-ci' || '' }}
 
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-go@v6

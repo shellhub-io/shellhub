@@ -6,7 +6,7 @@ on:
     paths:
       - "**Dockerfile"
 
-  pull_request:
+  pull_request_target:
     branches: [master]
     paths:
       - "**Dockerfile"
@@ -21,10 +21,13 @@ jobs:
         project: [api, ssh, gateway, ui, cli]
 
     runs-on: ubuntu-24.04
+    environment: ${{ github.event.pull_request.head.repo.fork && 'fork-ci' || '' }}
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Login to Docker Registry
         uses: docker/login-action@v4
