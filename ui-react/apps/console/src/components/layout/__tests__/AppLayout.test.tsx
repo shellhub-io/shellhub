@@ -4,11 +4,39 @@ import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "../AppLayout";
 
-const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
+const mockUseNamespaces =
+  vi.fn<
+    () => {
+      namespaces: Array<{ tenant_id: string; name: string }>;
+      isLoading: boolean;
+      error: Error | null;
+      refetch: () => void;
+    }
+  >();
 
 vi.mock("../../../hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
   useInitRole: () => {},
+}));
+
+vi.mock("../../../hooks/useSidebarLayout", () => ({
+  useSidebarLayout: () => ({
+    expanded: false,
+    pinned: false,
+    isOpen: false,
+    isDesktop: true,
+    drawerOpen: false,
+    handlers: {
+      onMouseEnter: vi.fn(),
+      onMouseLeave: vi.fn(),
+      onFocus: vi.fn(),
+      onBlur: vi.fn(),
+      onToggle: vi.fn(),
+      openDrawer: vi.fn(),
+      closeDrawer: vi.fn(),
+      onDrawerKeyDown: vi.fn(),
+    },
+  }),
 }));
 
 vi.mock("../Sidebar", () => ({
@@ -39,7 +67,9 @@ beforeEach(() => {
 });
 
 function renderLayout() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>

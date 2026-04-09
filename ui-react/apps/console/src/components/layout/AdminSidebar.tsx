@@ -12,12 +12,12 @@ import {
   KeyIcon,
   DocumentCheckIcon,
   ChevronDownIcon,
-  ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
 import type { ReactNode } from "react";
 import { getConfig } from "../../env";
 import { useAdminLicense } from "../../hooks/useAdminLicense";
 import { useAuthStore } from "../../stores/authStore";
+import SidebarShell, { NavItemLink, navBase, navDisabled, navIcon } from "./SidebarShell";
 
 // ---- Types ----
 
@@ -39,9 +39,7 @@ function isNavGroup(entry: NavEntry): entry is NavGroup {
   return "children" in entry;
 }
 
-// ---- Nav definition (matches Vue admin's items array exactly) ----
-
-const navIcon = "w-[18px] h-[18px]";
+// ---- Nav definition ----
 
 const coreNavEntries: NavEntry[] = [
   { to: "/admin/dashboard", label: "Dashboard", icon: <HomeIcon className={navIcon} /> },
@@ -88,51 +86,7 @@ function buildNavEntries(): NavEntry[] {
   return entries;
 }
 
-// ---- Shared styles ----
-
-const navBase = "flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium";
-const navActive = "bg-primary/10 text-primary border border-primary/20";
-const navIdle = "text-text-secondary hover:text-text-primary hover:bg-hover-subtle border border-transparent";
-const navDisabled = "text-text-muted/50 cursor-not-allowed";
-
-// ---- Sub-components ----
-
-function NavItemLink({
-  item,
-  expanded,
-  disabled,
-  onClick,
-}: {
-  item: NavItem;
-  expanded: boolean;
-  disabled?: boolean;
-  onClick?: () => void;
-}) {
-  const align = expanded ? "" : "justify-center";
-  const label = expanded ? <span className="truncate">{item.label}</span> : null;
-
-  if (disabled) {
-    return (
-      <span aria-disabled="true" className={`${navBase} ${navDisabled} ${align}`}>
-        {item.icon}
-        {label}
-      </span>
-    );
-  }
-
-  return (
-    <NavLink
-      to={item.to}
-      title={expanded ? undefined : item.label}
-      onClick={onClick}
-      className={({ isActive }) =>
-        `${navBase} transition-all duration-150 ${isActive ? navActive : navIdle} ${align}`}
-    >
-      {item.icon}
-      {label}
-    </NavLink>
-  );
-}
+// ---- NavGroupItem (admin-only) ----
 
 function NavGroupItem({
   group,
@@ -210,7 +164,7 @@ function NavGroupItem({
   );
 }
 
-// ---- Sidebar ----
+// ---- AdminSidebar ----
 
 export default function AdminSidebar({
   expanded,
@@ -243,85 +197,39 @@ export default function AdminSidebar({
   };
 
   return (
-    <aside
-      className={`bg-surface border-r border-border flex flex-col min-h-screen shrink-0 transition-all duration-200 ease-in-out overflow-hidden ${
-        expanded ? "w-[220px]" : "w-[60px]"
-      }`}
+    <SidebarShell
+      expanded={expanded}
+      pinned={pinned}
+      onToggle={onToggle}
+      onClose={onClose}
+      ariaLabel="Admin navigation"
+      footerLabel="Admin Panel"
+      logoHref="/admin/dashboard"
     >
-      {/* Logo */}
-      <div className="h-14 flex items-center justify-center border-b border-border px-3">
-        <NavLink to="/admin/dashboard" onClick={onClose} className="relative flex items-center justify-center">
-          <img
-            src="/logo.svg"
-            alt="ShellHub Admin"
-            className={`h-8 transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0 absolute"}`}
-          />
-          <img
-            src="/cloud-icon.svg"
-            alt="ShellHub Admin"
-            className={`h-6 w-6 transition-opacity duration-200 ${expanded ? "opacity-0 absolute" : "opacity-100"}`}
-          />
-        </NavLink>
+      <div className="space-y-0.5">
+        {visibleEntries.map((entry) =>
+          isNavGroup(entry) ? (
+            <NavGroupItem
+              key={entry.label}
+              group={entry}
+              expanded={expanded}
+              isOpen={openGroups[entry.label] ?? false}
+              disabled={isDisabled}
+              onToggle={() => toggleGroup(entry.label)}
+              currentPath={pathname}
+              onNavClick={onClose}
+            />
+          ) : (
+            <NavItemLink
+              key={entry.to}
+              item={entry}
+              expanded={expanded}
+              disabled={isDisabled}
+              onClick={onClose}
+            />
+          ),
+        )}
       </div>
-
-      {/* Navigation */}
-      <nav
-        className="flex-1 px-2 pt-4 pb-2 overflow-y-auto"
-        aria-label="Admin navigation"
-      >
-        <div className="space-y-0.5">
-          {visibleEntries.map((entry) =>
-            isNavGroup(entry) ? (
-              <NavGroupItem
-                key={entry.label}
-                group={entry}
-                expanded={expanded}
-                isOpen={openGroups[entry.label] ?? false}
-                disabled={isDisabled}
-                onToggle={() => toggleGroup(entry.label)}
-                currentPath={pathname}
-                onNavClick={onClose}
-              />
-            ) : (
-              <NavItemLink
-                key={entry.to}
-                item={entry}
-                expanded={expanded}
-                disabled={isDisabled}
-                onClick={onClose}
-              />
-            ),
-          )}
-        </div>
-      </nav>
-
-      {/* Footer with pin toggle */}
-      <div className={`h-11 px-3 flex items-center justify-between transition-colors duration-200 ${expanded ? "border-t border-border" : "border-t border-transparent"}`}>
-        <p className={`text-2xs font-mono text-text-muted/60 whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}>
-          Admin Panel
-        </p>
-        <button
-          type="button"
-          onClick={onToggle}
-          tabIndex={expanded ? 0 : -1}
-          aria-label={pinned ? "Unpin sidebar" : "Pin sidebar"}
-          title={pinned ? "Unpin sidebar" : "Pin sidebar open"}
-          className={`p-1 rounded-md transition-all duration-200 ${
-            expanded ? "opacity-100" : "opacity-0"
-          } ${
-            pinned
-              ? "text-primary bg-primary/10"
-              : "text-text-muted hover:text-text-primary hover:bg-hover-subtle"
-          }`}
-        >
-          <ChevronLeftIcon
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              expanded ? "" : "rotate-180"
-            }`}
-            strokeWidth={2}
-          />
-        </button>
-      </div>
-    </aside>
+    </SidebarShell>
   );
 }

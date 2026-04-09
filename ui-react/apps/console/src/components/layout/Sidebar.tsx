@@ -1,5 +1,4 @@
-import { NavLink } from "react-router-dom";
-import { ReactNode } from "react";
+import { useCallback, type ReactNode } from "react";
 import { getConfig } from "../../env";
 import { useTerminalStore } from "../../stores/terminalStore";
 import {
@@ -11,6 +10,7 @@ import {
   CommandLineIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
+import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
 
 interface NavItem {
   to: string;
@@ -31,7 +31,7 @@ const sections: NavSection[] = [
       {
         to: "/dashboard",
         label: "Dashboard",
-        icon: <HomeIcon className="w-[18px] h-[18px]" />,
+        icon: <HomeIcon className={navIcon} />,
       },
     ],
   },
@@ -41,12 +41,12 @@ const sections: NavSection[] = [
       {
         to: "/devices",
         label: "Devices",
-        icon: <CpuChipIcon className="w-[18px] h-[18px]" />,
+        icon: <CpuChipIcon className={navIcon} />,
       },
       {
         to: "/sessions",
         label: "Sessions",
-        icon: <CommandLineIcon className="w-[18px] h-[18px]" />,
+        icon: <CommandLineIcon className={navIcon} />,
       },
     ],
   },
@@ -56,12 +56,12 @@ const sections: NavSection[] = [
       {
         to: "/sshkeys/public-keys",
         label: "Public Keys",
-        icon: <KeyIcon className="w-[18px] h-[18px]" />,
+        icon: <KeyIcon className={navIcon} />,
       },
       {
         to: "/secure-vault",
         label: "Secure Vault",
-        icon: <LockClosedIcon className="w-[18px] h-[18px]" />,
+        icon: <LockClosedIcon className={navIcon} />,
       },
     ],
   },
@@ -71,77 +71,88 @@ const sections: NavSection[] = [
       {
         to: "/team",
         label: "Team",
-        icon: <UsersIcon className="w-[18px] h-[18px]" />,
+        icon: <UsersIcon className={navIcon} />,
       },
       {
         to: "/settings",
         label: "Settings",
-        icon: <Cog6ToothIcon className="w-[18px] h-[18px]" />,
+        icon: <Cog6ToothIcon className={navIcon} />,
       },
     ],
   },
 ];
 
-function NavItemLink({ item }: { item: NavItem }) {
-  const minimizeAll = useTerminalStore((s) => s.minimizeAll);
-  const showBadge
-    = item.premium && !getConfig().cloud && !getConfig().enterprise;
-
+function ProBadge() {
   return (
-    <NavLink
-      to={item.to}
-      onClick={minimizeAll}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 ${
-          isActive
-            ? "bg-primary/10 text-primary border border-primary/20"
-            : "text-text-secondary hover:text-text-primary hover:bg-hover-subtle border border-transparent"
-        }`}
-    >
-      {item.icon}
-      <span className="flex-1">{item.label}</span>
-      {showBadge && (
-        <span className="text-2xs font-mono font-semibold text-accent-yellow/80 bg-accent-yellow/10 px-1.5 py-0.5 rounded">
-          Pro
-        </span>
-      )}
-    </NavLink>
+    <span className="text-2xs font-mono font-semibold text-accent-yellow/80 bg-accent-yellow/10 px-1.5 py-0.5 rounded">
+      Pro
+    </span>
   );
 }
 
-export default function Sidebar() {
-  const isFullscreen = useTerminalStore((s) =>
-    s.sessions.some((s) => s.state === "fullscreen"),
+export default function Sidebar({
+  expanded,
+  pinned,
+  onToggle,
+  onClose,
+}: {
+  expanded: boolean;
+  pinned: boolean;
+  onToggle: () => void;
+  onClose?: () => void;
+}) {
+  const minimizeAll = useTerminalStore((s) => s.minimizeAll);
+  const isFullscreen = useTerminalStore((state) =>
+    state.sessions.some((session) => session.state === "fullscreen"),
   );
 
+  const handleNavClick = useCallback(() => {
+    minimizeAll();
+    onClose?.();
+  }, [minimizeAll, onClose]);
+
   return (
-    <aside
-      className={`bg-surface border-r border-border flex flex-col min-h-screen shrink-0 transition-all duration-[150ms] ease-in-out overflow-hidden ${
-        isFullscreen ? "w-0 opacity-0" : "w-[220px] opacity-100"
-      }`}
+    <SidebarShell
+      expanded={expanded}
+      pinned={pinned}
+      onToggle={onToggle}
+      onClose={onClose}
+      hidden={isFullscreen}
+      ariaLabel="Main navigation"
+      footerLabel="Console"
+      logoHref="/dashboard"
     >
-      <div className="h-14 flex items-center justify-center border-b border-border">
-        <img src="/logo.svg" alt="ShellHub" className="h-8" />
-      </div>
-
-      <nav className="flex-1 px-3 pt-4 py-2 overflow-y-auto">
-        {sections.map((section, idx) => (
-          <div key={section.title} className={idx > 0 ? "mt-5" : ""}>
-            <p className="px-3 mb-1.5 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60">
-              {section.title}
-            </p>
-            <div className="space-y-0.5">
-              {section.items.map((item) => (
-                <NavItemLink key={item.to} item={item} />
-              ))}
-            </div>
+      {sections.map((section, idx) => (
+        <div
+          key={section.title}
+          className={idx > 0 ? (expanded ? "mt-5" : "mt-1") : ""}
+        >
+          <p
+            className={`px-3 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted/60 transition-all duration-200 ${
+              expanded
+                ? "opacity-100 mb-1.5"
+                : "opacity-0 h-0 overflow-hidden mb-0"
+            }`}
+          >
+            {section.title}
+          </p>
+          <div className="space-y-0.5">
+            {section.items.map((item) => {
+              const showBadge =
+                item.premium && !getConfig().cloud && !getConfig().enterprise;
+              return (
+                <NavItemLink
+                  key={item.to}
+                  item={item}
+                  expanded={expanded}
+                  onClick={handleNavClick}
+                  badge={showBadge ? <ProBadge /> : undefined}
+                />
+              );
+            })}
           </div>
-        ))}
-      </nav>
-
-      <div className="h-11 px-4 flex items-center border-t border-border">
-        <p className="text-2xs font-mono text-text-muted/60">ShellHub v2</p>
-      </div>
-    </aside>
+        </div>
+      ))}
+    </SidebarShell>
   );
 }
