@@ -15,80 +15,11 @@ import CopyButton from "@/components/common/CopyButton";
 import VaultSetupDialog from "@/components/vault/VaultSetupDialog";
 import VaultUnlockDialog from "@/components/vault/VaultUnlockDialog";
 import VaultSettingsSection from "@/components/vault/VaultSettingsSection";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import KeyDrawer from "./KeyDrawer";
 import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatDate } from "@/utils/date";
-import { TH } from "@/utils/styles";
 import type { VaultKeyEntry } from "@/types/vault";
-
-function KeyRow({
-  entry,
-  onEdit,
-  onDelete,
-}: {
-  entry: VaultKeyEntry;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <tr className="group border-b border-border/60 hover:bg-hover-subtle transition-colors">
-      <td className="px-4 py-3.5">
-        <div className="flex items-center gap-2">
-          <KeyIcon className="w-4 h-4 text-text-muted shrink-0" />
-          <span className="text-sm font-medium text-text-primary">
-            {entry.name}
-          </span>
-          {entry.hasPassphrase && (
-            <LockClosedIcon
-              className="w-3 h-3 text-accent-yellow shrink-0"
-              strokeWidth={2}
-              title="Encrypted"
-            />
-          )}
-        </div>
-      </td>
-      <td className="px-4 py-3.5">
-        <div className="flex items-center gap-1">
-          <code
-            className="text-2xs font-mono text-text-muted truncate max-w-[200px]"
-            title={entry.fingerprint}
-          >
-            {entry.fingerprint}
-          </code>
-          <CopyButton text={entry.fingerprint} />
-        </div>
-      </td>
-      <td className="px-4 py-3.5">
-        <span className="text-xs font-mono text-text-secondary">
-          {entry.algorithm ?? "—"}
-        </span>
-      </td>
-      <td className="px-4 py-3.5">
-        <span className="text-xs font-mono text-text-muted">
-          {formatDate(entry.createdAt)}
-        </span>
-      </td>
-      <td className="px-4 py-3.5 text-right">
-        <div className="flex items-center justify-end gap-0.5">
-          <button
-            onClick={onEdit}
-            title="Edit"
-            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-          >
-            <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
-          <button
-            onClick={onDelete}
-            title="Delete"
-            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-          >
-            <TrashIcon className="w-4 h-4" strokeWidth={2} />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
 
 export default function SecureVault() {
   const status = useVaultStore((s) => s.status);
@@ -120,10 +51,10 @@ export default function SecureVault() {
 
   const filtered = search
     ? keys.filter(
-      (k) =>
-        k.name.toLowerCase().includes(search.toLowerCase())
-        || k.fingerprint.toLowerCase().includes(search.toLowerCase()),
-    )
+        (k) =>
+          k.name.toLowerCase().includes(search.toLowerCase()) ||
+          k.fingerprint.toLowerCase().includes(search.toLowerCase()),
+      )
     : keys;
 
   if (status === "uninitialized") {
@@ -307,6 +238,84 @@ export default function SecureVault() {
     );
   }
 
+  const columns: Column<VaultKeyEntry>[] = [
+    {
+      key: "name",
+      header: "Name",
+      render: (entry) => (
+        <div className="flex items-center gap-2">
+          <KeyIcon className="w-4 h-4 text-text-muted shrink-0" />
+          <span className="text-sm font-medium text-text-primary">
+            {entry.name}
+          </span>
+          {entry.hasPassphrase && (
+            <LockClosedIcon
+              className="w-3 h-3 text-accent-yellow shrink-0"
+              strokeWidth={2}
+              title="Encrypted"
+            />
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "fingerprint",
+      header: "Fingerprint",
+      render: (entry) => (
+        <div className="flex items-center gap-1">
+          <code
+            className="text-2xs font-mono text-text-muted truncate max-w-[200px]"
+            title={entry.fingerprint}
+          >
+            {entry.fingerprint}
+          </code>
+          <CopyButton text={entry.fingerprint} />
+        </div>
+      ),
+    },
+    {
+      key: "algorithm",
+      header: "Algorithm",
+      render: (entry) => (
+        <span className="text-xs font-mono text-text-secondary">
+          {entry.algorithm ?? "\u2014"}
+        </span>
+      ),
+    },
+    {
+      key: "added",
+      header: "Added",
+      render: (entry) => (
+        <span className="text-xs font-mono text-text-muted">
+          {formatDate(entry.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      headerClassName: "w-16",
+      render: (entry) => (
+        <div className="flex items-center justify-end gap-0.5">
+          <button
+            onClick={() => openEdit(entry)}
+            title="Edit"
+            className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+          >
+            <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
+          </button>
+          <button
+            onClick={() => setDeleteTarget(entry)}
+            title="Delete"
+            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+          >
+            <TrashIcon className="w-4 h-4" strokeWidth={2} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div>
       {status === "unlocked" && (
@@ -339,44 +348,21 @@ export default function SecureVault() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-surface/50">
-                  <th className={TH}>Name</th>
-                  <th className={TH}>Fingerprint</th>
-                  <th className={TH}>Algorithm</th>
-                  <th className={TH}>Added</th>
-                  <th className="px-4 py-3 w-16" />
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0
-                  ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-16 text-center">
-                        <KeyIcon className="w-8 h-8 text-text-muted/30 mx-auto mb-2" />
-                        <p className="text-xs font-mono text-text-muted">
-                          {search
-                            ? `No keys matching "${search}"`
-                            : "No keys yet. Add your first SSH private key."}
-                        </p>
-                      </td>
-                    </tr>
-                  )
-                  : (
-                    filtered.map((entry) => (
-                      <KeyRow
-                        key={entry.id}
-                        entry={entry}
-                        onEdit={() => openEdit(entry)}
-                        onDelete={() => setDeleteTarget(entry)}
-                      />
-                    ))
-                  )}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={columns}
+            data={filtered}
+            rowKey={(entry) => entry.id}
+            emptyState={
+              <div className="text-center">
+                <KeyIcon className="w-8 h-8 text-text-muted/30 mx-auto mb-2" />
+                <p className="text-xs font-mono text-text-muted">
+                  {search
+                    ? `No keys matching "${search}"`
+                    : "No keys yet. Add your first SSH private key."}
+                </p>
+              </div>
+            }
+          />
         </>
       )}
 
