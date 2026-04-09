@@ -54,12 +54,19 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
 
-      - name: Login to Docker Registry
-        uses: docker/login-action@v4
+      - name: Restore Docker image cache
+        uses: actions/cache@v5
         with:
-          registry: registry.infra.ossystems.io
-          username: ${{ secrets.PORTUS_USERNAME }}
-          password: ${{ secrets.PORTUS_TOKEN }}
+          path: /tmp/docker-cache
+          key: docker-${{ runner.os }}
+
+      - name: Load cached Docker images
+        run: |
+          if [ -d /tmp/docker-cache ]; then
+            for f in /tmp/docker-cache/*.tar; do
+              docker load -i "$f"
+            done
+          fi
 
       - uses: dorny/paths-filter@v4
         id: filter
@@ -83,16 +90,10 @@ jobs:
           go-version-file: go.mod
         id: go
 
-      - name: Configure Git for private repos [Go]
-        if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
-        run: git config --global url."https://x-access-token:${{ secrets.PAT }}@github.com/".insteadOf "https://github.com/"
-
       - name: Get Go dependencies [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: go mod download
-        env:
-          GOPRIVATE: github.com/shellhub-io/cloud
 
       - name: Ensure Go dependencies are complete [Go]
         if: matrix.project != 'ui' && steps.filter.outputs.go == 'true' && github.event.pull_request.draft == false
@@ -168,3 +169,13 @@ jobs:
         if: matrix.project == 'ui' && steps.filter.outputs.ui == 'true' && github.event.pull_request.draft == false
         working-directory: ${{ matrix.project }}
         run: npm run build
+
+      - name: Save Docker images to cache
+        if: always()
+        run: |
+          mkdir -p /tmp/docker-cache
+          docker images --format '{{.Repository}}:{{.Tag}}' | \
+            grep -v '<none>' | while read img; do
+              name=$(echo "$img" | tr '/:' '_')
+              docker save -o "/tmp/docker-cache/${name}.tar" "$img" 2>/dev/null || true
+            done
