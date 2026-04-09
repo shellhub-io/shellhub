@@ -4,25 +4,18 @@ import {
   CpuChipIcon,
   MagnifyingGlassIcon,
   ExclamationCircleIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import {
   useAdminDevices,
   type NormalizedDevice,
-} from "../../../hooks/useAdminDevices";
-import type { DeviceStatus } from "../../../client";
-import PageHeader from "../../../components/common/PageHeader";
-import Pagination from "../../../components/common/Pagination";
-import DistroIcon from "../../../components/common/DistroIcon";
+} from "@/hooks/useAdminDevices";
+import type { DeviceStatus } from "@/client";
+import PageHeader from "@/components/common/PageHeader";
+import DataTable, { type Column } from "@/components/common/DataTable";
+import DistroIcon from "@/components/common/DistroIcon";
 import DeviceStatusChip from "./DeviceStatusChip";
-import { formatRelative } from "../../../utils/date";
-import { TH as TH_BASE } from "../../../utils/styles";
+import { formatRelative } from "@/utils/date";
 
-const TH_TEXT
-  = "text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted";
-const TH = `${TH_BASE} whitespace-nowrap`;
-const SORT_BTN = `${TH_TEXT} inline-flex items-center hover:text-text-primary transition-colors`;
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -36,23 +29,6 @@ const statusTabs: StatusTab[] = [
 ];
 
 type SortField = "name" | "last_seen" | "status";
-
-function SortIcon({
-  field,
-  activeField,
-  activeOrder,
-}: {
-  field: SortField;
-  activeField: SortField;
-  activeOrder: "asc" | "desc";
-}) {
-  if (field !== activeField) return null;
-  return activeOrder === "asc" ? (
-    <ChevronUpIcon className="w-3 h-3 inline ml-0.5" strokeWidth={2.5} />
-  ) : (
-    <ChevronDownIcon className="w-3 h-3 inline ml-0.5" strokeWidth={2.5} />
-  );
-}
 
 function TagChips({ tags }: { tags: string[] }) {
   if (tags.length === 0) {
@@ -75,85 +51,8 @@ function TagChips({ tags }: { tags: string[] }) {
   );
 }
 
-function DeviceRow({ device }: { device: NormalizedDevice }) {
-  const navigate = useNavigate();
-
-  return (
-    <tr
-      onClick={() => void navigate(`/admin/devices/${device.uid}`)}
-      className="group hover:bg-hover-subtle transition-colors cursor-pointer"
-    >
-      {/* Online dot */}
-      <td className="px-4 py-3.5 w-12">
-        {device.online ? (
-          <span className="relative flex h-2.5 w-2.5 mx-auto" title="Online">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
-          </span>
-        ) : (
-          <span
-            className="block w-2.5 h-2.5 rounded-full mx-auto bg-text-muted/30"
-            title="Offline"
-          />
-        )}
-      </td>
-
-      {/* Hostname */}
-      <td className="px-4 py-3.5">
-        <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors truncate block max-w-[200px]">
-          {device.name}
-        </span>
-      </td>
-
-      {/* Operating System */}
-      <td className="px-4 py-3.5">
-        <div className="flex items-center gap-2">
-          <DistroIcon
-            id={device.info?.id ?? ""}
-            className="text-base leading-none"
-          />
-          <span className="text-xs text-text-secondary truncate max-w-[160px]">
-            {device.info?.pretty_name ?? "Unknown"}
-          </span>
-        </div>
-      </td>
-
-      {/* Namespace */}
-      <td className="px-4 py-3.5">
-        {device.namespace ? (
-          <Link
-            to={`/admin/namespaces/${device.tenant_id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs text-primary hover:underline"
-          >
-            {device.namespace}
-          </Link>
-        ) : (
-          <span className="text-xs text-text-muted">&mdash;</span>
-        )}
-      </td>
-
-      {/* Tags */}
-      <td className="px-4 py-3.5">
-        <TagChips tags={device.tags} />
-      </td>
-
-      {/* Last Seen */}
-      <td className="px-4 py-3.5">
-        <span className="text-xs text-text-secondary">
-          {formatRelative(device.last_seen)}
-        </span>
-      </td>
-
-      {/* Status */}
-      <td className="px-4 py-3.5">
-        <DeviceStatusChip status={device.status} />
-      </td>
-    </tr>
-  );
-}
-
 export default function AdminDevices() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -185,15 +84,98 @@ export default function AdminDevices() {
     setPage(1);
   };
 
-  const handleSort = (field: SortField) => {
-    if (sortBy === field) {
+  const handleSort = (field: string) => {
+    const f = field as SortField;
+    if (sortBy === f) {
       setOrderBy((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
-      setSortBy(field);
-      setOrderBy(field === "name" ? "asc" : "desc");
+      setSortBy(f);
+      setOrderBy(f === "name" ? "asc" : "desc");
     }
     setPage(1);
   };
+
+  const columns: Column<NormalizedDevice>[] = [
+    {
+      key: "online",
+      header: "",
+      headerClassName: "w-12",
+      render: (device) =>
+        device.online ? (
+          <span className="relative flex h-2.5 w-2.5 mx-auto" title="Online">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
+          </span>
+        ) : (
+          <span
+            className="block w-2.5 h-2.5 rounded-full mx-auto bg-text-muted/30"
+            title="Offline"
+          />
+        ),
+    },
+    {
+      key: "name",
+      header: "Hostname",
+      sortable: true,
+      render: (device) => (
+        <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors truncate block max-w-[200px]">
+          {device.name}
+        </span>
+      ),
+    },
+    {
+      key: "os",
+      header: "Operating System",
+      render: (device) => (
+        <div className="flex items-center gap-2">
+          <DistroIcon
+            id={device.info?.id ?? ""}
+            className="text-base leading-none"
+          />
+          <span className="text-xs text-text-secondary truncate max-w-[160px]">
+            {device.info?.pretty_name ?? "Unknown"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "namespace",
+      header: "Namespace",
+      render: (device) =>
+        device.namespace ? (
+          <Link
+            to={`/admin/namespaces/${device.tenant_id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-primary hover:underline"
+          >
+            {device.namespace}
+          </Link>
+        ) : (
+          <span className="text-xs text-text-muted">&mdash;</span>
+        ),
+    },
+    {
+      key: "tags",
+      header: "Tags",
+      render: (device) => <TagChips tags={device.tags} />,
+    },
+    {
+      key: "last_seen",
+      header: "Last Seen",
+      sortable: true,
+      render: (device) => (
+        <span className="text-xs text-text-secondary">
+          {formatRelative(device.last_seen)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      sortable: true,
+      render: (device) => <DeviceStatusChip status={device.status} />,
+    },
+  ];
 
   return (
     <div>
@@ -257,129 +239,34 @@ export default function AdminDevices() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-surface/50">
-                <th className={`${TH} w-12`} aria-label="Online status" />
-                <th
-                  className={TH}
-                  aria-sort={
-                    sortBy === "name"
-                      ? orderBy === "asc"
-                        ? "ascending"
-                        : "descending"
-                      : "none"
-                  }
-                >
-                  <button
-                    onClick={() => handleSort("name")}
-                    className={SORT_BTN}
-                  >
-                    Hostname
-                    <SortIcon
-                      field="name"
-                      activeField={sortBy}
-                      activeOrder={orderBy}
-                    />
-                  </button>
-                </th>
-                <th className={TH}>Operating System</th>
-                <th className={TH}>Namespace</th>
-                <th className={TH}>Tags</th>
-                <th
-                  className={TH}
-                  aria-sort={
-                    sortBy === "last_seen"
-                      ? orderBy === "asc"
-                        ? "ascending"
-                        : "descending"
-                      : "none"
-                  }
-                >
-                  <button
-                    onClick={() => handleSort("last_seen")}
-                    className={SORT_BTN}
-                  >
-                    Last Seen
-                    <SortIcon
-                      field="last_seen"
-                      activeField={sortBy}
-                      activeOrder={orderBy}
-                    />
-                  </button>
-                </th>
-                <th
-                  className={TH}
-                  aria-sort={
-                    sortBy === "status"
-                      ? orderBy === "asc"
-                        ? "ascending"
-                        : "descending"
-                      : "none"
-                  }
-                >
-                  <button
-                    onClick={() => handleSort("status")}
-                    className={SORT_BTN}
-                  >
-                    Status
-                    <SortIcon
-                      field="status"
-                      activeField={sortBy}
-                      activeOrder={orderBy}
-                    />
-                  </button>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {isLoading && devices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center">
-                    <div
-                      className="flex items-center justify-center gap-3"
-                      role="status"
-                    >
-                      <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-xs font-mono text-text-muted">
-                        Loading devices...
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ) : devices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center">
-                    <CpuChipIcon
-                      className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-                      strokeWidth={1}
-                    />
-                    <p className="text-xs font-mono text-text-muted">
-                      {debouncedSearch
-                        ? `No devices matching "${debouncedSearch}"`
-                        : "No devices found"}
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                devices.map((device) => (
-                  <DeviceRow key={device.uid} device={device} />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <Pagination
+      <DataTable
+        columns={columns}
+        data={devices}
+        rowKey={(device) => device.uid}
+        isLoading={isLoading}
+        loadingMessage="Loading devices..."
         page={page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="device"
         onPageChange={setPage}
+        onRowClick={(device) => void navigate(`/admin/devices/${device.uid}`)}
+        sortField={sortBy}
+        sortOrder={orderBy}
+        onSort={handleSort}
+        emptyState={
+          <div className="text-center">
+            <CpuChipIcon
+              className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
+              strokeWidth={1}
+            />
+            <p className="text-xs font-mono text-text-muted">
+              {debouncedSearch
+                ? `No devices matching "${debouncedSearch}"`
+                : "No devices found"}
+            </p>
+          </div>
+        }
       />
     </div>
   );
