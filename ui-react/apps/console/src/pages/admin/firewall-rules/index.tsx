@@ -10,105 +10,15 @@ import {
 import {
   useAdminFirewallRules,
   type FirewallRule,
-} from "../../../hooks/useAdminFirewallRules";
-import PageHeader from "../../../components/common/PageHeader";
-import Pagination from "../../../components/common/Pagination";
-import FilterBadge from "../../../components/common/FilterBadge";
-import { TH as TH_BASE } from "../../../utils/styles";
+} from "@/hooks/useAdminFirewallRules";
+import PageHeader from "@/components/common/PageHeader";
+import DataTable, { type Column } from "@/components/common/DataTable";
+import FilterBadge from "@/components/common/FilterBadge";
 
-const TH = `${TH_BASE} whitespace-nowrap`;
 const PER_PAGE = 10;
 
-function FirewallRuleRow({ rule }: { rule: FirewallRule }) {
-  const navigate = useNavigate();
-
-  return (
-    <tr
-      onClick={() => void navigate(`/admin/firewall-rules/${rule.id}`)}
-      className="group hover:bg-hover-subtle transition-colors cursor-pointer"
-    >
-      {/* Priority */}
-      <td className="px-4 py-3.5">
-        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium">
-          {rule.priority}
-        </span>
-      </td>
-
-      {/* Action */}
-      <td className="px-4 py-3.5">
-        <div className="flex items-center gap-1.5">
-          {rule.action === "allow" ? (
-            <>
-              <CheckCircleIcon className="w-4 h-4 text-accent-green" />
-              <span className="text-xs font-medium text-accent-green">
-                Allow
-              </span>
-            </>
-          ) : (
-            <>
-              <NoSymbolIcon className="w-4 h-4 text-accent-red" />
-              <span className="text-xs font-medium text-accent-red">Deny</span>
-            </>
-          )}
-        </div>
-      </td>
-
-      {/* Source IP */}
-      <td className="px-4 py-3.5">
-        {rule.source_ip === ".*" ? (
-          <span className="text-xs text-text-secondary">Any IP</span>
-        ) : (
-          <span className="text-xs font-mono text-text-primary">
-            {rule.source_ip}
-          </span>
-        )}
-      </td>
-
-      {/* Username */}
-      <td className="px-4 py-3.5">
-        {rule.username === ".*" ? (
-          <span className="text-xs text-text-secondary">All users</span>
-        ) : (
-          <span className="text-xs font-mono text-text-primary">
-            {rule.username}
-          </span>
-        )}
-      </td>
-
-      {/* Device Filter */}
-      <td className="px-4 py-3.5">
-        <FilterBadge filter={rule.filter} />
-      </td>
-
-      {/* Status */}
-      <td className="px-4 py-3.5">
-        {rule.active ? (
-          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green border border-accent-green/20">
-            Active
-          </span>
-        ) : (
-          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
-            Inactive
-          </span>
-        )}
-      </td>
-
-      {/* Namespace */}
-      <td className="px-4 py-3.5">
-        <Link
-          to={`/admin/namespaces/${rule.tenant_id}`}
-          onClick={(e) => e.stopPropagation()}
-          className="text-xs text-primary hover:underline font-mono truncate block max-w-[180px]"
-          title={rule.tenant_id}
-        >
-          {rule.tenant_id}
-        </Link>
-      </td>
-    </tr>
-  );
-}
-
 export default function AdminFirewallRules() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
@@ -130,6 +40,90 @@ export default function AdminFirewallRules() {
   }, [rules, search]);
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
+
+  const columns: Column<FirewallRule>[] = [
+    {
+      key: "priority",
+      header: "Priority",
+      render: (rule) => (
+        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium">
+          {rule.priority}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      render: (rule) => (
+        <div className="flex items-center gap-1.5">
+          {rule.action === "allow" ? (
+            <>
+              <CheckCircleIcon className="w-4 h-4 text-accent-green" />
+              <span className="text-xs font-medium text-accent-green">Allow</span>
+            </>
+          ) : (
+            <>
+              <NoSymbolIcon className="w-4 h-4 text-accent-red" />
+              <span className="text-xs font-medium text-accent-red">Deny</span>
+            </>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "source_ip",
+      header: "Source IP",
+      render: (rule) =>
+        rule.source_ip === ".*" ? (
+          <span className="text-xs text-text-secondary">Any IP</span>
+        ) : (
+          <span className="text-xs font-mono text-text-primary">{rule.source_ip}</span>
+        ),
+    },
+    {
+      key: "username",
+      header: "Username",
+      render: (rule) =>
+        rule.username === ".*" ? (
+          <span className="text-xs text-text-secondary">All users</span>
+        ) : (
+          <span className="text-xs font-mono text-text-primary">{rule.username}</span>
+        ),
+    },
+    {
+      key: "filter",
+      header: "Device Filter",
+      render: (rule) => <FilterBadge filter={rule.filter} />,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (rule) =>
+        rule.active ? (
+          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green border border-accent-green/20">
+            Active
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
+            Inactive
+          </span>
+        ),
+    },
+    {
+      key: "namespace",
+      header: "Namespace",
+      render: (rule) => (
+        <Link
+          to={`/admin/namespaces/${rule.tenant_id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-xs text-primary hover:underline font-mono truncate block max-w-[180px]"
+          title={rule.tenant_id}
+        >
+          {rule.tenant_id}
+        </Link>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -174,69 +168,34 @@ export default function AdminFirewallRules() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-surface/50">
-                <th className={TH}>Priority</th>
-                <th className={TH}>Action</th>
-                <th className={TH}>Source IP</th>
-                <th className={TH}>Username</th>
-                <th className={TH}>Device Filter</th>
-                <th className={TH}>Status</th>
-                <th className={TH}>Namespace</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {isLoading && rules.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center">
-                    <div
-                      className="flex items-center justify-center gap-3"
-                      role="status"
-                    >
-                      <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-xs font-mono text-text-muted">
-                        Loading firewall rules...
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center">
-                    <ShieldExclamationIcon
-                      className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-                      strokeWidth={1}
-                    />
-                    <p className="text-xs font-mono text-text-muted">
-                      {search
-                        ? `No rules matching "${search}"`
-                        : "No firewall rules found"}
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((rule) => (
-                  <FirewallRuleRow key={rule.id} rule={rule} />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {!search && (
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          itemLabel="rule"
-          onPageChange={setPage}
-        />
-      )}
+      <DataTable
+        columns={columns}
+        data={search ? filtered : rules}
+        rowKey={(rule) => rule.id}
+        isLoading={isLoading}
+        loadingMessage="Loading firewall rules..."
+        onRowClick={(rule) => void navigate(`/admin/firewall-rules/${rule.id}`)}
+        {...(!search && {
+          page,
+          totalPages,
+          totalCount,
+          itemLabel: "rule",
+          onPageChange: setPage,
+        })}
+        emptyState={
+          <div className="text-center">
+            <ShieldExclamationIcon
+              className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
+              strokeWidth={1}
+            />
+            <p className="text-xs font-mono text-text-muted">
+              {search
+                ? `No rules matching "${search}"`
+                : "No firewall rules found"}
+            </p>
+          </div>
+        }
+      />
     </div>
   );
 }
