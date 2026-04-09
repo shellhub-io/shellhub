@@ -7,17 +7,15 @@ import {
   TrashIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminNamespaces } from "../../../hooks/useAdminNamespaces";
-import type { Namespace } from "../../../client";
-import PageHeader from "../../../components/common/PageHeader";
-import Pagination from "../../../components/common/Pagination";
+import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
+import type { Namespace } from "@/client";
+import PageHeader from "@/components/common/PageHeader";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
-import { TH as TH_BASE } from "../../../utils/styles";
-import { formatDateShort } from "../../../utils/date";
+import { formatDateShort } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 
-const TH = `${TH_BASE} whitespace-nowrap`;
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -49,6 +47,85 @@ export default function AdminNamespaces() {
   });
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
+
+  const columns: Column<Namespace>[] = [
+    {
+      key: "name",
+      header: "Name",
+      render: (ns) => (
+        <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
+          {ns.name}
+        </span>
+      ),
+    },
+    {
+      key: "owner",
+      header: "Owner",
+      render: (ns) => (
+        <span className="text-xs text-text-secondary">
+          {getOwnerEmail(ns)}
+        </span>
+      ),
+    },
+    {
+      key: "devices",
+      header: "Devices",
+      render: (ns) => (
+        <span className="text-xs text-text-secondary">
+          {ns.devices_accepted_count}
+        </span>
+      ),
+    },
+    {
+      key: "max_devices",
+      header: "Max Devices",
+      render: (ns) => (
+        <span className="text-xs text-text-secondary">
+          {formatMaxDevices(ns.max_devices)}
+        </span>
+      ),
+    },
+    {
+      key: "created",
+      header: "Created",
+      render: (ns) => (
+        <span className="text-xs text-text-secondary">
+          {formatDateShort(ns.created_at)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      render: (ns) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditTarget(ns);
+            }}
+            className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
+            title="Edit namespace"
+            aria-label={`Edit ${ns.name}`}
+          >
+            <PencilSquareIcon className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteTarget(ns);
+            }}
+            className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
+            title="Delete namespace"
+            aria-label={`Delete ${ns.name}`}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -88,122 +165,31 @@ export default function AdminNamespaces() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden animate-fade-in">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-surface/50">
-                <th className={TH}>Name</th>
-                <th className={TH}>Owner</th>
-                <th className={TH}>Devices</th>
-                <th className={TH}>Max Devices</th>
-                <th className={TH}>Created</th>
-                <th className={`${TH} text-right`}>Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/60">
-              {isLoading && namespaces.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center">
-                    <div
-                      className="flex items-center justify-center gap-3"
-                      role="status"
-                    >
-                      <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-xs font-mono text-text-muted">
-                        Loading namespaces...
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ) : namespaces.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center">
-                    <ServerStackIcon
-                      className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
-                      strokeWidth={1}
-                    />
-                    <p className="text-xs font-mono text-text-muted">
-                      {debouncedSearch
-                        ? `No namespaces matching "${debouncedSearch}"`
-                        : "No namespaces found"}
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                namespaces.map((ns) => (
-                  <tr
-                    key={ns.tenant_id}
-                    onClick={() =>
-                      void navigate(`/admin/namespaces/${ns.tenant_id}`)}
-                    className="group hover:bg-hover-subtle transition-colors cursor-pointer"
-                  >
-                    <td className="px-4 py-3.5">
-                      <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
-                        {ns.name}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs text-text-secondary">
-                        {getOwnerEmail(ns)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs text-text-secondary">
-                        {ns.devices_accepted_count}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs text-text-secondary">
-                        {formatMaxDevices(ns.max_devices)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs text-text-secondary">
-                        {formatDateShort(ns.created_at)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditTarget(ns);
-                          }}
-                          className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-                          title="Edit namespace"
-                          aria-label={`Edit ${ns.name}`}
-                        >
-                          <PencilSquareIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteTarget(ns);
-                          }}
-                          className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-                          title="Delete namespace"
-                          aria-label={`Delete ${ns.name}`}
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <Pagination
+      <DataTable
+        columns={columns}
+        data={namespaces}
+        rowKey={(ns) => ns.tenant_id}
+        isLoading={isLoading}
+        loadingMessage="Loading namespaces..."
         page={page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="namespace"
         onPageChange={setPage}
+        onRowClick={(ns) => void navigate(`/admin/namespaces/${ns.tenant_id}`)}
+        emptyState={
+          <div className="text-center">
+            <ServerStackIcon
+              className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
+              strokeWidth={1}
+            />
+            <p className="text-xs font-mono text-text-muted">
+              {debouncedSearch
+                ? `No namespaces matching "${debouncedSearch}"`
+                : "No namespaces found"}
+            </p>
+          </div>
+        }
       />
 
       <EditNamespaceDrawer
