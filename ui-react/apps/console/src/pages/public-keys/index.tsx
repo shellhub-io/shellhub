@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { usePublicKeys, type PublicKey } from "../../hooks/usePublicKeys";
-import { useDeletePublicKey } from "../../hooks/usePublicKeyMutations";
-import PageHeader from "../../components/common/PageHeader";
-import ConfirmDialog from "../../components/common/ConfirmDialog";
-import CopyButton from "../../components/common/CopyButton";
+import { usePublicKeys, type PublicKey } from "@/hooks/usePublicKeys";
+import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
+import PageHeader from "@/components/common/PageHeader";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import CopyButton from "@/components/common/CopyButton";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import KeyDrawer from "./KeyDrawer";
-import { formatDate } from "../../utils/date";
-import { TH } from "../../utils/styles";
-import Pagination from "../../components/common/Pagination";
-import RestrictedAction from "../../components/common/RestrictedAction";
+import { formatDate } from "@/utils/date";
+import RestrictedAction from "@/components/common/RestrictedAction";
 import {
   KeyIcon,
   MagnifyingGlassIcon,
@@ -22,6 +21,8 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+
+const PER_PAGE = 10;
 
 /* ── scope cell ──────────────────────────────────── */
 
@@ -70,78 +71,13 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
         className={`inline-flex items-center gap-1 text-xs font-mono ${isAllUsers ? "text-text-muted" : "text-text-secondary"}`}
       >
         {isAllUsers
-          ? (
-            <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-          )
-          : (
-            <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-          )}
+          ? <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+          : <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />}
         {username}
       </span>
-      <span className="text-text-muted/40 text-xs">→</span>
+      <span className="text-text-muted/40 text-xs">{"\u2192"}</span>
       {deviceNode}
     </div>
-  );
-}
-
-/* ── table row ───────────────────────────────────── */
-
-function KeyRow({
-  pk,
-  onEdit,
-  onDelete,
-}: {
-  pk: PublicKey;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <tr className="group border-b border-border/60 hover:bg-hover-subtle transition-colors">
-      <td className="px-4 py-3.5">
-        <span className="text-sm font-medium text-text-primary">{pk.name}</span>
-      </td>
-      <td className="px-4 py-3.5">
-        <ScopeCell pk={pk} />
-      </td>
-      <td className="px-4 py-3.5">
-        <div className="flex items-center gap-1">
-          <code
-            className="text-2xs font-mono text-text-muted truncate max-w-[200px]"
-            title={pk.fingerprint}
-          >
-            {pk.fingerprint}
-          </code>
-          <CopyButton text={pk.fingerprint} />
-        </div>
-      </td>
-      <td className="px-4 py-3.5">
-        <span className="text-xs font-mono text-text-muted">
-          {formatDate(pk.created_at)}
-        </span>
-      </td>
-      <td className="px-4 py-3.5 text-right">
-        <div className="flex items-center justify-end gap-0.5">
-          <RestrictedAction action="publicKey:edit">
-            <button
-              onClick={onEdit}
-              title="Edit"
-              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
-            >
-              <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
-            </button>
-          </RestrictedAction>
-          <RestrictedAction action="publicKey:remove">
-            <button
-              onClick={onDelete}
-              title="Delete"
-              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-            >
-              <TrashIcon className="w-4 h-4" strokeWidth={2} />
-            </button>
-          </RestrictedAction>
-        </div>
-      </td>
-    </tr>
   );
 }
 
@@ -172,7 +108,7 @@ export default function PublicKeys() {
     setEditTarget(null);
   };
 
-  const totalPages = Math.ceil(totalCount / 10);
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
   const filtered = search
     ? publicKeys.filter(
       (k) =>
@@ -181,14 +117,80 @@ export default function PublicKeys() {
     )
     : publicKeys;
 
-  return (
-    <div>
-      {isLoading && publicKeys.length === 0 ? (
-        <div className="flex items-center justify-center py-16">
-          <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+  const columns: Column<PublicKey>[] = [
+    {
+      key: "name",
+      header: "Name",
+      render: (pk) => (
+        <span className="text-sm font-medium text-text-primary">{pk.name}</span>
+      ),
+    },
+    {
+      key: "scope",
+      header: "Scope",
+      render: (pk) => <ScopeCell pk={pk} />,
+    },
+    {
+      key: "fingerprint",
+      header: "Fingerprint",
+      render: (pk) => (
+        <div className="flex items-center gap-1">
+          <code
+            className="text-2xs font-mono text-text-muted truncate max-w-[200px]"
+            title={pk.fingerprint}
+          >
+            {pk.fingerprint}
+          </code>
+          <CopyButton text={pk.fingerprint} />
         </div>
-      ) : publicKeys.length === 0 ? (
-        /* Empty state */
+      ),
+    },
+    {
+      key: "added",
+      header: "Added",
+      render: (pk) => (
+        <span className="text-xs font-mono text-text-muted">
+          {formatDate(pk.created_at)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      headerClassName: "w-16",
+      render: (pk) => (
+        <div className="flex items-center justify-end gap-0.5">
+          <RestrictedAction action="publicKey:edit">
+            <button
+              onClick={() => openEdit(pk)}
+              title="Edit"
+              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+            >
+              <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
+            </button>
+          </RestrictedAction>
+          <RestrictedAction action="publicKey:remove">
+            <button
+              onClick={() =>
+                setDeleteTarget({
+                  fingerprint: pk.fingerprint,
+                  name: pk.name,
+                })}
+              title="Delete"
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+            >
+              <TrashIcon className="w-4 h-4" strokeWidth={2} />
+            </button>
+          </RestrictedAction>
+        </div>
+      ),
+    },
+  ];
+
+  /* Full-page onboarding empty state (no keys at all) */
+  if (!isLoading && publicKeys.length === 0) {
+    return (
+      <div>
         <div className="relative -mx-8 -mt-8 min-h-[calc(100vh-3.5rem)] flex flex-col">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-32 left-1/3 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse-subtle" />
@@ -274,89 +276,57 @@ export default function PublicKeys() {
             </div>
           </div>
         </div>
-      ) : (
-        <>
-          <PageHeader
-            icon={<KeyIcon className="w-6 h-6" />}
-            overline="Security"
-            title="Public Keys"
-            description="Manage SSH public keys for passwordless authentication to your devices."
+
+        <KeyDrawer open={drawerOpen} editKey={editTarget} onClose={closeDrawer} />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <PageHeader
+        icon={<KeyIcon className="w-6 h-6" />}
+        overline="Security"
+        title="Public Keys"
+        description="Manage SSH public keys for passwordless authentication to your devices."
+      >
+        <RestrictedAction action="publicKey:create">
+          <button
+            onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
           >
-            <RestrictedAction action="publicKey:create">
-              <button
-                onClick={openNew}
-                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all"
-              >
-                <PlusIcon className="w-4 h-4" strokeWidth={2} />
-                Add Public Key
-              </button>
-            </RestrictedAction>
-          </PageHeader>
+            <PlusIcon className="w-4 h-4" strokeWidth={2} />
+            Add Public Key
+          </button>
+        </RestrictedAction>
+      </PageHeader>
 
-          <div className="mb-4 animate-fade-in">
-            <div className="relative max-w-sm">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name or fingerprint..."
-                className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-              />
-            </div>
-          </div>
+      <div className="mb-4 animate-fade-in">
+        <div className="relative max-w-sm">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or fingerprint..."
+            className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+          />
+        </div>
+      </div>
 
-          {filtered.length === 0
-            ? (
-              <div className="py-12 text-center animate-fade-in">
-                <p className="text-sm text-text-muted">
-                  No keys matching &ldquo;
-                  {search}
-                  &rdquo;
-                </p>
-              </div>
-            )
-            : (
-              <>
-                <div className="bg-card border border-border rounded-lg overflow-hidden animate-fade-in">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border bg-surface/50">
-                        <th className={TH}>Name</th>
-                        <th className={TH}>Scope</th>
-                        <th className={TH}>Fingerprint</th>
-                        <th className={TH}>Added</th>
-                        <th className="px-4 py-3 w-16" />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((key) => (
-                        <KeyRow
-                          key={key.fingerprint}
-                          pk={key}
-                          onEdit={() => openEdit(key)}
-                          onDelete={() =>
-                            setDeleteTarget({
-                              fingerprint: key.fingerprint,
-                              name: key.name,
-                            })}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <Pagination
-                  page={page}
-                  totalPages={totalPages}
-                  totalCount={totalCount}
-                  itemLabel="key"
-                  onPageChange={setPage}
-                />
-              </>
-            )}
-        </>
-      )}
+      <DataTable
+        columns={columns}
+        data={filtered}
+        rowKey={(pk) => pk.fingerprint}
+        isLoading={isLoading}
+        loadingMessage="Loading public keys..."
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        itemLabel="key"
+        onPageChange={setPage}
+        emptyMessage={search ? `No keys matching \u201C${search}\u201D` : "No public keys found"}
+      />
 
       <KeyDrawer open={drawerOpen} editKey={editTarget} onClose={closeDrawer} />
 
