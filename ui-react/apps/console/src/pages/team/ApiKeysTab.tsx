@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useApiKeys } from "../../hooks/useApiKeys";
-import { useDeleteApiKey } from "../../hooks/useApiKeyMutations";
-import { type ApiKey } from "../../client";
-import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { useApiKeys } from "@/hooks/useApiKeys";
+import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
+import { type ApiKey } from "@/client";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import { RoleBadge } from "./constants";
 import { isExpired } from "./helpers";
-import { formatExpiry, formatDateShort } from "../../utils/date";
-import { TH } from "../../utils/styles";
+import { formatExpiry, formatDateShort } from "@/utils/date";
 import GenerateKeyDrawer from "./GenerateKeyDrawer";
 import EditKeyDrawer from "./EditKeyDrawer";
 import {
@@ -15,10 +15,9 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import Pagination from "../../components/common/Pagination";
-import RestrictedAction from "../../components/common/RestrictedAction";
+import RestrictedAction from "@/components/common/RestrictedAction";
 
-/* ─── API Keys Tab ─── */
+const PER_PAGE = 10;
 
 function ApiKeysTab() {
   const [page, setPage] = useState(1);
@@ -28,15 +27,94 @@ function ApiKeysTab() {
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
 
-  const totalPages = Math.ceil(totalCount / 10);
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
+
+  const columns: Column<ApiKey>[] = [
+    {
+      key: "name",
+      header: "Name",
+      render: (key) => {
+        const expired = isExpired(key.expires_in);
+        return (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-text-primary">
+              {key.name}
+            </span>
+            {expired && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-2xs font-mono font-semibold text-accent-red bg-accent-red/10 border border-accent-red/20 rounded">
+                <ExclamationCircleIcon
+                  className="w-2.5 h-2.5"
+                  strokeWidth={2}
+                />
+                Expired
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (key) => <RoleBadge role={key.role} />,
+    },
+    {
+      key: "created",
+      header: "Created",
+      render: (key) => (
+        <span className="text-xs text-text-secondary">
+          {formatDateShort(key.created_at)}
+        </span>
+      ),
+    },
+    {
+      key: "expires",
+      header: "Expires",
+      render: (key) => {
+        const expired = isExpired(key.expires_in);
+        return (
+          <span
+            className={`text-xs ${expired ? "text-accent-red" : "text-text-secondary"}`}
+          >
+            {formatExpiry(key.expires_in)}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      render: (key) => (
+        <div className="flex items-center justify-end gap-1">
+          <RestrictedAction action="apiKey:edit">
+            <button
+              onClick={() => setEditTarget(key)}
+              className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
+              title="Edit"
+            >
+              <PencilSquareIcon className="w-4 h-4" />
+            </button>
+          </RestrictedAction>
+          <RestrictedAction action="apiKey:delete">
+            <button
+              onClick={() => setDeleteTarget(key)}
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
+              title="Delete"
+            >
+              <TrashIcon className="w-4 h-4" />
+            </button>
+          </RestrictedAction>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-text-muted">
-          {totalCount}
-          {" "}
-          key
+          {totalCount} key
           {totalCount !== 1 ? "s" : ""}
         </p>
         <RestrictedAction action="apiKey:create">
@@ -50,108 +128,35 @@ function ApiKeysTab() {
         </RestrictedAction>
       </div>
 
-      {isLoading
-        ? (
-          <div className="flex items-center justify-center py-16">
-            <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <DataTable
+        columns={columns}
+        data={apiKeys}
+        rowKey={(key) => key.name}
+        isLoading={isLoading}
+        loadingMessage="Loading API keys..."
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        itemLabel="key"
+        onPageChange={setPage}
+        // border-l-2 on every row (transparent by default) keeps the row
+        // height stable when the red border appears on expired keys.
+        // No hover darkening here — rows are not clickable.
+        rowClassName={(key) =>
+          isExpired(key.expires_in)
+            ? "bg-accent-red/[0.03] border-l-2 border-l-accent-red/50"
+            : "border-l-2 border-l-transparent"
+        }
+        emptyState={
+          <div className="text-center">
+            <KeyIcon className="w-10 h-10 text-text-muted/30 mx-auto mb-3" />
+            <p className="text-sm text-text-muted">No API keys yet</p>
+            <p className="text-2xs text-text-muted/60 mt-1">
+              Generate a key to access the ShellHub API
+            </p>
           </div>
-        )
-        : apiKeys.length === 0
-          ? (
-            <div className="text-center py-16">
-              <KeyIcon className="w-10 h-10 text-text-muted/30 mx-auto mb-3" />
-              <p className="text-sm text-text-muted">No API keys yet</p>
-              <p className="text-2xs text-text-muted/60 mt-1">
-                Generate a key to access the ShellHub API
-              </p>
-            </div>
-          )
-          : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className={TH}>Name</th>
-                    <th className={TH}>Role</th>
-                    <th className={TH}>Created</th>
-                    <th className={TH}>Expires</th>
-                    <th className={`${TH} !text-right w-24`}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {apiKeys.map((key) => {
-                    const expired = isExpired(key.expires_in);
-                    return (
-                      <tr
-                        key={key.name}
-                        className={`group transition-colors ${expired ? "bg-accent-red/[0.02]" : "hover:bg-hover-subtle"}`}
-                      >
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-text-primary">
-                              {key.name}
-                            </span>
-                            {expired && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-2xs font-mono font-semibold text-accent-red bg-accent-red/10 border border-accent-red/20 rounded">
-                                <ExclamationCircleIcon
-                                  className="w-2.5 h-2.5"
-                                  strokeWidth={2}
-                                />
-                                Expired
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <RoleBadge role={key.role} />
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="text-xs text-text-secondary">
-                            {formatDateShort(key.created_at)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span
-                            className={`text-xs ${expired ? "text-accent-red" : "text-text-secondary"}`}
-                          >
-                            {formatExpiry(key.expires_in)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <RestrictedAction action="apiKey:edit">
-                              <button
-                                onClick={() => setEditTarget(key)}
-                                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-medium transition-colors"
-                                title="Edit"
-                              >
-                                <PencilSquareIcon className="w-4 h-4" />
-                              </button>
-                            </RestrictedAction>
-                            <RestrictedAction action="apiKey:delete">
-                              <button
-                                onClick={() => setDeleteTarget(key)}
-                                className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/5 transition-colors"
-                                title="Delete"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                              </button>
-                            </RestrictedAction>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-              />
-            </div>
-          )}
+        }
+      />
 
       <GenerateKeyDrawer
         open={generateOpen}
@@ -171,16 +176,15 @@ function ApiKeysTab() {
           setDeleteTarget(null);
         }}
         title="Delete API Key"
-        description={(
+        description={
           <>
-            Are you sure you want to delete
-            {" "}
+            Are you sure you want to delete{" "}
             <span className="font-medium text-text-primary">
               {deleteTarget?.name}
             </span>
             ? Any integrations using this key will stop working.
           </>
-        )}
+        }
         confirmLabel="Delete"
       />
     </div>
