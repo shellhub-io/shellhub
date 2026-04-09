@@ -8,19 +8,20 @@ import {
   InformationCircleIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminNamespace } from "../../../hooks/useAdminNamespaces";
-import CopyButton from "../../../components/common/CopyButton";
+import { useAdminNamespace } from "@/hooks/useAdminNamespaces";
+import CopyButton from "@/components/common/CopyButton";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
-import { formatDateFull } from "../../../utils/date";
-import { TH as TH_BASE } from "../../../utils/styles";
+import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
-const TH = `${TH_BASE} whitespace-nowrap`;
 const ZERO_DATE = "0001-01-01T00:00:00Z";
+
+type Member = NonNullable<NonNullable<ReturnType<typeof useAdminNamespace>["data"]>["members"]>[number];
 
 export default function NamespaceDetails() {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +64,46 @@ export default function NamespaceDetails() {
     = (namespace.devices_accepted_count || 0)
       + (namespace.devices_pending_count || 0)
       + (namespace.devices_rejected_count || 0);
+
+  const memberColumns: Column<Member>[] = [
+    {
+      key: "email",
+      header: "Email",
+      render: (member) =>
+        member.id ? (
+          <Link
+            to={`/admin/users/${member.id}`}
+            className="text-sm text-primary hover:underline"
+          >
+            {member.email || member.id}
+          </Link>
+        ) : (
+          <span className="text-sm text-text-primary">
+            {member.email || "\u2014"}
+          </span>
+        ),
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (member) => (
+        <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-primary/10 text-primary border border-primary/20 capitalize">
+          {member.role || "member"}
+        </span>
+      ),
+    },
+    {
+      key: "added",
+      header: "Added",
+      render: (member) => (
+        <span className="text-xs text-text-secondary">
+          {member.added_at && member.added_at !== ZERO_DATE
+            ? formatDateFull(member.added_at)
+            : "\u2014"}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="animate-fade-in">
@@ -227,55 +268,14 @@ export default function NamespaceDetails() {
             Members ({namespace.members?.length || 0})
           </h3>
         </div>
-        {namespace.members?.length ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-surface/50">
-                  <th className={TH}>Email</th>
-                  <th className={TH}>Role</th>
-                  <th className={TH}>Added</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60">
-                {namespace.members.map((member, index) => (
-                  <tr key={member.id ?? index}>
-                    <td className="px-4 py-3.5">
-                      {member.id ? (
-                        <Link
-                          to={`/admin/users/${member.id}`}
-                          className="text-sm text-primary hover:underline"
-                        >
-                          {member.email || member.id}
-                        </Link>
-                      ) : (
-                        <span className="text-sm text-text-primary">
-                          {member.email || "\u2014"}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-primary/10 text-primary border border-primary/20 capitalize">
-                        {member.role || "member"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs text-text-secondary">
-                        {member.added_at && member.added_at !== ZERO_DATE
-                          ? formatDateFull(member.added_at)
-                          : "\u2014"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="px-5 py-8 text-center text-xs font-mono text-text-muted">
-            No members
-          </p>
-        )}
+        <DataTable<Member>
+          columns={memberColumns}
+          data={namespace.members ?? []}
+          rowKey={(m, i) => m.id || m.email || `member-${i}`}
+          label="Members"
+          noWrapper
+          emptyMessage="No members"
+        />
       </div>
 
       <EditNamespaceDrawer
