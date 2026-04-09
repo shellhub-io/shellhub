@@ -4,12 +4,17 @@ import {
   type TerminalSession,
 } from "../../stores/terminalStore";
 import { useTerminalThemeStore } from "../../stores/terminalThemeStore";
+import { Bars3Icon } from "@heroicons/react/24/outline";
 import NamespaceSelector from "./NamespaceSelector";
 
 import UserMenu from "./UserMenu";
 import { TerminalInfo, TerminalActions } from "../terminal/TerminalControls";
 
-export default function AppBar() {
+interface AppBarProps {
+  onMenuToggle?: () => void;
+}
+
+export default function AppBar({ onMenuToggle }: AppBarProps) {
   const activeSession = useTerminalStore((s) =>
     s.sessions.find((s) => s.state !== "minimized"),
   );
@@ -65,23 +70,35 @@ export default function AppBar() {
 
   return (
     <header
-      className={`relative z-50 h-14 border-b px-5 flex items-center justify-between shrink-0 transition-colors duration-300 ${
+      className={`relative z-50 h-14 border-b px-3 sm:px-5 flex items-center justify-between shrink-0 transition-colors duration-300 ${
         displayed ? "border-transparent" : "bg-surface border-border"
       }`}
       style={displayed ? { backgroundColor: themeBg } : undefined}
     >
-      {/* Left: crossfade with vertical slide */}
-      <div
-        onTransitionEnd={handleTransitionEnd}
-        className={`min-w-0 transition-all duration-150 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
-      >
-        {displayed
-          ? (
-            <TerminalInfo session={displayed} />
-          )
-          : (
-            <NamespaceSelector />
-          )}
+      {/* Left: menu toggle + crossfade with vertical slide */}
+      <div className="flex items-center gap-1 min-w-0">
+        {onMenuToggle && (
+          <button
+            type="button"
+            onClick={onMenuToggle}
+            className="lg:hidden p-2 -ml-1 rounded-md text-text-muted hover:text-text-primary hover:bg-hover-subtle transition-colors"
+            aria-label="Open navigation menu"
+          >
+            <Bars3Icon className="w-5 h-5" />
+          </button>
+        )}
+        <div
+          onTransitionEnd={handleTransitionEnd}
+          className={`min-w-0 transition-all duration-150 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
+        >
+          {displayed
+            ? (
+              <TerminalInfo session={displayed} />
+            )
+            : (
+              <NamespaceSelector />
+            )}
+        </div>
       </div>
 
       <div className="flex items-center gap-1">
