@@ -11,18 +11,27 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import PageHeader from "../../components/common/PageHeader";
-import StatCard from "../../components/common/StatCard";
-import DeviceChip from "../../components/common/DeviceChip";
-import { useAdminStats } from "../../hooks/useAdminStats";
-import { useAdminSessions } from "../../hooks/useAdminSessions";
-import { formatDate } from "../../utils/date";
-import { sessionType } from "../../utils/session";
-import { TH } from "../../utils/styles";
+import PageHeader from "@/components/common/PageHeader";
+import StatCard from "@/components/common/StatCard";
+import DeviceChip from "@/components/common/DeviceChip";
+import DataTable, { type Column } from "@/components/common/DataTable";
+import { useAdminStats } from "@/hooks/useAdminStats";
+import { useAdminSessions } from "@/hooks/useAdminSessions";
+import { formatDate } from "@/utils/date";
+import { sessionType } from "@/utils/session";
+import type { Session } from "@/client";
 
 export default function AdminDashboard() {
-  const { stats: statsData, isLoading: statsLoading, isError: statsError } = useAdminStats();
-  const { sessions, isLoading: sessionsLoading, error: sessionsError } = useAdminSessions();
+  const {
+    stats: statsData,
+    isLoading: statsLoading,
+    isError: statsError,
+  } = useAdminStats();
+  const {
+    sessions,
+    isLoading: sessionsLoading,
+    error: sessionsError,
+  } = useAdminSessions();
   const navigate = useNavigate();
 
   if (statsLoading) {
@@ -48,7 +57,9 @@ export default function AdminDashboard() {
           <p className="text-sm font-medium text-text-primary">
             Failed to load dashboard statistics
           </p>
-          <p className="text-2xs text-text-muted mt-1">Please try again later.</p>
+          <p className="text-2xs text-text-muted mt-1">
+            Please try again later.
+          </p>
         </div>
       </div>
     );
@@ -111,6 +122,90 @@ export default function AdminDashboard() {
     },
   ];
 
+  const sessionColumns: Column<Session>[] = [
+    {
+      key: "active",
+      header: "Active",
+      headerClassName: "w-14",
+      render: (s) => (
+        <span
+          className={`w-2 h-2 rounded-full inline-block ${
+            s.active
+              ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
+              : "bg-text-muted/40"
+          }`}
+        />
+      ),
+    },
+    {
+      key: "device",
+      header: "Device",
+      render: (s) =>
+        s.device ? (
+          <DeviceChip
+            disableLink
+            name={s.device.name}
+            online={s.device.online}
+            osId={s.device.info?.id}
+          />
+        ) : (
+          <span className="text-xs font-mono text-text-primary">
+            {(s.device_uid ?? "").substring(0, 8)}
+          </span>
+        ),
+    },
+    {
+      key: "username",
+      header: "Username",
+      render: (s) => {
+        const suspicious = !s.authenticated;
+        return (
+          <div className="flex items-center gap-1.5">
+            {suspicious && (
+              <ExclamationTriangleIcon
+                className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
+                strokeWidth={2}
+                title="Not authenticated"
+              />
+            )}
+            <code
+              className={`text-xs font-mono ${
+                suspicious ? "text-accent-red/60" : "text-text-secondary"
+              }`}
+            >
+              {s.username}
+            </code>
+          </div>
+        );
+      },
+    },
+    {
+      key: "type",
+      header: "Type",
+      render: (s) => {
+        const type = sessionType(s);
+        return type ? (
+          <span
+            className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
+          >
+            {type.label}
+          </span>
+        ) : (
+          <span className="text-2xs text-text-muted">{"\u2014"}</span>
+        );
+      },
+    },
+    {
+      key: "started",
+      header: "Started",
+      render: (s) => (
+        <span className="text-xs text-text-secondary">
+          {formatDate(s.started_at)}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <div>
       <PageHeader
@@ -163,105 +258,26 @@ export default function AdminDashboard() {
             className="bg-card border border-border rounded-lg overflow-hidden animate-slide-up"
             style={{ animationDelay: "560ms" }}
           >
-            {sessions.length > 0
-              ? (
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-surface/50">
-                      <th className={`${TH} w-14`}>Active</th>
-                      <th className={TH}>Device</th>
-                      <th className={TH}>Username</th>
-                      <th className={TH}>Type</th>
-                      <th className={TH}>Started</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60">
-                    {sessions.map((session) => {
-                      const type = sessionType(session);
-                      const suspicious = !session.authenticated;
-                      return (
-                        <tr
-                          key={session.uid}
-                          onClick={() => void navigate(`/admin/sessions/${session.uid}`)}
-                          className={`transition-colors cursor-pointer ${
-                            suspicious
-                              ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"
-                              : "hover:bg-hover-subtle border-l-2 border-l-transparent"
-                          }`}
-                        >
-                          <td className="px-4 py-3.5">
-                            <span
-                              className={`w-2 h-2 rounded-full inline-block ${
-                                session.active
-                                  ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-                                  : "bg-text-muted/40"
-                              }`}
-                            />
-                          </td>
-                          <td className="px-4 py-3.5">
-                            {session.device
-                              ? (
-                                <DeviceChip
-                                  disableLink
-                                  name={session.device.name}
-                                  online={session.device.online}
-                                  osId={session.device.info?.id}
-                                />
-                              )
-                              : (
-                                <span className="text-xs font-mono text-text-primary">
-                                  {(session.device_uid ?? "").substring(0, 8)}
-                                </span>
-                              )}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <div className="flex items-center gap-1.5">
-                              {suspicious && (
-                                <ExclamationTriangleIcon
-                                  className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
-                                  strokeWidth={2}
-                                  title="Not authenticated"
-                                />
-                              )}
-                              <code
-                                className={`text-xs font-mono ${
-                                  suspicious ? "text-accent-red/60" : "text-text-secondary"
-                                }`}
-                              >
-                                {session.username}
-                              </code>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5">
-                            {type
-                              ? (
-                                <span
-                                  className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
-                                >
-                                  {type.label}
-                                </span>
-                              )
-                              : (
-                                <span className="text-2xs text-text-muted">—</span>
-                              )}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <span className="text-xs text-text-secondary">
-                              {formatDate(session.started_at)}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )
-              : (
-                <div className="flex flex-col items-center justify-center py-12 text-text-muted">
-                  <CommandLineIcon className="w-8 h-8 mb-3 opacity-40" />
-                  <p className="text-sm">No recent sessions</p>
+            <DataTable
+              columns={sessionColumns}
+              data={sessions}
+              rowKey={(s) => s.uid}
+              noWrapper
+              onRowClick={(s) => void navigate(`/admin/sessions/${s.uid}`)}
+              // border-l-2 on every row (transparent by default) keeps the row
+              // height stable when the red border appears on unauthenticated rows.
+              rowClassName={(s) =>
+                !s.authenticated
+                  ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"
+                  : "border-l-2 border-l-transparent"
+              }
+              emptyState={
+                <div className="flex flex-col items-center justify-center">
+                  <CommandLineIcon className="w-8 h-8 mb-3 opacity-40 text-text-muted" />
+                  <p className="text-sm text-text-muted">No recent sessions</p>
                 </div>
-              )}
+              }
+            />
           </div>
         </>
       )}
