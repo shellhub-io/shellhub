@@ -7,17 +7,19 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
-import { useSessions } from "../../hooks/useSessions";
-import { useCloseSession } from "../../hooks/useSessionMutations";
-import { useSessionRecording } from "../../hooks/useSessionRecording";
-import PageHeader from "../../components/common/PageHeader";
-import DeviceChip from "../../components/common/DeviceChip";
+import { useSessions } from "@/hooks/useSessions";
+import { useCloseSession } from "@/hooks/useSessionMutations";
+import { useSessionRecording } from "@/hooks/useSessionRecording";
+import type { Session } from "@/client";
+import PageHeader from "@/components/common/PageHeader";
+import DeviceChip from "@/components/common/DeviceChip";
+import DataTable, { type Column } from "@/components/common/DataTable";
 import SessionPlayerDialog from "./SessionPlayerDialog";
-import RestrictedAction from "../../components/common/RestrictedAction";
-import { formatDate, formatDuration } from "../../utils/date";
-import { sessionType } from "../../utils/session";
-import { TH } from "../../utils/styles";
-import Pagination from "../../components/common/Pagination";
+import RestrictedAction from "@/components/common/RestrictedAction";
+import { formatDate, formatDuration } from "@/utils/date";
+import { sessionType } from "@/utils/session";
+
+const PER_PAGE = 10;
 
 function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   const [closing, setClosing] = useState(false);
@@ -44,24 +46,169 @@ function CloseButton({ onClose }: { onClose: () => Promise<unknown> }) {
   );
 }
 
-const COL_SPAN = 8;
-
 export default function Sessions() {
   const [page, setPage] = useState(1);
-  const perPage = 10;
-  const { sessions, totalCount, isLoading, error } = useSessions({ page, perPage });
+  const { sessions, totalCount, isLoading, error } = useSessions({
+    page,
+    perPage: PER_PAGE,
+  });
   const closeSession = useCloseSession();
   const navigate = useNavigate();
   const [playTarget, setPlayTarget] = useState<string | null>(null);
-  const { logs: sessionLogs, isLoading: logsLoading, error: logsError, fetchLogs, clearLogs } = useSessionRecording();
+  const {
+    logs: sessionLogs,
+    isLoading: logsLoading,
+    error: logsError,
+    fetchLogs,
+    clearLogs,
+  } = useSessionRecording();
 
-  const totalPages = Math.ceil(totalCount / perPage);
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
 
   const handlePlayClick = async (e: React.MouseEvent, uid: string) => {
     e.stopPropagation();
     setPlayTarget(uid);
     await fetchLogs(uid);
   };
+
+  const columns: Column<Session>[] = [
+    {
+      key: "active",
+      header: "Active",
+      headerClassName: "w-14",
+      render: (s) => (
+        <span
+          className={`w-2 h-2 rounded-full inline-block ${
+            s.active
+              ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
+              : "bg-text-muted/40"
+          }`}
+        />
+      ),
+    },
+    {
+      key: "device",
+      header: "Device",
+      render: (s) =>
+        s.device?.uid ? (
+          <DeviceChip
+            uid={s.device.uid}
+            name={s.device.name ?? (s.device_uid ?? "").substring(0, 8)}
+            online={s.device.online}
+            osId={s.device.info?.id}
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className="text-xs font-mono text-text-primary">
+            {s.device?.name ?? (s.device_uid ?? "").substring(0, 8)}
+          </span>
+        ),
+    },
+    {
+      key: "username",
+      header: "Username",
+      render: (s) => {
+        const suspicious = !s.authenticated;
+        return (
+          <div className="flex items-center gap-1.5">
+            {suspicious && (
+              <ExclamationTriangleIcon
+                className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
+                strokeWidth={2}
+                title="Not authenticated"
+              />
+            )}
+            <code
+              className={`text-xs font-mono ${suspicious ? "text-accent-red/60" : "text-text-secondary"}`}
+            >
+              {s.username}
+            </code>
+          </div>
+        );
+      },
+    },
+    {
+      key: "ip",
+      header: "IP Address",
+      render: (s) => (
+        <code className="text-xs font-mono text-text-muted bg-surface px-1.5 py-0.5 rounded">
+          {s.ip_address}
+        </code>
+      ),
+    },
+    {
+      key: "type",
+      header: "Type",
+      render: (s) => {
+        const type = sessionType(s);
+        return type ? (
+          <span
+            className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
+          >
+            {type.label}
+          </span>
+        ) : (
+          <span className="text-2xs text-text-muted">{"\u2014"}</span>
+        );
+      },
+    },
+    {
+      key: "started",
+      header: "Started",
+      render: (s) => (
+        <span className="text-xs text-text-secondary">
+          {formatDate(s.started_at)}
+        </span>
+      ),
+    },
+    {
+      key: "duration",
+      header: "Duration",
+      render: (s) => (
+        <span className="text-xs font-mono text-text-secondary tabular-nums">
+          {formatDuration(s.started_at, s.last_seen, s.active)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      headerClassName: "w-28",
+      render: (s) => (
+        <div className="flex items-center justify-end gap-1">
+          {s.recorded && (
+            <RestrictedAction action="session:play">
+              <button
+                onClick={(e) => void handlePlayClick(e, s.uid)}
+                disabled={logsLoading && playTarget === s.uid}
+                title="Play recording"
+                className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-2xs font-semibold rounded-md hover:bg-primary/20 border border-primary/20 transition-all disabled:opacity-dim"
+              >
+                {logsLoading && playTarget === s.uid ? (
+                  <span className="w-3 h-3 border border-primary/40 border-t-primary rounded-full animate-spin" />
+                ) : (
+                  <PlayIcon className="w-3 h-3" />
+                )}
+                Play
+              </button>
+            </RestrictedAction>
+          )}
+          {s.active && (
+            <RestrictedAction action="session:close">
+              <CloseButton
+                onClose={() =>
+                  closeSession.mutateAsync({
+                    path: { uid: s.uid },
+                    body: { device: s.device_uid ?? s.device?.uid ?? "" },
+                  })
+                }
+              />
+            </RestrictedAction>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -92,183 +239,36 @@ export default function Sessions() {
         </div>
       )}
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden animate-fade-in">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border bg-surface/50">
-              <th className={`${TH} w-14`}>Active</th>
-              <th className={TH}>Device</th>
-              <th className={TH}>Username</th>
-              <th className={TH}>IP Address</th>
-              <th className={TH}>Type</th>
-              <th className={TH}>Started</th>
-              <th className={TH}>Duration</th>
-              <th className="px-4 py-3 w-28" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
-            {isLoading
-              ? (
-                <tr>
-                  <td colSpan={COL_SPAN} className="px-4 py-12 text-center">
-                    <div className="flex items-center justify-center gap-3">
-                      <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-xs font-mono text-text-muted">
-                        Loading sessions…
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              )
-              : sessions.length === 0
-                ? (
-                  <tr>
-                    <td colSpan={COL_SPAN} className="px-4 py-12 text-center">
-                      <p className="text-xs font-mono text-text-muted">
-                        No sessions found
-                      </p>
-                    </td>
-                  </tr>
-                )
-                : (
-                  sessions.map((session) => {
-                    const type = sessionType(session);
-                    const suspicious = !session.authenticated;
-                    return (
-                      <tr
-                        key={session.uid}
-                        onClick={() => void navigate(`/sessions/${session.uid}`)}
-                        className={`transition-colors group cursor-pointer relative ${
-                          suspicious
-                            ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"
-                            : "hover:bg-hover-subtle border-l-2 border-l-transparent"
-                        }`}
-                      >
-                        <td className="px-4 py-3.5">
-                          <span
-                            className={`w-2 h-2 rounded-full inline-block ${
-                              session.active
-                                ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-                                : "bg-text-muted/40"
-                            }`}
-                          />
-                        </td>
-                        <td className="px-4 py-3.5">
-                          {session.device?.uid
-                            ? (
-                              <DeviceChip
-                                uid={session.device.uid}
-                                name={
-                                  session.device.name
-                                  ?? (session.device_uid ?? "").substring(0, 8)
-                                }
-                                online={session.device.online}
-                                osId={session.device.info?.id}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            )
-                            : (
-                              <span className="text-xs font-mono text-text-primary">
-                                {session.device?.name
-                                  ?? (session.device_uid ?? "").substring(0, 8)}
-                              </span>
-                            )}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-1.5">
-                            {suspicious && (
-                              <ExclamationTriangleIcon
-                                className="w-3.5 h-3.5 text-accent-red/70 shrink-0"
-                                strokeWidth={2}
-                                title="Not authenticated"
-                              />
-                            )}
-                            <code
-                              className={`text-xs font-mono ${
-                                suspicious
-                                  ? "text-accent-red/60"
-                                  : "text-text-secondary"
-                              }`}
-                            >
-                              {session.username}
-                            </code>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <code className="text-xs font-mono text-text-muted bg-surface px-1.5 py-0.5 rounded">
-                            {session.ip_address}
-                          </code>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          {type
-                            ? (
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-semibold rounded border ${type.color}`}
-                              >
-                                {type.label}
-                              </span>
-                            )
-                            : (
-                              <span className="text-2xs text-text-muted">—</span>
-                            )}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="text-xs text-text-secondary">
-                            {formatDate(session.started_at)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <span className="text-xs font-mono text-text-secondary tabular-nums">
-                            {formatDuration(
-                              session.started_at,
-                              session.last_seen,
-                              session.active,
-                            )}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center justify-end gap-1">
-                            {session.recorded && (
-                              <RestrictedAction action="session:play">
-                                <button
-                                  onClick={(e) => void handlePlayClick(e, session.uid)}
-                                  disabled={logsLoading && playTarget === session.uid}
-                                  title="Play recording"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary/10 text-primary text-2xs font-semibold rounded-md hover:bg-primary/20 border border-primary/20 transition-all disabled:opacity-dim"
-                                >
-                                  {logsLoading && playTarget === session.uid
-                                    ? <span className="w-3 h-3 border border-primary/40 border-t-primary rounded-full animate-spin" />
-                                    : <PlayIcon className="w-3 h-3" />}
-                                  Play
-                                </button>
-                              </RestrictedAction>
-                            )}
-                            {session.active && (
-                              <RestrictedAction action="session:close">
-                                <CloseButton
-                                  onClose={() => closeSession.mutateAsync({
-                                    path: { uid: session.uid },
-                                    body: { device: session.device_uid ?? session.device?.uid ?? "" },
-                                  })}
-                                />
-                              </RestrictedAction>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-          </tbody>
-        </table>
-      </div>
-
-      <Pagination
+      <DataTable
+        columns={columns}
+        data={sessions}
+        rowKey={(s) => s.uid}
+        isLoading={isLoading}
+        loadingMessage="Loading sessions..."
         page={page}
         totalPages={totalPages}
         totalCount={totalCount}
         itemLabel="session"
         onPageChange={setPage}
+        onRowClick={(s) => void navigate(`/sessions/${s.uid}`)}
+        // border-l-2 on every row (transparent by default) keeps the row
+        // height stable when the red border appears on unauthenticated rows.
+        rowClassName={(s) =>
+          !s.authenticated
+            ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"
+            : "border-l-2 border-l-transparent"
+        }
+        emptyState={
+          <div className="text-center">
+            <CommandLineIcon
+              className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
+              strokeWidth={1}
+            />
+            <p className="text-xs font-mono text-text-muted">
+              No sessions found
+            </p>
+          </div>
+        }
       />
 
       {playTarget && !logsLoading && sessionLogs && (
