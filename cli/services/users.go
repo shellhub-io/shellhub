@@ -52,6 +52,11 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		return nil, ErrUserPasswordInvalid
 	}
 
+	system, err := s.store.SystemGet(ctx)
+	if err != nil {
+		system = &models.System{Setup: true}
+	}
+
 	user := &models.User{
 		Origin:        models.UserOriginLocal,
 		UserData:      userData,
@@ -62,16 +67,11 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		Preferences: models.UserPreferences{
 			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
-		Admin: input.Admin,
+		Admin: input.Admin || !system.Setup,
 	}
 
 	if _, err := s.store.UserCreate(ctx, user); err != nil {
 		return nil, ErrCreateNewUser
-	}
-
-	system, err := s.store.SystemGet(ctx)
-	if err != nil {
-		system = &models.System{}
 	}
 
 	system.Setup = true

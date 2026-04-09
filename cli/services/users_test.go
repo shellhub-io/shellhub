@@ -147,9 +147,12 @@ func TestUserCreate(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
-					Admin: false,
+					Admin: true,
 				}
 				mock.On("UserCreate", ctx, user).Return("", errors.New("error")).Once()
+				mock.On("SystemGet", ctx).
+					Return(&models.System{Setup: false}, nil).
+					Once()
 			},
 			expected: Expected{nil, ErrCreateNewUser},
 		},
@@ -185,13 +188,87 @@ func TestUserCreate(t *testing.T) {
 					Preferences: models.UserPreferences{
 						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
-					Admin: false,
+					Admin: true,
 				}
 
 				mock.On("UserCreate", ctx, user).Return("000000000000000000000000", nil).Once()
 
 				mock.On("SystemGet", ctx).Return(&models.System{Setup: false}, nil).Once()
 				mock.On("SystemSet", ctx, &models.System{Setup: true}).Return(nil).Once()
+			},
+			expected: Expected{&models.User{
+				Origin: models.UserOriginLocal,
+				UserData: models.UserData{
+					Name:     "john_doe",
+					Email:    "john.doe@test.com",
+					Username: "john_doe",
+				},
+				Password: models.UserPassword{
+					Plain: "secret",
+					Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
+				},
+				Status:        models.UserStatusConfirmed,
+				CreatedAt:     clock.Now(),
+				MaxNamespaces: MaxNumberNamespacesCommunity,
+				Preferences: models.UserPreferences{
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+				},
+				Admin: true,
+			}, nil},
+		},
+		{
+			description: "creates a non-admin user when system is already set up",
+			username:    "john_doe",
+			email:       "john.doe@test.com",
+			password:    "secret",
+			requiredMocks: func() {
+				mock.
+					On("UserConflicts", ctx, &models.UserConflicts{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					}).
+					Return([]string{}, false, nil).
+					Once()
+
+				hashMock.
+					On("Do", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+
+				mock.
+					On("SystemGet", ctx).
+					Return(&models.System{Setup: true}, nil).
+					Once()
+
+				user := &models.User{
+					Origin: models.UserOriginLocal,
+					UserData: models.UserData{
+						Name:     "john_doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+					Password: models.UserPassword{
+						Plain: "secret",
+						Hash:  "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi",
+					},
+					Status:        models.UserStatusConfirmed,
+					CreatedAt:     clock.Now(),
+					MaxNamespaces: MaxNumberNamespacesCommunity,
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+					Admin: false,
+				}
+
+				mock.
+					On("UserCreate", ctx, user).
+					Return("000000000000000000000000", nil).
+					Once()
+
+				mock.
+					On("SystemSet", ctx, &models.System{Setup: true}).
+					Return(nil).
+					Once()
 			},
 			expected: Expected{&models.User{
 				Origin: models.UserOriginLocal,
