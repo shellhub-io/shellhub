@@ -62,7 +62,7 @@ func NewAgentContainer(ctx context.Context, port string, opts ...NewAgentContain
 		"SHELLHUB_LOG_FORMAT":         "json",
 		"SHELLHUB_KEEPALIVE_INTERVAL": "1",
 		"SHELLHUB_LOG_LEVEL":          "trace",
-		"SHELLHUB_TRANSPORT_VERSION":  "1", // Default to v1 for compatibility
+		"SHELLHUB_TRANSPORT_VERSION":  "2",
 	}
 
 	for _, opt := range opts {
