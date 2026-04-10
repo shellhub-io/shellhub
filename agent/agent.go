@@ -109,8 +109,8 @@ type Config struct {
 
 	// TransportVersion specifies the version of the agent transport protocol to use.
 	// Version 1 uses HTTP-based revdial, version 2 uses yamux multiplexing with multistream.
-	// Supported values are 1 and 2. Default is 1.
-	TransportVersion int `env:"TRANSPORT_VERSION,default=1"`
+	// Supported values are 1 and 2. Default is 2.
+	TransportVersion int `env:"TRANSPORT_VERSION,default=2"`
 }
 
 func LoadConfigFromEnv() (*Config, map[string]interface{}, error) {
