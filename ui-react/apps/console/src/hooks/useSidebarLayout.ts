@@ -40,6 +40,7 @@ export function useSidebarLayout() {
 
   const openDrawer = () => setDrawerOpen(true);
   const closeDrawer = () => setDrawerOpen(false);
+  const toggleDrawer = () => setDrawerOpen((prev) => !prev);
 
   // Clean up hover timer on unmount
   useEffect(() => () => clearTimeout(hoverTimer.current), []);
@@ -72,6 +73,7 @@ export function useSidebarLayout() {
       onToggle: handleToggle,
       openDrawer,
       closeDrawer,
+      toggleDrawer,
       onDrawerKeyDown: handleDrawerKeyDown,
     },
   };

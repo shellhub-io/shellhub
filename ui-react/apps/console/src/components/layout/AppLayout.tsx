@@ -50,7 +50,7 @@ export default function AppLayout() {
           </SidebarMobileDrawer>
         )}
         <div className="flex-1 flex flex-col min-w-0">
-          <AppBar onMenuToggle={showSidebar && !isDesktop ? handlers.openDrawer : undefined} />
+          <AppBar onMenuToggle={showSidebar && !isDesktop ? handlers.toggleDrawer : undefined} />
           <main className="flex-1 flex flex-col p-8 relative min-h-0">
             <div className="grid-bg scanline absolute inset-0 -z-10" />
             <div
