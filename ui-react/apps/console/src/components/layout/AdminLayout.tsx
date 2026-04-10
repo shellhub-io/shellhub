@@ -35,7 +35,7 @@ export default function AdminLayout() {
           </SidebarMobileDrawer>
         )}
         <div className="flex-1 flex flex-col min-w-0">
-          <AdminAppBar onMenuToggle={isDesktop ? undefined : handlers.openDrawer} />
+          <AdminAppBar onMenuToggle={isDesktop ? undefined : handlers.toggleDrawer} />
           <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8 relative">
             <div className="grid-bg scanline absolute inset-0 -z-10" />
             <div
