@@ -8,26 +8,17 @@ import (
 )
 
 const (
-	SetupEndpoint  = "/setup"
-	SetupSignQuery = "sign"
+	SetupEndpoint = "/setup"
 )
 
 func (h *Handler) Setup(c gateway.Context) error {
-	sign := c.QueryParam(SetupSignQuery)
-	if sign == "" {
-		return c.NoContent(http.StatusBadRequest)
-	}
-
 	var req requests.Setup
+
 	if err := c.Bind(&req); err != nil {
 		return err
 	}
 
 	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	if err := h.service.SetupVerify(c.Ctx(), sign); err != nil {
 		return err
 	}
 

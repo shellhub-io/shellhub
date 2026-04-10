@@ -2,7 +2,6 @@ package routes
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -26,27 +25,18 @@ func TestSetup(t *testing.T) {
 
 	tests := []struct {
 		description   string
-		queries       string
 		body          string
 		requiredMocks func()
 		expected      int
 	}{
 		{
-			description:   "fail to get the signature",
-			body:          "",
-			requiredMocks: func() {},
-			expected:      http.StatusBadRequest,
-		},
-		{
 			description:   "fail to parse the json body",
-			queries:       "?sign=value",
 			body:          "",
 			requiredMocks: func() {},
 			expected:      http.StatusBadRequest,
 		},
 		{
 			description: "fail to valid the json body",
-			queries:     "?sign=value",
 			body: `{
                 "name": "John Doe",
                 "username": "john.doe",
@@ -57,22 +47,7 @@ func TestSetup(t *testing.T) {
 			expected:      http.StatusBadRequest,
 		},
 		{
-			description: "fail to validate the signature",
-			queries:     "?sign=value",
-			body: `{
-                "name": "John Doe",
-                "username": "john.doe",
-                "email": "john.doe@example.com",
-                "password": "password"
-            }`,
-			requiredMocks: func() {
-				servicesMock.On("SetupVerify", mock.Anything, "value").Return(errors.New("")).Once()
-			},
-			expected: http.StatusInternalServerError,
-		},
-		{
 			description: "fail to setup on service",
-			queries:     "?sign=value",
 			body: `{
                 "name": "John Doe",
                 "username": "john.doe",
@@ -80,8 +55,6 @@ func TestSetup(t *testing.T) {
                 "password": "password"
             }`,
 			requiredMocks: func() {
-				servicesMock.On("SetupVerify", mock.Anything, "value").Return(nil).Once()
-
 				servicesMock.On("Setup", mock.Anything, requests.Setup{
 					Name:     "John Doe",
 					Username: "john.doe",
@@ -93,7 +66,6 @@ func TestSetup(t *testing.T) {
 		},
 		{
 			description: "success to setup on service",
-			queries:     "?sign=value",
 			body: `{
                 "name": "John Doe",
                 "username": "john.doe",
@@ -101,8 +73,6 @@ func TestSetup(t *testing.T) {
                 "password": "password"
             }`,
 			requiredMocks: func() {
-				servicesMock.On("SetupVerify", mock.Anything, "value").Return(nil).Once()
-
 				servicesMock.On("Setup", mock.Anything, requests.Setup{
 					Name:     "John Doe",
 					Username: "john.doe",
@@ -118,7 +88,8 @@ func TestSetup(t *testing.T) {
 		t.Run(test.description, func(t *testing.T) {
 			test.requiredMocks()
 
-			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("%s%s", "/api/setup", test.queries), strings.NewReader(test.body))
+			// Removed query parameters since signature is no longer checked
+			req := httptest.NewRequest(http.MethodPost, "/api/setup", strings.NewReader(test.body))
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
