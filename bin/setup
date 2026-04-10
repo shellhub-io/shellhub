@@ -2,6 +2,27 @@
 
 . "$(dirname "$0")/utils"
 
+open_url() {
+  url="$1"
+
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 &
+    return
+  fi
+
+  if command -v open >/dev/null 2>&1; then
+    open "$url"
+    return
+  fi
+
+  if command -v x-www-browser >/dev/null 2>&1; then
+    x-www-browser "$url" >/dev/null 2>&1 &
+    return
+  fi
+
+  echo "🚀 Open this URL in your browser to complete setup: $url"
+}
+
 echo "🌟 Welcome to the ShellHub Setup Script"
 echo ""
 
@@ -12,17 +33,14 @@ if curl -s http://localhost/info | grep -q '"setup":true'; then
   exit 0
 fi
 
-echo "📋 This script will generate a valid URL to set up your ShellHub instance."
+echo "📋 This script will open the setup URL for your ShellHub instance."
 echo "❗ Important: The ShellHub instance cannot be on localhost. Please ensure you provide a valid public IP address or hostname."
 echo ""
 
-KEY="api_private_key"
+URL="http://localhost/setup"
 
-SIGNATURE=$(echo -n "shellhub" | openssl dgst -sha256 -sign "$KEY" | sha256sum | cut -d' ' -f1)
-URL="http://localhost/setup?sign=$(printf '%s' "$SIGNATURE")"
+echo "🔗 Generated Setup URL: $URL"
+open_url "$URL"
 
-echo "🔗 Generated Setup URL:"
-echo "$URL"
 echo ""
-echo "🚀 You can use this URL to complete the setup of your ShellHub instance."
 echo "✅ Please ensure your ShellHub server is running and accessible from an external address."
