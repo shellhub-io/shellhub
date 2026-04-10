@@ -108,7 +108,9 @@ describe("AdminDashboard", () => {
     it("displays the expected error message", () => {
       setupHooks({ statsError: true });
       renderPage();
-      expect(screen.getByText("Failed to load dashboard statistics")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load dashboard statistics"),
+      ).toBeInTheDocument();
     });
 
     it("does not render stat cards on stats error", () => {
@@ -162,13 +164,17 @@ describe("AdminDashboard", () => {
     it("'View all Users' link points to /admin/users", () => {
       setupHooks();
       renderPage();
-      expect(screen.getByRole("link", { name: /view all users/i })).toHaveAttribute("href", "/admin/users");
+      expect(
+        screen.getByRole("link", { name: /view all users/i }),
+      ).toHaveAttribute("href", "/admin/users");
     });
 
     it("'View all Sessions' link in stat card points to /admin/sessions", () => {
       setupHooks();
       renderPage();
-      expect(screen.getByRole("link", { name: /view all sessions/i })).toHaveAttribute("href", "/admin/sessions");
+      expect(
+        screen.getByRole("link", { name: /view all sessions/i }),
+      ).toHaveAttribute("href", "/admin/sessions");
     });
 
     it("device card links point to /admin/devices", () => {
@@ -243,10 +249,11 @@ describe("AdminDashboard", () => {
       expect(screen.getByText("No recent sessions")).toBeInTheDocument();
     });
 
-    it("does not render the table when sessions are empty", () => {
+    it("does not render session rows when sessions are empty", () => {
       setupHooks({ sessions: [] });
       renderPage();
-      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      // thead row + empty state row = 2, no data rows
+      expect(screen.getAllByRole("row")).toHaveLength(2);
     });
 
     it("still renders stat cards when sessions are empty", () => {

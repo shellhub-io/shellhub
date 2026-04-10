@@ -6,10 +6,6 @@ import { useVaultStore } from "../../../stores/vaultStore";
 import SecureVault from "../index";
 import type { VaultKeyEntry } from "../../../types/vault";
 
-vi.mock("../../../utils/styles", () => ({
-  TH: "th-class",
-}));
-
 vi.mock("../../../utils/date", () => ({
   formatDate: (d: string) => d,
 }));

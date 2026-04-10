@@ -10,7 +10,7 @@ vi.mock("../../../../hooks/useAdminAnnouncements", () => ({
   useAdminAnnouncements: vi.fn(),
 }));
 
-// useNavigate is used inside AnnouncementRow — mock at the module level.
+// useNavigate is used by the page — mock at the module level.
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
