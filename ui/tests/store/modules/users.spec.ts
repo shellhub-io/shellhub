@@ -125,13 +125,12 @@ describe("Users Store", () => {
 
   describe("setup", () => {
     const mockSetupData: IUserSetup = {
-      sign: "signature",
       email: "admin@example.com",
       name: "Admin User",
       password: "adminpass123",
       username: "admin",
     };
-    const setupUrl = "http://localhost:3000/api/setup?sign=signature";
+    const setupUrl = "http://localhost:3000/api/setup?sign=";
 
     it("should setup system successfully", async () => {
       mockSystemApi.onPost(setupUrl).reply(200);
