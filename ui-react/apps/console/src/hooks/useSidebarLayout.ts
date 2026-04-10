@@ -1,11 +1,9 @@
 import {
   useState,
-  useCallback,
   useRef,
   useEffect,
   useSyncExternalStore,
 } from "react";
-import { useLocation } from "react-router-dom";
 
 const lgQuery = "(min-width: 1024px)";
 
@@ -28,8 +26,7 @@ function getIsDesktopServer() {
 export function useSidebarLayout() {
   const [expanded, setExpanded] = useState(false);
   const [pinned, setPinned] = useState(false);
-  const [drawerPathname, setDrawerPathname] = useState<string | null>(null);
-  const { pathname } = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isDesktop = useSyncExternalStore(
     subscribeToMediaQuery,
@@ -38,46 +35,28 @@ export function useSidebarLayout() {
   );
 
   const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [prevIsDesktop, setPrevIsDesktop] = useState(isDesktop);
-
-  // Reset transient state when crossing the desktop/mobile breakpoint
-  if (prevIsDesktop !== isDesktop) {
-    setPrevIsDesktop(isDesktop);
-    setExpanded(false);
-    setDrawerPathname(null);
-  }
 
   const isOpen = expanded || pinned;
-  const drawerOpen = drawerPathname === pathname;
+
+  const openDrawer = () => setDrawerOpen(true);
+  const closeDrawer = () => setDrawerOpen(false);
 
   // Clean up hover timer on unmount
-  useEffect(() => {
-    return () => clearTimeout(hoverTimer.current);
-  }, []);
+  useEffect(() => () => clearTimeout(hoverTimer.current), []);
 
-  const handleExpand = useCallback(() => {
+  const handleExpand = () => {
     clearTimeout(hoverTimer.current);
     hoverTimer.current = setTimeout(() => setExpanded(true), 75);
-  }, []);
+  };
 
-  const handleCollapse = useCallback(() => {
+  const handleCollapse = () => {
     clearTimeout(hoverTimer.current);
     hoverTimer.current = setTimeout(() => setExpanded(false), 150);
-  }, []);
+  };
 
-  const handleToggle = useCallback(() => {
-    setPinned((prev) => !prev);
-  }, []);
+  const handleToggle = () => { setPinned((prev) => !prev); };
 
-  const openDrawer = useCallback(() => setDrawerPathname(pathname), [pathname]);
-  const closeDrawer = useCallback(() => setDrawerPathname(null), []);
-
-  const handleDrawerKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") closeDrawer();
-    },
-    [closeDrawer],
-  );
+  const handleDrawerKeyDown = (e: React.KeyboardEvent) => { if (e.key === "Escape") closeDrawer(); };
 
   return {
     expanded,
