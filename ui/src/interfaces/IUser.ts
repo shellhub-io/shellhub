@@ -32,7 +32,6 @@ export interface IUserSignUp {
 }
 
 export interface IUserSetup {
-  sign: string;
   email: string;
   name: string;
   password: string;
