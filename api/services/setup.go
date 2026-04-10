@@ -2,14 +2,6 @@ package services
 
 import (
 	"context"
-	"crypto"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
-	"crypto/x509"
-	"encoding/hex"
-	"encoding/pem"
-	"os"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -18,11 +10,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 )
 
-const PrivateKeyPath = "/var/run/secrets/api_private_key"
-
 type SetupService interface {
 	Setup(ctx context.Context, req requests.Setup) error
-	SetupVerify(ctx context.Context, sign string) error
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) error {
@@ -103,40 +92,6 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) error {
 	system.Setup = true
 	if err := s.store.SystemSet(ctx, system); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (s *service) SetupVerify(_ context.Context, sign string) error {
-	privKeyData, err := os.ReadFile(PrivateKeyPath)
-	if err != nil {
-		return err
-	}
-
-	privKeyPem, _ := pem.Decode(privKeyData)
-	privKey, err := x509.ParsePKCS8PrivateKey(privKeyPem.Bytes)
-	if err != nil {
-		return err
-	}
-
-	const msgString = "shellhub"
-
-	msgHash := sha256.New()
-	_, err = msgHash.Write([]byte(msgString))
-	if err != nil {
-		return err
-	}
-
-	signed, err := rsa.SignPKCS1v15(rand.Reader, privKey.(*rsa.PrivateKey), crypto.SHA256, msgHash.Sum(nil))
-	if err != nil {
-		return err
-	}
-
-	sumSigned := sha256.Sum256(signed)
-
-	if sign != hex.EncodeToString(sumSigned[:]) {
-		return NewErrSetupForbidden(nil)
 	}
 
 	return nil
