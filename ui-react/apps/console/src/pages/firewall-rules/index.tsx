@@ -1,21 +1,26 @@
 import { useState } from "react";
-import { useFirewallRules, type FirewallRule } from "../../hooks/useFirewallRules";
-import { useDeleteFirewallRule } from "../../hooks/useFirewallRuleMutations";
-import PageHeader from "../../components/common/PageHeader";
-import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { useFirewallRules, type FirewallRule } from "@/hooks/useFirewallRules";
+import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
+import PageHeader from "@/components/common/PageHeader";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import DataTable, { type Column } from "@/components/common/DataTable";
+import FilterBadge from "@/components/common/FilterBadge";
 import RuleDrawer from "./RuleDrawer";
-import RuleCard from "./RuleCard";
-import Pagination from "../../components/common/Pagination";
-import RestrictedAction from "../../components/common/RestrictedAction";
+import RestrictedAction from "@/components/common/RestrictedAction";
 import {
   ExclamationTriangleIcon,
+  CheckCircleIcon,
+  NoSymbolIcon,
   MagnifyingGlassIcon,
   PlusIcon,
   UsersIcon,
   Bars3Icon,
+  PencilSquareIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 
-/* ─── Page ─── */
+const PER_PAGE = 10;
+
 export default function FirewallRules() {
   const [page, setPage] = useState(1);
   const { rules, totalCount, isLoading } = useFirewallRules({ page });
@@ -43,7 +48,7 @@ export default function FirewallRules() {
     setEditTarget(null);
   };
 
-  const totalPages = Math.ceil(totalCount / 10);
+  const totalPages = Math.ceil(totalCount / PER_PAGE);
 
   const filtered = search
     ? rules.filter(
@@ -55,14 +60,108 @@ export default function FirewallRules() {
     )
     : rules;
 
-  return (
-    <div>
-      {isLoading && rules.length === 0 ? (
-        <div className="flex items-center justify-center py-16">
-          <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+  const columns: Column<FirewallRule>[] = [
+    {
+      key: "priority",
+      header: "Priority",
+      render: (rule) => (
+        <span className="inline-flex items-center px-1.5 py-0.5 bg-primary/10 text-primary text-2xs rounded font-mono font-medium">
+          {rule.priority}
+        </span>
+      ),
+    },
+    {
+      key: "action",
+      header: "Action",
+      render: (rule) => (
+        <div className="flex items-center gap-1.5">
+          {rule.action === "allow" ? (
+            <>
+              <CheckCircleIcon className="w-4 h-4 text-accent-green" />
+              <span className="text-xs font-medium text-accent-green">Allow</span>
+            </>
+          ) : (
+            <>
+              <NoSymbolIcon className="w-4 h-4 text-accent-red" />
+              <span className="text-xs font-medium text-accent-red">Deny</span>
+            </>
+          )}
         </div>
-      ) : rules.length === 0 ? (
-        /* Empty state */
+      ),
+    },
+    {
+      key: "source_ip",
+      header: "Source IP",
+      render: (rule) =>
+        rule.source_ip === ".*" ? (
+          <span className="text-xs text-text-secondary">Any IP</span>
+        ) : (
+          <span className="text-xs font-mono text-text-primary">{rule.source_ip}</span>
+        ),
+    },
+    {
+      key: "username",
+      header: "Username",
+      render: (rule) =>
+        rule.username === ".*" ? (
+          <span className="text-xs text-text-secondary">All users</span>
+        ) : (
+          <span className="text-xs font-mono text-text-primary">{rule.username}</span>
+        ),
+    },
+    {
+      key: "filter",
+      header: "Device Filter",
+      render: (rule) => <FilterBadge filter={rule.filter} />,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (rule) =>
+        rule.active ? (
+          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green border border-accent-green/20">
+            Active
+          </span>
+        ) : (
+          <span className="inline-flex items-center px-2 py-0.5 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20">
+            Inactive
+          </span>
+        ),
+    },
+    {
+      key: "actions",
+      header: "",
+      headerClassName: "w-20",
+      render: (rule) => (
+        <div className="flex items-center justify-end gap-0.5">
+          <RestrictedAction action="firewall:edit">
+            <button
+              onClick={() => openEdit(rule)}
+              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+              title="Edit"
+            >
+              <PencilSquareIcon className="w-4 h-4" />
+            </button>
+          </RestrictedAction>
+          <RestrictedAction action="firewall:remove">
+            <button
+              onClick={() =>
+                setDeleteTarget({ id: rule.id, priority: rule.priority })}
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+              title="Delete"
+            >
+              <TrashIcon className="w-4 h-4" />
+            </button>
+          </RestrictedAction>
+        </div>
+      ),
+    },
+  ];
+
+  /* Full-page onboarding empty state (no rules at all) */
+  if (!isLoading && rules.length === 0) {
+    return (
+      <div>
         <div className="relative -mx-8 -mt-8 min-h-[calc(100vh-3.5rem)] flex flex-col">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-32 left-1/3 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse-subtle" />
@@ -153,83 +252,68 @@ export default function FirewallRules() {
             </div>
           </div>
         </div>
-      ) : (
-        <>
-          <PageHeader
-            icon={<ExclamationTriangleIcon className="w-6 h-6" />}
-            overline="Security"
-            title="Firewall Rules"
-            description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
+
+        <RuleDrawer
+          open={drawerOpen}
+          editRule={editTarget}
+          onClose={closeDrawer}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <PageHeader
+        icon={<ExclamationTriangleIcon className="w-6 h-6" />}
+        overline="Security"
+        title="Firewall Rules"
+        description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
+      >
+        <RestrictedAction action="firewall:create">
+          <button
+            onClick={openNew}
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
           >
-            <RestrictedAction action="firewall:create">
-              <button
-                onClick={openNew}
-                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
-              >
-                <PlusIcon className="w-4 h-4" strokeWidth={2} />
-                Add Rule
-              </button>
-            </RestrictedAction>
-          </PageHeader>
+            <PlusIcon className="w-4 h-4" strokeWidth={2} />
+            Add Rule
+          </button>
+        </RestrictedAction>
+      </PageHeader>
 
-          {/* Search bar */}
-          <div className="mb-4 animate-fade-in">
-            <div className="relative max-w-sm">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by action, priority, IP, or username..."
-                className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-              />
-            </div>
-          </div>
+      <div className="mb-4 animate-fade-in">
+        <div className="relative max-w-sm">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by action, priority, IP, or username..."
+            className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+          />
+        </div>
+      </div>
 
-          {filtered.length === 0
-            ? (
-              <div className="py-12 text-center animate-fade-in">
-                <p className="text-sm text-text-muted">
-                  No rules matching &ldquo;
-                  {search}
-                  &rdquo;
-                </p>
-              </div>
-            )
-            : (
-              <>
-                <div className="space-y-2 animate-fade-in">
-                  {filtered.map((rule) => (
-                    <RuleCard
-                      key={rule.id}
-                      rule={rule}
-                      onEdit={() => openEdit(rule)}
-                      onDelete={() =>
-                        setDeleteTarget({ id: rule.id, priority: rule.priority })}
-                    />
-                  ))}
-                </div>
+      <DataTable
+        columns={columns}
+        data={filtered}
+        rowKey={(rule) => rule.id}
+        isLoading={isLoading}
+        loadingMessage="Loading firewall rules..."
+        page={page}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        itemLabel="rule"
+        onPageChange={setPage}
+        emptyMessage={search ? `No rules matching \u201C${search}\u201D` : "No firewall rules found"}
+      />
 
-                <Pagination
-                  page={page}
-                  totalPages={totalPages}
-                  totalCount={totalCount}
-                  itemLabel="rule"
-                  onPageChange={setPage}
-                />
-              </>
-            )}
-        </>
-      )}
-
-      {/* Drawer */}
       <RuleDrawer
         open={drawerOpen}
         editRule={editTarget}
         onClose={closeDrawer}
       />
 
-      {/* Delete Dialog */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
