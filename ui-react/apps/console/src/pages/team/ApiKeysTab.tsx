@@ -26,6 +26,26 @@ function ApiKeysTab() {
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const closeDelete = () => {
+    setDeleteError(null);
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteError(null);
+    try {
+      await deleteKey.mutateAsync({ path: { key: deleteTarget.name } });
+      if (apiKeys.length === 1 && page > 1) setPage(page - 1);
+      closeDelete();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete API key.",
+      );
+    }
+  };
 
   const totalPages = Math.ceil(totalCount / PER_PAGE);
 
@@ -169,12 +189,8 @@ function ApiKeysTab() {
       />
       <ConfirmDialog
         open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={async () => {
-          await deleteKey.mutateAsync({ path: { key: deleteTarget!.name } });
-          if (apiKeys.length === 1 && page > 1) setPage(page - 1);
-          setDeleteTarget(null);
-        }}
+        onClose={closeDelete}
+        onConfirm={confirmDelete}
         title="Delete API Key"
         description={
           <>
@@ -186,7 +202,11 @@ function ApiKeysTab() {
           </>
         }
         confirmLabel="Delete"
-      />
+      >
+        {deleteError && (
+          <p className="text-xs text-accent-red">{deleteError}</p>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
