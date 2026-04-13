@@ -31,7 +31,27 @@ export default function FirewallRules() {
     id: string;
     priority: number;
   } | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  const closeDelete = () => {
+    setDeleteError(null);
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteError(null);
+    try {
+      await deleteRule.mutateAsync({ path: { id: deleteTarget.id } });
+      if (rules.length === 1 && page > 1) setPage(page - 1);
+      closeDelete();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete firewall rule.",
+      );
+    }
+  };
 
   const openNew = () => {
     setEditTarget(null);
@@ -52,12 +72,12 @@ export default function FirewallRules() {
 
   const filtered = search
     ? rules.filter(
-      (r) =>
-        r.action.toLowerCase().includes(search.toLowerCase())
-        || r.source_ip.toLowerCase().includes(search.toLowerCase())
-        || r.username.toLowerCase().includes(search.toLowerCase())
-        || String(r.priority).includes(search),
-    )
+        (r) =>
+          r.action.toLowerCase().includes(search.toLowerCase()) ||
+          r.source_ip.toLowerCase().includes(search.toLowerCase()) ||
+          r.username.toLowerCase().includes(search.toLowerCase()) ||
+          String(r.priority).includes(search),
+      )
     : rules;
 
   const columns: Column<FirewallRule>[] = [
@@ -78,7 +98,9 @@ export default function FirewallRules() {
           {rule.action === "allow" ? (
             <>
               <CheckCircleIcon className="w-4 h-4 text-accent-green" />
-              <span className="text-xs font-medium text-accent-green">Allow</span>
+              <span className="text-xs font-medium text-accent-green">
+                Allow
+              </span>
             </>
           ) : (
             <>
@@ -96,7 +118,9 @@ export default function FirewallRules() {
         rule.source_ip === ".*" ? (
           <span className="text-xs text-text-secondary">Any IP</span>
         ) : (
-          <span className="text-xs font-mono text-text-primary">{rule.source_ip}</span>
+          <span className="text-xs font-mono text-text-primary">
+            {rule.source_ip}
+          </span>
         ),
     },
     {
@@ -106,7 +130,9 @@ export default function FirewallRules() {
         rule.username === ".*" ? (
           <span className="text-xs text-text-secondary">All users</span>
         ) : (
-          <span className="text-xs font-mono text-text-primary">{rule.username}</span>
+          <span className="text-xs font-mono text-text-primary">
+            {rule.username}
+          </span>
         ),
     },
     {
@@ -146,7 +172,8 @@ export default function FirewallRules() {
           <RestrictedAction action="firewall:remove">
             <button
               onClick={() =>
-                setDeleteTarget({ id: rule.id, priority: rule.priority })}
+                setDeleteTarget({ id: rule.id, priority: rule.priority })
+              }
               className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
               title="Delete"
             >
@@ -305,7 +332,11 @@ export default function FirewallRules() {
         totalCount={totalCount}
         itemLabel="rule"
         onPageChange={setPage}
-        emptyMessage={search ? `No rules matching \u201C${search}\u201D` : "No firewall rules found"}
+        emptyMessage={
+          search
+            ? `No rules matching \u201C${search}\u201D`
+            : "No firewall rules found"
+        }
       />
 
       <RuleDrawer
@@ -316,25 +347,24 @@ export default function FirewallRules() {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={async () => {
-          await deleteRule.mutateAsync({ path: { id: deleteTarget!.id } });
-          if (rules.length === 1 && page > 1) setPage(page - 1);
-          setDeleteTarget(null);
-        }}
+        onClose={closeDelete}
+        onConfirm={confirmDelete}
         title="Delete Firewall Rule"
-        description={(
+        description={
           <>
-            Are you sure you want to delete the rule with priority
-            {" "}
+            Are you sure you want to delete the rule with priority{" "}
             <span className="font-medium text-text-primary">
               {deleteTarget?.priority}
             </span>
             ? This action cannot be undone.
           </>
-        )}
+        }
         confirmLabel="Delete"
-      />
+      >
+        {deleteError && (
+          <p className="text-xs text-accent-red">{deleteError}</p>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
