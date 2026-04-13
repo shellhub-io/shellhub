@@ -82,7 +82,7 @@ export function SidebarMobileDrawer({
       role="dialog"
       aria-modal={open}
       aria-label="Navigation menu"
-      className={`fixed inset-0 z-40 ${open ? "" : "pointer-events-none"}`}
+      className={`fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}
       onKeyDown={onKeyDown}
       {...(!open && { inert: "" })}
     >

@@ -8,7 +8,11 @@ import { buildSshid } from "../../utils/sshid";
 import TerminalInstance from "./TerminalInstance";
 import TerminalTaskbar from "./TerminalTaskbar";
 
-export default function TerminalManager() {
+export default function TerminalManager({
+  sidebarOffset,
+}: {
+  sidebarOffset: number;
+}) {
   const sessions = useTerminalStore((s) => s.sessions);
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
   const reconnectTarget = useTerminalStore((s) => s.reconnectTarget);
@@ -66,10 +70,10 @@ export default function TerminalManager() {
         return (
           <div
             key={s.id}
+            style={{ left: isFullscreen ? 0 : sidebarOffset }}
             className={[
               "fixed top-14 bottom-0 right-0 z-40 flex flex-col bg-background",
               "transition-[opacity,transform,left] duration-200 ease-out",
-              isFullscreen ? "left-0" : "left-[220px]",
               isVisible
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-3 pointer-events-none",
@@ -80,7 +84,7 @@ export default function TerminalManager() {
         );
       })}
 
-      <TerminalTaskbar />
+      <TerminalTaskbar sidebarOffset={sidebarOffset} />
     </>
   );
 }
