@@ -1,5 +1,5 @@
 import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useRef } from "react";
-import { useCopy } from "./ClipboardProvider";
+import { useCopy } from "@/hooks/useCopy";
 
 export interface CopyWarningRenderProps {
   /** Triggers a clipboard copy. Shows the warning dialog if clipboard access
