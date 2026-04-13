@@ -25,6 +25,27 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const [removeTarget, setRemoveTarget] = useState<NamespaceMember | null>(
     null,
   );
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  const closeRemove = () => {
+    setRemoveError(null);
+    setRemoveTarget(null);
+  };
+
+  const confirmRemove = async () => {
+    if (!removeTarget) return;
+    setRemoveError(null);
+    try {
+      await removeMember.mutateAsync({
+        path: { tenant: tenantId, uid: removeTarget.id },
+      });
+      closeRemove();
+    } catch (err) {
+      setRemoveError(
+        err instanceof Error ? err.message : "Failed to remove member.",
+      );
+    }
+  };
 
   const members = (namespace?.members ?? []).filter(
     (m): m is NamespaceMember => !!m.id && !!m.role && !!m.email,
@@ -148,13 +169,8 @@ function MembersTab({ tenantId }: { tenantId: string }) {
       />
       <ConfirmDialog
         open={!!removeTarget}
-        onClose={() => setRemoveTarget(null)}
-        onConfirm={async () => {
-          await removeMember.mutateAsync({
-            path: { tenant: tenantId, uid: removeTarget!.id },
-          });
-          setRemoveTarget(null);
-        }}
+        onClose={closeRemove}
+        onConfirm={confirmRemove}
         title="Remove Member"
         description={
           <>
@@ -166,7 +182,11 @@ function MembersTab({ tenantId }: { tenantId: string }) {
           </>
         }
         confirmLabel="Remove"
-      />
+      >
+        {removeError && (
+          <p className="text-xs text-accent-red">{removeError}</p>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
