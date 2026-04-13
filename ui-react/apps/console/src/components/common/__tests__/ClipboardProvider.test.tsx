@@ -7,7 +7,8 @@ vi.mock("@/hooks/useFocusTrap", () => ({
   useFocusTrap: vi.fn(),
 }));
 
-import { ClipboardProvider, useCopy } from "../ClipboardProvider";
+import { ClipboardProvider } from "../ClipboardProvider";
+import { useCopy } from "@/hooks/useCopy";
 
 // ─── clipboard setup ──────────────────────────────────────────────────────────
 

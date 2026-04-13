@@ -1,5 +1,5 @@
 import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
-import { useCopy } from "./ClipboardProvider";
+import { useCopy } from "@/hooks/useCopy";
 
 const sizes = {
   sm: { button: "p-1 rounded", icon: "w-3.5 h-3.5" },
