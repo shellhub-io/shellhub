@@ -35,8 +35,8 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
     deviceNode = (
       <span className="inline-flex items-center gap-1.5 flex-wrap">
         {pk.filter.tags.map((tag) => {
-          const label
-            = typeof tag === "string" ? tag : (tag as { name: string }).name;
+          const label =
+            typeof tag === "string" ? tag : (tag as { name: string }).name;
           return (
             <span
               key={label}
@@ -70,9 +70,11 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
       <span
         className={`inline-flex items-center gap-1 text-xs font-mono ${isAllUsers ? "text-text-muted" : "text-text-secondary"}`}
       >
-        {isAllUsers
-          ? <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
-          : <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />}
+        {isAllUsers ? (
+          <UsersIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+        ) : (
+          <UserIcon className="w-3 h-3 shrink-0" strokeWidth={2} />
+        )}
         {username}
       </span>
       <span className="text-text-muted/40 text-xs">{"\u2192"}</span>
@@ -93,7 +95,29 @@ export default function PublicKeys() {
     fingerprint: string;
     name: string;
   } | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  const closeDelete = () => {
+    setDeleteError(null);
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteError(null);
+    try {
+      await deleteKey.mutateAsync({
+        path: { fingerprint: deleteTarget.fingerprint },
+      });
+      if (publicKeys.length === 1 && page > 1) setPage(page - 1);
+      closeDelete();
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete public key.",
+      );
+    }
+  };
 
   const openNew = () => {
     setEditTarget(null);
@@ -111,10 +135,10 @@ export default function PublicKeys() {
   const totalPages = Math.ceil(totalCount / PER_PAGE);
   const filtered = search
     ? publicKeys.filter(
-      (k) =>
-        k.name.toLowerCase().includes(search.toLowerCase())
-        || k.fingerprint.toLowerCase().includes(search.toLowerCase()),
-    )
+        (k) =>
+          k.name.toLowerCase().includes(search.toLowerCase()) ||
+          k.fingerprint.toLowerCase().includes(search.toLowerCase()),
+      )
     : publicKeys;
 
   const columns: Column<PublicKey>[] = [
@@ -175,7 +199,8 @@ export default function PublicKeys() {
                 setDeleteTarget({
                   fingerprint: pk.fingerprint,
                   name: pk.name,
-                })}
+                })
+              }
               title="Delete"
               className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
             >
@@ -277,7 +302,11 @@ export default function PublicKeys() {
           </div>
         </div>
 
-        <KeyDrawer open={drawerOpen} editKey={editTarget} onClose={closeDrawer} />
+        <KeyDrawer
+          open={drawerOpen}
+          editKey={editTarget}
+          onClose={closeDrawer}
+        />
       </div>
     );
   }
@@ -325,32 +354,35 @@ export default function PublicKeys() {
         totalCount={totalCount}
         itemLabel="key"
         onPageChange={setPage}
-        emptyMessage={search ? `No keys matching \u201C${search}\u201D` : "No public keys found"}
+        emptyMessage={
+          search
+            ? `No keys matching \u201C${search}\u201D`
+            : "No public keys found"
+        }
       />
 
       <KeyDrawer open={drawerOpen} editKey={editTarget} onClose={closeDrawer} />
 
       <ConfirmDialog
         open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={async () => {
-          await deleteKey.mutateAsync({ path: { fingerprint: deleteTarget!.fingerprint } });
-          if (publicKeys.length === 1 && page > 1) setPage(page - 1);
-          setDeleteTarget(null);
-        }}
+        onClose={closeDelete}
+        onConfirm={confirmDelete}
         title="Delete Public Key"
-        description={(
+        description={
           <>
-            Are you sure you want to delete
-            {" "}
+            Are you sure you want to delete{" "}
             <span className="font-medium text-text-primary">
               {deleteTarget?.name}
             </span>
             ? This action cannot be undone.
           </>
-        )}
+        }
         confirmLabel="Delete"
-      />
+      >
+        {deleteError && (
+          <p className="text-xs text-accent-red">{deleteError}</p>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
