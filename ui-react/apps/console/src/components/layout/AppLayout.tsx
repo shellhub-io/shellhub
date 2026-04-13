@@ -18,6 +18,8 @@ export default function AppLayout() {
   const { isOpen, pinned, isDesktop, drawerOpen, handlers } = useSidebarLayout();
 
   const showSidebar = namespaces.length > 0;
+  const sidebarOffset =
+    showSidebar && isDesktop ? (isOpen ? 220 : 60) : 0;
 
   return (
     <div
@@ -62,7 +64,7 @@ export default function AppLayout() {
           </main>
         </div>
       </div>
-      <TerminalManager />
+      <TerminalManager sidebarOffset={sidebarOffset} />
       <WelcomeWizardTrigger />
     </div>
   );
