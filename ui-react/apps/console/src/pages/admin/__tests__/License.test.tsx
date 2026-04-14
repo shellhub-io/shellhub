@@ -45,7 +45,7 @@ function setupHooks({
   error,
   isPending = false,
 }: {
-  data?: object;
+  data?: object | null;
   isLoading?: boolean;
   isError?: boolean;
   error?: object;
@@ -88,8 +88,8 @@ describe("AdminLicense", () => {
       expect(screen.getByText("Failed to load license information")).toBeInTheDocument();
     });
 
-    it("shows no-license info alert and upload section when API returns 400", () => {
-      setupHooks({ isError: true, error: { status: 400 } });
+    it("shows no-license info alert and upload section when license data is null", () => {
+      setupHooks({ data: null });
       renderPage();
       expect(screen.getByText("You do not have an installed license")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /choose a \.dat file/i })).toBeInTheDocument();

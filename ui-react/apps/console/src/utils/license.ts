@@ -18,7 +18,7 @@ type Features = GetLicenseResponse["features"];
 
 type DisplayFeature
   = { name: string; label: string; type: "boolean"; value: boolean }
-    | { name: string; label: string; type: "number"; value: number };
+  | { name: string; label: string; type: "number"; value: number };
 
 // "login_link" and "reports" are excluded to match the Vue admin UI.
 export function getDisplayFeatures(features: Features): DisplayFeature[] {

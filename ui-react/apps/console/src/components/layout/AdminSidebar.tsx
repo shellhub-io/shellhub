@@ -182,7 +182,8 @@ export default function AdminSidebar({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const { pathname } = useLocation();
 
-  const isExpired = !isLoading && (!license || license.expired);
+  const installedLicense = license && "grace_period" in license ? license : null;
+  const isExpired = !isLoading && (!installedLicense || installedLicense.expired);
   const showRestrictedNav = !isAdmin || isLoading || isExpired;
   const isDisabled = !isAdmin;
 
