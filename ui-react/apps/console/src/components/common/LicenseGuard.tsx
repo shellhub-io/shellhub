@@ -21,8 +21,10 @@ export default function LicenseGuard() {
     );
   }
 
+  const installedLicense = license && "grace_period" in license ? license : null;
+
   // Expired, missing, or error -> redirect to license page
-  if (isError || !license || license.expired) {
+  if (isError || !installedLicense || installedLicense.expired) {
     return <Navigate to="/admin/license" replace />;
   }
 

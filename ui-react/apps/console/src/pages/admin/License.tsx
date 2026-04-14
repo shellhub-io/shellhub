@@ -16,7 +16,6 @@ import PageHeader from "../../components/common/PageHeader";
 import CopyButton from "../../components/common/CopyButton";
 import { useAdminLicense } from "../../hooks/useAdminLicense";
 import { useUploadLicense } from "../../hooks/useUploadLicense";
-import { isSdkError } from "../../api/errors";
 import {
   formatLicenseTimestamp,
   formatDeviceCount,
@@ -365,16 +364,8 @@ function LicenseUpload() {
 
 /* ─── Page ─── */
 
-// The API returns 200 {} when license bytes are stored but unreadable.
-// It returns 400 when no license has been stored at all.
-// Both cases mean "not installed" — the generated type marks all fields as
-// required, but the runtime response can be an empty object.
-function isLicenseInstalled(data: GetLicenseResponse): boolean {
-  return "grace_period" in data;
-}
-
 export default function AdminLicense() {
-  const { data, isLoading, isError, error } = useAdminLicense();
+  const { data, isLoading, isError } = useAdminLicense();
 
   if (isLoading) {
     return (
@@ -388,10 +379,7 @@ export default function AdminLicense() {
     );
   }
 
-  // 400 = no license stored — show the upload form, not a generic error.
-  const isNoLicense = isError && isSdkError(error) && error.status === 400;
-
-  if (isError && !isNoLicense) {
+  if (isError) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center" role="alert">
@@ -403,7 +391,7 @@ export default function AdminLicense() {
     );
   }
 
-  const installed = !isNoLicense && data !== undefined && isLicenseInstalled(data);
+  const installedLicense = data && "grace_period" in data ? data : null;
 
   return (
     <div>
@@ -415,15 +403,15 @@ export default function AdminLicense() {
       />
 
       <div className="space-y-6 animate-fade-in">
-        <LicenseStatusAlert license={installed ? data : null} />
+        <LicenseStatusAlert license={installedLicense} />
 
-        {installed && (
+        {installedLicense && (
           <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-            <LicenseDetails license={data} />
+            <LicenseDetails license={installedLicense} />
             <hr className="border-border" />
-            <LicenseOwner customer={data.customer} />
+            <LicenseOwner customer={installedLicense.customer} />
             <hr className="border-border" />
-            <LicenseFeatures features={data.features} />
+            <LicenseFeatures features={installedLicense.features} />
           </div>
         )}
 
