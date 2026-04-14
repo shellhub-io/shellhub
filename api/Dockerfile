@@ -19,7 +19,7 @@ ARG MJML_VERSION=4.10.1
 FROM scratch AS cloud-src
 
 # ── base stage ────────────────────────────────────────────────────────────────
-FROM golang:1.25.8-alpine3.22 AS base
+FROM golang:1.25.9-alpine3.22 AS base
 
 ARG GOPROXY
 
