@@ -11,6 +11,7 @@ import {
   requestResetMfa,
   resetMfa,
 } from "../client";
+import { queryClient } from "../api/queryClient";
 import { useVaultStore } from "./vaultStore";
 
 interface AuthState {
@@ -152,6 +153,9 @@ export const useAuthStore = create<AuthState>()(
         useVaultStore.getState().lock();
         set(initialState);
         localStorage.removeItem("shellhub-session");
+        // Drop every cached query so the next user doesn't briefly see the
+        // previous user's namespaces, devices, role, etc. before refetches land.
+        queryClient.clear();
       },
 
       fetchUser: async () => {
