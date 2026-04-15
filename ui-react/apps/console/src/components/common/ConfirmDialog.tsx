@@ -1,4 +1,5 @@
 import { ReactNode, useId, useState } from "react";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
 
@@ -40,11 +41,19 @@ interface ConfirmDialogProps {
   /** Optional content rendered between the description and the button row.
    *  Used by dialogs that embed extra form fields or warning messages. */
   children?: ReactNode;
+
+  /** Optional error banner rendered above the footer. Use this to surface
+   *  mutation failures inline — the dialog does NOT close on error, so the
+   *  user can retry or cancel. */
+  errorMessage?: string | null;
 }
 
 // Text color is included per-variant so that `warning`'s dark text is not
 // overridden by a standalone `text-white` on the button element.
-const VARIANT_CLASSES: Record<"primary" | "danger" | "success" | "warning", string> = {
+const VARIANT_CLASSES: Record<
+  "primary" | "danger" | "success" | "warning",
+  string
+> = {
   danger: "bg-accent-red/90 hover:bg-accent-red text-white",
   primary: "bg-primary hover:bg-primary-600 text-white",
   success: "bg-accent-green/90 hover:bg-accent-green text-white",
@@ -62,6 +71,7 @@ export default function ConfirmDialog({
   variant = "danger",
   confirmDisabled,
   children,
+  errorMessage,
 }: ConfirmDialogProps) {
   const [confirming, setConfirming] = useState(false);
   // useId produces a stable, unique id per component instance, satisfying
@@ -96,10 +106,7 @@ export default function ConfirmDialog({
     >
       {/* Header */}
       <div className="p-6 pb-0">
-        <h2
-          id={titleId}
-          className="text-base font-semibold text-text-primary"
-        >
+        <h2 id={titleId} className="text-base font-semibold text-text-primary">
           {title}
         </h2>
       </div>
@@ -107,11 +114,26 @@ export default function ConfirmDialog({
       {/* Body */}
       <div className="px-6 pt-2 pb-6">
         {description != null && (
-          <div id={descriptionId} className={`text-sm text-text-muted ${children ? "mb-4" : "mb-6"}`}>
+          <div
+            id={descriptionId}
+            className={`text-sm text-text-muted ${children || errorMessage ? "mb-4" : "mb-6"}`}
+          >
             {description}
           </div>
         )}
         {children}
+        {errorMessage && (
+          <div
+            role="alert"
+            className={`${children ? "mt-4" : ""} flex items-start gap-2 bg-accent-red/[0.06] border border-accent-red/20 rounded-lg px-3 py-2.5 text-xs text-accent-red`}
+          >
+            <ExclamationCircleIcon
+              className="w-4 h-4 shrink-0 mt-px"
+              strokeWidth={2}
+            />
+            <span>{errorMessage}</span>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

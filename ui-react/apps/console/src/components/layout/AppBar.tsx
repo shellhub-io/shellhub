@@ -8,6 +8,7 @@ import { Bars3Icon } from "@heroicons/react/24/outline";
 import NamespaceSelector from "./NamespaceSelector";
 
 import UserMenu from "./UserMenu";
+import InvitationsMenu from "./InvitationsMenu";
 import { TerminalInfo, TerminalActions } from "../terminal/TerminalControls";
 
 interface AppBarProps {
@@ -113,6 +114,7 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
           {displayed && <TerminalActions session={displayed} />}
         </div>
 
+        <InvitationsMenu />
         <UserMenu />
       </div>
     </header>

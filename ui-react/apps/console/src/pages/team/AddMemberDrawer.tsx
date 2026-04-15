@@ -2,10 +2,10 @@ import { useState, FormEvent } from "react";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { useAddMember } from "@/hooks/useMemberMutations";
-import type { NamespaceMemberRole } from "@/client";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
 import { RoleSelector } from "./constants";
+import { type AssignableRole } from "./helpers";
 
 /* --- Add Member Drawer --- */
 
@@ -20,7 +20,7 @@ function AddMemberDrawer({
 }) {
   const addMember = useAddMember();
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("operator");
+  const [role, setRole] = useState<AssignableRole>("operator");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,7 +36,10 @@ function AddMemberDrawer({
     setSubmitting(true);
     setError("");
     try {
-      await addMember.mutateAsync({ path: { tenant: tenantId }, body: { email: email.trim(), role: role as NamespaceMemberRole } });
+      await addMember.mutateAsync({
+        path: { tenant: tenantId },
+        body: { email: email.trim(), role },
+      });
       onClose();
     } catch {
       setError("Failed to add member. Check the email and try again.");

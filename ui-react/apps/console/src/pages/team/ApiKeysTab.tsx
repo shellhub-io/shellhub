@@ -1,21 +1,20 @@
 import { useState } from "react";
+import {
+  KeyIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKey } from "@/client";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
-import { RoleBadge } from "./constants";
+import RestrictedAction from "@/components/common/RestrictedAction";
+import { ExpiredBadge, RoleBadge } from "./constants";
 import { isExpired } from "./helpers";
 import { formatExpiry, formatDateShort } from "@/utils/date";
 import GenerateKeyDrawer from "./GenerateKeyDrawer";
 import EditKeyDrawer from "./EditKeyDrawer";
-import {
-  KeyIcon,
-  ExclamationCircleIcon,
-  PencilSquareIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
-import RestrictedAction from "@/components/common/RestrictedAction";
 
 const PER_PAGE = 10;
 
@@ -60,15 +59,7 @@ function ApiKeysTab() {
             <span className="text-sm font-medium text-text-primary">
               {key.name}
             </span>
-            {expired && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-2xs font-mono font-semibold text-accent-red bg-accent-red/10 border border-accent-red/20 rounded">
-                <ExclamationCircleIcon
-                  className="w-2.5 h-2.5"
-                  strokeWidth={2}
-                />
-                Expired
-              </span>
-            )}
+            {expired && <ExpiredBadge />}
           </div>
         );
       },

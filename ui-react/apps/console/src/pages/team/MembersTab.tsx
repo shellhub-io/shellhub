@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import {
   PlusIcon,
   UserGroupIcon,
@@ -10,16 +10,30 @@ import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaces";
 import { useRemoveMember } from "@/hooks/useMemberMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import { getConfig } from "@/env";
 import { RoleBadge } from "./constants";
 import { initials } from "./helpers";
 import AddMemberDrawer from "./AddMemberDrawer";
 import EditMemberDrawer from "./EditMemberDrawer";
 import RestrictedAction from "@/components/common/RestrictedAction";
 
-function MembersTab({ tenantId }: { tenantId: string }) {
+// Cloud-only drawer — lazy so its transitive deps (CopyButton, isSdkError,
+// etc.) don't ship to the community bundle.
+const InvitationDrawer = lazy(() => import("./InvitationDrawer"));
+
+interface MembersTabProps {
+  tenantId: string;
+  /** Called after an invitation is successfully sent (cloud mode only).
+   *  Typically used by the Team page to switch the user to the Invitations
+   *  tab so they can see the newly-created pending invitation. */
+  onInvitationSent?: () => void;
+}
+
+function MembersTab({ tenantId, onInvitationSent }: MembersTabProps) {
   const { namespace, isLoading: membersLoading } = useNamespace(tenantId);
   const removeMember = useRemoveMember();
   const currentUserEmail = useAuthStore((s) => s.email);
+  const isCloud = getConfig().cloud;
   const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<NamespaceMember | null>(null);
   const [removeTarget, setRemoveTarget] = useState<NamespaceMember | null>(
@@ -156,11 +170,22 @@ function MembersTab({ tenantId }: { tenantId: string }) {
         }
       />
 
-      <AddMemberDrawer
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        tenantId={tenantId}
-      />
+      {isCloud ? (
+        <Suspense fallback={null}>
+          <InvitationDrawer
+            open={addOpen}
+            onClose={() => setAddOpen(false)}
+            tenantId={tenantId}
+            onInvitationSent={onInvitationSent}
+          />
+        </Suspense>
+      ) : (
+        <AddMemberDrawer
+          open={addOpen}
+          onClose={() => setAddOpen(false)}
+          tenantId={tenantId}
+        />
+      )}
       <EditMemberDrawer
         open={!!editTarget}
         onClose={() => setEditTarget(null)}

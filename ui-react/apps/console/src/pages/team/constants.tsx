@@ -1,4 +1,5 @@
-import { ROLES } from "./helpers";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { ROLES, type AssignableRole } from "./helpers";
 
 /* ─── Constants ─── */
 
@@ -43,6 +44,18 @@ const ROLE_META: Record<string, { icon: string; summary: string }> = {
   },
 };
 
+/* ─── Expired Badge ─── */
+
+/** Small destructive badge shown next to expired API keys or invitations. */
+export function ExpiredBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-2xs font-mono font-semibold text-accent-red bg-accent-red/10 border border-accent-red/20 rounded">
+      <ExclamationCircleIcon className="w-2.5 h-2.5" strokeWidth={2} />
+      Expired
+    </span>
+  );
+}
+
 /* ─── Role Badge ─── */
 
 export function RoleBadge({ role }: { role: string }) {
@@ -62,8 +75,8 @@ export function RoleSelector({
   value,
   onChange,
 }: {
-  value: string;
-  onChange: (v: string) => void;
+  value: AssignableRole;
+  onChange: (v: AssignableRole) => void;
 }) {
   return (
     <div className="space-y-1.5">
