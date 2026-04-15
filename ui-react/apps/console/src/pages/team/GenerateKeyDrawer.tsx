@@ -8,7 +8,7 @@ import CopyButton from "@/components/common/CopyButton";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
 import { RoleSelector } from "./constants";
-import { EXPIRY_OPTIONS } from "./helpers";
+import { EXPIRY_OPTIONS, type AssignableRole } from "./helpers";
 
 function validateName(value: string): string {
   if (value.length < 3) return "Name must be at least 3 characters.";
@@ -28,7 +28,7 @@ function GenerateKeyDrawer({
 }) {
   const createKey = useCreateApiKey();
   const [name, setName] = useState("");
-  const [role, setRole] = useState("administrator");
+  const [role, setRole] = useState<AssignableRole>("administrator");
   const [expiresIn, setExpiresIn] = useState<ApiKeyCreate["expires_at"]>(30);
   const [submitting, setSubmitting] = useState(false);
   const [nameError, setNameError] = useState("");

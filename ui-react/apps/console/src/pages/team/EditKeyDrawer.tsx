@@ -6,6 +6,7 @@ import { type ApiKey } from "@/client";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
 import { RoleSelector } from "./constants";
+import { isAssignableRole, type AssignableRole } from "./helpers";
 
 /* ─── Edit API Key Drawer ─── */
 
@@ -20,13 +21,13 @@ function EditKeyDrawer({
 }) {
   const updateKey = useUpdateApiKey();
   const [name, setName] = useState("");
-  const [role, setRole] = useState("administrator");
+  const [role, setRole] = useState<AssignableRole>("administrator");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useResetOnOpen(open, () => {
     setName(apiKey?.name ?? "");
-    setRole(apiKey?.role ?? "administrator");
+    setRole(isAssignableRole(apiKey?.role) ? apiKey.role : "administrator");
     setSubmitting(false);
     setError(null);
   });

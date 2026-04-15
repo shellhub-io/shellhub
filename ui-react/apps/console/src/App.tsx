@@ -37,6 +37,7 @@ const BannerEdit = lazy(() => import("./pages/BannerEdit"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
+const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminSessions = lazy(() => import("./pages/admin/Sessions"));
@@ -94,6 +95,7 @@ export default function App() {
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/update-password" element={<UpdatePassword />} />
+                  <Route path="/accept-invite" element={<AcceptInvite />} />
                 </>
               )}
             </Route>

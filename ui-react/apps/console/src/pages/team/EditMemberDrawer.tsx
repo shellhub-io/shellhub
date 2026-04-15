@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateMemberRole } from "@/hooks/useMemberMutations";
 import { type NamespaceMember } from "@/hooks/useNamespaces";
-import type { NamespaceMemberRole } from "@/client";
 import Drawer from "@/components/common/Drawer";
 import { LABEL } from "@/utils/styles";
 import { RoleSelector } from "./constants";
+import { isAssignableRole, type AssignableRole } from "./helpers";
 
 /* ─── Edit Member Drawer ─── */
 
@@ -21,11 +21,11 @@ function EditMemberDrawer({
   member: NamespaceMember | null;
 }) {
   const updateRole = useUpdateMemberRole();
-  const [role, setRole] = useState("operator");
+  const [role, setRole] = useState<AssignableRole>("operator");
   const [submitting, setSubmitting] = useState(false);
 
   useResetOnOpen(open, () => {
-    setRole(member?.role ?? "operator");
+    setRole(isAssignableRole(member?.role) ? member.role : "operator");
     setSubmitting(false);
   });
 
@@ -33,7 +33,10 @@ function EditMemberDrawer({
     if (!member) return;
     setSubmitting(true);
     try {
-      await updateRole.mutateAsync({ path: { tenant: tenantId, uid: member.id }, body: { role: role as NamespaceMemberRole } });
+      await updateRole.mutateAsync({
+        path: { tenant: tenantId, uid: member.id },
+        body: { role },
+      });
       onClose();
     } catch {
       /* */
