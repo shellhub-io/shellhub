@@ -20,8 +20,8 @@ require (
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.49.0
-	golang.org/x/sys v0.42.0
+	golang.org/x/crypto v0.50.0
+	golang.org/x/sys v0.43.0
 )
 
 require (
@@ -68,12 +68,12 @@ require (
 	go.opentelemetry.io/otel/metric v1.40.0 // indirect
 	go.opentelemetry.io/otel/trace v1.40.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
-	golang.org/x/net v0.51.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 )
 
 replace github.com/shellhub-io/shellhub => ../
 
-replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20230224143412-edd48dfd6eea
+replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20260415152045-3e1bf24c2919

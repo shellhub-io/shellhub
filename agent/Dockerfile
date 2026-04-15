@@ -13,7 +13,7 @@ ARG TARGETARCH
 ARG TARGETOS=linux
 
 # Install Go BUILD architecture dependencies
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates git
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
