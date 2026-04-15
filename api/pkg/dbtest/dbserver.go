@@ -4,10 +4,11 @@ import (
 	"context"
 	"os"
 
+	"github.com/moby/moby/api/types/network"
 	"github.com/shellhub-io/mongotest"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
-	"github.com/testcontainers/testcontainers-go/network"
+	tcnetwork "github.com/testcontainers/testcontainers-go/network"
 )
 
 // Server represents a MongoDB test server instance.
@@ -32,7 +33,7 @@ func (srv *Server) configure(ctx context.Context) error {
 		return err
 	}
 	// Index 0 is the IPV4 addr
-	srv.Container.ExposedPort = ports["27017/tcp"][0].HostPort
+	srv.Container.ExposedPort = ports[network.MustParsePort("27017/tcp")][0].HostPort
 
 	cIP, err := srv.tContainer.ContainerIP(ctx)
 	if err != nil {
@@ -57,7 +58,7 @@ func (srv *Server) Up(ctx context.Context) error {
 	// If TESTCONTAINERS_DOCKER_NETWORK env var is set (e.g., when running inside Docker),
 	// attach the container to that network. This is useful for Docker-in-Docker scenarios.
 	if networkName := os.Getenv("TESTCONTAINERS_DOCKER_NETWORK"); networkName != "" {
-		opts = append(opts, network.WithNetworkName([]string{"mongo"}, networkName))
+		opts = append(opts, tcnetwork.WithNetworkName([]string{"mongo"}, networkName))
 	}
 
 	srv.tContainer, err = mongodb.Run(ctx, "mongo:4.4.8", opts...)
