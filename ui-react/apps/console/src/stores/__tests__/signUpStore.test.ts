@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useSignUpStore } from "../signUpStore";
 
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   registerUser: vi.fn(),
   resendEmail: vi.fn(),
   getValidateAccount: vi.fn(),
@@ -11,7 +11,7 @@ import {
   registerUser as apiRegisterUser,
   resendEmail as apiResendEmail,
   getValidateAccount as apiGetValidateAccount,
-} from "../../client";
+} from "@/client";
 
 const mockedRegisterUser = vi.mocked(apiRegisterUser);
 const mockedResendEmail = vi.mocked(apiResendEmail);
@@ -49,7 +49,7 @@ function createSdkError(status: number, body?: unknown) {
 
 describe("signUpStore", () => {
   describe("signUp", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {}); // Suppress expected warn logs during tests
+    vi.spyOn(console, "warn").mockImplementation(() => { }); // Suppress expected warn logs during tests
 
     it("sets loading during request", async () => {
       let resolve: (v: SdkResponse<{ token: string; tenant: string }>) => void;

@@ -7,10 +7,10 @@ import {
 } from "@heroicons/react/24/outline";
 import Drawer from "../common/Drawer";
 import { QRCodeDisplay } from "./QRCodeDisplay";
-import { generateMfa, enableMfa, updateUser } from "../../client";
-import { isSdkError } from "../../api/errors";
-import { useOtpInput } from "../../hooks/useOtpInput";
-import { useRecoveryCodeActions } from "../../hooks/useRecoveryCodeActions";
+import { generateMfa, enableMfa, updateUser } from "@/client";
+import { isSdkError } from "@/api/errors";
+import { useOtpInput } from "@/hooks/useOtpInput";
+import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
 
 interface MfaEnableDrawerProps {
   open: boolean;

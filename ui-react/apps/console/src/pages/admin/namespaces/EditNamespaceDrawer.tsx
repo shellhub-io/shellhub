@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { useResetOnOpen } from "../../../hooks/useResetOnOpen";
-import { useAdminEditNamespace } from "../../../hooks/useAdminNamespaceMutations";
-import { isSdkError } from "../../../api/errors";
-import Drawer from "../../../components/common/Drawer";
-import { LABEL, INPUT } from "../../../utils/styles";
-import type { Namespace } from "../../../client";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
+import { isSdkError } from "@/api/errors";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT } from "@/utils/styles";
+import type { Namespace } from "@/client";
 
 interface EditNamespaceDrawerProps {
   open: boolean;

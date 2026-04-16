@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useResetOnOpen } from "../../hooks/useResetOnOpen";
-import { useUpdateMemberRole } from "../../hooks/useMemberMutations";
-import { type NamespaceMember } from "../../hooks/useNamespaces";
-import type { NamespaceMemberRole } from "../../client";
-import Drawer from "../../components/common/Drawer";
-import { LABEL } from "../../utils/styles";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useUpdateMemberRole } from "@/hooks/useMemberMutations";
+import { type NamespaceMember } from "@/hooks/useNamespaces";
+import type { NamespaceMemberRole } from "@/client";
+import Drawer from "@/components/common/Drawer";
+import { LABEL } from "@/utils/styles";
 import { RoleSelector } from "./constants";
 
 /* ─── Edit Member Drawer ─── */

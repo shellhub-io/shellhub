@@ -2,15 +2,15 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useVaultStore } from "../../../stores/vaultStore";
+import { useVaultStore } from "@/stores/vaultStore";
 import SecureVault from "../index";
-import type { VaultKeyEntry } from "../../../types/vault";
+import type { VaultKeyEntry } from "@/types/vault";
 
-vi.mock("../../../utils/date", () => ({
+vi.mock("@/utils/date", () => ({
   formatDate: (d: string) => d,
 }));
 
-vi.mock("../../../components/common/PageHeader", () => ({
+vi.mock("@/components/common/PageHeader", () => ({
   default: ({
     title,
     children,
@@ -25,7 +25,7 @@ vi.mock("../../../components/common/PageHeader", () => ({
   ),
 }));
 
-vi.mock("../../../stores/vaultStore", () => ({
+vi.mock("@/stores/vaultStore", () => ({
   useVaultStore: vi.fn((selector?: (s: Record<string, unknown>) => unknown) => {
     const state = (useVaultStore as unknown as { _state: Record<string, unknown> })._state;
     return selector ? selector(state) : state;
@@ -33,7 +33,7 @@ vi.mock("../../../stores/vaultStore", () => ({
 }));
 
 // Mock heavy vault dialog/banner components to isolate page logic
-vi.mock("../../../components/vault/VaultSetupDialog", () => ({
+vi.mock("@/components/vault/VaultSetupDialog", () => ({
   default: ({
     open,
     onClose,
@@ -50,7 +50,7 @@ vi.mock("../../../components/vault/VaultSetupDialog", () => ({
       : null,
 }));
 
-vi.mock("../../../components/vault/VaultUnlockDialog", () => ({
+vi.mock("@/components/vault/VaultUnlockDialog", () => ({
   default: ({
     open,
     onClose,
@@ -67,7 +67,7 @@ vi.mock("../../../components/vault/VaultUnlockDialog", () => ({
       : null,
 }));
 
-vi.mock("../../../components/vault/VaultSettingsSection", () => ({
+vi.mock("@/components/vault/VaultSettingsSection", () => ({
   default: () => <div data-testid="vault-settings-section" />,
 }));
 
@@ -116,7 +116,7 @@ vi.mock("../KeyDeleteDialog", () => ({
 }));
 
 // CopyButton is used inside the key table — stub it out
-vi.mock("../../../components/common/CopyButton", () => ({
+vi.mock("@/components/common/CopyButton", () => ({
   default: ({ text }: { text: string }) => (
     <button aria-label={`Copy ${text}`}>Copy</button>
   ),

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import type { NormalizedDevice } from "../../../../hooks/useAdminDevices";
+import type { NormalizedDevice } from "@/hooks/useAdminDevices";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("../../../../hooks/useAdminDevices", () => ({
+vi.mock("@/hooks/useAdminDevices", () => ({
   useAdminDevice: vi.fn(),
 }));
 
@@ -24,7 +24,7 @@ vi.mock("@/components/common/CopyButton", () => ({
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
-import { useAdminDevice } from "../../../../hooks/useAdminDevices";
+import { useAdminDevice } from "@/hooks/useAdminDevices";
 import AdminDeviceDetails from "../AdminDeviceDetails";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

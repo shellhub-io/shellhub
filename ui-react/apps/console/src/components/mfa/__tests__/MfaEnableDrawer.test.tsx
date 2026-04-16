@@ -5,14 +5,14 @@ import MfaEnableDrawer from "../MfaEnableDrawer";
 
 vi.mock("qrcode");
 
-vi.mock("../../../client", () => ({
+vi.mock("@/client", () => ({
   generateMfa: vi.fn(),
   enableMfa: vi.fn(),
   updateUser: vi.fn(),
 }));
 
-import { generateMfa, enableMfa, updateUser } from "../../../client";
-import type { MfaGenerate } from "../../../client";
+import { generateMfa, enableMfa, updateUser } from "@/client";
+import type { MfaGenerate } from "@/client";
 
 const mockedGenerateMfa = vi.mocked(generateMfa);
 const mockedEnableMfa = vi.mocked(enableMfa);

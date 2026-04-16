@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { useAuthStore } from "../../../stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 import UserMenu from "../UserMenu";
 
 const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
 
-vi.mock("../../../hooks/useNamespaces", () => ({
+vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
 }));
 

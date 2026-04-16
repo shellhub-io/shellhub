@@ -4,11 +4,11 @@ import {
   PlusIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespaces, useNamespace } from "../../hooks/useNamespaces";
-import { useSwitchNamespace } from "../../hooks/useNamespaceMutations";
-import { useAuthStore } from "../../stores/authStore";
-import { useClickOutside } from "../../hooks/useClickOutside";
-import { getInitials } from "../../utils/string";
+import { useNamespaces, useNamespace } from "@/hooks/useNamespaces";
+import { useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import { useAuthStore } from "@/stores/authStore";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { getInitials } from "@/utils/string";
 import { getConfig } from "@/env";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 import { useNavigate } from "react-router-dom";

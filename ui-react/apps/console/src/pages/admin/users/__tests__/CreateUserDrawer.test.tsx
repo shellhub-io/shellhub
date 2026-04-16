@@ -2,17 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CreateUserDrawer from "../CreateUserDrawer";
-import { useCreateUser } from "../../../../hooks/useAdminUserMutations";
-vi.mock("../../../../hooks/useAdminUserMutations", () => ({
+import { useCreateUser } from "@/hooks/useAdminUserMutations";
+vi.mock("@/hooks/useAdminUserMutations", () => ({
   useCreateUser: vi.fn(),
 }));
 
-vi.mock("../../../../utils/styles", () => ({
+vi.mock("@/utils/styles", () => ({
   LABEL: "label",
   INPUT: "input",
 }));
 
-vi.mock("../../../../components/common/Drawer", async () => ({
+vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("./mocks")).MockDrawer,
 }));
 

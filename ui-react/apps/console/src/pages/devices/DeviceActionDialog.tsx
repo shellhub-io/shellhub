@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { isSdkError } from "../../api/errors";
+import { isSdkError } from "@/api/errors";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { useAcceptDevice, useRejectDevice, useRemoveDevice } from "../../hooks/useDeviceMutations";
+import { useAcceptDevice, useRejectDevice, useRemoveDevice } from "@/hooks/useDeviceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface ActionDevice {

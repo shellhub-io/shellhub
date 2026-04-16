@@ -4,7 +4,7 @@ import {
   XCircleIcon,
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
-import type { DeviceStatus } from "../../../client";
+import type { DeviceStatus } from "@/client";
 
 const STATUS_CONFIG: Record<
   DeviceStatus,

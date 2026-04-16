@@ -14,11 +14,11 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("../../../hooks/useAdminSessionsList", () => ({
+vi.mock("@/hooks/useAdminSessionsList", () => ({
   useAdminSessionsList: vi.fn(),
 }));
 
-import { useAdminSessionsList } from "../../../hooks/useAdminSessionsList";
+import { useAdminSessionsList } from "@/hooks/useAdminSessionsList";
 import AdminSessions from "../Sessions";
 
 /* ------------------------------------------------------------------ */

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { useConnectivityStore } from "../../stores/connectivityStore";
+import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 
 function ApiUnavailablePage() {

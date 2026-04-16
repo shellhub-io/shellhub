@@ -4,8 +4,8 @@ import {
   ArrowRightIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useAuthStore } from "../../stores/authStore";
-import { useSignUpStore } from "../../stores/signUpStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useSignUpStore } from "@/stores/signUpStore";
 
 export default function AccountCreated() {
   const navigate = useNavigate();

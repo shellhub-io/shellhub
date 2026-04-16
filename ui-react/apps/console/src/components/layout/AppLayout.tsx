@@ -5,9 +5,9 @@ import TerminalManager from "../terminal/TerminalManager";
 import ConnectivityBanner from "../common/ConnectivityBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
 import { SidebarMobileDrawer } from "./SidebarShell";
-import { useNamespaces } from "../../hooks/useNamespaces";
-import { useTerminalStore } from "../../stores/terminalStore";
-import { useSidebarLayout } from "../../hooks/useSidebarLayout";
+import { useNamespaces } from "@/hooks/useNamespaces";
+import { useTerminalStore } from "@/stores/terminalStore";
+import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 
 export default function AppLayout() {
   const { pathname } = useLocation();

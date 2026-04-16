@@ -2,20 +2,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import EditNamespaceDrawer from "../EditNamespaceDrawer";
-import { useAdminEditNamespace } from "../../../../hooks/useAdminNamespaceMutations";
-import type { Namespace } from "../../../../client";
+import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
+import type { Namespace } from "@/client";
 
-vi.mock("../../../../hooks/useAdminNamespaceMutations", () => ({
+vi.mock("@/hooks/useAdminNamespaceMutations", () => ({
   useAdminEditNamespace: vi.fn(),
 }));
 
-vi.mock("../../../../utils/styles", () => ({
+vi.mock("@/utils/styles", () => ({
   LABEL: "label",
   INPUT: "input",
 }));
 
-vi.mock("../../../../components/common/Drawer", async () => ({
-  default: (await import("../../users/__tests__/mocks")).MockDrawer,
+vi.mock("@/components/common/Drawer", async () => ({
+  default: (await import("@/pages/admin/users/__tests__/mocks")).MockDrawer,
 }));
 
 const mockMutateAsync = vi.fn();

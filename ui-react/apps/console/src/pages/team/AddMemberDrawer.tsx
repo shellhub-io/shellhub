@@ -1,10 +1,10 @@
 import { useState, FormEvent } from "react";
-import { useResetOnOpen } from "../../hooks/useResetOnOpen";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { useAddMember } from "../../hooks/useMemberMutations";
-import type { NamespaceMemberRole } from "../../client";
-import Drawer from "../../components/common/Drawer";
-import { LABEL, INPUT } from "../../utils/styles";
+import { useAddMember } from "@/hooks/useMemberMutations";
+import type { NamespaceMemberRole } from "@/client";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT } from "@/utils/styles";
 import { RoleSelector } from "./constants";
 
 /* --- Add Member Drawer --- */

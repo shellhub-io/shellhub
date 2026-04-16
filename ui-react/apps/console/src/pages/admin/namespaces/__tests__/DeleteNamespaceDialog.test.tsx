@@ -3,16 +3,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DeleteNamespaceDialog from "../DeleteNamespaceDialog";
-import { useAdminDeleteNamespace } from "../../../../hooks/useAdminNamespaceMutations";
+import { useAdminDeleteNamespace } from "@/hooks/useAdminNamespaceMutations";
 
-vi.mock("../../../../hooks/useAdminNamespaceMutations", () => ({
+vi.mock("@/hooks/useAdminNamespaceMutations", () => ({
   useAdminDeleteNamespace: vi.fn(),
 }));
 
 // ConfirmDialog manages open/close state and calls onConfirm on button click.
 // We flatten it to a plain div so we can exercise the component's logic without
 // the real dialog's animations, portals, or BaseDialog internals.
-vi.mock("../../../../components/common/ConfirmDialog", () => ({
+vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
     onClose,

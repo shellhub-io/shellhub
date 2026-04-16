@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import AdminDashboard from "../Dashboard";
-import { useAdminStats } from "../../../hooks/useAdminStats";
-import { useAdminSessions } from "../../../hooks/useAdminSessions";
+import { useAdminStats } from "@/hooks/useAdminStats";
+import { useAdminSessions } from "@/hooks/useAdminSessions";
 
-vi.mock("../../../hooks/useAdminStats", () => ({
+vi.mock("@/hooks/useAdminStats", () => ({
   useAdminStats: vi.fn(),
 }));
-vi.mock("../../../hooks/useAdminSessions", () => ({
+vi.mock("@/hooks/useAdminSessions", () => ({
   useAdminSessions: vi.fn(),
 }));
 

@@ -7,9 +7,9 @@ import {
   CheckCircleIcon,
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminFirewallRule } from "../../../hooks/useAdminFirewallRules";
-import CopyButton from "../../../components/common/CopyButton";
-import FilterBadge from "../../../components/common/FilterBadge";
+import { useAdminFirewallRule } from "@/hooks/useAdminFirewallRules";
+import CopyButton from "@/components/common/CopyButton";
+import FilterBadge from "@/components/common/FilterBadge";
 
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";

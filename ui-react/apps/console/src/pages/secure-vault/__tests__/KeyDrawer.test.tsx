@@ -2,12 +2,12 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useVaultStore, DuplicateKeyError } from "../../../stores/vaultStore";
+import { useVaultStore, DuplicateKeyError } from "@/stores/vaultStore";
 import KeyDrawer from "../KeyDrawer";
-import type { VaultKeyEntry } from "../../../types/vault";
+import type { VaultKeyEntry } from "@/types/vault";
 
-vi.mock("../../../stores/vaultStore", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../../stores/vaultStore")>();
+vi.mock("@/stores/vaultStore", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/stores/vaultStore")>();
   return {
     ...actual,
     useVaultStore: vi.fn((selector?: (s: Record<string, unknown>) => unknown) => {
@@ -17,7 +17,7 @@ vi.mock("../../../stores/vaultStore", async (importOriginal) => {
   };
 });
 
-vi.mock("../../../utils/ssh-keys", () => ({
+vi.mock("@/utils/ssh-keys", () => ({
   validatePrivateKey: vi.fn(),
   getFingerprint: vi.fn(),
   getAlgorithm: vi.fn(),
@@ -26,12 +26,12 @@ vi.mock("../../../utils/ssh-keys", () => ({
 // KeyFileInput internally uses a hook + file input. To keep tests focused on
 // KeyDrawer logic, we replace it with a simple textarea that forwards the same
 // onChange/value interface that KeyDrawer expects.
-vi.mock("../../../utils/styles", () => ({
+vi.mock("@/utils/styles", () => ({
   LABEL: "label-class",
   INPUT: "input-class",
 }));
 
-vi.mock("../../../components/common/Drawer", () => ({
+vi.mock("@/components/common/Drawer", () => ({
   default: ({
     open,
     onClose,
@@ -57,7 +57,7 @@ vi.mock("../../../components/common/Drawer", () => ({
   },
 }));
 
-vi.mock("../../../components/common/KeyFileInput", () => ({
+vi.mock("@/components/common/KeyFileInput", () => ({
   default: ({
     label,
     id,
@@ -87,7 +87,7 @@ vi.mock("../../../components/common/KeyFileInput", () => ({
   ),
 }));
 
-import { validatePrivateKey, getFingerprint, getAlgorithm } from "../../../utils/ssh-keys";
+import { validatePrivateKey, getFingerprint, getAlgorithm } from "@/utils/ssh-keys";
 
 const mockAddKey = vi.fn();
 const mockUpdateKey = vi.fn();

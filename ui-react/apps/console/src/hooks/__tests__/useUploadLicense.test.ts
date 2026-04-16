@@ -9,7 +9,7 @@ afterEach(() => { cleanup(); });
 const mockMutationFn = vi.fn();
 const mockInvalidate = vi.fn();
 
-vi.mock("../../client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client/@tanstack/react-query.gen", () => ({
   sendLicenseMutation: vi.fn(() => ({ mutationFn: mockMutationFn })),
 }));
 

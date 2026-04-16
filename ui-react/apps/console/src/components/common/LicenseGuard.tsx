@@ -1,5 +1,5 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { useAdminLicense } from "../../hooks/useAdminLicense";
+import { useAdminLicense } from "@/hooks/useAdminLicense";
 
 export default function LicenseGuard() {
   const { data: license, isLoading, isError } = useAdminLicense();

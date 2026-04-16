@@ -6,8 +6,8 @@ import { render, screen, cleanup } from "@testing-library/react";
 afterEach(cleanup);
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
-vi.mock("../../../env", () => ({ getConfig: vi.fn() }));
-import { getConfig } from "../../../env";
+vi.mock("@/env", () => ({ getConfig: vi.fn() }));
+import { getConfig } from "@/env";
 import SignUpGuard from "../SignUpGuard";
 
 const mockedGetConfig = vi.mocked(getConfig);

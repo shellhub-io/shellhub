@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { useSignUpStore } from "../../stores/signUpStore";
+import { useSignUpStore } from "@/stores/signUpStore";
 import ConfirmAccount from "../ConfirmAccount";
 
 /* ------------------------------------------------------------------ */
@@ -14,13 +14,13 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual };
 });
 
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   registerUser: vi.fn(),
   resendEmail: vi.fn(),
   getValidateAccount: vi.fn(),
 }));
 
-import { resendEmail as apiResendEmail } from "../../client";
+import { resendEmail as apiResendEmail } from "@/client";
 const mockedResendEmail = vi.mocked(apiResendEmail);
 
 type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };

@@ -1,6 +1,6 @@
 import { useCallback, type ReactNode } from "react";
-import { getConfig } from "../../env";
-import { useTerminalStore } from "../../stores/terminalStore";
+import { getConfig } from "@/env";
+import { useTerminalStore } from "@/stores/terminalStore";
 import {
   HomeIcon,
   KeyIcon,

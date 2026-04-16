@@ -8,12 +8,12 @@ import {
   TagIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminDevice } from "../../../hooks/useAdminDevices";
-import CopyButton from "../../../components/common/CopyButton";
-import DistroIcon from "../../../components/common/DistroIcon";
-import PlatformBadge from "../../../components/common/PlatformBadge";
+import { useAdminDevice } from "@/hooks/useAdminDevices";
+import CopyButton from "@/components/common/CopyButton";
+import DistroIcon from "@/components/common/DistroIcon";
+import PlatformBadge from "@/components/common/PlatformBadge";
 import DeviceStatusChip from "./DeviceStatusChip";
-import { formatDateFull, formatRelative } from "../../../utils/date";
+import { formatDateFull, formatRelative } from "@/utils/date";
 
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";

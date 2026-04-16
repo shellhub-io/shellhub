@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
-import type { UserAuth } from "../../client";
+import { useAuthStore } from "@/stores/authStore";
+import type { UserAuth } from "@/client";
 import Login from "../Login";
 
 /* ------------------------------------------------------------------ */
@@ -17,7 +17,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   login: vi.fn(),
   getUserInfo: vi.fn(),
   updateUser: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock("../../client", () => ({
   resendEmail: vi.fn(),
 }));
 
-import { login as loginSdk } from "../../client";
+import { login as loginSdk } from "@/client";
 const mockedLogin = vi.mocked(loginSdk);
 
 type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };

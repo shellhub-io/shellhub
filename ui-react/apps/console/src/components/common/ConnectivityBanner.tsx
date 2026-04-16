@@ -1,4 +1,4 @@
-import { useConnectivityStore } from "../../stores/connectivityStore";
+import { useConnectivityStore } from "@/stores/connectivityStore";
 
 export default function ConnectivityBanner() {
   const apiReachable = useConnectivityStore((s) => s.apiReachable);

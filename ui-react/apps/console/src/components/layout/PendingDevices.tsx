@@ -7,9 +7,9 @@ import {
   CpuChipIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import { useDevices } from "../../hooks/useDevices";
-import { useAcceptDevice, useRejectDevice } from "../../hooks/useDeviceMutations";
-import { useClickOutside } from "../../hooks/useClickOutside";
+import { useDevices } from "@/hooks/useDevices";
+import { useAcceptDevice, useRejectDevice } from "@/hooks/useDeviceMutations";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 export default function PendingDevices() {
   const navigate = useNavigate();

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { useConnectivityStore } from "../../../stores/connectivityStore";
+import { useConnectivityStore } from "@/stores/connectivityStore";
 import NamespaceGuard from "../NamespaceGuard";
 
 const mockUseNamespaces = vi.fn<() => { namespaces: Array<{ tenant_id: string; name: string }>; isLoading: boolean; error: Error | null; refetch: () => void }>();
 
-vi.mock("../../../hooks/useNamespaces", () => ({
+vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
   useInitRole: () => {},
 }));
@@ -15,7 +15,7 @@ vi.mock("../CreateNamespace", () => ({
   default: () => <div data-testid="create-namespace" />,
 }));
 
-vi.mock("../../layout/UserMenu", () => ({
+vi.mock("@/components/layout/UserMenu", () => ({
   default: () => <div data-testid="user-menu" />,
 }));
 

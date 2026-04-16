@@ -1,5 +1,5 @@
 import { ReactNode, useId, useState } from "react";
-import { useResetOnOpen } from "../../hooks/useResetOnOpen";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
 
 interface ConfirmDialogProps {

@@ -6,10 +6,10 @@ import {
   Cog6ToothIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { useAuthStore } from "../../stores/authStore";
-import { useClickOutside } from "../../hooks/useClickOutside";
-import { useNamespaces } from "../../hooks/useNamespaces";
-import { getInitials } from "../../utils/string";
+import { useAuthStore } from "@/stores/authStore";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { useNamespaces } from "@/hooks/useNamespaces";
+import { getInitials } from "@/utils/string";
 
 export default function UserMenu() {
   const { user, logout } = useAuthStore();

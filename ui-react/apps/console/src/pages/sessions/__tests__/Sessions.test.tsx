@@ -15,15 +15,15 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock("../../../hooks/useSessions", () => ({
+vi.mock("@/hooks/useSessions", () => ({
   useSessions: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useSessionMutations", () => ({
+vi.mock("@/hooks/useSessionMutations", () => ({
   useCloseSession: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useSessionRecording", () => ({
+vi.mock("@/hooks/useSessionRecording", () => ({
   useSessionRecording: vi.fn(),
 }));
 
@@ -36,9 +36,9 @@ vi.mock("../SessionPlayerDialog", () => ({
     ) : null,
 }));
 
-import { useSessions } from "../../../hooks/useSessions";
-import { useCloseSession } from "../../../hooks/useSessionMutations";
-import { useSessionRecording } from "../../../hooks/useSessionRecording";
+import { useSessions } from "@/hooks/useSessions";
+import { useCloseSession } from "@/hooks/useSessionMutations";
+import { useSessionRecording } from "@/hooks/useSessionRecording";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */

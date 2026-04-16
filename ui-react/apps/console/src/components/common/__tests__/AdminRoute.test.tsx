@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { useAuthStore } from "../../../stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 import AdminRoute from "../AdminRoute";
 
 // Mock the API client so fetchUser never makes a real HTTP request.
 // authStore.fetchUser calls getUserInfo from @/client (re-exported from ../client).
-vi.mock("../../../client", async (importOriginal) => {
-  const original = await importOriginal<typeof import("../../../client")>();
+vi.mock("@/client", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/client")>();
   return {
     ...original,
     getUserInfo: vi.fn(),
   };
 });
 
-import { getUserInfo } from "../../../client";
+import { getUserInfo } from "@/client";
 
 const mockGetUserInfo = vi.mocked(getUserInfo);
 

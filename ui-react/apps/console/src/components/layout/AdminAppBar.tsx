@@ -3,8 +3,8 @@ import {
   ArrowRightStartOnRectangleIcon,
   Bars3Icon,
 } from "@heroicons/react/24/outline";
-import { useAuthStore } from "../../stores/authStore";
-import { getInitials } from "../../utils/string";
+import { useAuthStore } from "@/stores/authStore";
+import { getInitials } from "@/utils/string";
 import NamespaceSelector from "./NamespaceSelector";
 
 interface AdminAppBarProps {

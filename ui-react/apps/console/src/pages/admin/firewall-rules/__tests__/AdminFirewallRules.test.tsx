@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import type { FirewallRule } from "../../../../hooks/useAdminFirewallRules";
+import type { FirewallRule } from "@/hooks/useAdminFirewallRules";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("../../../../hooks/useAdminFirewallRules", () => ({
+vi.mock("@/hooks/useAdminFirewallRules", () => ({
   useAdminFirewallRules: vi.fn(),
 }));
 
@@ -19,7 +19,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
-import { useAdminFirewallRules } from "../../../../hooks/useAdminFirewallRules";
+import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import AdminFirewallRules from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

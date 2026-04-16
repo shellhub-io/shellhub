@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import type { AnnouncementShort } from "../../../../client";
+import type { AnnouncementShort } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("../../../../hooks/useAdminAnnouncements", () => ({
+vi.mock("@/hooks/useAdminAnnouncements", () => ({
   useAdminAnnouncements: vi.fn(),
 }));
 
@@ -40,7 +40,7 @@ vi.mock("../DeleteAnnouncementDialog", () => ({
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
-import { useAdminAnnouncements } from "../../../../hooks/useAdminAnnouncements";
+import { useAdminAnnouncements } from "@/hooks/useAdminAnnouncements";
 import AdminAnnouncements from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

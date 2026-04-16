@@ -10,14 +10,14 @@ import {
   ClockIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminUser } from "../../../hooks/useAdminUsers";
-import { useLoginAsUser } from "../../../hooks/useLoginAsUser";
-import CopyButton from "../../../components/common/CopyButton";
+import { useAdminUser } from "@/hooks/useAdminUsers";
+import { useLoginAsUser } from "@/hooks/useLoginAsUser";
+import CopyButton from "@/components/common/CopyButton";
 import UserStatusChip from "./UserStatusChip";
 import EditUserDrawer from "./EditUserDrawer";
 import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
-import { formatDateFull } from "../../../utils/date";
+import { formatDateFull } from "@/utils/date";
 
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";

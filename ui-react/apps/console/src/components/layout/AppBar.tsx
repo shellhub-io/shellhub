@@ -2,8 +2,8 @@ import { useCallback, useState } from "react";
 import {
   useTerminalStore,
   type TerminalSession,
-} from "../../stores/terminalStore";
-import { useTerminalThemeStore } from "../../stores/terminalThemeStore";
+} from "@/stores/terminalStore";
+import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import NamespaceSelector from "./NamespaceSelector";
 

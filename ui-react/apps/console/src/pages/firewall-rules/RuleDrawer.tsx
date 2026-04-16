@@ -1,12 +1,12 @@
 import { useState, FormEvent } from "react";
-import { useResetOnOpen } from "../../hooks/useResetOnOpen";
-import { useCreateFirewallRule, useUpdateFirewallRule } from "../../hooks/useFirewallRuleMutations";
-import type { FirewallRule } from "../../hooks/useFirewallRules";
-import type { FirewallRulesRequest, Tag } from "../../client";
-import Drawer from "../../components/common/Drawer";
-import { LABEL, INPUT, INPUT_MONO } from "../../utils/styles";
-import RadioCard from "../../components/common/RadioCard";
-import TagsSelector from "../../components/common/TagsSelector";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useCreateFirewallRule, useUpdateFirewallRule } from "@/hooks/useFirewallRuleMutations";
+import type { FirewallRule } from "@/hooks/useFirewallRules";
+import type { FirewallRulesRequest, Tag } from "@/client";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT, INPUT_MONO } from "@/utils/styles";
+import RadioCard from "@/components/common/RadioCard";
+import TagsSelector from "@/components/common/TagsSelector";
 import {
   UserGroupIcon,
   UserIcon as UserIconHero,
@@ -18,7 +18,7 @@ import {
   NoSymbolIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { DevicesIcon as DevicesIconComponent } from "../../components/icons";
+import { DevicesIcon as DevicesIconComponent } from "@/components/icons";
 
 /* ─── Icons ─── */
 const UsersIcon = <UserGroupIcon className="w-4 h-4" />;

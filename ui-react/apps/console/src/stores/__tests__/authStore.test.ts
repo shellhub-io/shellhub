@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useAuthStore } from "../authStore";
-import type { UserAuth } from "../../client";
+import type { UserAuth } from "@/client";
 
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   login: vi.fn(),
   getUserInfo: vi.fn(),
   updateUser: vi.fn(),
@@ -18,7 +18,7 @@ import {
   getUserInfo,
   authMfa,
   mfaRecover,
-} from "../../client";
+} from "@/client";
 
 const mockedLogin = vi.mocked(loginSdk);
 const mockedGetUserInfo = vi.mocked(getUserInfo);

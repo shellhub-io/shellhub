@@ -3,14 +3,14 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import AdminLicense from "../License";
-import { ClipboardProvider } from "../../../components/common/ClipboardProvider";
-import { useAdminLicense } from "../../../hooks/useAdminLicense";
-import { useUploadLicense } from "../../../hooks/useUploadLicense";
+import { ClipboardProvider } from "@/components/common/ClipboardProvider";
+import { useAdminLicense } from "@/hooks/useAdminLicense";
+import { useUploadLicense } from "@/hooks/useUploadLicense";
 
-vi.mock("../../../hooks/useAdminLicense", () => ({
+vi.mock("@/hooks/useAdminLicense", () => ({
   useAdminLicense: vi.fn(),
 }));
-vi.mock("../../../hooks/useUploadLicense", () => ({
+vi.mock("@/hooks/useUploadLicense", () => ({
   useUploadLicense: vi.fn(),
 }));
 

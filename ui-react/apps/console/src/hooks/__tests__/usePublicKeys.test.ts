@@ -3,17 +3,17 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePublicKeys } from "../usePublicKeys";
-import type { PublicKeyResponse } from "../../client";
+import type { PublicKeyResponse } from "@/client";
 
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   getPublicKeys: vi.fn(),
 }));
 
-vi.mock("../../client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getPublicKeysQueryKey: vi.fn((opts: unknown) => [{ _id: "getPublicKeys" }, opts]),
 }));
 
-vi.mock("../../api/pagination", () => ({
+vi.mock("@/api/pagination", () => ({
   paginatedQueryFn: vi.fn(
     (_sdkFn: unknown, opts: { query: Record<string, unknown> }) => {
       return () => mockGetPublicKeysFn(opts) as unknown;
@@ -147,7 +147,7 @@ describe("usePublicKeys", () => {
     });
 
     it("defaults publicKeys to empty array while loading", () => {
-      mockGetPublicKeysFn.mockReturnValue(new Promise(() => {}));
+      mockGetPublicKeysFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => usePublicKeys(), {
         wrapper: createWrapper(),
@@ -157,7 +157,7 @@ describe("usePublicKeys", () => {
     });
 
     it("defaults totalCount to 0 while loading", () => {
-      mockGetPublicKeysFn.mockReturnValue(new Promise(() => {}));
+      mockGetPublicKeysFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => usePublicKeys(), {
         wrapper: createWrapper(),
@@ -167,7 +167,7 @@ describe("usePublicKeys", () => {
     });
 
     it("returns isLoading true initially", () => {
-      mockGetPublicKeysFn.mockReturnValue(new Promise(() => {}));
+      mockGetPublicKeysFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => usePublicKeys(), {
         wrapper: createWrapper(),

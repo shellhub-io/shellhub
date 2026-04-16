@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useResendEmail, RESEND_COOLDOWN_S } from "../useResendEmail";
-import { useSignUpStore } from "../../stores/signUpStore";
+import { useSignUpStore } from "@/stores/signUpStore";
 
 const mockResendEmail = vi.fn();
 

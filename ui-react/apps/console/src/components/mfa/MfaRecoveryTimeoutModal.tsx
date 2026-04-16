@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { useCountdown } from "../../hooks/useCountdown";
+import { useCountdown } from "@/hooks/useCountdown";
 
 interface MfaRecoveryTimeoutModalProps {
   open: boolean;

@@ -3,14 +3,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ResetPasswordDialog from "../ResetPasswordDialog";
-import { useResetUserPassword } from "../../../../hooks/useAdminUserMutations";
+import { useResetUserPassword } from "@/hooks/useAdminUserMutations";
 
-vi.mock("../../../../hooks/useAdminUserMutations", () => ({
+vi.mock("@/hooks/useAdminUserMutations", () => ({
   useResetUserPassword: vi.fn(),
 }));
 
 // BaseDialog renders open/close state; we flatten it to a simple div for test isolation.
-vi.mock("../../../../components/common/BaseDialog", () => ({
+vi.mock("@/components/common/BaseDialog", () => ({
   default: ({
     open,
     onClose,
@@ -30,7 +30,7 @@ vi.mock("../../../../components/common/BaseDialog", () => ({
   },
 }));
 
-vi.mock("../../../../components/common/CopyButton", () => ({
+vi.mock("@/components/common/CopyButton", () => ({
   default: ({ text }: { text: string }) => (
     <button type="button" aria-label="Copy">
       {text}

@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { useResetOnOpen } from "../../../hooks/useResetOnOpen";
-import { useCreateUser } from "../../../hooks/useAdminUserMutations";
-import { isSdkError } from "../../../api/errors";
-import Drawer from "../../../components/common/Drawer";
-import { LABEL, INPUT } from "../../../utils/styles";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useCreateUser } from "@/hooks/useAdminUserMutations";
+import { isSdkError } from "@/api/errors";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT } from "@/utils/styles";
 import PasswordInput from "./PasswordInput";
 import NamespaceLimitFields from "./NamespaceLimitFields";
 

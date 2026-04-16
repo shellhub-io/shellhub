@@ -5,10 +5,10 @@ import {
   CheckCircleIcon,
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminSessionDetail } from "../../hooks/useAdminSessionDetail";
-import PageHeader from "../../components/common/PageHeader";
-import { formatDateFull } from "../../utils/date";
-import { sessionType } from "../../utils/session";
+import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
+import PageHeader from "@/components/common/PageHeader";
+import { formatDateFull } from "@/utils/date";
+import { sessionType } from "@/utils/session";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
