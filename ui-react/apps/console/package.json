@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@hey-api/openapi-ts": "^0.94.1",
+    "@hey-api/openapi-ts": "^0.94.5",
     "@shellhub/design-system": "*",
     "@tanstack/react-query": "^5.90.21",
     "@tiptap/extension-image": "^3.22.2",
