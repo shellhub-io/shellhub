@@ -1,4 +1,4 @@
-FROM node:24.13.0-alpine3.22 AS base
+FROM node:24.15.0-alpine3.22 AS base
 
 ARG NPM_CONFIG_REGISTRY
 
@@ -27,7 +27,7 @@ COPY ui-react/scripts /scripts
 CMD ["/scripts/entrypoint-dev.sh"]
 
 # Bundle OpenAPI spec from YAML sources
-FROM node:24.13.0-alpine3.22 AS spec-bundler
+FROM node:24.15.0-alpine3.22 AS spec-bundler
 RUN npm install -g @redocly/cli@1.0.0-beta.100
 WORKDIR /spec
 COPY openapi/spec ./spec
