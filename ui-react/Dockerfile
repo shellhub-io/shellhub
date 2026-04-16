@@ -48,7 +48,7 @@ COPY --from=spec-bundler /spec/openapi.json ./apps/console/openapi.json
 RUN OPENAPI_SPEC_PATH=./openapi.json npm run generate -w @shellhub/console
 RUN npm run build
 
-FROM nginx:1.29.4-alpine AS production
+FROM nginx:1.29.8-alpine AS production
 
 RUN apk add curl
 
