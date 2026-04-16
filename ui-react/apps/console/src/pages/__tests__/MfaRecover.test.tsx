@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 import MfaRecover from "../MfaRecover";
 
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   disableMfa: vi.fn(),
 }));
 
-import { disableMfa } from "../../client";
+import { disableMfa } from "@/client";
 const mockedDisableMfa = vi.mocked(disableMfa);
 
 type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };

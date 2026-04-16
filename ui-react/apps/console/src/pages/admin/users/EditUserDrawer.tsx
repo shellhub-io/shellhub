@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { useResetOnOpen } from "../../../hooks/useResetOnOpen";
-import { useUpdateUser } from "../../../hooks/useAdminUserMutations";
-import { useAuthStore } from "../../../stores/authStore";
-import { isSdkError } from "../../../api/errors";
-import Drawer from "../../../components/common/Drawer";
-import { LABEL, INPUT } from "../../../utils/styles";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useUpdateUser } from "@/hooks/useAdminUserMutations";
+import { useAuthStore } from "@/stores/authStore";
+import { isSdkError } from "@/api/errors";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT } from "@/utils/styles";
 import PasswordInput from "./PasswordInput";
 import NamespaceLimitFields from "./NamespaceLimitFields";
 import type { UserStatus } from "./UserStatusChip";

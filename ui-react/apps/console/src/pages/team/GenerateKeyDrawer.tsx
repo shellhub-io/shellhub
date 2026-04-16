@@ -1,12 +1,12 @@
 import { useState, FormEvent } from "react";
-import { isSdkError } from "../../api/errors";
-import { useResetOnOpen } from "../../hooks/useResetOnOpen";
+import { isSdkError } from "@/api/errors";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
-import { useCreateApiKey } from "../../hooks/useApiKeyMutations";
-import { type ApiKeyCreate } from "../../client";
-import CopyButton from "../../components/common/CopyButton";
-import Drawer from "../../components/common/Drawer";
-import { LABEL, INPUT } from "../../utils/styles";
+import { useCreateApiKey } from "@/hooks/useApiKeyMutations";
+import { type ApiKeyCreate } from "@/client";
+import CopyButton from "@/components/common/CopyButton";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT } from "@/utils/styles";
 import { RoleSelector } from "./constants";
 import { EXPIRY_OPTIONS } from "./helpers";
 

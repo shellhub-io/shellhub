@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { useResetOnOpen } from "../../hooks/useResetOnOpen";
-import { useUpdateApiKey } from "../../hooks/useApiKeyMutations";
-import { type ApiKey } from "../../client";
-import Drawer from "../../components/common/Drawer";
-import { LABEL, INPUT } from "../../utils/styles";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
+import { type ApiKey } from "@/client";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT } from "@/utils/styles";
 import { RoleSelector } from "./constants";
 
 /* ─── Edit API Key Drawer ─── */

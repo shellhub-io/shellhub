@@ -14,9 +14,9 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import type { ReactNode } from "react";
-import { getConfig } from "../../env";
-import { useAdminLicense } from "../../hooks/useAdminLicense";
-import { useAuthStore } from "../../stores/authStore";
+import { getConfig } from "@/env";
+import { useAdminLicense } from "@/hooks/useAdminLicense";
+import { useAuthStore } from "@/stores/authStore";
 import SidebarShell, { NavItemLink, navBase, navDisabled, navIcon } from "./SidebarShell";
 
 // ---- Types ----

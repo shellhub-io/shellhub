@@ -4,9 +4,9 @@ import {
   useTerminalThemeStore,
   TERMINAL_FONTS,
   type TerminalTheme,
-} from "../../stores/terminalThemeStore";
+} from "@/stores/terminalThemeStore";
 import Drawer from "../common/Drawer";
-import { getConfig } from "../../env";
+import { getConfig } from "@/env";
 
 interface Props {
   open: boolean;

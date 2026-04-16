@@ -4,8 +4,8 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { useNamespaces, useInitRole } from "../../hooks/useNamespaces";
-import { useConnectivityStore } from "../../stores/connectivityStore";
+import { useNamespaces, useInitRole } from "@/hooks/useNamespaces";
+import { useConnectivityStore } from "@/stores/connectivityStore";
 import AmbientBackground from "./AmbientBackground";
 import CreateNamespace from "./CreateNamespace";
 import UserMenu from "../layout/UserMenu";

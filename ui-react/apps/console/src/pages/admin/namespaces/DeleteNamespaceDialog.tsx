@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAdminDeleteNamespace } from "../../../hooks/useAdminNamespaceMutations";
-import ConfirmDialog from "../../../components/common/ConfirmDialog";
+import { useAdminDeleteNamespace } from "@/hooks/useAdminNamespaceMutations";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface DeleteNamespaceDialogProps {
   open: boolean;

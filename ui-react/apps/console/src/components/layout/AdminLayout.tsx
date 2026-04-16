@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import AdminAppBar from "./AdminAppBar";
 import { SidebarMobileDrawer } from "./SidebarShell";
-import { useSidebarLayout } from "../../hooks/useSidebarLayout";
+import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 
 export default function AdminLayout() {
   const { pathname } = useLocation();

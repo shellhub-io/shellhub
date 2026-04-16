@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { LocalVaultBackend } from "../vault-backend-local";
-import type { VaultMeta, VaultData, LegacyPrivateKey } from "../../types/vault";
+import type { VaultMeta, VaultData, LegacyPrivateKey } from "@/types/vault";
 
 const VAULT_META_KEY = "shellhub-vault-meta";
 const VAULT_DATA_KEY = "shellhub-vault-data";

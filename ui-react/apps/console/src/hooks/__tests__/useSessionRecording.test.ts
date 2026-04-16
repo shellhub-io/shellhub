@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useSessionRecording } from "../useSessionRecording";
-import apiClient from "../../api/client";
+import apiClient from "@/api/client";
 
-vi.mock("../../api/client", () => ({
+vi.mock("@/api/client", () => ({
   default: {
     get: vi.fn(),
     delete: vi.fn(),

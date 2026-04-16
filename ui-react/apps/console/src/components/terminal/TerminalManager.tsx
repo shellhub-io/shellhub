@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useTerminalStore } from "../../stores/terminalStore";
-import { useNamespace } from "../../hooks/useNamespaces";
-import { useAuthStore } from "../../stores/authStore";
+import { useTerminalStore } from "@/stores/terminalStore";
+import { useNamespace } from "@/hooks/useNamespaces";
+import { useAuthStore } from "@/stores/authStore";
 import ConnectDrawer from "../ConnectDrawer";
-import { buildSshid } from "../../utils/sshid";
+import { buildSshid } from "@/utils/sshid";
 import TerminalInstance from "./TerminalInstance";
 import TerminalTaskbar from "./TerminalTaskbar";
 

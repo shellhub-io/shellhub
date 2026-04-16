@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import axios from "axios";
 import { setupInterceptors } from "../interceptors";
-import { useAuthStore } from "../../stores/authStore";
-import { useConnectivityStore } from "../../stores/connectivityStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useConnectivityStore } from "@/stores/connectivityStore";
 
 /* --- helpers --- */
 

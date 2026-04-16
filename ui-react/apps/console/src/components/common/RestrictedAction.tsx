@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { useHasPermission } from "../../hooks/useHasPermission";
-import type { Action } from "../../utils/permission";
+import { useHasPermission } from "@/hooks/useHasPermission";
+import type { Action } from "@/utils/permission";
 
 interface RestrictedActionProps {
   action: Action;

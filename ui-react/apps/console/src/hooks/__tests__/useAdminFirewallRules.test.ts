@@ -6,15 +6,15 @@ import {
   useAdminFirewallRules,
   useAdminFirewallRule,
 } from "../useAdminFirewallRules";
-import { useAuthStore } from "../../stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 
 // Mock the SDK functions used by the generated options/queryFn helpers.
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   getFirewallRulesAdmin: vi.fn(),
   getFirewallRuleAdmin: vi.fn(),
 }));
 
-vi.mock("../../client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getFirewallRulesAdminQueryKey: vi.fn((opts: unknown) => [
     { _id: "getFirewallRulesAdmin" },
     opts,
@@ -25,7 +25,7 @@ vi.mock("../../client/@tanstack/react-query.gen", () => ({
   })),
 }));
 
-vi.mock("../../api/pagination", () => ({
+vi.mock("@/api/pagination", () => ({
   paginatedQueryFn: vi.fn(
     (_sdkFn: unknown, opts: { query: Record<string, unknown> }) => {
       return () => mockGetFirewallRulesAdminFn(opts) as unknown;
@@ -188,7 +188,7 @@ describe("useAdminFirewallRules", () => {
 
     it("defaults rules to empty array while loading", () => {
       // Never resolves — stays in loading state
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminFirewallRules(), {
         wrapper: createWrapper(),
@@ -198,7 +198,7 @@ describe("useAdminFirewallRules", () => {
     });
 
     it("defaults totalCount to 0 while loading", () => {
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminFirewallRules(), {
         wrapper: createWrapper(),
@@ -208,7 +208,7 @@ describe("useAdminFirewallRules", () => {
     });
 
     it("returns isLoading true initially", () => {
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminFirewallRules(), {
         wrapper: createWrapper(),
@@ -368,7 +368,7 @@ describe("useAdminFirewallRule", () => {
     });
 
     it("is loading initially when id is provided", () => {
-      mockGetFirewallRuleAdminFn.mockReturnValue(new Promise(() => {}));
+      mockGetFirewallRuleAdminFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminFirewallRule("rule-1"), {
         wrapper: createWrapper(),

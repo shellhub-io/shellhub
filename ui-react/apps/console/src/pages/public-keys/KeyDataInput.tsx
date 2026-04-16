@@ -1,5 +1,5 @@
-import { isPublicKeyValid } from "../../utils/sshKeys";
-import KeyFileInput from "../../components/common/KeyFileInput";
+import { isPublicKeyValid } from "@/utils/sshKeys";
+import KeyFileInput from "@/components/common/KeyFileInput";
 
 function KeyDataInput({
   value,

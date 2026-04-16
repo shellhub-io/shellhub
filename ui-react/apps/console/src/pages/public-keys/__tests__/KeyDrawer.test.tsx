@@ -2,22 +2,22 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useCreatePublicKey, useUpdatePublicKey } from "../../../hooks/usePublicKeyMutations";
+import { useCreatePublicKey, useUpdatePublicKey } from "@/hooks/usePublicKeyMutations";
 import KeyDrawer from "../KeyDrawer";
-import type { PublicKey } from "../../../hooks/usePublicKeys";
+import type { PublicKey } from "@/hooks/usePublicKeys";
 
-vi.mock("../../../hooks/usePublicKeyMutations", () => ({
+vi.mock("@/hooks/usePublicKeyMutations", () => ({
   useCreatePublicKey: vi.fn(),
   useUpdatePublicKey: vi.fn(),
 }));
 
-vi.mock("../../../utils/styles", () => ({
+vi.mock("@/utils/styles", () => ({
   LABEL: "label-class",
   INPUT: "input-class",
   INPUT_MONO: "input-mono-class",
 }));
 
-vi.mock("../../../components/common/Drawer", () => ({
+vi.mock("@/components/common/Drawer", () => ({
   default: ({
     open,
     onClose,
@@ -43,7 +43,7 @@ vi.mock("../../../components/common/Drawer", () => ({
   },
 }));
 
-vi.mock("../../../components/common/TagsSelector", () => ({
+vi.mock("@/components/common/TagsSelector", () => ({
   default: ({
     selected,
     onChange,
@@ -103,11 +103,11 @@ vi.mock("../KeyDataInput", () => ({
   ),
 }));
 
-vi.mock("../../../utils/sshKeys", () => ({
+vi.mock("@/utils/sshKeys", () => ({
   isPublicKeyValid: vi.fn(() => true),
 }));
 
-vi.mock("../../../components/icons", () => ({
+vi.mock("@/components/icons", () => ({
   DevicesIcon: () => <svg data-testid="devices-icon" />,
 }));
 

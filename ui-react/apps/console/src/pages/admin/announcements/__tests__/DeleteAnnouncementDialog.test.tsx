@@ -3,15 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import DeleteAnnouncementDialog from "../DeleteAnnouncementDialog";
-import { useAdminDeleteAnnouncement } from "../../../../hooks/useAdminAnnouncementMutations";
+import { useAdminDeleteAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 
-vi.mock("../../../../hooks/useAdminAnnouncementMutations", () => ({
+vi.mock("@/hooks/useAdminAnnouncementMutations", () => ({
   useAdminDeleteAnnouncement: vi.fn(),
 }));
 
 // Flatten ConfirmDialog to a plain div so we can test the component's logic
 // without dialog portals, animations, or BaseDialog internals.
-vi.mock("../../../../components/common/ConfirmDialog", () => ({
+vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
     onClose,

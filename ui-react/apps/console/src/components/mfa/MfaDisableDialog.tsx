@@ -1,8 +1,8 @@
 import { useState, FormEvent } from "react";
 import { ExclamationTriangleIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
-import { disableMfa } from "../../client";
-import { useOtpInput } from "../../hooks/useOtpInput";
-import { useAuthStore } from "../../stores/authStore";
+import { disableMfa } from "@/client";
+import { useOtpInput } from "@/hooks/useOtpInput";
+import { useAuthStore } from "@/stores/authStore";
 
 interface MfaDisableDialogProps {
   open: boolean;

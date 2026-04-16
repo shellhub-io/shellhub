@@ -2,20 +2,20 @@ import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { FirewallRule } from "../../../hooks/useFirewallRules";
+import type { FirewallRule } from "@/hooks/useFirewallRules";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("../../../hooks/useFirewallRules", () => ({
+vi.mock("@/hooks/useFirewallRules", () => ({
   useFirewallRules: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useFirewallRuleMutations", () => ({
+vi.mock("@/hooks/useFirewallRuleMutations", () => ({
   useDeleteFirewallRule: vi.fn(),
 }));
 
 // RestrictedAction gates buttons on permissions — always allow in tests.
-vi.mock("../../../hooks/useHasPermission", () => ({
+vi.mock("@/hooks/useHasPermission", () => ({
   useHasPermission: () => true,
 }));
 
@@ -27,7 +27,7 @@ vi.mock("../RuleDrawer", () => ({
 // Flatten ConfirmDialog to a plain div so we can exercise the page's logic
 // without animations, portals, or BaseDialog internals. Matches the pattern
 // used in other page tests (DeleteNamespaceDialog, KeyDeleteDialog).
-vi.mock("../../../components/common/ConfirmDialog", () => ({
+vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
     onClose,
@@ -60,8 +60,8 @@ vi.mock("../../../components/common/ConfirmDialog", () => ({
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
-import { useFirewallRules } from "../../../hooks/useFirewallRules";
-import { useDeleteFirewallRule } from "../../../hooks/useFirewallRuleMutations";
+import { useFirewallRules } from "@/hooks/useFirewallRules";
+import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
 import FirewallRules from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

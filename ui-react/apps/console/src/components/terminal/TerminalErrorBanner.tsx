@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ExclamationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useTerminalStore } from "../../stores/terminalStore";
+import { useTerminalStore } from "@/stores/terminalStore";
 import type { TerminalError } from "./terminalErrors";
 
 interface TerminalErrorBannerProps {

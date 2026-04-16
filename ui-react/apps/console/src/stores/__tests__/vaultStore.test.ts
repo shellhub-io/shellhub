@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { VaultMeta, VaultData, VaultKeyEntry } from "../../types/vault";
+import type { VaultMeta, VaultData, VaultKeyEntry } from "@/types/vault";
 
-vi.mock("../../utils/vault-crypto", () => ({
+vi.mock("@/utils/vault-crypto", () => ({
   createVaultMeta: vi.fn(),
   verifyPassword: vi.fn(),
   encrypt: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock("../../utils/vault-crypto", () => ({
   clearSessionKey: vi.fn(),
 }));
 
-vi.mock("../../utils/vault-backend-factory", () => ({
+vi.mock("@/utils/vault-backend-factory", () => ({
   getVaultBackend: vi.fn(),
 }));
 
@@ -29,9 +29,9 @@ import {
   setSessionKey,
   getSessionKey,
   clearSessionKey,
-} from "../../utils/vault-crypto";
+} from "@/utils/vault-crypto";
 
-import { getVaultBackend } from "../../utils/vault-backend-factory";
+import { getVaultBackend } from "@/utils/vault-backend-factory";
 
 import { useVaultStore, DuplicateKeyError } from "../vaultStore";
 

@@ -7,8 +7,8 @@ import {
 } from "@heroicons/react/24/outline";
 import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
-import { getConfig } from "../../env";
-import { useCreateNamespace } from "../../hooks/useNamespaceMutations";
+import { getConfig } from "@/env";
+import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
 
 const CLI_COMMAND = "./bin/cli namespace create <namespace> <owner>";
 

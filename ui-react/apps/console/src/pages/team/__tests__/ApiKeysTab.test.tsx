@@ -2,19 +2,19 @@ import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ApiKey } from "../../../client";
+import type { ApiKey } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("../../../hooks/useApiKeys", () => ({
+vi.mock("@/hooks/useApiKeys", () => ({
   useApiKeys: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useApiKeyMutations", () => ({
+vi.mock("@/hooks/useApiKeyMutations", () => ({
   useDeleteApiKey: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useHasPermission", () => ({
+vi.mock("@/hooks/useHasPermission", () => ({
   useHasPermission: () => true,
 }));
 
@@ -26,7 +26,7 @@ vi.mock("../EditKeyDrawer", () => ({
   default: () => null,
 }));
 
-vi.mock("../../../components/common/ConfirmDialog", () => ({
+vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
     onClose,
@@ -59,8 +59,8 @@ vi.mock("../../../components/common/ConfirmDialog", () => ({
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
-import { useApiKeys } from "../../../hooks/useApiKeys";
-import { useDeleteApiKey } from "../../../hooks/useApiKeyMutations";
+import { useApiKeys } from "@/hooks/useApiKeys";
+import { useDeleteApiKey } from "@/hooks/useApiKeyMutations";
 import ApiKeysTab from "../ApiKeysTab";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

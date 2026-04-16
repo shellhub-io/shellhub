@@ -5,8 +5,8 @@ import {
   Cog6ToothIcon,
   MinusIcon,
 } from "@heroicons/react/24/outline";
-import { useTerminalStore } from "../../stores/terminalStore";
-import type { TerminalSession } from "../../stores/terminalStore";
+import { useTerminalStore } from "@/stores/terminalStore";
+import type { TerminalSession } from "@/stores/terminalStore";
 import TerminalSettingsDrawer from "./TerminalSettingsDrawer";
 
 /** Terminal info shown on the left side of the AppBar */

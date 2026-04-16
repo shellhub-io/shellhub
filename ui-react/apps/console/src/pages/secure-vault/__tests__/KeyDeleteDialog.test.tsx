@@ -2,15 +2,15 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useVaultStore } from "../../../stores/vaultStore";
+import { useVaultStore } from "@/stores/vaultStore";
 import KeyDeleteDialog from "../KeyDeleteDialog";
-import type { VaultKeyEntry } from "../../../types/vault";
+import type { VaultKeyEntry } from "@/types/vault";
 
-vi.mock("../../../stores/vaultStore", () => ({
+vi.mock("@/stores/vaultStore", () => ({
   useVaultStore: vi.fn(),
 }));
 
-vi.mock("../../../components/common/ConfirmDialog", () => ({
+vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
     onClose,

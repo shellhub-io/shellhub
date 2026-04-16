@@ -2,19 +2,19 @@ import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { PublicKey } from "../../../hooks/usePublicKeys";
+import type { PublicKey } from "@/hooks/usePublicKeys";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("../../../hooks/usePublicKeys", () => ({
+vi.mock("@/hooks/usePublicKeys", () => ({
   usePublicKeys: vi.fn(),
 }));
 
-vi.mock("../../../hooks/usePublicKeyMutations", () => ({
+vi.mock("@/hooks/usePublicKeyMutations", () => ({
   useDeletePublicKey: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useHasPermission", () => ({
+vi.mock("@/hooks/useHasPermission", () => ({
   useHasPermission: () => true,
 }));
 
@@ -23,11 +23,11 @@ vi.mock("../KeyDrawer", () => ({
 }));
 
 // CopyButton reads from ClipboardProvider which we don't wire up in tests.
-vi.mock("../../../components/common/CopyButton", () => ({
+vi.mock("@/components/common/CopyButton", () => ({
   default: () => null,
 }));
 
-vi.mock("../../../components/common/ConfirmDialog", () => ({
+vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
     onClose,
@@ -60,8 +60,8 @@ vi.mock("../../../components/common/ConfirmDialog", () => ({
 
 // ── Imports (after mocks) ─────────────────────────────────────────────────────
 
-import { usePublicKeys } from "../../../hooks/usePublicKeys";
-import { useDeletePublicKey } from "../../../hooks/usePublicKeyMutations";
+import { usePublicKeys } from "@/hooks/usePublicKeys";
+import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
 import PublicKeys from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

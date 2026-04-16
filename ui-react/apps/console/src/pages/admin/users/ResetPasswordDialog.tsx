@@ -1,10 +1,10 @@
 import { useState, useId } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { useResetOnOpen } from "../../../hooks/useResetOnOpen";
-import { useResetUserPassword } from "../../../hooks/useAdminUserMutations";
-import { isSdkError } from "../../../api/errors";
-import CopyButton from "../../../components/common/CopyButton";
-import BaseDialog from "../../../components/common/BaseDialog";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useResetUserPassword } from "@/hooks/useAdminUserMutations";
+import { isSdkError } from "@/api/errors";
+import CopyButton from "@/components/common/CopyButton";
+import BaseDialog from "@/components/common/BaseDialog";
 
 interface ResetPasswordDialogProps {
   open: boolean;

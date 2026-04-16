@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useCreateNamespace, useSwitchNamespace } from "../../hooks/useNamespaceMutations";
-import { getNamespaces } from "../../client";
-import { getConfig } from "../../env";
+import { useCreateNamespace, useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import { getNamespaces } from "@/client";
+import { getConfig } from "@/env";
 import {
   ExclamationCircleIcon,
   CheckIcon,

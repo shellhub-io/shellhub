@@ -3,15 +3,15 @@ import { renderHook, waitFor } from "@testing-library/react";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAdminUsers, useAdminUser } from "../useAdminUsers";
-import { useAuthStore } from "../../stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 
 // Mock the SDK functions used by the generated options/queryFn helpers.
-vi.mock("../../client", () => ({
+vi.mock("@/client", () => ({
   getUsers: vi.fn(),
   getUser: vi.fn(),
 }));
 
-vi.mock("../../client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getUsersQueryKey: vi.fn((opts: unknown) => [{ _id: "getUsers" }, opts]),
   getUserOptions: vi.fn((opts: unknown) => ({
     queryKey: [{ _id: "getUser" }, opts],
@@ -19,7 +19,7 @@ vi.mock("../../client/@tanstack/react-query.gen", () => ({
   })),
 }));
 
-vi.mock("../../api/pagination", () => ({
+vi.mock("@/api/pagination", () => ({
   paginatedQueryFn: vi.fn(
     (_sdkFn: unknown, opts: { query: Record<string, unknown> }) => {
       return () => mockGetUsersFn(opts) as unknown;
@@ -76,7 +76,7 @@ describe("useAdminUsers", () => {
 
     it("defaults users to empty array while loading", () => {
       // Never resolves — stays in loading state
-      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
+      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -86,7 +86,7 @@ describe("useAdminUsers", () => {
     });
 
     it("defaults totalCount to 0 while loading", () => {
-      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
+      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -96,7 +96,7 @@ describe("useAdminUsers", () => {
     });
 
     it("returns isLoading true initially", () => {
-      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
+      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -118,7 +118,7 @@ describe("useAdminUsers", () => {
     });
 
     it("exposes refetch function", () => {
-      mockGetUsersFn.mockReturnValue(new Promise(() => {}));
+      mockGetUsersFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminUsers(), {
         wrapper: createWrapper(),
@@ -237,7 +237,7 @@ describe("useAdminUser", () => {
     });
 
     it("is loading initially when id is provided", () => {
-      mockGetUserFn.mockReturnValue(new Promise(() => {}));
+      mockGetUserFn.mockReturnValue(new Promise(() => { }));
 
       const { result } = renderHook(() => useAdminUser("u1"), {
         wrapper: createWrapper(),

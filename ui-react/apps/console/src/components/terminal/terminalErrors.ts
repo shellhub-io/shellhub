@@ -1,4 +1,4 @@
-import { getConfig } from "../../env";
+import { getConfig } from "@/env";
 
 interface ErrorEntry {
   message: string;
@@ -85,14 +85,14 @@ const errorMap: Record<string, ErrorEntry> = {
     ],
   },
   "connections using public keys are not permitted when the agent version is 0.5.x or earlier":
-    {
-      message: "This device does not support public key authentication.",
-      reconnect: true,
-      hints: [
-        "The ShellHub agent is v0.5.x or earlier. Update to v0.6.0+ for public key support, or reconnect using a password.",
-      ],
-      links: [{ label: "Device details", to: "/devices/$uid" }],
-    },
+  {
+    message: "This device does not support public key authentication.",
+    reconnect: true,
+    hints: [
+      "The ShellHub agent is v0.5.x or earlier. Update to v0.6.0+ for public key support, or reconnect using a password.",
+    ],
+    links: [{ label: "Device details", to: "/devices/$uid" }],
+  },
 };
 
 // Values match ssh/web/messages.go messageKind iota.

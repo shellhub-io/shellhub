@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import type { NormalizedDevice } from "../../../../hooks/useAdminDevices";
+import type { NormalizedDevice } from "@/hooks/useAdminDevices";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-vi.mock("../../../../hooks/useAdminDevices", () => ({
+vi.mock("@/hooks/useAdminDevices", () => ({
   useAdminDevices: vi.fn(),
 }));
 
@@ -19,7 +19,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-import { useAdminDevices } from "../../../../hooks/useAdminDevices";
+import { useAdminDevices } from "@/hooks/useAdminDevices";
 import AdminDevices from "../index";
 
 const defaultHookState = {

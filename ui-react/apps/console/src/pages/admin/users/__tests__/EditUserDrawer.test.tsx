@@ -2,18 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import EditUserDrawer, { type EditableUser } from "../EditUserDrawer";
-import { useUpdateUser } from "../../../../hooks/useAdminUserMutations";
-import { useAuthStore } from "../../../../stores/authStore";
-vi.mock("../../../../hooks/useAdminUserMutations", () => ({
+import { useUpdateUser } from "@/hooks/useAdminUserMutations";
+import { useAuthStore } from "@/stores/authStore";
+vi.mock("@/hooks/useAdminUserMutations", () => ({
   useUpdateUser: vi.fn(),
 }));
 
-vi.mock("../../../../utils/styles", () => ({
+vi.mock("@/utils/styles", () => ({
   LABEL: "label",
   INPUT: "input",
 }));
 
-vi.mock("../../../../components/common/Drawer", async () => ({
+vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("./mocks")).MockDrawer,
 }));
 

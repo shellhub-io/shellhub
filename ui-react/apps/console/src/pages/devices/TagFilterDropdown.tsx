@@ -6,8 +6,8 @@ import {
   CheckIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { useTags } from "../../hooks/useTags";
-import { useEscapeKey } from "../../hooks/useEscapeKey";
+import { useTags } from "@/hooks/useTags";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 
 function TagFilterDropdown({
   filterTags,

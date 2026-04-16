@@ -1,5 +1,5 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import SessionPlayer from "../../components/sessions/SessionPlayer";
+import SessionPlayer from "@/components/sessions/SessionPlayer";
 
 interface SessionPlayerDialogProps {
   open: boolean;

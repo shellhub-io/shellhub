@@ -15,7 +15,7 @@ const mockDeleteFn = vi.fn();
 const mockResetPasswordFn = vi.fn();
 const mockInvalidate = vi.fn();
 
-vi.mock("../../client/@tanstack/react-query.gen", () => ({
+vi.mock("@/client/@tanstack/react-query.gen", () => ({
   createUserAdminMutation: vi.fn(() => ({ mutationFn: mockCreateFn })),
   adminUpdateUserMutation: vi.fn(() => ({ mutationFn: mockUpdateFn })),
   adminDeleteUserMutation: vi.fn(() => ({ mutationFn: mockDeleteFn })),

@@ -4,11 +4,11 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { Buffer } from "buffer";
-import apiClient from "../../api/client";
-import { generateSignature } from "../../utils/ssh-keys";
-import type { TerminalSession } from "../../stores/terminalStore";
-import { useTerminalStore } from "../../stores/terminalStore";
-import { useTerminalThemeStore } from "../../stores/terminalThemeStore";
+import apiClient from "@/api/client";
+import { generateSignature } from "@/utils/ssh-keys";
+import type { TerminalSession } from "@/stores/terminalStore";
+import { useTerminalStore } from "@/stores/terminalStore";
+import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import type { TerminalError } from "./terminalErrors";
 import TerminalErrorBanner from "./TerminalErrorBanner";
 import {

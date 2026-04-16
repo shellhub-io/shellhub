@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useDeleteUser } from "../../../hooks/useAdminUserMutations";
-import ConfirmDialog from "../../../components/common/ConfirmDialog";
+import { useDeleteUser } from "@/hooks/useAdminUserMutations";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface DeleteUserDialogProps {
   open: boolean;

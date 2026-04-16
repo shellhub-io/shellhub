@@ -1,4 +1,4 @@
-import { LABEL, INPUT } from "../../../utils/styles";
+import { LABEL, INPUT } from "@/utils/styles";
 
 interface NamespaceLimitFieldsProps {
   idPrefix: string;

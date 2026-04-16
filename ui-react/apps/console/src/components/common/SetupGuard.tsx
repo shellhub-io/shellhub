@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
-import { getInfo } from "../../client";
-import { getConfig } from "../../env";
+import { getInfo } from "@/client";
+import { getConfig } from "@/env";
 
 export default function SetupGuard() {
   const isCloud = getConfig().cloud;

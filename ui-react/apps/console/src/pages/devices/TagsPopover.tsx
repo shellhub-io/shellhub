@@ -6,11 +6,11 @@ import {
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
-import { useTags } from "../../hooks/useTags";
-import { useAddDeviceTag, useRemoveDeviceTag } from "../../hooks/useDeviceMutations";
-import type { NormalizedDevice } from "../../hooks/useDevices";
-import { useEscapeKey } from "../../hooks/useEscapeKey";
-import { useHasPermission } from "../../hooks/useHasPermission";
+import { useTags } from "@/hooks/useTags";
+import { useAddDeviceTag, useRemoveDeviceTag } from "@/hooks/useDeviceMutations";
+import type { NormalizedDevice } from "@/hooks/useDevices";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useHasPermission } from "@/hooks/useHasPermission";
 
 /* ─── Tags Popover (portal-based, no table layout bugs) ─── */
 function TagsPopover({

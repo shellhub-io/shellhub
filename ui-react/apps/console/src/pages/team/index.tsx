@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
-import { useAuthStore } from "../../stores/authStore";
-import PageHeader from "../../components/common/PageHeader";
+import { useAuthStore } from "@/stores/authStore";
+import PageHeader from "@/components/common/PageHeader";
 import MembersTab from "./MembersTab";
 import ApiKeysTab from "./ApiKeysTab";
 

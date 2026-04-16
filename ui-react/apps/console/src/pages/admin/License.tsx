@@ -12,10 +12,10 @@ import {
   DocumentIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import PageHeader from "../../components/common/PageHeader";
-import CopyButton from "../../components/common/CopyButton";
-import { useAdminLicense } from "../../hooks/useAdminLicense";
-import { useUploadLicense } from "../../hooks/useUploadLicense";
+import PageHeader from "@/components/common/PageHeader";
+import CopyButton from "@/components/common/CopyButton";
+import { useAdminLicense } from "@/hooks/useAdminLicense";
+import { useUploadLicense } from "@/hooks/useUploadLicense";
 import {
   formatLicenseTimestamp,
   formatDeviceCount,
@@ -23,8 +23,8 @@ import {
   getDisplayFeatures,
   validateLicenseFile,
   getLicenseAlertConfig,
-} from "../../utils/license";
-import type { GetLicenseResponse } from "../../client/types.gen";
+} from "@/utils/license";
+import type { GetLicenseResponse } from "@/client/types.gen";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 

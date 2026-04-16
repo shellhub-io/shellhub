@@ -1,6 +1,6 @@
 import { useState, FormEvent } from "react";
-import { isSdkError } from "../../api/errors";
-import { useResetOnOpen } from "../../hooks/useResetOnOpen";
+import { isSdkError } from "@/api/errors";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import {
   UserGroupIcon,
   UserIcon,
@@ -8,15 +8,15 @@ import {
   ExclamationCircleIcon,
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
-import { DevicesIcon } from "../../components/icons";
-import { useCreatePublicKey, useUpdatePublicKey } from "../../hooks/usePublicKeyMutations";
-import type { PublicKey } from "../../hooks/usePublicKeys";
-import type { PublicKeyRequest } from "../../client";
-import { isPublicKeyValid } from "../../utils/sshKeys";
-import RadioCard from "../../components/common/RadioCard";
-import TagsSelector from "../../components/common/TagsSelector";
-import Drawer from "../../components/common/Drawer";
-import { LABEL, INPUT, INPUT_MONO } from "../../utils/styles";
+import { DevicesIcon } from "@/components/icons";
+import { useCreatePublicKey, useUpdatePublicKey } from "@/hooks/usePublicKeyMutations";
+import type { PublicKey } from "@/hooks/usePublicKeys";
+import type { PublicKeyRequest } from "@/client";
+import { isPublicKeyValid } from "@/utils/sshKeys";
+import RadioCard from "@/components/common/RadioCard";
+import TagsSelector from "@/components/common/TagsSelector";
+import Drawer from "@/components/common/Drawer";
+import { LABEL, INPUT, INPUT_MONO } from "@/utils/styles";
 import KeyDataInput from "./KeyDataInput";
 
 /* --- Drawer --- */

@@ -3,7 +3,7 @@ import {
   LockClosedIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import { getConfig } from "../../env";
+import { getConfig } from "@/env";
 
 interface Highlight {
   icon: ReactNode;

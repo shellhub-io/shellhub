@@ -1,5 +1,5 @@
 import { XMarkIcon, CommandLineIcon } from "@heroicons/react/24/outline";
-import { useTerminalStore } from "../../stores/terminalStore";
+import { useTerminalStore } from "@/stores/terminalStore";
 
 export default function TerminalTaskbar({
   sidebarOffset,

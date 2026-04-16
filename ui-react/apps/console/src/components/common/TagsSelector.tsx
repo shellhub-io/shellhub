@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useTags } from "../../hooks/useTags";
-import { useClickOutside } from "../../hooks/useClickOutside";
+import { useTags } from "@/hooks/useTags";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 export default function TagsSelector({
   selected,

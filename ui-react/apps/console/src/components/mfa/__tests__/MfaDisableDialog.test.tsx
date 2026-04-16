@@ -3,11 +3,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MfaDisableDialog from "../MfaDisableDialog";
 
-vi.mock("../../../client", () => ({
+vi.mock("@/client", () => ({
   disableMfa: vi.fn(),
 }));
 
-import { disableMfa } from "../../../client";
+import { disableMfa } from "@/client";
 
 const mockedDisableMfa = vi.mocked(disableMfa);
 

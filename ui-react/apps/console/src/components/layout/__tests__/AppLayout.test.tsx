@@ -14,12 +14,13 @@ const mockUseNamespaces =
     }
   >();
 
-vi.mock("../../../hooks/useNamespaces", () => ({
+vi.mock("@/hooks/useNamespaces", () => ({
   useNamespaces: () => mockUseNamespaces(),
+  useNamespace: () => ({ tenant_id: "t1", name: "ns1" }),
   useInitRole: () => {},
 }));
 
-vi.mock("../../../hooks/useSidebarLayout", () => ({
+vi.mock("@/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({
     expanded: false,
     pinned: false,
@@ -47,11 +48,11 @@ vi.mock("../AppBar", () => ({
   default: () => <div data-testid="app-bar" />,
 }));
 
-vi.mock("../../terminal/TerminalManager", () => ({
+vi.mock("@/terminal/TerminalManager", () => ({
   default: () => null,
 }));
 
-vi.mock("../../common/ConnectivityBanner", () => ({
+vi.mock("@/common/ConnectivityBanner", () => ({
   default: () => null,
 }));
 
