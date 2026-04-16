@@ -121,13 +121,14 @@ func userDelete(service services.Services) *cobra.Command {
 
 func userList(service services.Services) *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "List all users",
-		Long:  "List all users in the system",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List all users",
+		Long:    "List all users in the system",
 		Example: `cli user list
-cli user list | head -n 5
-cli user list | tail -n 5
-cli user list | grep admin`,
+cli user ls | head -n 5
+cli user ls | tail -n 5
+cli user ls | grep admin`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			users, err := service.UserList(cmd.Context())
 			if err != nil {
