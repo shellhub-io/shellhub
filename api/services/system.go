@@ -45,6 +45,10 @@ func (s *service) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo
 		resp.Endpoints.API = req.Host
 	}
 
+	if err := fireGetSystemInfo(ctx, resp); err != nil {
+		return nil, err
+	}
+
 	return resp, nil
 }
 
