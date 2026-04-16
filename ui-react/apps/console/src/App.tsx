@@ -71,6 +71,10 @@ const EditAnnouncement = lazy(
   () => import("./pages/admin/announcements/EditAnnouncement"),
 );
 
+const AdminAuthentication = lazy(
+  () => import("./pages/admin/settings/Authentication"),
+);
+
 export default function App() {
   return (
     <Suspense>
@@ -172,6 +176,10 @@ export default function App() {
                     <Route
                       path="/admin/sessions/:uid"
                       element={<AdminSessionDetails />}
+                    />
+                    <Route
+                      path="/admin/settings/authentication"
+                      element={<AdminAuthentication />}
                     />
                   </Route>
                 </Route>
