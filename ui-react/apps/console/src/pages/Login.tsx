@@ -10,11 +10,13 @@ import {
   ExclamationCircleIcon,
   CheckCircleIcon,
   LockClosedIcon,
+  ArrowRightEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { getConfig } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import { getInfo, getSamlAuthUrl } from "../client";
 
 interface CountdownState {
   display: string;
@@ -65,6 +67,7 @@ function useLoginCountdown(lockoutEndEpoch: number | null) {
 
 export default function Login() {
   const isCloud = getConfig().cloud;
+  const isEnterprise = getConfig().enterprise;
   const location = useLocation();
   const rawState = location.state as Record<string, unknown> | null;
   const notice
@@ -72,13 +75,25 @@ export default function Login() {
 
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");
+  const missingAssertions = searchParams.get("missing_assertions");
   const [tokenLoading, setTokenLoading] = useState(!!queryToken);
+  const [authentication, setAuthentication] = useState<{
+    local?: boolean;
+    saml?: boolean;
+  } | null>(null);
+  const [ssoLoading, setSsoLoading] = useState(false);
 
   useEffect(() => {
     if (notice) {
       window.history.replaceState({}, document.title);
     }
   }, [notice]);
+
+  useEffect(() => {
+    void getInfo()
+      .then(({ data }) => setAuthentication(data?.authentication ?? null))
+      .catch(() => setAuthentication(null));
+  }, []);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -102,6 +117,17 @@ export default function Login() {
         setError("Failed to authenticate with the provided token.");
       });
   }, [queryToken, navigate]);
+
+  const handleSsoLogin = async () => {
+    setSsoLoading(true);
+    try {
+      const { data } = await getSamlAuthUrl({ throwOnError: true });
+      window.location.replace(data.url);
+    } catch {
+      setError("Failed to retrieve SSO login URL. Please try again.");
+      setSsoLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -155,6 +181,12 @@ export default function Login() {
     // Else: error is already set in store
   };
 
+  // On enterprise, show the local form only once we know local auth is enabled.
+  // Using an explicit === true guard (not !ssoOnly) prevents the form from
+  // flashing while authentication info is still loading (null state).
+  const showLocalForm = !isEnterprise || authentication?.local === true;
+  const ssoOnly = isEnterprise && authentication?.local === false;
+
   if (tokenLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -188,12 +220,9 @@ export default function Login() {
         </p>
       </div>
 
-      {/* Form card */}
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
-        style={{ animationDelay: "200ms" }}
-      >
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+      {/* Alerts — rendered outside the form so they are visible in SSO-only mode too */}
+      {(lockoutExpired || !!notice || !!missingAssertions || (!!error && !lockoutExpired)) && (
+        <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
           {lockoutExpired && (
             <div className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
               <CheckCircleIcon
@@ -215,6 +244,18 @@ export default function Login() {
               {notice}
             </div>
           )}
+          {missingAssertions && (
+            <div
+              role="alert"
+              className="flex items-center gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down"
+            >
+              <ExclamationCircleIcon
+                className="w-3.5 h-3.5 shrink-0"
+                strokeWidth={2}
+              />
+              The SSO configuration is incomplete due to missing required mappings. Please contact your administrator.
+            </div>
+          )}
           {error && !lockoutExpired && (
             <div
               role="alert"
@@ -232,71 +273,118 @@ export default function Login() {
               </span>
             </div>
           )}
+        </div>
+      )}
 
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
-            >
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoFocus
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-              placeholder="username"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-              placeholder="password"
-            />
-          </div>
-
-          {isCloud && (
-            <div className="flex justify-end">
-              <Link
-                to="/forgot-password"
-                className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
+      {/* Form card — only shown once we know local auth is enabled */}
+      {showLocalForm && (
+        <div
+          className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm animate-slide-up"
+          style={{ animationDelay: "200ms" }}
+        >
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
               >
-                Forgot password?
-              </Link>
+                Username
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
+                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                placeholder="username"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
+                placeholder="password"
+              />
+            </div>
+
+            {isCloud && (
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-2xs text-text-muted hover:text-text-secondary transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="font-mono text-xs">Authenticating...</span>
+                </span>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* SSO login */}
+      {isEnterprise && authentication?.saml && (
+        <div
+          className="w-full max-w-sm animate-slide-up"
+          style={{ animationDelay: ssoOnly ? "200ms" : "300ms" }}
+        >
+          {!ssoOnly && (
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-2xs font-mono text-text-muted uppercase tracking-label">
+                or
+              </span>
+              <div className="flex-1 h-px bg-border" />
             </div>
           )}
 
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
+            type="button"
+            onClick={() => void handleSsoLogin()}
+            disabled={ssoLoading}
+            data-testid="sso-btn"
+            className={`w-full py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 ${
+              ssoOnly
+                ? "bg-primary hover:bg-primary-600 text-white"
+                : "bg-card border border-border hover:border-border-light text-text-primary"
+            }`}
           >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span className="font-mono text-xs">Authenticating...</span>
-              </span>
+            {ssoLoading ? (
+              <span className={`w-3.5 h-3.5 border-2 rounded-full animate-spin ${ssoOnly ? "border-white/30 border-t-white" : "border-primary/30 border-t-primary"}`} />
             ) : (
-              "Sign In"
+              <ArrowRightEndOnRectangleIcon className="w-4 h-4" />
             )}
+            Login with SSO
           </button>
-        </form>
-      </div>
+        </div>
+      )}
 
       {/* Footer links */}
       <AuthFooterLinks />
