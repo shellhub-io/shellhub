@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-import type { UserAuth } from "@/client";
+import { useAuthStore } from "../../stores/authStore";
+import type { UserAuth, Info } from "../../client";
 import Login from "../Login";
 
 /* ------------------------------------------------------------------ */
@@ -27,12 +27,34 @@ vi.mock("@/client", () => ({
   requestResetMfa: vi.fn(),
   resetMfa: vi.fn(),
   resendEmail: vi.fn(),
+  getInfo: vi.fn(),
+  getSamlAuthUrl: vi.fn(),
 }));
 
-import { login as loginSdk } from "@/client";
+vi.mock("../../env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../env")>();
+  return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
+});
+
+import { login as loginSdk, getInfo as getInfoSdk, getSamlAuthUrl as getSamlAuthUrlSdk } from "../../client";
+import { getConfig } from "../../env";
+
 const mockedLogin = vi.mocked(loginSdk);
+const mockedGetInfo = vi.mocked(getInfoSdk);
+const mockedGetSamlAuthUrl = vi.mocked(getSamlAuthUrlSdk);
+const mockedGetConfig = vi.mocked(getConfig);
 
 type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+
+function mockInfo(overrides: Partial<Info> = {}): Info {
+  return {
+    version: "0.0.0",
+    endpoints: null,
+    setup: true,
+    authentication: { local: true, saml: false },
+    ...overrides,
+  };
+}
 
 function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   return {
@@ -59,10 +81,6 @@ function mockSdkResponse<T>(data: T, headers: HeadersInit = {}): SdkResponse<T> 
     response: new Response(null, { headers }),
   };
 }
-
-/* ------------------------------------------------------------------ */
-/* Helpers                                                             */
-/* ------------------------------------------------------------------ */
 
 /** Creates a mock SDK error with status and optional headers. */
 function makeSdkError(
@@ -100,6 +118,19 @@ afterEach(cleanup);
 beforeEach(() => {
   mockNavigate.mockReset();
   mockedLogin.mockReset();
+  mockedGetSamlAuthUrl.mockReset();
+  // Default: local=true, saml=false — community/non-enterprise baseline.
+  mockedGetInfo.mockResolvedValue(
+    mockSdkResponse(mockInfo({ authentication: { local: true, saml: false } })),
+  );
+  // Default: community edition (no enterprise/cloud flags).
+  mockedGetConfig.mockReturnValue({
+    version: "",
+    enterprise: false,
+    cloud: false,
+    announcements: false,
+    onboardingUrl: "",
+  });
   useAuthStore.setState({
     token: null,
     user: null,
@@ -303,6 +334,154 @@ describe("Login", () => {
       expect(
         screen.queryByText(/too many failed login attempts/i),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("SSO / SAML button", () => {
+    it("does not show SSO button when not enterprise", async () => {
+      mockedGetConfig.mockReturnValue({
+        version: "",
+        enterprise: false,
+        cloud: false,
+        announcements: false,
+        onboardingUrl: "",
+      });
+      mockedGetInfo.mockResolvedValue(
+        mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+      );
+
+      renderLogin();
+
+      await waitFor(() => expect(mockedGetInfo).toHaveBeenCalled());
+
+      expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
+    });
+
+    it("does not show SSO button when enterprise but saml is false", async () => {
+      mockedGetConfig.mockReturnValue({
+        version: "",
+        enterprise: true,
+        cloud: false,
+        announcements: false,
+        onboardingUrl: "",
+      });
+      mockedGetInfo.mockResolvedValue(
+        mockSdkResponse(mockInfo({ authentication: { local: true, saml: false } })),
+      );
+
+      renderLogin();
+
+      // Wait for getInfo to resolve and state to update.
+      await waitFor(() => expect(mockedGetInfo).toHaveBeenCalled());
+
+      expect(screen.queryByTestId("sso-btn")).not.toBeInTheDocument();
+    });
+
+    it("shows SSO button when enterprise and saml is true", async () => {
+      mockedGetConfig.mockReturnValue({
+        version: "",
+        enterprise: true,
+        cloud: false,
+        announcements: false,
+        onboardingUrl: "",
+      });
+      mockedGetInfo.mockResolvedValue(
+        mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+      );
+
+      renderLogin();
+
+      await waitFor(() =>
+        expect(screen.getByTestId("sso-btn")).toBeInTheDocument(),
+      );
+    });
+
+    it("redirects to SSO URL when SSO button is clicked", async () => {
+      const originalLocation = window.location;
+      Object.defineProperty(window, "location", {
+        writable: true,
+        value: { ...originalLocation, replace: vi.fn() },
+      });
+
+      try {
+        mockedGetConfig.mockReturnValue({
+          version: "",
+          enterprise: true,
+          cloud: false,
+          announcements: false,
+          onboardingUrl: "",
+        });
+        mockedGetInfo.mockResolvedValue(
+          mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+        );
+        mockedGetSamlAuthUrl.mockResolvedValue(
+          mockSdkResponse({ url: "https://idp.example.com/sso" }),
+        );
+
+        renderLogin();
+
+        const ssoBtn = await screen.findByTestId("sso-btn");
+        await userEvent.click(ssoBtn);
+
+        await waitFor(() =>
+          expect(window.location.replace).toHaveBeenCalledWith(
+            "https://idp.example.com/sso",
+          ),
+        );
+      } finally {
+        Object.defineProperty(window, "location", { writable: true, value: originalLocation });
+      }
+    });
+
+    it("shows error when SSO URL fetch fails", async () => {
+      mockedGetConfig.mockReturnValue({
+        version: "",
+        enterprise: true,
+        cloud: false,
+        announcements: false,
+        onboardingUrl: "",
+      });
+      mockedGetInfo.mockResolvedValue(
+        mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+      );
+      mockedGetSamlAuthUrl.mockRejectedValue(new Error("Network error"));
+
+      renderLogin();
+
+      const ssoBtn = await screen.findByTestId("sso-btn");
+      await userEvent.click(ssoBtn);
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(/failed to retrieve sso login url/i),
+        ).toBeInTheDocument(),
+      );
+    });
+
+    it("hides the form entirely and shows SSO as the only option when local auth is disabled", async () => {
+      mockedGetConfig.mockReturnValue({
+        version: "",
+        enterprise: true,
+        cloud: false,
+        announcements: false,
+        onboardingUrl: "",
+      });
+      mockedGetInfo.mockResolvedValue(
+        mockSdkResponse(mockInfo({ authentication: { local: false, saml: true } })),
+      );
+
+      renderLogin();
+
+      // Form must be absent immediately — the explicit showLocalForm guard
+      // prevents it from appearing even during the getInfo loading window.
+      expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /sign in/i })).not.toBeInTheDocument();
+
+      // SSO button appears once getInfo resolves.
+      await waitFor(() =>
+        expect(screen.getByTestId("sso-btn")).toBeInTheDocument(),
+      );
     });
   });
 });
