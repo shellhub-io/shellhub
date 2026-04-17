@@ -9,6 +9,7 @@ import {
   CpuChipIcon,
   CommandLineIcon,
   LockClosedIcon,
+  CubeIcon,
 } from "@heroicons/react/24/outline";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
 
@@ -42,6 +43,11 @@ const sections: NavSection[] = [
         to: "/devices",
         label: "Devices",
         icon: <CpuChipIcon className={navIcon} />,
+      },
+      {
+        to: "/containers",
+        label: "Containers",
+        icon: <CubeIcon className={navIcon} />,
       },
       {
         to: "/sessions",

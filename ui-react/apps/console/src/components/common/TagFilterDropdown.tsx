@@ -20,7 +20,7 @@ function TagFilterDropdown({
   onAdd: (tag: string) => void;
   onRemove: (tag: string) => void;
   onClearAll: () => void;
-  onManageTags: () => void;
+  onManageTags?: () => void;
 }) {
   const { tags: tagObjects } = useTags();
   const allTags = tagObjects.map((t) => t.name);
@@ -64,10 +64,10 @@ function TagFilterDropdown({
     if (!open) return;
     const handler = (e: MouseEvent) => {
       if (
-        popoverRef.current
-        && !popoverRef.current.contains(e.target as Node)
-        && triggerRef.current
-        && !triggerRef.current.contains(e.target as Node)
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node)
       )
         setOpen(false);
     };
@@ -106,8 +106,8 @@ function TagFilterDropdown({
         />
       </button>
 
-      {open
-        && createPortal(
+      {open &&
+        createPortal(
           <div
             ref={popoverRef}
             className="fixed z-50 w-[240px] bg-surface border border-border rounded-xl shadow-2xl animate-fade-in"
@@ -127,47 +127,45 @@ function TagFilterDropdown({
 
             {/* Tag list */}
             <div className="max-h-[200px] overflow-y-auto p-1">
-              {filtered.length === 0
-                ? (
-                  <p className="px-2.5 py-3 text-2xs text-text-muted text-center">
-                    No tags found
-                  </p>
-                )
-                : (
-                  filtered.map((tag) => {
-                    const active = filterTags.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        onClick={() => {
-                          if (active) onRemove(tag);
-                          else onAdd(tag);
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-md hover:bg-hover-medium transition-colors"
+              {filtered.length === 0 ? (
+                <p className="px-2.5 py-3 text-2xs text-text-muted text-center">
+                  No tags found
+                </p>
+              ) : (
+                filtered.map((tag) => {
+                  const active = filterTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => {
+                        if (active) onRemove(tag);
+                        else onAdd(tag);
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-md hover:bg-hover-medium transition-colors"
+                    >
+                      <span
+                        className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all ${
+                          active
+                            ? "bg-primary border-primary"
+                            : "border-text-muted/30"
+                        }`}
                       >
-                        <span
-                          className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all ${
-                            active
-                              ? "bg-primary border-primary"
-                              : "border-text-muted/30"
-                          }`}
-                        >
-                          {active && (
-                            <CheckIcon
-                              className="w-2.5 h-2.5 text-white"
-                              strokeWidth={3}
-                            />
-                          )}
-                        </span>
-                        <span
-                          className={`truncate ${active ? "text-primary font-medium" : "text-text-secondary"}`}
-                        >
-                          {tag}
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
+                        {active && (
+                          <CheckIcon
+                            className="w-2.5 h-2.5 text-white"
+                            strokeWidth={3}
+                          />
+                        )}
+                      </span>
+                      <span
+                        className={`truncate ${active ? "text-primary font-medium" : "text-text-secondary"}`}
+                      >
+                        {tag}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             {/* Footer */}
@@ -183,16 +181,18 @@ function TagFilterDropdown({
                   Clear all
                 </button>
               )}
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  onManageTags();
-                }}
-                className="w-full text-left px-2.5 py-1.5 text-2xs text-primary hover:text-primary/80 hover:bg-hover-medium rounded-md transition-colors font-medium flex items-center gap-1"
-              >
-                <Cog6ToothIcon className="w-3 h-3" strokeWidth={2} />
-                Manage tags
-              </button>
+              {onManageTags && (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    onManageTags();
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 text-2xs text-primary hover:text-primary/80 hover:bg-hover-medium rounded-md transition-colors font-medium flex items-center gap-1"
+                >
+                  <Cog6ToothIcon className="w-3 h-3" strokeWidth={2} />
+                  Manage tags
+                </button>
+              )}
             </div>
           </div>,
           document.body,

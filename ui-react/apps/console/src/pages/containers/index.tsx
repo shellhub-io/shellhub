@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useContainers, type NormalizedContainer } from "@/hooks/useContainers";
 import type { DeviceStatus } from "@/client";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
@@ -9,20 +9,20 @@ import PageHeader from "@/components/common/PageHeader";
 import ConnectDrawer from "@/components/ConnectDrawer";
 import ManageTagsDrawer from "@/components/ManageTagsDrawer";
 import CopyButton from "@/components/common/CopyButton";
-import PlatformBadge from "@/components/common/PlatformBadge";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import { formatRelative } from "@/utils/date";
 import { buildSshid } from "@/utils/sshid";
-import TagFilterDropdown from "@/components/common/TagFilterDropdown";
-import TagsPopover from "./TagsPopover";
-import DeviceActionDialog from "./DeviceActionDialog";
+import ContainerTagsPopover from "./ContainerTagsPopover";
+import ContainerActionDialog from "./ContainerActionDialog";
+import AddDockerConnectorDrawer from "./AddDockerConnectorDrawer";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
   TagIcon,
   XMarkIcon,
   ExclamationCircleIcon,
-  CpuChipIcon,
+  CubeIcon,
   ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
@@ -35,10 +35,9 @@ const statusTabs: { label: string; value: DeviceStatus }[] = [
 
 const PER_PAGE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
-
 const VALID_STATUSES = new Set<string>(["accepted", "pending", "rejected"]);
 
-export default function Devices() {
+export default function Containers() {
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") ?? "accepted";
   const [page, setPage] = useState(1);
@@ -51,7 +50,7 @@ export default function Devices() {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [actionTarget, setActionTarget] = useState<{
-    device: NormalizedDevice;
+    container: NormalizedContainer;
     action: "accept" | "reject" | "remove";
   } | null>(null);
   const [connectTarget, setConnectTarget] = useState<{
@@ -60,6 +59,7 @@ export default function Devices() {
     sshid: string;
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
+  const [addConnectorOpen, setAddConnectorOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -68,7 +68,7 @@ export default function Devices() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { devices, totalCount, isLoading, error, refetch } = useDevices({
+  const { containers, totalCount, isLoading, error, refetch } = useContainers({
     page,
     perPage: PER_PAGE,
     status,
@@ -103,44 +103,42 @@ export default function Devices() {
     setPage(1);
   };
 
-  const columns = useMemo<Column<NormalizedDevice>[]>(() => {
-    const baseColumns: Column<NormalizedDevice>[] = [
+  const columns = useMemo<Column<NormalizedContainer>[]>(() => {
+    const baseColumns: Column<NormalizedContainer>[] = [
       {
         key: "hostname",
         header: "Hostname",
-        render: (device) => (
+        render: (container) => (
           <span className="text-sm font-medium text-text-primary group-hover:text-primary transition-colors">
-            {device.name}
+            {container.name}
           </span>
         ),
       },
       {
-        key: "os",
-        header: "Operating System",
-        render: (device) => (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-text-secondary truncate max-w-[160px]">
-              {device.info?.pretty_name ?? "Unknown"}
-            </span>
-            {device.info?.platform && (
-              <PlatformBadge platform={device.info.platform} />
-            )}
-          </div>
+        key: "image",
+        header: "Image",
+        render: (container) => (
+          <span className="text-xs text-text-secondary font-mono truncate max-w-[200px] block">
+            {container.info?.pretty_name ?? "Unknown"}
+          </span>
         ),
       },
       {
         key: "tags",
         header: "Tags",
-        render: (device) => (
-          <TagsPopover device={device} onFilterTag={addFilterTag} />
+        render: (container) => (
+          <ContainerTagsPopover
+            container={container}
+            onFilterTag={addFilterTag}
+          />
         ),
       },
       {
         key: "last_seen",
         header: "Last Seen",
-        render: (device) => (
+        render: (container) => (
           <span className="text-xs text-text-secondary">
-            {formatRelative(device.last_seen)}
+            {formatRelative(container.last_seen)}
           </span>
         ),
       },
@@ -152,8 +150,8 @@ export default function Devices() {
           key: "online",
           header: "",
           headerClassName: "w-12",
-          render: (device) =>
-            device.online ? (
+          render: (container) =>
+            container.online ? (
               <span className="relative flex h-2.5 w-2.5 mx-auto">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
@@ -166,10 +164,10 @@ export default function Devices() {
         {
           key: "sshid",
           header: "SSHID",
-          render: (device) => {
+          render: (container) => {
             const sshid = nsName
-              ? buildSshid(nsName, device.name)
-              : device.uid.substring(0, 8);
+              ? buildSshid(nsName, container.name)
+              : container.uid.substring(0, 8);
             return (
               <div className="flex items-center gap-1">
                 <code
@@ -183,29 +181,29 @@ export default function Devices() {
             );
           },
         },
-        ...baseColumns.slice(1), // os, tags, last_seen
+        ...baseColumns.slice(1), // image, tags, last_seen
         {
           key: "connect",
           header: "",
           headerClassName: "w-20",
-          render: (device) =>
-            device.online ? (
+          render: (container) =>
+            container.online ? (
               <RestrictedAction action="device:connect">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     const existing = useTerminalStore
                       .getState()
-                      .sessions.find((s) => s.deviceUid === device.uid);
+                      .sessions.find((s) => s.deviceUid === container.uid);
                     if (existing) {
                       useTerminalStore.getState().restore(existing.id);
                     } else {
                       const sshid = nsName
-                        ? buildSshid(nsName, device.name)
-                        : device.uid;
+                        ? buildSshid(nsName, container.name)
+                        : container.uid;
                       setConnectTarget({
-                        uid: device.uid,
-                        name: device.name,
+                        uid: container.uid,
+                        name: container.name,
                         sshid,
                       });
                     }
@@ -232,13 +230,13 @@ export default function Devices() {
           key: "actions",
           header: "Actions",
           headerClassName: "text-right",
-          render: (device) => (
+          render: (container) => (
             <div className="flex items-center justify-end gap-1.5">
               <RestrictedAction action="device:accept">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActionTarget({ device, action: "accept" });
+                    setActionTarget({ container, action: "accept" });
                   }}
                   className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
                 >
@@ -249,7 +247,7 @@ export default function Devices() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActionTarget({ device, action: "reject" });
+                    setActionTarget({ container, action: "reject" });
                   }}
                   className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/20 border border-accent-yellow/20 transition-all"
                 >
@@ -269,13 +267,13 @@ export default function Devices() {
         key: "actions",
         header: "Actions",
         headerClassName: "text-right",
-        render: (device) => (
+        render: (container) => (
           <div className="flex items-center justify-end gap-1.5">
             <RestrictedAction action="device:accept">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActionTarget({ device, action: "accept" });
+                  setActionTarget({ container, action: "accept" });
                 }}
                 className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-green/10 text-accent-green hover:bg-accent-green/20 border border-accent-green/20 transition-all"
               >
@@ -286,7 +284,7 @@ export default function Devices() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setActionTarget({ device, action: "remove" });
+                  setActionTarget({ container, action: "remove" });
                 }}
                 className="px-2.5 py-1 text-2xs font-semibold rounded-md bg-accent-red/10 text-accent-red hover:bg-accent-red/20 border border-accent-red/20 transition-all"
               >
@@ -302,28 +300,32 @@ export default function Devices() {
   return (
     <div>
       <PageHeader
-        icon={<CpuChipIcon className="w-6 h-6" />}
-        overline="Device Management"
-        title="Devices"
-        description="Manage and monitor all devices connected to your namespace"
+        icon={<CubeIcon className="w-6 h-6" />}
+        overline="Container Management"
+        title="Containers"
+        description="Manage and monitor Docker containers connected via ShellHub Connector"
       >
-        <RestrictedAction action="device:add">
-          <Link
-            to="/devices/add"
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
-          >
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
-            Add Device
-          </Link>
-        </RestrictedAction>
+        <button
+          onClick={() => setAddConnectorOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+        >
+          <PlusIcon className="w-4 h-4" strokeWidth={2} />
+          Add Docker Host
+        </button>
       </PageHeader>
 
       {/* Filter bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
-        <div className="flex items-center h-8 bg-card border border-border rounded-md p-0.5">
+        <div
+          className="flex items-center h-8 bg-card border border-border rounded-md p-0.5"
+          role="tablist"
+          aria-label="Container status filter"
+        >
           {statusTabs.map((tab) => (
             <button
               key={tab.value}
+              role="tab"
+              aria-selected={status === tab.value}
               onClick={() => handleStatusChange(tab.value)}
               className={`h-full px-3.5 text-xs font-medium rounded transition-all duration-150 ${
                 status === tab.value
@@ -357,7 +359,8 @@ export default function Devices() {
                 setSearchInput(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search devices..."
+              placeholder="Search containers..."
+              aria-label="Search containers"
               className="h-full pl-9 pr-3 bg-card border border-border rounded-md text-xs text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/15 transition-all duration-200 w-56"
             />
           </div>
@@ -380,6 +383,7 @@ export default function Devices() {
                 {tag}
                 <button
                   onClick={() => removeFilterTag(tag)}
+                  aria-label={`Remove ${tag} filter`}
                   className="hover:text-white transition-colors ml-0.5"
                 >
                   <XMarkIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
@@ -408,39 +412,41 @@ export default function Devices() {
 
       <DataTable
         columns={columns}
-        data={devices}
-        rowKey={(device) => device.uid}
+        data={containers}
+        rowKey={(container) => container.uid}
         isLoading={isLoading}
-        loadingMessage="Loading devices..."
+        loadingMessage="Loading containers..."
         page={page}
         totalPages={totalPages}
         totalCount={totalCount}
-        itemLabel="device"
+        itemLabel="container"
         onPageChange={setPage}
-        onRowClick={(device) => void navigate(`/devices/${device.uid}`)}
+        onRowClick={(container) =>
+          void navigate(`/containers/${container.uid}`)
+        }
         emptyState={
           <div className="text-center">
-            <CpuChipIcon
+            <CubeIcon
               className="w-10 h-10 text-text-muted/30 mx-auto mb-3"
               strokeWidth={1}
             />
             <p className="text-xs font-mono text-text-muted">
               {debouncedSearch
-                ? `No devices matching "${debouncedSearch}"`
-                : "No devices found"}
+                ? `No containers matching "${debouncedSearch}"`
+                : "No containers found"}
             </p>
           </div>
         }
       />
 
-      <DeviceActionDialog
+      <ContainerActionDialog
         key={
           actionTarget
-            ? `${actionTarget.action}/${actionTarget.device.uid}`
+            ? `${actionTarget.action}/${actionTarget.container.uid}`
             : "closed"
         }
         open={!!actionTarget}
-        device={actionTarget?.device ?? null}
+        container={actionTarget?.container ?? null}
         action={actionTarget?.action ?? "accept"}
         onClose={() => setActionTarget(null)}
       />
@@ -467,6 +473,11 @@ export default function Devices() {
         onTagDeleted={(name) => {
           setFilterTags((prev) => prev.filter((t) => t !== name));
         }}
+      />
+
+      <AddDockerConnectorDrawer
+        open={addConnectorOpen}
+        onClose={() => setAddConnectorOpen(false)}
       />
     </div>
   );
