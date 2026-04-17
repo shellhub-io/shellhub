@@ -9,6 +9,7 @@ import CheckboxField from "@/components/common/fields/CheckboxField";
 import { validateNamespaceName } from "@/utils/validation";
 import type { Namespace } from "@/client";
 import Spinner from "@/components/common/Spinner";
+import { normalizeNamespaceSettings } from "@/utils/namespaceSettings";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
@@ -28,14 +29,12 @@ export default function EditNamespaceDrawer({
     String(namespace?.max_devices ?? -1),
   );
   const [sessionRecord, setSessionRecord] = useState(false);
-  const [deviceAutoAccept, setDeviceAutoAccept] = useState(false);
   const [error, setError] = useState("");
 
   useResetOnOpen(open, () => {
     setName(namespace?.name ?? "");
     setMaxDevices(String(namespace?.max_devices ?? -1));
     setSessionRecord(namespace?.settings?.session_record ?? false);
-    setDeviceAutoAccept(namespace?.settings?.device_auto_accept ?? false);
     setError("");
   });
 
@@ -51,17 +50,15 @@ export default function EditNamespaceDrawer({
     try {
       await editNamespace.mutateAsync({
         path: { tenantID: namespace.tenant_id },
-        // The SDK types body as full Namespace; we spread the original
-        // to satisfy the type while only changing the editable fields.
         body: {
           ...namespace,
           name: name.trim(),
           max_devices: parseInt(maxDevices, 10),
           settings: {
-            connection_announcement:
-              namespace.settings?.connection_announcement ?? "",
-            session_record: sessionRecord,
-            device_auto_accept: deviceAutoAccept,
+            ...normalizeNamespaceSettings({
+              ...namespace.settings,
+              session_record: sessionRecord,
+            }),
           },
         },
       });
@@ -137,14 +134,6 @@ export default function EditNamespaceDrawer({
           checked={sessionRecord}
           onChange={setSessionRecord}
         />
-
-        <CheckboxField
-          id="edit-namespace-device-auto-accept"
-          label="Auto-Accept Devices"
-          checked={deviceAutoAccept}
-          onChange={setDeviceAutoAccept}
-        />
-
         {error && (
           <p role="alert" className="text-2xs text-accent-red">
             {error}

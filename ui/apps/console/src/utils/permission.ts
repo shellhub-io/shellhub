@@ -25,6 +25,7 @@ const permissions = {
   "device:accept": RoleLevel.OPERATOR,
   "device:reject": RoleLevel.OPERATOR,
   "device:rename": RoleLevel.OPERATOR,
+  "device:update": RoleLevel.OPERATOR,
   "device:customField:update": RoleLevel.OPERATOR,
   "device:remove": RoleLevel.ADMINISTRATOR,
   "device:choose": RoleLevel.OWNER,
@@ -46,6 +47,15 @@ const permissions = {
   "namespace:cancelInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:updateSessionRecording": RoleLevel.ADMINISTRATOR,
   "namespace:updateDeviceAutoAccept": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowPassword": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowPublicKey": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowRoot": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowEmptyPasswords": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowTTY": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowTcpForwarding": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowWebEndpoints": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowSFTP": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowAgentForwarding": RoleLevel.ADMINISTRATOR,
   "namespace:delete": RoleLevel.OWNER,
 
   // Tags

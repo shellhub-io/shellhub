@@ -66,6 +66,15 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          true,
 			ConnectionAnnouncement: "",
+			AllowPassword:          true,
+			AllowPublicKey:         true,
+			AllowRoot:              true,
+			AllowEmptyPasswords:    true,
+			AllowTTY:               true,
+			AllowTCPForwarding:     true,
+			AllowWebEndpoints:      true,
+			AllowSFTP:              true,
+			AllowAgentForwarding:   true,
 		},
 		TenantID: req.TenantID,
 		Type:     models.NewDefaultType(),
@@ -194,6 +203,42 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 
 	if req.Settings.ConnectionAnnouncement != nil {
 		namespace.Settings.ConnectionAnnouncement = *req.Settings.ConnectionAnnouncement
+	}
+
+	if req.Settings.AllowPassword != nil {
+		namespace.Settings.AllowPassword = *req.Settings.AllowPassword
+	}
+
+	if req.Settings.AllowPublicKey != nil {
+		namespace.Settings.AllowPublicKey = *req.Settings.AllowPublicKey
+	}
+
+	if req.Settings.AllowRoot != nil {
+		namespace.Settings.AllowRoot = *req.Settings.AllowRoot
+	}
+
+	if req.Settings.AllowEmptyPasswords != nil {
+		namespace.Settings.AllowEmptyPasswords = *req.Settings.AllowEmptyPasswords
+	}
+
+	if req.Settings.AllowTTY != nil {
+		namespace.Settings.AllowTTY = *req.Settings.AllowTTY
+	}
+
+	if req.Settings.AllowTCPForwarding != nil {
+		namespace.Settings.AllowTCPForwarding = *req.Settings.AllowTCPForwarding
+	}
+
+	if req.Settings.AllowWebEndpoints != nil {
+		namespace.Settings.AllowWebEndpoints = *req.Settings.AllowWebEndpoints
+	}
+
+	if req.Settings.AllowSFTP != nil {
+		namespace.Settings.AllowSFTP = *req.Settings.AllowSFTP
+	}
+
+	if req.Settings.AllowAgentForwarding != nil {
+		namespace.Settings.AllowAgentForwarding = *req.Settings.AllowAgentForwarding
 	}
 
 	if err := s.store.NamespaceUpdate(ctx, namespace); err != nil {

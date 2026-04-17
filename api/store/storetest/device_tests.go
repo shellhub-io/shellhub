@@ -644,6 +644,126 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		assert.True(t, newStatusUpdatedAt.Equal(updated.StatusUpdatedAt), "updated StatusUpdatedAt should match: expected %v, got %v", newStatusUpdatedAt, updated.StatusUpdatedAt)
 		assert.Equal(t, models.DeviceStatusAccepted, updated.Status)
 	})
+
+	t.Run("does not alter ssh settings", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t,
+			WithDeviceName("original-name"),
+			WithTenantID(tenantID),
+		)
+
+		err := st.DeviceUpdateSettings(ctx, string(deviceUID), &models.SSHSettings{
+			AllowPassword:        false,
+			AllowPublicKey:       true,
+			AllowRoot:            true,
+			AllowEmptyPasswords:  true,
+			AllowTTY:             true,
+			AllowTCPForwarding:   true,
+			AllowWebEndpoints:    true,
+			AllowSFTP:            true,
+			AllowAgentForwarding: true,
+		})
+		require.NoError(t, err)
+
+		err = st.DeviceUpdate(ctx, &models.Device{
+			UID:      string(deviceUID),
+			TenantID: tenantID,
+			Name:     "updated-name",
+		})
+		require.NoError(t, err)
+
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		require.NotNil(t, device.SSH)
+		assert.Equal(t, "updated-name", device.Name)
+		assert.False(t, device.SSH.AllowPassword)
+		assert.True(t, device.SSH.AllowPublicKey)
+	})
+}
+
+func (s *Suite) TestDeviceUpdateSettings(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("fails when device is not found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.DeviceUpdateSettings(ctx, "nonexistent", models.DefaultSSHSettings())
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("creates settings when absent", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
+
+		err := st.DeviceUpdateSettings(ctx, string(deviceUID), &models.SSHSettings{
+			AllowPassword:        false,
+			AllowPublicKey:       true,
+			AllowRoot:            false,
+			AllowEmptyPasswords:  true,
+			AllowTTY:             false,
+			AllowTCPForwarding:   true,
+			AllowWebEndpoints:    false,
+			AllowSFTP:            true,
+			AllowAgentForwarding: false,
+		})
+		require.NoError(t, err)
+
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		require.NotNil(t, device.SSH)
+		assert.False(t, device.SSH.AllowPassword)
+		assert.False(t, device.SSH.AllowRoot)
+		assert.False(t, device.SSH.AllowTTY)
+		assert.False(t, device.SSH.AllowWebEndpoints)
+		assert.False(t, device.SSH.AllowAgentForwarding)
+	})
+
+	t.Run("updates existing settings in place", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
+
+		err := st.DeviceUpdateSettings(ctx, string(deviceUID), &models.SSHSettings{
+			AllowPassword:        false,
+			AllowPublicKey:       true,
+			AllowRoot:            true,
+			AllowEmptyPasswords:  true,
+			AllowTTY:             true,
+			AllowTCPForwarding:   true,
+			AllowWebEndpoints:    true,
+			AllowSFTP:            true,
+			AllowAgentForwarding: true,
+		})
+		require.NoError(t, err)
+
+		err = st.DeviceUpdateSettings(ctx, string(deviceUID), &models.SSHSettings{
+			AllowPassword:        true,
+			AllowPublicKey:       false,
+			AllowRoot:            true,
+			AllowEmptyPasswords:  false,
+			AllowTTY:             true,
+			AllowTCPForwarding:   false,
+			AllowWebEndpoints:    true,
+			AllowSFTP:            false,
+			AllowAgentForwarding: true,
+		})
+		require.NoError(t, err)
+
+		device, err := st.DeviceResolve(ctx, store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		require.NotNil(t, device.SSH)
+		assert.True(t, device.SSH.AllowPassword)
+		assert.False(t, device.SSH.AllowPublicKey)
+		assert.False(t, device.SSH.AllowEmptyPasswords)
+		assert.False(t, device.SSH.AllowTCPForwarding)
+		assert.False(t, device.SSH.AllowSFTP)
+	})
 }
 
 // TestDeviceHeartbeat tests device heartbeat updates

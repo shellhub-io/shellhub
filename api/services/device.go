@@ -62,6 +62,8 @@ type DeviceService interface {
 	OfflineDevice(ctx context.Context, uid models.UID) error
 
 	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
+	GetDeviceSettings(ctx context.Context, req *requests.DeviceGetSettings) (*models.SSHSettings, error)
+	UpdateDeviceSettings(ctx context.Context, req *requests.DeviceUpdateSettings) error
 	// UpdateDeviceStatus updates a device's status. Devices that are already accepted cannot change their status.
 	//
 	// When accepting, if a device with the same MAC address is already accepted within the same namespace, it
@@ -398,6 +400,64 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 	return nil
 }
 
+func (s *service) GetDeviceSettings(ctx context.Context, req *requests.DeviceGetSettings) (*models.SSHSettings, error) {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		return nil, NewErrDeviceNotFound(models.UID(req.UID), err)
+	}
+
+	if device.SSH == nil {
+		return models.DefaultSSHSettings(), nil
+	}
+
+	return device.SSH, nil
+}
+
+func (s *service) UpdateDeviceSettings(ctx context.Context, req *requests.DeviceUpdateSettings) error {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
+	}
+
+	if device.SSH == nil {
+		device.SSH = models.DefaultSSHSettings()
+	}
+
+	if req.AllowPassword != nil {
+		device.SSH.AllowPassword = *req.AllowPassword
+	}
+	if req.AllowPublicKey != nil {
+		device.SSH.AllowPublicKey = *req.AllowPublicKey
+	}
+	if req.AllowRoot != nil {
+		device.SSH.AllowRoot = *req.AllowRoot
+	}
+	if req.AllowEmptyPasswords != nil {
+		device.SSH.AllowEmptyPasswords = *req.AllowEmptyPasswords
+	}
+	if req.AllowTTY != nil {
+		device.SSH.AllowTTY = *req.AllowTTY
+	}
+	if req.AllowTCPForwarding != nil {
+		device.SSH.AllowTCPForwarding = *req.AllowTCPForwarding
+	}
+	if req.AllowWebEndpoints != nil {
+		device.SSH.AllowWebEndpoints = *req.AllowWebEndpoints
+	}
+	if req.AllowSFTP != nil {
+		device.SSH.AllowSFTP = *req.AllowSFTP
+	}
+	if req.AllowAgentForwarding != nil {
+		device.SSH.AllowAgentForwarding = *req.AllowAgentForwarding
+	}
+
+	if err := s.store.DeviceUpdateSettings(ctx, req.UID, device.SSH); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // maxCustomFieldsPerDevice is the upper bound on the number of custom_fields entries
 // per device. Enforced server-side to prevent storage abuse.
 const maxCustomFieldsPerDevice = 20
@@ -451,6 +511,10 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	}
 
 	log.WithFields(logFields).Debug("updating new device name to preserve old device identity")
+	if oldDevice.SSH != nil {
+		newDevice.SSH = oldDevice.SSH
+	}
+
 	newDevice.Name = oldDevice.Name
 	if err := s.store.DeviceUpdate(ctx, newDevice); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to update new device name")

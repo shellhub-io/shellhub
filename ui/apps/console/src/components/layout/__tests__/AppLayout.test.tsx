@@ -20,6 +20,14 @@ vi.mock("@/hooks/useNamespaces", () => ({
   useInitRole: () => {},
 }));
 
+vi.mock("@/hooks/useChatwoot", () => ({
+  ChatwootContext: { Provider: ({ children }: { children: React.ReactNode }) => <>{children}</> },
+  useChatwoot: () => ({
+    status: "unavailable",
+    openWidget: vi.fn(),
+  }),
+}));
+
 vi.mock("@/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({
     expanded: false,

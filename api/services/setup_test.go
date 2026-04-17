@@ -197,6 +197,15 @@ func TestSetup(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						AllowPassword:          true,
+						AllowPublicKey:         true,
+						AllowRoot:              true,
+						AllowEmptyPasswords:    true,
+						AllowTTY:               true,
+						AllowTCPForwarding:     true,
+						AllowWebEndpoints:      true,
+						AllowSFTP:              true,
+						AllowAgentForwarding:   true,
 					},
 					CreatedAt: now,
 				}
@@ -287,6 +296,15 @@ func TestSetup(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						AllowPassword:          true,
+						AllowPublicKey:         true,
+						AllowRoot:              true,
+						AllowEmptyPasswords:    true,
+						AllowTTY:               true,
+						AllowTCPForwarding:     true,
+						AllowWebEndpoints:      true,
+						AllowSFTP:              true,
+						AllowAgentForwarding:   true,
 					},
 					CreatedAt: now,
 				}
@@ -354,6 +372,15 @@ func TestSetup(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						AllowPassword:          true,
+						AllowPublicKey:         true,
+						AllowRoot:              true,
+						AllowEmptyPasswords:    true,
+						AllowTTY:               true,
+						AllowTCPForwarding:     true,
+						AllowWebEndpoints:      true,
+						AllowSFTP:              true,
+						AllowAgentForwarding:   true,
 					},
 					CreatedAt: now,
 				}

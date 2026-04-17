@@ -1515,6 +1515,52 @@ func (_m *Service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate)
 	return r0
 }
 
+// UpdateDeviceSettings provides a mock function with given fields: ctx, req
+func (_m *Service) UpdateDeviceSettings(ctx context.Context, req *requests.DeviceUpdateSettings) error {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDeviceSettings")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceUpdateSettings) error); ok {
+		r0 = rf(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetDeviceSettings provides a mock function with given fields: ctx, req
+func (_m *Service) GetDeviceSettings(ctx context.Context, req *requests.DeviceGetSettings) (*models.SSHSettings, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeviceSettings")
+	}
+
+	var r0 *models.SSHSettings
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceGetSettings) (*models.SSHSettings, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *requests.DeviceGetSettings) *models.SSHSettings); ok {
+		r0 = rf(ctx, req)
+	} else if ret.Get(0) != nil {
+		r0 = ret.Get(0).(*models.SSHSettings)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *requests.DeviceGetSettings) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateDeviceStatus provides a mock function with given fields: ctx, req
 func (_m *Service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error {
 	ret := _m.Called(ctx, req)

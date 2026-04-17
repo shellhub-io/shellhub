@@ -5,6 +5,7 @@ import {
   updateDeviceStatusMutation,
   deleteDeviceMutation,
   updateDeviceMutation,
+  updateDeviceSettingsMutation,
   pullTagFromDeviceMutation,
   setDeviceCustomFieldMutation,
   deleteDeviceCustomFieldMutation,
@@ -56,6 +57,14 @@ export function useDeleteDeviceCustomField() {
   const invalidate = useInvalidateByIds("getDevices", "getDevice");
   return useMutation({
     ...deleteDeviceCustomFieldMutation(),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUpdateDeviceSSH() {
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
+  return useMutation({
+    ...updateDeviceSettingsMutation(),
     onSuccess: invalidate,
   });
 }

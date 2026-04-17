@@ -1,0 +1,53 @@
+parameters:
+  - $ref: ../components/parameters/path/deviceUIDPath.yaml
+get:
+  operationId: getDeviceSettings
+  summary: Get device settings
+  description: Get a device's SSH settings.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Success to get device settings.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/deviceSSH.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+patch:
+  operationId: updateDeviceSettings
+  summary: Update device settings
+  description: Partially update a device's SSH settings.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/deviceSSH.yaml
+  responses:
+    '200':
+      description: Success to update device settings.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

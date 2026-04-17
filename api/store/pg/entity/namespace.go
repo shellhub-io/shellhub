@@ -4,31 +4,49 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/uptrace/bun"
 )
 
 type Namespace struct {
 	bun.BaseModel `bun:"table:namespaces"`
 
-	ID                   string            `bun:"id,pk,type:uuid"`
-	CreatedAt            time.Time         `bun:"created_at"`
-	UpdatedAt            time.Time         `bun:"updated_at"`
-	Type                 string            `bun:"scope"`
-	Name                 string            `bun:"name"`
-	OwnerID              string            `bun:"owner_id"` // TODO: Remove this column in the future, owner should be determined by membership role
-	Memberships          []Membership      `json:"members" bun:"rel:has-many,join:id=namespace_id"`
-	Settings             NamespaceSettings `bun:"embed:"`
-	DevicesAcceptedCount int64             `bun:"devices_accepted_count"`
-	DevicesPendingCount  int64             `bun:"devices_pending_count"`
-	DevicesRejectedCount int64             `bun:"devices_rejected_count"`
-	DevicesRemovedCount  int64             `bun:"devices_removed_count"`
+	ID                     string             `bun:"id,pk,type:uuid"`
+	CreatedAt              time.Time          `bun:"created_at"`
+	UpdatedAt              time.Time          `bun:"updated_at"`
+	Type                   string             `bun:"scope"`
+	Name                   string             `bun:"name"`
+	OwnerID                string             `bun:"owner_id"`
+	SessionRecord          bool               `bun:"record_sessions"`
+	ConnectionAnnouncement string             `bun:"connection_announcement,type:text"`
+	DeviceAutoAccept       bool               `bun:"device_auto_accept"`
+	Memberships            []Membership       `json:"members" bun:"rel:has-many,join:id=namespace_id"`
+	Settings               *NamespaceSettings `bun:"rel:has-one,join:id=namespace_id"`
+	MaxDevices             int                `bun:"max_devices"`
+	DevicesAcceptedCount   int64              `bun:"devices_accepted_count"`
+	DevicesPendingCount    int64              `bun:"devices_pending_count"`
+	DevicesRejectedCount   int64              `bun:"devices_rejected_count"`
+	DevicesRemovedCount    int64              `bun:"devices_removed_count"`
 }
 
 type NamespaceSettings struct {
-	MaxDevices             int    `bun:"max_devices"`
-	SessionRecord          bool   `bun:"record_sessions"`
-	ConnectionAnnouncement string `bun:"connection_announcement,type:text"`
-	DeviceAutoAccept       bool   `bun:"device_auto_accept"`
+	bun.BaseModel `bun:"table:namespace_settings"`
+
+	ID                     string    `bun:"id,pk,type:uuid,nullzero,default:gen_random_uuid()"`
+	NamespaceID            string    `bun:"namespace_id,type:uuid,unique"`
+	SessionRecord          bool      `bun:"record_sessions"`
+	ConnectionAnnouncement string    `bun:"connection_announcement,type:text"`
+	AllowPassword          bool      `bun:"allow_password"`
+	AllowPublicKey         bool      `bun:"allow_public_key"`
+	AllowRoot              bool      `bun:"allow_root"`
+	AllowEmptyPasswords    bool      `bun:"allow_empty_passwords"`
+	AllowTTY               bool      `bun:"allow_tty"`
+	AllowTCPForwarding     bool      `bun:"allow_tcp_forwarding"`
+	AllowWebEndpoints      bool      `bun:"allow_web_endpoints"`
+	AllowSFTP              bool      `bun:"allow_sftp"`
+	AllowAgentForwarding   bool      `bun:"allow_agent_forwarding"`
+	CreatedAt              time.Time `bun:"created_at"`
+	UpdatedAt              time.Time `bun:"updated_at"`
 }
 
 func NamespaceFromModel(model *models.Namespace) *Namespace {
@@ -39,24 +57,40 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 	}
 
 	namespace := &Namespace{
-		ID:                   model.TenantID,
-		CreatedAt:            model.CreatedAt,
-		Type:                 namespaceType,
-		Name:                 model.Name,
-		OwnerID:              model.Owner,
-		DevicesAcceptedCount: model.DevicesAcceptedCount,
-		DevicesPendingCount:  model.DevicesPendingCount,
-		DevicesRejectedCount: model.DevicesRejectedCount,
-		DevicesRemovedCount:  model.DevicesRemovedCount,
-		Settings: NamespaceSettings{
-			MaxDevices: model.MaxDevices,
-		},
+		ID:                     model.TenantID,
+		CreatedAt:              model.CreatedAt,
+		Type:                   namespaceType,
+		Name:                   model.Name,
+		OwnerID:                model.Owner,
+		SessionRecord:          false,
+		ConnectionAnnouncement: "",
+		DeviceAutoAccept:       false,
+		MaxDevices:             model.MaxDevices,
+		DevicesAcceptedCount:   model.DevicesAcceptedCount,
+		DevicesPendingCount:    model.DevicesPendingCount,
+		DevicesRejectedCount:   model.DevicesRejectedCount,
+		DevicesRemovedCount:    model.DevicesRemovedCount,
 	}
 
 	if model.Settings != nil {
-		namespace.Settings.SessionRecord = model.Settings.SessionRecord
-		namespace.Settings.ConnectionAnnouncement = model.Settings.ConnectionAnnouncement
-		namespace.Settings.DeviceAutoAccept = model.Settings.DeviceAutoAccept
+		namespace.SessionRecord = model.Settings.SessionRecord
+		namespace.ConnectionAnnouncement = model.Settings.ConnectionAnnouncement
+		namespace.DeviceAutoAccept = model.Settings.DeviceAutoAccept
+		namespace.Settings = &NamespaceSettings{
+			ID:                     uuid.Generate(),
+			NamespaceID:            model.TenantID,
+			SessionRecord:          model.Settings.SessionRecord,
+			ConnectionAnnouncement: model.Settings.ConnectionAnnouncement,
+			AllowPassword:          model.Settings.AllowPassword,
+			AllowPublicKey:         model.Settings.AllowPublicKey,
+			AllowRoot:              model.Settings.AllowRoot,
+			AllowEmptyPasswords:    model.Settings.AllowEmptyPasswords,
+			AllowTTY:               model.Settings.AllowTTY,
+			AllowTCPForwarding:     model.Settings.AllowTCPForwarding,
+			AllowWebEndpoints:      model.Settings.AllowWebEndpoints,
+			AllowSFTP:              model.Settings.AllowSFTP,
+			AllowAgentForwarding:   model.Settings.AllowAgentForwarding,
+		}
 	}
 
 	namespace.Memberships = make([]Membership, len(model.Members))
@@ -79,16 +113,28 @@ func NamespaceToModel(entity *Namespace) *models.Namespace {
 		Owner:                entity.OwnerID,
 		CreatedAt:            entity.CreatedAt,
 		Type:                 models.Type(entity.Type),
-		MaxDevices:           entity.Settings.MaxDevices,
+		MaxDevices:           entity.MaxDevices,
 		DevicesAcceptedCount: entity.DevicesAcceptedCount,
 		DevicesPendingCount:  entity.DevicesPendingCount,
 		DevicesRejectedCount: entity.DevicesRejectedCount,
 		DevicesRemovedCount:  entity.DevicesRemovedCount,
-		Settings: &models.NamespaceSettings{
+	}
+
+	if entity.Settings != nil {
+		namespace.Settings = &models.NamespaceSettings{
 			SessionRecord:          entity.Settings.SessionRecord,
 			ConnectionAnnouncement: entity.Settings.ConnectionAnnouncement,
-			DeviceAutoAccept:       entity.Settings.DeviceAutoAccept,
-		},
+			DeviceAutoAccept:       entity.DeviceAutoAccept,
+			AllowPassword:          entity.Settings.AllowPassword,
+			AllowPublicKey:         entity.Settings.AllowPublicKey,
+			AllowRoot:              entity.Settings.AllowRoot,
+			AllowEmptyPasswords:    entity.Settings.AllowEmptyPasswords,
+			AllowTTY:               entity.Settings.AllowTTY,
+			AllowTCPForwarding:     entity.Settings.AllowTCPForwarding,
+			AllowWebEndpoints:      entity.Settings.AllowWebEndpoints,
+			AllowSFTP:              entity.Settings.AllowSFTP,
+			AllowAgentForwarding:   entity.Settings.AllowAgentForwarding,
+		}
 	}
 
 	namespace.Members = make([]models.Member, len(entity.Memberships))

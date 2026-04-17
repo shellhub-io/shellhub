@@ -656,9 +656,18 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 		}
 
 		snap.save(sess, StateRegistered)
+		if err := sess.connect(ctx, auth.Auth()); err != nil {
+			return err
+		}
 
-		fallthrough
+		if err := sess.authenticate(ctx); err != nil {
+			return err
+		}
 	case StateRegistered:
+		if err := auth.Evaluate(sess); err != nil {
+			return err
+		}
+
 		if err := sess.connect(ctx, auth.Auth()); err != nil {
 			return err
 		}

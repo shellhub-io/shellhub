@@ -8,9 +8,12 @@ import {
   ClockIcon,
   CpuChipIcon,
   ChevronDoubleRightIcon,
+  LockOpenIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { useDevice } from "../hooks/useDevice";
-import { useRemoveDevice } from "../hooks/useDeviceMutations";
+import { useRemoveDevice, useUpdateDeviceSSH } from "../hooks/useDeviceMutations";
+import { useHasPermission } from "../hooks/useHasPermission";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
@@ -20,6 +23,7 @@ import ConnectDrawer from "../components/ConnectDrawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
+import SettingToggle from "../components/common/SettingToggle";
 import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
@@ -29,11 +33,72 @@ import InfoItem from "./devices/InfoItem";
 import TagsSection from "./devices/TagsSection";
 import RenameSection from "./devices/RenameSection";
 import CustomFieldsSection from "./devices/CustomFieldsSection";
+import type { Device } from "../client";
 
 /* ─── Shared styles ─── */
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
+type DeviceSSHSettings = NonNullable<Device["settings"]>;
+type DeviceSSHSettingKey = keyof DeviceSSHSettings;
+
+const DEVICE_SSH_SETTINGS: Array<{
+  key: DeviceSSHSettingKey;
+  title: string;
+  description: string;
+}> = [
+  {
+    key: "allow_password",
+    title: "Allow Password Authentication",
+    description: "Allow SSH connections using password for this device",
+  },
+  {
+    key: "allow_public_key",
+    title: "Allow Public Key Authentication",
+    description: "Allow SSH connections using public key for this device",
+  },
+  {
+    key: "allow_root",
+    title: "Allow Root Login",
+    description: "Allow SSH connections as root user for this device",
+  },
+  {
+    key: "allow_empty_passwords",
+    title: "Allow Empty Passwords",
+    description: "Allow SSH connections with empty passwords for this device",
+  },
+  {
+    key: "allow_tty",
+    title: "Allow TTY Allocation",
+    description: "Allow terminal (TTY) allocation for this device",
+  },
+  {
+    key: "allow_tcp_forwarding",
+    title: "Allow TCP Forwarding",
+    description: "Allow TCP port forwarding for this device",
+  },
+  {
+    key: "allow_web_endpoints",
+    title: "Allow Web Endpoints",
+    description: "Allow HTTP/HTTPS access via ShellHub proxy",
+  },
+  {
+    key: "allow_sftp",
+    title: "Allow SFTP",
+    description: "Allow SFTP subsystem for this device",
+  },
+  {
+    key: "allow_agent_forwarding",
+    title: "Allow Agent Forwarding",
+    description: "Allow SSH agent forwarding for this device",
+  },
+];
+
+function ToggleStateIcon({ enabled }: { enabled: boolean }) {
+  return enabled
+    ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+    : <LockClosedIcon className="w-4 h-4 text-accent-red" />;
+}
 
 /* ─── Page ─── */
 export default function DeviceDetails() {
@@ -42,8 +107,11 @@ export default function DeviceDetails() {
   const [searchParams] = useSearchParams();
   const { device, isLoading } = useDevice(uid ?? "");
   const removeMutation = useRemoveDevice();
+  const updateSSH = useUpdateDeviceSSH();
+  const canUpdateDeviceSettings = useHasPermission("device:update");
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
+  const deviceSettings = device?.settings ?? {};
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
   );
@@ -57,11 +125,21 @@ export default function DeviceDetails() {
   } | null>(null);
   const [billingWarningOpen, setBillingWarningOpen] = useState(false);
 
-  // Auto-open connect drawer if ?connect=true (adjust during render)
-  const shouldAutoConnect =
-    searchParams.get("connect") === "true" &&
-    device?.online &&
-    !existingSession;
+  const updateDeviceSetting = async (settings: Partial<DeviceSSHSettings>) => {
+    if (!device) {
+      return;
+    }
+
+    await updateSSH.mutateAsync({
+      path: { uid: device.uid },
+      body: settings,
+    });
+  };
+
+  const shouldAutoConnect
+    = searchParams.get("connect") === "true"
+      && device?.online
+      && !existingSession;
 
   const [autoConnectDone, setAutoConnectDone] = useState(false);
   if (shouldAutoConnect && !autoConnectDone) {
@@ -72,7 +150,6 @@ export default function DeviceDetails() {
     setAutoConnectDone(false);
   }
 
-  // Restore existing terminal session (side effect only, no setState)
   useEffect(() => {
     if (
       searchParams.get("connect") === "true" &&
@@ -364,6 +441,47 @@ export default function DeviceDetails() {
             uid={device.uid}
             customFields={device.custom_fields ?? {}}
           />
+        </div>
+      </div>
+
+      {/* Settings */}
+      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+        <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2 mb-4">
+          <LockClosedIcon className="w-4 h-4 text-primary" />
+          Settings
+        </h3>
+        <div className="divide-y divide-border -mx-2">
+          {DEVICE_SSH_SETTINGS.map((setting) => {
+            const enabled = deviceSettings[setting.key] ?? true;
+
+            return (
+              <div key={setting.key} className="flex items-center justify-between gap-6 px-2 py-3">
+                <div className="flex items-start gap-3 min-w-0 flex-1">
+                  <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                    <ToggleStateIcon enabled={enabled} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-text-primary">
+                      {setting.title}
+                    </p>
+                    <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                      {setting.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <SettingToggle
+                    checked={enabled}
+                    tone="success"
+                    disabled={!canUpdateDeviceSettings || updateSSH.isPending}
+                    onChange={(checked) => {
+                      return updateDeviceSetting({ [setting.key]: checked });
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

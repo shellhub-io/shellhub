@@ -9,6 +9,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import Spinner from "@/components/common/Spinner";
 import PageLoader from "@/components/common/PageLoader";
+import { normalizeNamespaceSettings } from "../utils/namespaceSettings";
 
 const MAX_LENGTH = 4096;
 
@@ -33,13 +34,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     try {
       await editNs.mutateAsync({
         path: { tenant: ns.tenant_id },
-        body: {
-          settings: {
-            connection_announcement: text,
-            session_record: ns.settings?.session_record ?? false,
-            device_auto_accept: ns.settings?.device_auto_accept ?? false,
-          },
-        },
+        body: { settings: normalizeNamespaceSettings({ ...ns.settings, connection_announcement: text }) },
       });
       void navigate("/settings");
     } catch {

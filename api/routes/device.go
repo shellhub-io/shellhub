@@ -21,6 +21,8 @@ const (
 	LookupDeviceURL            = "/device/lookup"
 	UpdateDeviceStatusURL      = "/devices/:uid/:status"
 	UpdateDevice               = "/devices/:uid"
+	GetDeviceSettingsURL       = "/devices/:uid/settings"
+	UpdateDeviceSettingsURL    = "/devices/:uid/settings"
 	SetDeviceCustomFieldURL    = "/devices/:uid/custom_fields/:key"
 	DeleteDeviceCustomFieldURL = "/devices/:uid/custom_fields/:key"
 )
@@ -263,7 +265,56 @@ func (h *Handler) UpdateDevice(c gateway.Context) error {
 		return err
 	}
 
+	if c.Tenant() != nil {
+		req.TenantID = c.Tenant().ID
+	}
+
 	if err := h.service.UpdateDevice(c.Ctx(), req); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) GetDeviceSettings(c gateway.Context) error {
+	req := new(requests.DeviceGetSettings)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if c.Tenant() != nil {
+		req.TenantID = c.Tenant().ID
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	settings, err := h.service.GetDeviceSettings(c.Ctx(), req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, settings)
+}
+
+func (h *Handler) UpdateDeviceSettings(c gateway.Context) error {
+	req := new(requests.DeviceUpdateSettings)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if c.Tenant() != nil {
+		req.TenantID = c.Tenant().ID
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if err := h.service.UpdateDeviceSettings(c.Ctx(), req); err != nil {
 		return err
 	}
 

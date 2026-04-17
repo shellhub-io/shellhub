@@ -88,7 +88,7 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 	installCmd.Flags().String("preferred-identity", "", "Preferred device identity")
 	installCmd.Flags().Uint("keepalive-interval", 30, "Keepalive interval in seconds")
 	installCmd.MarkFlagRequired("server-address") //nolint:errcheck
-	installCmd.MarkFlagRequired("tenant-id")       //nolint:errcheck
+	installCmd.MarkFlagRequired("tenant-id")      //nolint:errcheck
 
 	rootCmd.AddCommand(installCmd)
 
@@ -169,7 +169,7 @@ func writeAgentEnvFile(cfg installerConfig) error {
 		fmt.Fprintf(&buf, "SHELLHUB_KEEPALIVE_INTERVAL=%d\n", cfg.KeepaliveInterval)
 	}
 
-	return os.WriteFile(agentEnvFile, buf.Bytes(), 0600)
+	return os.WriteFile(agentEnvFile, buf.Bytes(), 0o600)
 }
 
 func writeAgentServiceFile(binaryPath string) error {
@@ -183,7 +183,7 @@ func writeAgentServiceFile(binaryPath string) error {
 		return err
 	}
 
-	return os.WriteFile(agentServiceFile, buf.Bytes(), 0644)
+	return os.WriteFile(agentServiceFile, buf.Bytes(), 0o644)
 }
 
 func agentUninstall() error {

@@ -118,6 +118,8 @@ paths:
     $ref: paths/api@devices.yaml
   /api/devices/{uid}:
     $ref: paths/api@devices@{uid}.yaml
+  /api/devices/{uid}/settings:
+    $ref: paths/api@devices@{uid}@settings.yaml
   /api/devices/resolve:
     $ref: paths/api@devices@resolve.yaml
   /api/devices/{uid}/{status}:
