@@ -12,6 +12,44 @@ properties:
     maxLength: 4096
     format: alphanumunicode
     example: my awesome connection announcement
-required:
+  allow_password:
+    description: Allow password authentication at namespace level
+    type: boolean
+    example: true
+  allow_public_key:
+    description: Allow public key authentication at namespace level
+    type: boolean
+    example: true
+  allow_root:
+    description: Allow root user login at namespace level
+    type: boolean
+    example: true
+  allow_empty_passwords:
+    description: Allow empty passwords at namespace level
+    type: boolean
+    example: false
+  allow_tty:
+    description: Allow TTY allocation at namespace level
+    type: boolean
+    example: true
+  allow_tcp_forwarding:
+    description: Allow TCP port forwarding at namespace level
+    type: boolean
+    example: true
+  allow_web_endpoints:
+    description: Allow web endpoints access via HTTP proxy at namespace level
+    type: boolean
+    example: true
+  allow_sftp:
+    description: Allow SFTP subsystem at namespace level
+    type: boolean
+    example: true
+  allow_agent_forwarding:
+    description: Allow SSH agent forwarding at namespace level
+    type: boolean
+    example: false
+required: 
   - session_record
   - connection_announcement
+  - allow_password
+  - allow_public_key

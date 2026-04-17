@@ -20,14 +20,38 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 	}
 
 	nsEntity := entity.NamespaceFromModel(namespace)
-	if _, err := db.NewInsert().Model(nsEntity).Exec(ctx); err != nil {
-		return "", fromSQLError(err)
+	exec := func(db bun.IDB) error {
+		if _, err := db.NewInsert().Model(nsEntity).Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
+		if nsEntity.Settings != nil {
+			if _, err := db.NewInsert().Model(nsEntity.Settings).Exec(ctx); err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		if len(nsEntity.Memberships) > 0 {
+			if _, err := db.NewInsert().Model(&nsEntity.Memberships).Exec(ctx); err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		return nil
 	}
 
-	if len(nsEntity.Memberships) > 0 {
-		if _, err := db.NewInsert().Model(&nsEntity.Memberships).Exec(ctx); err != nil {
-			return "", fromSQLError(err)
+	if _, ok := db.(bun.Tx); ok {
+		if err := exec(db); err != nil {
+			return "", err
 		}
+
+		return namespace.TenantID, nil
+	}
+
+	if err := pg.WithTransaction(ctx, func(txCtx context.Context) error {
+		return exec(pg.GetConnection(txCtx))
+	}); err != nil {
+		return "", err
 	}
 
 	return namespace.TenantID, nil
@@ -75,7 +99,7 @@ func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 	db := pg.GetConnection(ctx)
 
 	entities := make([]entity.Namespace, 0)
-	query := db.NewSelect().Model(&entities)
+	query := db.NewSelect().Model(&entities).Relation("Settings")
 
 	var err error
 	query, err = applyOptions(ctx, query, opts...)
@@ -105,7 +129,7 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 	}
 
 	ns := new(entity.Namespace)
-	query := db.NewSelect().Model(ns).Relation("Memberships.User").Where("? = ?", bun.Ident(column), val)
+	query := db.NewSelect().Model(ns).Relation("Memberships.User").Relation("Settings").Where("? = ?", bun.Ident(column), val)
 	if err := query.Scan(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}
@@ -120,6 +144,7 @@ func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models
 	if err := db.NewSelect().
 		Model(ns).
 		Relation("Memberships.User").
+		Relation("Settings").
 		Join("JOIN users").
 		JoinOn("namespace.id = users.preferred_namespace_id OR namespace.id IN (SELECT namespace_id FROM memberships WHERE user_id = users.id)").
 		Where("users.id = ?", userID).
@@ -135,28 +160,46 @@ func (pg *Pg) NamespaceGetPreferred(ctx context.Context, userID string) (*models
 func (pg *Pg) NamespaceUpdate(ctx context.Context, namespace *models.Namespace) error {
 	db := pg.GetConnection(ctx)
 
-	// First check if namespace exists
-	exists, err := db.NewSelect().Model((*entity.Namespace)(nil)).Where("id = ?", namespace.TenantID).Exists(ctx)
-	if err != nil {
-		return fromSQLError(err)
-	}
-	if !exists {
-		return store.ErrNoDocuments
-	}
-
 	n := entity.NamespaceFromModel(namespace)
 	n.UpdatedAt = clock.Now()
 
-	r, err := db.NewUpdate().Model(n).WherePK().Exec(ctx)
-	if err != nil {
-		return fromSQLError(err)
+	exec := func(db bun.IDB) error {
+		// First check if namespace exists.
+		exists, err := db.NewSelect().Model((*entity.Namespace)(nil)).Where("id = ?", namespace.TenantID).Exists(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
+		if !exists {
+			return store.ErrNoDocuments
+		}
+
+		r, err := db.NewUpdate().Model(n).WherePK().Exec(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
+
+		if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+			return store.ErrNoDocuments
+		}
+
+		if n.Settings != nil {
+			n.Settings.UpdatedAt = clock.Now()
+			_, err = db.NewInsert().On("conflict (namespace_id) do update").Model(n.Settings).Exec(ctx)
+			if err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		return nil
 	}
 
-	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
-		return store.ErrNoDocuments
+	if _, ok := db.(bun.Tx); ok {
+		return exec(db)
 	}
 
-	return nil
+	return pg.WithTransaction(ctx, func(txCtx context.Context) error {
+		return exec(pg.GetConnection(txCtx))
+	})
 }
 
 func (pg *Pg) NamespaceIncrementDeviceCount(ctx context.Context, tenantID string, status models.DeviceStatus, count int64) error {
@@ -318,9 +361,9 @@ func namespaceExprPreferredOrder() string {
 func NamespaceResolverToString(resolver store.NamespaceResolver) (string, error) {
 	switch resolver {
 	case store.NamespaceTenantIDResolver:
-		return "id", nil
+		return "namespace.id", nil
 	case store.NamespaceNameResolver:
-		return "name", nil
+		return "namespace.name", nil
 	default:
 		return "", store.ErrResolverNotFound
 	}

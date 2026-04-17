@@ -103,6 +103,38 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 		return c.JSON(http.StatusForbidden, NewMessageFromError(ErrWebEndpointForbidden))
 	}
 
+	// Check if device allows web endpoints
+	device, err := h.Client.GetDevice(c.Request().Context(), endpoint.DeviceUID)
+	if err != nil {
+		log.WithError(err).Error("failed to get device")
+
+		return c.JSON(http.StatusForbidden, NewMessageFromError(ErrWebEndpointForbidden))
+	}
+
+	// Check namespace setting first
+	namespace, err := h.Client.NamespaceLookup(c.Request().Context(), endpoint.Namespace)
+	if err != nil {
+		log.WithError(err).Error("failed to get namespace")
+
+		return c.JSON(http.StatusForbidden, NewMessageFromError(ErrWebEndpointForbidden))
+	}
+	if namespace.Settings != nil && !namespace.Settings.AllowWebEndpoints {
+		log.WithFields(log.Fields{
+			"namespace": endpoint.Namespace,
+		}).Warn("web endpoints disabled for namespace")
+
+		return c.JSON(http.StatusForbidden, NewMessageFromError(ErrWebEndpointForbidden))
+	}
+
+	// Check device's SSH settings for AllowWebEndpoints (default: true if not set)
+	if device.SSH != nil && !device.SSH.AllowWebEndpoints {
+		log.WithFields(log.Fields{
+			"device": endpoint.DeviceUID,
+		}).Warn("web endpoints disabled for device")
+
+		return c.JSON(http.StatusForbidden, NewMessageFromError(ErrWebEndpointForbidden))
+	}
+
 	logger := log.WithFields(log.Fields{
 		"request-id": requestID,
 		"namespace":  endpoint.Namespace,

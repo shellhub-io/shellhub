@@ -377,6 +377,45 @@ export interface CreateWebEndpointRequest {
     'ttl': number;
     'tls'?: WebendpointTLS;
 }
+export interface DeviceSsh {
+    /**
+     * Allow password authentication at device level.
+     */
+    'allow_password'?: boolean;
+    /**
+     * Allow public key authentication at device level.
+     */
+    'allow_public_key'?: boolean;
+    /**
+     * Allow root user login at device level.
+     */
+    'allow_root'?: boolean;
+    /**
+     * Allow empty passwords at device level.
+     */
+    'allow_empty_passwords'?: boolean;
+    /**
+     * Allow TTY allocation at device level.
+     */
+    'allow_tty'?: boolean;
+    /**
+     * Allow TCP port forwarding at device level.
+     */
+    'allow_tcp_forwarding'?: boolean;
+    /**
+     * Allow web endpoints access via HTTP proxy at device level.
+     */
+    'allow_web_endpoints'?: boolean;
+    /**
+     * Allow SFTP subsystem at device level.
+     */
+    'allow_sftp'?: boolean;
+    /**
+     * Allow SSH agent forwarding at device level.
+     */
+    'allow_agent_forwarding'?: boolean;
+}
+
 export interface Device {
     /**
      * Device\'s UID
@@ -426,6 +465,10 @@ export interface Device {
      * Device\'s Tags list
      */
     'tags'?: Array<Tag>;
+    /**
+     * Device's SSH configuration settings
+     */
+    'settings'?: DeviceSsh;
     /**
      * Device\'s public URL status.
      */
@@ -1729,6 +1772,42 @@ export interface NamespaceSettings {
      * A connection announcement is a custom string written during a session when a connection is established on a device within the namespace.
      */
     'connection_announcement'?: string;
+    /**
+     * Allow password authentication at namespace level.
+     */
+    'allow_password'?: boolean;
+    /**
+     * Allow public key authentication at namespace level.
+     */
+    'allow_public_key'?: boolean;
+    /**
+     * Allow root user login at namespace level.
+     */
+    'allow_root'?: boolean;
+    /**
+     * Allow empty passwords at namespace level.
+     */
+    'allow_empty_passwords'?: boolean;
+    /**
+     * Allow TTY allocation at namespace level.
+     */
+    'allow_tty'?: boolean;
+    /**
+     * Allow TCP port forwarding at namespace level.
+     */
+    'allow_tcp_forwarding'?: boolean;
+    /**
+     * Allow web endpoints access via HTTP proxy at namespace level.
+     */
+    'allow_web_endpoints'?: boolean;
+    /**
+     * Allow SFTP subsystem at namespace level.
+     */
+    'allow_sftp'?: boolean;
+    /**
+     * Allow SSH agent forwarding at namespace level.
+     */
+    'allow_agent_forwarding'?: boolean;
 }
 /**
  * @type PublicKeyFilter
@@ -2116,6 +2195,10 @@ export interface UpdateDeviceRequest {
      * Device\'s public URL status.
      */
     'public_url'?: boolean;
+    /**
+     * Device's SSH configuration settings
+     */
+    'settings'?: DeviceSsh;
 }
 
 export const UpdateDeviceStatusStatusParameter = {
@@ -33084,6 +33167,3 @@ export class WebEndpointsApi extends BaseAPI {
         return WebEndpointsApiFp(this.configuration).listWebEndpoints(filter, page, perPage, sortBy, orderBy, options).then((request) => request(this.axios, this.basePath));
     }
 }
-
-
-

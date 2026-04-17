@@ -349,6 +349,40 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		device.Name = strings.ToLower(req.Name)
 	}
 
+	if req.SSH != nil {
+		if device.SSH == nil {
+			device.SSH = models.DefaultSSHSettings()
+		}
+
+		if req.SSH.AllowPassword != nil {
+			device.SSH.AllowPassword = *req.SSH.AllowPassword
+		}
+		if req.SSH.AllowPublicKey != nil {
+			device.SSH.AllowPublicKey = *req.SSH.AllowPublicKey
+		}
+		if req.SSH.AllowRoot != nil {
+			device.SSH.AllowRoot = *req.SSH.AllowRoot
+		}
+		if req.SSH.AllowEmptyPasswords != nil {
+			device.SSH.AllowEmptyPasswords = *req.SSH.AllowEmptyPasswords
+		}
+		if req.SSH.AllowTTY != nil {
+			device.SSH.AllowTTY = *req.SSH.AllowTTY
+		}
+		if req.SSH.AllowTCPForwarding != nil {
+			device.SSH.AllowTCPForwarding = *req.SSH.AllowTCPForwarding
+		}
+		if req.SSH.AllowWebEndpoints != nil {
+			device.SSH.AllowWebEndpoints = *req.SSH.AllowWebEndpoints
+		}
+		if req.SSH.AllowSFTP != nil {
+			device.SSH.AllowSFTP = *req.SSH.AllowSFTP
+		}
+		if req.SSH.AllowAgentForwarding != nil {
+			device.SSH.AllowAgentForwarding = *req.SSH.AllowAgentForwarding
+		}
+	}
+
 	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
 		return err
 	}
@@ -376,6 +410,10 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	}
 
 	log.WithFields(logFields).Debug("updating new device name to preserve old device identity")
+	if oldDevice.SSH != nil {
+		newDevice.SSH = oldDevice.SSH
+	}
+
 	newDevice.Name = oldDevice.Name
 	if err := s.store.DeviceUpdate(ctx, newDevice); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to update new device name")

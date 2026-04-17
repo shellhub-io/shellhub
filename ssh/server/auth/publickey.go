@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"net"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -33,6 +34,12 @@ func PublicKeyHandler(ctx gliderssh.Context, publicKey gliderssh.PublicKey) bool
 	}
 
 	if err := sess.Auth(ctx, session.AuthPublicKey(publicKey)); err != nil {
+		if errors.Is(err, session.ErrPublicKeyDisabled) {
+			logger.Warn("public key authentication is disabled for this namespace")
+
+			return false
+		}
+
 		logger.Warn("failed to authenticate on device using public key")
 
 		return false

@@ -11,7 +11,16 @@ export interface INamespaceMember {
 
 export interface INamespaceSettings {
   connection_announcement?: string;
-  session_record: boolean;
+  session_record?: boolean;
+  allow_password?: boolean;
+  allow_public_key?: boolean;
+  allow_root?: boolean;
+  allow_empty_passwords?: boolean;
+  allow_tty?: boolean;
+  allow_tcp_forwarding?: boolean;
+  allow_web_endpoints?: boolean;
+  allow_sftp?: boolean;
+  allow_agent_forwarding?: boolean;
 }
 
 interface INamespaceBilling {

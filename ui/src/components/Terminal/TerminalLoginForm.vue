@@ -33,7 +33,7 @@
 
       <v-select
         v-model="authenticationMethod"
-        :items="[TerminalAuthMethods.Password, TerminalAuthMethods.PrivateKey]"
+        :items="isPasswordDisabled ? [TerminalAuthMethods.PrivateKey] : [TerminalAuthMethods.Password, TerminalAuthMethods.PrivateKey]"
         label="Authentication method"
         data-test="auth-method-select"
         hide-details
@@ -49,7 +49,7 @@
       />
 
       <v-text-field
-        v-else
+        v-if="!isPasswordDisabled && authenticationMethod === TerminalAuthMethods.Password"
         v-model="password"
         :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
         :error-messages="passwordError"
@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import * as yup from "yup";
 import { useField } from "vee-validate";
 import FormDialog from "@/components/Dialogs/FormDialog.vue";
@@ -131,6 +131,7 @@ import PrivateKeySelectWithAdd from "@/components/PrivateKeys/PrivateKeySelectWi
 import { LoginFormData, TerminalAuthMethods } from "@/interfaces/ITerminal";
 import { IPrivateKey } from "@/interfaces/IPrivateKey";
 import usePrivateKeysStore from "@/store/modules/private_keys";
+import useNamespacesStore from "@/store/modules/namespaces";
 import { isKeyValid } from "@/utils/sshKeys";
 
 const props = defineProps<{
@@ -145,7 +146,25 @@ const emit = defineEmits<{
 const showDialog = defineModel<boolean>({ required: true });
 const isConnecting = defineModel<boolean>("loading", { default: false });
 const { privateKeys } = usePrivateKeysStore();
-const authenticationMethod = ref(TerminalAuthMethods.Password);
+const namespacesStore = useNamespacesStore();
+
+const isPasswordAllowed = computed(
+  () => namespacesStore.currentNamespace.settings?.allow_password ?? true,
+);
+
+const isPasswordDisabled = computed(() => !isPasswordAllowed.value);
+
+const authenticationMethod = ref(
+  isPasswordAllowed.value ? TerminalAuthMethods.Password : TerminalAuthMethods.PrivateKey,
+);
+
+watch(isPasswordAllowed, (isAllowed) => {
+  if (!isAllowed && authenticationMethod.value === TerminalAuthMethods.Password) {
+    authenticationMethod.value = TerminalAuthMethods.PrivateKey;
+    togglePassphraseField();
+  }
+});
+
 const showPassword = ref(false);
 const selectedPrivateKeyName = ref(privateKeys[0]?.name || "");
 const showPassphraseField = ref(false);
@@ -211,7 +230,7 @@ const resetFields = () => {
   resetUsernameField();
   resetPasswordField();
   resetPassphraseField();
-  authenticationMethod.value = TerminalAuthMethods.Password;
+  authenticationMethod.value = isPasswordDisabled.value ? TerminalAuthMethods.PrivateKey : TerminalAuthMethods.Password;
   selectedPrivateKeyName.value = privateKeys[0]?.name || "";
   showPassphraseField.value = false;
 };

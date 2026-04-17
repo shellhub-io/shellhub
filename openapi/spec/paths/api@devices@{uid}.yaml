@@ -62,6 +62,8 @@ put:
               $ref: ../components/schemas/deviceName.yaml
             public_url:
               $ref: ../components/schemas/devicePublicURL.yaml
+            settings:
+              $ref: ../components/schemas/deviceSSH.yaml
           required:
             - name
   responses:

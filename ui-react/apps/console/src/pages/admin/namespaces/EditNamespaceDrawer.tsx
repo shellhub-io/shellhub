@@ -5,6 +5,7 @@ import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
 import type { Namespace } from "@/client";
+import { normalizeNamespaceSettings } from "@/utils/namespaceSettings";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
@@ -40,16 +41,15 @@ export default function EditNamespaceDrawer({
     try {
       await editNamespace.mutateAsync({
         path: { tenantID: namespace.tenant_id },
-        // The SDK types body as full Namespace; we spread the original
-        // to satisfy the type while only changing the editable fields.
         body: {
           ...namespace,
           name: name.trim(),
           max_devices: maxDevices,
           settings: {
-            connection_announcement:
-              namespace.settings?.connection_announcement ?? "",
-            session_record: sessionRecord,
+            ...normalizeNamespaceSettings({
+              ...namespace.settings,
+              session_record: sessionRecord,
+            }),
           },
         },
       });

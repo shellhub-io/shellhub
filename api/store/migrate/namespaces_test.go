@@ -40,7 +40,7 @@ func TestConvertNamespace(t *testing.T) {
 		assert.Equal(t, int64(2), result.DevicesPendingCount)
 		assert.Equal(t, int64(1), result.DevicesRejectedCount)
 		assert.Equal(t, int64(3), result.DevicesRemovedCount)
-		assert.Equal(t, 10, result.Settings.MaxDevices)
+		assert.Equal(t, 10, result.MaxDevices)
 		assert.True(t, result.Settings.SessionRecord)
 		assert.Equal(t, "Welcome!", result.Settings.ConnectionAnnouncement)
 	})
@@ -65,7 +65,7 @@ func TestConvertNamespace(t *testing.T) {
 
 		result := convertNamespace(doc)
 
-		assert.Equal(t, 3, result.Settings.MaxDevices)
+		assert.Equal(t, 3, result.MaxDevices)
 		assert.False(t, result.Settings.SessionRecord)
 		assert.Empty(t, result.Settings.ConnectionAnnouncement)
 	})

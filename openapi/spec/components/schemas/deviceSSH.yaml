@@ -1,0 +1,39 @@
+type: object
+description: Device's SSH configuration settings
+properties:
+  allow_password:
+    description: Allow password authentication
+    type: boolean
+    example: true
+  allow_public_key:
+    description: Allow public key authentication
+    type: boolean
+    example: true
+  allow_root:
+    description: Allow root user login
+    type: boolean
+    example: true
+  allow_empty_passwords:
+    description: Allow empty passwords
+    type: boolean
+    example: false
+  allow_tty:
+    description: Allow TTY allocation
+    type: boolean
+    example: true
+  allow_tcp_forwarding:
+    description: Allow TCP port forwarding
+    type: boolean
+    example: true
+  allow_web_endpoints:
+    description: Allow web endpoints access via HTTP proxy
+    type: boolean
+    example: true
+  allow_sftp:
+    description: Allow SFTP subsystem
+    type: boolean
+    example: true
+  allow_agent_forwarding:
+    description: Allow SSH agent forwarding
+    type: boolean
+    example: false

@@ -18,6 +18,8 @@ import {
   ClockIcon,
   CpuChipIcon,
   ChevronDoubleRightIcon,
+  LockOpenIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { useDevice } from "../hooks/useDevice";
 import {
@@ -25,6 +27,7 @@ import {
   useAddDeviceTag,
   useRemoveDeviceTag,
   useRemoveDevice,
+  useUpdateDeviceSSH,
 } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
@@ -33,10 +36,12 @@ import DeviceActionDialog from "./devices/DeviceActionDialog";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
+import SettingToggle from "../components/common/SettingToggle";
 import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
+import type { Device } from "../client";
 
 /* ─── Shared styles ─── */
 const LABEL
@@ -120,7 +125,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
     try {
       await removeTagMutation.mutateAsync({ path: { uid, name: tag } });
     } catch {
-      /* invalidation handles UI update */
+      return;
     }
   };
 
@@ -278,8 +283,11 @@ export default function DeviceDetails() {
   const [searchParams] = useSearchParams();
   const { device, isLoading } = useDevice(uid ?? "");
   const removeMutation = useRemoveDevice();
+  const updateSSH = useUpdateDeviceSSH();
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
+  type DeviceSSHSettings = NonNullable<Device["settings"]>;
+  const deviceSettings = device?.settings;
   const existingSession = useTerminalStore((s) =>
     s.sessions.find((sess) => sess.deviceUid === uid),
   );
@@ -292,7 +300,20 @@ export default function DeviceDetails() {
     action: "accept" | "reject" | "remove";
   } | null>(null);
 
-  // Auto-open connect drawer if ?connect=true (adjust during render)
+  const updateDeviceSetting = async (settings: Partial<DeviceSSHSettings>) => {
+    if (!device) {
+      return;
+    }
+
+    await updateSSH.mutateAsync({
+      path: { uid: device.uid },
+      body: {
+        name: device.name,
+        settings,
+      },
+    });
+  };
+
   const shouldAutoConnect
     = searchParams.get("connect") === "true"
       && device?.online
@@ -307,7 +328,6 @@ export default function DeviceDetails() {
     setAutoConnectDone(false);
   }
 
-  // Restore existing terminal session (side effect only, no setState)
   useEffect(() => {
     if (
       searchParams.get("connect") === "true"
@@ -591,6 +611,250 @@ export default function DeviceDetails() {
       {/* Tags */}
       <div className="bg-card border border-border rounded-xl p-5 mb-6">
         <TagsSection uid={device.uid} tags={tags} />
+      </div>
+
+      {/* Settings */}
+      <div className="bg-card border border-border rounded-xl p-5 mb-6">
+        <h3 className="text-xs font-semibold text-text-primary flex items-center gap-2 mb-4">
+          <LockClosedIcon className="w-4 h-4 text-primary" />
+          Settings
+        </h3>
+        <div className="divide-y divide-border -mx-2">
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_password ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow Password Authentication
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow SSH connections using password for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_password ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_password: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_public_key ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow Public Key Authentication
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow SSH connections using public key for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_public_key ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_public_key: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_root ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow Root Login
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow SSH connections as root user for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_root ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_root: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_empty_passwords ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow Empty Passwords
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow SSH connections with empty passwords for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_empty_passwords ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_empty_passwords: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_tty ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow TTY Allocation
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow terminal (TTY) allocation for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_tty ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_tty: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_tcp_forwarding ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow TCP Forwarding
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow TCP port forwarding for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_tcp_forwarding ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_tcp_forwarding: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_web_endpoints ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow Web Endpoints
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow HTTP/HTTPS access via ShellHub proxy
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_web_endpoints ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_web_endpoints: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_sftp ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow SFTP
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow SFTP subsystem for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_sftp ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_sftp: checked });
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-6 px-2 py-3">
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-lg bg-hover-medium border border-border flex items-center justify-center text-text-muted shrink-0 mt-0.5">
+                {deviceSettings?.allow_agent_forwarding ?? true
+                  ? <LockOpenIcon className="w-4 h-4 text-accent-green" />
+                  : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary">
+                  Allow Agent Forwarding
+                </p>
+                <p className="text-2xs text-text-muted mt-0.5 leading-relaxed">
+                  Allow SSH agent forwarding for this device
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0">
+              <SettingToggle
+                checked={deviceSettings?.allow_agent_forwarding ?? true}
+                tone="success"
+                onChange={(checked) => {
+                  return updateDeviceSetting({ allow_agent_forwarding: checked });
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Delete Dialog */}

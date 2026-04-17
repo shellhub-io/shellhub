@@ -28,22 +28,17 @@ export default defineConfig({
       autoImport: true,
       styles: { configFile: "./src/styles/variables.scss" },
     }),
-    {
-      name: "vitest-plugin-beforeall",
-      config: () => ({
-        test: {
-          setupFiles: [
-            fileURLToPath(new URL("./vitest/beforeAll.ts", import.meta.url)),
-          ],
-        },
-      }),
-    },
   ],
   test: {
     // https://vitest.dev/guide/#configuring-vitest
     globals: true,
     globalSetup: [fileURLToPath(new URL("./vitest/setup.ts", import.meta.url))],
-    setupFiles: ["./vitest/vitest-canvas-mock.ts", "./vitest/setupAxiosMatchers.ts"],
+    setupFiles: [
+      "./vitest/setupLocalStorage.ts",
+      "./vitest/beforeAll.ts",
+      "./vitest/vitest-canvas-mock.ts",
+      "./vitest/setupAxiosMatchers.ts",
+    ],
     environment: "jsdom",
     server: {
       deps: {

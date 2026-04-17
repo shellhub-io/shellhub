@@ -42,6 +42,14 @@ export function useRenameDevice() {
   });
 }
 
+export function useUpdateDeviceSSH() {
+  const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices");
+  return useMutation({
+    ...updateDeviceMutation(),
+    onSuccess: invalidate,
+  });
+}
+
 export function useAddDeviceTag() {
   const invalidate = useInvalidateByIds("getDevices", "getDevice", "getStatusDevices", "getTags");
   return useMutation({

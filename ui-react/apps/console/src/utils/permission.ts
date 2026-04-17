@@ -44,6 +44,15 @@ const permissions = {
   "namespace:editInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:cancelInvitation": RoleLevel.ADMINISTRATOR,
   "namespace:updateSessionRecording": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowPassword": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowPublicKey": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowRoot": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowEmptyPasswords": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowTTY": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowTcpForwarding": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowWebEndpoints": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowSFTP": RoleLevel.ADMINISTRATOR,
+  "namespace:updateAllowAgentForwarding": RoleLevel.ADMINISTRATOR,
   "namespace:delete": RoleLevel.OWNER,
 
   // Tags
