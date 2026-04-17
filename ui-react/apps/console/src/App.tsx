@@ -25,6 +25,8 @@ const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
 const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
+const Containers = lazy(() => import("./pages/containers"));
+const ContainerDetails = lazy(() => import("./pages/ContainerDetails"));
 const Sessions = lazy(() => import("./pages/sessions"));
 const SessionDetails = lazy(() => import("./pages/SessionDetails"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -184,6 +186,8 @@ export default function App() {
                   <Route path="/devices" element={<Devices />} />
                   <Route path="/devices/add" element={<AddDevice />} />
                   <Route path="/devices/:uid" element={<DeviceDetails />} />
+                  <Route path="/containers" element={<Containers />} />
+                  <Route path="/containers/:uid" element={<ContainerDetails />} />
                   <Route path="/sessions" element={<Sessions />} />
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
