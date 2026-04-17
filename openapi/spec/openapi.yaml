@@ -159,6 +159,8 @@ paths:
     $ref: paths/api@tags@{name}.yaml
   /api/devices/{uid}/tags/{name}:
     $ref: paths/api@devices@{uid}@tags@{name}.yaml
+  /api/containers/{uid}/tags/{name}:
+    $ref: paths/api@containers@{uid}@tags@{name}.yaml
   /api/namespaces/{tenant}/tags:
     $ref: paths/api@namespaces@{tenant}@tags.yaml
   /api/namespaces/{tenant}/tags/{name}:
