@@ -15,7 +15,7 @@ patch:
       description: Current tag name
       schema:
         type: string
-        pattern: ^[a-zA-Z0-9-_]+$
+        pattern: ^[a-zA-Z0-9]+$
         example: prod
       required: true
       in: path
@@ -32,7 +32,7 @@ patch:
               type: string
               minLength: 3
               maxLength: 255
-              pattern: ^[a-zA-Z0-9-_]+$
+              pattern: ^[a-zA-Z0-9]+$
               example: dev
               description: New tag name
   responses:
@@ -71,7 +71,7 @@ delete:
       description: Tag name to delete
       schema:
         type: string
-        pattern: ^[a-zA-Z0-9-_]+$
+        pattern: ^[a-zA-Z0-9]+$
         example: prod
       required: true
       in: path
