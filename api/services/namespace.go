@@ -102,6 +102,26 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int, error) {
+	// When the caller has no user ID and is not a system admin (e.g.
+	// authenticated via API key), the listing is scoped to the caller's
+	// tenant. Otherwise the caller could enumerate namespaces across tenants.
+	if req.UserID == "" && !req.IsAdmin {
+		if req.TenantID == "" {
+			return []models.Namespace{}, 0, nil
+		}
+
+		ns, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+		if err != nil {
+			return nil, 0, NewErrNamespaceList(err)
+		}
+
+		if ns == nil {
+			return []models.Namespace{}, 0, nil
+		}
+
+		return []models.Namespace{*ns}, 1, nil
+	}
+
 	opts := []store.QueryOption{s.store.Options().Match(&req.Filters), s.store.Options().Paginate(&req.Paginator)}
 	if req.UserID != "" {
 		opts = append(opts, s.store.Options().WithMember(req.UserID))

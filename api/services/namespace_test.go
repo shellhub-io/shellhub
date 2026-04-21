@@ -46,6 +46,7 @@ func TestListNamespaces(t *testing.T) {
 		{
 			description: "fail when could not get the namespace list",
 			req: &requests.NamespaceList{
+				IsAdmin:   true,
 				Paginator: query.Paginator{Page: 1, PerPage: 10},
 				Filters:   query.Filters{},
 			},
@@ -73,6 +74,7 @@ func TestListNamespaces(t *testing.T) {
 		{
 			description: "success to get the namespace list",
 			req: &requests.NamespaceList{
+				IsAdmin:   true,
 				Paginator: query.Paginator{Page: 1, PerPage: 10},
 				Filters:   query.Filters{},
 			},
@@ -263,6 +265,40 @@ func TestListNamespaces(t *testing.T) {
 				},
 				count: 1,
 				err:   nil,
+			},
+		},
+		{
+			description: "api key caller is scoped to its own tenant",
+			req: &requests.NamespaceList{
+				TenantID:  "a736a52b-5777-4f92-b0b8-e359bf484713",
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{},
+			},
+			ctx: ctx,
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "a736a52b-5777-4f92-b0b8-e359bf484713").
+					Return(&models.Namespace{Name: "own", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}, nil).
+					Once()
+			},
+			expected: Expected{
+				namespaces: []models.Namespace{{Name: "own", TenantID: "a736a52b-5777-4f92-b0b8-e359bf484713"}},
+				count:      1,
+				err:        nil,
+			},
+		},
+		{
+			description: "api key caller without tenant id returns empty list",
+			req: &requests.NamespaceList{
+				Paginator: query.Paginator{Page: 1, PerPage: 10},
+				Filters:   query.Filters{},
+			},
+			ctx:           ctx,
+			requiredMocks: func() {},
+			expected: Expected{
+				namespaces: []models.Namespace{},
+				count:      0,
+				err:        nil,
 			},
 		},
 	}

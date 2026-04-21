@@ -51,3 +51,26 @@ func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 		}
 	}
 }
+
+// RequiresTenant enforces that the caller's tenant scope matches the tenant
+// provided in the given URL path parameter. It fails closed: if either the
+// caller's tenant or the path parameter is missing or they don't match, it
+// returns [http.StatusForbidden].
+func RequiresTenant(param string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			ctx, ok := c.(*gateway.Context)
+			if !ok {
+				return c.NoContent(http.StatusForbidden)
+			}
+
+			path := c.Param(param)
+			tenant := ctx.Tenant()
+			if path == "" || tenant == nil || tenant.ID != path {
+				return c.NoContent(http.StatusForbidden)
+			}
+
+			return next(c)
+		}
+	}
+}
