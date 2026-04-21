@@ -146,6 +146,7 @@ func TestGetNamespace(t *testing.T) {
 
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req.Header.Set("X-Tenant-ID", tc.req)
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -230,6 +231,7 @@ func TestDeleteNamespace(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("X-Role", authorizer.RoleOwner.String())
 			req.Header.Set("X-ID", tc.uid)
+			req.Header.Set("X-Tenant-ID", tc.req)
 			rec := httptest.NewRecorder()
 
 			e := NewRouter(mock)
@@ -457,4 +459,142 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 	}
 
 	svcMock.AssertExpectations(t)
+}
+
+// TestNamespaceCrossTenantAccess ensures that callers cannot read, edit, delete
+// or toggle session recording of a namespace they are not scoped to. Covers the
+// regression described in GHSA-vwx9-7qcf-gg7f against both auth shapes: the
+// API-key caller (no X-ID) that the advisory reproduced and the JWT caller.
+func TestNamespaceCrossTenantAccess(t *testing.T) {
+	const (
+		callerTenant = "00000000-0000-4000-0000-000000000000"
+		victimTenant = "7e7389a9-55be-4e14-8c47-817a1552774f"
+		victimEmail  = "victim@example.com"
+		victimOwner  = "victim-owner"
+	)
+
+	routes := []struct {
+		description string
+		method      string
+		url         string
+		body        string
+	}{
+		{
+			description: "GET /namespaces/:tenant is blocked cross-tenant",
+			method:      http.MethodGet,
+			url:         "/api/namespaces/" + victimTenant,
+		},
+		{
+			description: "PUT /namespaces/:tenant is blocked cross-tenant",
+			method:      http.MethodPut,
+			url:         "/api/namespaces/" + victimTenant,
+			body:        `{"name":"pwned"}`,
+		},
+		{
+			description: "DELETE /namespaces/:tenant is blocked cross-tenant",
+			method:      http.MethodDelete,
+			url:         "/api/namespaces/" + victimTenant,
+		},
+		{
+			description: "PUT /users/security/:tenant is blocked cross-tenant",
+			method:      http.MethodPut,
+			url:         "/api/users/security/" + victimTenant,
+			body:        `{"session_record":false}`,
+		},
+	}
+
+	shapes := []struct {
+		name    string
+		headers map[string]string
+	}{
+		{
+			// The advisory PoC: X-API-Key + X-Tenant-ID, no X-ID.
+			name: "api-key shape",
+			headers: map[string]string{
+				"X-API-Key":   "caller-api-key",
+				"X-Tenant-ID": callerTenant,
+			},
+		},
+		{
+			name: "jwt shape",
+			headers: map[string]string{
+				"X-ID":        "caller-id",
+				"X-Tenant-ID": callerTenant,
+			},
+		},
+	}
+
+	for _, route := range routes {
+		for _, shape := range shapes {
+			t.Run(route.description+" ("+shape.name+")", func(t *testing.T) {
+				mock := new(mocks.Service)
+
+				// Seed the mock with a realistic victim namespace so the
+				// handler would have something to serialize on vulnerable
+				// code; the body-leak assertion below then catches any
+				// regression that bypasses the tenant guard.
+				victim := &models.Namespace{
+					Name:     "victim",
+					Owner:    victimOwner,
+					TenantID: victimTenant,
+					Members:  []models.Member{{ID: "victim-user", Email: victimEmail, Role: authorizer.RoleOwner}},
+				}
+				mock.On("GetNamespace", gomock.Anything, victimTenant).Return(victim, nil).Maybe()
+				mock.On("EditNamespace", gomock.Anything, gomock.Anything).Return(victim, nil).Maybe()
+				mock.On("DeleteNamespace", gomock.Anything, victimTenant).Return(nil).Maybe()
+				mock.On("EditSessionRecordStatus", gomock.Anything, gomock.Anything, victimTenant).Return(nil).Maybe()
+
+				var body io.Reader
+				if route.body != "" {
+					body = strings.NewReader(route.body)
+				}
+				req := httptest.NewRequest(route.method, route.url, body)
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("X-Role", authorizer.RoleOwner.String())
+				for k, v := range shape.headers {
+					req.Header.Set(k, v)
+				}
+
+				rec := httptest.NewRecorder()
+				NewRouter(mock).ServeHTTP(rec, req)
+
+				assert.Equal(t, http.StatusForbidden, rec.Result().StatusCode)
+				// Even if the status assertion regresses, no sensitive field
+				// from the victim namespace may leak into the response body.
+				assert.NotContains(t, rec.Body.String(), victimEmail)
+				assert.NotContains(t, rec.Body.String(), victimOwner)
+			})
+		}
+	}
+}
+
+// TestNamespaceAdminBypass ensures that system admins (X-Admin: true) can
+// still reach any namespace through the RequiresTenant middleware, which the
+// cloud admin panel depends on via the /admin/api proxy. DELETE is used here
+// because the handler itself has no membership check; GET would hit
+// GetNamespace's own membership gate after the middleware passes.
+func TestNamespaceAdminBypass(t *testing.T) {
+	const (
+		callerTenant = "00000000-0000-4000-0000-000000000000"
+		victimTenant = "7e7389a9-55be-4e14-8c47-817a1552774f"
+	)
+
+	mock := new(mocks.Service)
+	mock.
+		On("DeleteNamespace", gomock.Anything, victimTenant).
+		Return(nil).
+		Once()
+
+	// Mirror the /admin/api nginx shape: X-Admin=true, X-Tenant-ID present,
+	// no X-ID (the admin proxy strips it to keep the super-admin view).
+	req := httptest.NewRequest(http.MethodDelete, "/api/namespaces/"+victimTenant, nil)
+	req.Header.Set("X-Tenant-ID", callerTenant)
+	req.Header.Set("X-Role", authorizer.RoleOwner.String())
+	req.Header.Set("X-Admin", "true")
+
+	rec := httptest.NewRecorder()
+	NewRouter(mock).ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
+	mock.AssertExpectations(t)
 }

@@ -18,7 +18,12 @@ import (
 func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int, error) {
 	query := []bson.M{}
 
-	// Only match for the respective tenant if requested
+	// Scope the listing to the caller:
+	//   - JWT user (X-ID set): filter by membership.
+	//   - System admin (X-Admin: true, X-ID unset by the /admin/api gateway):
+	//     return everything so the cloud admin panel keeps working.
+	//   - API key (X-Tenant-ID set, no X-ID, no X-Admin): filter by tenant.
+	//   - Anything else: fail closed.
 	if id := gateway.IDFromContext(ctx); id != nil {
 		user, err := s.UserResolve(ctx, store.UserIDResolver, id.ID)
 		if err != nil {
@@ -32,6 +37,17 @@ func (s *Store) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([
 						"id": user.ID,
 					},
 				},
+			},
+		})
+	} else if !gateway.IsAdminFromContext(ctx) {
+		tenant := gateway.TenantFromContext(ctx)
+		if tenant == nil {
+			return []models.Namespace{}, 0, nil
+		}
+
+		query = append(query, bson.M{
+			"$match": bson.M{
+				"tenant_id": tenant.ID,
 			},
 		})
 	}

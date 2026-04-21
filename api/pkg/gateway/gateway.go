@@ -54,3 +54,13 @@ func IDFromContext(ctx context.Context) *models.ID {
 
 	return nil
 }
+
+// IsAdminFromContext reports whether the caller is a system admin, as
+// indicated by the X-Admin header populated from the /auth subrequest.
+func IsAdminFromContext(ctx context.Context) bool {
+	if c, ok := ctx.Value("ctx").(*Context); ok {
+		return c.IsAdmin()
+	}
+
+	return false
+}
