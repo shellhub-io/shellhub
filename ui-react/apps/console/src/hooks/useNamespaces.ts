@@ -60,7 +60,7 @@ export function useNamespace(tenantId: string) {
   });
 
   return {
-    namespace: (result.data ?? null) as Namespace | null,
+    namespace: (result.data ?? null),
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,

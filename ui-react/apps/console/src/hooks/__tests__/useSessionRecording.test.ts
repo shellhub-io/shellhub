@@ -27,7 +27,7 @@ describe("useSessionRecording", () => {
 
   it("sets isLoading true while fetching and false after", async () => {
     let resolve!: (value: unknown) => void;
-    mockGet.mockReturnValue(new Promise((r) => { resolve = r; }) as never);
+    mockGet.mockReturnValue(new Promise((r) => { resolve = r; }));
 
     const { result } = renderHook(() => useSessionRecording());
 

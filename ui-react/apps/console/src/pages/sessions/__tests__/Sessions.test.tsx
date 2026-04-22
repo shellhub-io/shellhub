@@ -103,7 +103,7 @@ function renderSessions() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useSessions).mockReturnValue(makeSessions() as ReturnType<typeof useSessions>);
+  vi.mocked(useSessions).mockReturnValue(makeSessions());
   vi.mocked(useCloseSession).mockReturnValue({ mutateAsync: vi.fn(), isPending: false, error: null } as unknown as ReturnType<typeof useCloseSession>);
   vi.mocked(useSessionRecording).mockReturnValue(makeRecording());
 });
@@ -116,7 +116,7 @@ describe("Sessions", () => {
   describe("initial load", () => {
     it("shows loading state while fetching", () => {
       vi.mocked(useSessions).mockReturnValue(
-        makeSessions({ isLoading: true }) as ReturnType<typeof useSessions>,
+        makeSessions({ isLoading: true }),
       );
 
       renderSessions();
@@ -137,7 +137,7 @@ describe("Sessions", () => {
       vi.mocked(useSessions).mockReturnValue(
         makeSessions({
           sessions: [makeSession({ uid: "session-abc" })],
-        }) as ReturnType<typeof useSessions>,
+        }),
       );
 
       renderSessions();
@@ -174,7 +174,7 @@ describe("Sessions", () => {
       vi.mocked(useSessions).mockReturnValue(
         makeSessions({
           sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }) as ReturnType<typeof useSessions>,
+        }),
       );
 
       renderSessions();
@@ -189,7 +189,7 @@ describe("Sessions", () => {
       vi.mocked(useSessions).mockReturnValue(
         makeSessions({
           sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }) as ReturnType<typeof useSessions>,
+        }),
       );
       vi.mocked(useSessionRecording).mockReturnValue(
         makeRecording({ isLoading: true }),
@@ -211,7 +211,7 @@ describe("Sessions", () => {
       vi.mocked(useSessions).mockReturnValue(
         makeSessions({
           sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }) as ReturnType<typeof useSessions>,
+        }),
       );
 
       renderSessions();
@@ -224,7 +224,7 @@ describe("Sessions", () => {
       vi.mocked(useSessions).mockReturnValue(
         makeSessions({
           sessions: [makeSession({ uid: "session-1", recorded: true })],
-        }) as ReturnType<typeof useSessions>,
+        }),
       );
       vi.mocked(useSessionRecording).mockReturnValue(
         makeRecording({ logs: "recorded-session-data", isLoading: false }),

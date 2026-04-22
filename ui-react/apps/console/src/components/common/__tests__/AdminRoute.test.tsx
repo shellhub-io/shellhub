@@ -63,7 +63,7 @@ describe("AdminRoute", () => {
       let resolveFetch!: () => void;
       mockGetUserInfo.mockReturnValue(
         new Promise((resolve) => {
-          resolveFetch = () => resolve({ data: { admin: true } } as never);
+          resolveFetch = () => resolve({ data: { admin: true } });
         }) as never,
       );
 

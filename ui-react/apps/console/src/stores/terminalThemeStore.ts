@@ -143,7 +143,7 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
                 dark: meta.dark,
                 preview: meta.preview,
                 colors: normalizeColors(raw),
-              } as TerminalTheme;
+              };
             } catch {
               return null;
             }

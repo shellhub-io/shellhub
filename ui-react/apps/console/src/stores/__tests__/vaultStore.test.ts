@@ -78,7 +78,7 @@ function makeFakeBackend() {
 }
 
 function makeFakeCryptoKey(label = "AES-GCM"): CryptoKey {
-  return { type: "secret", extractable: false, algorithm: { name: label }, usages: ["encrypt", "decrypt"] } as CryptoKey;
+  return { type: "secret", extractable: false, algorithm: { name: label }, usages: ["encrypt", "decrypt"] };
 }
 
 beforeEach(() => {
