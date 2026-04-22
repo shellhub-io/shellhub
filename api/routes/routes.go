@@ -115,6 +115,11 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
 	internalAPI.GET(EventsSessionsURL, gateway.Handler(handler.EventSession))
 
+	// Internal namespace lookup used by other services (ssh, cloud) to resolve
+	// a namespace by tenant without passing through the user-facing tenant
+	// guard on /api/namespaces/:tenant.
+	internalAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace))
+
 	// Public routes for external access through API gateway
 	publicAPI := router.Group("/api")
 	publicAPI.GET(HealthCheckURL, gateway.Handler(handler.EvaluateHealth))
