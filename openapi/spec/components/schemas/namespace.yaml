@@ -31,22 +31,6 @@ properties:
         role:
           $ref: namespaceMemberRole.yaml
           default: owner
-        type:
-          type: string
-          enum:
-            - personal
-            - team
-          default: personal
-          description: |
-            this field, on majority of cases is default 'personal', if the running
-            instance of shellhub is cloud, the default value is 'team'.
-
-            This field requires a valid input of either 'personal' or 'team'. the default
-            will match the current Shellhub instance type. When a "type" field value is
-            specified, it will override the default, but must be either 'personal' or 'team'.
-            Any other input will be rejected.
-
-          example: team
         status:
           type: string
           enum:
@@ -91,6 +75,22 @@ properties:
     type: integer
     minimum: 0
     example: 0
+  type:
+    type: string
+    enum:
+      - personal
+      - team
+    default: personal
+    description: |
+      this field, on majority of cases is default 'personal', if the running
+      instance of shellhub is cloud, the default value is 'team'.
+
+      This field requires a valid input of either 'personal' or 'team'. the default
+      will match the current Shellhub instance type. When a "type" field value is
+      specified, it will override the default, but must be either 'personal' or 'team'.
+      Any other input will be rejected.
+
+    example: team
 required:
   - name
   - owner
