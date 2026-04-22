@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -35,7 +36,12 @@ func (s *service) ListSessions(ctx context.Context, req *requests.ListSessions) 
 }
 
 func (s *service) GetSession(ctx context.Context, uid models.UID) (*models.Session, error) {
-	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid))
+	opts := []store.QueryOption{}
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+		opts = append(opts, s.store.Options().InNamespace(tenant.ID))
+	}
+
+	session, err := s.store.SessionResolve(ctx, store.SessionUIDResolver, string(uid), opts...)
 	if err != nil {
 		return nil, NewErrSessionNotFound(uid, err)
 	}

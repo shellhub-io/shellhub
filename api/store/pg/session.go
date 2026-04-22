@@ -59,6 +59,11 @@ func (pg *Pg) SessionList(ctx context.Context, opts ...store.QueryOption) ([]mod
 func (pg *Pg) SessionResolve(ctx context.Context, resolver store.SessionResolver, value string, opts ...store.QueryOption) (*models.Session, error) {
 	db := pg.GetConnection(ctx)
 
+	// Sessions and devices both have namespace_id; qualify the column so
+	// InNamespace filters don't hit an ambiguous column when
+	// SessionSelectQuery JOINs the devices table.
+	ctx = context.WithValue(ctx, CtxTableAlias, "session")
+
 	var sessionID string
 	switch resolver {
 	case store.SessionUIDResolver:
