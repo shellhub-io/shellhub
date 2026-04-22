@@ -55,13 +55,20 @@ func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
 // RequiresTenant enforces that the caller's tenant scope matches the tenant
 // provided in the given URL path parameter. It fails closed: if either the
 // caller's tenant or the path parameter is missing or they don't match, it
-// returns [http.StatusForbidden].
+// returns [http.StatusForbidden]. Callers coming through the admin panel
+// bypass this check; they are identified by the /admin/api gateway, which
+// strips X-ID and keeps X-Admin: true. An admin user who hits the regular
+// /api/* surface still carries X-ID and is subject to the tenant guard.
 func RequiresTenant(param string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			ctx, ok := c.(*gateway.Context)
 			if !ok {
 				return c.NoContent(http.StatusForbidden)
+			}
+
+			if ctx.ID() == nil && ctx.IsAdmin() {
+				return next(c)
 			}
 
 			path := c.Param(param)
