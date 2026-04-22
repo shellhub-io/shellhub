@@ -171,6 +171,12 @@ func (s *Store) SessionResolve(ctx context.Context, resolver store.SessionResolv
 		},
 	}
 
+	for _, opt := range opts {
+		if err := opt(context.WithValue(ctx, "query", &query)); err != nil {
+			return nil, err
+		}
+	}
+
 	cursor, err := s.db.Collection("sessions").Aggregate(ctx, query)
 	if err != nil {
 		return nil, FromMongoError(err)
