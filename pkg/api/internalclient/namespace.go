@@ -26,7 +26,7 @@ func (c *client) NamespaceLookup(ctx context.Context, tenant string) (*models.Na
 		SetContext(ctx).
 		SetPathParam("tenant", tenant).
 		SetResult(namespace).
-		Get(c.config.APIBaseURL + "/api/namespaces/{tenant}")
+		Get(c.config.APIBaseURL + "/internal/namespaces/{tenant}")
 	if err := HasError(resp, err); err != nil {
 		return nil, err
 	}
