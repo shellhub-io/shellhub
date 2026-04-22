@@ -2,9 +2,13 @@ package services
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/labstack/echo/v4"
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	storemock "github.com/shellhub-io/shellhub/api/store/mocks"
 	req "github.com/shellhub-io/shellhub/pkg/api/internalclient"
@@ -726,8 +730,6 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 }
 
 func TestGetDevice(t *testing.T) {
-	mock := new(storemock.Store)
-
 	ctx := context.TODO()
 
 	type Expected struct {
@@ -737,30 +739,62 @@ func TestGetDevice(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		requiredMocks func()
+		ctx           context.Context
 		uid           models.UID
+		requiredMocks func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions)
 		expected      Expected
 	}{
 		{
 			description: "fails when the store get device fails",
-			requiredMocks: func() {
-				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "_uid").Return(nil, errors.New("error", "", 0)).Once()
+			ctx:         ctx,
+			uid:         models.UID("_uid"),
+			requiredMocks: func(storeMock *storemock.Store, _ *storemock.QueryOptions) {
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "_uid").Return(nil, errors.New("error", "", 0)).Once()
 			},
-			uid: models.UID("_uid"),
 			expected: Expected{
 				nil,
 				NewErrDeviceNotFound(models.UID("_uid"), errors.New("error", "", 0)),
 			},
 		},
 		{
-			description: "succeeds",
-			requiredMocks: func() {
+			description: "succeeds without tenant in context",
+			ctx:         ctx,
+			uid:         models.UID("uid"),
+			requiredMocks: func(storeMock *storemock.Store, _ *storemock.QueryOptions) {
 				device := &models.Device{UID: "uid"}
-				mock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
+				storeMock.On("DeviceResolve", ctx, store.DeviceUIDResolver, "uid").Return(device, nil).Once()
 			},
-			uid: models.UID("uid"),
 			expected: Expected{
 				&models.Device{UID: "uid"},
+				nil,
+			},
+		},
+		{
+			description: "scopes by caller tenant and returns not found for a device in another namespace",
+			ctx:         contextWithTenant("attacker-tenant"),
+			uid:         models.UID("victim-uid"),
+			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
+				queryOptionsMock.On("InNamespace", "attacker-tenant").Return(nil).Once()
+				storeMock.On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "victim-uid", mock.AnythingOfType("store.QueryOption")).
+					Return(nil, errors.New("not found", "", 0)).Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrDeviceNotFound(models.UID("victim-uid"), errors.New("not found", "", 0)),
+			},
+		},
+		{
+			description: "scopes by caller tenant and returns device in the same namespace",
+			ctx:         contextWithTenant("tenant-a"),
+			uid:         models.UID("uid"),
+			requiredMocks: func(storeMock *storemock.Store, queryOptionsMock *storemock.QueryOptions) {
+				queryOptionsMock.On("InNamespace", "tenant-a").Return(nil).Once()
+				device := &models.Device{UID: "uid", TenantID: "tenant-a"}
+				storeMock.On("DeviceResolve", mock.Anything, store.DeviceUIDResolver, "uid", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).Once()
+			},
+			expected: Expected{
+				&models.Device{UID: "uid", TenantID: "tenant-a"},
 				nil,
 			},
 		},
@@ -768,16 +802,32 @@ func TestGetDevice(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+			storeMock := new(storemock.Store)
+			queryOptionsMock := new(storemock.QueryOptions)
+			storeMock.On("Options").Return(queryOptionsMock).Maybe()
+			tc.requiredMocks(storeMock, queryOptionsMock)
 
-			service := NewService(store.Store(mock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
 
-			returnedDevice, err := service.GetDevice(ctx, tc.uid)
+			returnedDevice, err := service.GetDevice(tc.ctx, tc.uid)
 			assert.Equal(t, tc.expected, Expected{returnedDevice, err})
+			storeMock.AssertExpectations(t)
+			queryOptionsMock.AssertExpectations(t)
 		})
 	}
+}
 
-	mock.AssertExpectations(t)
+// contextWithTenant returns a context carrying a gateway.Context with the
+// given tenant ID in the X-Tenant-ID header, matching what the routing layer
+// produces for a request going through the /auth nginx subrequest.
+func contextWithTenant(tenantID string) context.Context {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("X-Tenant-ID", tenantID)
+	rec := httptest.NewRecorder()
+	gctx := gateway.NewContext(nil, e.NewContext(req, rec))
+
+	return context.WithValue(context.Background(), "ctx", gctx) //nolint:revive
 }
 
 func TestResolveDevice(t *testing.T) {

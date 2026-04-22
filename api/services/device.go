@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -93,7 +94,12 @@ func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]
 }
 
 func (s *service) GetDevice(ctx context.Context, uid models.UID) (*models.Device, error) {
-	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid))
+	opts := []store.QueryOption{}
+	if tenant := gateway.TenantFromContext(ctx); tenant != nil {
+		opts = append(opts, s.store.Options().InNamespace(tenant.ID))
+	}
+
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, string(uid), opts...)
 	if err != nil {
 		return nil, NewErrDeviceNotFound(uid, err)
 	}
