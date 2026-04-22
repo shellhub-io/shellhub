@@ -43,7 +43,7 @@ function makeKey(overrides: Partial<PublicKeyResponse> = {}): PublicKeyResponse 
     filter: { hostname: ".*" },
     username: ".*",
     ...overrides,
-  } as PublicKeyResponse;
+  };
 }
 
 beforeEach(() => {

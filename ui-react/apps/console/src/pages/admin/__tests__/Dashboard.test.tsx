@@ -45,12 +45,12 @@ const mockSession = {
 };
 
 function setupHooks({
-  statsData = fullStats as object | undefined,
+  statsData = fullStats,
   statsLoading = false,
   statsError = false,
   sessions = [mockSession] as object[],
   sessionsLoading = false,
-  sessionsError = null as unknown,
+  sessionsError = null as Error | null,
 } = {}) {
   vi.mocked(useAdminStats).mockReturnValue({
     stats: statsData,
@@ -227,7 +227,7 @@ describe("AdminDashboard", () => {
 
   describe("success state — partial stats response", () => {
     it("renders 0 for each missing stat field", () => {
-      setupHooks({ statsData: { registered_users: 10 } });
+      setupHooks({ statsData: { registered_users: 10 } as typeof fullStats });
       renderPage();
       expect(screen.getByText("10")).toBeInTheDocument();
       const zeros = screen.getAllByText("0");
@@ -235,7 +235,7 @@ describe("AdminDashboard", () => {
     });
 
     it("renders all zeros when stats is an empty object", () => {
-      setupHooks({ statsData: {} });
+      setupHooks({ statsData: {} as typeof fullStats });
       renderPage();
       const zeros = screen.getAllByText("0");
       expect(zeros.length).toBeGreaterThanOrEqual(6);

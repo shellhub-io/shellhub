@@ -49,7 +49,7 @@ function setupHook(overrides: Record<string, any> = {}) {
     isLoading: false,
     error: null,
     ...overrides,
-  } as ReturnType<typeof useAdminSessionsList>);
+  });
 }
 
 function renderPage() {

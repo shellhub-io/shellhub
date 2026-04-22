@@ -69,7 +69,7 @@ describe("useCreateUser", () => {
         wrapper: createWrapper(),
       });
 
-      await act(() => result.current.mutateAsync({} as never));
+      await act(() => result.current.mutateAsync({}));
 
       await waitFor(() => expect(mockInvalidate).toHaveBeenCalledTimes(1));
     });
@@ -83,7 +83,7 @@ describe("useCreateUser", () => {
         wrapper: createWrapper(),
       });
 
-      act(() => result.current.mutate({} as never));
+      act(() => result.current.mutate({}));
 
       await waitFor(() => expect(result.current.isError).toBe(true));
       expect(result.current.error).toBe(error);
@@ -95,7 +95,7 @@ describe("useCreateUser", () => {
         wrapper: createWrapper(),
       });
 
-      act(() => result.current.mutate({} as never));
+      act(() => result.current.mutate({}));
 
       await waitFor(() => expect(result.current.isError).toBe(true));
       expect(mockInvalidate).not.toHaveBeenCalled();

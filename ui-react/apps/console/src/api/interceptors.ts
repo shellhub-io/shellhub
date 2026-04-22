@@ -6,7 +6,7 @@ function isTokenExpired(token: string): boolean {
   try {
     const payload: unknown = JSON.parse(atob(token.split(".")[1]));
     if (typeof payload === "object" && payload !== null && "exp" in payload) {
-      const { exp } = payload as { exp: unknown };
+      const { exp } = payload;
       return typeof exp === "number" && exp * 1000 < Date.now();
     }
     return false;
