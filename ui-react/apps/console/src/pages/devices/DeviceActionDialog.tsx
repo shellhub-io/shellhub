@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { isSdkError } from "@/api/errors";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
-import { useAcceptDevice, useRejectDevice, useRemoveDevice } from "@/hooks/useDeviceMutations";
+import {
+  useAcceptDevice,
+  useRejectDevice,
+  useRemoveDevice,
+} from "@/hooks/useDeviceMutations";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 
 interface ActionDevice {
@@ -39,12 +43,14 @@ function DeviceActionDialog({
   action,
   onClose,
   onSuccess,
+  onBillingWarning,
   open,
 }: {
   device: ActionDevice | null;
   action: "accept" | "reject" | "remove";
   onClose: () => void;
   onSuccess?: () => void;
+  onBillingWarning?: () => void;
   open: boolean;
 }) {
   const acceptMutation = useAcceptDevice();
@@ -60,12 +66,18 @@ function DeviceActionDialog({
       if (action === "accept") {
         await acceptMutation.mutateAsync({ path: { uid: device.uid } });
       } else if (action === "reject") {
-        await rejectMutation.mutateAsync({ path: { uid: device.uid, status: "reject" } });
+        await rejectMutation.mutateAsync({
+          path: { uid: device.uid, status: "reject" },
+        });
       } else {
         await removeMutation.mutateAsync({ path: { uid: device.uid } });
       }
     } catch (err: unknown) {
       const status = getErrorStatus(err);
+      if (action === "accept" && status === 402 && onBillingWarning) {
+        onBillingWarning();
+        return;
+      }
       if (action === "accept" && status === 402) {
         setError(
           "Couldn't accept the device. Check your billing status and try again.",
@@ -87,21 +99,17 @@ function DeviceActionDialog({
     onClose();
   };
 
-  const description = device
-    ? (
-      <>
-        {config.description}
-        {" "}
-        <span className="font-medium text-text-primary">{device.name}</span>
-        ?
-        {action === "remove" && (
-          <p className="text-xs text-text-muted/70 mt-1">
-            This action cannot be undone.
-          </p>
-        )}
-      </>
-    )
-    : null;
+  const description = device ? (
+    <>
+      {config.description}{" "}
+      <span className="font-medium text-text-primary">{device.name}</span>?
+      {action === "remove" && (
+        <p className="text-xs text-text-muted/70 mt-1">
+          This action cannot be undone.
+        </p>
+      )}
+    </>
+  ) : null;
 
   return (
     <ConfirmDialog
@@ -114,8 +122,14 @@ function DeviceActionDialog({
       variant={config.variant}
     >
       {error && (
-        <p role="alert" className="text-xs font-mono text-accent-red mb-2 flex items-center gap-1.5">
-          <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+        <p
+          role="alert"
+          className="text-xs font-mono text-accent-red mb-2 flex items-center gap-1.5"
+        >
+          <ExclamationCircleIcon
+            className="w-3.5 h-3.5 shrink-0"
+            strokeWidth={2}
+          />
           {error}
         </p>
       )}

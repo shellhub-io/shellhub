@@ -5,6 +5,7 @@ export interface ClientConfig {
   announcements: boolean;
   webEndpoints: boolean;
   onboardingUrl: string;
+  stripePublishableKey: string;
 }
 
 const defaultConfig: ClientConfig = {
@@ -14,21 +15,32 @@ const defaultConfig: ClientConfig = {
   announcements: false,
   webEndpoints: false,
   onboardingUrl: "",
+  stripePublishableKey: "",
 };
 
 let cached: ClientConfig = defaultConfig;
+let inflight: Promise<ClientConfig> | null = null;
 
 export async function loadConfig(): Promise<ClientConfig> {
   if (cached !== defaultConfig) return cached;
+  if (inflight) return inflight;
 
-  try {
-    const res = await fetch("/config.json");
-    cached = { ...defaultConfig, ...(await res.json() as Partial<ClientConfig>) };
-  } catch {
-    cached = defaultConfig;
-  }
+  inflight = (async () => {
+    try {
+      const res = await fetch("/config.json");
+      cached = {
+        ...defaultConfig,
+        ...((await res.json()) as Partial<ClientConfig>),
+      };
+    } catch {
+      // leave cached as defaultConfig so future calls can retry
+    } finally {
+      inflight = null;
+    }
+    return cached;
+  })();
 
-  return cached;
+  return inflight;
 }
 
 export function getConfig(): ClientConfig {

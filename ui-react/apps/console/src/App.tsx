@@ -172,10 +172,7 @@ export default function App() {
                         />
                       </>
                     )}
-                    <Route
-                      path="/admin/sessions"
-                      element={<AdminSessions />}
-                    />
+                    <Route path="/admin/sessions" element={<AdminSessions />} />
                     <Route
                       path="/admin/sessions/:uid"
                       element={<AdminSessionDetails />}
@@ -232,6 +229,10 @@ export default function App() {
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/settings/banner" element={<BannerEdit />} />
+                  <Route
+                    path="/settings/billing"
+                    element={<Navigate to="/settings#billing" replace />}
+                  />
                   <Route path="/profile" element={<Profile />} />
                 </Route>
               </Route>

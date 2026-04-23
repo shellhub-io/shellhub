@@ -42,12 +42,14 @@ function ContainerActionDialog({
   action,
   onClose,
   onSuccess,
+  onBillingWarning,
   open,
 }: {
   container: ActionContainer | null;
   action: "accept" | "reject" | "remove";
   onClose: () => void;
   onSuccess?: () => void;
+  onBillingWarning?: () => void;
   open: boolean;
 }) {
   const statusMutation = useUpdateContainerStatus();
@@ -68,6 +70,10 @@ function ContainerActionDialog({
       }
     } catch (err: unknown) {
       const status = getErrorStatus(err);
+      if (action === "accept" && status === 402 && onBillingWarning) {
+        onBillingWarning();
+        return;
+      }
       if (action === "accept" && status === 402) {
         setError(
           "Couldn't accept the container. Check your billing status and try again.",

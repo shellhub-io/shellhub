@@ -14,6 +14,7 @@ cat > "$OUTPUT" <<EOF
   "cloud": ${SHELLHUB_CLOUD:-false},
   "onboardingUrl": "${SHELLHUB_ONBOARDING_URL:-}",
   "announcements": ${SHELLHUB_ANNOUNCEMENTS:-false},
-  "webEndpoints": ${SHELLHUB_WEB_ENDPOINTS:-false}
+  "webEndpoints": ${SHELLHUB_WEB_ENDPOINTS:-false},
+  "stripePublishableKey": "${STRIPE_PUBLISHABLE_KEY:-}"
 }
 EOF

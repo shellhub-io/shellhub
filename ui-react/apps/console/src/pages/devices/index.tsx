@@ -16,6 +16,8 @@ import { buildSshid } from "@/utils/sshid";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import TagsPopover from "./TagsPopover";
 import DeviceActionDialog from "./DeviceActionDialog";
+import BillingWarning from "@/components/billing/BillingWarning";
+import { getConfig } from "@/env";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -60,6 +62,7 @@ export default function Devices() {
     sshid: string;
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
+  const [billingWarningOpen, setBillingWarningOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -461,6 +464,18 @@ export default function Devices() {
         device={actionTarget?.device ?? null}
         action={actionTarget?.action ?? "accept"}
         onClose={() => setActionTarget(null)}
+        onBillingWarning={
+          getConfig().cloud
+            ? () => {
+                setActionTarget(null);
+                setBillingWarningOpen(true);
+              }
+            : undefined
+        }
+      />
+      <BillingWarning
+        open={billingWarningOpen}
+        onClose={() => setBillingWarningOpen(false)}
       />
 
       <ConnectDrawer
