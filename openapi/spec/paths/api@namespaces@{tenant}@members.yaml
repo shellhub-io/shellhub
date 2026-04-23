@@ -34,15 +34,14 @@ post:
   operationId: addNamespaceMember
   summary: Invite member
   description: |
-    Invites a member to a namespace.
+    Adds a member to a namespace.
 
-    In enterprise and community instances, the member will automatically accept
-    the invite and will have an `accepted` status.
+    In enterprise and community instances, the member is added directly
+    to the namespace without any invitation step.
 
-    In cloud instances, the member will have a `pending` status until they
-    accept the invite via an email sent to them. The invite is valid for **7 days**.
-    If the member was previously invited and the invite is no longer valid, the same route
-    will resend the invite.
+    In cloud instances, an invitation email is sent to the member. 
+    The invite is valid for **7 days**. If the member was previously invited
+    and the invite is no longer valid, the same route will resend the invite.
   tags:
     - community
     - members
