@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -57,10 +58,12 @@ func ParseFilterProperty(fp *query.FilterProperty) (bson.M, bool, error) {
 }
 
 // fromContains converts a "contains" JSON expression to a Bson expression using "$regex" or "$all".
+// String values are escaped with [regexp.QuoteMeta] so metacharacters supplied by the caller
+// cannot be used to match unintended patterns or build catastrophic regexes.
 func fromContains(value interface{}) (bson.M, error) {
-	switch value.(type) {
+	switch v := value.(type) {
 	case string:
-		return bson.M{"$regex": value, "$options": "i"}, nil
+		return bson.M{"$regex": regexp.QuoteMeta(v), "$options": "i"}, nil
 	case []interface{}:
 		return bson.M{"$all": value}, nil
 	}

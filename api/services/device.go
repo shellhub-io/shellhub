@@ -24,9 +24,7 @@ const StatusAccepted = "accepted"
 var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"name":          {"contains", "eq", "ne"},
 	"status":        {"eq", "ne"},
-	"mac":           {"contains", "eq", "ne"},
 	"identity.mac":  {"contains", "eq", "ne"},
-	"platform":      {"contains", "eq", "ne"},
 	"info.platform": {"contains", "eq", "ne"},
 	"tags.name":     {"contains", "eq"},
 	"online":        {"bool", "eq"},
