@@ -62,3 +62,15 @@ func TestFilterUnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestFilters_Unmarshal_sizeLimit(t *testing.T) {
+	t.Run("raw under the limit passes", func(t *testing.T) {
+		fs := &Filters{Raw: base64.StdEncoding.EncodeToString([]byte(`[{"type":"operator","params":{"name":"and"}}]`))}
+		assert.NoError(t, fs.Unmarshal())
+	})
+
+	t.Run("raw over the limit is rejected pre-decode", func(t *testing.T) {
+		fs := &Filters{Raw: string(make([]byte, MaxFilterRawBytes+1))}
+		assert.Equal(t, ErrFilterTooLarge, fs.Unmarshal())
+	})
+}

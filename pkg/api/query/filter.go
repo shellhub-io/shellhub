@@ -10,6 +10,8 @@ var (
 	ErrFilterInvalid         = errors.New("filter is invalid")
 	ErrFilterPropertyInvalid = errors.New("filter property is not valid")
 	ErrFilterOperatorInvalid = errors.New("filter operator is not valid")
+	ErrFilterTooLarge        = errors.New("filter exceeds the maximum size")
+	ErrSorterFieldInvalid    = errors.New("sort field is not valid")
 )
 
 // Filters represents a set of filters that can be applied to queries.
@@ -27,7 +29,13 @@ func NewFilters() *Filters {
 }
 
 // Unmarshal decodes and unmarshals the raw filters, populating the Data attribute.
+// It rejects payloads larger than [MaxFilterRawBytes] before decode to keep
+// a hostile caller from allocating large buffers at JSON decode time.
 func (fs *Filters) Unmarshal() error {
+	if len(fs.Raw) > MaxFilterRawBytes {
+		return ErrFilterTooLarge
+	}
+
 	raw, err := base64.StdEncoding.DecodeString(fs.Raw)
 	if err != nil {
 		return err
