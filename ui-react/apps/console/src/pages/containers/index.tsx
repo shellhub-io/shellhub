@@ -15,6 +15,8 @@ import { formatRelative } from "@/utils/date";
 import { buildSshid } from "@/utils/sshid";
 import ContainerTagsPopover from "./ContainerTagsPopover";
 import ContainerActionDialog from "./ContainerActionDialog";
+import BillingWarning from "@/components/billing/BillingWarning";
+import { getConfig } from "@/env";
 import AddDockerConnectorDrawer from "./AddDockerConnectorDrawer";
 import {
   PlusIcon,
@@ -60,6 +62,7 @@ export default function Containers() {
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [addConnectorOpen, setAddConnectorOpen] = useState(false);
+  const [billingWarningOpen, setBillingWarningOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -449,6 +452,18 @@ export default function Containers() {
         container={actionTarget?.container ?? null}
         action={actionTarget?.action ?? "accept"}
         onClose={() => setActionTarget(null)}
+        onBillingWarning={
+          getConfig().cloud
+            ? () => {
+                setActionTarget(null);
+                setBillingWarningOpen(true);
+              }
+            : undefined
+        }
+      />
+      <BillingWarning
+        open={billingWarningOpen}
+        onClose={() => setBillingWarningOpen(false)}
       />
 
       <ConnectDrawer

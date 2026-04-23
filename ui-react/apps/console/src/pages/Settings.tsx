@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { Link } from "react-router-dom";
 import {
@@ -16,13 +16,19 @@ import {
   DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useEditNamespace, useDeleteNamespace, useLeaveNamespace, useSetDeviceAutoAccept } from "../hooks/useNamespaceMutations";
+import {
+  useEditNamespace,
+  useDeleteNamespace,
+  useLeaveNamespace,
+  useSetDeviceAutoAccept,
+} from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import PageHeader from "../components/common/PageHeader";
 import CopyButton from "../components/common/CopyButton";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import BillingSection from "../components/billing/BillingSection";
 import { LABEL, INPUT } from "../utils/styles";
 import { getConfig } from "../env";
 
@@ -148,7 +154,7 @@ function EditNameDrawer({
       onClose={onClose}
       title="Rename Namespace"
       bodyClassName="flex-1 overflow-y-auto px-6 py-5"
-      footer={(
+      footer={
         <>
           <button
             type="button"
@@ -160,24 +166,22 @@ function EditNameDrawer({
           <button
             onClick={() => void handleSubmit()}
             disabled={
-              !name.trim()
-              || name === currentName
-              || !!validationError
-              || submitting
+              !name.trim() ||
+              name === currentName ||
+              !!validationError ||
+              submitting
             }
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
-            {submitting
-              ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              )
-              : (
-                <CheckIcon className="w-4 h-4" strokeWidth={2} />
-              )}
+            {submitting ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <CheckIcon className="w-4 h-4" strokeWidth={2} />
+            )}
             Save
           </button>
         </>
-      )}
+      }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
@@ -233,16 +237,13 @@ function DeleteDialog({
         }
       }}
       title="Delete Namespace"
-      description={(
+      description={
         <>
-          This action is
-          {" "}
-          <span className="font-medium text-accent-red">permanent</span>
-          {" "}
-          and
+          This action is{" "}
+          <span className="font-medium text-accent-red">permanent</span> and
           cannot be undone. All devices, sessions, and data will be lost.
         </>
-      )}
+      }
       confirmLabel="Delete Namespace"
       confirmDisabled={!canDelete}
     >
@@ -434,7 +435,13 @@ export default function Settings() {
     try {
       await editNs.mutateAsync({
         path: { tenant: tenantId },
-        body: { settings: { session_record: !sessionRecord, connection_announcement: banner, device_auto_accept: deviceAutoAccept } },
+        body: {
+          settings: {
+            session_record: !sessionRecord,
+            connection_announcement: banner,
+            device_auto_accept: deviceAutoAccept,
+          },
+        },
       });
     } catch {
       /* state didn't change */
@@ -615,39 +622,40 @@ export default function Settings() {
           </SettingsRow>
         </SettingsCard>
 
+        {/* ── Billing (Cloud only) ── */}
+        {getConfig().cloud && <BillingSection sectionId="billing" />}
+
         {/* ── Danger Zone ── */}
         <SettingsCard title="Danger Zone" danger>
-          {canDelete
-            ? (
-              <SettingsRow
-                icon={<TrashIcon className="w-4 h-4 text-accent-red" />}
-                title="Delete Namespace"
-                description="Permanently removes all devices, sessions, keys, and configuration. This cannot be undone."
+          {canDelete ? (
+            <SettingsRow
+              icon={<TrashIcon className="w-4 h-4 text-accent-red" />}
+              title="Delete Namespace"
+              description="Permanently removes all devices, sessions, keys, and configuration. This cannot be undone."
+            >
+              <button
+                onClick={() => setDeleteOpen(true)}
+                className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
               >
-                <button
-                  onClick={() => setDeleteOpen(true)}
-                  className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
-                >
-                  Delete
-                </button>
-              </SettingsRow>
-            )
-            : (
-              <SettingsRow
-                icon={
-                  <ArrowRightStartOnRectangleIcon className="w-4 h-4 text-accent-red" />
-                }
-                title="Leave Namespace"
-                description="You will lose access immediately. To rejoin, someone will need to invite you again."
+                Delete
+              </button>
+            </SettingsRow>
+          ) : (
+            <SettingsRow
+              icon={
+                <ArrowRightStartOnRectangleIcon className="w-4 h-4 text-accent-red" />
+              }
+              title="Leave Namespace"
+              description="You will lose access immediately. To rejoin, someone will need to invite you again."
+            >
+              <button
+                onClick={() => setLeaveOpen(true)}
+                className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
               >
-                <button
-                  onClick={() => setLeaveOpen(true)}
-                  className="px-4 py-2 bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20 rounded-lg text-sm font-semibold transition-all"
-                >
-                  Leave
-                </button>
-              </SettingsRow>
-            )}
+                Leave
+              </button>
+            </SettingsRow>
+          )}
         </SettingsCard>
       </div>
 

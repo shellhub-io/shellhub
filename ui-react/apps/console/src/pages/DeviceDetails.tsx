@@ -31,6 +31,7 @@ import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import DeviceActionDialog from "./devices/DeviceActionDialog";
+import BillingWarning from "../components/billing/BillingWarning";
 import ConnectDrawer from "../components/ConnectDrawer";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
@@ -38,10 +39,11 @@ import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
+import { getConfig } from "../env";
 
 /* ─── Shared styles ─── */
-const LABEL
-  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
+const LABEL =
+  "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 const VALUE = "text-sm text-text-primary font-medium mt-0.5";
 
 /* ─── Info Row ─── */
@@ -129,8 +131,8 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
     <div>
       <h3 className={LABEL + " mb-2"}>Tags</h3>
       <div className="flex flex-wrap items-center gap-2">
-        {tags
-          && tags.map((tag) => (
+        {tags &&
+          tags.map((tag) => (
             <span
               key={tag}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-md font-medium"
@@ -181,9 +183,7 @@ function TagsSection({ uid, tags }: { uid: string; tags: string[] }) {
           Maximum of 3 tags reached.
         </p>
       )}
-      {error && (
-        <p className="text-2xs text-accent-red mt-1.5">{error}</p>
-      )}
+      {error && <p className="text-2xs text-accent-red mt-1.5">{error}</p>}
     </div>
   );
 }
@@ -211,7 +211,10 @@ function RenameSection({
     setSaving(true);
     setError(null);
     try {
-      await renameMutation.mutateAsync({ path: { uid }, body: { name: name.trim() } });
+      await renameMutation.mutateAsync({
+        path: { uid },
+        body: { name: name.trim() },
+      });
       setEditing(false);
     } catch {
       setError("Failed to rename device.");
@@ -418,12 +421,13 @@ export default function DeviceDetails() {
     device: { uid: string; name: string };
     action: "accept" | "reject" | "remove";
   } | null>(null);
+  const [billingWarningOpen, setBillingWarningOpen] = useState(false);
 
   // Auto-open connect drawer if ?connect=true (adjust during render)
-  const shouldAutoConnect
-    = searchParams.get("connect") === "true"
-      && device?.online
-      && !existingSession;
+  const shouldAutoConnect =
+    searchParams.get("connect") === "true" &&
+    device?.online &&
+    !existingSession;
 
   const [autoConnectDone, setAutoConnectDone] = useState(false);
   if (shouldAutoConnect && !autoConnectDone) {
@@ -437,9 +441,9 @@ export default function DeviceDetails() {
   // Restore existing terminal session (side effect only, no setState)
   useEffect(() => {
     if (
-      searchParams.get("connect") === "true"
-      && device?.online
-      && existingSession
+      searchParams.get("connect") === "true" &&
+      device?.online &&
+      existingSession
     ) {
       restoreTerminal(existingSession.id);
     }
@@ -458,8 +462,8 @@ export default function DeviceDetails() {
 
   const tags: string[] = Array.isArray(device.tags)
     ? device.tags.map((t) =>
-      typeof t === "object" && t !== null && "name" in t ? t.name : String(t),
-    )
+        typeof t === "object" && t !== null && "name" in t ? t.name : String(t),
+      )
     : [];
 
   const handleDelete = async () => {
@@ -653,7 +657,11 @@ export default function DeviceDetails() {
               mono
               copyable
             />
-            <InfoItem label="Remote Address" value={device.remote_addr ?? ""} mono />
+            <InfoItem
+              label="Remote Address"
+              value={device.remote_addr ?? ""}
+              mono
+            />
           </dl>
         </div>
 
@@ -667,20 +675,26 @@ export default function DeviceDetails() {
               label="Operating System"
               value={device.info?.pretty_name ?? ""}
             />
-            <InfoItem label="Architecture" value={device.info?.arch ?? ""} mono />
+            <InfoItem
+              label="Architecture"
+              value={device.info?.arch ?? ""}
+              mono
+            />
             <div>
               <dt className={LABEL}>Platform</dt>
               <dd className="mt-1">
-                {device.info?.platform
-                  ? (
-                    <PlatformBadge platform={device.info.platform} />
-                  )
-                  : (
-                    <span className="text-sm text-text-muted">—</span>
-                  )}
+                {device.info?.platform ? (
+                  <PlatformBadge platform={device.info.platform} />
+                ) : (
+                  <span className="text-sm text-text-muted">—</span>
+                )}
               </dd>
             </div>
-            <InfoItem label="Agent Version" value={device.info?.version ?? ""} mono />
+            <InfoItem
+              label="Agent Version"
+              value={device.info?.version ?? ""}
+              mono
+            />
           </dl>
         </div>
 
@@ -740,8 +754,7 @@ export default function DeviceDetails() {
               Delete Device
             </h2>
             <p className="text-sm text-text-muted mb-6">
-              Are you sure you want to delete
-              {" "}
+              Are you sure you want to delete{" "}
               <span className="font-medium text-text-primary">
                 {device.name}
               </span>
@@ -777,12 +790,26 @@ export default function DeviceDetails() {
 
       {/* Action Dialog (accept/reject/remove for pending/rejected devices) */}
       <DeviceActionDialog
-        key={operation ? `${operation.action}/${operation.device.uid}` : "closed"}
+        key={
+          operation ? `${operation.action}/${operation.device.uid}` : "closed"
+        }
         open={!!operation}
         device={operation?.device ?? null}
         action={operation?.action ?? "accept"}
         onClose={() => setOperation(null)}
         onSuccess={handleDeviceActionSuccess}
+        onBillingWarning={
+          getConfig().cloud
+            ? () => {
+                setOperation(null);
+                setBillingWarningOpen(true);
+              }
+            : undefined
+        }
+      />
+      <BillingWarning
+        open={billingWarningOpen}
+        onClose={() => setBillingWarningOpen(false)}
       />
     </div>
   );
