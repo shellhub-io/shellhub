@@ -45,6 +45,7 @@ beforeEach(() => {
     onboardingUrl: "",
     announcements: false,
     webEndpoints: false,
+    stripePublishableKey: "",
   });
   mockUseCreateNamespace.mockReturnValue({
     mutateAsync: vi.fn(),
@@ -221,6 +222,7 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
       onboardingUrl: "",
       announcements: false,
       webEndpoints: false,
+      stripePublishableKey: "",
     });
   });
 
@@ -391,6 +393,7 @@ describe("CreateNamespaceDialog (cloud: true, enterprise: false)", () => {
       onboardingUrl: "",
       announcements: false,
       webEndpoints: false,
+      stripePublishableKey: "",
     });
   });
 
