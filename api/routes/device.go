@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/api/services"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -37,8 +38,16 @@ func (h *Handler) GetDeviceList(c gateway.Context) error {
 	req.Paginator.Normalize()
 	req.Sorter.Normalize()
 
+	if err := query.ValidateSorter(&req.Sorter, services.DeviceSortFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
 	if err := req.Filters.Unmarshal(); err != nil {
-		return err
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	if err := query.ValidateFilters(&req.Filters, services.DeviceFilterFields); err != nil {
+		return c.NoContent(http.StatusBadRequest)
 	}
 
 	if c.QueryParam("connector") != "" {

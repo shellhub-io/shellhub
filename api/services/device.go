@@ -7,6 +7,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/api/store"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -15,6 +16,30 @@ import (
 )
 
 const StatusAccepted = "accepted"
+
+// DeviceFilterFields maps each filter field the device list endpoint accepts
+// to the set of operators valid for it. Operators that the database rejects
+// on a given column type (e.g. ILIKE on the status enum) are omitted so the
+// handler returns HTTP 400 instead of letting the store produce a 500.
+var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
+	"name":          {"contains", "eq", "ne"},
+	"status":        {"eq", "ne"},
+	"mac":           {"contains", "eq", "ne"},
+	"identity.mac":  {"contains", "eq", "ne"},
+	"platform":      {"contains", "eq", "ne"},
+	"info.platform": {"contains", "eq", "ne"},
+	"tags.name":     {"contains", "eq"},
+	"online":        {"bool", "eq"},
+})
+
+// DeviceSortFields is the set of field names accepted in the sort_by query
+// parameter when listing devices.
+var DeviceSortFields = query.NewFieldSet(
+	"name",
+	"status",
+	"last_seen",
+	"created_at",
+)
 
 type DeviceService interface {
 	ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error)
