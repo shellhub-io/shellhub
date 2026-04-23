@@ -183,6 +183,7 @@ describe("InvitationsMenu", () => {
         announcements: false,
         webEndpoints: false,
         onboardingUrl: "",
+        stripePublishableKey: "",
       });
 
       const { container } = renderMenu();
@@ -196,6 +197,7 @@ describe("InvitationsMenu", () => {
         announcements: false,
         webEndpoints: false,
         onboardingUrl: "",
+        stripePublishableKey: "",
       });
     });
 

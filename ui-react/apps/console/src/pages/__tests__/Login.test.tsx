@@ -142,6 +142,7 @@ beforeEach(() => {
     announcements: false,
     webEndpoints: false,
     onboardingUrl: "",
+    stripePublishableKey: "",
   });
   useAuthStore.setState({
     token: null,
@@ -362,6 +363,7 @@ describe("Login", () => {
         announcements: false,
         webEndpoints: false,
         onboardingUrl: "",
+        stripePublishableKey: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -384,6 +386,7 @@ describe("Login", () => {
         announcements: false,
         webEndpoints: false,
         onboardingUrl: "",
+        stripePublishableKey: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -407,6 +410,7 @@ describe("Login", () => {
         announcements: false,
         webEndpoints: false,
         onboardingUrl: "",
+        stripePublishableKey: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -436,6 +440,7 @@ describe("Login", () => {
           announcements: false,
           webEndpoints: false,
           onboardingUrl: "",
+          stripePublishableKey: "",
         });
         mockedGetInfo.mockResolvedValue(
           mockSdkResponse(
@@ -472,6 +477,7 @@ describe("Login", () => {
         announcements: false,
         webEndpoints: false,
         onboardingUrl: "",
+        stripePublishableKey: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -500,6 +506,7 @@ describe("Login", () => {
         announcements: false,
         webEndpoints: false,
         onboardingUrl: "",
+        stripePublishableKey: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
