@@ -25,7 +25,7 @@ function getIsDesktopServer() {
 
 export function useSidebarLayout() {
   const [expanded, setExpanded] = useState(false);
-  const [pinned, setPinned] = useState(false);
+  const [pinned, setPinned] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isDesktop = useSyncExternalStore(
