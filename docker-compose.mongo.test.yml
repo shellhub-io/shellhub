@@ -4,8 +4,10 @@ services:
     restart: unless-stopped
     healthcheck:
       test: 'test $$(echo "rs.initiate({ _id: ''rs'', members: [ { _id: 0, host: ''mongo:27017'' } ] }).ok || rs.status().ok" | mongo --quiet) -eq 1'
-      interval: 30s
-      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
     command: ["--replSet", "rs", "--bind_ip_all"]
     networks:
       - shellhub

@@ -1359,6 +1359,7 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 	// Database backend (mongo/postgres) is configured via SHELLHUB_DATABASE in .env
 	// The CI runs this test suite twice in parallel - once for each backend
 	compose := environment.New(t).Up(ctx)
+	defer compose.Down()
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
 
@@ -1441,6 +1442,4 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			}, &device)
 		})
 	}
-
-	compose.Down()
 }

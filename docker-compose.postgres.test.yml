@@ -7,10 +7,10 @@ services:
       # which are blocked by Docker's default seccomp profile for security reasons.
       - seccomp=unconfined
     healthcheck:
-      start_period: 90s
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      start_period: 10s
+      interval: 2s
+      timeout: 3s
+      retries: 10
       test: ["CMD-SHELL", "pg_isready -U ${SHELLHUB_POSTGRES_USERNAME} -d ${SHELLHUB_POSTGRES_DATABASE}"]
     environment:
       - POSTGRES_USER=${SHELLHUB_POSTGRES_USERNAME}
