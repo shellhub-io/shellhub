@@ -15,7 +15,7 @@ export default function AppLayout() {
   const hasVisibleTerminal = useTerminalStore((s) =>
     s.sessions.some((t) => t.state !== "minimized"),
   );
-  const { isOpen, pinned, isDesktop, drawerOpen, handlers } = useSidebarLayout();
+  const { isOpen, isDesktop, drawerOpen, handlers } = useSidebarLayout();
 
   const showSidebar = namespaces.length > 0;
   const sidebarOffset =
@@ -23,19 +23,12 @@ export default function AppLayout() {
 
   return (
     <div
-      className={`flex flex-col min-h-screen bg-background ${hasVisibleTerminal ? "overflow-hidden h-screen" : ""}`}
+      className={`flex flex-col h-screen bg-background ${hasVisibleTerminal ? "overflow-hidden" : ""}`}
     >
       <ConnectivityBanner />
       <div className="flex flex-1 min-h-0">
         {showSidebar && isDesktop && (
-          <div
-            onMouseEnter={handlers.onMouseEnter}
-            onMouseLeave={handlers.onMouseLeave}
-            onFocus={handlers.onFocus}
-            onBlur={handlers.onBlur}
-          >
-            <Sidebar expanded={isOpen} pinned={pinned} onToggle={handlers.onToggle} />
-          </div>
+          <Sidebar expanded={isOpen} />
         )}
         {showSidebar && !isDesktop && (
           <SidebarMobileDrawer
@@ -45,7 +38,6 @@ export default function AppLayout() {
           >
             <Sidebar
               expanded
-              pinned={false}
               onToggle={handlers.closeDrawer}
               onClose={handlers.closeDrawer}
             />
@@ -53,7 +45,7 @@ export default function AppLayout() {
         )}
         <div className="flex-1 flex flex-col min-w-0">
           <AppBar onMenuToggle={showSidebar && !isDesktop ? handlers.toggleDrawer : undefined} />
-          <main className="flex-1 flex flex-col p-8 relative min-h-0">
+          <main className="flex-1 flex flex-col p-8 relative min-h-0 overflow-y-auto">
             <div className="grid-bg scanline absolute inset-0 -z-10" />
             <div
               key={pathname}

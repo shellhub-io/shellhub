@@ -108,8 +108,7 @@ export function SidebarMobileDrawer({
 
 interface SidebarShellProps {
   expanded: boolean;
-  pinned: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
   onClose?: () => void;
   hidden?: boolean;
   ariaLabel: string;
@@ -120,7 +119,6 @@ interface SidebarShellProps {
 
 export default function SidebarShell({
   expanded,
-  pinned,
   onToggle,
   onClose,
   hidden,
@@ -131,7 +129,7 @@ export default function SidebarShell({
 }: SidebarShellProps) {
   return (
     <aside
-      className={`bg-surface border-r border-border flex flex-col min-h-screen shrink-0 transition-all duration-200 ease-in-out overflow-hidden ${
+      className={`bg-surface border-r border-border flex flex-col h-full shrink-0 transition-all duration-200 ease-in-out overflow-hidden ${
         hidden ? "w-0 opacity-0" : expanded ? "w-[220px]" : "w-[60px]"
       }`}
     >
@@ -165,34 +163,32 @@ export default function SidebarShell({
 
       {/* Footer with pin toggle */}
       <div
-        className={`h-11 px-3 flex items-center justify-between transition-colors duration-200 ${expanded ? "border-t border-border" : "border-t border-transparent"}`}
+        className={`h-11 px-3 flex items-center justify-between transition-colors duration-200 ${expanded && onToggle ? "border-t border-border" : "border-t border-transparent"}`}
       >
         <p
-          className={`text-2xs font-mono text-text-muted/60 whitespace-nowrap transition-opacity duration-200 ${expanded ? "opacity-100" : "opacity-0"}`}
+          className={`text-2xs font-mono text-text-muted/60 whitespace-nowrap transition-opacity duration-200 ${expanded && onToggle ? "opacity-100" : "opacity-0"}`}
         >
           {footerLabel}
         </p>
-        <button
-          type="button"
-          onClick={onToggle}
-          tabIndex={expanded ? 0 : -1}
-          aria-label={pinned ? "Unpin sidebar" : "Pin sidebar"}
-          title={pinned ? "Unpin sidebar" : "Pin sidebar open"}
-          className={`p-1 rounded-md transition-all duration-200 ${
-            expanded ? "opacity-100" : "opacity-0"
-          } ${
-            pinned
-              ? "text-primary bg-primary/10"
-              : "text-text-muted hover:text-text-primary hover:bg-hover-subtle"
-          }`}
-        >
-          <ChevronLeftIcon
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
-              expanded ? "" : "rotate-180"
+        {onToggle && (
+          <button
+            type="button"
+            onClick={onToggle}
+            tabIndex={expanded ? 0 : -1}
+            aria-label="Close sidebar"
+            title="Close sidebar"
+            className={`p-1 rounded-md transition-all duration-200 text-text-muted hover:text-text-primary hover:bg-hover-subtle ${
+              expanded ? "opacity-100" : "opacity-0"
             }`}
-            strokeWidth={2}
-          />
-        </button>
+          >
+            <ChevronLeftIcon
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                expanded ? "" : "rotate-180"
+              }`}
+              strokeWidth={2}
+            />
+          </button>
+        )}
       </div>
     </aside>
   );
