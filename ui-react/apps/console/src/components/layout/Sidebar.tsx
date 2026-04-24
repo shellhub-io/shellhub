@@ -98,13 +98,11 @@ function ProBadge() {
 
 export default function Sidebar({
   expanded,
-  pinned,
   onToggle,
   onClose,
 }: {
   expanded: boolean;
-  pinned: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
   onClose?: () => void;
 }) {
   const minimizeAll = useTerminalStore((s) => s.minimizeAll);
@@ -120,7 +118,6 @@ export default function Sidebar({
   return (
     <SidebarShell
       expanded={expanded}
-      pinned={pinned}
       onToggle={onToggle}
       onClose={onClose}
       hidden={isFullscreen}

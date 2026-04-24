@@ -168,13 +168,11 @@ function NavGroupItem({
 
 export default function AdminSidebar({
   expanded,
-  pinned,
   onToggle,
   onClose,
 }: {
   expanded: boolean;
-  pinned: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
   onClose?: () => void;
 }) {
   const { data: license, isLoading } = useAdminLicense();
@@ -200,7 +198,6 @@ export default function AdminSidebar({
   return (
     <SidebarShell
       expanded={expanded}
-      pinned={pinned}
       onToggle={onToggle}
       onClose={onClose}
       ariaLabel="Admin navigation"
