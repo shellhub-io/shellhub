@@ -3,10 +3,12 @@ version: "3.7"
 services:
   ssh:
     image: ssh:test
+    pull_policy: build
     build:
       context: .
       dockerfile: ssh/Dockerfile
-      target: production 
+      target: production
+    restart: on-failure:3
     healthcheck:
       interval: 5s
       start_period: 10s
@@ -14,10 +16,12 @@ services:
     ports: []
   api:
     image: api:test
+    pull_policy: build
     build:
       context: .
       dockerfile: api/Dockerfile
-      target: production 
+      target: production
+    restart: on-failure:3
     healthcheck:
       interval: 5s
       start_period: 10s
@@ -25,10 +29,12 @@ services:
     ports: []
   gateway:
     image: gateway:test
+    pull_policy: build
     build:
       context: .
       dockerfile: gateway/Dockerfile
       target: production
+    restart: on-failure:3
     healthcheck:
       interval: 5s
       start_period: 10s
@@ -36,10 +42,12 @@ services:
     ports: []
   ui-react:
     image: ui-react:test
+    pull_policy: build
     build:
       context: .
       dockerfile: ui-react/Dockerfile
       target: production
+    restart: on-failure:3
     healthcheck:
       interval: 5s
       start_period: 10s
