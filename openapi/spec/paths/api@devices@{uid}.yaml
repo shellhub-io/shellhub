@@ -62,6 +62,14 @@ put:
               $ref: ../components/schemas/deviceName.yaml
             public_url:
               $ref: ../components/schemas/devicePublicURL.yaml
+            custom_fields:
+              description: User-defined key-value metadata. Replaces all existing custom fields.
+              type: object
+              additionalProperties:
+                type: string
+              example:
+                env: production
+                owner: team-a
           required:
             - name
   responses:
