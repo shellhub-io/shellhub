@@ -30,6 +30,7 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"info.platform": {"contains", "eq", "ne"},
 	"tags.name":     {"contains", "eq"},
 	"online":        {"bool", "eq"},
+	"custom_fields": {"contains"},
 })
 
 // DeviceSortFields is the set of field names accepted in the sort_by query
@@ -378,6 +379,10 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 
 	if req.Name != "" && !strings.EqualFold(req.Name, device.Name) {
 		device.Name = strings.ToLower(req.Name)
+	}
+
+	if req.CustomFields != nil {
+		device.CustomFields = *req.CustomFields
 	}
 
 	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive

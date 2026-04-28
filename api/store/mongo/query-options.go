@@ -132,6 +132,18 @@ func (*queryOptions) Match(filters *query.Filters) store.QueryOption {
 					return query.ErrFilterInvalid
 				}
 
+				if param.Name == "custom_fields" {
+					condition, ok, err := internal.ParseCustomFieldsFilter(param)
+					switch {
+					case err != nil:
+						return query.ErrFilterPropertyInvalid
+					case ok:
+						conditions = append(conditions, condition)
+					}
+
+					continue
+				}
+
 				property, ok, err := internal.ParseFilterProperty(param)
 				switch {
 				case err != nil:
