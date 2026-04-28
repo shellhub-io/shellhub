@@ -36,7 +36,11 @@ vi.mock("../../env", async (importOriginal) => {
   return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
 });
 
-import { login as loginSdk, getInfo as getInfoSdk, getSamlAuthUrl as getSamlAuthUrlSdk } from "../../client";
+import {
+  login as loginSdk,
+  getInfo as getInfoSdk,
+  getSamlAuthUrl as getSamlAuthUrlSdk,
+} from "../../client";
 import { getConfig } from "../../env";
 
 const mockedLogin = vi.mocked(loginSdk);
@@ -44,7 +48,11 @@ const mockedGetInfo = vi.mocked(getInfoSdk);
 const mockedGetSamlAuthUrl = vi.mocked(getSamlAuthUrlSdk);
 const mockedGetConfig = vi.mocked(getConfig);
 
-type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+type SdkResponse<T = unknown> = {
+  data: T;
+  request: Request;
+  response: Response;
+};
 
 function mockInfo(overrides: Partial<Info> = {}): Info {
   return {
@@ -74,7 +82,10 @@ function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   };
 }
 
-function mockSdkResponse<T>(data: T, headers: HeadersInit = {}): SdkResponse<T> {
+function mockSdkResponse<T>(
+  data: T,
+  headers: HeadersInit = {},
+): SdkResponse<T> {
   return {
     data,
     request: new Request("http://localhost"),
@@ -83,12 +94,12 @@ function mockSdkResponse<T>(data: T, headers: HeadersInit = {}): SdkResponse<T> 
 }
 
 /** Creates a mock SDK error with status and optional headers. */
-function makeSdkError(
-  status: number,
-  headers?: Record<string, string>,
-) {
+function makeSdkError(status: number, headers?: Record<string, string>) {
   const headerObj = new Headers(headers);
-  return Object.assign(new Error("Request failed"), { status, headers: headerObj });
+  return Object.assign(new Error("Request failed"), {
+    status,
+    headers: headerObj,
+  });
 }
 
 function renderLogin() {
@@ -129,6 +140,7 @@ beforeEach(() => {
     enterprise: false,
     cloud: false,
     announcements: false,
+    webEndpoints: false,
     onboardingUrl: "",
   });
   useAuthStore.setState({
@@ -166,15 +178,15 @@ describe("Login", () => {
 
     it("shows no error by default", () => {
       renderLogin();
-      expect(
-        screen.queryByRole("alert"),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
   });
 
   describe("successful login", () => {
     it("navigates to /dashboard on success", async () => {
-      mockedLogin.mockResolvedValue(mockSdkResponse(mockUserAuth({ token: "jwt" })));
+      mockedLogin.mockResolvedValue(
+        mockSdkResponse(mockUserAuth({ token: "jwt" })),
+      );
 
       renderLogin();
       await fillAndSubmit();
@@ -203,7 +215,9 @@ describe("Login", () => {
       await waitFor(() =>
         expect(screen.getByText(/authenticating/i)).toBeInTheDocument(),
       );
-      expect(screen.getByRole("button", { name: /authenticating/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /authenticating/i }),
+      ).toBeDisabled();
 
       resolveLogin();
       await clickPromise;
@@ -256,21 +270,23 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit();
 
-      expect(
-        screen.getByText(/something went wrong\./i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/something went wrong\./i)).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it("clears the error when a new submit is attempted", async () => {
       mockedLogin.mockRejectedValueOnce(makeSdkError(401));
-      mockedLogin.mockResolvedValueOnce(mockSdkResponse(mockUserAuth({ token: "jwt" })));
+      mockedLogin.mockResolvedValueOnce(
+        mockSdkResponse(mockUserAuth({ token: "jwt" })),
+      );
 
       const user = userEvent.setup();
       renderLogin();
 
       await fillAndSubmit("admin", "wrong", user);
-      expect(screen.getByText(/invalid login credentials/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/invalid login credentials/i),
+      ).toBeInTheDocument();
 
       await user.click(screen.getByRole("button", { name: /sign in/i }));
       expect(
@@ -344,10 +360,13 @@ describe("Login", () => {
         enterprise: false,
         cloud: false,
         announcements: false,
+        webEndpoints: false,
         onboardingUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
-        mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+        mockSdkResponse(
+          mockInfo({ authentication: { local: true, saml: true } }),
+        ),
       );
 
       renderLogin();
@@ -363,10 +382,13 @@ describe("Login", () => {
         enterprise: true,
         cloud: false,
         announcements: false,
+        webEndpoints: false,
         onboardingUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
-        mockSdkResponse(mockInfo({ authentication: { local: true, saml: false } })),
+        mockSdkResponse(
+          mockInfo({ authentication: { local: true, saml: false } }),
+        ),
       );
 
       renderLogin();
@@ -383,10 +405,13 @@ describe("Login", () => {
         enterprise: true,
         cloud: false,
         announcements: false,
+        webEndpoints: false,
         onboardingUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
-        mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+        mockSdkResponse(
+          mockInfo({ authentication: { local: true, saml: true } }),
+        ),
       );
 
       renderLogin();
@@ -409,10 +434,13 @@ describe("Login", () => {
           enterprise: true,
           cloud: false,
           announcements: false,
+          webEndpoints: false,
           onboardingUrl: "",
         });
         mockedGetInfo.mockResolvedValue(
-          mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+          mockSdkResponse(
+            mockInfo({ authentication: { local: true, saml: true } }),
+          ),
         );
         mockedGetSamlAuthUrl.mockResolvedValue(
           mockSdkResponse({ url: "https://idp.example.com/sso" }),
@@ -429,7 +457,10 @@ describe("Login", () => {
           ),
         );
       } finally {
-        Object.defineProperty(window, "location", { writable: true, value: originalLocation });
+        Object.defineProperty(window, "location", {
+          writable: true,
+          value: originalLocation,
+        });
       }
     });
 
@@ -439,10 +470,13 @@ describe("Login", () => {
         enterprise: true,
         cloud: false,
         announcements: false,
+        webEndpoints: false,
         onboardingUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
-        mockSdkResponse(mockInfo({ authentication: { local: true, saml: true } })),
+        mockSdkResponse(
+          mockInfo({ authentication: { local: true, saml: true } }),
+        ),
       );
       mockedGetSamlAuthUrl.mockRejectedValue(new Error("Network error"));
 
@@ -464,10 +498,13 @@ describe("Login", () => {
         enterprise: true,
         cloud: false,
         announcements: false,
+        webEndpoints: false,
         onboardingUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
-        mockSdkResponse(mockInfo({ authentication: { local: false, saml: true } })),
+        mockSdkResponse(
+          mockInfo({ authentication: { local: false, saml: true } }),
+        ),
       );
 
       renderLogin();
@@ -476,7 +513,9 @@ describe("Login", () => {
       // prevents it from appearing even during the getInfo loading window.
       expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
       expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: /sign in/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /sign in/i }),
+      ).not.toBeInTheDocument();
 
       // SSO button appears once getInfo resolves.
       await waitFor(() =>

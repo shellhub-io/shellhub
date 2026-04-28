@@ -181,6 +181,7 @@ describe("InvitationsMenu", () => {
         version: "",
         enterprise: false,
         announcements: false,
+        webEndpoints: false,
         onboardingUrl: "",
       });
 
@@ -193,6 +194,7 @@ describe("InvitationsMenu", () => {
         version: "",
         enterprise: false,
         announcements: false,
+        webEndpoints: false,
         onboardingUrl: "",
       });
     });

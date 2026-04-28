@@ -162,22 +162,26 @@ export default function FirewallRules() {
         <div className="flex items-center justify-end gap-0.5">
           <RestrictedAction action="firewall:edit">
             <button
+              type="button"
               onClick={() => openEdit(rule)}
-              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+              className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50"
+              aria-label={`Edit firewall rule with priority ${rule.priority}`}
               title="Edit"
             >
-              <PencilSquareIcon className="w-4 h-4" />
+              <PencilSquareIcon className="w-4 h-4" aria-hidden="true" />
             </button>
           </RestrictedAction>
           <RestrictedAction action="firewall:remove">
             <button
+              type="button"
               onClick={() =>
                 setDeleteTarget({ id: rule.id, priority: rule.priority })
               }
-              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-red/50"
+              aria-label="Delete"
               title="Delete"
             >
-              <TrashIcon className="w-4 h-4" />
+              <TrashIcon className="w-4 h-4" aria-hidden="true" />
             </button>
           </RestrictedAction>
         </div>
@@ -264,10 +268,11 @@ export default function FirewallRules() {
               >
                 <RestrictedAction action="firewall:create">
                   <button
+                    type="button"
                     onClick={openNew}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                    <PlusIcon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
                     Add your first rule
                   </button>
                 </RestrictedAction>
@@ -299,27 +304,40 @@ export default function FirewallRules() {
       >
         <RestrictedAction action="firewall:create">
           <button
+            type="button"
             onClick={openNew}
-            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <PlusIcon className="w-4 h-4" strokeWidth={2} />
+            <PlusIcon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
             Add Rule
           </button>
         </RestrictedAction>
       </PageHeader>
 
-      <div className="mb-4 animate-fade-in">
+      <form
+        role="search"
+        aria-label="Firewall rules"
+        className="mb-4 animate-fade-in"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className="relative max-w-sm">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+          <label htmlFor="firewall-rules-search" className="sr-only">
+            Search firewall rules by action, priority, IP, or username
+          </label>
+          <MagnifyingGlassIcon
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"
+            aria-hidden="true"
+          />
           <input
-            type="text"
+            id="firewall-rules-search"
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by action, priority, IP, or username..."
             className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
           />
         </div>
-      </div>
+      </form>
 
       <DataTable
         columns={columns}
@@ -362,7 +380,9 @@ export default function FirewallRules() {
         confirmLabel="Delete"
       >
         {deleteError && (
-          <p className="text-xs text-accent-red">{deleteError}</p>
+          <p className="text-xs text-accent-red" role="alert">
+            {deleteError}
+          </p>
         )}
       </ConfirmDialog>
     </div>

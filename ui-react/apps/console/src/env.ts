@@ -3,6 +3,7 @@ export interface ClientConfig {
   enterprise: boolean;
   cloud: boolean;
   announcements: boolean;
+  webEndpoints: boolean;
   onboardingUrl: string;
 }
 
@@ -11,6 +12,7 @@ const defaultConfig: ClientConfig = {
   enterprise: false,
   cloud: false,
   announcements: false,
+  webEndpoints: false,
   onboardingUrl: "",
 };
 

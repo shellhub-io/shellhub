@@ -1,4 +1,4 @@
-import { useState, useRef, FormEvent } from "react";
+import { useState, useRef, useEffect, FormEvent } from "react";
 import { isSdkError } from "../api/errors";
 import { useResetOnOpen } from "../hooks/useResetOnOpen";
 import { useWebEndpoints } from "../hooks/useWebEndpoints";
@@ -804,11 +804,13 @@ function EndpointCard({
         <div className="flex items-center shrink-0">
           <RestrictedAction action="webEndpoint:delete">
             <button
+              type="button"
               onClick={onDelete}
-              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
+              className="p-1.5 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-red/50"
+              aria-label={`Delete web endpoint ${endpoint.full_address}`}
               title="Delete"
             >
-              <TrashIcon className="w-4 h-4" />
+              <TrashIcon className="w-4 h-4" aria-hidden="true" />
             </button>
           </RestrictedAction>
         </div>
@@ -818,9 +820,25 @@ function EndpointCard({
 }
 
 /* ─── Page ─── */
+const SEARCH_DEBOUNCE_MS = 300;
+
 function WebEndpointsContent() {
   const [page, setPage] = useState(1);
-  const { webEndpoints, totalCount, isLoading } = useWebEndpoints({ page });
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { webEndpoints, totalCount, isLoading } = useWebEndpoints({
+    page,
+    addressFilter: debouncedSearch,
+  });
   const deleteEndpoint = useDeleteWebEndpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -828,7 +846,6 @@ function WebEndpointsContent() {
     deviceName: string;
   } | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
 
   const closeDelete = () => {
     setDeleteError(null);
@@ -860,26 +877,23 @@ function WebEndpointsContent() {
   };
 
   const totalPages = Math.ceil(totalCount / 10);
-
-  const filtered = search
-    ? webEndpoints.filter(
-        (ep) =>
-          (ep.device?.name || "")
-            .toLowerCase()
-            .includes(search.toLowerCase()) ||
-          ep.full_address.toLowerCase().includes(search.toLowerCase()) ||
-          ep.address.toLowerCase().includes(search.toLowerCase()),
-      )
-    : webEndpoints;
+  const isSearching = debouncedSearch.length > 0;
+  const isTrulyEmpty = !isLoading && !isSearching && totalCount === 0;
+  const isNoResults = !isLoading && isSearching && totalCount === 0;
 
   return (
     <div>
       {/* Content */}
-      {isLoading && webEndpoints.length === 0 ? (
-        <div className="flex items-center justify-center py-16">
+      {isLoading && webEndpoints.length === 0 && !isSearching ? (
+        <div
+          className="flex items-center justify-center py-16"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading web endpoints"
+        >
           <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
-      ) : webEndpoints.length === 0 ? (
+      ) : isTrulyEmpty ? (
         /* Empty state */
         <div className="relative -mx-8 -mt-8 min-h-[calc(100vh-3.5rem)] flex flex-col">
           {/* Background */}
@@ -959,10 +973,11 @@ function WebEndpointsContent() {
               >
                 <RestrictedAction action="webEndpoint:create">
                   <button
+                    type="button"
                     onClick={openNew}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                    <PlusIcon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
                     Create your first endpoint
                   </button>
                 </RestrictedAction>
@@ -983,82 +998,114 @@ function WebEndpointsContent() {
           >
             <RestrictedAction action="webEndpoint:create">
               <button
+                type="button"
                 onClick={openNew}
-                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200"
+                className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <PlusIcon className="w-4 h-4" strokeWidth={2} />
+                <PlusIcon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
                 New Endpoint
               </button>
             </RestrictedAction>
           </PageHeader>
 
           {/* Search bar */}
-          <div className="mb-4 animate-fade-in">
+          <form
+            role="search"
+            aria-label="Web endpoints"
+            className="mb-4 animate-fade-in"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <div className="relative max-w-sm">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+              <label htmlFor="web-endpoints-search" className="sr-only">
+                Search web endpoints by address
+              </label>
+              <MagnifyingGlassIcon
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"
+                aria-hidden="true"
+              />
               <input
-                type="text"
+                id="web-endpoints-search"
+                type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by device or address..."
+                placeholder="Search by address..."
                 className="w-full pl-9 pr-3.5 py-2 bg-card border border-border rounded-lg text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
               />
             </div>
-          </div>
+          </form>
 
-          {filtered.length === 0 ? (
-            <div className="py-12 text-center animate-fade-in">
+          {isNoResults ? (
+            <div
+              className="py-12 text-center animate-fade-in"
+              role="status"
+              aria-live="polite"
+            >
               <p className="text-sm text-text-muted">
                 No endpoints matching &ldquo;
-                {search}
+                {debouncedSearch}
                 &rdquo;
               </p>
             </div>
           ) : (
             <>
               {/* Endpoint cards */}
-              <div className="space-y-2 animate-fade-in">
-                {filtered.map((ep) => (
-                  <EndpointCard
-                    key={ep.address}
-                    endpoint={ep}
-                    onDelete={() =>
-                      setDeleteTarget({
-                        address: ep.address,
-                        deviceName: ep.device?.name || ep.device_uid,
-                      })
-                    }
-                  />
+              <ul
+                className="space-y-2 animate-fade-in list-none p-0"
+                aria-label="Web endpoints"
+                aria-busy={isLoading}
+              >
+                {webEndpoints.map((ep) => (
+                  <li key={ep.address}>
+                    <EndpointCard
+                      endpoint={ep}
+                      onDelete={() =>
+                        setDeleteTarget({
+                          address: ep.address,
+                          deviceName: ep.device?.name || ep.device_uid,
+                        })
+                      }
+                    />
+                  </li>
                 ))}
-              </div>
+              </ul>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4 px-1">
+                <nav
+                  aria-label="Pagination"
+                  className="flex items-center justify-between mt-4 px-1"
+                >
                   <span className="text-xs font-mono text-text-muted">
                     {totalCount} endpoint
                     {totalCount !== 1 ? "s" : ""}
                   </span>
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => setPage(page - 1)}
                       disabled={page <= 1}
-                      className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"
+                      aria-label="Previous page"
+                      className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded"
                     >
                       Prev
                     </button>
-                    <span className="text-xs font-mono text-text-muted px-2">
+                    <span
+                      className="text-xs font-mono text-text-muted px-2"
+                      aria-current="page"
+                    >
                       {page} /{totalPages}
                     </span>
                     <button
+                      type="button"
                       onClick={() => setPage(page + 1)}
                       disabled={page >= totalPages}
-                      className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors"
+                      aria-label="Next page"
+                      className="px-2.5 py-1 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-soft disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded"
                     >
                       Next
                     </button>
                   </div>
-                </div>
+                </nav>
               )}
             </>
           )}
@@ -1086,7 +1133,9 @@ function WebEndpointsContent() {
         confirmLabel="Delete"
       >
         {deleteError && (
-          <p className="text-xs text-accent-red">{deleteError}</p>
+          <p className="text-xs text-accent-red" role="alert">
+            {deleteError}
+          </p>
         )}
       </ConfirmDialog>
     </div>
