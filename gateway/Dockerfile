@@ -39,7 +39,7 @@ RUN mkdir /etc/shellhub-gateway
 RUN mkdir -p /var/run/openresty /etc/letsencrypt && \
     curl -sSL https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/shellhub-gateway/dhparam.pem
 
-RUN apk add --update openssl build-base
+RUN apk add --update openssl build-base binutils-gold
 RUN go install github.com/air-verse/air@v1.62 && \
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3 && \
     go install github.com/vektra/mockery/v2/...@v2.20.0
