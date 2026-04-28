@@ -2411,6 +2411,123 @@ func TestDeviceUpdate(t *testing.T) {
 			},
 			expected: nil,
 		},
+		{
+			description: "success when setting custom fields",
+			req: &requests.DeviceUpdate{
+				UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID:     "00000000-0000-0000-0000-000000000000",
+				Name:         "existingname",
+				CustomFields: &map[string]string{"env": "production", "owner": "team-a"},
+			},
+			requiredMocks: func(ctx context.Context) {
+				device := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "existingname",
+					DisconnectedAt: &now,
+				}
+				updatedDevice := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "existingname",
+					DisconnectedAt: &now,
+					CustomFields:   map[string]string{"env": "production", "owner": "team-a"},
+				}
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				// Distinct clears Name when req.Name == device.Name
+				storeMock.
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, updatedDevice).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "success when clearing custom fields with empty map",
+			req: &requests.DeviceUpdate{
+				UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID:     "00000000-0000-0000-0000-000000000000",
+				Name:         "existingname",
+				CustomFields: &map[string]string{},
+			},
+			requiredMocks: func(ctx context.Context) {
+				device := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "existingname",
+					DisconnectedAt: &now,
+					CustomFields:   map[string]string{"env": "production"},
+				}
+				updatedDevice := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "existingname",
+					DisconnectedAt: &now,
+					CustomFields:   map[string]string{},
+				}
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				// Distinct clears Name when req.Name == device.Name
+				storeMock.
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, updatedDevice).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "does not modify custom fields when CustomFields is nil",
+			req: &requests.DeviceUpdate{
+				UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+				TenantID:     "00000000-0000-0000-0000-000000000000",
+				Name:         "existingname",
+				CustomFields: nil,
+			},
+			requiredMocks: func(ctx context.Context) {
+				device := &models.Device{
+					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					Name:           "existingname",
+					DisconnectedAt: &now,
+					CustomFields:   map[string]string{"env": "production"},
+				}
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				// Distinct clears Name when req.Name == device.Name
+				storeMock.
+					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
+					Return([]string{}, false, nil).
+					Once()
+				// device passed unchanged — CustomFields still has "env":"production"
+				storeMock.
+					On("DeviceUpdate", ctx, device).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
 	}
 
 	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
