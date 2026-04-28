@@ -434,6 +434,10 @@ export interface Device {
      * Device\'s acceptable  The value \"acceptable\" is based on the number of devices removed and already accepted into a namespace. All devices are \"acceptable\" unless the \"namespace.max_devices\" is reached. This limit is set based on the sum up of accepted and removed devices into the namespace. When this limit is reached, only removed devices between 720 hours or 30 days are set to \"acceptable\". 
      */
     'acceptable'?: boolean;
+    /**
+     * User-defined key-value metadata for the device.
+     */
+    'custom_fields'?: { [key: string]: string };
 }
 
 
