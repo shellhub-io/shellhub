@@ -49,6 +49,8 @@ type Device struct {
 	Position        *DevicePosition `json:"position" bson:"position"`
 	Acceptable      bool            `json:"acceptable" bson:"acceptable,omitempty"`
 
+	CustomFields map[string]string `json:"custom_fields,omitempty" bson:"custom_fields,omitempty"`
+
 	Taggable `json:",inline" bson:",inline"`
 }
 

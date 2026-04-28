@@ -14,9 +14,10 @@ type DeviceList struct {
 }
 
 type DeviceUpdate struct {
-	TenantID string `header:"X-Tenant-ID"`
-	UID      string `param:"uid" validate:"required"`
-	Name     string `json:"name" validate:"device_name,omitempty"`
+	TenantID     string             `header:"X-Tenant-ID"`
+	UID          string             `param:"uid" validate:"required"`
+	Name         string             `json:"name" validate:"device_name,omitempty"`
+	CustomFields *map[string]string `json:"custom_fields" validate:"omitempty"`
 }
 
 // DeviceParam is a structure to represent and validate a device UID as path param.
