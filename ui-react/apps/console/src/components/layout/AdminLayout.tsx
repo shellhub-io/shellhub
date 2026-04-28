@@ -6,13 +6,20 @@ import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 
 export default function AdminLayout() {
   const { pathname } = useLocation();
-  const { isOpen, isDesktop, drawerOpen, handlers } = useSidebarLayout();
+  const { isOpen, pinned, isDesktop, drawerOpen, handlers } = useSidebarLayout();
 
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {isDesktop ? (
-          <AdminSidebar expanded={isOpen} />
+          <div
+            onMouseEnter={handlers.onMouseEnter}
+            onMouseLeave={handlers.onMouseLeave}
+            onFocus={handlers.onFocus}
+            onBlur={handlers.onBlur}
+          >
+            <AdminSidebar expanded={isOpen} pinned={pinned} onToggle={handlers.onToggle} />
+          </div>
         ) : (
           <SidebarMobileDrawer
             open={drawerOpen}
@@ -21,8 +28,10 @@ export default function AdminLayout() {
           >
             <AdminSidebar
               expanded
+              pinned={false}
               onToggle={handlers.closeDrawer}
               onClose={handlers.closeDrawer}
+              toggleLabel="Close sidebar"
             />
           </SidebarMobileDrawer>
         )}
