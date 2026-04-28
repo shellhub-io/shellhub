@@ -6,6 +6,8 @@ export interface ClientConfig {
   webEndpoints: boolean;
   onboardingUrl: string;
   stripePublishableKey: string;
+  chatwootWebsiteToken: string;
+  chatwootBaseUrl: string;
 }
 
 const defaultConfig: ClientConfig = {
@@ -16,6 +18,8 @@ const defaultConfig: ClientConfig = {
   webEndpoints: false,
   onboardingUrl: "",
   stripePublishableKey: "",
+  chatwootWebsiteToken: "",
+  chatwootBaseUrl: "",
 };
 
 let cached: ClientConfig = defaultConfig;

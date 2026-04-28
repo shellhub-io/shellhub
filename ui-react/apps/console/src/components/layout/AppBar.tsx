@@ -9,6 +9,7 @@ import NamespaceSelector from "./NamespaceSelector";
 
 import UserMenu from "./UserMenu";
 import InvitationsMenu from "./InvitationsMenu";
+import SupportButton from "./SupportButton";
 import { TerminalInfo, TerminalActions } from "../terminal/TerminalControls";
 
 interface AppBarProps {
@@ -115,6 +116,7 @@ export default function AppBar({ onMenuToggle }: AppBarProps) {
         </div>
 
         <InvitationsMenu />
+        <SupportButton />
         <UserMenu />
       </div>
     </header>

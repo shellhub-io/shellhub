@@ -12,6 +12,7 @@ import {
   resetMfa,
 } from "../client";
 import { queryClient } from "../api/queryClient";
+import { tearDownChatwoot } from "../hooks/chatwootRuntime";
 import { useVaultStore } from "./vaultStore";
 
 interface AuthState {
@@ -51,7 +52,10 @@ interface AuthState {
   loginWithMfa: (code: string) => Promise<void>;
   recoverWithCode: (code: string, identifier?: string) => Promise<void>;
   requestMfaReset: (identifier: string) => Promise<void>;
-  completeMfaReset: (mainEmailCode: string, recoveryEmailCode: string) => Promise<void>;
+  completeMfaReset: (
+    mainEmailCode: string,
+    recoveryEmailCode: string,
+  ) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
 }
@@ -144,12 +148,23 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
         } catch {
+          // Token rejected — auth state collapses just like a logout, so
+          // tear the widget down too. Otherwise a stale Chatwoot iframe
+          // (loaded earlier in the session) survives into the login screen.
+          tearDownChatwoot("logout");
           set({ ...initialState });
           throw new Error("Token login failed");
         }
       },
 
       logout: () => {
+        // Tear the Chatwoot widget down BEFORE clearing auth state. Clearing
+        // state first would unmount AppLayout (and ChatwootProvider with it),
+        // detaching the widget DOM before reset() runs and leaving a stale
+        // identity for the next sign-in. The runtime helper also removes the
+        // <script> tag and the window globals so the next mount can cleanly
+        // re-bootstrap with the new user's identity.
+        tearDownChatwoot("logout");
         useVaultStore.getState().lock();
         set(initialState);
         localStorage.removeItem("shellhub-session");
@@ -287,12 +302,18 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
         } catch {
-          set({ loading: false, error: "Unable to send reset emails. Please check your identifier." });
+          set({
+            loading: false,
+            error: "Unable to send reset emails. Please check your identifier.",
+          });
           throw new Error("Reset request failed");
         }
       },
 
-      completeMfaReset: async (mainEmailCode: string, recoveryEmailCode: string) => {
+      completeMfaReset: async (
+        mainEmailCode: string,
+        recoveryEmailCode: string,
+      ) => {
         const { mfaResetUserId } = get();
         if (!mfaResetUserId) {
           set({ error: "Invalid reset session. Please start over." });
@@ -303,7 +324,10 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data } = await resetMfa({
             path: { "user-id": mfaResetUserId },
-            body: { main_email_code: mainEmailCode, recovery_email_code: recoveryEmailCode },
+            body: {
+              main_email_code: mainEmailCode,
+              recovery_email_code: recoveryEmailCode,
+            },
             throwOnError: true,
           });
 
@@ -323,7 +347,10 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
         } catch {
-          set({ loading: false, error: "Invalid verification codes. Please check and try again." });
+          set({
+            loading: false,
+            error: "Invalid verification codes. Please check and try again.",
+          });
           throw new Error("Invalid codes");
         }
       },

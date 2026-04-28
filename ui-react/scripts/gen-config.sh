@@ -15,6 +15,8 @@ cat > "$OUTPUT" <<EOF
   "onboardingUrl": "${SHELLHUB_ONBOARDING_URL:-}",
   "announcements": ${SHELLHUB_ANNOUNCEMENTS:-false},
   "webEndpoints": ${SHELLHUB_WEB_ENDPOINTS:-false},
-  "stripePublishableKey": "${STRIPE_PUBLISHABLE_KEY:-}"
+  "stripePublishableKey": "${STRIPE_PUBLISHABLE_KEY:-}",
+  "chatwootWebsiteToken": "${SHELLHUB_CHATWOOT_WEBSITE_TOKEN:-}",
+  "chatwootBaseUrl": "${SHELLHUB_CHATWOOT_BASEURL:-}"
 }
 EOF
