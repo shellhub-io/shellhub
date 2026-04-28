@@ -31,7 +31,7 @@ type Device struct {
 	Platform        string            `bun:"platform"`
 	Longitude       float64           `bun:"longitude,type:numeric"`
 	Latitude        float64           `bun:"latitude,type:numeric"`
-	CustomFields    map[string]string `bun:"custom_fields,type:jsonb"`
+	CustomFields    map[string]string `bun:"custom_fields,type:jsonb,nullzero,default:'{}'"`
 
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
