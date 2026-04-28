@@ -28,7 +28,7 @@ export default function AppLayout() {
       <ConnectivityBanner />
       <div className="flex flex-1 min-h-0">
         {showSidebar && isDesktop && (
-          <Sidebar expanded={isOpen} />
+          <Sidebar expanded={isOpen} onToggle={handlers.toggleDesktop} />
         )}
         {showSidebar && !isDesktop && (
           <SidebarMobileDrawer

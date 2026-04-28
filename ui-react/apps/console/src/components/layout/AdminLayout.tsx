@@ -12,7 +12,7 @@ export default function AdminLayout() {
     <div className="flex flex-col h-screen bg-background">
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {isDesktop ? (
-          <AdminSidebar expanded={isOpen} />
+          <AdminSidebar expanded={isOpen} onToggle={handlers.toggleDesktop} />
         ) : (
           <SidebarMobileDrawer
             open={drawerOpen}

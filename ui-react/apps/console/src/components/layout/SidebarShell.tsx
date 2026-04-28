@@ -163,23 +163,20 @@ export default function SidebarShell({
 
       {/* Footer with pin toggle */}
       <div
-        className={`h-11 px-3 flex items-center justify-between transition-colors duration-200 ${expanded && onToggle ? "border-t border-border" : "border-t border-transparent"}`}
+        className={`h-11 px-3 flex items-center border-t border-border ${expanded && onToggle ? "justify-between" : "justify-center"}`}
       >
-        <p
-          className={`text-2xs font-mono text-text-muted/60 whitespace-nowrap transition-opacity duration-200 ${expanded && onToggle ? "opacity-100" : "opacity-0"}`}
-        >
-          {footerLabel}
-        </p>
+        {expanded && onToggle && (
+          <p className="text-2xs font-mono text-text-muted/60 whitespace-nowrap">
+            {footerLabel}
+          </p>
+        )}
         {onToggle && (
           <button
             type="button"
             onClick={onToggle}
-            tabIndex={expanded ? 0 : -1}
-            aria-label="Close sidebar"
-            title="Close sidebar"
-            className={`p-1 rounded-md transition-all duration-200 text-text-muted hover:text-text-primary hover:bg-hover-subtle ${
-              expanded ? "opacity-100" : "opacity-0"
-            }`}
+            aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+            title={expanded ? "Collapse sidebar" : "Expand sidebar"}
+            className="p-1 rounded-md transition-all duration-200 text-text-muted hover:text-text-primary hover:bg-hover-subtle"
           >
             <ChevronLeftIcon
               className={`w-3.5 h-3.5 transition-transform duration-200 ${

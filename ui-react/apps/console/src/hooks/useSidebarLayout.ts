@@ -23,6 +23,7 @@ function getIsDesktopServer() {
 
 export function useSidebarLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [desktopExpanded, setDesktopExpanded] = useState(true);
 
   const isDesktop = useSyncExternalStore(
     subscribeToMediaQuery,
@@ -30,11 +31,12 @@ export function useSidebarLayout() {
     getIsDesktopServer,
   );
 
-  const isOpen = isDesktop;
+  const isOpen = isDesktop ? desktopExpanded : false;
 
   const openDrawer = () => setDrawerOpen(true);
   const closeDrawer = () => setDrawerOpen(false);
   const toggleDrawer = () => setDrawerOpen((prev) => !prev);
+  const toggleDesktop = () => setDesktopExpanded((prev) => !prev);
 
   const handleDrawerKeyDown = (e: React.KeyboardEvent) => { if (e.key === "Escape") closeDrawer(); };
 
@@ -46,6 +48,7 @@ export function useSidebarLayout() {
       openDrawer,
       closeDrawer,
       toggleDrawer,
+      toggleDesktop,
       onDrawerKeyDown: handleDrawerKeyDown,
     },
   };
