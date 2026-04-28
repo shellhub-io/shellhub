@@ -101,6 +101,11 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string) (string, [
 		return fromTagsFilter(fp.Operator, fp.Value)
 	}
 
+	// custom_fields is a JSONB column; search across all values.
+	if fp.Name == "custom_fields" {
+		return fromCustomFieldsFilter(fp.Operator, fp.Value)
+	}
+
 	var condition string
 	var args []any
 	var err error
@@ -279,4 +284,21 @@ func fromLt(column string, value any, tableAlias string) (string, []any, error) 
 // arguments array, and error if any.
 func fromNe(column string, value any, tableAlias string) (string, []any, error) {
 	return "? <> ?", []any{qualifyColumn(mapColumnFromLegacyMongo(column), tableAlias), value}, nil
+}
+
+// fromCustomFieldsFilter searches across all values of the custom_fields JSONB column.
+// Only "contains" is supported: it matches any value using ILIKE.
+func fromCustomFieldsFilter(operator string, value any) (string, []any, bool, error) {
+	if operator != "contains" {
+		return "", nil, false, nil
+	}
+
+	v, ok := value.(string)
+	if !ok {
+		return "", nil, false, ErrUnsupportedContainsType
+	}
+
+	const sql = `EXISTS (SELECT 1 FROM jsonb_each_text("device"."custom_fields") WHERE value ILIKE ?)`
+
+	return sql, []any{"%" + v + "%"}, true, nil
 }

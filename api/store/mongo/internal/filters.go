@@ -144,3 +144,43 @@ func fromLt(value interface{}) (bson.M, error) {
 func fromNe(value interface{}) (bson.M, error) {
 	return bson.M{"$ne": value}, nil
 }
+
+// ParseCustomFieldsFilter builds a MongoDB $match condition that searches across all values
+// of the custom_fields document. Only "contains" with a string value is supported.
+func ParseCustomFieldsFilter(fp *query.FilterProperty) (bson.M, bool, error) {
+	if fp.Operator != "contains" {
+		return nil, false, nil
+	}
+
+	v, ok := fp.Value.(string)
+	if !ok {
+		return nil, false, errors.New("custom_fields contains filter requires a string value")
+	}
+
+	// Use $objectToArray to iterate over all values in the custom_fields map,
+	// then check if any value matches the regex.
+	condition := bson.M{
+		"$expr": bson.M{
+			"$gt": bson.A{
+				bson.M{
+					"$size": bson.M{
+						"$filter": bson.M{
+							"input": bson.M{"$objectToArray": bson.M{"$ifNull": bson.A{"$custom_fields", bson.M{}}}},
+							"as":    "cf",
+							"cond": bson.M{
+								"$regexMatch": bson.M{
+									"input":   "$$cf.v",
+									"regex":   v,
+									"options": "i",
+								},
+							},
+						},
+					},
+				},
+				0,
+			},
+		},
+	}
+
+	return condition, true, nil
+}
