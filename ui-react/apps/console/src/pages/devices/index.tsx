@@ -136,6 +136,24 @@ export default function Devices() {
         ),
       },
       {
+        key: "custom_fields",
+        header: "Custom Fields",
+        render: (device) => {
+          const entries = Object.entries(device.custom_fields ?? {});
+          if (entries.length === 0) return <span className="text-2xs text-text-muted/30 font-mono">—</span>;
+          return (
+            <div className="flex flex-wrap gap-1">
+              {entries.map(([k, v]) => (
+                <span key={k} className="inline-flex items-center text-2xs rounded overflow-hidden border border-border font-mono">
+                  <span className="px-1.5 py-0.5 bg-surface text-text-muted">{k}</span>
+                  <span className="px-1.5 py-0.5 bg-card text-text-primary font-medium">{v}</span>
+                </span>
+              ))}
+            </div>
+          );
+        },
+      },
+      {
         key: "last_seen",
         header: "Last Seen",
         render: (device) => (

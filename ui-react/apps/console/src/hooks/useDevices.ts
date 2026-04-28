@@ -14,10 +14,12 @@ export type NormalizedDevice = Omit<GeneratedDevice, "tags"> & { tags: string[] 
 export function buildFilter(search: string, tags: string[]): string {
   const filters: Record<string, unknown>[] = [];
   if (search) {
-    filters.push({
-      type: "property",
-      params: { name: "name", operator: "contains", value: search },
-    });
+    filters.push(
+      { type: "operator", params: { name: "or" } },
+      { type: "property", params: { name: "name", operator: "contains", value: search } },
+      { type: "operator", params: { name: "or" } },
+      { type: "property", params: { name: "custom_fields", operator: "contains", value: search } },
+    );
   }
   if (tags.length > 0) {
     filters.push({
