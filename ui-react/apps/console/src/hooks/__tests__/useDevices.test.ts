@@ -3,10 +3,13 @@ import { buildFilter } from "../useDevices";
 
 describe("buildFilter", () => {
   describe("search only", () => {
-    it("encodes a name filter", () => {
+    it("encodes a name OR custom_fields filter", () => {
       const result = JSON.parse(atob(buildFilter("my-device", [])));
       expect(result).toEqual([
+        { type: "operator", params: { name: "or" } },
         { type: "property", params: { name: "name", operator: "contains", value: "my-device" } },
+        { type: "operator", params: { name: "or" } },
+        { type: "property", params: { name: "custom_fields", operator: "contains", value: "my-device" } },
       ]);
     });
   });
@@ -24,7 +27,10 @@ describe("buildFilter", () => {
     it("encodes both filters in the same array", () => {
       const result = JSON.parse(atob(buildFilter("srv", ["prod"])));
       expect(result).toEqual([
+        { type: "operator", params: { name: "or" } },
         { type: "property", params: { name: "name", operator: "contains", value: "srv" } },
+        { type: "operator", params: { name: "or" } },
+        { type: "property", params: { name: "custom_fields", operator: "contains", value: "srv" } },
         { type: "property", params: { name: "tags.name", operator: "contains", value: ["prod"] } },
       ]);
     });
