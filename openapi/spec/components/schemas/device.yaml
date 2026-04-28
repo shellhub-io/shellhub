@@ -60,6 +60,14 @@ properties:
         example: -52.322474
   tags:
     $ref: deviceTags.yaml
+  custom_fields:
+    description: User-defined key-value metadata for the device.
+    type: object
+    additionalProperties:
+      type: string
+    example:
+      env: production
+      owner: team-a
   public_url:
     $ref: devicePublicURL.yaml
   acceptable:
