@@ -1,4 +1,4 @@
-import { useCallback, type ReactNode } from "react";
+import { useCallback, useMemo, type ReactNode } from "react";
 import { getConfig } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
 import {
@@ -10,6 +10,8 @@ import {
   CommandLineIcon,
   LockClosedIcon,
   CubeIcon,
+  GlobeAltIcon,
+  ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
 import SidebarShell, { NavItemLink, navIcon } from "./SidebarShell";
 
@@ -18,6 +20,7 @@ interface NavItem {
   label: string;
   icon: ReactNode;
   premium?: boolean;
+  beta?: boolean;
 }
 
 interface NavSection {
@@ -25,68 +28,89 @@ interface NavSection {
   items: NavItem[];
 }
 
-const sections: NavSection[] = [
-  {
-    title: "Overview",
-    items: [
-      {
-        to: "/dashboard",
-        label: "Dashboard",
-        icon: <HomeIcon className={navIcon} />,
-      },
-    ],
-  },
-  {
-    title: "Resources",
-    items: [
-      {
-        to: "/devices",
-        label: "Devices",
-        icon: <CpuChipIcon className={navIcon} />,
-      },
-      {
-        to: "/containers",
-        label: "Containers",
-        icon: <CubeIcon className={navIcon} />,
-      },
-      {
-        to: "/sessions",
-        label: "Sessions",
-        icon: <CommandLineIcon className={navIcon} />,
-      },
-    ],
-  },
-  {
-    title: "Security",
-    items: [
-      {
-        to: "/sshkeys/public-keys",
-        label: "Public Keys",
-        icon: <KeyIcon className={navIcon} />,
-      },
-      {
-        to: "/secure-vault",
-        label: "Secure Vault",
-        icon: <LockClosedIcon className={navIcon} />,
-      },
-    ],
-  },
-  {
-    title: "Management",
-    items: [
-      {
-        to: "/team",
-        label: "Team",
-        icon: <UsersIcon className={navIcon} />,
-      },
-      {
-        to: "/settings",
-        label: "Settings",
-        icon: <Cog6ToothIcon className={navIcon} />,
-      },
-    ],
-  },
-];
+function buildSections(): NavSection[] {
+  const config = getConfig();
+
+  const resources: NavItem[] = [
+    {
+      to: "/devices",
+      label: "Devices",
+      icon: <CpuChipIcon className={navIcon} />,
+    },
+    {
+      to: "/containers",
+      label: "Containers",
+      icon: <CubeIcon className={navIcon} />,
+    },
+    {
+      to: "/sessions",
+      label: "Sessions",
+      icon: <CommandLineIcon className={navIcon} />,
+    },
+  ];
+
+  if (config.webEndpoints && (config.cloud || config.enterprise)) {
+    resources.push({
+      to: "/web-endpoints",
+      label: "Web Endpoints",
+      icon: <GlobeAltIcon className={navIcon} />,
+      beta: true,
+    });
+  }
+
+  return [
+    {
+      title: "Overview",
+      items: [
+        {
+          to: "/dashboard",
+          label: "Dashboard",
+          icon: <HomeIcon className={navIcon} />,
+        },
+      ],
+    },
+    {
+      title: "Resources",
+      items: resources,
+    },
+    {
+      title: "Security",
+      items: [
+        {
+          to: "/sshkeys/public-keys",
+          label: "Public Keys",
+          icon: <KeyIcon className={navIcon} />,
+        },
+        {
+          to: "/firewall-rules",
+          label: "Firewall Rules",
+          icon: <ShieldExclamationIcon className={navIcon} />,
+          premium: true,
+        },
+        {
+          to: "/secure-vault",
+          label: "Secure Vault",
+          icon: <LockClosedIcon className={navIcon} />,
+        },
+      ],
+    },
+    {
+      title: "Management",
+      items: [
+        {
+          to: "/team",
+          label: "Team",
+          icon: <UsersIcon className={navIcon} />,
+        },
+        {
+          to: "/settings",
+          label: "Settings",
+          icon: <Cog6ToothIcon className={navIcon} />,
+        },
+      ],
+    },
+  ];
+}
 
 function ProBadge() {
   return (
@@ -94,6 +118,22 @@ function ProBadge() {
       Pro
     </span>
   );
+}
+
+function BetaBadge() {
+  return (
+    <span className="text-2xs font-mono font-semibold text-accent-cyan/90 bg-accent-cyan/10 px-1.5 py-0.5 rounded">
+      Beta
+    </span>
+  );
+}
+
+function pickBadge(item: NavItem): ReactNode | undefined {
+  const config = getConfig();
+  const isPaidEdition = config.cloud || config.enterprise;
+  if (item.premium && !isPaidEdition) return <ProBadge />;
+  if (item.beta) return <BetaBadge />;
+  return undefined;
 }
 
 export default function Sidebar({
@@ -109,6 +149,8 @@ export default function Sidebar({
   const isFullscreen = useTerminalStore((state) =>
     state.sessions.some((session) => session.state === "fullscreen"),
   );
+
+  const sections = useMemo(() => buildSections(), []);
 
   const handleNavClick = useCallback(() => {
     minimizeAll();
@@ -140,19 +182,15 @@ export default function Sidebar({
             {section.title}
           </p>
           <div className="space-y-0.5">
-            {section.items.map((item) => {
-              const showBadge =
-                item.premium && !getConfig().cloud && !getConfig().enterprise;
-              return (
-                <NavItemLink
-                  key={item.to}
-                  item={item}
-                  expanded={expanded}
-                  onClick={handleNavClick}
-                  badge={showBadge ? <ProBadge /> : undefined}
-                />
-              );
-            })}
+            {section.items.map((item) => (
+              <NavItemLink
+                key={item.to}
+                item={item}
+                expanded={expanded}
+                onClick={handleNavClick}
+                badge={pickBadge(item)}
+              />
+            ))}
           </div>
         </div>
       ))}

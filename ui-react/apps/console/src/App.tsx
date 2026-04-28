@@ -19,6 +19,7 @@ import SignUpGuard from "./components/common/SignUpGuard";
 import AdminRoute from "./components/common/AdminRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 import LicenseGuard from "./components/common/LicenseGuard";
+import FeatureGate from "./components/common/FeatureGate";
 
 const SignUp = lazy(() => import("./pages/SignUp"));
 const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
@@ -34,6 +35,8 @@ const PublicKeys = lazy(() => import("./pages/public-keys"));
 const DeviceDetails = lazy(() => import("./pages/DeviceDetails"));
 const AddDevice = lazy(() => import("./pages/AddDevice"));
 const Team = lazy(() => import("./pages/team"));
+const FirewallRules = lazy(() => import("./pages/firewall-rules"));
+const WebEndpoints = lazy(() => import("./pages/WebEndpoints"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BannerEdit = lazy(() => import("./pages/BannerEdit"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -202,6 +205,30 @@ export default function App() {
                   <Route path="/sessions/:uid" element={<SessionDetails />} />
                   <Route path="/sshkeys/public-keys" element={<PublicKeys />} />
                   <Route path="/secure-vault" element={<SecureVault />} />
+                  <Route
+                    path="/firewall-rules"
+                    element={(
+                      <FeatureGate
+                        feature="Firewall Rules"
+                        description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
+                      >
+                        <FirewallRules />
+                      </FeatureGate>
+                    )}
+                  />
+                  {getConfig().webEndpoints && (
+                    <Route
+                      path="/web-endpoints"
+                      element={(
+                        <FeatureGate
+                          feature="Web Endpoints"
+                          description="Tunnel HTTP traffic to services running on your devices through unique URLs."
+                        >
+                          <WebEndpoints />
+                        </FeatureGate>
+                      )}
+                    />
+                  )}
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/settings/banner" element={<BannerEdit />} />

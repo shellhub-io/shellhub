@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  cleanup,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
 
@@ -32,7 +38,14 @@ const mockUseCreateNamespace = vi.mocked(useCreateNamespace);
 
 beforeEach(() => {
   // Default to CE (no cloud/enterprise features)
-  mockGetConfig.mockReturnValue({ cloud: false, enterprise: false, version: "", onboardingUrl: "", announcements: false });
+  mockGetConfig.mockReturnValue({
+    cloud: false,
+    enterprise: false,
+    version: "",
+    onboardingUrl: "",
+    announcements: false,
+    webEndpoints: false,
+  });
   mockUseCreateNamespace.mockReturnValue({
     mutateAsync: vi.fn(),
     isPending: false,
@@ -44,7 +57,14 @@ beforeEach(() => {
 afterEach(cleanup);
 
 function renderDialog(open: boolean, onClose = vi.fn()) {
-  return { onClose, ...render(<ClipboardProvider><CreateNamespaceDialog open={open} onClose={onClose} /></ClipboardProvider>) };
+  return {
+    onClose,
+    ...render(
+      <ClipboardProvider>
+        <CreateNamespaceDialog open={open} onClose={onClose} />
+      </ClipboardProvider>,
+    ),
+  };
 }
 
 describe("CreateNamespaceDialog", () => {
@@ -194,13 +214,22 @@ describe("CreateNamespaceDialog", () => {
 
 describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   beforeEach(() => {
-    mockGetConfig.mockReturnValue({ cloud: false, enterprise: true, version: "", onboardingUrl: "", announcements: false });
+    mockGetConfig.mockReturnValue({
+      cloud: false,
+      enterprise: true,
+      version: "",
+      onboardingUrl: "",
+      announcements: false,
+      webEndpoints: false,
+    });
   });
 
   it("renders the creation form instead of CLI instructions", () => {
     renderDialog(true);
     expect(screen.getByRole("textbox")).toBeInTheDocument();
-    expect(screen.queryByText(/Community Edition uses the CLI/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Community Edition uses the CLI/i),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the name input and Create button", () => {
@@ -223,7 +252,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     } as unknown as ReturnType<typeof useCreateNamespace>);
 
     renderDialog(true);
-    fireEvent.change(screen.getByPlaceholderText("my-namespace"), { target: { value: "my-ns" } });
+    fireEvent.change(screen.getByPlaceholderText("my-namespace"), {
+      target: { value: "my-ns" },
+    });
     // When pending the button renders a spinner with no text; query by type
     expect(document.querySelector("button[type='submit']")).toBeDisabled();
   });
@@ -231,12 +262,18 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   it("shows a validation error when name is too short on submit", async () => {
     renderDialog(true);
 
-    fireEvent.change(screen.getByPlaceholderText("my-namespace"), { target: { value: "ab" } });
+    fireEvent.change(screen.getByPlaceholderText("my-namespace"), {
+      target: { value: "ab" },
+    });
     // Button is disabled for names < 3 chars; submit the form directly
-    fireEvent.submit(screen.getByPlaceholderText("my-namespace").closest("form")!);
+    fireEvent.submit(
+      screen.getByPlaceholderText("my-namespace").closest("form")!,
+    );
 
     await waitFor(() =>
-      expect(screen.getByText("Name must be at least 3 characters")).toBeInTheDocument(),
+      expect(
+        screen.getByText("Name must be at least 3 characters"),
+      ).toBeInTheDocument(),
     );
   });
 
@@ -254,7 +291,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("calls mutateAsync with the namespace name on valid submission", async () => {
-    const mutateAsync = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockResolvedValue(undefined);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -280,7 +319,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("shows the mutation error message when creation fails", async () => {
-    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(new Error("name already taken"));
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(new Error("name already taken"));
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -300,7 +341,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("clears the mutation error when the user types in the input", async () => {
-    const mutateAsync = vi.fn<() => Promise<void>>().mockRejectedValue(new Error("name already taken"));
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockRejectedValue(new Error("name already taken"));
     const reset = vi.fn();
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
@@ -319,7 +362,9 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   });
 
   it("calls onClose after successful creation", async () => {
-    const mutateAsync = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const mutateAsync = vi
+      .fn<() => Promise<void>>()
+      .mockResolvedValue(undefined);
     mockUseCreateNamespace.mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -339,12 +384,21 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
 
 describe("CreateNamespaceDialog (cloud: true, enterprise: false)", () => {
   beforeEach(() => {
-    mockGetConfig.mockReturnValue({ cloud: true, enterprise: false, version: "", onboardingUrl: "", announcements: false });
+    mockGetConfig.mockReturnValue({
+      cloud: true,
+      enterprise: false,
+      version: "",
+      onboardingUrl: "",
+      announcements: false,
+      webEndpoints: false,
+    });
   });
 
   it("renders the creation form (cloud branch of isCloud)", () => {
     renderDialog(true);
     expect(screen.getByRole("textbox")).toBeInTheDocument();
-    expect(screen.queryByText(/Community Edition uses the CLI/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Community Edition uses the CLI/i),
+    ).not.toBeInTheDocument();
   });
 });
