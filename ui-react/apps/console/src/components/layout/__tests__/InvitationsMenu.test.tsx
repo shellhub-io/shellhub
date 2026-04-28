@@ -184,6 +184,8 @@ describe("InvitationsMenu", () => {
         webEndpoints: false,
         onboardingUrl: "",
         stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
       });
 
       const { container } = renderMenu();
@@ -198,6 +200,8 @@ describe("InvitationsMenu", () => {
         webEndpoints: false,
         onboardingUrl: "",
         stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
       });
     });
 

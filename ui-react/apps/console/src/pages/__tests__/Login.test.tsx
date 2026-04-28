@@ -143,6 +143,8 @@ beforeEach(() => {
     webEndpoints: false,
     onboardingUrl: "",
     stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
   });
   useAuthStore.setState({
     token: null,
@@ -364,6 +366,8 @@ describe("Login", () => {
         webEndpoints: false,
         onboardingUrl: "",
         stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -387,6 +391,8 @@ describe("Login", () => {
         webEndpoints: false,
         onboardingUrl: "",
         stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -411,6 +417,8 @@ describe("Login", () => {
         webEndpoints: false,
         onboardingUrl: "",
         stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -441,6 +449,8 @@ describe("Login", () => {
           webEndpoints: false,
           onboardingUrl: "",
           stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
         });
         mockedGetInfo.mockResolvedValue(
           mockSdkResponse(
@@ -478,6 +488,8 @@ describe("Login", () => {
         webEndpoints: false,
         onboardingUrl: "",
         stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
@@ -507,6 +519,8 @@ describe("Login", () => {
         webEndpoints: false,
         onboardingUrl: "",
         stripePublishableKey: "",
+          chatwootWebsiteToken: "",
+          chatwootBaseUrl: "",
       });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(

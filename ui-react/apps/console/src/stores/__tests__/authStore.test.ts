@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useAuthStore } from "../authStore";
 import type { UserAuth } from "@/client";
 
@@ -13,19 +13,18 @@ vi.mock("@/client", () => ({
   resetMfa: vi.fn(),
 }));
 
-import {
-  login as loginSdk,
-  getUserInfo,
-  authMfa,
-  mfaRecover,
-} from "@/client";
+import { login as loginSdk, getUserInfo, authMfa, mfaRecover } from "@/client";
 
 const mockedLogin = vi.mocked(loginSdk);
 const mockedGetUserInfo = vi.mocked(getUserInfo);
 const mockedAuthMfa = vi.mocked(authMfa);
 const mockedMfaRecover = vi.mocked(mfaRecover);
 
-type SdkResponse<T = unknown> = { data: T; request: Request; response: Response };
+type SdkResponse<T = unknown> = {
+  data: T;
+  request: Request;
+  response: Response;
+};
 
 function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   return {
@@ -45,7 +44,10 @@ function mockUserAuth(overrides: Partial<UserAuth> = {}): UserAuth {
   };
 }
 
-function mockSdkResponse<T>(data: T, headers: HeadersInit = {}): SdkResponse<T> {
+function mockSdkResponse<T>(
+  data: T,
+  headers: HeadersInit = {},
+): SdkResponse<T> {
   return {
     data,
     request: new Request("http://localhost"),
@@ -102,7 +104,9 @@ describe("authStore", () => {
     });
 
     it("re-throws on 403 (Login page handles redirect)", async () => {
-      mockedLogin.mockRejectedValue(Object.assign(new Error("403"), { status: 403 }));
+      mockedLogin.mockRejectedValue(
+        Object.assign(new Error("403"), { status: 403 }),
+      );
 
       await expect(
         useAuthStore.getState().login("admin", "password"),
@@ -186,13 +190,70 @@ describe("authStore", () => {
       expect(state.role).toBeNull();
       expect(state.name).toBeNull();
     });
+
+    describe("Chatwoot cleanup", () => {
+      afterEach(() => {
+        delete window.$chatwoot;
+      });
+
+      it("calls toggle('close') then reset() when window.$chatwoot is set", () => {
+        const toggle = vi.fn();
+        const reset = vi.fn();
+        window.$chatwoot = {
+          toggle,
+          reset,
+          setUser: vi.fn(),
+          setCustomAttributes: vi.fn(),
+          setConversationCustomAttributes: vi.fn(),
+          deleteCustomAttribute: vi.fn(),
+        };
+
+        useAuthStore.getState().logout();
+
+        expect(toggle).toHaveBeenCalledWith("close");
+        expect(reset).toHaveBeenCalled();
+        // toggle("close") must happen before reset()
+        const toggleOrder = toggle.mock.invocationCallOrder[0];
+        const resetOrder = reset.mock.invocationCallOrder[0];
+        expect(toggleOrder).toBeLessThan(resetOrder);
+      });
+
+      it("does not throw when window.$chatwoot is undefined", () => {
+        delete window.$chatwoot;
+        expect(() => useAuthStore.getState().logout()).not.toThrow();
+      });
+
+      it("still clears auth state even when window.$chatwoot.reset throws", () => {
+        window.$chatwoot = {
+          toggle: vi.fn(),
+          reset: vi.fn(() => {
+            throw new Error("widget error");
+          }),
+          setUser: vi.fn(),
+          setCustomAttributes: vi.fn(),
+          setConversationCustomAttributes: vi.fn(),
+          deleteCustomAttribute: vi.fn(),
+        };
+
+        useAuthStore.setState({ token: "jwt", user: "admin" });
+
+        // Should not throw at the caller level
+        expect(() => useAuthStore.getState().logout()).not.toThrow();
+
+        // Auth state is still cleared
+        expect(useAuthStore.getState().token).toBeNull();
+        expect(useAuthStore.getState().user).toBeNull();
+      });
+    });
   });
 
   describe("setSession", () => {
     it("updates token, tenant, and role", () => {
-      useAuthStore
-        .getState()
-        .setSession({ token: "new-jwt", tenant: "new-tenant", role: "administrator" });
+      useAuthStore.getState().setSession({
+        token: "new-jwt",
+        tenant: "new-tenant",
+        role: "administrator",
+      });
 
       const state = useAuthStore.getState();
       expect(state.token).toBe("new-jwt");
@@ -213,12 +274,16 @@ describe("authStore", () => {
 
   describe("fetchUser", () => {
     it("updates user data from API", async () => {
-      mockedGetUserInfo.mockResolvedValue(mockSdkResponse(mockUserAuth({
-        user: "admin",
-        email: "admin@test.com",
-        recovery_email: "backup@test.com",
-        name: "Admin User",
-      })));
+      mockedGetUserInfo.mockResolvedValue(
+        mockSdkResponse(
+          mockUserAuth({
+            user: "admin",
+            email: "admin@test.com",
+            recovery_email: "backup@test.com",
+            name: "Admin User",
+          }),
+        ),
+      );
 
       await useAuthStore.getState().fetchUser();
 
@@ -341,10 +406,11 @@ describe("authStore", () => {
 
     it("authenticates with valid recovery code", async () => {
       const futureExpiry = Math.floor(Date.now() / 1000) + 3600;
-      mockedMfaRecover.mockResolvedValue(mockSdkResponse(
-        mockUserAuth({ token: "recovered-jwt" }),
-        { "x-expires-at": futureExpiry.toString() },
-      ));
+      mockedMfaRecover.mockResolvedValue(
+        mockSdkResponse(mockUserAuth({ token: "recovered-jwt" }), {
+          "x-expires-at": futureExpiry.toString(),
+        }),
+      );
 
       await useAuthStore.getState().recoverWithCode("recovery-code-abc");
 
@@ -361,10 +427,11 @@ describe("authStore", () => {
     it("clears mfaToken on successful recovery to prevent stale token re-use", async () => {
       const futureExpiry = Math.floor(Date.now() / 1000) + 3600;
       useAuthStore.setState({ mfaToken: "mfa-temp-token", user: "admin" });
-      mockedMfaRecover.mockResolvedValue(mockSdkResponse(
-        mockUserAuth({ token: "recovered-jwt" }),
-        { "x-expires-at": futureExpiry.toString() },
-      ));
+      mockedMfaRecover.mockResolvedValue(
+        mockSdkResponse(mockUserAuth({ token: "recovered-jwt" }), {
+          "x-expires-at": futureExpiry.toString(),
+        }),
+      );
 
       await useAuthStore.getState().recoverWithCode("recovery-code-abc");
 
@@ -417,7 +484,9 @@ describe("authStore", () => {
 
   describe("login with mfa field", () => {
     it("sets mfaEnabled true when server reports mfa: true", async () => {
-      mockedLogin.mockResolvedValueOnce(mockSdkResponse(mockUserAuth({ mfa: true })));
+      mockedLogin.mockResolvedValueOnce(
+        mockSdkResponse(mockUserAuth({ mfa: true })),
+      );
 
       await useAuthStore.getState().login("admin", "password");
 
