@@ -3,7 +3,7 @@ FROM golang:1.25.8-alpine3.22 AS base
 ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
 
-RUN apk add --no-cache openssl build-base nodejs npm openjdk11-jre git
+RUN apk add --no-cache openssl build-base binutils-gold nodejs npm openjdk11-jre git
 
 RUN npm install -g @openapitools/openapi-generator-cli
 

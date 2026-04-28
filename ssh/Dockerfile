@@ -39,7 +39,7 @@ FROM base AS development
 ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
 
-RUN apk add --update openssl
+RUN apk add --update openssl build-base binutils-gold
 RUN go install github.com/air-verse/air@v1.62 && \
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3 && \
     go install github.com/vektra/mockery/v2/...@v2.20.0

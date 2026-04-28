@@ -58,7 +58,7 @@ FROM base AS development
 ARG GOPROXY
 ENV GOPROXY ${GOPROXY}
 
-RUN apk add --update openssl openssh-client util-linux setpriv
+RUN apk add --update openssl build-base binutils-gold openssh-client util-linux setpriv
 RUN go install github.com/air-verse/air@v1.62 && \
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
 

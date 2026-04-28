@@ -75,7 +75,7 @@ ARG GOPROXY
 ARG MJML_VERSION
 ENV GOPROXY=${GOPROXY}
 
-RUN apk add --update openssl build-base docker-cli npm
+RUN apk add --update openssl build-base binutils-gold docker-cli npm
 RUN npm install -g mjml@${MJML_VERSION}
 RUN go install github.com/air-verse/air@v1.62 && \
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3 && \
