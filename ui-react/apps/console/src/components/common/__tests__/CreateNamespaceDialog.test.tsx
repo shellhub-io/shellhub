@@ -46,6 +46,8 @@ beforeEach(() => {
     announcements: false,
     webEndpoints: false,
     stripePublishableKey: "",
+    chatwootWebsiteToken: "",
+    chatwootBaseUrl: "",
   });
   mockUseCreateNamespace.mockReturnValue({
     mutateAsync: vi.fn(),
@@ -223,6 +225,8 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
       announcements: false,
       webEndpoints: false,
       stripePublishableKey: "",
+      chatwootWebsiteToken: "",
+      chatwootBaseUrl: "",
     });
   });
 
@@ -394,6 +398,8 @@ describe("CreateNamespaceDialog (cloud: true, enterprise: false)", () => {
       announcements: false,
       webEndpoints: false,
       stripePublishableKey: "",
+      chatwootWebsiteToken: "",
+      chatwootBaseUrl: "",
     });
   });
 
