@@ -22,13 +22,19 @@ vi.mock("@/hooks/useNamespaces", () => ({
 
 vi.mock("@/hooks/useSidebarLayout", () => ({
   useSidebarLayout: () => ({
+    expanded: false,
+    pinned: false,
     isOpen: false,
     isDesktop: true,
     drawerOpen: false,
     handlers: {
+      onMouseEnter: vi.fn(),
+      onMouseLeave: vi.fn(),
+      onFocus: vi.fn(),
+      onBlur: vi.fn(),
+      onToggle: vi.fn(),
       openDrawer: vi.fn(),
       closeDrawer: vi.fn(),
-      toggleDrawer: vi.fn(),
       onDrawerKeyDown: vi.fn(),
     },
   }),

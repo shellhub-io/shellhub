@@ -15,7 +15,7 @@ export default function AppLayout() {
   const hasVisibleTerminal = useTerminalStore((s) =>
     s.sessions.some((t) => t.state !== "minimized"),
   );
-  const { isOpen, isDesktop, drawerOpen, handlers } = useSidebarLayout();
+  const { isOpen, pinned, isDesktop, drawerOpen, handlers } = useSidebarLayout();
 
   const showSidebar = namespaces.length > 0;
   const sidebarOffset =
@@ -28,7 +28,14 @@ export default function AppLayout() {
       <ConnectivityBanner />
       <div className="flex flex-1 min-h-0">
         {showSidebar && isDesktop && (
-          <Sidebar expanded={isOpen} />
+          <div
+            onMouseEnter={handlers.onMouseEnter}
+            onMouseLeave={handlers.onMouseLeave}
+            onFocus={handlers.onFocus}
+            onBlur={handlers.onBlur}
+          >
+            <Sidebar expanded={isOpen} pinned={pinned} onToggle={handlers.onToggle} />
+          </div>
         )}
         {showSidebar && !isDesktop && (
           <SidebarMobileDrawer
@@ -38,8 +45,10 @@ export default function AppLayout() {
           >
             <Sidebar
               expanded
+              pinned={false}
               onToggle={handlers.closeDrawer}
               onClose={handlers.closeDrawer}
+              toggleLabel="Close sidebar"
             />
           </SidebarMobileDrawer>
         )}
