@@ -36,6 +36,7 @@ export interface IDevice {
   remote_addr: string;
   position: Position;
   tags: Array<ITag>;
+  custom_fields?: Record<string, string>;
 }
 
 export interface IDeviceRename {

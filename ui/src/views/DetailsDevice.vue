@@ -182,6 +182,34 @@
           </div>
         </v-col>
       </v-row>
+
+      <template v-if="device.custom_fields && Object.keys(device.custom_fields).length">
+        <v-divider class="my-2" />
+        <div
+          class="py-3"
+          data-test="device-custom-fields"
+        >
+          <div class="item-title mb-2">
+            Custom Fields:
+          </div>
+          <v-row>
+            <v-col
+              v-for="(value, key) in device.custom_fields"
+              :key="key"
+              cols="12"
+              md="6"
+              class="my-0 py-0"
+            >
+              <div :data-test="`device-custom-field-${key}`">
+                <div class="item-title">
+                  {{ key }}:
+                </div>
+                <p>{{ value }}</p>
+              </div>
+            </v-col>
+          </v-row>
+        </div>
+      </template>
     </v-card-text>
   </v-card>
   <v-card
