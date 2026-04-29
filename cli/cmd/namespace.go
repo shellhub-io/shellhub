@@ -7,6 +7,7 @@ import (
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/spf13/cobra"
 )
@@ -222,7 +223,7 @@ cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')
 			}
 
 			resolver := services.NamespaceResolverName
-			value := ""
+			var value string
 
 			if tenantID != "" {
 				resolver = services.NamespaceResolverTenantID
@@ -236,9 +237,19 @@ cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')
 				return err
 			}
 
-			owner, err := service.UserResolve(cmd.Context(), ns.Owner)
+			users, err := service.UserList(cmd.Context())
 			if err != nil {
 				return err
+			}
+
+			userMap := make(map[string]models.User, len(users))
+			for _, u := range users {
+				userMap[u.ID] = u
+			}
+
+			owner, ok := userMap[ns.Owner]
+			if !ok {
+				return fmt.Errorf("owner %s not found", ns.Owner)
 			}
 
 			totalDevices := ns.DevicesAcceptedCount +
@@ -276,9 +287,9 @@ Members: %d
 			)
 
 			for _, m := range ns.Members {
-				user, err := service.UserResolve(cmd.Context(), m.ID)
-				if err != nil {
-					return err
+				user, ok := userMap[m.ID]
+				if !ok {
+					return fmt.Errorf("member %s not found", m.ID)
 				}
 				fmt.Fprintf(out, "  %-12s (%s)\n", user.Username, m.Role)
 			}
