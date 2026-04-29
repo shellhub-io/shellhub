@@ -30,7 +30,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     try {
       await editNs.mutateAsync({
         path: { tenant: ns.tenant_id },
-        body: { settings: { connection_announcement: text, session_record: ns.settings?.session_record ?? false } },
+        body: { settings: { connection_announcement: text, session_record: ns.settings?.session_record ?? false, device_auto_accept: ns.settings?.device_auto_accept ?? false } },
       });
       void navigate("/settings");
     } catch {

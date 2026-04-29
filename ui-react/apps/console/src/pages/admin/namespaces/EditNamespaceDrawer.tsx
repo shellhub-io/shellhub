@@ -4,12 +4,12 @@ import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
-import type { NamespaceRoot } from "@/client";
+import type { Namespace } from "@/client";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
   onClose: () => void;
-  namespace: NamespaceRoot | null;
+  namespace: Namespace | null;
 }
 
 export default function EditNamespaceDrawer({

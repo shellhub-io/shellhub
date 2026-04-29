@@ -592,7 +592,7 @@ export default function Settings() {
                 }}
                 className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
                   !deviceAutoAccept
-                    ? "bg-primary/15 text-primary border border-primary/25"
+                    ? "bg-hover-strong text-text-secondary border border-border-light"
                     : "text-text-muted hover:text-text-secondary border border-transparent"
                 }`}
               >
