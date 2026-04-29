@@ -144,7 +144,7 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 func (s *service) NamespaceList(ctx context.Context) ([]models.Namespace, error) {
 	namespaces, _, err := s.store.NamespaceList(ctx)
 	if err != nil {
-		return nil, ErrFailedListNamespace
+		return nil, ErrFailedListNamespaces
 	}
 
 	return namespaces, nil
