@@ -163,4 +163,5 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           draft: true
+          generate_release_notes: true
           files: sbom-*.cdx.json
