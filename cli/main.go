@@ -87,9 +87,6 @@ func main() {
 		cmd.NamespaceCommands(service),
 	)
 
-	// WARN: this is deprecated and will be removed soon
-	cmd.DeprecatedCommands(rootCmd, service)
-
 	if err := rootCmd.Execute(); err != nil {
 		log.Error(err)
 	}
