@@ -13,9 +13,10 @@ import {
   VideoCameraIcon,
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
+  DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline";
 import { useNamespace } from "../hooks/useNamespaces";
-import { useEditNamespace, useDeleteNamespace, useLeaveNamespace } from "../hooks/useNamespaceMutations";
+import { useEditNamespace, useDeleteNamespace, useLeaveNamespace, useSetDeviceAutoAccept } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
 import PageHeader from "../components/common/PageHeader";
@@ -409,18 +410,22 @@ export default function Settings() {
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
   const editNs = useEditNamespace();
+  const setDeviceAutoAccept = useSetDeviceAutoAccept();
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [togglingRecord, setTogglingRecord] = useState(false);
+  const [togglingAutoAccept, setTogglingAutoAccept] = useState(false);
 
   const canRename = useHasPermission("namespace:rename");
   const canUpdateRecording = useHasPermission("namespace:updateSessionRecording");
+  const canUpdateAutoAccept = useHasPermission("namespace:updateDeviceAutoAccept");
   const canEditBanner = useHasPermission("namespace:editBanner");
   const canDelete = useHasPermission("namespace:delete");
 
   const settings = ns?.settings;
   const sessionRecord = settings?.session_record ?? false;
+  const deviceAutoAccept = settings?.device_auto_accept ?? false;
   const banner = settings?.connection_announcement ?? "";
 
   const handleToggleRecord = async () => {
@@ -429,12 +434,27 @@ export default function Settings() {
     try {
       await editNs.mutateAsync({
         path: { tenant: tenantId },
-        body: { settings: { session_record: !sessionRecord, connection_announcement: banner } },
+        body: { settings: { session_record: !sessionRecord, connection_announcement: banner, device_auto_accept: deviceAutoAccept } },
       });
     } catch {
       /* state didn't change */
     } finally {
       setTogglingRecord(false);
+    }
+  };
+
+  const handleToggleAutoAccept = async () => {
+    if (!tenantId || togglingAutoAccept) return;
+    setTogglingAutoAccept(true);
+    try {
+      await setDeviceAutoAccept.mutateAsync({
+        path: { tenant: tenantId },
+        body: { device_auto_accept: !deviceAutoAccept },
+      });
+    } catch {
+      /* state didn't change */
+    } finally {
+      setTogglingAutoAccept(false);
     }
   };
 
@@ -553,6 +573,46 @@ export default function Settings() {
 
           {/* SSH Banner */}
           <BannerPreview banner={banner} canEdit={canEditBanner} />
+        </SettingsCard>
+
+        {/* ── Devices ── */}
+        <SettingsCard title="Devices">
+          <SettingsRow
+            icon={<DevicePhoneMobileIcon className="w-4 h-4" />}
+            title="Auto-Accept Devices"
+            description="Automatically accept new devices when they connect for the first time"
+          >
+            <div
+              className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateAutoAccept || togglingAutoAccept ? "opacity-40 pointer-events-none" : ""}`}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (deviceAutoAccept) void handleToggleAutoAccept();
+                }}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  !deviceAutoAccept
+                    ? "bg-primary/15 text-primary border border-primary/25"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                Off
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!deviceAutoAccept) void handleToggleAutoAccept();
+                }}
+                className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
+                  deviceAutoAccept
+                    ? "bg-primary/15 text-primary border border-primary/25"
+                    : "text-text-muted hover:text-text-secondary border border-transparent"
+                }`}
+              >
+                On
+              </button>
+            </div>
+          </SettingsRow>
         </SettingsCard>
 
         {/* ── Danger Zone ── */}

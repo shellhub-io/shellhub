@@ -4,12 +4,12 @@ import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
-import type { Namespace } from "@/client";
+import type { NamespaceRoot } from "@/client";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
   onClose: () => void;
-  namespace: Namespace | null;
+  namespace: NamespaceRoot | null;
 }
 
 export default function EditNamespaceDrawer({
@@ -22,12 +22,14 @@ export default function EditNamespaceDrawer({
   const [name, setName] = useState("");
   const [maxDevices, setMaxDevices] = useState(-1);
   const [sessionRecord, setSessionRecord] = useState(false);
+  const [deviceAutoAccept, setDeviceAutoAccept] = useState(false);
   const [error, setError] = useState("");
 
   useResetOnOpen(open, () => {
     setName(namespace?.name ?? "");
     setMaxDevices(namespace?.max_devices ?? -1);
     setSessionRecord(namespace?.settings?.session_record ?? false);
+    setDeviceAutoAccept(namespace?.settings?.device_auto_accept ?? false);
     setError("");
   });
 
@@ -50,6 +52,7 @@ export default function EditNamespaceDrawer({
             connection_announcement:
               namespace.settings?.connection_announcement ?? "",
             session_record: sessionRecord,
+              device_auto_accept: deviceAutoAccept,
           },
         },
       });
@@ -141,6 +144,16 @@ export default function EditNamespaceDrawer({
             className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-primary/20"
           />
           <span className="text-sm text-text-primary">Session Recording</span>
+        </label>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={deviceAutoAccept}
+            onChange={(e) => setDeviceAutoAccept(e.target.checked)}
+            className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-primary/20"
+          />
+          <span className="text-sm text-text-primary">Auto-Accept Devices</span>
         </label>
 
         {error && (

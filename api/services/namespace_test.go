@@ -1315,6 +1315,113 @@ func TestEditSessionRecord(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
+func TestEditDeviceAutoAccept(t *testing.T) {
+	storeMock := new(storemock.Store)
+
+	cases := []struct {
+		name             string
+		deviceAutoAccept bool
+		tenantID         string
+		mocks            func(context.Context)
+		expected         error
+	}{
+		{
+			name:             "fails when namespace not found",
+			deviceAutoAccept: true,
+			tenantID:         "xxxx",
+			mocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxx").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceNotFound("xxxx", store.ErrNoDocuments),
+		},
+		{
+			name:             "fails when namespace update fails",
+			deviceAutoAccept: true,
+			tenantID:         "xxxx",
+			mocks: func(ctx context.Context) {
+				namespace := &models.Namespace{
+					TenantID: "xxxx",
+					Settings: &models.NamespaceSettings{DeviceAutoAccept: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.DeviceAutoAccept = true
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
+		},
+		{
+			name:             "succeeds enabling device auto accept",
+			deviceAutoAccept: true,
+			tenantID:         "xxxx",
+			mocks: func(ctx context.Context) {
+				namespace := &models.Namespace{
+					TenantID: "xxxx",
+					Settings: &models.NamespaceSettings{DeviceAutoAccept: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.DeviceAutoAccept = true
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			name:             "succeeds disabling device auto accept",
+			deviceAutoAccept: false,
+			tenantID:         "xxxx",
+			mocks: func(ctx context.Context) {
+				namespace := &models.Namespace{
+					TenantID: "xxxx",
+					Settings: &models.NamespaceSettings{DeviceAutoAccept: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.DeviceAutoAccept = false
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			tc.mocks(ctx)
+			err := s.EditDeviceAutoAccept(ctx, tc.deviceAutoAccept, tc.tenantID)
+			assert.Equal(t, tc.expected, err)
+		})
+	}
+
+	storeMock.AssertExpectations(t)
+}
+
 func TestDeleteNamespace(t *testing.T) {
 	storeMock := new(storemock.Store)
 

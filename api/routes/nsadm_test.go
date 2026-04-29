@@ -398,6 +398,111 @@ func TestEditNamespace(t *testing.T) {
 	svcMock.AssertExpectations(t)
 }
 
+func TestEditDeviceAutoAccept(t *testing.T) {
+	svcMock := new(mocks.Service)
+
+	cases := []struct {
+		description   string
+		headers       map[string]string
+		body          map[string]interface{}
+		requiredMocks func()
+		expected      int
+	}{
+		{
+			description: "fails when role is observer",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "observer",
+				"X-ID":         "000000000000000000000000",
+			},
+			body: map[string]interface{}{
+				"device_auto_accept": true,
+			},
+			requiredMocks: func() {},
+			expected:      http.StatusForbidden,
+		},
+		{
+			description: "fails when role is operator",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "operator",
+				"X-ID":         "000000000000000000000000",
+			},
+			body: map[string]interface{}{
+				"device_auto_accept": true,
+			},
+			requiredMocks: func() {},
+			expected:      http.StatusForbidden,
+		},
+		{
+			description: "fails when namespace not found",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "owner",
+				"X-ID":         "000000000000000000000000",
+			},
+			body: map[string]interface{}{
+				"device_auto_accept": true,
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("EditDeviceAutoAccept", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
+					Return(svc.ErrNotFound).
+					Once()
+			},
+			expected: http.StatusNotFound,
+		},
+		{
+			description: "succeeds enabling device auto accept",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
+				"X-Role":       "owner",
+				"X-ID":         "000000000000000000000000",
+			},
+			body: map[string]interface{}{
+				"device_auto_accept": true,
+				"tenant":             "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				svcMock.
+					On("EditDeviceAutoAccept", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
+					Return(nil).
+					Once()
+			},
+			expected: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			tc.requiredMocks()
+
+			jsonData, err := json.Marshal(tc.body)
+			if err != nil {
+				assert.NoError(t, err)
+			}
+
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/namespaces/device-auto-accept/%s", tc.headers["X-Tenant-ID"]), strings.NewReader(string(jsonData)))
+			for k, v := range tc.headers {
+				req.Header.Set(k, v)
+			}
+
+			rec := httptest.NewRecorder()
+
+			e := NewRouter(svcMock)
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+		})
+	}
+
+	svcMock.AssertExpectations(t)
+}
+
 func TestHandler_LeaveNamespace(t *testing.T) {
 	svcMock := new(mocks.Service)
 

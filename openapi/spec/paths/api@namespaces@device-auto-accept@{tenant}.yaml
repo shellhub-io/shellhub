@@ -1,0 +1,33 @@
+put:
+  operationId: setDeviceAutoAccept
+  summary: Set device auto accept
+  description: Define if new devices will be automatically accepted.
+  tags:
+    - community
+    - devices
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            device_auto_accept:
+              description: Device auto accept status.
+              type: boolean
+              default: false
+  responses:
+    '200':
+      description: Success to set device auto accept status.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
