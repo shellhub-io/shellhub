@@ -6,6 +6,7 @@ import type { Namespace } from "../hooks/useNamespaces";
 import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
+import { normalizeNamespaceSettings } from "../utils/namespaceSettings";
 
 const MAX_LENGTH = 4096;
 
@@ -30,7 +31,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
     try {
       await editNs.mutateAsync({
         path: { tenant: ns.tenant_id },
-        body: { settings: { connection_announcement: text, session_record: ns.settings?.session_record ?? false } },
+        body: { settings: normalizeNamespaceSettings({ ...ns.settings, connection_announcement: text }) },
       });
       void navigate("/settings");
     } catch {

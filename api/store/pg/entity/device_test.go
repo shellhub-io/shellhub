@@ -281,6 +281,25 @@ func TestDeviceToModel(t *testing.T) {
 				assert.Nil(t, result.TagIDs)
 			},
 		},
+		{
+			name: "nil settings default to allow all",
+			entity: &Device{
+				ID:     "device-uid-7",
+				Status: "accepted",
+			},
+			check: func(t *testing.T, result *models.Device) {
+				require.NotNil(t, result.SSH)
+				assert.True(t, result.SSH.AllowPassword)
+				assert.True(t, result.SSH.AllowPublicKey)
+				assert.True(t, result.SSH.AllowRoot)
+				assert.True(t, result.SSH.AllowEmptyPasswords)
+				assert.True(t, result.SSH.AllowTTY)
+				assert.True(t, result.SSH.AllowTCPForwarding)
+				assert.True(t, result.SSH.AllowWebEndpoints)
+				assert.True(t, result.SSH.AllowSFTP)
+				assert.True(t, result.SSH.AllowAgentForwarding)
+			},
+		},
 	}
 
 	for _, tt := range tests {

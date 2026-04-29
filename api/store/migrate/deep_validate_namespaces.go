@@ -95,7 +95,7 @@ func (m *Migrator) compareNamespaceBatch(ctx context.Context, r *ValidationRepor
 		r.CheckField(t, id, "DevicesPendingCount", exp.DevicesPendingCount, act.DevicesPendingCount)
 		r.CheckField(t, id, "DevicesRejectedCount", exp.DevicesRejectedCount, act.DevicesRejectedCount)
 		r.CheckField(t, id, "DevicesRemovedCount", exp.DevicesRemovedCount, act.DevicesRemovedCount)
-		r.CheckField(t, id, "Settings.MaxDevices", exp.Settings.MaxDevices, act.Settings.MaxDevices)
+		r.CheckField(t, id, "MaxDevices", exp.MaxDevices, act.MaxDevices)
 		r.CheckField(t, id, "Settings.SessionRecord", exp.Settings.SessionRecord, act.Settings.SessionRecord)
 		r.CheckField(t, id, "Settings.ConnectionAnnouncement", exp.Settings.ConnectionAnnouncement, act.Settings.ConnectionAnnouncement)
 	}

@@ -49,12 +49,13 @@ func convertNamespace(doc mongoNamespace) *entity.Namespace {
 		Type:                 nsType,
 		Name:                 doc.Name,
 		OwnerID:              ObjectIDToUUID(doc.Owner),
+		MaxDevices:           doc.MaxDevices,
 		DevicesAcceptedCount: doc.DevicesAcceptedCount,
 		DevicesPendingCount:  doc.DevicesPendingCount,
 		DevicesRejectedCount: doc.DevicesRejectedCount,
 		DevicesRemovedCount:  doc.DevicesRemovedCount,
-		Settings: entity.NamespaceSettings{
-			MaxDevices: doc.MaxDevices,
+		Settings: &entity.NamespaceSettings{
+			NamespaceID: doc.TenantID,
 		},
 	}
 
@@ -62,6 +63,16 @@ func convertNamespace(doc mongoNamespace) *entity.Namespace {
 		e.Settings.SessionRecord = doc.Settings.SessionRecord
 		e.Settings.ConnectionAnnouncement = doc.Settings.ConnectionAnnouncement
 	}
+
+	e.Settings.AllowPassword = true
+	e.Settings.AllowPublicKey = true
+	e.Settings.AllowRoot = true
+	e.Settings.AllowEmptyPasswords = true
+	e.Settings.AllowTTY = true
+	e.Settings.AllowTCPForwarding = true
+	e.Settings.AllowWebEndpoints = true
+	e.Settings.AllowSFTP = true
+	e.Settings.AllowAgentForwarding = true
 
 	return e
 }

@@ -55,6 +55,15 @@ type NamespaceEdit struct {
 	Settings struct {
 		SessionRecord          *bool   `json:"session_record" validate:"omitempty"`
 		ConnectionAnnouncement *string `json:"connection_announcement" validate:"omitempty,min=0,max=4096"`
+		AllowPassword          *bool   `json:"allow_password" validate:"omitempty"`
+		AllowPublicKey         *bool   `json:"allow_public_key" validate:"omitempty"`
+		AllowRoot              *bool   `json:"allow_root" validate:"omitempty"`
+		AllowEmptyPasswords    *bool   `json:"allow_empty_passwords" validate:"omitempty"`
+		AllowTTY               *bool   `json:"allow_tty" validate:"omitempty"`
+		AllowTCPForwarding     *bool   `json:"allow_tcp_forwarding" validate:"omitempty"`
+		AllowWebEndpoints      *bool   `json:"allow_web_endpoints" validate:"omitempty"`
+		AllowSFTP              *bool   `json:"allow_sftp" validate:"omitempty"`
+		AllowAgentForwarding   *bool   `json:"allow_agent_forwarding" validate:"omitempty"`
 	} `json:"settings"`
 }
 

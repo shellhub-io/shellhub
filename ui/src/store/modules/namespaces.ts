@@ -30,7 +30,13 @@ const useNamespacesStore = defineStore("namespaces", () => {
   };
 
   const editNamespace = async (data: INamespaceEdit) => {
-    const res = await namespacesApi.editNamespace(data);
+    const res = await namespacesApi.editNamespace({
+      ...data,
+      settings: {
+        ...currentNamespace.value.settings,
+        ...data.settings,
+      },
+    });
     currentNamespace.value = res.data as INamespace;
   };
 

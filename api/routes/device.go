@@ -260,6 +260,10 @@ func (h *Handler) UpdateDevice(c gateway.Context) error {
 		return err
 	}
 
+	if c.Tenant() != nil {
+		req.TenantID = c.Tenant().ID
+	}
+
 	if err := h.service.UpdateDevice(c.Ctx(), req); err != nil {
 		return err
 	}

@@ -278,10 +278,49 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 						sess.Event(req.Type, req.Payload, seat)
 					case ExecRequestType, SubsystemRequestType:
+						if req.Type == SubsystemRequestType {
+							var subsystem struct {
+								Subsystem string `ssh:"subsystem"`
+							}
+							if err := gossh.Unmarshal(req.Payload, &subsystem); err != nil {
+								reject(nil, "failed to decode subsystem request")
+
+								return
+							}
+							if subsystem.Subsystem == "sftp" {
+								// Check namespace setting first
+								if sess.Namespace.Settings != nil && !sess.Namespace.Settings.AllowSFTP {
+									reject(nil, "SFTP is disabled for this namespace")
+
+									return
+								}
+								// Check device override
+								if sess.Device.SSH != nil && !sess.Device.SSH.AllowSFTP {
+									reject(nil, "SFTP is disabled for this device")
+
+									return
+								}
+							}
+						}
+
 						session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
 
 						sess.Type = ExecRequestType
 					case PtyRequestType:
+						// Check namespace setting first
+						if sess.Namespace.Settings != nil && !sess.Namespace.Settings.AllowTTY {
+							reject(nil, "TTY allocation is disabled for this namespace")
+
+							return
+						}
+
+						// Check device override
+						if sess.Device.SSH != nil && !sess.Device.SSH.AllowTTY {
+							reject(nil, "TTY allocation is disabled for this device")
+
+							return
+						}
+
 						var pty models.SSHPty
 
 						if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
@@ -300,6 +339,20 @@ func DefaultSessionHandler() gliderssh.ChannelHandler {
 
 						sess.Event(req.Type, dimensions, seat) //nolint:errcheck
 					case AuthRequestOpenSSHRequest:
+						// Check namespace setting first
+						if sess.Namespace.Settings != nil && !sess.Namespace.Settings.AllowAgentForwarding {
+							reject(nil, "Agent forwarding is disabled for this namespace")
+
+							return
+						}
+
+						// Check device override
+						if sess.Device.SSH != nil && !sess.Device.SSH.AllowAgentForwarding {
+							reject(nil, "Agent forwarding is disabled for this device")
+
+							return
+						}
+
 						gliderssh.SetAgentRequested(ctx)
 
 						sess.Event(req.Type, req.Payload, seat)

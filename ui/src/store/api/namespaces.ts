@@ -16,6 +16,15 @@ export const editNamespace = async (data: INamespaceEdit) => namespacesApi.editN
   settings: {
     connection_announcement: data.settings?.connection_announcement,
     session_record: data.settings?.session_record,
+    allow_password: data.settings?.allow_password,
+    allow_public_key: data.settings?.allow_public_key,
+    allow_root: data.settings?.allow_root,
+    allow_empty_passwords: data.settings?.allow_empty_passwords,
+    allow_tty: data.settings?.allow_tty,
+    allow_tcp_forwarding: data.settings?.allow_tcp_forwarding,
+    allow_web_endpoints: data.settings?.allow_web_endpoints,
+    allow_sftp: data.settings?.allow_sftp,
+    allow_agent_forwarding: data.settings?.allow_agent_forwarding,
   },
 });
 

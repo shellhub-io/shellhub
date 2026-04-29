@@ -18,8 +18,33 @@ func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, 
 	device.CreatedAt = clock.Now()
 
 	e := entity.DeviceFromModel(device)
-	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
-		return "", fromSQLError(err)
+	exec := func(db bun.IDB) error {
+		if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
+		if device.SSH != nil {
+			settings := entity.DeviceSettingsFromModel(device.SSH, device.UID)
+			if _, err := db.NewInsert().Model(&settings).Exec(ctx); err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		return nil
+	}
+
+	if _, ok := db.(bun.Tx); ok {
+		if err := exec(db); err != nil {
+			return "", err
+		}
+
+		return e.ID, nil
+	}
+
+	if err := pg.WithTransaction(ctx, func(txCtx context.Context) error {
+		return exec(pg.GetConnection(txCtx))
+	}); err != nil {
+		return "", err
 	}
 
 	return e.ID, nil
@@ -75,6 +100,7 @@ func (pg *Pg) DeviceList(ctx context.Context, acceptable store.DeviceAcceptable,
 		Model(&entities).
 		Column("device.*").
 		Relation("Namespace").
+		Relation("Settings").
 		Relation("Tags").
 		ColumnExpr(onlineExpr, onlineThreshold).
 		ColumnExpr(deviceExprAcceptable(acceptable))
@@ -117,6 +143,7 @@ func (pg *Pg) DeviceResolve(ctx context.Context, resolver store.DeviceResolver, 
 		Where("? = ?", bun.Ident("device."+column), val).
 		Column("device.*").
 		Relation("Namespace").
+		Relation("Settings").
 		Relation("Tags").
 		ColumnExpr(onlineExpr, onlineThreshold)
 
@@ -140,16 +167,36 @@ func (pg *Pg) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	d := entity.DeviceFromModel(device)
 	d.UpdatedAt = clock.Now()
 
-	r, err := db.NewUpdate().Model(d).Where("id = ?", d.ID).Where("namespace_id = ?", d.NamespaceID).Exec(ctx)
-	if err != nil {
-		return fromSQLError(err)
+	exec := func(db bun.IDB) error {
+		r, err := db.NewUpdate().Model(d).Where("id = ?", d.ID).Where("namespace_id = ?", d.NamespaceID).Exec(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
+
+		if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+			return store.ErrNoDocuments
+		}
+
+		if device.SSH != nil {
+			settings := entity.DeviceSettingsFromModel(device.SSH, device.UID)
+			settings.UpdatedAt = clock.Now()
+
+			_, err = db.NewInsert().On("conflict (device_id) do update").Model(&settings).Exec(ctx)
+			if err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		return nil
 	}
 
-	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
-		return store.ErrNoDocuments
+	if _, ok := db.(bun.Tx); ok {
+		return exec(db)
 	}
 
-	return nil
+	return pg.WithTransaction(ctx, func(txCtx context.Context) error {
+		return exec(pg.GetConnection(txCtx))
+	})
 }
 
 func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.Time) (int64, error) {
@@ -218,6 +265,13 @@ func (pg *Pg) DeviceDeleteMany(ctx context.Context, uids []string) (int64, error
 
 func (pg *Pg) deviceDeleteManyFn(ctx context.Context, uids []string) func(tx bun.Tx) (int64, error) {
 	return func(tx bun.Tx) (int64, error) {
+		if _, err := tx.NewDelete().
+			Model((*entity.DeviceSettings)(nil)).
+			Where("device_id IN (?)", bun.List(uids)).
+			Exec(ctx); err != nil {
+			return 0, fromSQLError(err)
+		}
+
 		r, err := tx.NewDelete().Model((*entity.Device)(nil)).Where("id IN (?)", bun.List(uids)).Exec(ctx)
 		if err != nil {
 			return 0, fromSQLError(err)

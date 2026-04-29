@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"net"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -31,6 +32,12 @@ func PasswordHandler(ctx gliderssh.Context, passwd string) bool {
 	}
 
 	if err := sess.Auth(ctx, session.AuthPassword(passwd)); err != nil {
+		if errors.Is(err, session.ErrPasswordDisabled) {
+			logger.Warn("password authentication is disabled for this namespace")
+
+			return false
+		}
+
 		logger.Warn("failed to authenticate on device using password")
 
 		return false

@@ -11,10 +11,13 @@ import {
   TagIcon,
   FingerPrintIcon,
   VideoCameraIcon,
+  LockClosedIcon,
+  LockOpenIcon,
   TrashIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { useNamespace } from "../hooks/useNamespaces";
+import type { Namespace } from "../hooks/useNamespaces";
 import { useEditNamespace, useDeleteNamespace, useLeaveNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
@@ -22,8 +25,12 @@ import PageHeader from "../components/common/PageHeader";
 import CopyButton from "../components/common/CopyButton";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
+import SettingToggle from "../components/common/SettingToggle";
 import { LABEL, INPUT } from "../utils/styles";
 import { getConfig } from "../env";
+import { normalizeNamespaceSettings } from "../utils/namespaceSettings";
+
+type NamespaceSettings = NonNullable<Namespace["settings"]>;
 
 const NAME_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 
@@ -412,31 +419,91 @@ export default function Settings() {
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
-  const [togglingRecord, setTogglingRecord] = useState(false);
+  const [togglingSetting, setTogglingSetting] = useState<keyof NamespaceSettings | null>(null);
 
   const canRename = useHasPermission("namespace:rename");
   const canUpdateRecording = useHasPermission("namespace:updateSessionRecording");
+  const canUpdateAllowPassword = useHasPermission("namespace:updateAllowPassword");
+  const canUpdateAllowPublicKey = useHasPermission("namespace:updateAllowPublicKey");
+  const canUpdateAllowRoot = useHasPermission("namespace:updateAllowRoot");
+  const canUpdateAllowEmptyPasswords = useHasPermission("namespace:updateAllowEmptyPasswords");
+  const canUpdateAllowTTY = useHasPermission("namespace:updateAllowTTY");
+  const canUpdateAllowTcpForwarding = useHasPermission("namespace:updateAllowTcpForwarding");
+  const canUpdateAllowWebEndpoints = useHasPermission("namespace:updateAllowWebEndpoints");
+  const canUpdateAllowSFTP = useHasPermission("namespace:updateAllowSFTP");
+  const canUpdateAllowAgentForwarding = useHasPermission("namespace:updateAllowAgentForwarding");
   const canEditBanner = useHasPermission("namespace:editBanner");
   const canDelete = useHasPermission("namespace:delete");
 
-  const settings = ns?.settings;
-  const sessionRecord = settings?.session_record ?? false;
-  const banner = settings?.connection_announcement ?? "";
+  const settings = normalizeNamespaceSettings(ns?.settings);
+  const sessionRecord = settings.session_record;
+  const allowPassword = settings.allow_password ?? true;
+  const allowPublicKey = settings.allow_public_key ?? true;
+  const allowRoot = settings.allow_root ?? true;
+  const allowEmptyPasswords = settings.allow_empty_passwords ?? true;
+  const allowTTY = settings.allow_tty ?? true;
+  const allowTcpForwarding = settings.allow_tcp_forwarding ?? true;
+  const allowWebEndpoints = settings.allow_web_endpoints ?? true;
+  const allowSFTP = settings.allow_sftp ?? true;
+  const allowAgentForwarding = settings.allow_agent_forwarding ?? true;
+  const banner = settings.connection_announcement;
 
-  const handleToggleRecord = async () => {
-    if (!tenantId || togglingRecord) return;
-    setTogglingRecord(true);
+  const updateNamespaceSettings = async (patch: Partial<NamespaceSettings>, key: keyof NamespaceSettings) => {
+    if (!tenantId || togglingSetting) return;
+    setTogglingSetting(key);
     try {
       await editNs.mutateAsync({
         path: { tenant: tenantId },
-        body: { settings: { session_record: !sessionRecord, connection_announcement: banner } },
+        body: { settings: normalizeNamespaceSettings({ ...settings, ...patch }) },
       });
     } catch {
       /* state didn't change */
     } finally {
-      setTogglingRecord(false);
+      setTogglingSetting(null);
     }
   };
+
+  const handleToggleRecord = async () => {
+    await updateNamespaceSettings({ session_record: !sessionRecord }, "session_record");
+  };
+
+  const handleToggleAllowPassword = async () => {
+    await updateNamespaceSettings({ allow_password: !allowPassword }, "allow_password");
+  };
+
+  const handleToggleAllowPublicKey = async () => {
+    await updateNamespaceSettings({ allow_public_key: !allowPublicKey }, "allow_public_key");
+  };
+
+  const handleToggleAllowRoot = async () => {
+    await updateNamespaceSettings({ allow_root: !allowRoot }, "allow_root");
+  };
+
+  const handleToggleAllowEmptyPasswords = async () => {
+    await updateNamespaceSettings({ allow_empty_passwords: !allowEmptyPasswords }, "allow_empty_passwords");
+  };
+
+  const handleToggleAllowTTY = async () => {
+    await updateNamespaceSettings({ allow_tty: !allowTTY }, "allow_tty");
+  };
+
+  const handleToggleAllowTcpForwarding = async () => {
+    await updateNamespaceSettings({ allow_tcp_forwarding: !allowTcpForwarding }, "allow_tcp_forwarding");
+  };
+
+  const handleToggleAllowWebEndpoints = async () => {
+    await updateNamespaceSettings({ allow_web_endpoints: !allowWebEndpoints }, "allow_web_endpoints");
+  };
+
+  const handleToggleAllowSFTP = async () => {
+    await updateNamespaceSettings({ allow_sftp: !allowSFTP }, "allow_sftp");
+  };
+
+  const handleToggleAllowAgentForwarding = async () => {
+    await updateNamespaceSettings({ allow_agent_forwarding: !allowAgentForwarding }, "allow_agent_forwarding");
+  };
+
+  const isUpdatingSetting = (key: keyof NamespaceSettings) => togglingSetting === key;
 
   if (!ns) {
     return (
@@ -518,41 +585,137 @@ export default function Settings() {
               title="Session Recording"
               description="Record SSH sessions for audit and playback"
             >
-              <div
-                className={`inline-flex items-center h-7 bg-card border border-border rounded-md p-0.5 ${!canUpdateRecording || togglingRecord ? "opacity-40 pointer-events-none" : ""}`}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (sessionRecord) void handleToggleRecord();
-                  }}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                    !sessionRecord
-                      ? "bg-hover-strong text-text-secondary border border-border-light"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
-                >
-                  Off
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!sessionRecord) void handleToggleRecord();
-                  }}
-                  className={`h-full px-2.5 text-2xs font-medium rounded transition-all duration-150 ${
-                    sessionRecord
-                      ? "bg-primary/15 text-primary border border-primary/25"
-                      : "text-text-muted hover:text-text-secondary border border-transparent"
-                  }`}
-                >
-                  On
-                </button>
-              </div>
+              <SettingToggle
+                checked={sessionRecord}
+                disabled={!canUpdateRecording || isUpdatingSetting("session_record")}
+                tone="primary"
+                onChange={() => handleToggleRecord()}
+              />
             </SettingsRow>
           )}
 
           {/* SSH Banner */}
           <BannerPreview banner={banner} canEdit={canEditBanner} />
+
+          {/* Allow SSH password */}
+          <SettingsRow
+            icon={allowPassword ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow Password Authentication"
+            description="Allow SSH connections using password for all devices in this namespace"
+          >
+            <SettingToggle
+              checked={allowPassword}
+              disabled={!canUpdateAllowPassword || isUpdatingSetting("allow_password")}
+              tone="success"
+              onChange={() => handleToggleAllowPassword()}
+            />
+          </SettingsRow>
+
+          {/* Allow SSH public key */}
+          <SettingsRow
+            icon={allowPublicKey ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow Public Key Authentication"
+            description="Allow SSH connections using public key for all devices in this namespace"
+          >
+            <SettingToggle
+              checked={allowPublicKey}
+              disabled={!canUpdateAllowPublicKey || isUpdatingSetting("allow_public_key")}
+              tone="success"
+              onChange={() => handleToggleAllowPublicKey()}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            icon={allowRoot ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow Root Login"
+            description="Allow SSH connections to devices using the root user"
+          >
+            <SettingToggle
+              checked={allowRoot}
+              disabled={!canUpdateAllowRoot || isUpdatingSetting("allow_root")}
+              tone="success"
+              onChange={() => handleToggleAllowRoot()}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            icon={allowEmptyPasswords ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow Empty Passwords"
+            description="Allow SSH logins with empty passwords for devices in this namespace"
+          >
+            <SettingToggle
+              checked={allowEmptyPasswords}
+              disabled={!canUpdateAllowEmptyPasswords || isUpdatingSetting("allow_empty_passwords")}
+              tone="success"
+              onChange={() => handleToggleAllowEmptyPasswords()}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            icon={allowTTY ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow TTY Allocation"
+            description="Allow SSH sessions to allocate a TTY"
+          >
+            <SettingToggle
+              checked={allowTTY}
+              disabled={!canUpdateAllowTTY || isUpdatingSetting("allow_tty")}
+              tone="success"
+              onChange={() => handleToggleAllowTTY()}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            icon={allowTcpForwarding ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow TCP Forwarding"
+            description="Allow SSH TCP port forwarding for devices in this namespace"
+          >
+            <SettingToggle
+              checked={allowTcpForwarding}
+              disabled={!canUpdateAllowTcpForwarding || isUpdatingSetting("allow_tcp_forwarding")}
+              tone="success"
+              onChange={() => handleToggleAllowTcpForwarding()}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            icon={allowWebEndpoints ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow Web Endpoints"
+            description="Allow access to web endpoints through the HTTP proxy"
+          >
+            <SettingToggle
+              checked={allowWebEndpoints}
+              disabled={!canUpdateAllowWebEndpoints || isUpdatingSetting("allow_web_endpoints")}
+              tone="success"
+              onChange={() => handleToggleAllowWebEndpoints()}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            icon={allowSFTP ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow SFTP"
+            description="Allow the SFTP subsystem for devices in this namespace"
+          >
+            <SettingToggle
+              checked={allowSFTP}
+              disabled={!canUpdateAllowSFTP || isUpdatingSetting("allow_sftp")}
+              tone="success"
+              onChange={() => handleToggleAllowSFTP()}
+            />
+          </SettingsRow>
+
+          <SettingsRow
+            icon={allowAgentForwarding ? <LockOpenIcon className="w-4 h-4 text-accent-green" /> : <LockClosedIcon className="w-4 h-4 text-accent-red" />}
+            title="Allow Agent Forwarding"
+            description="Allow SSH agent forwarding for devices in this namespace"
+          >
+            <SettingToggle
+              checked={allowAgentForwarding}
+              disabled={!canUpdateAllowAgentForwarding || isUpdatingSetting("allow_agent_forwarding")}
+              tone="success"
+              onChange={() => handleToggleAllowAgentForwarding()}
+            />
+          </SettingsRow>
+
         </SettingsCard>
 
         {/* ── Danger Zone ── */}

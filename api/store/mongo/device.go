@@ -273,6 +273,9 @@ func (s *Store) DeviceConflicts(ctx context.Context, target *models.DeviceConfli
 }
 
 func (s *Store) DeviceUpdate(ctx context.Context, device *models.Device) error {
+	// Keep track of whether SSH was explicitly set by the caller
+	hasSSH := device.SSH != nil
+
 	bsonBytes, err := bson.Marshal(device)
 	if err != nil {
 		return FromMongoError(err)
@@ -281,6 +284,12 @@ func (s *Store) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	doc := make(bson.M)
 	if err := bson.Unmarshal(bsonBytes, &doc); err != nil {
 		return FromMongoError(err)
+	}
+
+	// Only include SSH in the update if it was explicitly set (not nil)
+	// This preserves the existing DB value when SSH is nil
+	if !hasSSH {
+		delete(doc, "ssh")
 	}
 
 	// Convert string TagIDs to MongoDB ObjectIDs for referential integrity

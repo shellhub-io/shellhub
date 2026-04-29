@@ -15,7 +15,10 @@
           href="/"
           class="new-ui-bar-link"
         >
-          <v-icon size="14" class="mr-1">
+          <v-icon
+            size="14"
+            class="mr-1"
+          >
             mdi-react
           </v-icon>
           useNewUI() &rarr;

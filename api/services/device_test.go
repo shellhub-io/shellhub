@@ -1749,6 +1749,17 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Status:   models.DeviceStatusAccepted,
 					Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+					SSH: &models.SSHSettings{
+						AllowPassword:        false,
+						AllowPublicKey:       true,
+						AllowRoot:            false,
+						AllowEmptyPasswords:  true,
+						AllowTTY:             false,
+						AllowTCPForwarding:   true,
+						AllowWebEndpoints:    false,
+						AllowSFTP:            true,
+						AllowAgentForwarding: false,
+					},
 				}
 				mergedDevice := &models.Device{
 					UID:      "new-device",
@@ -1756,6 +1767,17 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Status:   models.DeviceStatusPending,
 					Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+					SSH: &models.SSHSettings{
+						AllowPassword:        false,
+						AllowPublicKey:       true,
+						AllowRoot:            false,
+						AllowEmptyPasswords:  true,
+						AllowTTY:             false,
+						AllowTCPForwarding:   true,
+						AllowWebEndpoints:    false,
+						AllowSFTP:            true,
+						AllowAgentForwarding: false,
+					},
 				}
 				finalDevice := &models.Device{
 					UID:             "new-device",
@@ -1764,6 +1786,17 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Status:          models.DeviceStatusAccepted,
 					StatusUpdatedAt: now,
 					Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+					SSH: &models.SSHSettings{
+						AllowPassword:        false,
+						AllowPublicKey:       true,
+						AllowRoot:            false,
+						AllowEmptyPasswords:  true,
+						AllowTTY:             false,
+						AllowTCPForwarding:   true,
+						AllowWebEndpoints:    false,
+						AllowSFTP:            true,
+						AllowAgentForwarding: false,
+					},
 				}
 
 				storeMock.

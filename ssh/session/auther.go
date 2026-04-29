@@ -76,11 +76,29 @@ func (*publicKeyAuth) Auth() authFunc {
 }
 
 func (p *publicKeyAuth) Evaluate(session *Session) error {
+	if session.Namespace.Settings != nil && !session.Namespace.Settings.AllowPublicKey {
+		return ErrPublicKeyDisabled
+	}
+
+	if session.Device != nil && session.Device.SSH != nil && !session.Device.SSH.AllowPublicKey {
+		return ErrPublicKeyDisabled
+	}
+
+	if session.Namespace.Settings != nil && !session.Namespace.Settings.AllowRoot {
+		if session.Target.Username == "root" {
+			return ErrRootDisabled
+		}
+	}
+
+	if session.Device != nil && session.Device.SSH != nil && !session.Device.SSH.AllowRoot && session.Target.Username == "root" {
+		return ErrRootDisabled
+	}
+
 	// Versions earlier than 0.6.0 do not validate the user when receiving a public key
 	// authentication request. This implies that requests with invalid users are
 	// treated as "authenticated" because the connection does not raise any error.
 	// Moreover, the agent panics after the connection ends. To avoid this, connections
-	// with public key are not permitted when agent version is 0.5.x or earlier
+	// with public key are not permitted when agent version is 0.5.x or earlier.
 	if !sshconf.AllowPublickeyAccessBelow060 {
 		version := session.Device.Info.Version
 		if version != "latest" {
@@ -137,7 +155,32 @@ func (p *passwordAuth) Auth() authFunc {
 	}
 }
 
-func (*passwordAuth) Evaluate(*Session) error {
-	// We don't need (yet) to do any evaluation when authenticating with password.
+func (p *passwordAuth) Evaluate(session *Session) error {
+	if session.Namespace.Settings != nil && !session.Namespace.Settings.AllowPassword {
+		return ErrPasswordDisabled
+	}
+
+	if session.Device != nil && session.Device.SSH != nil && !session.Device.SSH.AllowPassword {
+		return ErrPasswordDisabled
+	}
+
+	if session.Namespace.Settings != nil && !session.Namespace.Settings.AllowRoot {
+		if session.Target.Username == "root" {
+			return ErrRootDisabled
+		}
+	}
+
+	if session.Device != nil && session.Device.SSH != nil && !session.Device.SSH.AllowRoot && session.Target.Username == "root" {
+		return ErrRootDisabled
+	}
+
+	if session.Namespace.Settings != nil && !session.Namespace.Settings.AllowEmptyPasswords && p.pwd == "" {
+		return ErrEmptyPasswordNotPermitted
+	}
+
+	if session.Device != nil && session.Device.SSH != nil && !session.Device.SSH.AllowEmptyPasswords && p.pwd == "" {
+		return ErrEmptyPasswordNotPermitted
+	}
+
 	return nil
 }

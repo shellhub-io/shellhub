@@ -641,6 +641,15 @@ func TestCreateNamespace(t *testing.T) {
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+								AllowPassword:          true,
+								AllowPublicKey:         true,
+								AllowRoot:              true,
+								AllowEmptyPasswords:    true,
+								AllowTTY:               true,
+								AllowTCPForwarding:     true,
+								AllowWebEndpoints:      true,
+								AllowSFTP:              true,
+								AllowAgentForwarding:   true,
 							},
 							MaxDevices: -1,
 						},
@@ -717,6 +726,15 @@ func TestCreateNamespace(t *testing.T) {
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+								AllowPassword:          true,
+								AllowPublicKey:         true,
+								AllowRoot:              true,
+								AllowEmptyPasswords:    true,
+								AllowTTY:               true,
+								AllowTCPForwarding:     true,
+								AllowWebEndpoints:      true,
+								AllowSFTP:              true,
+								AllowAgentForwarding:   true,
 							},
 							MaxDevices: -1,
 						},
@@ -740,6 +758,15 @@ func TestCreateNamespace(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						AllowPassword:          true,
+						AllowPublicKey:         true,
+						AllowRoot:              true,
+						AllowEmptyPasswords:    true,
+						AllowTTY:               true,
+						AllowTCPForwarding:     true,
+						AllowWebEndpoints:      true,
+						AllowSFTP:              true,
+						AllowAgentForwarding:   true,
 					},
 					MaxDevices: -1,
 				},
@@ -814,6 +841,15 @@ func TestCreateNamespace(t *testing.T) {
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+								AllowPassword:          true,
+								AllowPublicKey:         true,
+								AllowRoot:              true,
+								AllowEmptyPasswords:    true,
+								AllowTTY:               true,
+								AllowTCPForwarding:     true,
+								AllowWebEndpoints:      true,
+								AllowSFTP:              true,
+								AllowAgentForwarding:   true,
 							},
 							MaxDevices: -1,
 						},
@@ -837,6 +873,15 @@ func TestCreateNamespace(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: models.DefaultAnnouncementMessage,
+						AllowPassword:          true,
+						AllowPublicKey:         true,
+						AllowRoot:              true,
+						AllowEmptyPasswords:    true,
+						AllowTTY:               true,
+						AllowTCPForwarding:     true,
+						AllowWebEndpoints:      true,
+						AllowSFTP:              true,
+						AllowAgentForwarding:   true,
 					},
 					MaxDevices: -1,
 				},
@@ -908,6 +953,15 @@ func TestCreateNamespace(t *testing.T) {
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: "",
+								AllowPassword:          true,
+								AllowPublicKey:         true,
+								AllowRoot:              true,
+								AllowEmptyPasswords:    true,
+								AllowTTY:               true,
+								AllowTCPForwarding:     true,
+								AllowWebEndpoints:      true,
+								AllowSFTP:              true,
+								AllowAgentForwarding:   true,
 							},
 							MaxDevices: -1,
 						},
@@ -931,6 +985,15 @@ func TestCreateNamespace(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: "",
+						AllowPassword:          true,
+						AllowPublicKey:         true,
+						AllowRoot:              true,
+						AllowEmptyPasswords:    true,
+						AllowTTY:               true,
+						AllowTCPForwarding:     true,
+						AllowWebEndpoints:      true,
+						AllowSFTP:              true,
+						AllowAgentForwarding:   true,
 					},
 					MaxDevices: -1,
 				},
@@ -1002,6 +1065,15 @@ func TestCreateNamespace(t *testing.T) {
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: "",
+								AllowPassword:          true,
+								AllowPublicKey:         true,
+								AllowRoot:              true,
+								AllowEmptyPasswords:    true,
+								AllowTTY:               true,
+								AllowTCPForwarding:     true,
+								AllowWebEndpoints:      true,
+								AllowSFTP:              true,
+								AllowAgentForwarding:   true,
 							},
 							MaxDevices: 3,
 						},
@@ -1025,6 +1097,15 @@ func TestCreateNamespace(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: "",
+						AllowPassword:          true,
+						AllowPublicKey:         true,
+						AllowRoot:              true,
+						AllowEmptyPasswords:    true,
+						AllowTTY:               true,
+						AllowTCPForwarding:     true,
+						AllowWebEndpoints:      true,
+						AllowSFTP:              true,
+						AllowAgentForwarding:   true,
 					},
 					MaxDevices: 3,
 				},
@@ -1062,7 +1143,13 @@ func TestEditNamespace(t *testing.T) {
 		requiredMocks func()
 		tenantID      string
 		namespaceName string
-		expected      Expected
+		settings      struct {
+			SessionRecord          *bool
+			ConnectionAnnouncement *string
+			AllowPassword          *bool
+			AllowPublicKey         *bool
+		}
+		expected Expected
 	}{
 		{
 			description:   "fails when namespace does not exist",
@@ -1148,9 +1235,111 @@ func TestEditNamespace(t *testing.T) {
 			},
 		},
 		{
+			description: "succeeds changing AllowPassword",
+			tenantID:    "xxxxx",
+			settings: struct {
+				SessionRecord          *bool
+				ConnectionAnnouncement *string
+				AllowPassword          *bool
+				AllowPublicKey         *bool
+			}{
+				AllowPassword: func(b bool) *bool { return &b }(true),
+			},
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{AllowPassword: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.AllowPassword = true
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+
+				finalNamespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{AllowPassword: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(finalNamespace, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{AllowPassword: true},
+				},
+				nil,
+			},
+		},
+		{
+			description: "succeeds changing AllowPublicKey",
+			tenantID:    "xxxxx",
+			settings: struct {
+				SessionRecord          *bool
+				ConnectionAnnouncement *string
+				AllowPassword          *bool
+				AllowPublicKey         *bool
+			}{
+				AllowPublicKey: func(b bool) *bool { return &b }(true),
+			},
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{AllowPublicKey: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.AllowPublicKey = true
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+
+				finalNamespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{AllowPublicKey: true},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(finalNamespace, nil).
+					Once()
+			},
+			expected: Expected{
+				&models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{AllowPublicKey: true},
+				},
+				nil,
+			},
+		},
+		{
 			description:   "succeeds",
 			namespaceName: "newname",
 			tenantID:      "xxxxx",
+			settings: struct {
+				SessionRecord          *bool
+				ConnectionAnnouncement *string
+				AllowPassword          *bool
+				AllowPublicKey         *bool
+			}{},
 			requiredMocks: func() {
 				namespace := &models.Namespace{
 					TenantID: "xxxxx",
@@ -1199,6 +1388,11 @@ func TestEditNamespace(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: tc.tenantID},
 				Name:        tc.namespaceName,
 			}
+			req.Settings.SessionRecord = tc.settings.SessionRecord
+			req.Settings.ConnectionAnnouncement = tc.settings.ConnectionAnnouncement
+			req.Settings.AllowPassword = tc.settings.AllowPassword
+			req.Settings.AllowPublicKey = tc.settings.AllowPublicKey
+
 			namespace, err := service.EditNamespace(ctx, req)
 
 			assert.Equal(t, tc.expected, Expected{namespace, err})

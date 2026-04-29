@@ -158,11 +158,35 @@
         data-test="record-item"
       >
         <SettingSessionRecording
-          :tenant-id
+          :tenant-id="tenantId"
           class="mr-sm-4"
           data-test="session-recording-setting-component"
         />
       </SettingsRow>
+      <v-divider />
+      <template
+        v-for="(setting, index) in namespaceAccessSettings"
+        :key="setting.settingKey"
+      >
+        <SettingsRow
+          :icon="setting.icon"
+          :icon-test-id="setting.iconTestId"
+          :title="setting.title"
+          :title-test-id="setting.titleTestId"
+          :subtitle="setting.subtitle"
+          :subtitle-test-id="setting.subtitleTestId"
+          :data-test="setting.dataTest"
+        >
+          <SettingNamespaceToggle
+            :tenant-id="tenantId"
+            :setting-key="setting.settingKey"
+            :permission="setting.permission"
+            :label="setting.title"
+            :data-test="setting.switchTestId"
+          />
+        </SettingsRow>
+        <v-divider v-if="index < namespaceAccessSettings.length - 1" />
+      </template>
       <v-divider />
       <SettingsRow
         icon="mdi-delete"
@@ -206,6 +230,7 @@ import { useField } from "vee-validate";
 import { useDisplay } from "vuetify";
 import hasPermission from "@/utils/permission";
 import SettingSessionRecording from "./SettingSessionRecording.vue";
+import SettingNamespaceToggle from "./SettingNamespaceToggle.vue";
 import NamespaceDelete from "../Namespace/NamespaceDelete.vue";
 import ConnectionAnnouncementEdit from "../Namespace/ConnectionAnnouncementEdit.vue";
 import PageHeader from "../PageHeader.vue";
@@ -230,6 +255,116 @@ const namespaceLeave = ref(false);
 const namespaceDelete = ref(false);
 const editDataStatus = ref(false);
 const editAnnouncement = ref(false);
+const namespaceAccessSettings = [
+  {
+    settingKey: "allow_password",
+    title: "Allow Password Authentication",
+    subtitle: "Allow password authentication for all devices in this namespace.",
+    icon: "mdi-lock-open-variant-outline",
+    iconTestId: "allow-password-icon",
+    titleTestId: "allow-password-title",
+    subtitleTestId: "allow-password-description",
+    dataTest: "allow-password-item",
+    switchTestId: "allow-password-setting-component",
+    permission: "namespace:updateAllowPassword",
+  },
+  {
+    settingKey: "allow_public_key",
+    title: "Allow Public Key Authentication",
+    subtitle: "Allow public key authentication for all devices in this namespace.",
+    icon: "mdi-key-outline",
+    iconTestId: "allow-public-key-icon",
+    titleTestId: "allow-public-key-title",
+    subtitleTestId: "allow-public-key-description",
+    dataTest: "allow-public-key-item",
+    switchTestId: "allow-public-key-setting-component",
+    permission: "namespace:updateAllowPublicKey",
+  },
+  {
+    settingKey: "allow_root",
+    title: "Allow Root Login",
+    subtitle: "Allow SSH connections to devices using the root user.",
+    icon: "mdi-account-key-outline",
+    iconTestId: "allow-root-icon",
+    titleTestId: "allow-root-title",
+    subtitleTestId: "allow-root-description",
+    dataTest: "allow-root-item",
+    switchTestId: "allow-root-setting-component",
+    permission: "namespace:updateAllowRoot",
+  },
+  {
+    settingKey: "allow_empty_passwords",
+    title: "Allow Empty Passwords",
+    subtitle: "Allow SSH logins with empty passwords for devices in this namespace.",
+    icon: "mdi-lock-open-alert-outline",
+    iconTestId: "allow-empty-passwords-icon",
+    titleTestId: "allow-empty-passwords-title",
+    subtitleTestId: "allow-empty-passwords-description",
+    dataTest: "allow-empty-passwords-item",
+    switchTestId: "allow-empty-passwords-setting-component",
+    permission: "namespace:updateAllowEmptyPasswords",
+  },
+  {
+    settingKey: "allow_tty",
+    title: "Allow TTY Allocation",
+    subtitle: "Allow SSH sessions to allocate a TTY.",
+    icon: "mdi-console-line",
+    iconTestId: "allow-tty-icon",
+    titleTestId: "allow-tty-title",
+    subtitleTestId: "allow-tty-description",
+    dataTest: "allow-tty-item",
+    switchTestId: "allow-tty-setting-component",
+    permission: "namespace:updateAllowTTY",
+  },
+  {
+    settingKey: "allow_tcp_forwarding",
+    title: "Allow TCP Forwarding",
+    subtitle: "Allow SSH TCP port forwarding for devices in this namespace.",
+    icon: "mdi-swap-horizontal",
+    iconTestId: "allow-tcp-forwarding-icon",
+    titleTestId: "allow-tcp-forwarding-title",
+    subtitleTestId: "allow-tcp-forwarding-description",
+    dataTest: "allow-tcp-forwarding-item",
+    switchTestId: "allow-tcp-forwarding-setting-component",
+    permission: "namespace:updateAllowTcpForwarding",
+  },
+  {
+    settingKey: "allow_web_endpoints",
+    title: "Allow Web Endpoints",
+    subtitle: "Allow access to web endpoints through the HTTP proxy.",
+    icon: "mdi-web",
+    iconTestId: "allow-web-endpoints-icon",
+    titleTestId: "allow-web-endpoints-title",
+    subtitleTestId: "allow-web-endpoints-description",
+    dataTest: "allow-web-endpoints-item",
+    switchTestId: "allow-web-endpoints-setting-component",
+    permission: "namespace:updateAllowWebEndpoints",
+  },
+  {
+    settingKey: "allow_sftp",
+    title: "Allow SFTP",
+    subtitle: "Allow the SFTP subsystem for devices in this namespace.",
+    icon: "mdi-folder-file-outline",
+    iconTestId: "allow-sftp-icon",
+    titleTestId: "allow-sftp-title",
+    subtitleTestId: "allow-sftp-description",
+    dataTest: "allow-sftp-item",
+    switchTestId: "allow-sftp-setting-component",
+    permission: "namespace:updateAllowSFTP",
+  },
+  {
+    settingKey: "allow_agent_forwarding",
+    title: "Allow Agent Forwarding",
+    subtitle: "Allow SSH agent forwarding for devices in this namespace.",
+    icon: "mdi-connection",
+    iconTestId: "allow-agent-forwarding-icon",
+    titleTestId: "allow-agent-forwarding-title",
+    subtitleTestId: "allow-agent-forwarding-description",
+    dataTest: "allow-agent-forwarding-item",
+    switchTestId: "allow-agent-forwarding-setting-component",
+    permission: "namespace:updateAllowAgentForwarding",
+  },
+] as const;
 
 const {
   value: name,
