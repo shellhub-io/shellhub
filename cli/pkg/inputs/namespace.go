@@ -10,5 +10,5 @@ type NamespaceCreate struct {
 
 // NamespaceDelete defines the structure for inputs when deleting a namespace.
 type NamespaceDelete struct {
-	Namespace string
+	Namespace string `validate:"required,hostname_rfc1123,excludes=.,lowercase"`
 }
