@@ -192,6 +192,9 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 				}
 				if err := s.UpdateDeviceStatus(ctx, autoAcceptReq); err != nil {
 					log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed for re-registered device; device remains pending")
+				} else {
+					device.Status = models.DeviceStatusAccepted
+					device.StatusUpdatedAt = clock.Now()
 				}
 			}
 		}
