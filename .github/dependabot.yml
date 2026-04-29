@@ -67,6 +67,10 @@ updates:
   commit-message:
     prefix: "ui-react"
   versioning-strategy: lockfile-only
+  groups:
+    tiptap:
+      patterns:
+        - "@tiptap/*"
 - package-ecosystem: gomod
   directory: "/agent"
   schedule:
