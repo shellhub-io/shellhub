@@ -770,7 +770,7 @@ func TestNamespaceList(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("NamespaceList", ctx).Return(nil, 0, errors.New("store error")).Once()
 			},
-			expected: Expected{nil, ErrFailedListNamespace},
+			expected: Expected{nil, ErrFailedListNamespaces},
 		},
 		{
 			description: "returns namespaces successfully",

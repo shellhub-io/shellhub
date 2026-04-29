@@ -152,8 +152,11 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 // UserList lists all users in the system
 func (s *service) UserList(ctx context.Context) ([]models.User, error) {
 	users, _, err := s.store.UserList(ctx)
+	if err != nil {
+		return nil, ErrFailedListUsers
+	}
 
-	return users, err
+	return users, nil
 }
 
 // UserResolve retrieves a user by their ID. It returns ErrUserNotFound

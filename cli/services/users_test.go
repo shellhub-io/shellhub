@@ -560,7 +560,7 @@ func TestUserList(t *testing.T) {
 					Once()
 			},
 			expectedUsers: nil,
-			expectedErr:   storeErr,
+			expectedErr:   ErrFailedListUsers,
 		},
 		{
 			description: "returns empty list",
