@@ -275,14 +275,13 @@ function RenameSection({
 /* ─── Custom Fields Section ─── */
 function CustomFieldsSection({
   uid,
-  name,
   customFields,
 }: {
   uid: string;
-  name: string;
   customFields: Record<string, string>;
 }) {
   const mutation = useUpdateDeviceCustomFields();
+  const canEdit = useHasPermission("device:rename");
   const [keyInput, setKeyInput] = useState("");
   const [valueInput, setValueInput] = useState("");
   const [adding, setAdding] = useState(false);
@@ -302,7 +301,7 @@ function CustomFieldsSection({
     try {
       await mutation.mutateAsync({
         path: { uid },
-        body: { name, custom_fields: { ...customFields, [key]: value } },
+        body: { name: "", custom_fields: { ...customFields, [key]: value } },
       });
       setKeyInput("");
       setValueInput("");
@@ -318,7 +317,7 @@ function CustomFieldsSection({
     try {
       await mutation.mutateAsync({
         path: { uid },
-        body: { name, custom_fields: updated },
+        body: { name: "", custom_fields: updated },
       });
     } catch {
       /* invalidation handles UI update */
@@ -335,61 +334,65 @@ function CustomFieldsSection({
               <span className="text-xs font-mono text-text-muted shrink-0">{key}:</span>
               <span className="text-sm text-text-primary font-medium truncate">{value}</span>
             </div>
-            {confirmKey === key
-              ? (
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-2xs text-text-muted">Remove?</span>
+            {canEdit && (
+              confirmKey === key
+                ? (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-2xs text-text-muted">Remove?</span>
+                    <button
+                      onClick={() => { void handleRemove(key); setConfirmKey(null); }}
+                      className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-accent-red/90 hover:bg-accent-red text-white transition-all"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => setConfirmKey(null)}
+                      className="px-1.5 py-0.5 rounded text-2xs font-semibold text-text-muted hover:text-text-primary hover:bg-hover-subtle transition-all"
+                    >
+                      No
+                    </button>
+                  </div>
+                )
+                : (
                   <button
-                    onClick={() => { void handleRemove(key); setConfirmKey(null); }}
-                    className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-accent-red/90 hover:bg-accent-red text-white transition-all"
+                    onClick={() => setConfirmKey(key)}
+                    className="shrink-0 p-1 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
                   >
-                    Yes
+                    <XMarkIcon className="w-3 h-3" strokeWidth={2} />
                   </button>
-                  <button
-                    onClick={() => setConfirmKey(null)}
-                    className="px-1.5 py-0.5 rounded text-2xs font-semibold text-text-muted hover:text-text-primary hover:bg-hover-subtle transition-all"
-                  >
-                    No
-                  </button>
-                </div>
-              )
-              : (
-                <button
-                  onClick={() => setConfirmKey(key)}
-                  className="shrink-0 p-1 rounded-md text-text-muted hover:text-accent-red hover:bg-accent-red/10 transition-all"
-                >
-                  <XMarkIcon className="w-3 h-3" strokeWidth={2} />
-                </button>
-              )}
+                )
+            )}
           </div>
         ))}
       </dl>
-      <div className="flex items-center gap-1.5">
-        <input
-          type="text"
-          value={keyInput}
-          onChange={(e) => { setKeyInput(e.target.value); setError(null); }}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
-          placeholder="key"
-          className="w-24 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
-        />
-        <span className="text-text-muted text-xs">:</span>
-        <input
-          type="text"
-          value={valueInput}
-          onChange={(e) => { setValueInput(e.target.value); setError(null); }}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
-          placeholder="value"
-          className="w-32 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
-        />
-        <button
-          onClick={() => void handleAdd()}
-          disabled={adding || !keyInput.trim() || !valueInput.trim()}
-          className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
-        >
-          <PlusIcon className="w-4 h-4" strokeWidth={2} />
-        </button>
-      </div>
+      {canEdit && (
+        <div className="flex items-center gap-1.5">
+          <input
+            type="text"
+            value={keyInput}
+            onChange={(e) => { setKeyInput(e.target.value); setError(null); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
+            placeholder="key"
+            className="w-24 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
+          />
+          <span className="text-text-muted text-xs">:</span>
+          <input
+            type="text"
+            value={valueInput}
+            onChange={(e) => { setValueInput(e.target.value); setError(null); }}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAdd(); } }}
+            placeholder="value"
+            className="w-32 px-2.5 py-1 bg-card border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/40 transition-all"
+          />
+          <button
+            onClick={() => void handleAdd()}
+            disabled={adding || !keyInput.trim() || !valueInput.trim()}
+            className="p-1 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 disabled:opacity-soft transition-all"
+          >
+            <PlusIcon className="w-4 h-4" strokeWidth={2} />
+          </button>
+        </div>
+      )}
       {error && <p className="text-2xs text-accent-red mt-1.5">{error}</p>}
     </div>
   );
@@ -720,7 +723,6 @@ export default function DeviceDetails() {
         <div className="bg-card border border-border rounded-xl p-5">
           <CustomFieldsSection
             uid={device.uid}
-            name={device.name}
             customFields={device.custom_fields ?? {}}
           />
         </div>
