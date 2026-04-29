@@ -41,13 +41,12 @@ The username must be unique, and the password must meet the system's security re
 		Example: `cli user create john_doe Secret123!- john.doe@test.com
 cli user create john_doe Secret123!- john.doe@test.com --admin`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input inputs.UserCreate
-
-			if err := bind(args, &input); err != nil {
-				return err
+			input := inputs.UserCreate{
+				Username: args[0],
+				Password: args[1],
+				Email:    args[2],
+				Admin:    admin,
 			}
-
-			input.Admin = admin
 
 			user, err := service.UserCreate(cmd.Context(), &input)
 			if err != nil {
@@ -75,10 +74,9 @@ func userResetPassword(service services.Services) *cobra.Command {
 		Long:    `Updates the password for an existing user identified by the given username.`,
 		Example: `cli user password john_doe Secret123!-`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input inputs.UserUpdate
-
-			if err := bind(args, &input); err != nil {
-				return err
+			input := inputs.UserUpdate{
+				Username: args[0],
+				Password: args[1],
 			}
 
 			if err := service.UserUpdate(cmd.Context(), &input); err != nil {
@@ -101,10 +99,8 @@ func userDelete(service services.Services) *cobra.Command {
 		Long:    `Deletes a user and all associated data from the system based on the provided username.`,
 		Example: `cli user delete john_doe`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input inputs.UserDelete
-
-			if err := bind(args, &input); err != nil {
-				return err
+			input := inputs.UserDelete{
+				Username: args[0],
 			}
 
 			if err := service.UserDelete(cmd.Context(), &input); err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/cli/services"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/spf13/cobra"
 )
@@ -38,25 +39,23 @@ func namespaceCreate(service services.Services) *cobra.Command {
 		Long: `Creates a new namespace in the system using the provided namespace name, associated owner's username, and an optional tenant ID and Type.
 The owner must be a valid username within the system. If a tenant ID is provided, it should be in UUID format.`,
 		Example: `cli namespace create dev john_doe --type=team`,
-		Args:    cobra.RangeArgs(2, 4),
+		Args:    cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Avoid panic when TenantID isn't provided.
-
-			if len(args) == 2 {
-				args = append(args, "")
-			}
-
-			var input inputs.NamespaceCreate
-
-			if err := bind(args, &input); err != nil {
-				return err
-			}
-
-			typeNamespace, err := cmd.Flags().GetString("type")
+			namespaceType, err := cmd.Flags().GetString("type")
 			if err != nil {
 				return err
 			}
-			input.Type = typeNamespace
+
+			input := inputs.NamespaceCreate{
+				Namespace: args[0],
+				Owner:     args[1],
+				TenantID:  "",
+				Type:      namespaceType,
+			}
+
+			if len(args) == 3 {
+				input.TenantID = args[2]
+			}
 
 			namespace, err := service.NamespaceCreate(cmd.Context(), &input)
 			if err != nil {
@@ -86,10 +85,8 @@ func namespaceDelete(service services.Services) *cobra.Command {
 		Example: `cli namespace delete dev`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input inputs.NamespaceDelete
-
-			if err := bind(args, &input); err != nil {
-				return err
+			input := inputs.NamespaceDelete{
+				Namespace: args[0],
 			}
 
 			if err := service.NamespaceDelete(cmd.Context(), &input); err != nil {
@@ -328,10 +325,15 @@ and the role indicates the permissions that the member will have within that nam
 		Example: `cli member add myuser mynamespace observer`,
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input inputs.MemberAdd
+			role := authorizer.RoleFromString(args[2])
+			if role == authorizer.RoleInvalid {
+				return fmt.Errorf("invalid role %q, valid roles are: owner, administrator, operator, observer", args[2])
+			}
 
-			if err := bind(args, &input); err != nil {
-				return err
+			input := inputs.MemberAdd{
+				Username:  args[0],
+				Namespace: args[1],
+				Role:      role,
 			}
 
 			namespace, err := service.NamespaceAddMember(cmd.Context(), &input)
@@ -359,10 +361,9 @@ The username identifies the member to be removed, and the namespace specifies wh
 		Example: `cli member remove john_doe dev`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var input inputs.MemberRemove
-
-			if err := bind(args, &input); err != nil {
-				return err
+			input := inputs.MemberRemove{
+				Username:  args[0],
+				Namespace: args[1],
 			}
 
 			namespace, err := service.NamespaceRemoveMember(cmd.Context(), &input)
