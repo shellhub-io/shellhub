@@ -28,6 +28,7 @@ type NamespaceSettings struct {
 	MaxDevices             int    `bun:"max_devices"`
 	SessionRecord          bool   `bun:"record_sessions"`
 	ConnectionAnnouncement string `bun:"connection_announcement,type:text"`
+	DeviceAutoAccept       bool   `bun:"device_auto_accept"`
 }
 
 func NamespaceFromModel(model *models.Namespace) *Namespace {
@@ -55,6 +56,7 @@ func NamespaceFromModel(model *models.Namespace) *Namespace {
 	if model.Settings != nil {
 		namespace.Settings.SessionRecord = model.Settings.SessionRecord
 		namespace.Settings.ConnectionAnnouncement = model.Settings.ConnectionAnnouncement
+		namespace.Settings.DeviceAutoAccept = model.Settings.DeviceAutoAccept
 	}
 
 	namespace.Memberships = make([]Membership, len(model.Members))
@@ -85,6 +87,7 @@ func NamespaceToModel(entity *Namespace) *models.Namespace {
 		Settings: &models.NamespaceSettings{
 			SessionRecord:          entity.Settings.SessionRecord,
 			ConnectionAnnouncement: entity.Settings.ConnectionAnnouncement,
+			DeviceAutoAccept:       entity.Settings.DeviceAutoAccept,
 		},
 	}
 

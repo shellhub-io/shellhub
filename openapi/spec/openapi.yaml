@@ -121,6 +121,8 @@ paths:
     $ref: paths/api@users@security@{tenant}.yaml
   /api/users/security:
     $ref: paths/api@users@security.yaml
+  /api/namespaces/device-auto-accept/{tenant}:
+    $ref: paths/api@namespaces@device-auto-accept@{tenant}.yaml
   /api/devices:
     $ref: paths/api@devices.yaml
   /api/devices/{uid}:

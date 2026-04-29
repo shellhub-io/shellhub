@@ -20,6 +20,7 @@ const (
 	EditNamespaceMemberURL     = "/namespaces/:tenant/members/:uid"
 	GetSessionRecordURL        = "/users/security"
 	EditSessionRecordStatusURL = "/users/security/:tenant"
+	EditDeviceAutoAcceptURL    = "/namespaces/device-auto-accept/:tenant"
 )
 
 const (
@@ -209,6 +210,23 @@ func (h *Handler) EditNamespaceMember(c gateway.Context) error {
 	}
 
 	if err := h.service.UpdateNamespaceMember(c.Ctx(), req); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) EditDeviceAutoAccept(c gateway.Context) error {
+	var req requests.EditDeviceAutoAccept
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return err
+	}
+
+	if err := h.service.EditDeviceAutoAccept(c.Ctx(), req.DeviceAutoAccept, req.Tenant); err != nil {
 		return err
 	}
 

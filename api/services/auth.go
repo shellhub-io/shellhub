@@ -158,6 +158,17 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 		if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, device.Status, 1); err != nil {
 			return nil, err
 		}
+
+		if namespace.Settings != nil && namespace.Settings.DeviceAutoAccept {
+			autoAcceptReq := &requests.DeviceUpdateStatus{
+				TenantID: req.TenantID,
+				UID:      uid,
+				Status:   string(models.DeviceStatusAccepted),
+			}
+			if err := s.UpdateDeviceStatus(ctx, autoAcceptReq); err != nil {
+				log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed; device remains pending")
+			}
+		}
 	} else {
 		device.LastSeen = clock.Now()
 		device.DisconnectedAt = nil
@@ -171,6 +182,17 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 			}
 			if err := s.store.NamespaceIncrementDeviceCount(ctx, req.TenantID, models.DeviceStatusPending, 1); err != nil {
 				return nil, err
+			}
+
+			if namespace.Settings != nil && namespace.Settings.DeviceAutoAccept {
+				autoAcceptReq := &requests.DeviceUpdateStatus{
+					TenantID: req.TenantID,
+					UID:      uid,
+					Status:   string(models.DeviceStatusAccepted),
+				}
+				if err := s.UpdateDeviceStatus(ctx, autoAcceptReq); err != nil {
+					log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed for re-registered device; device remains pending")
+				}
 			}
 		}
 

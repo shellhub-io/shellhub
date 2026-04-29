@@ -33,6 +33,7 @@ const (
 	NamespaceRemoveMember
 	NamespaceEditMember
 	NamespaceEnableSessionRecord
+	NamespaceDeviceAutoAccept
 	NamespaceDelete
 
 	BillingCreateCustomer
@@ -110,6 +111,7 @@ var adminPermissions = []Permission{
 	NamespaceRemoveMember,
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
+	NamespaceDeviceAutoAccept,
 
 	APIKeyCreate,
 	APIKeyUpdate,
@@ -154,6 +156,7 @@ var ownerPermissions = []Permission{
 	NamespaceRemoveMember,
 	NamespaceEditMember,
 	NamespaceEnableSessionRecord,
+	NamespaceDeviceAutoAccept,
 	NamespaceDelete,
 
 	BillingCreateCustomer,

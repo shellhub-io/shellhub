@@ -625,6 +625,24 @@ func (_m *Service) EditSessionRecordStatus(ctx context.Context, sessionRecord bo
 	return r0
 }
 
+// EditDeviceAutoAccept provides a mock function with given fields: ctx, deviceAutoAccept, tenantID
+func (_m *Service) EditDeviceAutoAccept(ctx context.Context, deviceAutoAccept bool, tenantID string) error {
+	ret := _m.Called(ctx, deviceAutoAccept, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EditDeviceAutoAccept")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, bool, string) error); ok {
+		r0 = rf(ctx, deviceAutoAccept, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EvaluateKeyFilter provides a mock function with given fields: ctx, key, dev
 func (_m *Service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
 	ret := _m.Called(ctx, key, dev)
