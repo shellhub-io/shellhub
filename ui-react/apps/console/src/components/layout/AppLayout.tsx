@@ -4,6 +4,7 @@ import AppBar from "./AppBar";
 import TerminalManager from "../terminal/TerminalManager";
 import ConnectivityBanner from "../common/ConnectivityBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
+import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger";
 import { SidebarMobileDrawer } from "./SidebarShell";
 import ChatwootProvider from "./ChatwootProvider";
 import { useNamespaces } from "@/hooks/useNamespaces";
@@ -47,10 +48,10 @@ export default function AppLayout() {
             >
               <Sidebar
                 expanded
-              pinned={false}
+                pinned={false}
                 onToggle={handlers.closeDrawer}
                 onClose={handlers.closeDrawer}
-              toggleLabel="Close sidebar"
+                toggleLabel="Close sidebar"
               />
             </SidebarMobileDrawer>
           )}
@@ -69,6 +70,7 @@ export default function AppLayout() {
         </div>
         <TerminalManager sidebarOffset={sidebarOffset} />
         <WelcomeWizardTrigger />
+        <AnnouncementModalTrigger />
       </div>
     </ChatwootProvider>
   );
