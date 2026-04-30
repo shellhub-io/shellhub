@@ -875,6 +875,133 @@ func (_m *Store) NamespaceUpdateMembership(ctx context.Context, tenantID string,
 	return r0
 }
 
+// OAuthClientCreate provides a mock function with given fields: ctx, client
+func (_m *Store) OAuthClientCreate(ctx context.Context, client *models.OAuthClient) (string, error) {
+	ret := _m.Called(ctx, client)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthClientCreate")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.OAuthClient) (string, error)); ok {
+		return rf(ctx, client)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *models.OAuthClient) string); ok {
+		r0 = rf(ctx, client)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *models.OAuthClient) error); ok {
+		r1 = rf(ctx, client)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OAuthClientDelete provides a mock function with given fields: ctx, client
+func (_m *Store) OAuthClientDelete(ctx context.Context, client *models.OAuthClient) error {
+	ret := _m.Called(ctx, client)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthClientDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *models.OAuthClient) error); ok {
+		r0 = rf(ctx, client)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OAuthClientList provides a mock function with given fields: ctx, opts
+func (_m *Store) OAuthClientList(ctx context.Context, opts ...store.QueryOption) ([]models.OAuthClient, int, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthClientList")
+	}
+
+	var r0 []models.OAuthClient
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) ([]models.OAuthClient, int, error)); ok {
+		return rf(ctx, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.QueryOption) []models.OAuthClient); ok {
+		r0 = rf(ctx, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.OAuthClient)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.QueryOption) int); ok {
+		r1 = rf(ctx, opts...)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, ...store.QueryOption) error); ok {
+		r2 = rf(ctx, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// OAuthClientResolve provides a mock function with given fields: ctx, resolver, value, opts
+func (_m *Store) OAuthClientResolve(ctx context.Context, resolver store.OAuthClientResolver, value string, opts ...store.QueryOption) (*models.OAuthClient, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, resolver, value)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthClientResolve")
+	}
+
+	var r0 *models.OAuthClient
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, store.OAuthClientResolver, string, ...store.QueryOption) (*models.OAuthClient, error)); ok {
+		return rf(ctx, resolver, value, opts...)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, store.OAuthClientResolver, string, ...store.QueryOption) *models.OAuthClient); ok {
+		r0 = rf(ctx, resolver, value, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.OAuthClient)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, store.OAuthClientResolver, string, ...store.QueryOption) error); ok {
+		r1 = rf(ctx, resolver, value, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Options provides a mock function with no fields
 func (_m *Store) Options() store.QueryOptions {
 	ret := _m.Called()

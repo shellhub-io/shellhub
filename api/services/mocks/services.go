@@ -1235,6 +1235,179 @@ func (_m *Service) LookupDevice(ctx context.Context, namespace string, name stri
 	return r0, r1
 }
 
+// OAuthCreateAuthCode provides a mock function with given fields: ctx, clientID, userID, tenantID, redirectURI, codeChallenge
+func (_m *Service) OAuthCreateAuthCode(ctx context.Context, clientID string, userID string, tenantID string, redirectURI string, codeChallenge string) (string, error) {
+	ret := _m.Called(ctx, clientID, userID, tenantID, redirectURI, codeChallenge)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthCreateAuthCode")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) (string, error)); ok {
+		return rf(ctx, clientID, userID, tenantID, redirectURI, codeChallenge)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string) string); ok {
+		r0 = rf(ctx, clientID, userID, tenantID, redirectURI, codeChallenge)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, string) error); ok {
+		r1 = rf(ctx, clientID, userID, tenantID, redirectURI, codeChallenge)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OAuthDeleteClient provides a mock function with given fields: ctx, id, tenantID
+func (_m *Service) OAuthDeleteClient(ctx context.Context, id string, tenantID string) error {
+	ret := _m.Called(ctx, id, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthDeleteClient")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OAuthExchangeCode provides a mock function with given fields: ctx, code, clientID, redirectURI, codeVerifier
+func (_m *Service) OAuthExchangeCode(ctx context.Context, code string, clientID string, redirectURI string, codeVerifier string) (*models.UserAuthResponse, error) {
+	ret := _m.Called(ctx, code, clientID, redirectURI, codeVerifier)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthExchangeCode")
+	}
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) (*models.UserAuthResponse, error)); ok {
+		return rf(ctx, code, clientID, redirectURI, codeVerifier)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) *models.UserAuthResponse); ok {
+		r0 = rf(ctx, code, clientID, redirectURI, codeVerifier)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
+		r1 = rf(ctx, code, clientID, redirectURI, codeVerifier)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OAuthGetClient provides a mock function with given fields: ctx, clientID
+func (_m *Service) OAuthGetClient(ctx context.Context, clientID string) (*models.OAuthClient, error) {
+	ret := _m.Called(ctx, clientID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthGetClient")
+	}
+
+	var r0 *models.OAuthClient
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.OAuthClient, error)); ok {
+		return rf(ctx, clientID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.OAuthClient); ok {
+		r0 = rf(ctx, clientID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.OAuthClient)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, clientID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OAuthListClients provides a mock function with given fields: ctx, tenantID
+func (_m *Service) OAuthListClients(ctx context.Context, tenantID string) ([]models.OAuthClient, error) {
+	ret := _m.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthListClients")
+	}
+
+	var r0 []models.OAuthClient
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.OAuthClient, error)); ok {
+		return rf(ctx, tenantID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []models.OAuthClient); ok {
+		r0 = rf(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.OAuthClient)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OAuthRegisterClient provides a mock function with given fields: ctx, tenantID, name, redirectURIs
+func (_m *Service) OAuthRegisterClient(ctx context.Context, tenantID string, name string, redirectURIs []string) (*models.OAuthClient, string, error) {
+	ret := _m.Called(ctx, tenantID, name, redirectURIs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OAuthRegisterClient")
+	}
+
+	var r0 *models.OAuthClient
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) (*models.OAuthClient, string, error)); ok {
+		return rf(ctx, tenantID, name, redirectURIs)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) *models.OAuthClient); ok {
+		r0 = rf(ctx, tenantID, name, redirectURIs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.OAuthClient)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, []string) string); ok {
+		r1 = rf(ctx, tenantID, name, redirectURIs)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, []string) error); ok {
+		r2 = rf(ctx, tenantID, name, redirectURIs)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // OfflineDevice provides a mock function with given fields: ctx, uid
 func (_m *Service) OfflineDevice(ctx context.Context, uid models.UID) error {
 	ret := _m.Called(ctx, uid)

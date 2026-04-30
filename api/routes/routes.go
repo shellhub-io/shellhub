@@ -194,6 +194,19 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
 	}
 
+	// OAuth 2.0 Authorization Server endpoints (no auth required for metadata/authorize/token).
+	router.GET(OAuthMetadataURL, gateway.Handler(handler.OAuthMetadata))
+	publicAPI.GET(OAuthAuthorizeURL, gateway.Handler(handler.OAuthAuthorize))
+	publicAPI.POST("/oauth/authorize/callback", gateway.Handler(handler.OAuthCallback))
+	publicAPI.POST(OAuthTokenURL, gateway.Handler(handler.OAuthToken))
+	publicAPI.POST(OAuthDynamicRegisterURL, gateway.Handler(handler.OAuthDynamicRegister))
+	publicAPI.POST(OAuthClientsURL, gateway.Handler(handler.OAuthRegisterClient))
+	publicAPI.GET(OAuthClientsURL, gateway.Handler(handler.OAuthListClients))
+	publicAPI.DELETE(OAuthClientURL, gateway.Handler(handler.OAuthDeleteClient))
+
+	// MCP server (Model Context Protocol) for AI assistants.
+	SetupMCPRoutes(router, service)
+
 	// Apply route extensions (enterprise/cloud features)
 	if err := applyExtensions(router, service); err != nil {
 		logrus.WithError(err).Error("failed to apply route extensions")

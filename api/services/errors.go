@@ -134,6 +134,11 @@ var (
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
 	ErruthDeviceNoIdentity             = errors.New("device doesn't have identity defined", ErrLayer, ErrCodeInvalid)
+	ErrOAuthClientNotFound             = errors.New("oauth client not found", ErrLayer, ErrCodeNotFound)
+	ErrOAuthCodeInvalid                = errors.New("invalid or expired authorization code", ErrLayer, ErrCodeUnauthorized)
+	ErrOAuthPKCEInvalid                = errors.New("invalid code_verifier", ErrLayer, ErrCodeUnauthorized)
+	ErrOAuthRedirectURIMismatch        = errors.New("redirect_uri mismatch", ErrLayer, ErrCodeUnauthorized)
+	ErrOAuthClientIDMismatch           = errors.New("client_id mismatch", ErrLayer, ErrCodeUnauthorized)
 )
 
 func NewErrRoleInvalid() error {
