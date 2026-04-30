@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import { isSdkError } from "../api/errors";
 import {
   useNavigate,
@@ -76,6 +76,11 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");
   const missingAssertions = searchParams.get("missing_assertions");
+  const oauthClientId = searchParams.get("oauth_client_id");
+  const oauthRedirectUri = searchParams.get("oauth_redirect_uri");
+  const oauthCodeChallenge = searchParams.get("oauth_code_challenge");
+  const oauthState = searchParams.get("oauth_state");
+  const isOAuthFlow = !!(oauthClientId && oauthRedirectUri && oauthCodeChallenge);
   const [tokenLoading, setTokenLoading] = useState(!!queryToken);
   const [authentication, setAuthentication] = useState<{
     local?: boolean;
@@ -100,7 +105,52 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
   const { login, loading } = useAuthStore();
+  const sessionToken = useAuthStore((s) => s.token);
   const navigate = useNavigate();
+  const oauthFinalizedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isOAuthFlow || !sessionToken || oauthFinalizedRef.current) return;
+    oauthFinalizedRef.current = true;
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/oauth/authorize/callback", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({
+            client_id: oauthClientId,
+            redirect_uri: oauthRedirectUri,
+            code_challenge: oauthCodeChallenge,
+            state: oauthState ?? "",
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`OAuth callback failed: ${res.status}`);
+        }
+
+        const data = await res.json() as { code: string; state: string };
+        const redirect = new URL(oauthRedirectUri ?? "");
+        redirect.searchParams.set("code", data.code);
+        if (data.state) redirect.searchParams.set("state", data.state);
+        window.location.assign(redirect.toString());
+      } catch (err) {
+        oauthFinalizedRef.current = false;
+        setError(err instanceof Error ? err.message : "Failed to complete authorization.");
+      }
+    })();
+  }, [
+    isOAuthFlow,
+    sessionToken,
+    oauthClientId,
+    oauthRedirectUri,
+    oauthCodeChallenge,
+    oauthState,
+  ]);
   const { display: countdownDisplay, expired: lockoutExpired }
     = useLoginCountdown(lockoutEndEpoch);
 
@@ -146,6 +196,9 @@ export default function Login() {
             ? `/mfa-login?redirect=${encodeURIComponent(redirect)}`
             : "/mfa-login";
         void navigate(mfaPath);
+      } else if (isOAuthFlow) {
+        // The useEffect watching sessionToken will POST to the OAuth callback
+        // and redirect to redirect_uri. Don't navigate elsewhere.
       } else {
         void navigate(redirect);
       }
@@ -187,7 +240,7 @@ export default function Login() {
   const showLocalForm = !isEnterprise || authentication?.local === true;
   const ssoOnly = isEnterprise && authentication?.local === false;
 
-  if (tokenLoading) {
+  if (tokenLoading || (isOAuthFlow && sessionToken && !error)) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <span className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
