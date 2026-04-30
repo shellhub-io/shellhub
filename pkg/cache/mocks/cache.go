@@ -50,6 +50,24 @@ func (_m *Cache) Get(ctx context.Context, key string, value interface{}) error {
 	return r0
 }
 
+// GetDelete provides a mock function with given fields: ctx, key, value
+func (_m *Cache) GetDelete(ctx context.Context, key string, value interface{}) error {
+	ret := _m.Called(ctx, key, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, interface{}) error); ok {
+		r0 = rf(ctx, key, value)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // HasAccountLockout provides a mock function with given fields: ctx, source, userID
 func (_m *Cache) HasAccountLockout(ctx context.Context, source string, userID string) (int64, int, error) {
 	ret := _m.Called(ctx, source, userID)

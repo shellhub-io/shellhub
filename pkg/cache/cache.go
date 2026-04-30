@@ -27,6 +27,13 @@ type Cache interface {
 	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
 	Delete(ctx context.Context, key string) error
 
+	// GetDelete atomically reads value at key and removes it. Use when the
+	// caller must consume the entry exactly once (e.g. one-time tokens or
+	// authorization codes). Returns ErrGetNotFound if the key is missing —
+	// distinguishing a hit from a miss, unlike Get which silently treats a
+	// miss as nil.
+	GetDelete(ctx context.Context, key string, value interface{}) error
+
 	// HasAccountLockout reports whether the source is currently blocked from attempting to
 	// log in to a user with the specified userID. It returns the absolute Unix timestamp
 	// in seconds representing the end of the lockout, or 0 if no lockout was found; the

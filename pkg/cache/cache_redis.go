@@ -14,8 +14,9 @@ import (
 )
 
 type redisCache struct {
-	cache *rediscache.Cache
-	cfg   *config
+	cache  *rediscache.Cache
+	client *redis.Client
+	cfg    *config
 }
 
 var _ Cache = &redisCache{}
@@ -35,10 +36,13 @@ func NewRedisCache(uri string, pool int) (Cache, error) {
 		log.WithError(err).Fatal("Failed to load environment variables")
 	}
 
+	client := redis.NewClient(opt)
+
 	return &redisCache{
-		cfg: cfg,
+		cfg:    cfg,
+		client: client,
 		cache: rediscache.New(&rediscache.Options{
-			Redis: redis.NewClient(opt),
+			Redis: client,
 		}),
 	}, nil
 }
@@ -66,6 +70,25 @@ func (c *redisCache) Delete(ctx context.Context, key string) error {
 	}
 
 	return c.cache.Delete(ctx, key)
+}
+
+// GetDelete atomically reads and deletes the cached value via the Redis GETDEL
+// command (Redis 6.2+). Two concurrent callers cannot both observe a hit:
+// exactly one of them gets the value back, the other gets ErrGetNotFound.
+func (c *redisCache) GetDelete(ctx context.Context, key string, value interface{}) error {
+	bytes, err := c.client.GetDel(ctx, key).Bytes()
+	if err == redis.Nil {
+		return ErrGetNotFound
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// Reuse the same marshaler as Set/Get so payloads written via cache.Set
+	// (msgpack + s2 compression by default in go-redis/cache) round-trip
+	// correctly through this path.
+	return c.cache.Unmarshal(bytes, value)
 }
 
 func (c *redisCache) HasAccountLockout(ctx context.Context, source, id string) (int64, int, error) {
