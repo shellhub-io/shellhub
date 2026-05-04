@@ -25,6 +25,10 @@ func (*nullCache) Delete(_ context.Context, _ string) error {
 	return nil
 }
 
+func (*nullCache) GetDelete(_ context.Context, _ string, _ interface{}) error {
+	return ErrGetNotFound
+}
+
 func (*nullCache) HasAccountLockout(_ context.Context, _, _ string) (int64, int, error) {
 	return 0, 0, nil
 }

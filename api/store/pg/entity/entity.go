@@ -7,6 +7,7 @@ func Entities() []any {
 		(*PublicKeyTag)(nil),
 
 		(*APIKey)(nil),
+		(*OAuthClient)(nil),
 		(*Device)(nil),
 		(*Membership)(nil),
 		(*Namespace)(nil),

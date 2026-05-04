@@ -12,6 +12,7 @@ type Store interface {
 	PrivateKeyStore
 	StatsStore
 	APIKeyStore
+	OAuthClientStore
 	TransactionStore
 	SystemStore
 
