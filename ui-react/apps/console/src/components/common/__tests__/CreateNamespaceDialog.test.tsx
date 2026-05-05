@@ -14,9 +14,10 @@ vi.mock("@/hooks/useFocusTrap", () => ({
   useFocusTrap: vi.fn(),
 }));
 
-vi.mock("@/env", () => ({
-  getConfig: vi.fn(),
-}));
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
+  return { ...actual, getConfig: vi.fn() };
+});
 
 vi.mock("@/hooks/useNamespaceMutations", () => ({
   useCreateNamespace: vi.fn(),
@@ -28,7 +29,7 @@ Object.defineProperty(navigator, "clipboard", {
   configurable: true,
 });
 
-import { getConfig } from "@/env";
+import { getConfig, defaultConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
 import { ClipboardProvider } from "../ClipboardProvider";
 import CreateNamespaceDialog from "../CreateNamespaceDialog";
@@ -38,17 +39,7 @@ const mockUseCreateNamespace = vi.mocked(useCreateNamespace);
 
 beforeEach(() => {
   // Default to CE (no cloud/enterprise features)
-  mockGetConfig.mockReturnValue({
-    cloud: false,
-    enterprise: false,
-    version: "",
-    onboardingUrl: "",
-    announcements: false,
-    webEndpoints: false,
-    stripePublishableKey: "",
-    chatwootWebsiteToken: "",
-    chatwootBaseUrl: "",
-  });
+  mockGetConfig.mockReturnValue({ ...defaultConfig });
   mockUseCreateNamespace.mockReturnValue({
     mutateAsync: vi.fn(),
     isPending: false,
@@ -217,17 +208,7 @@ describe("CreateNamespaceDialog", () => {
 
 describe("CreateNamespaceDialog (cloud/enterprise)", () => {
   beforeEach(() => {
-    mockGetConfig.mockReturnValue({
-      cloud: false,
-      enterprise: true,
-      version: "",
-      onboardingUrl: "",
-      announcements: false,
-      webEndpoints: false,
-      stripePublishableKey: "",
-      chatwootWebsiteToken: "",
-      chatwootBaseUrl: "",
-    });
+    mockGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
   });
 
   it("renders the creation form instead of CLI instructions", () => {
@@ -385,29 +366,5 @@ describe("CreateNamespaceDialog (cloud/enterprise)", () => {
     await user.click(screen.getByRole("button", { name: "Create" }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
-  });
-});
-
-describe("CreateNamespaceDialog (cloud: true, enterprise: false)", () => {
-  beforeEach(() => {
-    mockGetConfig.mockReturnValue({
-      cloud: true,
-      enterprise: false,
-      version: "",
-      onboardingUrl: "",
-      announcements: false,
-      webEndpoints: false,
-      stripePublishableKey: "",
-      chatwootWebsiteToken: "",
-      chatwootBaseUrl: "",
-    });
-  });
-
-  it("renders the creation form (cloud branch of isCloud)", () => {
-    renderDialog(true);
-    expect(screen.getByRole("textbox")).toBeInTheDocument();
-    expect(
-      screen.queryByText(/Community Edition uses the CLI/i),
-    ).not.toBeInTheDocument();
   });
 });

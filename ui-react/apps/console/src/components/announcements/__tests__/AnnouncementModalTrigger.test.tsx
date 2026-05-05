@@ -5,7 +5,10 @@ import type { Announcement } from "@/client";
 
 // ── Dependency mocks ──────────────────────────────────────────────────────────
 
-vi.mock("@/env", () => ({ getConfig: vi.fn() }));
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
+  return { ...actual, getConfig: vi.fn() };
+});
 
 vi.mock("@/hooks/useLatestAnnouncement", () => ({
   useLatestAnnouncement: vi.fn(),
@@ -31,7 +34,7 @@ vi.mock("../AnnouncementModal", () => ({
     ) : null,
 }));
 
-import { getConfig } from "@/env";
+import { getConfig, defaultConfig } from "@/env";
 import { useLatestAnnouncement } from "@/hooks/useLatestAnnouncement";
 import AnnouncementModalTrigger from "../AnnouncementModalTrigger";
 
@@ -61,9 +64,7 @@ beforeEach(() => {
   localStorage.clear();
 
   // Default: feature enabled, no announcement available
-  mockGetConfig.mockReturnValue({ announcements: true } as ReturnType<
-    typeof getConfig
-  >);
+  mockGetConfig.mockReturnValue({ ...defaultConfig, announcements: true });
   mockUseLatestAnnouncement.mockReturnValue({
     announcement: null,
     isLoading: false,
@@ -77,9 +78,7 @@ afterEach(cleanup);
 describe("AnnouncementModalTrigger", () => {
   describe("when announcements feature flag is disabled", () => {
     it("renders nothing without calling any hooks", () => {
-      mockGetConfig.mockReturnValue({ announcements: false } as ReturnType<
-        typeof getConfig
-      >);
+      mockGetConfig.mockReturnValue({ ...defaultConfig, announcements: false });
 
       render(<AnnouncementModalTrigger />);
 

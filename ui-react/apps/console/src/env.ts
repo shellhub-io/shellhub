@@ -10,7 +10,12 @@ export interface ClientConfig {
   chatwootBaseUrl: string;
 }
 
-const defaultConfig: ClientConfig = {
+/**
+ * Fallback used by `loadConfig` before `/config.json` resolves, and exported
+ * for tests to spread as a known-good baseline. Production code should call
+ * `getConfig()` so runtime overrides apply — never read this directly.
+ */
+export const defaultConfig: ClientConfig = {
   version: "",
   enterprise: false,
   cloud: false,
