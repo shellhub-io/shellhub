@@ -11,8 +11,9 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useAuthStore } from "../../../stores/authStore";
-import type { MembershipInvitation } from "../../../client";
+import { useAuthStore } from "@/stores/authStore";
+import type { MembershipInvitation } from "@/client";
+import { defaultConfig } from "@/env";
 import InvitationsMenu from "../InvitationsMenu";
 
 /* ------------------------------------------------------------------ */
@@ -20,7 +21,7 @@ import InvitationsMenu from "../InvitationsMenu";
 /* ------------------------------------------------------------------ */
 
 // Stub ConfirmDialog — jsdom lacks HTMLDialogElement.showModal()
-vi.mock("../../../components/common/ConfirmDialog", () => ({
+vi.mock("@/components/common/ConfirmDialog", () => ({
   default: ({
     open,
     onClose,
@@ -57,10 +58,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-// Cloud mode on by default — tests that need it off override in their own beforeEach
-vi.mock("../../../env", () => ({
-  getConfig: vi.fn(() => ({ cloud: true })),
-}));
+const mockGetConfig = vi.fn();
+
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
+  return { ...actual, getConfig: (): unknown => mockGetConfig() };
+});
 
 const mockUserInvitations = vi.fn<
   () => {
@@ -70,7 +73,7 @@ const mockUserInvitations = vi.fn<
   }
 >();
 
-vi.mock("../../../hooks/useInvitations", () => ({
+vi.mock("@/hooks/useInvitations", () => ({
   useUserInvitations: () => mockUserInvitations(),
 }));
 
@@ -78,7 +81,7 @@ const mockAcceptMutateAsync = vi.fn();
 const mockDeclineMutateAsync = vi.fn();
 const mockSwitchNamespaceMutateAsync = vi.fn();
 
-vi.mock("../../../hooks/useInvitationMutations", () => ({
+vi.mock("@/hooks/useInvitationMutations", () => ({
   useAcceptInvite: () => ({
     mutateAsync: mockAcceptMutateAsync,
     isPending: false,
@@ -89,7 +92,7 @@ vi.mock("../../../hooks/useInvitationMutations", () => ({
   }),
 }));
 
-vi.mock("../../../hooks/useNamespaceMutations", () => ({
+vi.mock("@/hooks/useNamespaceMutations", () => ({
   useSwitchNamespace: () => ({
     mutateAsync: mockSwitchNamespaceMutateAsync,
     isPending: false,
@@ -148,6 +151,12 @@ afterEach(cleanup);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Cloud mode on by default — tests that need it off override in-test.
+  mockGetConfig.mockReturnValue({
+    ...defaultConfig,
+    cloud: true,
+    enterprise: true,
+  });
   useAuthStore.setState({
     token: "test-token",
     user: "alice",
@@ -174,35 +183,11 @@ beforeEach(() => {
 
 describe("InvitationsMenu", () => {
   describe("cloud gating", () => {
-    it("returns null in non-cloud mode", async () => {
-      const { getConfig } = await import("../../../env");
-      vi.mocked(getConfig).mockReturnValue({
-        cloud: false,
-        version: "",
-        enterprise: false,
-        announcements: false,
-        webEndpoints: false,
-        onboardingUrl: "",
-        stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-      });
+    it("returns null in non-cloud mode", () => {
+      mockGetConfig.mockReturnValue({ ...defaultConfig });
 
       const { container } = renderMenu();
       expect(container).toBeEmptyDOMElement();
-
-      // Restore cloud mode for subsequent tests
-      vi.mocked(getConfig).mockReturnValue({
-        cloud: true,
-        version: "",
-        enterprise: false,
-        announcements: false,
-        webEndpoints: false,
-        onboardingUrl: "",
-        stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-      });
     });
 
     it("returns null when there is no auth token", () => {

@@ -6,14 +6,21 @@ import { render, screen, cleanup } from "@testing-library/react";
 afterEach(cleanup);
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
-vi.mock("@/env", () => ({ getConfig: vi.fn() }));
-import { getConfig } from "@/env";
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
+  return { ...actual, getConfig: vi.fn() };
+});
+import { getConfig, defaultConfig } from "@/env";
 import SignUpGuard from "../SignUpGuard";
 
 const mockedGetConfig = vi.mocked(getConfig);
 
 function renderWithRouter(cloud: boolean) {
-  mockedGetConfig.mockReturnValue({ cloud } as ReturnType<typeof getConfig>);
+  mockedGetConfig.mockReturnValue({
+    ...defaultConfig,
+    cloud,
+    enterprise: cloud,
+  });
   return render(
     <MemoryRouter initialEntries={["/sign-up"]}>
       <Routes>

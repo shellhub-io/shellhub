@@ -1,13 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { defaultConfig } from "@/env";
 
 // ─── Module mocks (must come before any import of the module under test) ──────
 
 const mockGetConfig = vi.fn();
 
-vi.mock("@/env", () => ({
-  getConfig: (): unknown => mockGetConfig(),
-}));
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
+  return {
+    ...actual,
+    getConfig: (): unknown => mockGetConfig(),
+  };
+});
 
 const mockUseAuthStore = vi.fn();
 
@@ -30,21 +35,6 @@ vi.mock("@/hooks/useSupportIdentifier", () => ({
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function makeConfig(
-  overrides: Partial<{
-    cloud: boolean;
-    chatwootWebsiteToken: string;
-    chatwootBaseUrl: string;
-  }> = {},
-) {
-  return {
-    cloud: false,
-    chatwootWebsiteToken: "",
-    chatwootBaseUrl: "",
-    ...overrides,
-  };
-}
 
 /** Simulate the Zustand selector pattern for authStore */
 function setupAuthStore(values: {
@@ -129,7 +119,7 @@ afterEach(() => {
 describe("useChatwoot", () => {
   describe("status: non-cloud", () => {
     it("returns status 'non-cloud' when cloud=false", async () => {
-      mockGetConfig.mockReturnValue(makeConfig({ cloud: false }));
+      mockGetConfig.mockReturnValue({ ...defaultConfig });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -141,7 +131,7 @@ describe("useChatwoot", () => {
     });
 
     it("does not inject a script when cloud=false", async () => {
-      mockGetConfig.mockReturnValue(makeConfig({ cloud: false }));
+      mockGetConfig.mockReturnValue({ ...defaultConfig });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -155,13 +145,13 @@ describe("useChatwoot", () => {
 
   describe("status: unavailable", () => {
     it("returns 'unavailable' when cloud=true but chatwootWebsiteToken is missing", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -173,13 +163,13 @@ describe("useChatwoot", () => {
     });
 
     it("returns 'unavailable' when cloud=true but chatwootBaseUrl is missing", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -193,13 +183,13 @@ describe("useChatwoot", () => {
 
   describe("status: loading (namespace not resolved)", () => {
     it("returns 'loading' when namespace is null", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace(null);
       setupIdentifier(null, false);
@@ -213,13 +203,13 @@ describe("useChatwoot", () => {
 
   describe("status: no-subscription", () => {
     it("returns 'no-subscription' when namespace loaded but billing.active !== true", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: false } });
       setupIdentifier(null, false);
@@ -231,13 +221,13 @@ describe("useChatwoot", () => {
     });
 
     it("returns 'no-subscription' when namespace has no billing object", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns" });
       setupIdentifier(null, false);
@@ -251,13 +241,13 @@ describe("useChatwoot", () => {
 
   describe("status: loading (identifier fetching)", () => {
     it("returns 'loading' while support identifier is being fetched", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier(null, true); // isLoading=true
@@ -269,13 +259,13 @@ describe("useChatwoot", () => {
     });
 
     it("returns 'loading' when identifier has not arrived yet (isLoading=false but identifier=null)", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier(null, false);
@@ -289,13 +279,13 @@ describe("useChatwoot", () => {
 
   describe("status: ready", () => {
     it("returns 'ready' after the chatwoot:ready event fires with window.$chatwoot set", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -314,13 +304,13 @@ describe("useChatwoot", () => {
   describe("script injection", () => {
     it("injects a script with the correct src when prerequisites are met", async () => {
       const baseURL = "https://chat.example.com";
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: baseURL,
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: baseURL,
+      });
       setupAuthStore({ userId: "user-1" });
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -336,13 +326,13 @@ describe("useChatwoot", () => {
     });
 
     it("does not inject a second script when the hook renders twice (StrictMode safety)", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({ userId: "user-1" });
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -360,13 +350,13 @@ describe("useChatwoot", () => {
 
   describe("window.chatwootSettings", () => {
     it("sets chatwootSettings with the correct values before script injection", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({ userId: "user-1" });
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -389,13 +379,13 @@ describe("useChatwoot", () => {
 
   describe("setUser after widget ready", () => {
     it("calls setUser with identifier_hash when widget reports ready", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       const userId = "user-1";
       const email = "user@example.com";
       const name = "Test User";
@@ -420,13 +410,13 @@ describe("useChatwoot", () => {
     });
 
     it("does not call setUser again when re-rendered with the same identity", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({
         userId: "user-1",
         email: "user@example.com",
@@ -456,13 +446,13 @@ describe("useChatwoot", () => {
 
   describe("setConversationCustomAttributes", () => {
     it("calls setConversationCustomAttributes with namespace data on chatwoot:on-message", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({ userId: "user-1", tenant: "tenant-abc" });
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -492,13 +482,13 @@ describe("useChatwoot", () => {
 
   describe("openWidget", () => {
     it("calls window.$chatwoot.toggle('open') when status is ready", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -520,13 +510,13 @@ describe("useChatwoot", () => {
     });
 
     it("does not call toggle when status is not ready (loading)", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace(null); // loading state
       setupIdentifier(null, true);
@@ -555,13 +545,13 @@ describe("useChatwoot", () => {
 
   describe("status: unavailable (identifier endpoint errors)", () => {
     it("flips to 'unavailable' when /support returns an error (e.g. backend identity key missing)", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifierError();
@@ -579,13 +569,13 @@ describe("useChatwoot", () => {
     it("flips to 'unavailable' when chatwoot:ready never fires after script load", async () => {
       vi.useFakeTimers();
       try {
-        mockGetConfig.mockReturnValue(
-          makeConfig({
-            cloud: true,
-            chatwootWebsiteToken: "token-abc",
-            chatwootBaseUrl: "https://chat.example.com",
-          }),
-        );
+        mockGetConfig.mockReturnValue({
+          ...defaultConfig,
+          cloud: true,
+          enterprise: true,
+          chatwootWebsiteToken: "token-abc",
+          chatwootBaseUrl: "https://chat.example.com",
+        });
         setupAuthStore({});
         setupNamespace({ name: "my-ns", billing: { active: true } });
         setupIdentifier("abc123");
@@ -621,13 +611,13 @@ describe("useChatwoot", () => {
 
   describe("status: unavailable (script load error)", () => {
     it("flips to 'unavailable' when the SDK script fails to load (script.onerror)", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -655,13 +645,13 @@ describe("useChatwoot", () => {
 
   describe("teardown via runtime helper", () => {
     it("tearDownChatwoot('logout') removes the script tag and clears window globals", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -685,13 +675,13 @@ describe("useChatwoot", () => {
     });
 
     it("after teardown, a re-mount cleanly re-injects the script", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -711,13 +701,13 @@ describe("useChatwoot", () => {
     });
 
     it("removes SDK-injected DOM (chat bubble holders, iframe) on teardown", async () => {
-      mockGetConfig.mockReturnValue(
-        makeConfig({
-          cloud: true,
-          chatwootWebsiteToken: "token-abc",
-          chatwootBaseUrl: "https://chat.example.com",
-        }),
-      );
+      mockGetConfig.mockReturnValue({
+        ...defaultConfig,
+        cloud: true,
+        enterprise: true,
+        chatwootWebsiteToken: "token-abc",
+        chatwootBaseUrl: "https://chat.example.com",
+      });
       setupAuthStore({});
       setupNamespace({ name: "my-ns", billing: { active: true } });
       setupIdentifier("abc123");
@@ -748,13 +738,13 @@ describe("useChatwoot", () => {
     it("clears bootstrapFailed when a fresh injection proceeds (recovers from prior watchdog timeout)", async () => {
       vi.useFakeTimers();
       try {
-        mockGetConfig.mockReturnValue(
-          makeConfig({
-            cloud: true,
-            chatwootWebsiteToken: "token-abc",
-            chatwootBaseUrl: "https://chat.example.com",
-          }),
-        );
+        mockGetConfig.mockReturnValue({
+          ...defaultConfig,
+          cloud: true,
+          enterprise: true,
+          chatwootWebsiteToken: "token-abc",
+          chatwootBaseUrl: "https://chat.example.com",
+        });
         setupAuthStore({});
         setupNamespace({ name: "my-ns", billing: { active: true } });
         setupIdentifier("abc123");

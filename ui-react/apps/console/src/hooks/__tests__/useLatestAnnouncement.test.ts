@@ -7,7 +7,10 @@ import type { Announcement } from "@/client";
 
 // ── Module mocks ─────────────────────────────────────────────────────────────
 
-vi.mock("@/env", () => ({ getConfig: vi.fn() }));
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
+  return { ...actual, getConfig: vi.fn() };
+});
 
 // Mock the generated query-option factories so we control what queryFn runs
 vi.mock("@/client/@tanstack/react-query.gen", () => ({
@@ -15,7 +18,7 @@ vi.mock("@/client/@tanstack/react-query.gen", () => ({
   getAnnouncementOptions: vi.fn(),
 }));
 
-import { getConfig } from "@/env";
+import { getConfig, defaultConfig } from "@/env";
 import {
   listAnnouncementsOptions,
   getAnnouncementOptions,
@@ -68,9 +71,7 @@ beforeEach(() => {
   vi.clearAllMocks();
 
   // Default: feature enabled
-  mockGetConfig.mockReturnValue({ announcements: true } as ReturnType<
-    typeof getConfig
-  >);
+  mockGetConfig.mockReturnValue({ ...defaultConfig, announcements: true });
 
   // Default: both option factories return never-resolving promises (loading state)
   mockListAnnouncementsOptions.mockReturnValue(
@@ -86,9 +87,7 @@ beforeEach(() => {
 describe("useLatestAnnouncement", () => {
   describe("when announcements feature flag is disabled", () => {
     beforeEach(() => {
-      mockGetConfig.mockReturnValue({ announcements: false } as ReturnType<
-        typeof getConfig
-      >);
+      mockGetConfig.mockReturnValue({ ...defaultConfig, announcements: false });
     });
 
     it("returns null announcement immediately", () => {

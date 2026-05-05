@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
-import type { UserAuth, Info } from "../../client";
+import { useAuthStore } from "@/stores/authStore";
+import type { UserAuth, Info } from "@/client";
 import Login from "../Login";
 
 /* ------------------------------------------------------------------ */
@@ -31,8 +31,8 @@ vi.mock("@/client", () => ({
   getSamlAuthUrl: vi.fn(),
 }));
 
-vi.mock("../../env", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../env")>();
+vi.mock("@/env", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/env")>();
   return { ...actual, getConfig: vi.fn(() => actual.getConfig()) };
 });
 
@@ -40,8 +40,8 @@ import {
   login as loginSdk,
   getInfo as getInfoSdk,
   getSamlAuthUrl as getSamlAuthUrlSdk,
-} from "../../client";
-import { getConfig } from "../../env";
+} from "@/client";
+import { getConfig, defaultConfig } from "@/env";
 
 const mockedLogin = vi.mocked(loginSdk);
 const mockedGetInfo = vi.mocked(getInfoSdk);
@@ -135,17 +135,7 @@ beforeEach(() => {
     mockSdkResponse(mockInfo({ authentication: { local: true, saml: false } })),
   );
   // Default: community edition (no enterprise/cloud flags).
-  mockedGetConfig.mockReturnValue({
-    version: "",
-    enterprise: false,
-    cloud: false,
-    announcements: false,
-    webEndpoints: false,
-    onboardingUrl: "",
-    stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-  });
+  mockedGetConfig.mockReturnValue({ ...defaultConfig });
   useAuthStore.setState({
     token: null,
     user: null,
@@ -358,17 +348,7 @@ describe("Login", () => {
 
   describe("SSO / SAML button", () => {
     it("does not show SSO button when not enterprise", async () => {
-      mockedGetConfig.mockReturnValue({
-        version: "",
-        enterprise: false,
-        cloud: false,
-        announcements: false,
-        webEndpoints: false,
-        onboardingUrl: "",
-        stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-      });
+      mockedGetConfig.mockReturnValue({ ...defaultConfig });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: true, saml: true } }),
@@ -383,17 +363,7 @@ describe("Login", () => {
     });
 
     it("does not show SSO button when enterprise but saml is false", async () => {
-      mockedGetConfig.mockReturnValue({
-        version: "",
-        enterprise: true,
-        cloud: false,
-        announcements: false,
-        webEndpoints: false,
-        onboardingUrl: "",
-        stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-      });
+      mockedGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: true, saml: false } }),
@@ -409,17 +379,7 @@ describe("Login", () => {
     });
 
     it("shows SSO button when enterprise and saml is true", async () => {
-      mockedGetConfig.mockReturnValue({
-        version: "",
-        enterprise: true,
-        cloud: false,
-        announcements: false,
-        webEndpoints: false,
-        onboardingUrl: "",
-        stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-      });
+      mockedGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: true, saml: true } }),
@@ -441,17 +401,7 @@ describe("Login", () => {
       });
 
       try {
-        mockedGetConfig.mockReturnValue({
-          version: "",
-          enterprise: true,
-          cloud: false,
-          announcements: false,
-          webEndpoints: false,
-          onboardingUrl: "",
-          stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-        });
+        mockedGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
         mockedGetInfo.mockResolvedValue(
           mockSdkResponse(
             mockInfo({ authentication: { local: true, saml: true } }),
@@ -480,17 +430,7 @@ describe("Login", () => {
     });
 
     it("shows error when SSO URL fetch fails", async () => {
-      mockedGetConfig.mockReturnValue({
-        version: "",
-        enterprise: true,
-        cloud: false,
-        announcements: false,
-        webEndpoints: false,
-        onboardingUrl: "",
-        stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-      });
+      mockedGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: true, saml: true } }),
@@ -511,17 +451,7 @@ describe("Login", () => {
     });
 
     it("hides the form entirely and shows SSO as the only option when local auth is disabled", async () => {
-      mockedGetConfig.mockReturnValue({
-        version: "",
-        enterprise: true,
-        cloud: false,
-        announcements: false,
-        webEndpoints: false,
-        onboardingUrl: "",
-        stripePublishableKey: "",
-          chatwootWebsiteToken: "",
-          chatwootBaseUrl: "",
-      });
+      mockedGetConfig.mockReturnValue({ ...defaultConfig, enterprise: true });
       mockedGetInfo.mockResolvedValue(
         mockSdkResponse(
           mockInfo({ authentication: { local: false, saml: true } }),
