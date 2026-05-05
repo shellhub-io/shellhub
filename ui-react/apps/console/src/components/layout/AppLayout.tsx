@@ -5,6 +5,7 @@ import TerminalManager from "../terminal/TerminalManager";
 import ConnectivityBanner from "../common/ConnectivityBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
 import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger";
+import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
 import { SidebarMobileDrawer } from "./SidebarShell";
 import ChatwootProvider from "./ChatwootProvider";
 import { useNamespaces } from "@/hooks/useNamespaces";
@@ -17,11 +18,11 @@ export default function AppLayout() {
   const hasVisibleTerminal = useTerminalStore((s) =>
     s.sessions.some((t) => t.state !== "minimized"),
   );
-  const { isOpen, pinned, isDesktop, drawerOpen, handlers } = useSidebarLayout();
+  const { isOpen, pinned, isDesktop, drawerOpen, handlers } =
+    useSidebarLayout();
 
   const showSidebar = namespaces.length > 0;
-  const sidebarOffset =
-    showSidebar && isDesktop ? (isOpen ? 220 : 60) : 0;
+  const sidebarOffset = showSidebar && isDesktop ? (isOpen ? 220 : 60) : 0;
 
   return (
     <ChatwootProvider>
@@ -31,14 +32,18 @@ export default function AppLayout() {
         <ConnectivityBanner />
         <div className="flex flex-1 min-h-0">
           {showSidebar && isDesktop && (
-          <div
-            onMouseEnter={handlers.onMouseEnter}
-            onMouseLeave={handlers.onMouseLeave}
-            onFocus={handlers.onFocus}
-            onBlur={handlers.onBlur}
-          >
-              <Sidebar expanded={isOpen} pinned={pinned} onToggle={handlers.onToggle} />
-          </div>
+            <div
+              onMouseEnter={handlers.onMouseEnter}
+              onMouseLeave={handlers.onMouseLeave}
+              onFocus={handlers.onFocus}
+              onBlur={handlers.onBlur}
+            >
+              <Sidebar
+                expanded={isOpen}
+                pinned={pinned}
+                onToggle={handlers.onToggle}
+              />
+            </div>
           )}
           {showSidebar && !isDesktop && (
             <SidebarMobileDrawer
@@ -56,7 +61,11 @@ export default function AppLayout() {
             </SidebarMobileDrawer>
           )}
           <div className="flex-1 flex flex-col min-w-0">
-            <AppBar onMenuToggle={showSidebar && !isDesktop ? handlers.toggleDrawer : undefined} />
+            <AppBar
+              onMenuToggle={
+                showSidebar && !isDesktop ? handlers.toggleDrawer : undefined
+              }
+            />
             <main className="flex-1 flex flex-col p-8 relative min-h-0 overflow-y-auto">
               <div className="grid-bg scanline absolute inset-0 -z-10" />
               <div
@@ -71,6 +80,7 @@ export default function AppLayout() {
         <TerminalManager sidebarOffset={sidebarOffset} />
         <WelcomeWizardTrigger />
         <AnnouncementModalTrigger />
+        <DeviceChooserTrigger />
       </div>
     </ChatwootProvider>
   );

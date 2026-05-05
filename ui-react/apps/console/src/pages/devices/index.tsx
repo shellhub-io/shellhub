@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { DeviceStatus } from "@/client";
 import { useNamespace } from "@/hooks/useNamespaces";
 import { useAuthStore } from "@/stores/authStore";
@@ -10,8 +11,9 @@ import ConnectDrawer from "@/components/ConnectDrawer";
 import ManageTagsDrawer from "@/components/ManageTagsDrawer";
 import CopyButton from "@/components/common/CopyButton";
 import PlatformBadge from "@/components/common/PlatformBadge";
+import OnlineDot from "@/components/common/OnlineDot";
+import LastSeenCell from "@/components/common/LastSeenCell";
 import DataTable, { type Column } from "@/components/common/DataTable";
-import { formatRelative } from "@/utils/date";
 import { buildSshid } from "@/utils/sshid";
 import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import TagsPopover from "./TagsPopover";
@@ -51,7 +53,10 @@ export default function Devices() {
   );
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(
+    searchInput.trim(),
+    SEARCH_DEBOUNCE_MS,
+  );
   const [actionTarget, setActionTarget] = useState<{
     device: NormalizedDevice;
     action: "accept" | "reject" | "remove";
@@ -63,13 +68,6 @@ export default function Devices() {
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [billingWarningOpen, setBillingWarningOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput.trim());
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
 
   const { devices, totalCount, isLoading, error, refetch } = useDevices({
     page,
@@ -143,13 +141,23 @@ export default function Devices() {
         header: "Custom Fields",
         render: (device) => {
           const entries = Object.entries(device.custom_fields ?? {});
-          if (entries.length === 0) return <span className="text-2xs text-text-muted/30 font-mono">—</span>;
+          if (entries.length === 0)
+            return (
+              <span className="text-2xs text-text-muted/30 font-mono">—</span>
+            );
           return (
             <div className="flex flex-wrap gap-1">
               {entries.map(([k, v]) => (
-                <span key={k} className="inline-flex items-center text-2xs rounded overflow-hidden border border-border font-mono">
-                  <span className="px-1.5 py-0.5 bg-surface text-text-muted">{k}</span>
-                  <span className="px-1.5 py-0.5 bg-card text-text-primary font-medium">{v}</span>
+                <span
+                  key={k}
+                  className="inline-flex items-center text-2xs rounded overflow-hidden border border-border font-mono"
+                >
+                  <span className="px-1.5 py-0.5 bg-surface text-text-muted">
+                    {k}
+                  </span>
+                  <span className="px-1.5 py-0.5 bg-card text-text-primary font-medium">
+                    {v}
+                  </span>
                 </span>
               ))}
             </div>
@@ -159,11 +167,7 @@ export default function Devices() {
       {
         key: "last_seen",
         header: "Last Seen",
-        render: (device) => (
-          <span className="text-xs text-text-secondary">
-            {formatRelative(device.last_seen)}
-          </span>
-        ),
+        render: (device) => <LastSeenCell value={device.last_seen} />,
       },
     ];
 
@@ -173,15 +177,7 @@ export default function Devices() {
           key: "online",
           header: "",
           headerClassName: "w-12",
-          render: (device) =>
-            device.online ? (
-              <span className="relative flex h-2.5 w-2.5 mx-auto">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-40" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]" />
-              </span>
-            ) : (
-              <span className="block w-2.5 h-2.5 rounded-full mx-auto bg-text-muted/30" />
-            ),
+          render: (device) => <OnlineDot online={device.online} />,
         },
         baseColumns[0], // hostname
         {
