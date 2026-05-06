@@ -1,0 +1,40 @@
+description: A subscription on the payment gateway.
+type: object
+properties:
+  id:
+    description: Subscription's ID on the payment gateway.
+    type: string
+    example: sub_1H9J5n2eZvKYlo2C7X1QX2Qg
+  active:
+    description: |
+      Whether the subscription is active. Active means the subscription's
+      status is one of `active`, `trialing`, `past_due` or
+      `to_cancel_at_end_of_period`.
+    type: boolean
+    example: true
+  status:
+    $ref: billingStatus.yaml
+  end_at:
+    description: |
+      Subscription's current period end as a unix timestamp in seconds.
+      For an active subscription, this is the next billing date; for a
+      subscription with status `to_cancel_at_end_of_period`, this is when the
+      cancellation takes effect.
+    type: integer
+    format: int64
+    example: 1735689600
+  invoices:
+    description: |
+      Invoices associated with this subscription. May be `null` when the
+      subscription has no invoices yet (e.g., inactive subscriptions skip the
+      upcoming-invoice fetch).
+    type: array
+    nullable: true
+    items:
+      $ref: invoice.yaml
+required:
+  - id
+  - active
+  - status
+  - end_at
+  - invoices

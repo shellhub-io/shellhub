@@ -41,55 +41,7 @@ get:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              id:
-                description: Customer's ID.
-                type: string
-                example: 'cus_H9J5n2eZvKYlo2C7X1QX2Qg'
-              name:
-                description: Customer's name.
-                type: string
-                example: 'user'
-              email:
-                description: Customer's e-mail.
-                type: string
-                format: email
-                example: 'user@shellhub.io'
-              payment_methods:
-                description: Customer's payment methods.
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      description: Payment method's ID.
-                      type: string
-                      example: 'pm_1H9J5n2eZvKYlo2C7X1QX2Qg'
-                    number:
-                      description: Payment method card's number.
-                      type: string
-                      example: '4242424242424242'
-                    brand:
-                      description: Payment method card's brand.
-                      type: string
-                      example: 'visa'
-                    exp_month:
-                      description: Payment method card's expiration month.
-                      type: integer
-                      example: 10
-                    exp_year:
-                      description: Payment method card's expiration year.
-                      type: integer
-                      example: 2030
-                    cvc:
-                      description: Payment method card's CVC.
-                      type: string
-                      example: '123'
-                    default:
-                      description: Payment method default status.
-                      type: boolean
-                      example: true
+            $ref: ../components/schemas/customer.yaml
     '400':
       $ref: ../components/schemas/billingError.yaml
     '403':

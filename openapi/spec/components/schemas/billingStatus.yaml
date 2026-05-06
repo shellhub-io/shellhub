@@ -1,0 +1,17 @@
+description: |
+  Billing/subscription status. Mirrors the Stripe subscription lifecycle, plus
+  the custom `to_cancel_at_end_of_period` value used internally when a
+  subscription is scheduled to cancel at the end of the current period.
+type: string
+enum:
+  - inactive
+  - active
+  - trialing
+  - incomplete
+  - incomplete_expired
+  - past_due
+  - canceled
+  - unpaid
+  - paused
+  - to_cancel_at_end_of_period
+example: active

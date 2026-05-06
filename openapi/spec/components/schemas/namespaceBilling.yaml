@@ -1,0 +1,48 @@
+description: |
+  Billing information stored on a namespace. Reflects the current subscription
+  state for the namespace's owner.
+type: object
+properties:
+  active:
+    description: |
+      Whether the subscription is active. This is the source of truth for
+      whether the namespace is allowed to accept devices and create
+      connections; it tracks the subscription `status` and is `true` when
+      `status` is one of `active`, `trialing`, `past_due` or
+      `to_cancel_at_end_of_period`.
+    type: boolean
+    example: true
+  status:
+    $ref: billingStatus.yaml
+  customer_id:
+    description: ID of the customer the subscription belongs to on the payment gateway.
+    type: string
+    example: cus_H9J5n2eZvKYlo2C7X1QX2Qg
+  subscription_id:
+    description: ID of the subscription on the payment gateway.
+    type: string
+    example: sub_1H9J5n2eZvKYlo2C7X1QX2Qg
+  current_period_end:
+    description: |
+      End of the current billing period as a unix timestamp in seconds.
+    type: integer
+    format: int64
+    example: 1735689600
+  created_at:
+    description: When the billing record was created (RFC 3339).
+    type: string
+    format: date-time
+    example: 2024-01-01T00:00:00Z
+  updated_at:
+    description: When the billing record was last updated (RFC 3339).
+    type: string
+    format: date-time
+    example: 2024-06-01T00:00:00Z
+required:
+  - active
+  - status
+  - customer_id
+  - subscription_id
+  - current_period_end
+  - created_at
+  - updated_at

@@ -1,0 +1,42 @@
+description: |
+  A payment method (card) attached to a customer.
+  When retrieved from the billing service, `number` is masked to the last 4
+  digits and `cvc` is masked.
+type: object
+properties:
+  id:
+    description: Payment method's ID on the payment gateway.
+    type: string
+    example: pm_1H9J5n2eZvKYlo2C7X1QX2Qg
+  number:
+    description: Payment method card's number. Masked when retrieved (e.g., `xxxxxxxxxxxx4242`).
+    type: string
+    example: xxxxxxxxxxxx4242
+  brand:
+    description: Payment method card's brand.
+    type: string
+    example: visa
+  exp_month:
+    description: Payment method card's expiration month.
+    type: integer
+    example: 10
+  exp_year:
+    description: Payment method card's expiration year.
+    type: integer
+    example: 2030
+  cvc:
+    description: Payment method card's CVC. Masked when retrieved.
+    type: string
+    example: xxx
+  default:
+    description: Whether this payment method is the customer's default.
+    type: boolean
+    example: true
+required:
+  - id
+  - number
+  - brand
+  - exp_month
+  - exp_year
+  - cvc
+  - default
