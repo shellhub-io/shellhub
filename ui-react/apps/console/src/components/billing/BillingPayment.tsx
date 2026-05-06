@@ -28,7 +28,6 @@ import {
   useDetachPaymentMethod,
   useSetDefaultPaymentMethod,
 } from "@/hooks/useBilling";
-import { readNamespaceBilling } from "@/types/billing";
 import { stripeErrorMessage } from "@/utils/stripeErrors";
 import { LABEL } from "@/utils/styles";
 import BillingIcon from "./BillingIcon";
@@ -96,10 +95,9 @@ function BillingPaymentInner({
   const elements = useElements();
   const { tenant: tenantId } = useAuthStore();
   const { namespace, refetch: refetchNamespace } = useNamespace(tenantId ?? "");
-  const billing = readNamespaceBilling(namespace?.billing);
   // /api/billing/customer returns 400 until the namespace has been bootstrapped
   // with Stripe (POST /customer). Gate the query on that.
-  const hasCustomer = !!billing?.customer_id;
+  const hasCustomer = !!namespace?.billing?.customer_id;
   const {
     customer,
     isLoading: customerLoading,
@@ -134,8 +132,7 @@ function BillingPaymentInner({
       try {
         const fresh = await refetchNamespace();
         if (cancelled) return;
-        const current = readNamespaceBilling(fresh.data?.billing);
-        if (!current?.customer_id) {
+        if (!fresh.data?.billing?.customer_id) {
           await createCustomer.mutateAsync({});
           if (cancelled) return;
           await refetchNamespace();

@@ -3,7 +3,7 @@ import BillingIcon from "./BillingIcon";
 
 export default function BillingCheckout() {
   const { customer } = useCustomer();
-  const defaultPm = customer?.payment_methods.find((pm) => pm.default);
+  const defaultPm = customer?.payment_methods?.find((pm) => pm.default);
 
   return (
     <div className="space-y-5">

@@ -171,14 +171,14 @@ describe("useCustomer", () => {
     expect(mockGetCustomerFn).not.toHaveBeenCalled();
   });
 
-  it("returns null customer when the query has no data", async () => {
+  it("returns undefined customer when the query has no data", async () => {
     const { useCustomer } = await importHooks();
 
     const { result } = renderHook(() => useCustomer(false), {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.customer).toBeNull();
+    expect(result.current.customer).toBeUndefined();
   });
 });
 
@@ -201,14 +201,14 @@ describe("useSubscription", () => {
     expect(typeof result.current.refetch).toBe("function");
   });
 
-  it("returns null subscription when query has no data", async () => {
+  it("returns undefined subscription when query has no data", async () => {
     const { useSubscription } = await importHooks();
 
     const { result } = renderHook(() => useSubscription(false), {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.subscription).toBeNull();
+    expect(result.current.subscription).toBeUndefined();
   });
 });
 
