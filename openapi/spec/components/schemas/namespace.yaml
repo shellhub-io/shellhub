@@ -41,10 +41,9 @@ properties:
     format: date-time
     example: 2020-05-01T00:00:00.000Z
   billing:
-    description: Namespace's billing
-    type: object
     nullable: true
-    example: null
+    allOf:
+      - $ref: namespaceBilling.yaml
   devices_pending_count:
     description: Number of devices currently in pending status awaiting approval
     type: integer

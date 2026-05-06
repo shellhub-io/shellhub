@@ -1,0 +1,29 @@
+description: A customer on the payment gateway.
+type: object
+properties:
+  id:
+    description: Customer's ID on the payment gateway.
+    type: string
+    example: cus_H9J5n2eZvKYlo2C7X1QX2Qg
+  name:
+    description: Customer's name.
+    type: string
+    example: user
+  email:
+    description: Customer's e-mail.
+    type: string
+    format: email
+    example: user@shellhub.io
+  payment_methods:
+    description: |
+      Customer's payment methods. May be `null` when the customer has no
+      payment methods on file (the underlying gateway returns an empty list).
+    type: array
+    nullable: true
+    items:
+      $ref: paymentMethod.yaml
+required:
+  - id
+  - name
+  - email
+  - payment_methods

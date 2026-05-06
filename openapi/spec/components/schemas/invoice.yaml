@@ -1,0 +1,34 @@
+description: An invoice associated with a subscription.
+type: object
+properties:
+  id:
+    description: Invoice's ID on the payment gateway.
+    type: string
+    example: in_1H9J5n2eZvKYlo2C7X1QX2Qg
+  status:
+    description: Invoice's status.
+    type: string
+    enum:
+      - draft
+      - open
+      - paid
+      - uncollectible
+      - voided
+    example: paid
+  currency:
+    description: Invoice's currency.
+    type: string
+    enum:
+      - usd
+      - brl
+    example: usd
+  amount:
+    description: Invoice's amount in the smallest currency unit (cents/centavos).
+    type: integer
+    format: int64
+    example: 2999
+required:
+  - id
+  - status
+  - currency
+  - amount
