@@ -9,7 +9,6 @@ import {
   setDefaultPaymentMethodMutation,
 } from "../client/@tanstack/react-query.gen";
 import apiClient from "../api/client";
-import { toCustomer, toSubscription } from "../types/billing";
 import { useInvalidateByIds } from "./useInvalidateQueries";
 
 function useInvalidateBilling() {
@@ -22,7 +21,7 @@ export function useCustomer(enabled = true) {
     enabled,
   });
   return {
-    customer: toCustomer(result.data),
+    customer: result.data,
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,
@@ -35,7 +34,7 @@ export function useSubscription(enabled = true) {
     enabled,
   });
   return {
-    subscription: toSubscription(result.data),
+    subscription: result.data,
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,

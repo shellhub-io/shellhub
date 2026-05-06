@@ -14,7 +14,7 @@ import { useNamespace } from "@/hooks/useNamespaces";
 import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
-import { readNamespaceBilling, type BillingStatus } from "@/types/billing";
+import type { BillingStatus } from "@/client/types.gen";
 
 const BillingDialog = lazy(() => import("./BillingDialog"));
 
@@ -183,7 +183,7 @@ export default function BillingSection({ sectionId }: BillingSectionProps) {
   const canSubscribe = useHasPermission("billing:subscribe");
   const { tenant: tenantId } = useAuthStore();
   const { namespace } = useNamespace(tenantId ?? "");
-  const billing = readNamespaceBilling(namespace?.billing);
+  const billing = namespace?.billing;
   // GET /subscription returns 400 until the namespace has BOTH a Stripe
   // customer AND an actual subscription (backend: ErrNamespaceSubscriptionUndefined).
   // Gating only on customer_id causes a retry cascade after customer bootstrap

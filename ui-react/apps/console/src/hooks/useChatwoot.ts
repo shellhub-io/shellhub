@@ -17,7 +17,6 @@ import {
   injectChatwootScript,
   subscribeChatwootState,
 } from "@/hooks/chatwootRuntime";
-import { readNamespaceBilling } from "@/types/billing";
 
 export type ChatwootStatus =
   | "non-cloud"
@@ -53,8 +52,7 @@ export function useChatwoot(): ChatwootHandle {
 
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceName = namespace?.name ?? "";
-  const billing = readNamespaceBilling(namespace?.billing);
-  const hasActiveBilling = billing?.active === true;
+  const hasActiveBilling = namespace?.billing?.active === true;
 
   const isCloud = config.cloud;
   const hasCloudConfig =
