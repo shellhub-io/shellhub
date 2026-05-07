@@ -131,6 +131,8 @@ paths:
     $ref: paths/api@devices@resolve.yaml
   /api/devices/{uid}/{status}:
     $ref: paths/api@devices@{uid}@{status}.yaml
+  /api/devices/{uid}/custom_fields/{key}:
+    $ref: paths/api@devices@{uid}@custom_fields@{key}.yaml
   /internal/devices/{uid}/offline:
     $ref: paths/api@devices@{uid}@offline.yaml
   /api/sessions:
