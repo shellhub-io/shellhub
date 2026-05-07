@@ -6,6 +6,8 @@ import {
   deleteDeviceMutation,
   updateDeviceMutation,
   pullTagFromDeviceMutation,
+  setDeviceCustomFieldMutation,
+  deleteDeviceCustomFieldMutation,
 } from "../client/@tanstack/react-query.gen";
 import { createTag, pushTagToDevice } from "../client";
 import { useInvalidateByIds } from "./useInvalidateQueries";
@@ -42,10 +44,18 @@ export function useRenameDevice() {
   });
 }
 
-export function useUpdateDeviceCustomFields() {
+export function useSetDeviceCustomField() {
   const invalidate = useInvalidateByIds("getDevices", "getDevice");
   return useMutation({
-    ...updateDeviceMutation(),
+    ...setDeviceCustomFieldMutation(),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteDeviceCustomField() {
+  const invalidate = useInvalidateByIds("getDevices", "getDevice");
+  return useMutation({
+    ...deleteDeviceCustomFieldMutation(),
     onSuccess: invalidate,
   });
 }
