@@ -12,20 +12,23 @@ import (
 )
 
 const (
-	GetDeviceListURL      = "/devices"
-	GetDeviceURL          = "/devices/:uid"
-	ResolveDeviceURL      = "/devices/resolve"
-	DeleteDeviceURL       = "/devices/:uid"
-	RenameDeviceURL       = "/devices/:uid"
-	OfflineDeviceURL      = "/devices/:uid/offline"
-	LookupDeviceURL       = "/device/lookup"
-	UpdateDeviceStatusURL = "/devices/:uid/:status"
-	UpdateDevice          = "/devices/:uid"
+	GetDeviceListURL           = "/devices"
+	GetDeviceURL               = "/devices/:uid"
+	ResolveDeviceURL           = "/devices/resolve"
+	DeleteDeviceURL            = "/devices/:uid"
+	RenameDeviceURL            = "/devices/:uid"
+	OfflineDeviceURL           = "/devices/:uid/offline"
+	LookupDeviceURL            = "/device/lookup"
+	UpdateDeviceStatusURL      = "/devices/:uid/:status"
+	UpdateDevice               = "/devices/:uid"
+	SetDeviceCustomFieldURL    = "/devices/:uid/custom_fields/:key"
+	DeleteDeviceCustomFieldURL = "/devices/:uid/custom_fields/:key"
 )
 
 const (
-	ParamDeviceID     = "uid"
-	ParamDeviceStatus = "status"
+	ParamDeviceID             = "uid"
+	ParamDeviceStatus         = "status"
+	ParamDeviceCustomFieldKey = "key"
 )
 
 func (h *Handler) GetDeviceList(c gateway.Context) error {
@@ -261,6 +264,42 @@ func (h *Handler) UpdateDevice(c gateway.Context) error {
 	}
 
 	if err := h.service.UpdateDevice(c.Ctx(), req); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) SetDeviceCustomField(c gateway.Context) error {
+	req := new(requests.DeviceSetCustomField)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if err := h.service.SetDeviceCustomField(c.Ctx(), req); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func (h *Handler) DeleteDeviceCustomField(c gateway.Context) error {
+	req := new(requests.DeviceDeleteCustomField)
+
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if err := h.service.DeleteDeviceCustomField(c.Ctx(), req); err != nil {
 		return err
 	}
 

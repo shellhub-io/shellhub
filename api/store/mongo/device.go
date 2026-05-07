@@ -311,6 +311,44 @@ func (s *Store) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	return nil
 }
 
+func (s *Store) DeviceSetCustomField(ctx context.Context, uid, key, value string) error {
+	filter := bson.M{"uid": uid}
+	update := bson.M{"$set": bson.M{"custom_fields." + key: value}}
+	r, err := s.db.Collection("devices").UpdateOne(ctx, filter, update)
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	if r.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	if err := s.cache.Delete(ctx, "device"+"/"+uid); err != nil {
+		logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
+	}
+
+	return nil
+}
+
+func (s *Store) DeviceDeleteCustomField(ctx context.Context, uid, key string) error {
+	filter := bson.M{"uid": uid}
+	update := bson.M{"$unset": bson.M{"custom_fields." + key: ""}}
+	r, err := s.db.Collection("devices").UpdateOne(ctx, filter, update)
+	if err != nil {
+		return FromMongoError(err)
+	}
+
+	if r.MatchedCount < 1 {
+		return store.ErrNoDocuments
+	}
+
+	if err := s.cache.Delete(ctx, "device"+"/"+uid); err != nil {
+		logrus.WithError(err).WithField("uid", uid).Error("cannot delete device from cache")
+	}
+
+	return nil
+}
+
 func (s *Store) DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (int64, error) {
 	filter := bson.M{"uid": bson.M{"$in": uids}}
 	update := bson.M{"$set": bson.M{"last_seen": lastSeen, "disconnected_at": nil}}

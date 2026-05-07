@@ -105,6 +105,7 @@ var (
 	ErrDeviceStatusAccepted            = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
 	ErrDeviceCreate                    = errors.New("device create", ErrLayer, ErrCodeStore)
 	ErrDeviceSetOnline                 = errors.New("device set online", ErrLayer, ErrCodeStore)
+	ErrDeviceCustomFieldLimitReached   = errors.New("device custom field limit reached", ErrLayer, ErrCodeLimit)
 	ErrMaxDeviceCountReached           = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
 	ErrDuplicatedDeviceName            = errors.New("device name duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrPublicKeyDuplicated             = errors.New("public key duplicated", ErrLayer, ErrCodeDuplicated)
@@ -376,6 +377,12 @@ func NewErrDeviceDuplicated(name string, next error) error {
 // NewErrDeviceLimit returns an error to be used when the device limit is reached.
 func NewErrDeviceLimit(limit int, next error) error {
 	return NewErrLimit(ErrDeviceLimit, limit, next)
+}
+
+// NewErrDeviceCustomFieldLimitReached returns an error when a device would exceed
+// the maximum allowed number of custom_fields entries.
+func NewErrDeviceCustomFieldLimitReached(limit int, next error) error {
+	return NewErrLimit(ErrDeviceCustomFieldLimitReached, limit, next)
 }
 
 // NewErrDeviceStatusInvalid returns an error to be used when the device's status is invalid.

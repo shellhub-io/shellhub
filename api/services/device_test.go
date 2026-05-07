@@ -2294,14 +2294,6 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
-				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: "NAME"}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
-					On("DeviceUpdate", ctx, device).
-					Return(nil).
-					Once()
 			},
 			expected: nil,
 		},
@@ -2400,36 +2392,71 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
-				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
-					On("DeviceUpdate", ctx, device).
-					Return(nil).
-					Once()
 			},
 			expected: nil,
 		},
+	}
+
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, test := range cases {
+		t.Run(test.description, func(t *testing.T) {
+			ctx := context.Background()
+			test.requiredMocks(ctx)
+
+			err := service.UpdateDevice(ctx, test.req)
+			assert.Equal(t, test.expected, err)
+		})
+	}
+}
+
+func TestSetDeviceCustomField(t *testing.T) {
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
+
+	cases := []struct {
+		description   string
+		req           *requests.DeviceSetCustomField
+		requiredMocks func(ctx context.Context)
+		expected      error
+	}{
 		{
-			description: "success when setting custom fields",
-			req: &requests.DeviceUpdate{
-				UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-				TenantID:     "00000000-0000-0000-0000-000000000000",
-				Name:         "existingname",
-				CustomFields: &map[string]string{"env": "production", "owner": "team-a"},
+			description: "fails when device cannot be resolved",
+			req: &requests.DeviceSetCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+				Value:       "prod",
 			},
 			requiredMocks: func(ctx context.Context) {
-				device := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "existingname",
-					DisconnectedAt: &now,
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
+		},
+		{
+			description: "fails when adding a new key exceeds the per-device limit",
+			req: &requests.DeviceSetCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "new",
+				Value:       "v",
+			},
+			requiredMocks: func(ctx context.Context) {
+				full := make(map[string]string, maxCustomFieldsPerDevice)
+				for i := 0; i < maxCustomFieldsPerDevice; i++ {
+					full[string(rune('a'+i))] = "v"
 				}
-				updatedDevice := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "existingname",
-					DisconnectedAt: &now,
-					CustomFields:   map[string]string{"env": "production", "owner": "team-a"},
+				device := &models.Device{
+					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					CustomFields: full,
 				}
 				queryOptionsMock.
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
@@ -2439,38 +2466,21 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
-				// Distinct clears Name when req.Name == device.Name
-				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
-					Return(nil).
-					Once()
 			},
-			expected: nil,
+			expected: NewErrDeviceCustomFieldLimitReached(maxCustomFieldsPerDevice, nil),
 		},
 		{
-			description: "success when clearing custom fields with empty map",
-			req: &requests.DeviceUpdate{
-				UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-				TenantID:     "00000000-0000-0000-0000-000000000000",
-				Name:         "existingname",
-				CustomFields: &map[string]string{},
+			description: "fails when the store returns an error",
+			req: &requests.DeviceSetCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+				Value:       "prod",
 			},
 			requiredMocks: func(ctx context.Context) {
 				device := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "existingname",
-					DisconnectedAt: &now,
-					CustomFields:   map[string]string{"env": "production"},
-				}
-				updatedDevice := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "existingname",
-					DisconnectedAt: &now,
-					CustomFields:   map[string]string{},
+					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					CustomFields: map[string]string{},
 				}
 				queryOptionsMock.
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
@@ -2480,32 +2490,25 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
-				// Distinct clears Name when req.Name == device.Name
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
-					Return(nil).
+					On("DeviceSetCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env", "prod").
+					Return(errors.New("store error", "", 0)).
 					Once()
 			},
-			expected: nil,
+			expected: errors.New("store error", "", 0),
 		},
 		{
-			description: "does not modify custom fields when CustomFields is nil",
-			req: &requests.DeviceUpdate{
-				UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-				TenantID:     "00000000-0000-0000-0000-000000000000",
-				Name:         "existingname",
-				CustomFields: nil,
+			description: "succeeds when adding a new key under the limit",
+			req: &requests.DeviceSetCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+				Value:       "prod",
 			},
 			requiredMocks: func(ctx context.Context) {
 				device := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "existingname",
-					DisconnectedAt: &now,
-					CustomFields:   map[string]string{"env": "production"},
+					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					CustomFields: map[string]string{"region": "us-east"},
 				}
 				queryOptionsMock.
 					On("InNamespace", "00000000-0000-0000-0000-000000000000").
@@ -2515,14 +2518,40 @@ func TestDeviceUpdate(t *testing.T) {
 					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
 					Return(device, nil).
 					Once()
-				// Distinct clears Name when req.Name == device.Name
 				storeMock.
-					On("DeviceConflicts", ctx, &models.DeviceConflicts{Name: ""}).
-					Return([]string{}, false, nil).
+					On("DeviceSetCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env", "prod").
+					Return(nil).
 					Once()
-				// device passed unchanged — CustomFields still has "env":"production"
+			},
+			expected: nil,
+		},
+		{
+			description: "succeeds when updating an existing key at the limit",
+			req: &requests.DeviceSetCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "a",
+				Value:       "updated",
+			},
+			requiredMocks: func(ctx context.Context) {
+				full := make(map[string]string, maxCustomFieldsPerDevice)
+				for i := 0; i < maxCustomFieldsPerDevice; i++ {
+					full[string(rune('a'+i))] = "v"
+				}
+				device := &models.Device{
+					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					CustomFields: full,
+				}
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, device).
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceSetCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "a", "updated").
 					Return(nil).
 					Once()
 			},
@@ -2537,7 +2566,106 @@ func TestDeviceUpdate(t *testing.T) {
 			ctx := context.Background()
 			test.requiredMocks(ctx)
 
-			err := service.UpdateDevice(ctx, test.req)
+			err := service.SetDeviceCustomField(ctx, test.req)
+			assert.Equal(t, test.expected, err)
+		})
+	}
+}
+
+func TestDeleteDeviceCustomField(t *testing.T) {
+	storeMock := new(storemock.Store)
+	queryOptionsMock := new(storemock.QueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock)
+
+	cases := []struct {
+		description   string
+		req           *requests.DeviceDeleteCustomField
+		requiredMocks func(ctx context.Context)
+		expected      error
+	}{
+		{
+			description: "fails when device cannot be resolved",
+			req: &requests.DeviceDeleteCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+			},
+			requiredMocks: func(ctx context.Context) {
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(nil, errors.New("error", "", 0)).
+					Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
+		},
+		{
+			description: "fails when the store returns an error",
+			req: &requests.DeviceDeleteCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+			},
+			requiredMocks: func(ctx context.Context) {
+				device := &models.Device{
+					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					CustomFields: map[string]string{"env": "prod"},
+				}
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceDeleteCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env").
+					Return(errors.New("store error", "", 0)).
+					Once()
+			},
+			expected: errors.New("store error", "", 0),
+		},
+		{
+			description: "succeeds when deleting an existing key",
+			req: &requests.DeviceDeleteCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+			},
+			requiredMocks: func(ctx context.Context) {
+				device := &models.Device{
+					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
+					CustomFields: map[string]string{"env": "prod"},
+				}
+				queryOptionsMock.
+					On("InNamespace", "00000000-0000-0000-0000-000000000000").
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.AnythingOfType("store.QueryOption")).
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceDeleteCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env").
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+	}
+
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), clientMock)
+
+	for _, test := range cases {
+		t.Run(test.description, func(t *testing.T) {
+			ctx := context.Background()
+			test.requiredMocks(ctx)
+
+			err := service.DeleteDeviceCustomField(ctx, test.req)
 			assert.Equal(t, test.expected, err)
 		})
 	}

@@ -53,6 +53,12 @@ type DeviceStore interface {
 	// It returns the number of modified devices and an error if any.
 	DeviceHeartbeat(ctx context.Context, uids []string, lastSeen time.Time) (modifiedCount int64, err error)
 
+	// DeviceSetCustomField sets or updates a single custom_fields entry on the device atomically.
+	DeviceSetCustomField(ctx context.Context, uid, key, value string) error
+	// DeviceDeleteCustomField removes a single custom_fields entry from the device atomically.
+	// It is idempotent: removing a non-existent key is not an error.
+	DeviceDeleteCustomField(ctx context.Context, uid, key string) error
+
 	DeviceDelete(ctx context.Context, device *models.Device) error
 	// DeviceDeleteMany deletes multiple devices by their UIDs.
 	DeviceDeleteMany(ctx context.Context, uids []string) (deletedCount int64, err error)
