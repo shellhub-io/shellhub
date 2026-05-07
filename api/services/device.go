@@ -81,6 +81,14 @@ type DeviceService interface {
 	// All operations are performed within a database transaction to ensure consistency during device merging
 	// and counter updates.
 	UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error
+
+	// SetDeviceCustomField sets or updates a single custom_fields entry on the device.
+	// It enforces the per-device entry cap defined by [maxCustomFieldsPerDevice] when
+	// adding a new key.
+	SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error
+	// DeleteDeviceCustomField removes a single custom_fields entry from the device.
+	// It is idempotent: removing a non-existent key is not an error.
+	DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error
 }
 
 func (s *service) ListDevices(ctx context.Context, req *requests.DeviceList) ([]models.Device, int, error) {
@@ -371,21 +379,52 @@ func (s *service) UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) 
 		return NewErrDeviceNotFound(models.UID(req.UID), err)
 	}
 
+	if req.Name == "" || strings.EqualFold(req.Name, device.Name) {
+		return nil
+	}
+
 	conflictsTarget := &models.DeviceConflicts{Name: req.Name}
 	conflictsTarget.Distinct(device)
 	if _, has, err := s.store.DeviceConflicts(ctx, conflictsTarget); err != nil || has {
 		return NewErrDeviceDuplicated(req.Name, err)
 	}
 
-	if req.Name != "" && !strings.EqualFold(req.Name, device.Name) {
-		device.Name = strings.ToLower(req.Name)
-	}
-
-	if req.CustomFields != nil {
-		device.CustomFields = *req.CustomFields
-	}
+	device.Name = strings.ToLower(req.Name)
 
 	if err := s.store.DeviceUpdate(ctx, device); err != nil { // nolint:revive
+		return err
+	}
+
+	return nil
+}
+
+// maxCustomFieldsPerDevice is the upper bound on the number of custom_fields entries
+// per device. Enforced server-side to prevent storage abuse.
+const maxCustomFieldsPerDevice = 20
+
+func (s *service) SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error {
+	device, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID))
+	if err != nil {
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
+	}
+
+	if _, exists := device.CustomFields[req.Key]; !exists && len(device.CustomFields) >= maxCustomFieldsPerDevice {
+		return NewErrDeviceCustomFieldLimitReached(maxCustomFieldsPerDevice, nil)
+	}
+
+	if err := s.store.DeviceSetCustomField(ctx, req.UID, req.Key, req.Value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error {
+	if _, err := s.store.DeviceResolve(ctx, store.DeviceUIDResolver, req.UID, s.store.Options().InNamespace(req.TenantID)); err != nil {
+		return NewErrDeviceNotFound(models.UID(req.UID), err)
+	}
+
+	if err := s.store.DeviceDeleteCustomField(ctx, req.UID, req.Key); err != nil {
 		return err
 	}
 

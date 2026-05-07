@@ -152,6 +152,44 @@ func (pg *Pg) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	return nil
 }
 
+func (pg *Pg) DeviceSetCustomField(ctx context.Context, uid, key, value string) error {
+	db := pg.GetConnection(ctx)
+
+	r, err := db.NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("custom_fields = jsonb_set(coalesce(custom_fields, '{}'::jsonb), ?, to_jsonb(?::text))", pgdialect.Array([]string{key}), value).
+		Where("id = ?", uid).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
+func (pg *Pg) DeviceDeleteCustomField(ctx context.Context, uid, key string) error {
+	db := pg.GetConnection(ctx)
+
+	r, err := db.NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("custom_fields = coalesce(custom_fields, '{}'::jsonb) - ?", key).
+		Where("id = ?", uid).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
 func (pg *Pg) DeviceHeartbeat(ctx context.Context, ids []string, lastSeen time.Time) (int64, error) {
 	db := pg.GetConnection(ctx)
 
