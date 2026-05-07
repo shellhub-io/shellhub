@@ -14,10 +14,22 @@ type DeviceList struct {
 }
 
 type DeviceUpdate struct {
-	TenantID     string             `header:"X-Tenant-ID"`
-	UID          string             `param:"uid" validate:"required"`
-	Name         string             `json:"name" validate:"device_name,omitempty"`
-	CustomFields *map[string]string `json:"custom_fields" validate:"omitempty,max=20,dive,keys,min=1,max=64,endkeys,max=256"`
+	TenantID string `header:"X-Tenant-ID"`
+	UID      string `param:"uid" validate:"required"`
+	Name     string `json:"name" validate:"omitempty,device_name"`
+}
+
+type DeviceSetCustomField struct {
+	TenantID string `header:"X-Tenant-ID"`
+	DeviceParam
+	Key   string `param:"key" validate:"required,min=1,max=64"`
+	Value string `json:"value" validate:"max=256"`
+}
+
+type DeviceDeleteCustomField struct {
+	TenantID string `header:"X-Tenant-ID"`
+	DeviceParam
+	Key string `param:"key" validate:"required,min=1,max=64"`
 }
 
 // DeviceParam is a structure to represent and validate a device UID as path param.
