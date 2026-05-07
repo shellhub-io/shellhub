@@ -10,6 +10,7 @@ const (
 	DeviceConnect
 	DeviceRename
 	DeviceDetails
+	DeviceCustomFieldUpdate
 
 	TagCreate
 	TagUpdate
@@ -72,6 +73,7 @@ var operatorPermissions = []Permission{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
+	DeviceCustomFieldUpdate,
 
 	TagCreate,
 	TagUpdate,
@@ -88,6 +90,7 @@ var adminPermissions = []Permission{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
+	DeviceCustomFieldUpdate,
 
 	TagCreate,
 	TagUpdate,
@@ -133,6 +136,7 @@ var ownerPermissions = []Permission{
 	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
+	DeviceCustomFieldUpdate,
 
 	TagCreate,
 	TagUpdate,
