@@ -1,0 +1,74 @@
+parameters:
+  - $ref: ../components/parameters/path/deviceUIDPath.yaml
+  - name: key
+    in: path
+    required: true
+    description: The custom field key.
+    schema:
+      type: string
+      minLength: 1
+      maxLength: 64
+put:
+  operationId: setDeviceCustomField
+  summary: Set or update a device custom field
+  description: |
+    Sets or updates a single custom_fields entry on the device. Idempotent:
+    sending the same key with the same value has no effect. Adding a new
+    key when the device already holds the maximum number of custom_fields
+    entries returns 400.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - value
+          properties:
+            value:
+              type: string
+              maxLength: 256
+              description: The custom field value.
+              example: production
+  responses:
+    '200':
+      description: Custom field set successfully.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: deleteDeviceCustomField
+  summary: Remove a device custom field
+  description: |
+    Removes a single custom_fields entry from the device. Idempotent:
+    removing a key that does not exist returns 200.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  responses:
+    '200':
+      description: Custom field removed successfully.
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
