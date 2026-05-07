@@ -25,6 +25,7 @@ const permissions = {
   "device:accept": RoleLevel.OPERATOR,
   "device:reject": RoleLevel.OPERATOR,
   "device:rename": RoleLevel.OPERATOR,
+  "device:customField:update": RoleLevel.OPERATOR,
   "device:remove": RoleLevel.ADMINISTRATOR,
   "device:choose": RoleLevel.OWNER,
 

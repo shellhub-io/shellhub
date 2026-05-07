@@ -25,7 +25,8 @@ import {
   useAddDeviceTag,
   useRemoveDeviceTag,
   useRemoveDevice,
-  useUpdateDeviceCustomFields,
+  useSetDeviceCustomField,
+  useDeleteDeviceCustomField,
 } from "../hooks/useDeviceMutations";
 import { useNamespace } from "../hooks/useNamespaces";
 import { useAuthStore } from "../stores/authStore";
@@ -283,8 +284,9 @@ function CustomFieldsSection({
   uid: string;
   customFields: Record<string, string>;
 }) {
-  const mutation = useUpdateDeviceCustomFields();
-  const canEdit = useHasPermission("device:rename");
+  const setMutation = useSetDeviceCustomField();
+  const deleteMutation = useDeleteDeviceCustomField();
+  const canEdit = useHasPermission("device:customField:update");
   const [keyInput, setKeyInput] = useState("");
   const [valueInput, setValueInput] = useState("");
   const [adding, setAdding] = useState(false);
@@ -302,9 +304,9 @@ function CustomFieldsSection({
     setError(null);
     setAdding(true);
     try {
-      await mutation.mutateAsync({
-        path: { uid },
-        body: { name: "", custom_fields: { ...customFields, [key]: value } },
+      await setMutation.mutateAsync({
+        path: { uid, key },
+        body: { value },
       });
       setKeyInput("");
       setValueInput("");
@@ -315,12 +317,9 @@ function CustomFieldsSection({
   };
 
   const handleRemove = async (key: string) => {
-    const updated = { ...customFields };
-    delete updated[key];
     try {
-      await mutation.mutateAsync({
-        path: { uid },
-        body: { name: "", custom_fields: updated },
+      await deleteMutation.mutateAsync({
+        path: { uid, key },
       });
     } catch {
       /* invalidation handles UI update */

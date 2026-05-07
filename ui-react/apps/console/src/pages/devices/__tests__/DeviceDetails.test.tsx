@@ -11,14 +11,16 @@ vi.mock("@/hooks/useDevice", () => ({
   useDevice: vi.fn(),
 }));
 
-const mockUpdateCustomFields = vi.fn();
+const mockSetCustomField = vi.fn();
+const mockDeleteCustomField = vi.fn();
 
 vi.mock("@/hooks/useDeviceMutations", () => ({
   useRenameDevice: () => ({ mutateAsync: vi.fn() }),
   useAddDeviceTag: () => ({ mutateAsync: vi.fn() }),
   useRemoveDeviceTag: () => ({ mutateAsync: vi.fn() }),
   useRemoveDevice: () => ({ mutateAsync: vi.fn() }),
-  useUpdateDeviceCustomFields: () => ({ mutateAsync: mockUpdateCustomFields }),
+  useSetDeviceCustomField: () => ({ mutateAsync: mockSetCustomField }),
+  useDeleteDeviceCustomField: () => ({ mutateAsync: mockDeleteCustomField }),
 }));
 
 vi.mock("@/hooks/useNamespaces", () => ({
@@ -122,7 +124,8 @@ function renderPage() {
 
 describe("DeviceDetails", () => {
   beforeEach(() => {
-    mockUpdateCustomFields.mockReset().mockResolvedValue({});
+    mockSetCustomField.mockReset().mockResolvedValue({});
+    mockDeleteCustomField.mockReset().mockResolvedValue({});
     vi.mocked(useDevice).mockReturnValue({
       device: null,
       isLoading: false,
@@ -258,11 +261,9 @@ describe("DeviceDetails", () => {
       await user.click(xBtn);
       await user.click(screen.getByText("Yes"));
 
-      expect(mockUpdateCustomFields).toHaveBeenCalledWith(
+      expect(mockDeleteCustomField).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: expect.objectContaining({
-            custom_fields: { owner: "team-a" },
-          }),
+          path: expect.objectContaining({ uid: "test-uid", key: "env" }),
         }),
       );
     });
@@ -280,11 +281,10 @@ describe("DeviceDetails", () => {
       await user.type(screen.getByPlaceholderText("key"), "region");
       await user.type(screen.getByPlaceholderText("value"), "us-east{Enter}");
 
-      expect(mockUpdateCustomFields).toHaveBeenCalledWith(
+      expect(mockSetCustomField).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: expect.objectContaining({
-            custom_fields: { region: "us-east" },
-          }),
+          path: expect.objectContaining({ uid: "test-uid", key: "region" }),
+          body: { value: "us-east" },
         }),
       );
     });
@@ -303,7 +303,7 @@ describe("DeviceDetails", () => {
       await user.type(screen.getByPlaceholderText("value"), "staging{Enter}");
 
       expect(screen.getByText("This key already exists.")).toBeInTheDocument();
-      expect(mockUpdateCustomFields).not.toHaveBeenCalled();
+      expect(mockSetCustomField).not.toHaveBeenCalled();
     });
   });
 });
