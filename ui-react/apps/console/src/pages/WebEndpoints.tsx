@@ -1,19 +1,20 @@
 import { useState, useRef, useEffect, FormEvent } from "react";
-import { isSdkError } from "../api/errors";
-import { useResetOnOpen } from "../hooks/useResetOnOpen";
-import { useWebEndpoints } from "../hooks/useWebEndpoints";
+import { isSdkError } from "@/api/errors";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useWebEndpoints } from "@/hooks/useWebEndpoints";
 import {
   useCreateWebEndpoint,
   useDeleteWebEndpoint,
-} from "../hooks/useWebEndpointMutations";
-import type { Webendpoint } from "../client";
-import { useDevices, type NormalizedDevice } from "../hooks/useDevices";
-import PageHeader from "../components/common/PageHeader";
-import Drawer from "../components/common/Drawer";
-import ConfirmDialog from "../components/common/ConfirmDialog";
-import { formatDate } from "../utils/date";
-import { LABEL, INPUT_MONO } from "../utils/styles";
-import { useClickOutside } from "../hooks/useClickOutside";
+} from "@/hooks/useWebEndpointMutations";
+import type { Webendpoint } from "@/client";
+import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
+import PageHeader from "@/components/common/PageHeader";
+import Drawer from "@/components/common/Drawer";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import NumericInput from "@/components/common/NumericInput";
+import { formatDate } from "@/utils/date";
+import { LABEL, INPUT_MONO } from "@/utils/styles";
+import { useClickOutside } from "@/hooks/useClickOutside";
 import {
   XMarkIcon,
   ServerStackIcon,
@@ -27,7 +28,7 @@ import {
   PlusIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import RestrictedAction from "../components/common/RestrictedAction";
+import RestrictedAction from "@/components/common/RestrictedAction";
 
 /* ─── Constants ─── */
 
@@ -212,29 +213,30 @@ function TimeoutSelector({
   onChange,
   onErrorChange,
 }: {
-  value: number;
+  value: string;
   error: string | null;
-  onChange: (v: number) => void;
+  onChange: (v: string) => void;
   onErrorChange: (error: string | null) => void;
 }) {
-  const hasExpiration = value !== -1;
+  const hasExpiration = value !== "-1";
+  const numValue = parseInt(value, 10);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
 
   const handleToggle = () => {
-    onChange(hasExpiration ? -1 : 3600);
+    onChange(hasExpiration ? "-1" : "3600");
     setIsEditingCustom(false);
     onErrorChange(null);
   };
 
   const handleCustomValueChange = (inputValue: string) => {
-    const numValue = parseInt(inputValue, 10);
+    onChange(inputValue);
 
-    let customError = null;
+    const numValue = parseInt(inputValue, 10);
+    let customError: string | null = null;
     if (isNaN(numValue) || numValue < 1) customError = "Must be at least 1 second";
     else if (numValue > MAX_CUSTOM_TTL) customError = `Maximum is ${MAX_CUSTOM_TTL}`;
 
     onErrorChange(customError);
-    if (!customError) onChange(numValue);
   };
 
   return (
@@ -262,10 +264,10 @@ function TimeoutSelector({
                 onClick={() => {
                   setIsEditingCustom(false);
                   onErrorChange(null);
-                  onChange(preset.value);
+                  onChange(String(preset.value));
                 }}
                 className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
-                  !isEditingCustom && preset.value === value
+                  !isEditingCustom && preset.value === numValue
                     ? "bg-primary/10 border-primary/30 text-primary font-medium"
                     : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
                 }`}
@@ -291,13 +293,10 @@ function TimeoutSelector({
 
           {isEditingCustom && (
             <div>
-              <input
-                type="number"
-                defaultValue={value}
-                onChange={(e) => handleCustomValueChange(e.target.value)}
+              <NumericInput
+                value={value}
+                onChange={handleCustomValueChange}
                 placeholder="Value in seconds"
-                min={1}
-                max={MAX_CUSTOM_TTL}
                 className={INPUT_MONO}
                 autoFocus
               />
@@ -330,7 +329,7 @@ function EndpointDrawer({
   const [hostMode, setHostMode] = useState<"localhost" | "custom">("localhost");
   const [host, setHost] = useState("127.0.0.1");
   const [port, setPort] = useState("");
-  const [ttl, setTtl] = useState(-1);
+  const [ttl, setTtl] = useState("-1");
   const [ttlError, setTtlError] = useState<string | null>(null);
   const [tlsEnabled, setTlsEnabled] = useState(false);
   const [tlsVerify, setTlsVerify] = useState(false);
@@ -343,7 +342,7 @@ function EndpointDrawer({
     setHostMode("localhost");
     setHost("127.0.0.1");
     setPort("");
-    setTtl(-1);
+    setTtl("-1");
     setTtlError(null);
     setTlsEnabled(false);
     setTlsVerify(false);
@@ -386,7 +385,7 @@ function EndpointDrawer({
           uid: device.uid,
           host: host.trim(),
           port: portNum,
-          ttl,
+          ttl: parseInt(ttl, 10),
           ...(tlsEnabled
             ? {
                 tls: {
@@ -507,13 +506,10 @@ function EndpointDrawer({
                     className={`${INPUT_MONO} opacity-60 cursor-default`}
                     tabIndex={-1}
                   />
-                  <input
-                    type="number"
+                  <NumericInput
                     value={port}
-                    onChange={(e) => setPort(e.target.value)}
+                    onChange={setPort}
                     placeholder="Port"
-                    min={1}
-                    max={65535}
                     className={INPUT_MONO}
                   />
                   {portError && (
@@ -573,13 +569,10 @@ function EndpointDrawer({
                     className={INPUT_MONO}
                     autoFocus
                   />
-                  <input
-                    type="number"
+                  <NumericInput
                     value={port}
-                    onChange={(e) => setPort(e.target.value)}
+                    onChange={setPort}
                     placeholder="Port"
-                    min={1}
-                    max={65535}
                     className={INPUT_MONO}
                   />
                   {hostError && (
@@ -957,7 +950,11 @@ function WebEndpointsContent() {
                     onClick={openNew}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <PlusIcon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
+                    <PlusIcon
+                      className="w-4 h-4"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
                     Create your first endpoint
                   </button>
                 </RestrictedAction>
@@ -982,7 +979,11 @@ function WebEndpointsContent() {
                 onClick={openNew}
                 className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
-                <PlusIcon className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
+                <PlusIcon
+                  className="w-4 h-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 New Endpoint
               </button>
             </RestrictedAction>
