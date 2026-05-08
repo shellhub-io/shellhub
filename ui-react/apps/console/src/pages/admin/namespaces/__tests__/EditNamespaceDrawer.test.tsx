@@ -113,7 +113,7 @@ describe("EditNamespaceDrawer", () => {
 
     it("pre-fills the Max Devices field with the namespace max_devices", () => {
       renderDrawer();
-      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue(10);
+      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue("10");
     });
 
     it("pre-fills Session Recording checkbox as checked when session_record is true", () => {
@@ -135,7 +135,7 @@ describe("EditNamespaceDrawer", () => {
       renderDrawer({
         namespace: { ...mockNamespace, max_devices: -1 },
       });
-      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue(-1);
+      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue("-1");
     });
   });
 
@@ -394,7 +394,7 @@ describe("EditNamespaceDrawer", () => {
 
     it("renders the drawer with max_devices of -1 when namespace is null", () => {
       renderDrawer({ namespace: null });
-      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue(-1);
+      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue("-1");
     });
 
     it("renders the Session Recording checkbox unchecked when namespace is null", () => {
