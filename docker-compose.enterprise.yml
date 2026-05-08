@@ -1,6 +1,6 @@
 services:
   api:
-    image: registry.infra.ossystems.io/shellhub/api-cloud:${SHELLHUB_VERSION}
+    image: registry.infra.ossystems.io/shellhub/api-enterprise:${SHELLHUB_VERSION}
     restart: unless-stopped
     environment:
       # Database and Cache connections
