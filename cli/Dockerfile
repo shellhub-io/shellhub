@@ -32,9 +32,9 @@ RUN go build
 # development stage
 FROM builder AS development
 
-RUN apk add --update openssl build-base binutils-gold docker-cli
-RUN go install github.com/air-verse/air@v1.62 && \
-    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
+RUN apk add --update openssl docker-cli
+RUN CGO_ENABLED=0 go install github.com/air-verse/air@v1.62 && \
+    CGO_ENABLED=0 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
