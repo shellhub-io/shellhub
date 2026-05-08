@@ -1,4 +1,6 @@
+import NumericInput from "@/components/common/NumericInput";
 import { LABEL, INPUT } from "@/utils/styles";
+import { isMaxNamespacesValid } from "@/utils/validation";
 
 interface NamespaceLimitFieldsProps {
   idPrefix: string;
@@ -6,8 +8,8 @@ interface NamespaceLimitFieldsProps {
   onLimitEnabledChange: (v: boolean) => void;
   limitDisabled: boolean;
   onLimitDisabledChange: (v: boolean) => void;
-  maxNamespaces: number;
-  onMaxNamespacesChange: (v: number) => void;
+  maxNamespaces: string;
+  onMaxNamespacesChange: (v: string) => void;
 }
 
 export default function NamespaceLimitFields({
@@ -19,6 +21,12 @@ export default function NamespaceLimitFields({
   maxNamespaces,
   onMaxNamespacesChange,
 }: NamespaceLimitFieldsProps) {
+  const valid = isMaxNamespacesValid(
+    limitEnabled,
+    limitDisabled,
+    maxNamespaces,
+  );
+
   return (
     <div className="space-y-3">
       <label className="flex items-center gap-2 cursor-pointer">
@@ -50,15 +58,17 @@ export default function NamespaceLimitFields({
               <label className={LABEL} htmlFor={`${idPrefix}-max-ns`}>
                 Max namespaces
               </label>
-              <input
+              <NumericInput
                 id={`${idPrefix}-max-ns`}
-                type="number"
-                min={1}
                 value={maxNamespaces}
-                onChange={(e) =>
-                  onMaxNamespacesChange(parseInt(e.target.value, 10) || 1)}
+                onChange={onMaxNamespacesChange}
                 className={`${INPUT} w-32`}
               />
+              {!valid && (
+                <p className="text-2xs text-accent-red mt-1.5">
+                  Max namespaces must be a number greater than or equal to 1
+                </p>
+              )}
             </div>
           )}
         </div>

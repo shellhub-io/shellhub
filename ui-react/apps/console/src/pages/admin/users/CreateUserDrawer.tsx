@@ -7,6 +7,7 @@ import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
 import PasswordInput from "./PasswordInput";
 import NamespaceLimitFields from "./NamespaceLimitFields";
+import { isMaxNamespacesValid } from "@/utils/validation";
 
 interface CreateUserDrawerProps {
   open: boolean;
@@ -26,7 +27,7 @@ export default function CreateUserDrawer({
   const [admin, setAdmin] = useState(false);
   const [limitEnabled, setLimitEnabled] = useState(false);
   const [limitDisabled, setLimitDisabled] = useState(false);
-  const [maxNamespaces, setMaxNamespaces] = useState(1);
+  const [maxNamespaces, setMaxNamespaces] = useState("1");
   const [error, setError] = useState("");
 
   useResetOnOpen(open, () => {
@@ -37,18 +38,22 @@ export default function CreateUserDrawer({
     setAdmin(false);
     setLimitEnabled(false);
     setLimitDisabled(false);
-    setMaxNamespaces(1);
+    setMaxNamespaces("1");
     setError("");
   });
 
   const computeMaxNamespaces = (): number | undefined => {
     if (!limitEnabled) return undefined;
     if (limitDisabled) return 0;
-    return maxNamespaces;
+    return parseInt(maxNamespaces, 10);
   };
 
-  const canSubmit
-    = name.trim() && username.trim() && email.trim() && password.trim();
+  const canSubmit =
+    name.trim() &&
+    username.trim() &&
+    email.trim() &&
+    password.trim() &&
+    isMaxNamespacesValid(limitEnabled, limitDisabled, maxNamespaces);
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -80,7 +85,7 @@ export default function CreateUserDrawer({
       open={open}
       onClose={onClose}
       title="Create User"
-      footer={(
+      footer={
         <>
           <button
             type="button"
@@ -105,7 +110,7 @@ export default function CreateUserDrawer({
             Create User
           </button>
         </>
-      )}
+      }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         {/* Name */}
