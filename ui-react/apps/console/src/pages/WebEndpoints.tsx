@@ -208,53 +208,33 @@ const EXPIRATION_PRESETS = [
 
 function TimeoutSelector({
   value,
+  error,
   onChange,
+  onErrorChange,
 }: {
   value: number;
+  error: string | null;
   onChange: (v: number) => void;
+  onErrorChange: (error: string | null) => void;
 }) {
   const hasExpiration = value !== -1;
-  const [customMode, setCustomMode] = useState(false);
-  const [customValue, setCustomValue] = useState("");
-  const [customError, setCustomError] = useState<string | null>(null);
-
-  const isPreset = EXPIRATION_PRESETS.some((p) => p.value === value);
-
-  // Sync custom mode with external value (adjust during render)
-  const syncKey = `${hasExpiration}-${isPreset}-${value}`;
-  const [prevSyncKey, setPrevSyncKey] = useState(syncKey);
-  if (syncKey !== prevSyncKey) {
-    setPrevSyncKey(syncKey);
-    if (!hasExpiration) {
-      setCustomMode(false);
-      setCustomValue("");
-      setCustomError(null);
-    } else if (!isPreset && value > 0) {
-      setCustomMode(true);
-      setCustomValue(String(value));
-    }
-  }
+  const [isEditingCustom, setIsEditingCustom] = useState(false);
 
   const handleToggle = () => {
-    if (hasExpiration) {
-      onChange(-1);
-    } else {
-      onChange(3600); // default to 1 hour when enabling
-    }
+    onChange(hasExpiration ? -1 : 3600);
+    setIsEditingCustom(false);
+    onErrorChange(null);
   };
 
-  const handleCustomSubmit = () => {
-    const n = parseInt(customValue, 10);
-    if (isNaN(n) || n < 1) {
-      setCustomError("Must be at least 1 second");
-      return;
-    }
-    if (n > MAX_CUSTOM_TTL) {
-      setCustomError(`Maximum is ${MAX_CUSTOM_TTL}`);
-      return;
-    }
-    setCustomError(null);
-    onChange(n);
+  const handleCustomValueChange = (inputValue: string) => {
+    const numValue = parseInt(inputValue, 10);
+
+    let customError = null;
+    if (isNaN(numValue) || numValue < 1) customError = "Must be at least 1 second";
+    else if (numValue > MAX_CUSTOM_TTL) customError = `Maximum is ${MAX_CUSTOM_TTL}`;
+
+    onErrorChange(customError);
+    if (!customError) onChange(numValue);
   };
 
   return (
@@ -280,12 +260,12 @@ function TimeoutSelector({
                 key={preset.value}
                 type="button"
                 onClick={() => {
-                  setCustomMode(false);
-                  setCustomError(null);
+                  setIsEditingCustom(false);
+                  onErrorChange(null);
                   onChange(preset.value);
                 }}
                 className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
-                  !customMode && preset.value === value
+                  !isEditingCustom && preset.value === value
                     ? "bg-primary/10 border-primary/30 text-primary font-medium"
                     : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
                 }`}
@@ -296,12 +276,11 @@ function TimeoutSelector({
             <button
               type="button"
               onClick={() => {
-                setCustomMode(true);
-                setCustomValue("");
-                setCustomError(null);
+                setIsEditingCustom(true);
+                onErrorChange(null);
               }}
               className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
-                customMode
+                isEditingCustom
                   ? "bg-primary/10 border-primary/30 text-primary font-medium"
                   : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
               }`}
@@ -310,27 +289,20 @@ function TimeoutSelector({
             </button>
           </div>
 
-          {customMode && (
+          {isEditingCustom && (
             <div>
               <input
                 type="number"
-                value={customValue}
-                onChange={(e) => {
-                  setCustomValue(e.target.value);
-                  setCustomError(null);
-                }}
-                onBlur={handleCustomSubmit}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleCustomSubmit();
-                }}
+                defaultValue={value}
+                onChange={(e) => handleCustomValueChange(e.target.value)}
                 placeholder="Value in seconds"
                 min={1}
                 max={MAX_CUSTOM_TTL}
                 className={INPUT_MONO}
                 autoFocus
               />
-              {customError && (
-                <p className="mt-1 text-2xs text-accent-red">{customError}</p>
+              {error && (
+                <p className="mt-1 text-2xs text-accent-red">{error}</p>
               )}
             </div>
           )}
@@ -359,6 +331,7 @@ function EndpointDrawer({
   const [host, setHost] = useState("127.0.0.1");
   const [port, setPort] = useState("");
   const [ttl, setTtl] = useState(-1);
+  const [ttlError, setTtlError] = useState<string | null>(null);
   const [tlsEnabled, setTlsEnabled] = useState(false);
   const [tlsVerify, setTlsVerify] = useState(false);
   const [tlsDomain, setTlsDomain] = useState("");
@@ -371,6 +344,7 @@ function EndpointDrawer({
     setHost("127.0.0.1");
     setPort("");
     setTtl(-1);
+    setTtlError(null);
     setTlsEnabled(false);
     setTlsVerify(false);
     setTlsDomain("");
@@ -398,6 +372,7 @@ function EndpointDrawer({
     !!hostError ||
     !port.trim() ||
     !!portError ||
+    !!ttlError ||
     (tlsEnabled && tlsDomain.trim() !== "" && !!tlsDomainError);
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -625,7 +600,12 @@ function EndpointDrawer({
 
         {/* Expiration */}
         <div className="border border-border rounded-lg p-4">
-          <TimeoutSelector value={ttl} onChange={setTtl} />
+          <TimeoutSelector
+            value={ttl}
+            error={ttlError}
+            onChange={setTtl}
+            onErrorChange={setTtlError}
+          />
         </div>
 
         {/* TLS Section */}
