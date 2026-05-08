@@ -20,6 +20,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { DockerIcon } from "../components/icons";
 import CopyButton from "../components/common/CopyButton";
+import { INPUT } from "../utils/styles";
+import NumericInput from "@/components/common/NumericInput";
 
 /* ─── Types ─── */
 type Method
@@ -121,8 +123,6 @@ const METHODS: MethodInfo[] = [
   },
 ];
 
-import { INPUT } from "../utils/styles";
-
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
 
@@ -135,6 +135,7 @@ export default function AddDevice() {
   const [hostname, setHostname] = useState("");
   const [identity, setIdentity] = useState("");
   const [keepaliveInterval, setKeepaliveInterval] = useState("");
+  const keepaliveIntervalError = keepaliveInterval && parseInt(keepaliveInterval, 10) < 1 ? "Interval must be a positive number" : "";
 
   const selectedMethod = METHODS.find((m) => m.id === method)!;
   const baseMethods = METHODS.slice(0, INITIAL_VISIBLE);
@@ -154,7 +155,7 @@ export default function AddDevice() {
     parts.push(`SERVER_ADDRESS=${origin}`);
     if (hostname.trim()) parts.push(`PREFERRED_HOSTNAME=${hostname.trim()}`);
     if (identity.trim()) parts.push(`PREFERRED_IDENTITY=${identity.trim()}`);
-    if (keepaliveInterval.trim())
+    if (keepaliveInterval.trim() && !keepaliveIntervalError)
       parts.push(`KEEPALIVE_INTERVAL=${keepaliveInterval.trim()}`);
     parts.push("sh");
     return parts.join(" ");
@@ -416,18 +417,21 @@ export default function AddDevice() {
                     (optional)
                   </span>
                 </label>
-                <input
-                  type="number"
-                  min="1"
+                <NumericInput
                   value={keepaliveInterval}
-                  onChange={(e) => setKeepaliveInterval(e.target.value)}
+                  onChange={setKeepaliveInterval}
                   placeholder="30"
                   className={INPUT}
                 />
-                <p className="text-2xs text-text-muted/60 mt-1">
-                  Interval in seconds between keep-alive messages sent by the
-                  agent. Defaults to 30.
-                </p>
+                {!keepaliveIntervalError
+                ? <p className="text-2xs text-text-muted/60 mt-1">
+                    Interval in seconds between keep-alive messages sent by the
+                    agent. Defaults to 30.
+                  </p>
+                : <p className="text-2xs text-accent-red mt-1">
+                    {keepaliveIntervalError}
+                  </p>
+                }
               </div>
             </div>
           )}
