@@ -19,6 +19,7 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon as DevicesIconComponent } from "@/components/icons";
+import NumericInput from "@/components/common/NumericInput";
 
 /* ─── Icons ─── */
 const UsersIcon = <UserGroupIcon className="w-4 h-4" />;
@@ -212,11 +213,9 @@ export default function RuleDrawer({
         {/* Priority */}
         <div>
           <label className={LABEL}>Priority</label>
-          <input
-            type="number"
-            min={1}
+          <NumericInput
             value={priority}
-            onChange={(e) => setPriority(e.target.value)}
+            onChange={setPriority}
             placeholder="e.g. 100"
             autoFocus={open}
             className={INPUT}
