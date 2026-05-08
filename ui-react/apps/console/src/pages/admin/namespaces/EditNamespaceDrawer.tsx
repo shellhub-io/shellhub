@@ -5,6 +5,7 @@ import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
 import type { Namespace } from "@/client";
+import NumericInput from "@/components/common/NumericInput";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
@@ -20,20 +21,23 @@ export default function EditNamespaceDrawer({
   const editNamespace = useAdminEditNamespace();
 
   const [name, setName] = useState("");
-  const [maxDevices, setMaxDevices] = useState(-1);
+  const [maxDevices, setMaxDevices] = useState(() =>
+    String(namespace?.max_devices ?? -1),
+  );
   const [sessionRecord, setSessionRecord] = useState(false);
   const [deviceAutoAccept, setDeviceAutoAccept] = useState(false);
   const [error, setError] = useState("");
 
   useResetOnOpen(open, () => {
     setName(namespace?.name ?? "");
-    setMaxDevices(namespace?.max_devices ?? -1);
+    setMaxDevices(String(namespace?.max_devices ?? -1));
     setSessionRecord(namespace?.settings?.session_record ?? false);
     setDeviceAutoAccept(namespace?.settings?.device_auto_accept ?? false);
     setError("");
   });
 
-  const canSubmit = name.trim().length > 0;
+  const isMaxDevicesValid = parseInt(maxDevices, 10) >= -1;
+  const canSubmit = name.trim().length > 0 && isMaxDevicesValid;
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -47,12 +51,12 @@ export default function EditNamespaceDrawer({
         body: {
           ...namespace,
           name: name.trim(),
-          max_devices: maxDevices,
+          max_devices: parseInt(maxDevices, 10),
           settings: {
             connection_announcement:
               namespace.settings?.connection_announcement ?? "",
             session_record: sessionRecord,
-              device_auto_accept: deviceAutoAccept,
+            device_auto_accept: deviceAutoAccept,
           },
         },
       });
@@ -76,7 +80,7 @@ export default function EditNamespaceDrawer({
           <span className="font-mono">{namespace.name}</span>
         ) : undefined
       }
-      footer={(
+      footer={
         <>
           <button
             type="button"
@@ -99,7 +103,7 @@ export default function EditNamespaceDrawer({
             Save Changes
           </button>
         </>
-      )}
+      }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         <div>
@@ -120,20 +124,22 @@ export default function EditNamespaceDrawer({
           <label className={LABEL} htmlFor="edit-ns-max-devices">
             Max Devices
           </label>
-          <input
+          <NumericInput
             id="edit-ns-max-devices"
-            type="number"
             value={maxDevices}
-            onChange={(e) => {
-              const parsed = parseInt(e.target.value, 10);
-              setMaxDevices(Number.isNaN(parsed) ? -1 : parsed);
-            }}
-            min={-1}
+            onChange={setMaxDevices}
+            allowNegative
             className={INPUT}
           />
-          <p className="text-2xs text-text-muted mt-1.5">
-            Use -1 for unlimited devices
-          </p>
+          {isMaxDevicesValid ? (
+            <p className="text-2xs text-text-muted mt-1.5">
+              Use -1 for unlimited devices
+            </p>
+          ) : (
+            <p className="text-2xs text-accent-red mt-1.5">
+              Max devices must be a number greater than or equal to -1
+            </p>
+          )}
         </div>
 
         <label className="flex items-center gap-2 cursor-pointer">
