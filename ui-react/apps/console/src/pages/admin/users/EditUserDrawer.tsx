@@ -7,6 +7,7 @@ import Drawer from "@/components/common/Drawer";
 import { LABEL, INPUT } from "@/utils/styles";
 import PasswordInput from "./PasswordInput";
 import NamespaceLimitFields from "./NamespaceLimitFields";
+import { isMaxNamespacesValid } from "@/utils/validation";
 import type { UserStatus } from "./UserStatusChip";
 
 export interface EditableUser {
@@ -41,7 +42,7 @@ export default function EditUserDrawer({
   const [admin, setAdmin] = useState(false);
   const [limitEnabled, setLimitEnabled] = useState(false);
   const [limitDisabled, setLimitDisabled] = useState(false);
-  const [maxNamespaces, setMaxNamespaces] = useState(1);
+  const [maxNamespaces, setMaxNamespaces] = useState("1");
   const [error, setError] = useState("");
 
   useResetOnOpen(open, () => {
@@ -56,11 +57,11 @@ export default function EditUserDrawer({
     if (maxNs !== undefined && maxNs >= 0) {
       setLimitEnabled(true);
       setLimitDisabled(maxNs === 0);
-      setMaxNamespaces(maxNs || 1);
+      setMaxNamespaces(String(maxNs || 1));
     } else {
       setLimitEnabled(false);
       setLimitDisabled(false);
-      setMaxNamespaces(1);
+      setMaxNamespaces("1");
     }
 
     setError("");
@@ -76,10 +77,14 @@ export default function EditUserDrawer({
       return orig !== undefined && orig < 0 ? orig : undefined;
     }
     if (limitDisabled) return 0;
-    return maxNamespaces;
+    return parseInt(maxNamespaces, 10);
   };
 
-  const canSubmit = name.trim() && username.trim() && email.trim();
+  const canSubmit =
+    name.trim() &&
+    username.trim() &&
+    email.trim() &&
+    isMaxNamespacesValid(limitEnabled, limitDisabled, maxNamespaces);
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -116,7 +121,7 @@ export default function EditUserDrawer({
       subtitle={
         user ? <span className="font-mono">{user.username}</span> : undefined
       }
-      footer={(
+      footer={
         <>
           <button
             type="button"
@@ -139,7 +144,7 @@ export default function EditUserDrawer({
             Save Changes
           </button>
         </>
-      )}
+      }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         {/* Name */}
