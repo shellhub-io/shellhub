@@ -12,14 +12,16 @@ import (
 
 func TenantFromContext(ctx context.Context) *models.Tenant {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
-		tenant := c.Tenant()
-		if tenant == nil {
-			if value, ok := ctx.Value("tenant").(string); ok {
-				tenant = &models.Tenant{value}
-			}
+		if tenant := c.Tenant(); tenant != nil {
+			return tenant
 		}
+	}
 
-		return tenant
+	// Fallback for callers that don't pass an Echo gateway Context (e.g. the
+	// MCP transport, internal jobs). Setting the "tenant" string key on the
+	// context is enough to scope service-level queries by namespace.
+	if value, ok := ctx.Value("tenant").(string); ok && value != "" {
+		return &models.Tenant{value}
 	}
 
 	return nil
@@ -27,14 +29,13 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 
 func UsernameFromContext(ctx context.Context) *models.Username {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
-		username := c.Username()
-		if username == nil {
-			if value, ok := ctx.Value("username").(string); ok {
-				username = &models.Username{value}
-			}
+		if username := c.Username(); username != nil {
+			return username
 		}
+	}
 
-		return username
+	if value, ok := ctx.Value("username").(string); ok && value != "" {
+		return &models.Username{value}
 	}
 
 	return nil
@@ -42,14 +43,13 @@ func UsernameFromContext(ctx context.Context) *models.Username {
 
 func IDFromContext(ctx context.Context) *models.ID {
 	if c, ok := ctx.Value("ctx").(*Context); ok {
-		ID := c.ID()
-		if ID == nil {
-			if value, ok := ctx.Value("ID").(string); ok {
-				ID = &models.ID{value}
-			}
+		if id := c.ID(); id != nil {
+			return id
 		}
+	}
 
-		return ID
+	if value, ok := ctx.Value("ID").(string); ok && value != "" {
+		return &models.ID{value}
 	}
 
 	return nil
