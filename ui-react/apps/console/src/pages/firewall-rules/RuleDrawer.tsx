@@ -1,12 +1,16 @@
 import { useState, FormEvent } from "react";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useCreateFirewallRule, useUpdateFirewallRule } from "@/hooks/useFirewallRuleMutations";
+import {
+  useCreateFirewallRule,
+  useUpdateFirewallRule,
+} from "@/hooks/useFirewallRuleMutations";
 import type { FirewallRule } from "@/hooks/useFirewallRules";
 import type { FirewallRulesRequest, Tag } from "@/client";
 import Drawer from "@/components/common/Drawer";
-import { LABEL, INPUT, INPUT_MONO } from "@/utils/styles";
-import RadioCard from "@/components/common/RadioCard";
-import TagsSelector from "@/components/common/TagsSelector";
+import RadioCard from "@/components/common/fields/RadioCard";
+import RadioGroupField from "@/components/common/fields/RadioGroupField";
+import TagsSelector from "@/components/common/fields/TagsSelector";
+import InputField from "@/components/common/fields/InputField";
 import {
   UserGroupIcon,
   UserIcon as UserIconHero,
@@ -19,7 +23,8 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon as DevicesIconComponent } from "@/components/icons";
-import NumericInput from "@/components/common/NumericInput";
+import NumericInput from "@/components/common/fields/NumericInput";
+import { LABEL } from "@/utils/styles";
 
 /* ─── Icons ─── */
 const UsersIcon = <UserGroupIcon className="w-4 h-4" />;
@@ -53,11 +58,17 @@ export default function RuleDrawer({
   const [priority, setPriority] = useState("");
   const [action, setAction] = useState<"allow" | "deny">("allow");
   const [active, setActive] = useState(true);
-  const [sourceIpOption, setSourceIpOption] = useState<"all" | "restrict">("all");
+  const [sourceIpOption, setSourceIpOption] = useState<"all" | "restrict">(
+    "all",
+  );
   const [sourceIp, setSourceIp] = useState("");
-  const [usernameOption, setUsernameOption] = useState<"all" | "restrict">("all");
+  const [usernameOption, setUsernameOption] = useState<"all" | "restrict">(
+    "all",
+  );
   const [username, setUsername] = useState("");
-  const [filterOption, setFilterOption] = useState<"all" | "hostname" | "tags">("all");
+  const [filterOption, setFilterOption] = useState<"all" | "hostname" | "tags">(
+    "all",
+  );
   const [hostname, setHostname] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -75,13 +86,27 @@ export default function RuleDrawer({
     setPriority(editRule ? String(editRule.priority) : "");
     setAction(editRule?.action ?? "allow");
     setActive(editRule?.active ?? true);
-    setSourceIpOption(editRule ? (editRule.source_ip === ".*" ? "all" : "restrict") : "all");
-    setSourceIp(editRule && editRule.source_ip !== ".*" ? editRule.source_ip : "");
-    setUsernameOption(editRule ? (editRule.username === ".*" ? "all" : "restrict") : "all");
-    setUsername(editRule && editRule.username !== ".*" ? editRule.username : "");
+    setSourceIpOption(
+      editRule ? (editRule.source_ip === ".*" ? "all" : "restrict") : "all",
+    );
+    setSourceIp(
+      editRule && editRule.source_ip !== ".*" ? editRule.source_ip : "",
+    );
+    setUsernameOption(
+      editRule ? (editRule.username === ".*" ? "all" : "restrict") : "all",
+    );
+    setUsername(
+      editRule && editRule.username !== ".*" ? editRule.username : "",
+    );
     setFilterOption(filterInit);
-    setHostname(editRule && filterInit === "hostname" ? (editRule.filter.hostname ?? "") : "");
-    setSelectedTags(editRule && filterInit === "tags" ? (editRule.filter.tags ?? []) : []);
+    setHostname(
+      editRule && filterInit === "hostname"
+        ? (editRule.filter.hostname ?? "")
+        : "",
+    );
+    setSelectedTags(
+      editRule && filterInit === "tags" ? (editRule.filter.tags ?? []) : [],
+    );
     setSubmitting(false);
     setError(null);
   });
@@ -95,27 +120,27 @@ export default function RuleDrawer({
     return { hostname: ".*" };
   };
 
-  const tagError
-    = selectedTags.length > 3
+  const tagError =
+    selectedTags.length > 3
       ? "You can select up to 3 tags"
       : filterOption === "tags" && selectedTags.length === 0
         ? "Select at least one tag"
         : undefined;
 
   const priorityNum = parseInt(priority, 10);
-  const priorityError
-    = priority && (isNaN(priorityNum) || priorityNum <= 0)
+  const priorityError =
+    priority && (isNaN(priorityNum) || priorityNum <= 0)
       ? "Priority must be a positive integer"
       : undefined;
 
-  const confirmDisabled
-    = !priority.trim()
-      || !!priorityError
-      || (sourceIpOption === "restrict" && !sourceIp.trim())
-      || (usernameOption === "restrict" && !username.trim())
-      || (filterOption === "hostname" && !hostname.trim())
-      || (filterOption === "tags"
-        && (selectedTags.length === 0 || selectedTags.length > 3));
+  const confirmDisabled =
+    !priority.trim() ||
+    !!priorityError ||
+    (sourceIpOption === "restrict" && !sourceIp.trim()) ||
+    (usernameOption === "restrict" && !username.trim()) ||
+    (filterOption === "hostname" && !hostname.trim()) ||
+    (filterOption === "tags" &&
+      (selectedTags.length === 0 || selectedTags.length > 3));
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -153,7 +178,7 @@ export default function RuleDrawer({
       open={open}
       onClose={onClose}
       title={isEdit ? "Edit Firewall Rule" : "New Firewall Rule"}
-      footer={(
+      footer={
         <>
           <button
             type="button"
@@ -168,30 +193,29 @@ export default function RuleDrawer({
             disabled={submitting || confirmDisabled}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
           >
-            {submitting
-              ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
-                </span>
-              )
-              : isEdit
-                ? (
-                  "Save Changes"
-                )
-                : (
-                  "Create Rule"
-                )}
+            {submitting ? (
+              <span className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving...
+              </span>
+            ) : isEdit ? (
+              "Save Changes"
+            ) : (
+              "Create Rule"
+            )}
           </button>
         </>
-      )}
+      }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         {/* Status toggle */}
         <div>
-          <label className={LABEL}>Status</label>
+          <span id="rule-status-label" className={LABEL}>Status</span>
           <button
             type="button"
+            role="switch"
+            aria-checked={active}
+            aria-labelledby="rule-status-label"
             onClick={() => setActive(!active)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               active ? "bg-accent-green" : "bg-border"
@@ -211,142 +235,147 @@ export default function RuleDrawer({
         </div>
 
         {/* Priority */}
-        <div>
-          <label className={LABEL}>Priority</label>
-          <NumericInput
-            value={priority}
-            onChange={setPriority}
-            placeholder="e.g. 100"
-            autoFocus={open}
-            className={INPUT}
-          />
-          {priorityError && (
-            <p className="mt-1 text-2xs text-accent-red">{priorityError}</p>
-          )}
-          <p className="mt-1 text-2xs text-text-muted">
-            Higher values are evaluated first. Must be greater than 0.
-          </p>
-        </div>
+        <NumericInput
+          id="rule-priority"
+          label="Priority"
+          value={priority}
+          onChange={setPriority}
+          placeholder="e.g. 100"
+          autoFocus={open}
+          hint="Higher values are evaluated first. Must be greater than 0."
+          error={priorityError || undefined}
+        />
 
         {/* Policy */}
-        <div>
-          <label className={LABEL}>Policy</label>
-          <div className="space-y-2">
-            <RadioCard
-              selected={action === "allow"}
-              onClick={() => setAction("allow")}
-              icon={<CheckCircleIcon className="w-4 h-4" />}
-              label="Allow"
-              description="Permit the connection when this rule matches."
-            />
-            <RadioCard
-              selected={action === "deny"}
-              onClick={() => setAction("deny")}
-              icon={<NoSymbolIcon className="w-4 h-4" />}
-              label="Deny"
-              description="Block the connection when this rule matches."
-            />
-          </div>
-        </div>
+        <RadioGroupField label="Policy" value={action} onChange={setAction}>
+          <RadioCard
+            value="allow"
+            icon={<CheckCircleIcon className="w-4 h-4" />}
+            label="Allow"
+            description="Permit the connection when this rule matches."
+          />
+          <RadioCard
+            value="deny"
+            icon={<NoSymbolIcon className="w-4 h-4" />}
+            label="Deny"
+            description="Block the connection when this rule matches."
+          />
+        </RadioGroupField>
 
         {/* Source IP */}
         <div>
-          <label className={LABEL}>Source IP</label>
-          <div className="space-y-2">
+          <RadioGroupField
+            label="Source IP"
+            value={sourceIpOption}
+            onChange={setSourceIpOption}
+          >
             <RadioCard
-              selected={sourceIpOption === "all"}
-              onClick={() => setSourceIpOption("all")}
+              value="all"
               icon={GlobeIcon}
               label="All source IPs"
               description="Match connections from any IP address."
             />
             <RadioCard
-              selected={sourceIpOption === "restrict"}
-              onClick={() => setSourceIpOption("restrict")}
+              value="restrict"
               icon={IpIcon}
               label="Restrict with regexp"
               description="Match connections from IPs matching a pattern."
             />
-          </div>
+          </RadioGroupField>
           {sourceIpOption === "restrict" && (
-            <input
-              type="text"
-              value={sourceIp}
-              onChange={(e) => setSourceIp(e.target.value)}
-              placeholder="e.g. 192\.168\.1\..*"
-              className={`${INPUT_MONO} mt-2`}
-            />
+            <div className="mt-2">
+              <InputField
+                id="rule-source-ip-pattern"
+                label="Source IP pattern"
+                hideLabel
+                value={sourceIp}
+                onChange={setSourceIp}
+                placeholder="e.g. 192\.168\.1\..*"
+                variant="mono"
+              />
+            </div>
           )}
         </div>
 
         {/* Username */}
         <div>
-          <label className={LABEL}>Username</label>
-          <div className="space-y-2">
+          <RadioGroupField
+            label="Username"
+            value={usernameOption}
+            onChange={setUsernameOption}
+          >
             <RadioCard
-              selected={usernameOption === "all"}
-              onClick={() => setUsernameOption("all")}
+              value="all"
               icon={UsersIcon}
               label="All users"
               description="Match connections for any username."
             />
             <RadioCard
-              selected={usernameOption === "restrict"}
-              onClick={() => setUsernameOption("restrict")}
+              value="restrict"
               icon={UserIcon}
               label="Restrict with regexp"
               description="Match connections for usernames matching a pattern."
             />
-          </div>
+          </RadioGroupField>
           {usernameOption === "restrict" && (
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. root"
-              className={`${INPUT_MONO} mt-2`}
-            />
+            <div className="mt-2">
+              <InputField
+                id="rule-username-pattern"
+                label="Username pattern"
+                hideLabel
+                value={username}
+                onChange={setUsername}
+                placeholder="e.g. root"
+                variant="mono"
+              />
+            </div>
           )}
         </div>
 
         {/* Device filter */}
         <div>
-          <label className={LABEL}>Device filter</label>
-          <div className="space-y-2">
+          <RadioGroupField
+            label="Device filter"
+            value={filterOption}
+            onChange={setFilterOption}
+          >
             <RadioCard
-              selected={filterOption === "all"}
-              onClick={() => setFilterOption("all")}
+              value="all"
               icon={DevicesIcon}
               label="All devices"
               description="Match connections to any device in the namespace."
             />
             <RadioCard
-              selected={filterOption === "hostname"}
-              onClick={() => setFilterOption("hostname")}
+              value="hostname"
               icon={HostnameIcon}
               label="Filter by hostname"
               description="Restrict to devices matching a hostname pattern."
             />
             <RadioCard
-              selected={filterOption === "tags"}
-              onClick={() => setFilterOption("tags")}
+              value="tags"
               icon={TagIcon}
               label="Filter by tags"
               description="Restrict to devices matching specific tags."
             />
-          </div>
+          </RadioGroupField>
           {filterOption === "hostname" && (
-            <input
-              type="text"
-              value={hostname}
-              onChange={(e) => setHostname(e.target.value)}
-              placeholder="e.g. web-.*"
-              className={`${INPUT_MONO} mt-2`}
-            />
+            <div className="mt-2">
+              <InputField
+                id="rule-hostname-pattern"
+                label="Hostname pattern"
+                hideLabel
+                value={hostname}
+                onChange={setHostname}
+                placeholder="e.g. web-.*"
+                variant="mono"
+              />
+            </div>
           )}
           {filterOption === "tags" && (
             <div className="mt-2">
               <TagsSelector
+                id="rule-filter-tags"
+                label="Filter by tags"
                 selected={selectedTags}
                 onChange={setSelectedTags}
                 error={tagError}
