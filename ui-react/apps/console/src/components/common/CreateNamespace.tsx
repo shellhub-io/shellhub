@@ -1,9 +1,11 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useCreateNamespace, useSwitchNamespace } from "@/hooks/useNamespaceMutations";
+import {
+  useCreateNamespace,
+  useSwitchNamespace,
+} from "@/hooks/useNamespaceMutations";
 import { getNamespaces } from "@/client";
 import { getConfig } from "@/env";
 import {
-  ExclamationCircleIcon,
   CheckIcon,
   CommandLineIcon,
   ClipboardDocumentIcon,
@@ -11,6 +13,7 @@ import {
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
 import AmbientBackground from "./AmbientBackground";
+import InputField from "@/components/common/fields/InputField";
 
 const NAME_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
 
@@ -47,51 +50,36 @@ function CloudForm() {
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="w-full">
-      <label className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5">
-        Namespace Name
-      </label>
-
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value.toLowerCase());
-            setValidationError(null);
-          }}
-          placeholder="my-namespace"
-          maxLength={30}
-          autoFocus
-          className="flex-1 px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-        />
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <InputField
+            id="create-namespace-name"
+            label="Namespace Name"
+            value={name}
+            onChange={(v) => {
+              setName(v.toLowerCase());
+              setValidationError(null);
+            }}
+            placeholder="my-namespace"
+            maxLength={30}
+            autoFocus
+            variant="mono"
+            error={displayError || undefined}
+            hint="3–30 characters · lowercase letters, numbers, and hyphens only"
+          />
+        </div>
         <button
           type="submit"
           disabled={createNs.isPending || name.length < 3}
-          className="px-6 py-3 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 shrink-0"
+          className="px-6 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 shrink-0"
         >
-          {createNs.isPending
-            ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
-            )
-            : (
-              "Create"
-            )}
+          {createNs.isPending ? (
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+          ) : (
+            "Create"
+          )}
         </button>
       </div>
-
-      {displayError && (
-        <p className="mt-2.5 text-xs font-mono text-accent-red animate-slide-down flex items-center gap-1.5">
-          <ExclamationCircleIcon
-            className="w-3.5 h-3.5 shrink-0"
-            strokeWidth={2}
-          />
-          {displayError}
-        </p>
-      )}
-
-      <p className="mt-2.5 text-2xs text-text-muted">
-        3–30 characters · lowercase letters, numbers, and hyphens only
-      </p>
     </form>
   );
 }
@@ -115,16 +103,14 @@ function CopyBlock({ command }: { command: string }) {
         className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
         title="Copy command"
       >
-        {copied
-          ? (
-            <CheckIcon
-              className="w-3.5 h-3.5 text-accent-green"
-              strokeWidth={2}
-            />
-          )
-          : (
-            <ClipboardDocumentIcon className="w-3.5 h-3.5" strokeWidth={2} />
-          )}
+        {copied ? (
+          <CheckIcon
+            className="w-3.5 h-3.5 text-accent-green"
+            strokeWidth={2}
+          />
+        ) : (
+          <ClipboardDocumentIcon className="w-3.5 h-3.5" strokeWidth={2} />
+        )}
       </button>
     </div>
   );
@@ -142,7 +128,10 @@ function CommunityInstructions() {
   useEffect(() => {
     const check = async () => {
       try {
-        const { data } = await getNamespaces({ query: { page: 1, per_page: 1 }, throwOnError: true });
+        const { data } = await getNamespaces({
+          query: { page: 1, per_page: 1 },
+          throwOnError: true,
+        });
         if (data.length > 0) {
           setReady(true);
           setTenantId(data[0].tenant_id);
@@ -181,14 +170,8 @@ function CommunityInstructions() {
         </p>
         <CopyBlock command={addCmd} />
         <p className="mt-1.5 text-2xs text-text-muted">
-          Roles:
-          {" "}
-          <span className="text-text-secondary">observer</span>
-          ,
-          {" "}
-          <span className="text-text-secondary">operator</span>
-          ,
-          {" "}
+          Roles: <span className="text-text-secondary">observer</span>,{" "}
+          <span className="text-text-secondary">operator</span>,{" "}
           <span className="text-text-secondary">administrator</span>
         </p>
       </div>
@@ -202,24 +185,21 @@ function CommunityInstructions() {
             : "bg-primary/30 text-white/50 cursor-not-allowed"
         }`}
       >
-        {ready
-          ? (
-            "You're in! Go to dashboard"
-          )
-          : (
-            <>
-              <span className="w-4 h-4 border-2 border-white/20 border-t-white/50 rounded-full animate-spin" />
-              Waiting for namespace access...
-            </>
-          )}
+        {ready ? (
+          "You're in! Go to dashboard"
+        ) : (
+          <>
+            <span className="w-4 h-4 border-2 border-white/20 border-t-white/50 rounded-full animate-spin" />
+            Waiting for namespace access...
+          </>
+        )}
       </button>
 
       {/* Upgrade tip */}
       <div className="flex items-start gap-2.5 bg-primary/5 border border-primary/10 rounded-lg p-3">
         <SparklesIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <p className="text-2xs text-text-secondary leading-relaxed">
-          <span className="font-medium text-text-primary">Tip:</span>
-          {" "}
+          <span className="font-medium text-text-primary">Tip:</span>{" "}
           <a
             href="https://www.shellhub.io/pricing"
             target="_blank"
@@ -227,8 +207,7 @@ function CommunityInstructions() {
             className="text-primary hover:text-primary-400 transition-colors"
           >
             ShellHub Cloud and Enterprise
-          </a>
-          {" "}
+          </a>{" "}
           let you create and manage namespaces directly from the UI.
         </p>
       </div>

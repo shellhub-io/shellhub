@@ -10,14 +10,14 @@ import AddMemberDrawer from "../AddMemberDrawer";
 
 const mockAddMemberMutateAsync = vi.fn();
 
-vi.mock("../../../hooks/useMemberMutations", () => ({
+vi.mock("@/hooks/useMemberMutations", () => ({
   useAddMember: () => ({
     mutateAsync: mockAddMemberMutateAsync,
     isPending: false,
   }),
 }));
 
-vi.mock("../../../components/common/Drawer", () => ({
+vi.mock("@/components/common/Drawer", () => ({
   default: ({
     open,
     onClose,
@@ -41,11 +41,6 @@ vi.mock("../../../components/common/Drawer", () => ({
       </div>
     );
   },
-}));
-
-vi.mock("../../../utils/styles", () => ({
-  LABEL: "label",
-  INPUT: "input",
 }));
 
 /* ------------------------------------------------------------------ */

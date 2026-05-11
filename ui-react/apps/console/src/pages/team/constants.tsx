@@ -1,4 +1,6 @@
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import RadioCard from "@/components/common/fields/RadioCard";
+import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import { ROLES, type AssignableRole } from "./helpers";
 
 /* ─── Constants ─── */
@@ -72,56 +74,42 @@ export function RoleBadge({ role }: { role: string }) {
 /* ─── Role Selector ─── */
 
 export function RoleSelector({
+  label = "Role",
   value,
   onChange,
 }: {
+  label?: string;
   value: AssignableRole;
   onChange: (v: AssignableRole) => void;
 }) {
   return (
-    <div className="space-y-1.5">
+    <RadioGroupField label={label} value={value} onChange={onChange}>
       {ROLES.map((role) => {
         const meta = ROLE_META[role];
-        const selected = value === role;
         return (
-          <button
+          <RadioCard
             key={role}
-            type="button"
-            onClick={() => onChange(role)}
-            className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg border text-left transition-all ${
-              selected
-                ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
-                : "bg-card border-border hover:border-border-light hover:bg-hover-subtle"
-            }`}
-          >
-            <svg
-              className={`w-4 h-4 shrink-0 transition-colors ${selected ? "text-primary" : "text-text-muted/50"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d={meta.icon}
-              />
-            </svg>
-            <div className="min-w-0 flex-1">
-              <span
-                className={`text-sm font-medium capitalize ${selected ? "text-text-primary" : "text-text-secondary"}`}
+            value={role}
+            icon={
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
               >
-                {role}
-              </span>
-              <p
-                className={`text-2xs mt-0.5 leading-relaxed ${selected ? "text-text-secondary" : "text-text-muted"}`}
-              >
-                {meta.summary}
-              </p>
-            </div>
-          </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d={meta.icon}
+                />
+              </svg>
+            }
+            label={role.charAt(0).toUpperCase() + role.slice(1)}
+            description={meta.summary}
+          />
         );
       })}
-    </div>
+    </RadioGroupField>
   );
 }

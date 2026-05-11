@@ -3,7 +3,6 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateMemberRole } from "@/hooks/useMemberMutations";
 import { type NamespaceMember } from "@/hooks/useNamespaces";
 import Drawer from "@/components/common/Drawer";
-import { LABEL } from "@/utils/styles";
 import { RoleSelector } from "./constants";
 import { isAssignableRole, type AssignableRole } from "./helpers";
 
@@ -72,7 +71,6 @@ function EditMemberDrawer({
         </>
       )}
     >
-      <label className={LABEL}>Role</label>
       <RoleSelector value={role} onChange={setRole} />
     </Drawer>
   );

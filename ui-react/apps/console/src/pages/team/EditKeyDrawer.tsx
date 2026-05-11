@@ -4,7 +4,7 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateApiKey } from "@/hooks/useApiKeyMutations";
 import { type ApiKey } from "@/client";
 import Drawer from "@/components/common/Drawer";
-import { LABEL, INPUT } from "@/utils/styles";
+import InputField from "@/components/common/fields/InputField";
 import { RoleSelector } from "./constants";
 import { isAssignableRole, type AssignableRole } from "./helpers";
 
@@ -37,10 +37,15 @@ function EditKeyDrawer({
     setSubmitting(true);
     setError(null);
     try {
-      await updateKey.mutateAsync({ path: { key: apiKey.name }, body: { name: name.trim(), role } });
+      await updateKey.mutateAsync({
+        path: { key: apiKey.name },
+        body: { name: name.trim(), role },
+      });
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update API key.");
+      setError(
+        err instanceof Error ? err.message : "Failed to update API key.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -51,7 +56,7 @@ function EditKeyDrawer({
       open={open}
       onClose={onClose}
       title="Edit API Key"
-      footer={(
+      footer={
         <>
           <button
             type="button"
@@ -68,27 +73,25 @@ function EditKeyDrawer({
             Save Changes
           </button>
         </>
-      )}
+      }
     >
       <div className="space-y-5">
-        <div>
-          <label className={LABEL}>Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus={open}
-            className={INPUT}
-          />
-        </div>
-        <div>
-          <label className={LABEL}>Role</label>
-          <RoleSelector value={role} onChange={setRole} />
-        </div>
+        <InputField
+          id="edit-key-name"
+          label="Name"
+          value={name}
+          onChange={setName}
+          maxLength={20}
+          autoFocus={open}
+        />
+        <RoleSelector value={role} onChange={setRole} />
 
         {error && (
           <p className="text-xs font-mono text-accent-red flex items-center gap-1.5">
-            <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+            <ExclamationCircleIcon
+              className="w-3.5 h-3.5 shrink-0"
+              strokeWidth={2}
+            />
             {error}
           </p>
         )}
