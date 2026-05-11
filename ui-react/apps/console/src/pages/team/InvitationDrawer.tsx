@@ -13,9 +13,11 @@ import {
 } from "@/hooks/useInvitationMutations";
 import Drawer from "@/components/common/Drawer";
 import CopyButton from "@/components/common/CopyButton";
-import { LABEL, INPUT } from "@/utils/styles";
+import InputField from "@/components/common/fields/InputField";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 import { RoleSelector } from "./constants";
 import { type AssignableRole } from "./helpers";
+import { LABEL } from "@/utils/styles";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -183,8 +185,11 @@ function InvitationDrawer({
             </div>
           </div>
           <div>
-            <label className={LABEL}>Invitation link</label>
-            <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3.5 py-2.5">
+            <span id="invitation-link-label" className={LABEL}>Invitation link</span>
+            <div
+              aria-labelledby="invitation-link-label"
+              className="flex items-center gap-2 bg-card border border-border rounded-lg px-3.5 py-2.5"
+            >
               <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
                 {generatedLink}
               </code>
@@ -194,62 +199,30 @@ function InvitationDrawer({
         </div>
       ) : (
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-          <div>
-            <label className={LABEL} htmlFor="invitation-email">
-              Email
-            </label>
-            <input
-              id="invitation-email"
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (emailError) setEmailError("");
-              }}
-              placeholder="user@example.com"
-              autoFocus={open}
-              className={`${INPUT} ${emailError ? "border-accent-red/60 focus:border-accent-red/60 focus:ring-accent-red/20" : ""}`}
-              aria-invalid={!!emailError}
-              aria-describedby={
-                emailError ? "invitation-email-error" : undefined
-              }
-            />
-            {emailError ? (
-              <p
-                id="invitation-email-error"
-                className="mt-1.5 text-2xs text-accent-red"
-              >
-                {emailError}
-              </p>
-            ) : (
-              <p className="mt-1.5 text-2xs text-text-muted">
-                If no account matches this email, we'll send a sign-up link.
-              </p>
-            )}
-          </div>
+          <InputField
+            id="invitation-email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(v) => {
+              setEmail(v);
+              if (emailError) setEmailError("");
+            }}
+            placeholder="user@example.com"
+            error={emailError || undefined}
+            hint="If no account matches this email, we'll send a sign-up link."
+            autoFocus={open}
+          />
 
-          <div>
-            <label className={LABEL}>Role</label>
-            <RoleSelector value={role} onChange={setRole} />
-          </div>
+          <RoleSelector value={role} onChange={setRole} />
 
-          <label className="flex items-start gap-2.5 px-3 py-2.5 bg-card border border-border rounded-lg cursor-pointer hover:border-border-light transition-colors">
-            <input
-              type="checkbox"
-              checked={wantLink}
-              onChange={(e) => setWantLink(e.target.checked)}
-              className="mt-0.5 h-3.5 w-3.5 rounded border-border bg-background text-primary focus:ring-1 focus:ring-primary/30 cursor-pointer"
-            />
-            <span className="flex-1">
-              <span className="block text-xs font-medium text-text-secondary">
-                Get the invite link instead of sending an email
-              </span>
-              <span className="block text-2xs text-text-muted mt-0.5">
-                Useful when you want to share the invitation through another
-                channel.
-              </span>
-            </span>
-          </label>
+          <CheckboxField
+            id="invitation-want-link"
+            label="Get the invite link instead of sending an email"
+            description="Useful when you want to share the invitation through another channel."
+            checked={wantLink}
+            onChange={setWantLink}
+          />
 
           {error && (
             <div

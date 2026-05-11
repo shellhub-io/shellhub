@@ -4,7 +4,6 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useUpdateMembershipInvitation } from "@/hooks/useInvitationMutations";
 import type { MembershipInvitation } from "@/client";
 import Drawer from "@/components/common/Drawer";
-import { LABEL } from "@/utils/styles";
 import { RoleSelector } from "./constants";
 import { isAssignableRole, type AssignableRole } from "./helpers";
 
@@ -82,7 +81,6 @@ function EditInvitationDrawer({
         </>
       }
     >
-      <label className={LABEL}>Role</label>
       <RoleSelector value={role} onChange={setRole} />
       {error && (
         <div

@@ -62,6 +62,10 @@ vi.mock("../../../components/common/CopyButton", () => ({
 vi.mock("../../../utils/styles", () => ({
   LABEL: "label",
   INPUT: "input",
+  INPUT_BASE: "input-base",
+  INPUT_ERROR: "input-error",
+  INPUT_MONO: "input-mono",
+  INPUT_MONO_ERROR: "input-mono-error",
 }));
 
 /* ------------------------------------------------------------------ */
@@ -167,11 +171,11 @@ describe("InvitationDrawer", () => {
       const user = userEvent.setup();
       renderDrawer();
       const input = screen.getByPlaceholderText(/user@example.com/i);
-      // Initially no error
-      expect(input).toHaveAttribute("aria-invalid", "false");
+      // Initially no error — aria-invalid is omitted when valid
+      expect(input).not.toHaveAttribute("aria-invalid");
       // After typing invalid email — button is disabled but no error yet
       await user.type(input, "not-an-email");
-      expect(input).toHaveAttribute("aria-invalid", "false");
+      expect(input).not.toHaveAttribute("aria-invalid");
     });
 
     it("does not call the mutation when email is invalid (Enter submit)", async () => {

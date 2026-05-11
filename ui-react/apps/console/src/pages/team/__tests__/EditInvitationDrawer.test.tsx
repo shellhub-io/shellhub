@@ -136,7 +136,7 @@ describe("EditInvitationDrawer", () => {
       renderDrawer();
       // RoleSelector renders buttons for each role
       expect(
-        screen.getByRole("button", { name: /operator/i }),
+        screen.getByRole("radio", { name: /operator/i }),
       ).toBeInTheDocument();
     });
 
@@ -146,7 +146,7 @@ describe("EditInvitationDrawer", () => {
       // We test the behaviour: clicking Save Changes should send the pre-filled role
       // The actual visual selection is controlled via className — we just verify it renders
       expect(
-        screen.getByRole("button", { name: /administrator/i }),
+        screen.getByRole("radio", { name: /administrator/i }),
       ).toBeInTheDocument();
     });
 
@@ -163,7 +163,7 @@ describe("EditInvitationDrawer", () => {
       const user = userEvent.setup();
       renderDrawer({ invitation: makeInvitation({ role: "operator" }) });
 
-      await user.click(screen.getByRole("button", { name: /administrator/i }));
+      await user.click(screen.getByRole("radio", { name: /administrator/i }));
 
       expect(
         screen.getByRole("button", { name: /save changes/i }),
@@ -178,7 +178,7 @@ describe("EditInvitationDrawer", () => {
       });
       renderDrawer({ invitation: inv, tenantId: "t1" });
 
-      await user.click(screen.getByRole("button", { name: /administrator/i }));
+      await user.click(screen.getByRole("radio", { name: /administrator/i }));
       await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() =>
@@ -195,7 +195,7 @@ describe("EditInvitationDrawer", () => {
       const inv = makeInvitation({ role: "operator" });
       renderDrawer({ invitation: inv, onClose });
 
-      await user.click(screen.getByRole("button", { name: /administrator/i }));
+      await user.click(screen.getByRole("radio", { name: /administrator/i }));
       await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
@@ -209,7 +209,7 @@ describe("EditInvitationDrawer", () => {
       const inv = makeInvitation({ role: "operator" });
       renderDrawer({ invitation: inv });
 
-      await user.click(screen.getByRole("button", { name: /administrator/i }));
+      await user.click(screen.getByRole("radio", { name: /administrator/i }));
       await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() =>
@@ -226,7 +226,7 @@ describe("EditInvitationDrawer", () => {
       const inv = makeInvitation({ role: "operator" });
       renderDrawer({ invitation: inv, onClose });
 
-      await user.click(screen.getByRole("button", { name: /administrator/i }));
+      await user.click(screen.getByRole("radio", { name: /administrator/i }));
       await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() =>

@@ -3,10 +3,10 @@ import {
   XMarkIcon,
   BookOpenIcon,
   FolderPlusIcon,
-  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
+import InputField from "./fields/InputField";
 import { getConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
 
@@ -28,75 +28,39 @@ const rules = [
   "Cannot begin or end with a hyphen",
 ];
 
-function CloudForm({ onClose }: { onClose: () => void }) {
-  const inputId = useId();
-  const [name, setName] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const createNs = useCreateNamespace();
+const FORM_ID = "create-namespace-form";
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const err = validate(name);
-    if (err) {
-      setValidationError(err);
-      return;
-    }
-    setValidationError(null);
-    try {
-      await createNs.mutateAsync(name);
-      onClose();
-    } catch {
-      // error is set in mutation state
-    }
-  };
-
-  const displayError = validationError ?? (createNs.error instanceof Error ? createNs.error.message : null);
-
+function CloudForm({
+  inputId,
+  name,
+  setName,
+  displayError,
+  resetError,
+  onSubmit,
+}: {
+  inputId: string;
+  name: string;
+  setName: (v: string) => void;
+  displayError: string | null;
+  resetError: () => void;
+  onSubmit: (e: FormEvent) => void;
+}) {
   return (
-    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-      <div>
-        <label htmlFor={inputId} className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2">
-          Namespace Name
-        </label>
-        <div className="flex gap-2">
-          <input
-            id={inputId}
-            type="text"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value.toLowerCase());
-              setValidationError(null);
-              createNs.reset();
-            }}
-            placeholder="my-namespace"
-            maxLength={30}
-            autoFocus
-            className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-muted focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-          />
-          <button
-            type="submit"
-            disabled={createNs.isPending || name.length < 3}
-            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all shrink-0"
-          >
-            {createNs.isPending
-              ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
-              )
-              : (
-                "Create"
-              )}
-          </button>
-        </div>
-        {displayError && (
-          <p className="mt-2 text-xs font-mono text-accent-red flex items-center gap-1.5">
-            <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
-            {displayError}
-          </p>
-        )}
-        <p className="mt-2 text-2xs text-text-muted">
-          3–30 characters · lowercase letters, numbers, and hyphens only
-        </p>
-      </div>
+    <form id={FORM_ID} onSubmit={onSubmit}>
+      <InputField
+        id={inputId}
+        label="Namespace Name"
+        value={name}
+        onChange={(v) => {
+          setName(v.toLowerCase());
+          resetError();
+        }}
+        placeholder="my-namespace"
+        error={displayError ?? undefined}
+        hint="3–30 characters · lowercase letters, numbers, and hyphens only"
+        maxLength={30}
+        autoFocus
+      />
     </form>
   );
 }
@@ -105,8 +69,8 @@ function CeInstructions({ descriptionId }: { descriptionId: string }) {
   return (
     <>
       <p id={descriptionId} className="text-sm text-text-muted leading-relaxed">
-        Community Edition uses the CLI to manage namespaces. Run this
-        command on your server:
+        Community Edition uses the CLI to manage namespaces. Run this command on
+        your server:
       </p>
 
       {/* Command block */}
@@ -117,7 +81,9 @@ function CeInstructions({ descriptionId }: { descriptionId: string }) {
             <span className="w-2.5 h-2.5 rounded-full bg-accent-yellow/60" />
             <span className="w-2.5 h-2.5 rounded-full bg-accent-green/60" />
           </div>
-          <span className="text-2xs font-mono text-text-muted/50">terminal</span>
+          <span className="text-2xs font-mono text-text-muted/50">
+            terminal
+          </span>
           <CopyButton text={CLI_COMMAND} showLabel />
         </div>
         <div className="p-4 overflow-x-auto">
@@ -164,7 +130,37 @@ export default function CreateNamespaceDialog({
   const autoId = useId();
   const titleId = `create-ns-title-${autoId}`;
   const descriptionId = `create-ns-description-${autoId}`;
+  const inputId = `create-ns-input-${autoId}`;
   const isCloud = getConfig().cloud || getConfig().enterprise;
+
+  const [name, setName] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const createNs = useCreateNamespace();
+
+  const displayError =
+    validationError ??
+    (createNs.error instanceof Error ? createNs.error.message : null);
+
+  const resetError = () => {
+    setValidationError(null);
+    createNs.reset();
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const err = validate(name);
+    if (err) {
+      setValidationError(err);
+      return;
+    }
+    setValidationError(null);
+    try {
+      await createNs.mutateAsync(name);
+      onClose();
+    } catch {
+      // error is surfaced via displayError
+    }
+  };
 
   return (
     <BaseDialog
@@ -180,10 +176,7 @@ export default function CreateNamespaceDialog({
           <span className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
             <FolderPlusIcon className="w-4 h-4" />
           </span>
-          <h2
-            id={titleId}
-            className="text-sm font-semibold text-text-primary"
-          >
+          <h2 id={titleId} className="text-sm font-semibold text-text-primary">
             Create a Namespace
           </h2>
         </div>
@@ -199,9 +192,18 @@ export default function CreateNamespaceDialog({
 
       {/* Body */}
       <div className="px-6 py-5 space-y-5">
-        {isCloud
-          ? <CloudForm onClose={onClose} />
-          : <CeInstructions descriptionId={descriptionId} />}
+        {isCloud ? (
+          <CloudForm
+            inputId={inputId}
+            name={name}
+            setName={setName}
+            displayError={displayError}
+            resetError={resetError}
+            onSubmit={(e) => void handleSubmit(e)}
+          />
+        ) : (
+          <CeInstructions descriptionId={descriptionId} />
+        )}
       </div>
 
       {/* Footer */}
@@ -216,12 +218,28 @@ export default function CreateNamespaceDialog({
           Administration Guide
         </a>
 
-        <button
-          onClick={onClose}
-          className="px-4 py-2 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-hover-medium transition-all"
-        >
-          Close
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-hover-medium transition-all"
+          >
+            {isCloud ? "Cancel" : "Close"}
+          </button>
+          {isCloud && (
+            <button
+              type="submit"
+              form={FORM_ID}
+              disabled={createNs.isPending || name.length < 3}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            >
+              {createNs.isPending ? (
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+              ) : (
+                "Create"
+              )}
+            </button>
+          )}
+        </div>
       </footer>
     </BaseDialog>
   );
