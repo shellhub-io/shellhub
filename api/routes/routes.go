@@ -197,6 +197,9 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
 	}
 
+	// MCP server (Model Context Protocol) for AI assistants.
+	SetupMCPRoutes(router, service)
+
 	// Apply route extensions (enterprise/cloud features)
 	if err := applyExtensions(router, service); err != nil {
 		logrus.WithError(err).Error("failed to apply route extensions")
