@@ -6,6 +6,7 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import { recoverPassword } from "../client";
+import InputField from "@/components/common/fields/InputField";
 
 export default function ForgotPassword() {
   const [account, setAccount] = useState("");
@@ -17,7 +18,10 @@ export default function ForgotPassword() {
     if (loading) return;
     setLoading(true);
     try {
-      await recoverPassword({ body: { username: account.trim() }, throwOnError: true });
+      await recoverPassword({
+        body: { username: account.trim() },
+        throwOnError: true,
+      });
     } catch {
       // Silently ignore to prevent user enumeration.
     } finally {
@@ -32,7 +36,10 @@ export default function ForgotPassword() {
       <div className="text-center mb-12 animate-fade-in">
         <div className="animate-float mb-6 inline-block">
           <div className="w-20 h-20 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center shadow-lg shadow-primary/10">
-            <LockClosedIcon className="w-10 h-10 text-primary" strokeWidth={1.2} />
+            <LockClosedIcon
+              className="w-10 h-10 text-primary"
+              strokeWidth={1.2}
+            />
           </div>
         </div>
 
@@ -54,12 +61,20 @@ export default function ForgotPassword() {
         style={{ animationDelay: "200ms" }}
       >
         {sent ? (
-          <div role="alert" className="flex flex-col items-center text-center gap-4">
+          <div
+            role="alert"
+            className="flex flex-col items-center text-center gap-4"
+          >
             <div className="w-12 h-12 rounded-full bg-accent-green/15 border border-accent-green/25 flex items-center justify-center">
-              <CheckCircleIcon className="w-6 h-6 text-accent-green" strokeWidth={1.5} />
+              <CheckCircleIcon
+                className="w-6 h-6 text-accent-green"
+                strokeWidth={1.5}
+              />
             </div>
             <div>
-              <p className="text-sm font-semibold text-text-primary mb-1">Check your inbox</p>
+              <p className="text-sm font-semibold text-text-primary mb-1">
+                Check your inbox
+              </p>
               <p className="text-xs text-text-muted leading-relaxed">
                 An email with password reset instructions has been sent to your
                 registered email address.
@@ -68,25 +83,16 @@ export default function ForgotPassword() {
           </div>
         ) : (
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-            <div>
-              <label
-                htmlFor="account"
-                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
-              >
-                Username or email address
-              </label>
-              <input
-                id="account"
-                type="text"
-                value={account}
-                onChange={(e) => setAccount(e.target.value)}
-                required
-                autoFocus
-                autoComplete="username"
-                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-                placeholder="username or email"
-              />
-            </div>
+            <InputField
+              id="account"
+              label="Username or email address"
+              value={account}
+              onChange={setAccount}
+              placeholder="username or email"
+              autoComplete="username"
+              autoFocus
+              required
+            />
 
             <button
               type="submit"
@@ -110,10 +116,7 @@ export default function ForgotPassword() {
       </div>
 
       {/* Back to login */}
-      <div
-        className="mt-8 animate-fade-in"
-        style={{ animationDelay: "600ms" }}
-      >
+      <div className="mt-8 animate-fade-in" style={{ animationDelay: "600ms" }}>
         <Link
           to="/login"
           className="text-xs text-text-muted hover:text-text-secondary transition-colors"

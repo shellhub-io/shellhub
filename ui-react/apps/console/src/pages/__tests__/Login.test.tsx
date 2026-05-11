@@ -116,7 +116,7 @@ async function fillAndSubmit(
   user = userEvent.setup(),
 ) {
   await user.type(screen.getByLabelText(/username/i), username);
-  await user.type(screen.getByLabelText(/password/i), password);
+  await user.type(screen.getByLabelText(/^password$/i), password);
   await user.click(screen.getByRole("button", { name: /sign in/i }));
 }
 
@@ -163,7 +163,7 @@ describe("Login", () => {
     it("renders username and password fields with a submit button", () => {
       renderLogin();
       expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /sign in/i }),
       ).toBeInTheDocument();
@@ -199,7 +199,7 @@ describe("Login", () => {
 
       renderLogin();
       await userEvent.type(screen.getByLabelText(/username/i), "admin");
-      await userEvent.type(screen.getByLabelText(/password/i), "secret");
+      await userEvent.type(screen.getByLabelText(/^password$/i), "secret");
 
       const clickPromise = userEvent.click(
         screen.getByRole("button", { name: /sign in/i }),
@@ -463,7 +463,7 @@ describe("Login", () => {
       // Form must be absent immediately — the explicit showLocalForm guard
       // prevents it from appearing even during the getInfo loading window.
       expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
-      expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: /sign in/i }),
       ).not.toBeInTheDocument();

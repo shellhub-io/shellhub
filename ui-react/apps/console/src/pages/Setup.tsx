@@ -26,8 +26,6 @@ export default function Setup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -262,8 +260,6 @@ export default function Setup() {
                 onBlur={() => handleBlur("password")}
                 error={showError("password")}
                 placeholder="Min. 5 characters"
-                visible={showPassword}
-                onVisibilityChange={setShowPassword}
               />
 
               <PasswordField
@@ -274,8 +270,6 @@ export default function Setup() {
                 onBlur={() => handleBlur("confirmPassword")}
                 error={showError("confirmPassword")}
                 placeholder="Re-enter password"
-                visible={showConfirm}
-                onVisibilityChange={setShowConfirm}
               />
 
               <div className="flex gap-3 pt-1">
