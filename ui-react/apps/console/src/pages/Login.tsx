@@ -17,6 +17,8 @@ import { getConfig } from "../env";
 import { getSafeRedirect } from "../utils/navigation";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
+import InputField from "@/components/common/fields/InputField";
+import PasswordField from "@/components/common/fields/PasswordField";
 
 interface CountdownState {
   display: string;
@@ -70,8 +72,8 @@ export default function Login() {
   const isEnterprise = getConfig().enterprise;
   const location = useLocation();
   const rawState = location.state as Record<string, unknown> | null;
-  const notice
-    = typeof rawState?.notice === "string" ? rawState.notice : undefined;
+  const notice =
+    typeof rawState?.notice === "string" ? rawState.notice : undefined;
 
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");
@@ -101,8 +103,8 @@ export default function Login() {
   const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
   const { login, loading } = useAuthStore();
   const navigate = useNavigate();
-  const { display: countdownDisplay, expired: lockoutExpired }
-    = useLoginCountdown(lockoutEndEpoch);
+  const { display: countdownDisplay, expired: lockoutExpired } =
+    useLoginCountdown(lockoutEndEpoch);
 
   useEffect(() => {
     if (!queryToken) return;
@@ -141,8 +143,8 @@ export default function Login() {
       const redirect = getSafeRedirect(params);
 
       if (state.mfaToken) {
-        const mfaPath
-          = redirect !== "/dashboard"
+        const mfaPath =
+          redirect !== "/dashboard"
             ? `/mfa-login?redirect=${encodeURIComponent(redirect)}`
             : "/mfa-login";
         void navigate(mfaPath);
@@ -221,7 +223,10 @@ export default function Login() {
       </div>
 
       {/* Alerts — rendered outside the form so they are visible in SSO-only mode too */}
-      {(lockoutExpired || !!notice || !!missingAssertions || (!!error && !lockoutExpired)) && (
+      {(lockoutExpired ||
+        !!notice ||
+        !!missingAssertions ||
+        (!!error && !lockoutExpired)) && (
         <div className="w-full max-w-sm flex flex-col gap-3 mb-4">
           {lockoutExpired && (
             <div className="flex items-center gap-2 bg-accent-green/8 border border-accent-green/20 text-accent-green px-3.5 py-2.5 rounded-md text-xs font-mono animate-slide-down">
@@ -253,7 +258,8 @@ export default function Login() {
                 className="w-3.5 h-3.5 shrink-0"
                 strokeWidth={2}
               />
-              The SSO configuration is incomplete due to missing required mappings. Please contact your administrator.
+              The SSO configuration is incomplete due to missing required
+              mappings. Please contact your administrator.
             </div>
           )}
           {error && !lockoutExpired && (
@@ -283,42 +289,26 @@ export default function Login() {
           style={{ animationDelay: "200ms" }}
         >
           <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
-              >
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                autoFocus
-                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-                placeholder="username"
-              />
-            </div>
+            <InputField
+              id="username"
+              label="Username"
+              value={username}
+              onChange={setUsername}
+              placeholder="username"
+              autoComplete="username"
+              autoFocus
+              required
+            />
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200"
-                placeholder="password"
-              />
-            </div>
+            <PasswordField
+              id="password"
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              placeholder="password"
+              autoComplete="current-password"
+              required
+            />
 
             {isCloud && (
               <div className="flex justify-end">
@@ -377,7 +367,9 @@ export default function Login() {
             }`}
           >
             {ssoLoading ? (
-              <span className={`w-3.5 h-3.5 border-2 rounded-full animate-spin ${ssoOnly ? "border-white/30 border-t-white" : "border-primary/30 border-t-primary"}`} />
+              <span
+                className={`w-3.5 h-3.5 border-2 rounded-full animate-spin ${ssoOnly ? "border-white/30 border-t-white" : "border-primary/30 border-t-primary"}`}
+              />
             ) : (
               <ArrowRightEndOnRectangleIcon className="w-4 h-4" />
             )}

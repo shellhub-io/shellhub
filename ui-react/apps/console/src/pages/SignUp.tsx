@@ -10,6 +10,7 @@ import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 
 const SERVER_FIELD_MAP: Record<string, keyof FormErrors> = {
   username: "username",
@@ -52,8 +53,6 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptPrivacyPolicy, setAcceptPrivacyPolicy] = useState(false);
   const [acceptMarketing, setAcceptMarketing] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [accountCreated, setAccountCreated] = useState(false);
 
@@ -268,8 +267,6 @@ export default function SignUp() {
               onBlur={() => handleBlur("password")}
               error={fieldError("password")}
               placeholder="Min. 5 characters"
-              visible={showPassword}
-              onVisibilityChange={setShowPassword}
             />
 
             <PasswordField
@@ -280,31 +277,36 @@ export default function SignUp() {
               onBlur={() => handleBlur("confirmPassword")}
               error={fieldError("confirmPassword")}
               placeholder="Re-enter password"
-              visible={showConfirm}
-              onVisibilityChange={setShowConfirm}
             />
 
             {/* Privacy Policy checkbox (required) */}
-            <Checkbox
+            <CheckboxField
+              id="signup-accept-privacy"
               checked={acceptPrivacyPolicy}
               onChange={setAcceptPrivacyPolicy}
               required
-            >
-              I agree to the{" "}
-              <a
-                href="https://www.shellhub.io/privacy-policy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80 underline transition-colors"
-              >
-                Privacy Policy
-              </a>
-            </Checkbox>
+              label={
+                <>
+                  I agree to the{" "}
+                  <a
+                    href="https://www.shellhub.io/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-primary/80 underline transition-colors"
+                  >
+                    Privacy Policy
+                  </a>
+                </>
+              }
+            />
 
             {/* Marketing checkbox (optional) */}
-            <Checkbox checked={acceptMarketing} onChange={setAcceptMarketing}>
-              I accept to receive news and updates from ShellHub via email.
-            </Checkbox>
+            <CheckboxField
+              id="signup-accept-marketing"
+              checked={acceptMarketing}
+              onChange={setAcceptMarketing}
+              label="I accept to receive news and updates from ShellHub via email."
+            />
 
             <button
               type="submit"
@@ -338,50 +340,5 @@ export default function SignUp() {
         </div>
       </div>
     </div>
-  );
-}
-
-// ─── Local sub-components ───────────────────────────────────────────────────────────
-
-function Checkbox({
-  checked,
-  onChange,
-  required,
-  children,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex items-start gap-3 cursor-pointer select-none pt-1">
-      <div className="relative mt-0.5 shrink-0">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          aria-required={required ? "true" : undefined}
-          className="sr-only peer"
-        />
-        <div className="w-4 h-4 rounded border border-border peer-checked:bg-primary peer-checked:border-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/30 transition-colors" />
-        <svg
-          className="absolute inset-0 w-4 h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"
-          viewBox="0 0 16 16"
-          fill="none"
-        >
-          <path
-            d="M3 8l3.5 3.5 6.5-7"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-      <span className="text-xs text-text-secondary leading-relaxed">
-        {children}
-      </span>
-    </label>
   );
 }
