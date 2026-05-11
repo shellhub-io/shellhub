@@ -10,10 +10,14 @@ vi.mock("@/stores/vaultStore", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/stores/vaultStore")>();
   return {
     ...actual,
-    useVaultStore: vi.fn((selector?: (s: Record<string, unknown>) => unknown) => {
-      const state = (useVaultStore as unknown as { _state: Record<string, unknown> })._state;
-      return selector ? selector(state) : state;
-    }),
+    useVaultStore: vi.fn(
+      (selector?: (s: Record<string, unknown>) => unknown) => {
+        const state = (
+          useVaultStore as unknown as { _state: Record<string, unknown> }
+        )._state;
+        return selector ? selector(state) : state;
+      },
+    ),
   };
 });
 
@@ -26,11 +30,6 @@ vi.mock("@/utils/ssh-keys", () => ({
 // KeyFileInput internally uses a hook + file input. To keep tests focused on
 // KeyDrawer logic, we replace it with a simple textarea that forwards the same
 // onChange/value interface that KeyDrawer expects.
-vi.mock("@/utils/styles", () => ({
-  LABEL: "label-class",
-  INPUT: "input-class",
-}));
-
 vi.mock("@/components/common/Drawer", () => ({
   default: ({
     open,
@@ -57,7 +56,7 @@ vi.mock("@/components/common/Drawer", () => ({
   },
 }));
 
-vi.mock("@/components/common/KeyFileInput", () => ({
+vi.mock("@/components/common/fields/KeyFileInput", () => ({
   default: ({
     label,
     id,
@@ -87,7 +86,11 @@ vi.mock("@/components/common/KeyFileInput", () => ({
   ),
 }));
 
-import { validatePrivateKey, getFingerprint, getAlgorithm } from "@/utils/ssh-keys";
+import {
+  validatePrivateKey,
+  getFingerprint,
+  getAlgorithm,
+} from "@/utils/ssh-keys";
 
 const mockAddKey = vi.fn();
 const mockUpdateKey = vi.fn();
@@ -102,8 +105,8 @@ const mockEntry: VaultKeyEntry = {
   updatedAt: "2024-01-01T00:00:00Z",
 };
 
-const VALID_KEY
-  = "-----BEGIN OPENSSH PRIVATE KEY-----\nvalid\n-----END OPENSSH PRIVATE KEY-----";
+const VALID_KEY =
+  "-----BEGIN OPENSSH PRIVATE KEY-----\nvalid\n-----END OPENSSH PRIVATE KEY-----";
 
 function setupStore() {
   (useVaultStore as unknown as { _state: Record<string, unknown> })._state = {
@@ -119,13 +122,20 @@ beforeEach(() => {
   setupStore();
 
   // Default: key is valid, unencrypted
-  vi.mocked(validatePrivateKey).mockReturnValue({ valid: true, encrypted: false });
+  vi.mocked(validatePrivateKey).mockReturnValue({
+    valid: true,
+    encrypted: false,
+  });
   vi.mocked(getFingerprint).mockReturnValue("aa:bb:cc:dd");
   vi.mocked(getAlgorithm).mockReturnValue("Ed25519");
 });
 
 function renderDrawer(
-  overrides: Partial<{ open: boolean; editKey: VaultKeyEntry | null; onClose: () => void }> = {},
+  overrides: Partial<{
+    open: boolean;
+    editKey: VaultKeyEntry | null;
+    onClose: () => void;
+  }> = {},
 ) {
   const defaults = { open: true, editKey: null, onClose: vi.fn() };
   const props = { ...defaults, ...overrides };
@@ -154,7 +164,9 @@ describe("KeyDrawer", () => {
 
     it("renders 'Add Key' submit button", () => {
       renderDrawer();
-      expect(screen.getByRole("button", { name: /add key/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /add key/i }),
+      ).toBeInTheDocument();
     });
 
     it("submit button is disabled when form is empty", () => {
@@ -212,7 +224,9 @@ describe("KeyDrawer", () => {
       await fillKey(VALID_KEY);
       await fillName("My Key");
 
-      expect(screen.getByRole("button", { name: /add key/i })).not.toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /add key/i }),
+      ).not.toBeDisabled();
     });
 
     it("clears name error when the user starts typing again", async () => {
@@ -228,7 +242,9 @@ describe("KeyDrawer", () => {
       });
 
       await userEvent.type(screen.getByLabelText(/^name$/i), "X");
-      expect(screen.queryByText(/name is already used/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/name is already used/i),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -242,11 +258,16 @@ describe("KeyDrawer", () => {
       renderDrawer();
       await fillKey("not-a-key");
 
-      expect(screen.getByText(/invalid private key format/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/invalid private key format/i),
+      ).toBeInTheDocument();
     });
 
     it("shows passphrase field when key is encrypted", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({ valid: true, encrypted: true });
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
 
       renderDrawer();
       await fillKey(VALID_KEY);
@@ -255,7 +276,10 @@ describe("KeyDrawer", () => {
     });
 
     it("requires passphrase to be filled before enabling submit", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({ valid: true, encrypted: true });
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
 
       renderDrawer();
       await fillKey(VALID_KEY);
@@ -266,14 +290,19 @@ describe("KeyDrawer", () => {
     });
 
     it("enables submit after providing passphrase for encrypted key", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({ valid: true, encrypted: true });
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
 
       renderDrawer();
       await fillKey(VALID_KEY);
       await fillName("My Key");
       await userEvent.type(screen.getByLabelText(/passphrase/i), "secret");
 
-      expect(screen.getByRole("button", { name: /add key/i })).not.toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /add key/i }),
+      ).not.toBeDisabled();
     });
   });
 
@@ -311,7 +340,10 @@ describe("KeyDrawer", () => {
     });
 
     it("calls addKey with passphrase fingerprint for encrypted key", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({ valid: true, encrypted: true });
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
       vi.mocked(getFingerprint).mockReturnValue("ee:ff:00:11");
       mockAddKey.mockResolvedValue(undefined);
       renderDrawer();
@@ -324,7 +356,10 @@ describe("KeyDrawer", () => {
       await waitFor(() => {
         expect(getFingerprint).toHaveBeenCalledWith(VALID_KEY, "secret");
         expect(mockAddKey).toHaveBeenCalledWith(
-          expect.objectContaining({ fingerprint: "ee:ff:00:11", hasPassphrase: true }),
+          expect.objectContaining({
+            fingerprint: "ee:ff:00:11",
+            hasPassphrase: true,
+          }),
         );
       });
     });
@@ -340,7 +375,9 @@ describe("KeyDrawer", () => {
       await userEvent.clear(nameInput);
       await userEvent.type(nameInput, "Updated Name");
 
-      await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
 
       await waitFor(() => {
         expect(mockUpdateKey).toHaveBeenCalledWith(
@@ -354,7 +391,9 @@ describe("KeyDrawer", () => {
       mockUpdateKey.mockResolvedValue(undefined);
       const { onClose } = renderDrawer({ editKey: mockEntry });
 
-      await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
 
       await waitFor(() => {
         expect(onClose).toHaveBeenCalledTimes(1);
@@ -385,7 +424,9 @@ describe("KeyDrawer", () => {
       await userEvent.click(screen.getByRole("button", { name: /add key/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/private key is already stored/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/private key is already stored/i),
+        ).toBeInTheDocument();
       });
     });
 
@@ -399,7 +440,9 @@ describe("KeyDrawer", () => {
 
       await waitFor(() => {
         expect(screen.getByText(/name is already used/i)).toBeInTheDocument();
-        expect(screen.getByText(/private key is already stored/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/private key is already stored/i),
+        ).toBeInTheDocument();
       });
     });
   });
@@ -419,10 +462,15 @@ describe("KeyDrawer", () => {
     });
 
     it("shows passphrase error when getFingerprint throws KeyParseError for encrypted key", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({ valid: true, encrypted: true });
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
       const err = new Error("Bad key");
       (err as { name?: string }).name = "KeyParseError";
-      vi.mocked(getFingerprint).mockImplementation(() => { throw err; });
+      vi.mocked(getFingerprint).mockImplementation(() => {
+        throw err;
+      });
 
       renderDrawer();
       await fillKey(VALID_KEY);
@@ -436,8 +484,13 @@ describe("KeyDrawer", () => {
     });
 
     it("shows passphrase error when getFingerprint throws generic error for encrypted key", async () => {
-      vi.mocked(validatePrivateKey).mockReturnValue({ valid: true, encrypted: true });
-      vi.mocked(getFingerprint).mockImplementation(() => { throw new Error("Decryption failed"); });
+      vi.mocked(validatePrivateKey).mockReturnValue({
+        valid: true,
+        encrypted: true,
+      });
+      vi.mocked(getFingerprint).mockImplementation(() => {
+        throw new Error("Decryption failed");
+      });
 
       renderDrawer();
       await fillKey(VALID_KEY);
@@ -451,7 +504,9 @@ describe("KeyDrawer", () => {
     });
 
     it("shows key error when getFingerprint throws for unencrypted key", async () => {
-      vi.mocked(getFingerprint).mockImplementation(() => { throw new Error("Unreadable"); });
+      vi.mocked(getFingerprint).mockImplementation(() => {
+        throw new Error("Unreadable");
+      });
 
       renderDrawer();
       await fillKey(VALID_KEY);
@@ -459,7 +514,9 @@ describe("KeyDrawer", () => {
       await userEvent.click(screen.getByRole("button", { name: /add key/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/failed to read private key/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/failed to read private key/i),
+        ).toBeInTheDocument();
       });
     });
   });

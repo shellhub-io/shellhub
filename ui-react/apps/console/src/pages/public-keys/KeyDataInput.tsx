@@ -1,5 +1,5 @@
 import { isPublicKeyValid } from "@/utils/sshKeys";
-import KeyFileInput from "@/components/common/KeyFileInput";
+import KeyFileInput from "@/components/common/fields/KeyFileInput";
 
 function KeyDataInput({
   value,
@@ -16,6 +16,7 @@ function KeyDataInput({
 }) {
   return (
     <KeyFileInput
+      id="public-key-data"
       label="Public key data"
       value={value}
       onChange={onChange}

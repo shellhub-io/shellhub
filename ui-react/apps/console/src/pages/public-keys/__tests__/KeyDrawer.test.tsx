@@ -2,19 +2,16 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useCreatePublicKey, useUpdatePublicKey } from "@/hooks/usePublicKeyMutations";
+import {
+  useCreatePublicKey,
+  useUpdatePublicKey,
+} from "@/hooks/usePublicKeyMutations";
 import KeyDrawer from "../KeyDrawer";
 import type { PublicKey } from "@/hooks/usePublicKeys";
 
 vi.mock("@/hooks/usePublicKeyMutations", () => ({
   useCreatePublicKey: vi.fn(),
   useUpdatePublicKey: vi.fn(),
-}));
-
-vi.mock("@/utils/styles", () => ({
-  LABEL: "label-class",
-  INPUT: "input-class",
-  INPUT_MONO: "input-mono-class",
 }));
 
 vi.mock("@/components/common/Drawer", () => ({
@@ -35,7 +32,9 @@ vi.mock("@/components/common/Drawer", () => ({
     return (
       <div>
         <h2>{title}</h2>
-        <button type="button" onClick={onClose}>Cancel</button>
+        <button type="button" onClick={onClose}>
+          Cancel
+        </button>
         <div>{children}</div>
         {footer && <div>{footer as React.ReactNode}</div>}
       </div>
@@ -43,7 +42,7 @@ vi.mock("@/components/common/Drawer", () => ({
   },
 }));
 
-vi.mock("@/components/common/TagsSelector", () => ({
+vi.mock("@/components/common/fields/TagsSelector", () => ({
   default: ({
     selected,
     onChange,
@@ -69,7 +68,9 @@ vi.mock("@/components/common/TagsSelector", () => ({
         Add linux tag
       </button>
       {selected.map((t) => (
-        <span key={t} data-testid={`tag-${t}`}>{t}</span>
+        <span key={t} data-testid={`tag-${t}`}>
+          {t}
+        </span>
       ))}
       {error && <p role="alert">{error}</p>}
     </div>
@@ -140,7 +141,11 @@ beforeEach(() => {
 afterEach(cleanup);
 
 function renderDrawer(
-  overrides: Partial<{ open: boolean; editKey: PublicKey | null; onClose: () => void }> = {},
+  overrides: Partial<{
+    open: boolean;
+    editKey: PublicKey | null;
+    onClose: () => void;
+  }> = {},
 ) {
   const defaults = { open: true, editKey: null, onClose: vi.fn() };
   const props = { ...defaults, ...overrides };
@@ -150,7 +155,10 @@ function renderDrawer(
 const VALID_KEY = "ssh-rsa AAAAB3NzaC1yc2E test@host";
 
 async function fillName(name: string) {
-  await userEvent.type(screen.getByPlaceholderText(/name used to identify/i), name);
+  await userEvent.type(
+    screen.getByPlaceholderText(/name used to identify/i),
+    name,
+  );
 }
 
 async function fillKeyData(key: string) {
@@ -166,12 +174,16 @@ describe("KeyDrawer", () => {
 
     it("renders 'Create Key' submit button", () => {
       renderDrawer();
-      expect(screen.getByRole("button", { name: /create key/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /create key/i }),
+      ).toBeInTheDocument();
     });
 
     it("submit button is disabled when form is empty", () => {
       renderDrawer();
-      expect(screen.getByRole("button", { name: /create key/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /create key/i }),
+      ).toBeDisabled();
     });
 
     it("does not render when open is false", () => {
@@ -188,12 +200,16 @@ describe("KeyDrawer", () => {
 
     it("renders 'Save Changes' submit button", () => {
       renderDrawer({ editKey: makeKey() });
-      expect(screen.getByRole("button", { name: /save changes/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /save changes/i }),
+      ).toBeInTheDocument();
     });
 
     it("pre-fills the name field with the key name", () => {
       renderDrawer({ editKey: makeKey({ name: "my-server-key" }) });
-      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue("my-server-key");
+      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
+        "my-server-key",
+      );
     });
 
     it("key data input is disabled in edit mode", () => {
@@ -206,12 +222,16 @@ describe("KeyDrawer", () => {
     it("selects 'all devices' when hostname is '.*'", () => {
       renderDrawer({ editKey: makeKey({ filter: { hostname: ".*" } }) });
       // hostname input should not be visible — "all" is selected
-      expect(screen.queryByPlaceholderText(/e\.g\. \.\*/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText(/e\.g\. \.\*/i),
+      ).not.toBeInTheDocument();
     });
 
     it("selects hostname filter when editKey has a non-wildcard hostname", () => {
       renderDrawer({ editKey: makeKey({ filter: { hostname: "^prod-.*" } }) });
-      expect(screen.getByPlaceholderText(/e\.g\. \.\*/i)).toHaveValue("^prod-.*");
+      expect(screen.getByPlaceholderText(/e\.g\. \.\*/i)).toHaveValue(
+        "^prod-.*",
+      );
     });
 
     it("selects tags filter and pre-populates tags when editKey has tags", () => {
@@ -225,7 +245,9 @@ describe("KeyDrawer", () => {
     it("selects 'all' when editKey has no tags and hostname is '.*'", () => {
       renderDrawer({ editKey: makeKey({ filter: { hostname: ".*" } }) });
       // Neither hostname input nor tags should be visible
-      expect(screen.queryByPlaceholderText(/e\.g\. \.\*/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText(/e\.g\. \.\*/i),
+      ).not.toBeInTheDocument();
       expect(screen.queryByTestId("tag-production")).not.toBeInTheDocument();
     });
   });
@@ -238,7 +260,9 @@ describe("KeyDrawer", () => {
       await fillName("test-key");
       await fillKeyData(VALID_KEY);
       // "All devices" is selected by default
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(mockCreateMutateAsync).toHaveBeenCalledWith(
@@ -255,9 +279,16 @@ describe("KeyDrawer", () => {
 
       await fillName("test-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /filter by hostname/i }));
-      await userEvent.type(screen.getByPlaceholderText(/e\.g\. \.\*/i), "^prod-.*");
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("radio", { name: /filter by hostname/i }),
+      );
+      await userEvent.type(
+        screen.getByPlaceholderText(/e\.g\. \.\*/i),
+        "^prod-.*",
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(mockCreateMutateAsync).toHaveBeenCalledWith(
@@ -274,9 +305,13 @@ describe("KeyDrawer", () => {
 
       await fillName("test-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /filter by tags/i }));
+      await userEvent.click(
+        screen.getByRole("radio", { name: /filter by tags/i }),
+      );
       await userEvent.click(screen.getByTestId("add-tag-production"));
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(mockCreateMutateAsync).toHaveBeenCalledWith(
@@ -293,10 +328,14 @@ describe("KeyDrawer", () => {
 
       await fillName("test-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /filter by tags/i }));
+      await userEvent.click(
+        screen.getByRole("radio", { name: /filter by tags/i }),
+      );
       await userEvent.click(screen.getByTestId("add-tag-production"));
       await userEvent.click(screen.getByTestId("add-tag-linux"));
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         const arg = mockCreateMutateAsync.mock.calls[0][0] as {
@@ -320,7 +359,9 @@ describe("KeyDrawer", () => {
       const hostnameInput = screen.getByPlaceholderText(/e\.g\. \.\*/i);
       await userEvent.clear(hostnameInput);
       await userEvent.type(hostnameInput, "new-host");
-      await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
 
       await waitFor(() => {
         expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
@@ -338,7 +379,9 @@ describe("KeyDrawer", () => {
       });
 
       await userEvent.click(screen.getByTestId("add-tag-linux"));
-      await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
 
       await waitFor(() => {
         expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
@@ -359,7 +402,9 @@ describe("KeyDrawer", () => {
 
       await fillName("my-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(mockCreateMutateAsync).toHaveBeenCalledWith(
@@ -376,7 +421,9 @@ describe("KeyDrawer", () => {
 
       await fillName("  my-key  ");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(mockCreateMutateAsync).toHaveBeenCalledWith(
@@ -393,7 +440,9 @@ describe("KeyDrawer", () => {
 
       await fillName("my-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
@@ -404,7 +453,9 @@ describe("KeyDrawer", () => {
 
       await fillName("my-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(screen.getByRole("alert")).toHaveTextContent(
@@ -419,7 +470,9 @@ describe("KeyDrawer", () => {
 
       await fillName("my-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(screen.getByText(/server error/i)).toBeInTheDocument();
@@ -437,7 +490,9 @@ describe("KeyDrawer", () => {
       const nameInput = screen.getByPlaceholderText(/name used to identify/i);
       await userEvent.clear(nameInput);
       await userEvent.type(nameInput, "new-name");
-      await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
 
       await waitFor(() => {
         expect(mockUpdateMutateAsync).toHaveBeenCalledWith(
@@ -453,7 +508,9 @@ describe("KeyDrawer", () => {
       mockUpdateMutateAsync.mockResolvedValue(undefined);
       const { onClose } = renderDrawer({ editKey: makeKey() });
 
-      await userEvent.click(screen.getByRole("button", { name: /save changes/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
@@ -466,7 +523,9 @@ describe("KeyDrawer", () => {
 
       await fillName("my-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(mockCreateMutateAsync).toHaveBeenCalledWith(
@@ -483,9 +542,16 @@ describe("KeyDrawer", () => {
 
       await fillName("my-key");
       await fillKeyData(VALID_KEY);
-      await userEvent.click(screen.getByRole("button", { name: /restrict by username/i }));
-      await userEvent.type(screen.getByPlaceholderText(/e\.g\. root/i), "ubuntu");
-      await userEvent.click(screen.getByRole("button", { name: /create key/i }));
+      await userEvent.click(
+        screen.getByRole("radio", { name: /restrict by username/i }),
+      );
+      await userEvent.type(
+        screen.getByPlaceholderText(/e\.g\. root/i),
+        "ubuntu",
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: /create key/i }),
+      );
 
       await waitFor(() => {
         expect(mockCreateMutateAsync).toHaveBeenCalledWith(
@@ -504,7 +570,9 @@ describe("KeyDrawer", () => {
       rerender(<KeyDrawer open={false} editKey={null} onClose={vi.fn()} />);
       rerender(<KeyDrawer open editKey={null} onClose={vi.fn()} />);
 
-      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue("");
+      expect(screen.getByPlaceholderText(/name used to identify/i)).toHaveValue(
+        "",
+      );
     });
   });
 });

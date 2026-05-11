@@ -1,8 +1,8 @@
 import { useState, useEffect, useId, FormEvent } from "react";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
-import { INPUT } from "@/utils/styles";
 import BaseDialog from "@/components/common/BaseDialog";
+import PasswordField from "@/components/common/fields/PasswordField";
 
 interface Props {
   open: boolean;
@@ -20,8 +20,6 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
   const unlock = useVaultStore((s) => s.unlock);
   const clearError = useVaultStore((s) => s.clearError);
   const [password, setPassword] = useState("");
-
-  const errorId = `vault-unlock-error-${instanceId}`;
 
   useEffect(() => {
     if (open) clearError();
@@ -58,48 +56,29 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
       </div>
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-        <div>
-          <label
-            htmlFor={`${instanceId}-password`}
-            className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
-          >
-            Master Password
-          </label>
-          <input
-            id={`${instanceId}-password`}
-            type="password"
-            autoComplete="off"
-            data-1p-ignore
-            data-lpignore="true"
-            data-form-type="other"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your master password"
-            aria-invalid={!!error}
-            aria-describedby={error ? errorId : undefined}
-            className={INPUT}
-          />
-          {error && (
-            <p id={errorId} role="alert" className="text-2xs text-accent-red mt-1.5">
-              {error}
-            </p>
-          )}
-        </div>
+        <PasswordField
+          id={`${instanceId}-password`}
+          label="Master Password"
+          value={password}
+          onChange={setPassword}
+          placeholder="Enter your master password"
+          suppressPasswordManager
+          error={error ?? undefined}
+          errorRole="alert"
+        />
 
         <div className="flex items-center justify-between pt-2">
-          {onReset
-            ? (
-              <button
-                type="button"
-                onClick={onReset}
-                className="text-2xs text-text-muted hover:text-accent-red transition-colors"
-              >
-                Forgot password? Reset vault
-              </button>
-            )
-            : (
-              <div />
-            )}
+          {onReset ? (
+            <button
+              type="button"
+              onClick={onReset}
+              className="text-2xs text-text-muted hover:text-accent-red transition-colors"
+            >
+              Forgot password? Reset vault
+            </button>
+          ) : (
+            <div />
+          )}
           <div className="flex gap-2">
             <button
               type="button"
@@ -114,7 +93,10 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
               className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {loading && (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
+                <span
+                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                  aria-hidden="true"
+                />
               )}
               Unlock
             </button>

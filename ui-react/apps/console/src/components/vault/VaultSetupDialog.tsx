@@ -6,8 +6,8 @@ import {
 import { useVaultStore } from "@/stores/vaultStore";
 import { getVaultBackend } from "@/utils/vault-backend-factory";
 import { useAuthStore } from "@/stores/authStore";
-import { INPUT } from "@/utils/styles";
 import BaseDialog from "@/components/common/BaseDialog";
+import PasswordField from "@/components/common/fields/PasswordField";
 
 interface Props {
   open: boolean;
@@ -29,8 +29,6 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
   const [confirm, setConfirm] = useState("");
 
   const titleId = `vault-setup-title-${instanceId}`;
-  const passwordErrorId = `vault-setup-password-error-${instanceId}`;
-  const confirmErrorId = `vault-setup-confirm-error-${instanceId}`;
 
   useEffect(() => {
     if (open) clearError();
@@ -46,8 +44,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
 
   const passwordTooShort = password.length > 0 && password.length < 8;
   const passwordsMismatch = confirm.length > 0 && password !== confirm;
-  const canSubmit
-    = password.length >= 8 && password === confirm && !loading;
+  const canSubmit = password.length >= 8 && password === confirm && !loading;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -87,77 +84,42 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
         <div className="flex items-start gap-2.5 bg-accent-yellow/[0.08] border border-accent-yellow/20 rounded-lg px-3.5 py-3 mb-5">
           <ExclamationTriangleIcon className="w-4 h-4 text-accent-yellow shrink-0 mt-0.5" />
           <p className="text-xs text-text-secondary">
-            <strong className="text-text-primary">{legacyCount}</strong>
-            {" "}
-            existing
-            {" "}
-            {legacyCount === 1 ? "key" : "keys"}
-            {" "}
-            will be imported
-            and encrypted.
+            <strong className="text-text-primary">{legacyCount}</strong>{" "}
+            existing {legacyCount === 1 ? "key" : "keys"} will be imported and
+            encrypted.
           </p>
         </div>
       )}
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-        <div>
-          <label
-            htmlFor={`${instanceId}-password`}
-            className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
-          >
-            Master Password
-          </label>
-          <input
-            id={`${instanceId}-password`}
-            type="password"
-            autoComplete="off"
-            data-1p-ignore
-            data-lpignore="true"
-            data-form-type="other"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Minimum 8 characters"
-            aria-invalid={passwordTooShort}
-            aria-describedby={passwordTooShort ? passwordErrorId : undefined}
-            className={INPUT}
-          />
-          {passwordTooShort && (
-            <p id={passwordErrorId} className="text-2xs text-accent-red mt-1.5">
-              Password must be at least 8 characters
-            </p>
-          )}
-        </div>
+        <PasswordField
+          id={`${instanceId}-password`}
+          label="Master Password"
+          value={password}
+          onChange={setPassword}
+          placeholder="Minimum 8 characters"
+          suppressPasswordManager
+          error={
+            passwordTooShort
+              ? "Password must be at least 8 characters"
+              : undefined
+          }
+        />
 
-        <div>
-          <label
-            htmlFor={`${instanceId}-confirm`}
-            className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
-          >
-            Confirm Password
-          </label>
-          <input
-            id={`${instanceId}-confirm`}
-            type="password"
-            autoComplete="off"
-            data-1p-ignore
-            data-lpignore="true"
-            data-form-type="other"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            placeholder="Re-enter your password"
-            aria-invalid={passwordsMismatch}
-            aria-describedby={passwordsMismatch ? confirmErrorId : undefined}
-            className={INPUT}
-          />
-          {passwordsMismatch && (
-            <p id={confirmErrorId} className="text-2xs text-accent-red mt-1.5">
-              Passwords do not match
-            </p>
-          )}
-        </div>
+        <PasswordField
+          id={`${instanceId}-confirm`}
+          label="Confirm Password"
+          value={confirm}
+          onChange={setConfirm}
+          placeholder="Re-enter your password"
+          suppressPasswordManager
+          error={passwordsMismatch ? "Passwords do not match" : undefined}
+        />
 
         {error && (
-          <p role="alert" className="text-xs text-accent-red">{error}</p>
+          <p role="alert" className="text-xs text-accent-red">
+            {error}
+          </p>
         )}
 
         <div className="flex justify-end gap-2 pt-2">
@@ -174,7 +136,10 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {loading && (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
+              <span
+                className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                aria-hidden="true"
+              />
             )}
             Create Vault
           </button>
