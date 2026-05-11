@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import KeyFileInput from "../KeyFileInput";
+import KeyFileInput from "@/components/common/fields/KeyFileInput";
 
 afterEach(cleanup);
 
@@ -29,10 +29,12 @@ function renderComponent(props: Props = {}) {
     onChange = noop,
     validate = alwaysValid,
     label = "Public Key",
+    id = "key-file-input",
     ...rest
   } = props;
   return render(
     <KeyFileInput
+      id={id}
       label={label}
       value={value}
       onChange={onChange}

@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
 import { isSdkError } from "../api/errors";
 import { useNavigate } from "react-router-dom";
-import {
-  CheckIcon,
-  ExclamationCircleIcon,
-  EyeSlashIcon,
-  EyeIcon,
-} from "@heroicons/react/24/outline";
+import { CheckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { setup } from "../client";
 import { getConfig } from "../env";
 import { validate, type FormErrors } from "./setup/validate";
+import InputField from "@/components/common/fields/InputField";
+import PasswordField from "@/components/common/fields/PasswordField";
 
 const STEP_ONBOARDING = 1;
 const STEP_ACCOUNT = 2;
@@ -266,7 +263,7 @@ export default function Setup() {
                 error={showError("password")}
                 placeholder="Min. 5 characters"
                 visible={showPassword}
-                onToggle={() => setShowPassword((v) => !v)}
+                onVisibilityChange={setShowPassword}
               />
 
               <PasswordField
@@ -278,7 +275,7 @@ export default function Setup() {
                 error={showError("confirmPassword")}
                 placeholder="Re-enter password"
                 visible={showConfirm}
-                onToggle={() => setShowConfirm((v) => !v)}
+                onVisibilityChange={setShowConfirm}
               />
 
               <div className="flex gap-3 pt-1">
@@ -336,115 +333,6 @@ function StepDot({ active, label }: { active: boolean; label: string }) {
       }`}
     >
       {label}
-    </div>
-  );
-}
-
-function InputField({
-  id,
-  label,
-  type = "text",
-  value,
-  onChange,
-  onBlur,
-  error,
-  placeholder,
-  autoFocus,
-}: {
-  id: string;
-  label: string;
-  type?: string;
-  value: string;
-  onChange: (v: string) => void;
-  onBlur: () => void;
-  error?: string;
-  placeholder: string;
-  autoFocus?: boolean;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        autoFocus={autoFocus}
-        className={`w-full px-3.5 py-2.5 bg-card border rounded-md text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 ${
-          error ? "border-accent-red/50" : "border-border"
-        }`}
-        placeholder={placeholder}
-      />
-      {error && (
-        <p className="text-2xs font-mono text-accent-red mt-1.5">{error}</p>
-      )}
-    </div>
-  );
-}
-
-function PasswordField({
-  id,
-  label,
-  value,
-  onChange,
-  onBlur,
-  error,
-  placeholder,
-  visible,
-  onToggle,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  onBlur: () => void;
-  error?: string;
-  placeholder: string;
-  visible: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2"
-      >
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type={visible ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
-          className={`w-full px-3.5 py-2.5 pr-10 bg-card border rounded-md text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200 ${
-            error ? "border-accent-red/50" : "border-border"
-          }`}
-          placeholder={placeholder}
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
-          tabIndex={-1}
-        >
-          {visible ? (
-            <EyeSlashIcon className="w-4 h-4" />
-          ) : (
-            <EyeIcon className="w-4 h-4" />
-          )}
-        </button>
-      </div>
-      {error && (
-        <p className="text-2xs font-mono text-accent-red mt-1.5">{error}</p>
-      )}
     </div>
   );
 }
