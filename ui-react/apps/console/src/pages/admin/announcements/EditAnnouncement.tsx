@@ -8,7 +8,8 @@ import {
 import { useAdminAnnouncement } from "@/hooks/useAdminAnnouncements";
 import { useAdminUpdateAnnouncement } from "@/hooks/useAdminAnnouncementMutations";
 import AnnouncementEditor from "./AnnouncementEditor";
-import { LABEL, INPUT } from "@/utils/styles";
+import InputField from "@/components/common/fields/InputField";
+import FieldLabel from "@/components/common/fields/FieldLabel";
 
 const TITLE_MAX = 90;
 
@@ -125,33 +126,24 @@ export default function EditAnnouncement() {
         }}
         className="bg-card border border-border rounded-xl p-6 space-y-5"
       >
-        {/* Title field */}
-        <div>
-          <label htmlFor="announcement-title" className={LABEL}>
-            Title
-          </label>
-          <input
-            id="announcement-title"
-            type="text"
-            value={currentTitle}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Announcement title"
-            maxLength={TITLE_MAX}
-            className={INPUT}
-            autoFocus
-          />
-          <div className="flex justify-end mt-1">
-            <span className="text-2xs font-mono text-text-muted">
+        <InputField
+          id="announcement-title"
+          label="Title"
+          labelAdornment={
+            <span className="ml-auto text-2xs font-mono text-text-muted">
               {titleTrimmed.length}/{TITLE_MAX}
             </span>
-          </div>
-        </div>
+          }
+          value={currentTitle}
+          onChange={setTitle}
+          placeholder="Announcement title"
+          maxLength={TITLE_MAX}
+          autoFocus
+        />
 
         {/* Content editor */}
         <div>
-          <label htmlFor="announcement-content-editor" className={LABEL}>
-            Content
-          </label>
+          <FieldLabel htmlFor="announcement-content-editor">Content</FieldLabel>
           <AnnouncementEditor
             key={announcement.uuid}
             content={announcement.content}

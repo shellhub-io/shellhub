@@ -4,9 +4,13 @@ import {
   ChevronDownIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { configureSamlAuthentication } from "../../../client";
-import type { GetAuthenticationSettingsResponse } from "../../../client";
-import Drawer from "../../../components/common/Drawer";
+import { configureSamlAuthentication } from "@/client";
+import type { GetAuthenticationSettingsResponse } from "@/client";
+import Drawer from "@/components/common/Drawer";
+import InputField from "@/components/common/fields/InputField";
+import CheckboxField from "@/components/common/fields/CheckboxField";
+import { INPUT } from "@/utils/styles";
+import FieldLabel from "@/components/common/fields/FieldLabel";
 
 type SamlSettings = NonNullable<GetAuthenticationSettingsResponse>["saml"];
 
@@ -43,8 +47,8 @@ function isValidUrl(s: string): boolean {
 
 function isCertValid(s: string): boolean {
   return (
-    s.includes("-----BEGIN CERTIFICATE-----")
-    && s.includes("-----END CERTIFICATE-----")
+    s.includes("-----BEGIN CERTIFICATE-----") &&
+    s.includes("-----END CERTIFICATE-----")
   );
 }
 
@@ -58,7 +62,9 @@ function normalizeCert(raw: string): string {
   return `${begin}\n${body}\n${end}`;
 }
 
-function buildInitialState(existingConfig: SamlSettings | null | undefined): FormState {
+function buildInitialState(
+  existingConfig: SamlSettings | null | undefined,
+): FormState {
   const base: FormState = {
     useMetadataUrl: false,
     metadataUrl: "",
@@ -85,13 +91,11 @@ function buildInitialState(existingConfig: SamlSettings | null | undefined): For
     signRequests: existingConfig.sp?.sign_requests ?? false,
     emailMapping: existingConfig.idp?.mappings?.email ?? "",
     nameMapping: existingConfig.idp?.mappings?.name ?? "",
-    showAdvanced: !!(existingConfig.idp?.mappings?.email || existingConfig.idp?.mappings?.name),
+    showAdvanced: !!(
+      existingConfig.idp?.mappings?.email || existingConfig.idp?.mappings?.name
+    ),
   };
 }
-
-const fieldLabel = "block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2";
-const fieldInput = "w-full px-3 py-2.5 bg-background border border-border rounded-lg text-sm text-text-primary font-mono placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200";
-const fieldInputError = "border-accent-red/50 focus:border-accent-red/50 focus:ring-accent-red/20";
 
 export default function SamlConfigDrawer({
   open,
@@ -99,7 +103,9 @@ export default function SamlConfigDrawer({
   onSaved,
   existingConfig,
 }: Props) {
-  const [form, setForm] = useState<FormState>(() => buildInitialState(existingConfig));
+  const [form, setForm] = useState<FormState>(() =>
+    buildInitialState(existingConfig),
+  );
   const [prevOpen, setPrevOpen] = useState(open);
 
   // Populate / reset when drawer (re-)opens.
@@ -112,26 +118,40 @@ export default function SamlConfigDrawer({
     }
   }
 
-  const { useMetadataUrl, metadataUrl, postUrl, redirectUrl, entityId,
-    certificate, emailMapping, nameMapping, signRequests,
-    showAdvanced, saving, formError } = form;
+  const {
+    useMetadataUrl,
+    metadataUrl,
+    postUrl,
+    redirectUrl,
+    entityId,
+    certificate,
+    emailMapping,
+    nameMapping,
+    signRequests,
+    showAdvanced,
+    saving,
+    formError,
+  } = form;
 
-  const patch = (fields: Partial<FormState>) => setForm((prev) => ({ ...prev, ...fields }));
+  const patch = (fields: Partial<FormState>) =>
+    setForm((prev) => ({ ...prev, ...fields }));
 
   // Validation
   const noUrlProvided = !useMetadataUrl && !postUrl && !redirectUrl;
   const postUrlInvalid = !useMetadataUrl && !!postUrl && !isValidUrl(postUrl);
-  const redirectUrlInvalid = !useMetadataUrl && !!redirectUrl && !isValidUrl(redirectUrl);
-  const certInvalid = !useMetadataUrl && !!certificate && !isCertValid(certificate);
+  const redirectUrlInvalid =
+    !useMetadataUrl && !!redirectUrl && !isValidUrl(redirectUrl);
+  const certInvalid =
+    !useMetadataUrl && !!certificate && !isCertValid(certificate);
 
   const hasErrors = useMetadataUrl
     ? !metadataUrl || !isValidUrl(metadataUrl)
-    : noUrlProvided
-      || postUrlInvalid
-      || redirectUrlInvalid
-      || !entityId.trim()
-      || !certificate.trim()
-      || certInvalid;
+    : noUrlProvided ||
+      postUrlInvalid ||
+      redirectUrlInvalid ||
+      !entityId.trim() ||
+      !certificate.trim() ||
+      certInvalid;
 
   const buildBody = () => {
     if (useMetadataUrl) {
@@ -174,7 +194,8 @@ export default function SamlConfigDrawer({
       onClose();
     } catch {
       patch({
-        formError: "Failed to save SAML configuration. Please check your settings and try again.",
+        formError:
+          "Failed to save SAML configuration. Please check your settings and try again.",
       });
     } finally {
       patch({ saving: false });
@@ -220,119 +241,104 @@ export default function SamlConfigDrawer({
             role="alert"
             className="flex items-start gap-2 bg-accent-red/8 border border-accent-red/20 text-accent-red px-3.5 py-2.5 rounded-md text-xs font-mono"
           >
-            <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2} />
+            <ExclamationCircleIcon
+              className="w-3.5 h-3.5 shrink-0 mt-0.5"
+              strokeWidth={2}
+            />
             {formError}
           </div>
         )}
 
         {/* Metadata URL toggle */}
-        <label className="flex items-center gap-3 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={useMetadataUrl}
-            onChange={(e) => patch({ useMetadataUrl: e.target.checked })}
-            className="w-4 h-4 rounded border-border bg-background text-primary focus:ring-primary/30"
-          />
-          <span className="text-sm text-text-primary font-medium">Use Metadata URL</span>
-          <span className="text-2xs text-text-muted">
-            Automatically fetch IdP configuration from a URL
-          </span>
-        </label>
+        <CheckboxField
+          id="saml-use-metadata-url"
+          label="Use Metadata URL"
+          description="Automatically fetch IdP configuration from a URL"
+          checked={useMetadataUrl}
+          onChange={(checked) => patch({ useMetadataUrl: checked })}
+        />
 
         {useMetadataUrl ? (
           /* Metadata URL mode */
-          <div>
-            <label htmlFor="metadata-url" className={fieldLabel}>
-              IdP Metadata URL
-            </label>
-            <input
-              id="metadata-url"
-              type="url"
-              value={metadataUrl}
-              onChange={(e) => patch({ metadataUrl: e.target.value })}
-              placeholder="https://idp.example.com/metadata.xml"
-              className={`${fieldInput} ${metadataUrl && !isValidUrl(metadataUrl) ? fieldInputError : ""}`}
-            />
-            {metadataUrl && !isValidUrl(metadataUrl) && (
-              <p className="mt-1 text-2xs text-accent-red font-mono">Must be a valid URL</p>
-            )}
-          </div>
+          <InputField
+            id="metadata-url"
+            label="IdP Metadata URL"
+            type="url"
+            value={metadataUrl}
+            onChange={(v) => patch({ metadataUrl: v })}
+            placeholder="https://idp.example.com/metadata.xml"
+            variant="mono"
+            error={
+              metadataUrl && !isValidUrl(metadataUrl)
+                ? "Must be a valid URL"
+                : undefined
+            }
+          />
         ) : (
           /* Manual configuration mode */
           <div className="space-y-4">
             {/* URL warning */}
             {noUrlProvided && (
               <div className="flex items-start gap-2 bg-accent-yellow/8 border border-accent-yellow/20 text-accent-yellow px-3.5 py-2.5 rounded-md text-xs font-mono">
-                <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2} />
+                <ExclamationCircleIcon
+                  className="w-3.5 h-3.5 shrink-0 mt-0.5"
+                  strokeWidth={2}
+                />
                 Please provide at least one Sign-On URL (POST or Redirect)
               </div>
             )}
 
-            <div>
-              <label htmlFor="post-url" className={fieldLabel}>
-                SSO POST URL
-              </label>
-              <input
-                id="post-url"
-                type="url"
-                value={postUrl}
-                onChange={(e) => patch({ postUrl: e.target.value })}
-                placeholder="https://idp.example.com/sso/post"
-                className={`${fieldInput} ${postUrlInvalid ? fieldInputError : ""}`}
-              />
-              {postUrlInvalid && (
-                <p className="mt-1 text-2xs text-accent-red font-mono">Must be a valid URL</p>
-              )}
-            </div>
+            <InputField
+              id="post-url"
+              label="SSO POST URL"
+              type="url"
+              value={postUrl}
+              onChange={(v) => patch({ postUrl: v })}
+              placeholder="https://idp.example.com/sso/post"
+              variant="mono"
+              error={postUrlInvalid ? "Must be a valid URL" : undefined}
+            />
+
+            <InputField
+              id="redirect-url"
+              label="SSO Redirect URL"
+              type="url"
+              value={redirectUrl}
+              onChange={(v) => patch({ redirectUrl: v })}
+              placeholder="https://idp.example.com/sso/redirect"
+              variant="mono"
+              error={redirectUrlInvalid ? "Must be a valid URL" : undefined}
+            />
+
+            <InputField
+              id="entity-id"
+              label="Entity ID"
+              value={entityId}
+              onChange={(v) => patch({ entityId: v })}
+              placeholder="https://idp.example.com/entity"
+              variant="mono"
+              hint="Issuer/Entity ID from your IdP's SAML configuration"
+            />
 
             <div>
-              <label htmlFor="redirect-url" className={fieldLabel}>
-                SSO Redirect URL
-              </label>
-              <input
-                id="redirect-url"
-                type="url"
-                value={redirectUrl}
-                onChange={(e) => patch({ redirectUrl: e.target.value })}
-                placeholder="https://idp.example.com/sso/redirect"
-                className={`${fieldInput} ${redirectUrlInvalid ? fieldInputError : ""}`}
-              />
-              {redirectUrlInvalid && (
-                <p className="mt-1 text-2xs text-accent-red font-mono">Must be a valid URL</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="entity-id" className={fieldLabel}>
-                Entity ID
-              </label>
-              <input
-                id="entity-id"
-                type="text"
-                value={entityId}
-                onChange={(e) => patch({ entityId: e.target.value })}
-                placeholder="https://idp.example.com/entity"
-                className={fieldInput}
-              />
-              <p className="mt-1 text-2xs text-text-muted font-mono">
-                Issuer/Entity ID from your IdP&apos;s SAML configuration
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="certificate" className={fieldLabel}>
-                X.509 Certificate
-              </label>
+              <FieldLabel htmlFor="certificate">X.509 Certificate</FieldLabel>
               <textarea
                 id="certificate"
                 value={certificate}
                 onChange={(e) => patch({ certificate: e.target.value })}
                 rows={5}
-                placeholder={"-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"}
-                className={`${fieldInput} resize-none font-mono text-2xs leading-relaxed ${certInvalid ? fieldInputError : ""}`}
+                placeholder={
+                  "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+                }
+                aria-invalid={certInvalid || undefined}
+                aria-describedby={certInvalid ? "certificate-error" : undefined}
+                className={`${INPUT} resize-none font-mono text-2xs leading-relaxed ${certInvalid ? "border-accent-red/50" : ""}`}
               />
               {certInvalid && (
-                <p className="mt-1 text-2xs text-accent-red font-mono">
+                <p
+                  id="certificate-error"
+                  className="mt-1 text-2xs text-accent-red font-mono"
+                >
                   Must include BEGIN CERTIFICATE and END CERTIFICATE markers
                 </p>
               )}
@@ -356,56 +362,33 @@ export default function SamlConfigDrawer({
 
           {showAdvanced && (
             <div className="px-4 pb-4 pt-1 space-y-4 border-t border-border">
-              <div>
-                <label htmlFor="email-mapping" className={fieldLabel}>
-                  Email Attribute Mapping
-                </label>
-                <input
-                  id="email-mapping"
-                  type="text"
-                  value={emailMapping}
-                  onChange={(e) => patch({ emailMapping: e.target.value })}
-                  placeholder="emailAddress"
-                  className={fieldInput}
-                />
-                <p className="mt-1 text-2xs text-text-muted font-mono">
-                  SAML attribute name that contains the user&apos;s email address
-                </p>
-              </div>
+              <InputField
+                id="email-mapping"
+                label="Email Attribute Mapping"
+                value={emailMapping}
+                onChange={(v) => patch({ emailMapping: v })}
+                placeholder="emailAddress"
+                variant="mono"
+                hint="SAML attribute name that contains the user's email address"
+              />
 
-              <div>
-                <label htmlFor="name-mapping" className={fieldLabel}>
-                  Name Attribute Mapping
-                </label>
-                <input
-                  id="name-mapping"
-                  type="text"
-                  value={nameMapping}
-                  onChange={(e) => patch({ nameMapping: e.target.value })}
-                  placeholder="displayName"
-                  className={fieldInput}
-                />
-                <p className="mt-1 text-2xs text-text-muted font-mono">
-                  SAML attribute name that contains the user&apos;s display name
-                </p>
-              </div>
+              <InputField
+                id="name-mapping"
+                label="Name Attribute Mapping"
+                value={nameMapping}
+                onChange={(v) => patch({ nameMapping: v })}
+                placeholder="displayName"
+                variant="mono"
+                hint="SAML attribute name that contains the user's display name"
+              />
 
-              <label className="flex items-start gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={signRequests}
-                  onChange={(e) => patch({ signRequests: e.target.checked })}
-                  className="mt-0.5 w-4 h-4 rounded border-border bg-background text-primary focus:ring-primary/30"
-                />
-                <div>
-                  <span className="text-sm text-text-primary font-medium block">
-                    Sign authorization requests
-                  </span>
-                  <span className="text-2xs text-text-muted font-mono">
-                    Allows the IdP to verify that SAML requests originated from ShellHub
-                  </span>
-                </div>
-              </label>
+              <CheckboxField
+                id="saml-sign-requests"
+                label="Sign authorization requests"
+                description="Allows the IdP to verify that SAML requests originated from ShellHub"
+                checked={signRequests}
+                onChange={(checked) => patch({ signRequests: checked })}
+              />
             </div>
           )}
         </div>
