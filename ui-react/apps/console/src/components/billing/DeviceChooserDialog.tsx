@@ -17,6 +17,7 @@ import DataTable, { type Column } from "../common/DataTable";
 import DistroIcon from "../common/DistroIcon";
 import OnlineDot from "../common/OnlineDot";
 import LastSeenCell from "../common/LastSeenCell";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
@@ -548,13 +549,13 @@ function AllTab({
         const checked = isSelected(d);
         const disabled = !checked && atLimit;
         return (
-          <input
-            type="checkbox"
+          <CheckboxField
+            id={`device-select-${d.uid}`}
+            label={`Select ${d.name ?? "device"}`}
+            hideLabel
             checked={checked}
             disabled={disabled}
             onChange={() => onToggle(d)}
-            aria-label={`Select ${d.name ?? "device"}`}
-            className="w-4 h-4 rounded border border-border bg-surface accent-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50 disabled:opacity-40 disabled:cursor-not-allowed"
           />
         );
       },

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useCountdown } from "@/hooks/useCountdown";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 
 interface MfaRecoveryTimeoutModalProps {
   open: boolean;
@@ -69,18 +70,14 @@ export default function MfaRecoveryTimeoutModal({
         </div>
 
         {/* Checkbox */}
-        <label className="flex items-start gap-3 mb-6 cursor-pointer group">
-          <input
-            type="checkbox"
+        <div className="mb-6">
+          <CheckboxField
+            id="mfa-recovery-has-access"
+            label="I have access to my authentication device and want to keep MFA enabled"
             checked={hasAccess}
-            onChange={(e) => setHasAccess(e.target.checked)}
-            className="mt-0.5 w-4 h-4 rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            onChange={setHasAccess}
           />
-          <span className="text-sm text-text-muted group-hover:text-text-secondary transition-colors">
-            I have access to my authentication device and want to keep MFA
-            enabled
-          </span>
-        </label>
+        </div>
 
         {/* Actions */}
         <div className="flex justify-end gap-2">

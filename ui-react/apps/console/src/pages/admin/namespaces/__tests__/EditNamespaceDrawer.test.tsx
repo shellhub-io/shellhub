@@ -9,11 +9,6 @@ vi.mock("@/hooks/useAdminNamespaceMutations", () => ({
   useAdminEditNamespace: vi.fn(),
 }));
 
-vi.mock("@/utils/styles", () => ({
-  LABEL: "label",
-  INPUT: "input",
-}));
-
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("@/pages/admin/users/__tests__/mocks")).MockDrawer,
 }));
