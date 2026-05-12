@@ -5,6 +5,7 @@ import { useResetUserPassword } from "@/hooks/useAdminUserMutations";
 import { isSdkError } from "@/api/errors";
 import CopyButton from "@/components/common/CopyButton";
 import BaseDialog from "@/components/common/BaseDialog";
+import InputField from "@/components/common/fields/InputField";
 
 interface ResetPasswordDialogProps {
   open: boolean;
@@ -129,13 +130,17 @@ export default function ResetPasswordDialog({
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={generatedPassword}
-                className="flex-1 px-3.5 py-2.5 bg-card border border-border rounded-lg text-sm text-text-primary font-mono focus:outline-none"
-                aria-label="Generated password"
-              />
+              <div className="flex-1">
+                <InputField
+                  id={`${autoId}-generated-password`}
+                  label="Generated password"
+                  hideLabel
+                  readOnly
+                  value={generatedPassword}
+                  onChange={() => {}}
+                  variant="mono"
+                />
+              </div>
               <CopyButton text={generatedPassword} size="md" showLabel />
             </div>
           </div>
