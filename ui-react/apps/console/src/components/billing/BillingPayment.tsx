@@ -29,7 +29,8 @@ import {
   useSetDefaultPaymentMethod,
 } from "@/hooks/useBilling";
 import { stripeErrorMessage } from "@/utils/stripeErrors";
-import { LABEL } from "@/utils/styles";
+import FieldLabel from "@/components/common/fields/FieldLabel";
+import InputField from "@/components/common/fields/InputField";
 import BillingIcon from "./BillingIcon";
 
 const ELEMENTS_OPTIONS: StripeElementsOptions = {
@@ -267,32 +268,21 @@ function BillingPaymentInner({
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={LABEL} htmlFor="billing-customer-name">
-            Name
-          </label>
-          <input
-            id="billing-customer-name"
-            type="text"
-            value={customer?.name ?? ""}
-            disabled
-            readOnly
-            className="w-full px-3.5 py-2.5 bg-background border border-border rounded-lg text-sm text-text-muted cursor-not-allowed"
-          />
-        </div>
-        <div>
-          <label className={LABEL} htmlFor="billing-customer-email">
-            E-mail
-          </label>
-          <input
-            id="billing-customer-email"
-            type="email"
-            value={customer?.email ?? ""}
-            disabled
-            readOnly
-            className="w-full px-3.5 py-2.5 bg-background border border-border rounded-lg text-sm text-text-muted cursor-not-allowed"
-          />
-        </div>
+        <InputField
+          id="billing-customer-name"
+          label="Name"
+          value={customer?.name ?? ""}
+          onChange={() => {}}
+          readOnly
+        />
+        <InputField
+          id="billing-customer-email"
+          label="E-mail"
+          type="email"
+          value={customer?.email ?? ""}
+          onChange={() => {}}
+          readOnly
+        />
       </div>
 
       <div>
@@ -385,9 +375,7 @@ function BillingPaymentInner({
       {isAddingCard && (
         <div className="bg-card border border-border rounded-lg p-4 space-y-3">
           <div>
-            <label className={LABEL} htmlFor="stripe-card-element">
-              Card details
-            </label>
+            <FieldLabel htmlFor="stripe-card-element">Card details</FieldLabel>
             <div
               id="stripe-card-element"
               className="w-full px-3.5 py-3 bg-background border border-border rounded-lg focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all"

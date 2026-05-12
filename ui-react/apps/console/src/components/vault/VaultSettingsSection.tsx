@@ -8,7 +8,8 @@ import {
 import { useVaultStore } from "@/stores/vaultStore";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import Drawer from "@/components/common/Drawer";
-import { INPUT } from "@/utils/styles";
+import InputField from "@/components/common/fields/InputField";
+import PasswordField from "@/components/common/fields/PasswordField";
 
 function ChangePasswordDrawer({
   open,
@@ -39,12 +40,13 @@ function ChangePasswordDrawer({
   }, [open, clearError]);
 
   const newTooShort = newPassword.length > 0 && newPassword.length < 8;
-  const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
-  const canSubmit
-    = currentPassword.length > 0
-      && newPassword.length >= 8
-      && newPassword === confirmPassword
-      && !loading;
+  const mismatch =
+    confirmPassword.length > 0 && newPassword !== confirmPassword;
+  const canSubmit =
+    currentPassword.length > 0 &&
+    newPassword.length >= 8 &&
+    newPassword === confirmPassword &&
+    !loading;
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -60,7 +62,7 @@ function ChangePasswordDrawer({
       open={open}
       onClose={onClose}
       title="Change Master Password"
-      footer={(
+      footer={
         <>
           <button
             type="button"
@@ -81,75 +83,42 @@ function ChangePasswordDrawer({
             Update Password
           </button>
         </>
-      )}
+      }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <div>
-          <label
-            htmlFor="vault-current-password"
-            className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
-          >
-            Current Password
-          </label>
-          <input
-            id="vault-current-password"
-            type="password"
-            autoComplete="off"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="Enter current master password"
-            autoFocus={open}
-            className={INPUT}
-          />
-        </div>
+        <PasswordField
+          id="vault-current-password"
+          label="Current Password"
+          value={currentPassword}
+          onChange={setCurrentPassword}
+          placeholder="Enter current master password"
+          autoFocus={open}
+          suppressPasswordManager
+        />
 
         <div className="h-px bg-border" />
 
-        <div>
-          <label
-            htmlFor="vault-new-password"
-            className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
-          >
-            New Password
-          </label>
-          <input
-            id="vault-new-password"
-            type="password"
-            autoComplete="off"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Minimum 8 characters"
-            className={INPUT}
-          />
-          {newTooShort && (
-            <p className="text-2xs text-accent-red mt-1.5">
-              Password must be at least 8 characters
-            </p>
-          )}
-        </div>
+        <PasswordField
+          id="vault-new-password"
+          label="New Password"
+          value={newPassword}
+          onChange={setNewPassword}
+          placeholder="Minimum 8 characters"
+          suppressPasswordManager
+          error={
+            newTooShort ? "Password must be at least 8 characters" : undefined
+          }
+        />
 
-        <div>
-          <label
-            htmlFor="vault-confirm-new-password"
-            className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-1.5"
-          >
-            Confirm New Password
-          </label>
-          <input
-            id="vault-confirm-new-password"
-            type="password"
-            autoComplete="off"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Re-enter new password"
-            className={INPUT}
-          />
-          {mismatch && (
-            <p className="text-2xs text-accent-red mt-1.5">
-              Passwords do not match
-            </p>
-          )}
-        </div>
+        <PasswordField
+          id="vault-confirm-new-password"
+          label="Confirm New Password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          placeholder="Re-enter new password"
+          suppressPasswordManager
+          error={mismatch ? "Passwords do not match" : undefined}
+        />
 
         {error && (
           <p className="text-xs text-accent-red flex items-center gap-1.5">
@@ -218,9 +187,7 @@ export default function VaultSettingsSection() {
           >
             <ExclamationTriangleIcon className="w-4 h-4 text-accent-red shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-medium text-accent-red">
-                Reset Vault
-              </p>
+              <p className="text-sm font-medium text-accent-red">Reset Vault</p>
               <p className="text-2xs text-text-muted">
                 Permanently delete all stored keys. This cannot be undone.
               </p>
@@ -245,30 +212,27 @@ export default function VaultSettingsSection() {
           setResetOpen(false);
         }}
         title="Reset Secure Vault"
-        description={(
+        description={
           <>
             This will permanently delete all your stored SSH private keys. This
-            action
-            {" "}
-            <strong className="text-text-primary">cannot be undone</strong>
-            .
-            Type
-            {" "}
-            <code className="text-accent-red font-mono">RESET</code>
-            {" "}
-            to confirm.
+            action{" "}
+            <strong className="text-text-primary">cannot be undone</strong>.
+            Type <code className="text-accent-red font-mono">RESET</code> to
+            confirm.
           </>
-        )}
+        }
         confirmLabel="Reset Vault"
         confirmDisabled={resetConfirmText !== "RESET"}
       >
         <div className="mb-4">
-          <input
-            type="text"
+          <InputField
+            id="vault-reset-confirm"
+            label='Type "RESET" to confirm'
+            hideLabel
             value={resetConfirmText}
-            onChange={(e) => setResetConfirmText(e.target.value)}
-            placeholder='Type "RESET" to confirm'
-            className={INPUT}
+            onChange={setResetConfirmText}
+            placeholder="RESET"
+            autoFocus
           />
         </div>
       </ConfirmDialog>

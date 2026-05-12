@@ -13,7 +13,13 @@ import CopyButton from "./common/CopyButton";
 import Drawer from "./common/Drawer";
 import VaultLockedBanner from "./vault/VaultLockedBanner";
 import VaultUnlockDialog from "./vault/VaultUnlockDialog";
-import { LABEL, INPUT } from "../utils/styles";
+import InputField from "@/components/common/fields/InputField";
+import PasswordField from "@/components/common/fields/PasswordField";
+import FieldLabel from "@/components/common/fields/FieldLabel";
+import RadioCard from "@/components/common/fields/RadioCard";
+import RadioGroupField from "@/components/common/fields/RadioGroupField";
+import RadioSegment from "@/components/common/fields/RadioSegment";
+import { INPUT, LABEL } from "../utils/styles";
 import type { VaultKeyEntry } from "../types/vault";
 
 interface Props {
@@ -37,16 +43,16 @@ interface FormState {
   keyError: string | null;
 }
 
-type FormAction
-  = | { type: "reset" }
-    | { type: "setUsername"; value: string }
-    | { type: "setAuthMethod"; value: "password" | "key" }
-    | { type: "setPassword"; value: string }
-    | { type: "setKeySource"; value: "vault" | "manual" }
-    | { type: "setSelectedKeyId"; value: string }
-    | { type: "setManualKey"; value: string; valid: boolean; encrypted: boolean }
-    | { type: "setPassphrase"; value: string }
-    | { type: "setKeyError"; value: string | null };
+type FormAction =
+  | { type: "reset" }
+  | { type: "setUsername"; value: string }
+  | { type: "setAuthMethod"; value: "password" | "key" }
+  | { type: "setPassword"; value: string }
+  | { type: "setKeySource"; value: "vault" | "manual" }
+  | { type: "setSelectedKeyId"; value: string }
+  | { type: "setManualKey"; value: string; valid: boolean; encrypted: boolean }
+  | { type: "setPassphrase"; value: string }
+  | { type: "setKeyError"; value: string | null };
 
 const initialState: FormState = {
   username: "",
@@ -118,17 +124,25 @@ export default function ConnectDrawer({
     ? vaultKeys.find((k) => k.id === state.selectedKeyId)
     : undefined;
 
-  const canConnect
-    = state.username.trim().length > 0
-      && (state.authMethod === "password"
-        ? state.password.trim().length > 0
-        : effectiveKeySource === "vault"
-          ? !!selectedVaultKey && (!selectedVaultKey.hasPassphrase || state.passphrase.trim().length > 0)
-          : state.manualKeyValid && (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
+  const canConnect =
+    state.username.trim().length > 0 &&
+    (state.authMethod === "password"
+      ? state.password.trim().length > 0
+      : effectiveKeySource === "vault"
+        ? !!selectedVaultKey &&
+          (!selectedVaultKey.hasPassphrase ||
+            state.passphrase.trim().length > 0)
+        : state.manualKeyValid &&
+          (!state.manualKeyEncrypted || state.passphrase.trim().length > 0));
 
   const handleManualKeyChange = (pem: string) => {
     if (!pem.trim()) {
-      dispatch({ type: "setManualKey", value: pem, valid: false, encrypted: false });
+      dispatch({
+        type: "setManualKey",
+        value: pem,
+        valid: false,
+        encrypted: false,
+      });
       return;
     }
     const result = validatePrivateKey(pem.trim());
@@ -152,22 +166,39 @@ export default function ConnectDrawer({
         password: state.password,
       });
     } else {
-      const key = effectiveKeySource === "vault" && selectedVaultKey
-        ? selectedVaultKey.data
-        : state.privateKey.trim();
-      const phrase = effectiveKeySource === "vault" && selectedVaultKey
-        ? (selectedVaultKey.hasPassphrase ? state.passphrase : undefined)
-        : (state.manualKeyEncrypted ? state.passphrase : undefined);
+      const key =
+        effectiveKeySource === "vault" && selectedVaultKey
+          ? selectedVaultKey.data
+          : state.privateKey.trim();
+      const phrase =
+        effectiveKeySource === "vault" && selectedVaultKey
+          ? selectedVaultKey.hasPassphrase
+            ? state.passphrase
+            : undefined
+          : state.manualKeyEncrypted
+            ? state.passphrase
+            : undefined;
 
       let fingerprint: string;
       try {
         fingerprint = getFingerprint(key, phrase);
       } catch {
-        dispatch({ type: "setKeyError", value: "Failed to read private key. Check the key or passphrase." });
+        dispatch({
+          type: "setKeyError",
+          value: "Failed to read private key. Check the key or passphrase.",
+        });
         return;
       }
-      if (effectiveKeySource === "vault" && selectedVaultKey && fingerprint !== selectedVaultKey.fingerprint) {
-        dispatch({ type: "setKeyError", value: "Key data appears corrupted. Try re-importing the key into the vault." });
+      if (
+        effectiveKeySource === "vault" &&
+        selectedVaultKey &&
+        fingerprint !== selectedVaultKey.fingerprint
+      ) {
+        dispatch({
+          type: "setKeyError",
+          value:
+            "Key data appears corrupted. Try re-importing the key into the vault.",
+        });
         return;
       }
       dispatch({ type: "setKeyError", value: null });
@@ -187,13 +218,16 @@ export default function ConnectDrawer({
 
   return (
     <>
-      <VaultUnlockDialog open={unlockOpen} onClose={() => setUnlockOpen(false)} />
+      <VaultUnlockDialog
+        open={unlockOpen}
+        onClose={() => setUnlockOpen(false)}
+      />
       <Drawer
         open={open}
         onClose={onClose}
         title="Connect"
         subtitle={<span className="font-mono">{deviceName}</span>}
-        footer={(
+        footer={
           <>
             <button
               type="button"
@@ -212,28 +246,29 @@ export default function ConnectDrawer({
               Connect
             </button>
           </>
-        )}
+        }
       >
-        <form id={`connect-form-${deviceUid}`} onSubmit={handleConnect} className="space-y-5">
+        <form
+          id={`connect-form-${deviceUid}`}
+          onSubmit={handleConnect}
+          className="space-y-5"
+        >
           {/* SSHID helper */}
           <div className="bg-card border border-border rounded-lg p-3.5">
-            <p className={LABEL}>Connect via terminal</p>
+            <span className={LABEL}>Connect via terminal</span>
             <div className="flex items-center gap-2">
               <code className="text-xs font-mono flex-1 truncate">
                 <span className="text-accent-cyan">ssh </span>
                 {state.username.trim() ? (
                   <span className="text-accent-cyan">
-                    {state.username.trim()}
-                    @
-                    {sshid}
+                    {state.username.trim()}@{sshid}
                   </span>
                 ) : (
                   <>
-                    <span className="text-text-muted italic">&lt;username&gt;</span>
-                    <span className="text-accent-cyan">
-                      @
-                      {sshid}
+                    <span className="text-text-muted italic">
+                      &lt;username&gt;
                     </span>
+                    <span className="text-accent-cyan">@{sshid}</span>
                   </>
                 )}
               </code>
@@ -264,106 +299,45 @@ export default function ConnectDrawer({
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* Username */}
-          <div>
-            <label className={LABEL}>Username</label>
-            <input
-              type="text"
-              value={state.username}
-              onChange={(e) => dispatch({ type: "setUsername", value: e.target.value })}
-              placeholder="e.g. root"
-              autoFocus={open}
-              className={INPUT}
-            />
-          </div>
+          <InputField
+            id="connect-username"
+            label="Username"
+            value={state.username}
+            onChange={(v) => dispatch({ type: "setUsername", value: v })}
+            placeholder="e.g. root"
+            autoFocus={open}
+          />
 
           {/* Auth Method */}
-          <div>
-            <label className={LABEL}>Authentication</label>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "setAuthMethod", value: "password" })}
-                className={`flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all ${
-                  state.authMethod === "password"
-                    ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
-                    : "bg-card border-border hover:border-border-light hover:bg-hover-subtle"
-                }`}
-              >
-                <div
-                  className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${state.authMethod === "password" ? "border-primary" : "border-text-muted/40"}`}
-                >
-                  {state.authMethod === "password" && (
-                    <div className="w-2 h-2 rounded-full bg-primary" />
-                  )}
-                </div>
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span
-                    className={`mt-0.5 shrink-0 transition-colors ${state.authMethod === "password" ? "text-primary" : "text-text-muted"}`}
-                  >
-                    <LockClosedIcon className="w-4 h-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <span
-                      className={`block text-sm font-medium transition-colors ${state.authMethod === "password" ? "text-text-primary" : "text-text-secondary"}`}
-                    >
-                      Password
-                    </span>
-                    <span className="block text-2xs text-text-muted mt-0.5">
-                      Authenticate with your device password.
-                    </span>
-                  </div>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "setAuthMethod", value: "key" })}
-                className={`flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all ${
-                  state.authMethod === "key"
-                    ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
-                    : "bg-card border-border hover:border-border-light hover:bg-hover-subtle"
-                }`}
-              >
-                <div
-                  className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${state.authMethod === "key" ? "border-primary" : "border-text-muted/40"}`}
-                >
-                  {state.authMethod === "key" && (
-                    <div className="w-2 h-2 rounded-full bg-primary" />
-                  )}
-                </div>
-                <div className="flex items-start gap-2.5 min-w-0">
-                  <span
-                    className={`mt-0.5 shrink-0 transition-colors ${state.authMethod === "key" ? "text-primary" : "text-text-muted"}`}
-                  >
-                    <KeyIcon className="w-4 h-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <span
-                      className={`block text-sm font-medium transition-colors ${state.authMethod === "key" ? "text-text-primary" : "text-text-secondary"}`}
-                    >
-                      Private Key
-                    </span>
-                    <span className="block text-2xs text-text-muted mt-0.5">
-                      Authenticate using your SSH private key.
-                    </span>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
+          <RadioGroupField
+            label="Authentication"
+            value={state.authMethod}
+            onChange={(v) => dispatch({ type: "setAuthMethod", value: v })}
+          >
+            <RadioCard
+              value="password"
+              icon={<LockClosedIcon className="w-4 h-4" />}
+              label="Password"
+              description="Authenticate with your device password."
+            />
+            <RadioCard
+              value="key"
+              icon={<KeyIcon className="w-4 h-4" />}
+              label="Private Key"
+              description="Authenticate using your SSH private key."
+            />
+          </RadioGroupField>
 
           {/* Password field */}
           {state.authMethod === "password" && (
-            <div>
-              <label className={LABEL}>Password</label>
-              <input
-                type="password"
-                value={state.password}
-                onChange={(e) => dispatch({ type: "setPassword", value: e.target.value })}
-                placeholder="Enter device password"
-                className={INPUT}
-              />
-            </div>
+            <PasswordField
+              id="connect-password"
+              label="Password"
+              autoComplete="current-password"
+              value={state.password}
+              onChange={(v) => dispatch({ type: "setPassword", value: v })}
+              placeholder="Enter device password"
+            />
           )}
 
           {/* Private Key fields */}
@@ -376,45 +350,43 @@ export default function ConnectDrawer({
 
               {/* Key source toggle (only if vault has keys) */}
               {hasVaultKeys && (
-                <div>
-                  <label className={LABEL}>Key Source</label>
-                  <div className="flex gap-1 p-0.5 bg-card border border-border rounded-lg">
-                    <button
-                      type="button"
-                      onClick={() => dispatch({ type: "setKeySource", value: "vault" })}
-                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                        state.keySource === "vault"
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : "text-text-secondary hover:text-text-primary"
-                      }`}
-                    >
-                      <ShieldCheckIcon className="w-3.5 h-3.5" />
-                      Vault
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => dispatch({ type: "setKeySource", value: "manual" })}
-                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                        state.keySource === "manual"
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : "text-text-secondary hover:text-text-primary"
-                      }`}
-                    >
-                      <KeyIcon className="w-3.5 h-3.5" />
-                      Manual
-                    </button>
-                  </div>
-                </div>
+                <RadioGroupField
+                  label="Key Source"
+                  value={state.keySource}
+                  onChange={(value) =>
+                    dispatch({ type: "setKeySource", value })
+                  }
+                  containerClassName="flex gap-1 p-0.5 bg-card border border-border rounded-lg"
+                >
+                  <RadioSegment
+                    value="vault"
+                    label="Vault"
+                    icon={<ShieldCheckIcon className="w-3.5 h-3.5" />}
+                  />
+                  <RadioSegment
+                    value="manual"
+                    label="Manual"
+                    icon={<KeyIcon className="w-3.5 h-3.5" />}
+                  />
+                </RadioGroupField>
               )}
 
               {/* Vault key selector */}
               {effectiveKeySource === "vault" ? (
                 <>
                   <div>
-                    <label className={LABEL}>Select Key</label>
+                    <FieldLabel htmlFor="connect-vault-key">
+                      Select Key
+                    </FieldLabel>
                     <select
+                      id="connect-vault-key"
                       value={state.selectedKeyId}
-                      onChange={(e) => dispatch({ type: "setSelectedKeyId", value: e.target.value })}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "setSelectedKeyId",
+                          value: e.target.value,
+                        })
+                      }
                       className={INPUT}
                     >
                       <option value="">Choose a key...</option>
@@ -426,24 +398,27 @@ export default function ConnectDrawer({
                     </select>
                   </div>
                   {selectedVaultKey?.hasPassphrase && (
-                    <div>
-                      <label className={LABEL}>Passphrase</label>
-                      <input
-                        type="password"
-                        value={state.passphrase}
-                        onChange={(e) => dispatch({ type: "setPassphrase", value: e.target.value })}
-                        placeholder="Key passphrase"
-                        className={INPUT}
-                      />
-                    </div>
+                    <PasswordField
+                      id="connect-vault-passphrase"
+                      label="Passphrase"
+                      value={state.passphrase}
+                      onChange={(v) =>
+                        dispatch({ type: "setPassphrase", value: v })
+                      }
+                      placeholder="Key passphrase"
+                      suppressPasswordManager
+                    />
                   )}
                 </>
               ) : (
                 <>
                   {/* Manual key input */}
                   <div>
-                    <label className={LABEL}>Private Key</label>
+                    <FieldLabel htmlFor="connect-manual-private-key">
+                      Private Key
+                    </FieldLabel>
                     <textarea
+                      id="connect-manual-private-key"
                       value={state.privateKey}
                       onChange={(e) => handleManualKeyChange(e.target.value)}
                       placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n..."}
@@ -452,20 +427,17 @@ export default function ConnectDrawer({
                     />
                   </div>
                   {state.manualKeyEncrypted && (
-                    <div>
-                      <label className={LABEL}>Passphrase</label>
-                      <input
-                        type="password"
-                        autoComplete="off"
-                        value={state.passphrase}
-                        onChange={(e) => dispatch({ type: "setPassphrase", value: e.target.value })}
-                        placeholder="Enter passphrase for encrypted key"
-                        className={INPUT}
-                      />
-                      <p className="text-2xs text-text-muted mt-1.5">
-                        This key is encrypted and requires a passphrase.
-                      </p>
-                    </div>
+                    <PasswordField
+                      id="connect-manual-passphrase"
+                      label="Passphrase"
+                      value={state.passphrase}
+                      onChange={(v) =>
+                        dispatch({ type: "setPassphrase", value: v })
+                      }
+                      placeholder="Enter passphrase for encrypted key"
+                      suppressPasswordManager
+                      hint="This key is encrypted and requires a passphrase."
+                    />
                   )}
                 </>
               )}
@@ -480,7 +452,6 @@ export default function ConnectDrawer({
           )}
         </form>
       </Drawer>
-
     </>
   );
 }

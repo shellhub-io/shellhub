@@ -6,6 +6,7 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import Drawer from "../common/Drawer";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 import { QRCodeDisplay } from "./QRCodeDisplay";
 import { generateMfa, enableMfa, updateUser } from "@/client";
 import { isSdkError } from "@/api/errors";
@@ -378,17 +379,12 @@ export default function MfaEnableDrawer({
               </p>
             </div>
 
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={codesSaved}
-                onChange={(e) => setCodesSaved(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded border-border bg-background text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
-              />
-              <span className="text-sm text-text-muted group-hover:text-text-secondary transition-colors">
-                I have saved my recovery codes in a secure location
-              </span>
-            </label>
+            <CheckboxField
+              id="mfa-enable-codes-saved"
+              label="I have saved my recovery codes in a secure location"
+              checked={codesSaved}
+              onChange={setCodesSaved}
+            />
           </div>
         )}
 

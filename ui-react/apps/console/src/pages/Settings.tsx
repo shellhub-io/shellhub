@@ -29,7 +29,7 @@ import CopyButton from "../components/common/CopyButton";
 import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import BillingSection from "../components/billing/BillingSection";
-import { LABEL, INPUT } from "../utils/styles";
+import InputField from "@/components/common/fields/InputField";
 import { getConfig } from "../env";
 
 const NAME_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
@@ -184,22 +184,15 @@ function EditNameDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <div>
-          <label className={LABEL}>Namespace Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value.toLowerCase())}
-            autoFocus={open}
-            className={INPUT}
-          />
-          <p className="text-2xs text-text-muted mt-1.5">
-            3-30 characters, lowercase letters, numbers, and hyphens. No dots.
-          </p>
-          {validationError && (
-            <p className="text-2xs text-accent-red mt-1">{validationError}</p>
-          )}
-        </div>
+        <InputField
+          id="edit-ns-name"
+          label="Namespace Name"
+          value={name}
+          onChange={(v) => setName(v.toLowerCase())}
+          autoFocus={open}
+          hint="3-30 characters, lowercase letters, numbers, and hyphens. No dots."
+          error={validationError ?? undefined}
+        />
         {error && <p className="text-2xs text-accent-red">{error}</p>}
       </form>
     </Drawer>
@@ -248,17 +241,12 @@ function DeleteDialog({
       confirmDisabled={!canDelete}
     >
       <div className="mb-4">
-        <label className={LABEL}>
-          Type &ldquo;
-          {namespaceName}
-          &rdquo; to confirm
-        </label>
-        <input
-          type="text"
+        <InputField
+          id="delete-ns-confirm"
+          label={`Type "${namespaceName}" to confirm`}
           value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
+          onChange={setConfirm}
           placeholder={namespaceName}
-          className={INPUT}
           autoFocus
         />
       </div>
@@ -419,8 +407,12 @@ export default function Settings() {
   const [togglingAutoAccept, setTogglingAutoAccept] = useState(false);
 
   const canRename = useHasPermission("namespace:rename");
-  const canUpdateRecording = useHasPermission("namespace:updateSessionRecording");
-  const canUpdateAutoAccept = useHasPermission("namespace:updateDeviceAutoAccept");
+  const canUpdateRecording = useHasPermission(
+    "namespace:updateSessionRecording",
+  );
+  const canUpdateAutoAccept = useHasPermission(
+    "namespace:updateDeviceAutoAccept",
+  );
   const canEditBanner = useHasPermission("namespace:editBanner");
   const canDelete = useHasPermission("namespace:delete");
 

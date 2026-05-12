@@ -20,20 +20,23 @@ import {
 } from "@heroicons/react/24/outline";
 import { DockerIcon } from "../components/icons";
 import CopyButton from "../components/common/CopyButton";
-import { INPUT } from "../utils/styles";
-import NumericInput from "@/components/common/NumericInput";
+import InputField from "@/components/common/fields/InputField";
+import NumericInput from "@/components/common/fields/NumericInput";
+import RadioCard from "@/components/common/fields/RadioCard";
+import RadioGroupField from "@/components/common/fields/RadioGroupField";
+import { LABEL_BASE } from "@/utils/styles";
 
 /* ─── Types ─── */
-type Method
-  = | "auto"
-    | "docker"
-    | "podman"
-    | "snap"
-    | "standalone"
-    | "wsl"
-    | "yocto"
-    | "buildroot"
-    | "freebsd";
+type Method =
+  | "auto"
+  | "docker"
+  | "podman"
+  | "snap"
+  | "standalone"
+  | "wsl"
+  | "yocto"
+  | "buildroot"
+  | "freebsd";
 
 interface MethodInfo {
   id: Method;
@@ -123,9 +126,6 @@ const METHODS: MethodInfo[] = [
   },
 ];
 
-const LABEL
-  = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
-
 /* ─── Page ─── */
 export default function AddDevice() {
   const { tenant } = useAuthStore();
@@ -135,7 +135,10 @@ export default function AddDevice() {
   const [hostname, setHostname] = useState("");
   const [identity, setIdentity] = useState("");
   const [keepaliveInterval, setKeepaliveInterval] = useState("");
-  const keepaliveIntervalError = keepaliveInterval && parseInt(keepaliveInterval, 10) < 1 ? "Interval must be a positive number" : "";
+  const keepaliveIntervalError =
+    keepaliveInterval && parseInt(keepaliveInterval, 10) < 1
+      ? "Interval must be a positive number"
+      : "";
 
   const selectedMethod = METHODS.find((m) => m.id === method)!;
   const baseMethods = METHODS.slice(0, INITIAL_VISIBLE);
@@ -202,62 +205,39 @@ export default function AddDevice() {
           <span className="w-5 h-5 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center text-2xs font-bold text-primary">
             1
           </span>
-          <label className={LABEL}>Installation method</label>
+          <span id="add-device-method-label" className={LABEL_BASE}>
+            Installation method
+          </span>
         </div>
         <div className="space-y-2">
-          {visibleMethods.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => {
-                setMethod(m.id);
-                setShowAllMethods(false);
-              }}
-              className={`flex items-start gap-3 w-full px-3.5 py-3 rounded-lg border text-left transition-all ${
-                method === m.id
-                  ? "bg-primary/[0.06] border-primary/30 ring-1 ring-primary/10"
-                  : "bg-card border-border hover:bg-hover-subtle"
-              }`}
-            >
-              <div
-                className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${method === m.id ? "border-primary" : "border-text-muted/40"}`}
-              >
-                {method === m.id && (
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                )}
-              </div>
-              <div className="flex items-start gap-2.5 min-w-0">
-                <span
-                  className={`mt-0.5 shrink-0 transition-colors ${method === m.id ? "text-primary" : "text-text-muted"}`}
-                >
-                  {m.icon}
-                </span>
-                <div className="min-w-0">
-                  <span className="flex items-center gap-2">
+          <RadioGroupField
+            labelledBy="add-device-method-label"
+            value={method}
+            onChange={setMethod}
+          >
+            {visibleMethods.map((m) => (
+              <RadioCard
+                key={m.id}
+                value={m.id}
+                icon={m.icon}
+                label={m.label}
+                description={m.description}
+                adornment={
+                  m.tag && (
                     <span
-                      className={`text-sm font-medium transition-colors ${method === m.id ? "text-text-primary" : "text-text-secondary"}`}
+                      className={`px-1.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded border ${
+                        m.tag === "Manual"
+                          ? "bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20"
+                          : "bg-accent-green/15 text-accent-green border-accent-green/20"
+                      }`}
                     >
-                      {m.label}
+                      {m.tag}
                     </span>
-                    {m.tag && (
-                      <span
-                        className={`px-1.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded border ${
-                          m.tag === "Manual"
-                            ? "bg-accent-yellow/10 text-accent-yellow border-accent-yellow/20"
-                            : "bg-accent-green/15 text-accent-green border-accent-green/20"
-                        }`}
-                      >
-                        {m.tag}
-                      </span>
-                    )}
-                  </span>
-                  <span className="block text-2xs text-text-muted mt-0.5">
-                    {m.description}
-                  </span>
-                </div>
-              </div>
-            </button>
-          ))}
+                  )
+                }
+              />
+            ))}
+          </RadioGroupField>
 
           {!showAllMethods && (
             <button
@@ -288,11 +268,11 @@ export default function AddDevice() {
           <span className="w-5 h-5 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center text-2xs font-bold text-primary">
             2
           </span>
-          <label className={LABEL}>
+          <span className={LABEL_BASE}>
             {selectedMethod.manual
               ? "Follow the documentation"
               : "Run on your device"}
-          </label>
+          </span>
         </div>
 
         {selectedMethod.manual ? (
@@ -306,9 +286,7 @@ export default function AddDevice() {
                   Manual installation required
                 </p>
                 <p className="text-2xs text-text-muted leading-relaxed mb-3">
-                  {selectedMethod.label}
-                  {" "}
-                  requires manual setup. Follow the
+                  {selectedMethod.label} requires manual setup. Follow the
                   platform-specific documentation for step-by-step instructions.
                 </p>
                 <a
@@ -317,11 +295,7 @@ export default function AddDevice() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-accent-yellow/10 text-accent-yellow border border-accent-yellow/20 rounded-lg text-xs font-medium hover:bg-accent-yellow/15 transition-all"
                 >
-                  View
-                  {" "}
-                  {selectedMethod.label}
-                  {" "}
-                  guide
+                  View {selectedMethod.label} guide
                   <ArrowTopRightOnSquareIcon
                     className="w-3 h-3"
                     strokeWidth={2}
@@ -371,68 +345,46 @@ export default function AddDevice() {
 
           {showAdvanced && (
             <div className="mt-3 bg-card border border-border rounded-xl p-4 space-y-4 animate-fade-in">
-              <div>
-                <label className={`block ${LABEL} mb-1.5`}>
-                  Preferred Hostname
-                  {" "}
-                  <span className="text-text-muted/50 normal-case tracking-normal">
+              <InputField
+                id="add-device-hostname"
+                label="Preferred Hostname"
+                labelAdornment={
+                  <span className="text-text-muted/50 normal-case tracking-normal text-2xs">
                     (optional)
                   </span>
-                </label>
-                <input
-                  type="text"
-                  value={hostname}
-                  onChange={(e) => setHostname(e.target.value)}
-                  placeholder="my-device"
-                  className={INPUT}
-                />
-                <p className="text-2xs text-text-muted/60 mt-1">
-                  Override the device hostname reported to ShellHub.
-                </p>
-              </div>
-              <div>
-                <label className={`block ${LABEL} mb-1.5`}>
-                  Preferred Identity
-                  {" "}
-                  <span className="text-text-muted/50 normal-case tracking-normal">
-                    (optional)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={identity}
-                  onChange={(e) => setIdentity(e.target.value)}
-                  placeholder="server-01"
-                  className={INPUT}
-                />
-                <p className="text-2xs text-text-muted/60 mt-1">
-                  Set a custom identity string for the device.
-                </p>
-              </div>
-              <div>
-                <label className={`block ${LABEL} mb-1.5`}>
-                  Keep Alive Interval
-                  {" "}
-                  <span className="text-text-muted/50 normal-case tracking-normal">
-                    (optional)
-                  </span>
-                </label>
-                <NumericInput
-                  value={keepaliveInterval}
-                  onChange={setKeepaliveInterval}
-                  placeholder="30"
-                  className={INPUT}
-                />
-                {!keepaliveIntervalError
-                ? <p className="text-2xs text-text-muted/60 mt-1">
-                    Interval in seconds between keep-alive messages sent by the
-                    agent. Defaults to 30.
-                  </p>
-                : <p className="text-2xs text-accent-red mt-1">
-                    {keepaliveIntervalError}
-                  </p>
                 }
-              </div>
+                value={hostname}
+                onChange={setHostname}
+                placeholder="my-device"
+                hint="Override the device hostname reported to ShellHub."
+              />
+              <InputField
+                id="add-device-identity"
+                label="Preferred Identity"
+                labelAdornment={
+                  <span className="text-text-muted/50 normal-case tracking-normal text-2xs">
+                    (optional)
+                  </span>
+                }
+                value={identity}
+                onChange={setIdentity}
+                placeholder="server-01"
+                hint="Set a custom identity string for the device."
+              />
+              <NumericInput
+                id="add-device-keepalive"
+                label="Keep Alive Interval"
+                labelAdornment={
+                  <span className="text-text-muted/50 normal-case tracking-normal text-2xs">
+                    (optional)
+                  </span>
+                }
+                value={keepaliveInterval}
+                onChange={setKeepaliveInterval}
+                placeholder="30"
+                hint="Interval in seconds between keep-alive messages sent by the agent. Defaults to 30."
+                error={keepaliveIntervalError || undefined}
+              />
             </div>
           )}
         </div>
@@ -442,15 +394,13 @@ export default function AddDevice() {
       <div className="flex items-start gap-3 bg-primary/[0.04] border border-primary/15 rounded-xl px-4 py-3.5 mb-6">
         <InformationCircleIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <div className="text-xs text-text-secondary leading-relaxed">
-          After installing, your device will appear in the
-          {" "}
+          After installing, your device will appear in the{" "}
           <Link
             to="/devices"
             className="text-primary font-medium hover:text-primary/80 transition-colors"
           >
             Pending tab
-          </Link>
-          {" "}
+          </Link>{" "}
           and must be accepted before you can connect to it.
         </div>
       </div>

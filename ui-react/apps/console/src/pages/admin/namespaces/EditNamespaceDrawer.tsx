@@ -3,9 +3,10 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
-import { LABEL, INPUT } from "@/utils/styles";
+import InputField from "@/components/common/fields/InputField";
+import NumericInput from "@/components/common/fields/NumericInput";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 import type { Namespace } from "@/client";
-import NumericInput from "@/components/common/NumericInput";
 
 interface EditNamespaceDrawerProps {
   open: boolean;
@@ -106,61 +107,41 @@ export default function EditNamespaceDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <div>
-          <label className={LABEL} htmlFor="edit-ns-name">
-            Name
-          </label>
-          <input
-            id="edit-ns-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus={open}
-            className={INPUT}
-          />
-        </div>
+        <InputField
+          id="edit-ns-name"
+          label="Name"
+          value={name}
+          onChange={setName}
+          autoFocus={open}
+        />
 
-        <div>
-          <label className={LABEL} htmlFor="edit-ns-max-devices">
-            Max Devices
-          </label>
-          <NumericInput
-            id="edit-ns-max-devices"
-            value={maxDevices}
-            onChange={setMaxDevices}
-            allowNegative
-            className={INPUT}
-          />
-          {isMaxDevicesValid ? (
-            <p className="text-2xs text-text-muted mt-1.5">
-              Use -1 for unlimited devices
-            </p>
-          ) : (
-            <p className="text-2xs text-accent-red mt-1.5">
-              Max devices must be a number greater than or equal to -1
-            </p>
-          )}
-        </div>
+        <NumericInput
+          id="edit-ns-max-devices"
+          label="Max Devices"
+          value={maxDevices}
+          onChange={setMaxDevices}
+          allowNegative
+          hint="Use -1 for unlimited devices"
+          error={
+            isMaxDevicesValid
+              ? undefined
+              : "Max devices must be a number greater than or equal to -1"
+          }
+        />
 
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={sessionRecord}
-            onChange={(e) => setSessionRecord(e.target.checked)}
-            className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-primary/20"
-          />
-          <span className="text-sm text-text-primary">Session Recording</span>
-        </label>
+        <CheckboxField
+          id="edit-namespace-session-record"
+          label="Session Recording"
+          checked={sessionRecord}
+          onChange={setSessionRecord}
+        />
 
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={deviceAutoAccept}
-            onChange={(e) => setDeviceAutoAccept(e.target.checked)}
-            className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-primary/20"
-          />
-          <span className="text-sm text-text-primary">Auto-Accept Devices</span>
-        </label>
+        <CheckboxField
+          id="edit-namespace-device-auto-accept"
+          label="Auto-Accept Devices"
+          checked={deviceAutoAccept}
+          onChange={setDeviceAutoAccept}
+        />
 
         {error && (
           <p role="alert" className="text-2xs text-accent-red">
