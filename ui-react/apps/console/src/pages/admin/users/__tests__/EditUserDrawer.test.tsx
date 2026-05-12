@@ -8,11 +8,6 @@ vi.mock("@/hooks/useAdminUserMutations", () => ({
   useUpdateUser: vi.fn(),
 }));
 
-vi.mock("@/utils/styles", () => ({
-  LABEL: "label",
-  INPUT: "input",
-}));
-
 vi.mock("@/components/common/Drawer", async () => ({
   default: (await import("./mocks")).MockDrawer,
 }));

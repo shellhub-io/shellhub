@@ -4,8 +4,9 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useCreateUser } from "@/hooks/useAdminUserMutations";
 import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
-import { LABEL, INPUT } from "@/utils/styles";
-import PasswordInput from "./PasswordInput";
+import InputField from "@/components/common/fields/InputField";
+import PasswordField from "@/components/common/fields/PasswordField";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 import NamespaceLimitFields from "./NamespaceLimitFields";
 import { isMaxNamespacesValid } from "@/utils/validation";
 
@@ -113,62 +114,41 @@ export default function CreateUserDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        {/* Name */}
-        <div>
-          <label className={LABEL} htmlFor="create-user-name">
-            Name
-          </label>
-          <input
-            id="create-user-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="John Doe"
-            autoFocus={open}
-            className={INPUT}
-          />
-        </div>
+        <InputField
+          id="create-user-name"
+          label="Name"
+          value={name}
+          onChange={setName}
+          placeholder="John Doe"
+          autoFocus={open}
+        />
 
-        {/* Username */}
-        <div>
-          <label className={LABEL} htmlFor="create-user-username">
-            Username
-          </label>
-          <input
-            id="create-user-username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="johndoe"
-            className={INPUT}
-          />
-          <p className="text-2xs text-text-muted mt-1.5">
-            3-30 characters, letters, numbers, hyphens, dots, underscores, @
-          </p>
-        </div>
+        <InputField
+          id="create-user-username"
+          label="Username"
+          value={username}
+          onChange={setUsername}
+          placeholder="johndoe"
+          hint="3-30 characters, letters, numbers, hyphens, dots, underscores, @"
+        />
 
-        {/* Email */}
-        <div>
-          <label className={LABEL} htmlFor="create-user-email">
-            Email
-          </label>
-          <input
-            id="create-user-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="john@example.com"
-            className={INPUT}
-          />
-        </div>
+        <InputField
+          id="create-user-email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          placeholder="john@example.com"
+        />
 
-        {/* Password */}
-        <PasswordInput
+        <PasswordField
           id="create-user-password"
+          label="Password"
           value={password}
           onChange={setPassword}
           placeholder="Enter password"
           hint="5-30 characters"
+          suppressPasswordManager
         />
 
         {/* Namespace Limit */}
@@ -183,15 +163,12 @@ export default function CreateUserDrawer({
         />
 
         {/* Admin */}
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={admin}
-            onChange={(e) => setAdmin(e.target.checked)}
-            className="w-4 h-4 rounded border-border bg-card text-primary focus:ring-primary/20"
-          />
-          <span className="text-sm text-text-primary">Admin user</span>
-        </label>
+        <CheckboxField
+          id="create-user-admin"
+          label="Admin user"
+          checked={admin}
+          onChange={setAdmin}
+        />
 
         {/* Error */}
         {error && (
