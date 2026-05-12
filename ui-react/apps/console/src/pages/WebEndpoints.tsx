@@ -11,9 +11,13 @@ import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import PageHeader from "@/components/common/PageHeader";
 import Drawer from "@/components/common/Drawer";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
-import NumericInput from "@/components/common/NumericInput";
+import NumericInput from "@/components/common/fields/NumericInput";
+import InputField from "@/components/common/fields/InputField";
+import CheckboxField from "@/components/common/fields/CheckboxField";
+import RadioGroupField from "@/components/common/fields/RadioGroupField";
+import RadioPill from "@/components/common/fields/RadioPill";
 import { formatDate } from "@/utils/date";
-import { LABEL, INPUT_MONO } from "@/utils/styles";
+import { LABEL, LABEL_BASE } from "@/utils/styles";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import {
   XMarkIcon,
@@ -219,7 +223,6 @@ function TimeoutSelector({
   onErrorChange: (error: string | null) => void;
 }) {
   const hasExpiration = value !== "-1";
-  const numValue = parseInt(value, 10);
   const [isEditingCustom, setIsEditingCustom] = useState(false);
 
   const handleToggle = () => {
@@ -228,13 +231,25 @@ function TimeoutSelector({
     onErrorChange(null);
   };
 
+  const handleExpirationChange = (next: string) => {
+    onErrorChange(null);
+    if (next === "custom") {
+      setIsEditingCustom(true);
+      return;
+    }
+    setIsEditingCustom(false);
+    onChange(next);
+  };
+
   const handleCustomValueChange = (inputValue: string) => {
     onChange(inputValue);
 
     const numValue = parseInt(inputValue, 10);
     let customError: string | null = null;
-    if (isNaN(numValue) || numValue < 1) customError = "Must be at least 1 second";
-    else if (numValue > MAX_CUSTOM_TTL) customError = `Maximum is ${MAX_CUSTOM_TTL}`;
+    if (isNaN(numValue) || numValue < 1)
+      customError = "Must be at least 1 second";
+    else if (numValue > MAX_CUSTOM_TTL)
+      customError = `Maximum is ${MAX_CUSTOM_TTL}`;
 
     onErrorChange(customError);
   };
@@ -242,7 +257,9 @@ function TimeoutSelector({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className={LABEL + " !mb-0"}>Set expiration</label>
+        <span id="endpoint-expiration-label" className={LABEL_BASE}>
+          Set expiration
+        </span>
         <button
           type="button"
           onClick={handleToggle}
@@ -256,54 +273,34 @@ function TimeoutSelector({
 
       {hasExpiration ? (
         <div className="space-y-2.5">
-          <div className="flex flex-wrap gap-1.5">
+          <RadioGroupField
+            labelledBy="endpoint-expiration-label"
+            value={isEditingCustom ? "custom" : value}
+            onChange={handleExpirationChange}
+            containerClassName="flex flex-wrap gap-1.5"
+          >
             {EXPIRATION_PRESETS.map((preset) => (
-              <button
+              <RadioPill
                 key={preset.value}
-                type="button"
-                onClick={() => {
-                  setIsEditingCustom(false);
-                  onErrorChange(null);
-                  onChange(String(preset.value));
-                }}
-                className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
-                  !isEditingCustom && preset.value === numValue
-                    ? "bg-primary/10 border-primary/30 text-primary font-medium"
-                    : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
-                }`}
-              >
-                {preset.label}
-              </button>
+                value={String(preset.value)}
+                label={preset.label}
+              />
             ))}
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditingCustom(true);
-                onErrorChange(null);
-              }}
-              className={`px-2.5 py-1.5 text-xs rounded-md border transition-all ${
-                isEditingCustom
-                  ? "bg-primary/10 border-primary/30 text-primary font-medium"
-                  : "bg-card border-border text-text-secondary hover:border-border-light hover:text-text-primary"
-              }`}
-            >
-              Custom
-            </button>
-          </div>
+            <RadioPill value="custom" label="Custom" />
+          </RadioGroupField>
 
           {isEditingCustom && (
-            <div>
-              <NumericInput
-                value={value}
-                onChange={handleCustomValueChange}
-                placeholder="Value in seconds"
-                className={INPUT_MONO}
-                autoFocus
-              />
-              {error && (
-                <p className="mt-1 text-2xs text-accent-red">{error}</p>
-              )}
-            </div>
+            <NumericInput
+              id="endpoint-custom-ttl"
+              label="Custom TTL in seconds"
+              hideLabel
+              value={value}
+              onChange={handleCustomValueChange}
+              placeholder="Value in seconds"
+              variant="mono"
+              autoFocus
+              error={error || undefined}
+            />
           )}
         </div>
       ) : (
@@ -450,7 +447,7 @@ function EndpointDrawer({
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         {/* Device */}
         <div>
-          <label className={LABEL}>Device</label>
+          <span className={LABEL}>Device</span>
           <DeviceSelector
             selected={device}
             onChange={setDevice}
@@ -460,22 +457,36 @@ function EndpointDrawer({
 
         {/* Target */}
         <div>
-          <label className={LABEL}>Target</label>
-          <div className="space-y-2">
+          <span id="endpoint-target-label" className={LABEL}>
+            Target
+          </span>
+          <div
+            role="radiogroup"
+            aria-labelledby="endpoint-target-label"
+            className="space-y-2"
+          >
             {/* Localhost card */}
-            <div
-              onClick={() => {
-                setHostMode("localhost");
-                setHost("127.0.0.1");
-              }}
-              className={`relative p-4 rounded-lg border transition-all cursor-pointer ${
+            <label
+              className={`relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40 ${
                 hostMode === "localhost"
                   ? "bg-primary/[0.06] border-primary/30"
                   : "bg-card/50 border-border hover:border-border-light"
               }`}
             >
+              <input
+                type="radio"
+                name="endpoint-target"
+                value="localhost"
+                checked={hostMode === "localhost"}
+                onChange={() => {
+                  setHostMode("localhost");
+                  setHost("127.0.0.1");
+                }}
+                className="sr-only"
+              />
               <div className="flex gap-3.5">
                 <div
+                  aria-hidden="true"
                   className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
                     hostMode === "localhost"
                       ? "bg-primary/15"
@@ -498,48 +509,53 @@ function EndpointDrawer({
                 </div>
               </div>
               {hostMode === "localhost" && (
-                <div
-                  className="grid grid-cols-[1fr,100px] gap-2 mt-3 pt-3 border-t border-primary/10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <input
-                    type="text"
-                    value="127.0.0.1"
+                <div className="grid grid-cols-[1fr,100px] gap-2 mt-3 pt-3 border-t border-primary/10">
+                  <InputField
+                    id="endpoint-localhost-address"
+                    label="Localhost address"
+                    hideLabel
                     readOnly
-                    className={`${INPUT_MONO} opacity-60 cursor-default`}
+                    value="127.0.0.1"
+                    onChange={() => {}}
+                    variant="mono"
                     tabIndex={-1}
                   />
                   <NumericInput
+                    id="endpoint-localhost-port"
+                    label="Port"
+                    hideLabel
                     value={port}
                     onChange={setPort}
                     placeholder="Port"
-                    className={INPUT_MONO}
+                    variant="mono"
+                    error={portError}
                   />
-                  {portError && (
-                    <p className="col-span-2 text-2xs text-accent-red">
-                      {portError}
-                    </p>
-                  )}
                 </div>
               )}
-            </div>
+            </label>
 
             {/* Local network card */}
-            <div
-              onClick={() => {
-                if (hostMode !== "custom") {
-                  setHostMode("custom");
-                  setHost("");
-                }
-              }}
-              className={`relative p-4 rounded-lg border transition-all cursor-pointer ${
+            <label
+              className={`relative block p-4 rounded-lg border transition-all cursor-pointer focus-within:ring-2 focus-within:ring-primary/40 ${
                 hostMode === "custom"
                   ? "bg-primary/[0.06] border-primary/30"
                   : "bg-card/50 border-border hover:border-border-light"
               }`}
             >
+              <input
+                type="radio"
+                name="endpoint-target"
+                value="custom"
+                checked={hostMode === "custom"}
+                onChange={() => {
+                  setHostMode("custom");
+                  setHost("");
+                }}
+                className="sr-only"
+              />
               <div className="flex gap-3.5">
                 <div
+                  aria-hidden="true"
                   className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
                     hostMode === "custom" ? "bg-primary/15" : "bg-hover-medium"
                   }`}
@@ -560,37 +576,35 @@ function EndpointDrawer({
                 </div>
               </div>
               {hostMode === "custom" && (
-                <div
-                  className="grid grid-cols-[1fr,100px] gap-2 mt-3 pt-3 border-t border-primary/10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <input
-                    type="text"
-                    value={host}
-                    onChange={(e) => setHost(e.target.value)}
-                    placeholder="e.g. 192.168.1.100"
-                    className={INPUT_MONO}
-                    autoFocus
-                  />
-                  <NumericInput
-                    value={port}
-                    onChange={setPort}
-                    placeholder="Port"
-                    className={INPUT_MONO}
-                  />
-                  {hostError && (
-                    <p className="col-span-2 text-2xs text-accent-red">
-                      {hostError}
-                    </p>
-                  )}
-                  {portError && (
-                    <p className="col-span-2 text-2xs text-accent-red">
-                      {portError}
-                    </p>
-                  )}
+                <div className="flex items-start gap-2 mt-3 pt-3 border-t border-primary/10">
+                  <div className="flex-1">
+                    <InputField
+                      id="endpoint-custom-host"
+                      label="Custom host"
+                      hideLabel
+                      value={host}
+                      onChange={setHost}
+                      placeholder="e.g. 192.168.1.100"
+                      variant="mono"
+                      error={hostError}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="w-24">
+                    <NumericInput
+                      id="endpoint-custom-port"
+                      label="Port"
+                      hideLabel
+                      value={port}
+                      onChange={setPort}
+                      placeholder="Port"
+                      variant="mono"
+                      error={portError}
+                    />
+                  </div>
                 </div>
               )}
-            </div>
+            </label>
           </div>
         </div>
 
@@ -606,13 +620,19 @@ function EndpointDrawer({
 
         {/* TLS Section */}
         <div className="border border-border rounded-lg p-4 space-y-3">
-          <label className={LABEL}>TLS</label>
+          <span className={LABEL}>TLS</span>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-text-secondary">
+            <span
+              id="endpoint-tls-https-label"
+              className="text-sm text-text-secondary"
+            >
               Service on the device uses HTTPS
             </span>
             <button
               type="button"
+              role="switch"
+              aria-checked={tlsEnabled}
+              aria-labelledby="endpoint-tls-https-label"
               onClick={() => setTlsEnabled(!tlsEnabled)}
               className={`relative w-9 h-5 rounded-full transition-colors ${tlsEnabled ? "bg-primary" : "bg-border"}`}
             >
@@ -622,56 +642,43 @@ function EndpointDrawer({
             </button>
           </div>
           <p className="text-2xs text-text-muted leading-relaxed">
-            Enable when the service on the device listens over HTTPS. The
-            proxy will complete a TLS handshake to that service before
-            forwarding the request.
+            Enable when the service on the device listens over HTTPS. The proxy
+            will complete a TLS handshake to that service before forwarding the
+            request.
           </p>
 
           {tlsEnabled && (
             <div className="pt-3 border-t border-border/50">
-              <label className="flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={tlsVerify}
-                  onChange={(e) => setTlsVerify(e.target.checked)}
-                  className="w-4 h-4 mt-0.5 rounded border-border bg-card text-primary focus:ring-primary/20"
-                />
-                <div>
-                  <span className="text-sm text-text-secondary">
-                    Verify device certificate
-                  </span>
-                  <p className="text-2xs text-text-muted mt-0.5">
-                    Reject connections if the device's certificate is
-                    untrusted or expired. Disable only for self-signed
-                    certificates.
-                  </p>
-                </div>
-              </label>
+              <CheckboxField
+                id="endpoint-tls-verify"
+                label="Verify device certificate"
+                description="Reject connections if the device's certificate is untrusted or expired. Disable only for self-signed certificates."
+                checked={tlsVerify}
+                onChange={setTlsVerify}
+              />
             </div>
           )}
 
           {/* Service hostname (Host override + SNI when TLS is on) */}
           <div className="pt-3 border-t border-border/50">
-            <label className={LABEL}>
-              Service hostname {tlsEnabled && <span className="text-accent-red">*</span>}
-            </label>
-            <input
-              type="text"
+            <InputField
+              id="endpoint-tls-domain"
+              label="Service hostname"
+              labelAdornment={
+                tlsEnabled ? (
+                  <span aria-label="required" className="text-accent-red">
+                    *
+                  </span>
+                ) : undefined
+              }
               value={tlsDomain}
-              onChange={(e) => setTlsDomain(e.target.value)}
+              onChange={setTlsDomain}
               placeholder="e.g. app.example.com"
-              className={INPUT_MONO}
+              variant="mono"
+              required={tlsEnabled}
+              hint="Sent as the Host header. Useful when the service validates Host or redirects to a canonical hostname. Also used as SNI when TLS is on (then required)."
+              error={tlsDomainError}
             />
-            <p className="mt-1 text-2xs text-text-muted">
-              Sent as the Host header. Useful when the service validates
-              Host or redirects to a canonical hostname. Also used as SNI
-              when TLS is on (then required).
-            </p>
-            {tlsDomainError && (
-              <p className="mt-1 text-2xs text-accent-red">
-                {tlsDomainError}
-              </p>
-            )}
           </div>
         </div>
 
