@@ -137,12 +137,20 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 
 	req.Host = strings.Join([]string{address, h.Config.WebEndpointsDomain}, ".")
 
+	// NOTE: endpoint.TLS.Domain doubles as a Host-override hint and (when TLS
+	// is enabled) as the SNI used during the handshake. When non-empty, it
+	// rewrites the outgoing Host header so backends that validate Host or
+	// auto-redirect to a canonical hostname can be reached, even when the
+	// proxy-to-backend leg stays cleartext HTTP.
+	if endpoint.TLS.Domain != "" {
+		req.Host = endpoint.TLS.Domain
+	}
+
 	// NOTE: When the endpoint is configured with TLS-to-backend, wrap the raw
 	// tunnel connection with a TLS client so the proxied HTTP request reaches
-	// the device as a TLS handshake plus encrypted payload. The SNI and the
-	// outgoing Host header are both set to endpoint.TLS.Domain so the backend
-	// can select the right virtual host and certificate. tls.Verify toggles
-	// system-CA validation.
+	// the device as a TLS handshake plus encrypted payload. SNI is set to
+	// endpoint.TLS.Domain so the backend can select the right virtual host
+	// and certificate. tls.Verify toggles system-CA validation.
 	transportConn := conn
 	if endpoint.TLS.Enabled {
 		cfg := &tls.Config{
@@ -170,7 +178,6 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 		}
 
 		transportConn = tlsConn
-		req.Host = endpoint.TLS.Domain
 	}
 
 	if err := req.Write(transportConn); err != nil {
