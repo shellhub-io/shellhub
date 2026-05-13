@@ -1,6 +1,9 @@
 package http
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -125,15 +128,52 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	defer logger.Trace("web endpoint connection doned")
 
 	req := c.Request()
-	req.Host = strings.Join([]string{address, h.Config.WebEndpointsDomain}, ".")
-	req.URL, err = url.Parse(path)
+	req.URL, err = url.Parse(fmt.Sprintf("http://%s:%d%s", endpoint.Host, endpoint.Port, path))
 	if err != nil {
 		logger.WithError(err).Error("failed to parse the path")
 
-		return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelReadResponse))
+		return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelParsePath))
 	}
 
-	if err := req.Write(conn); err != nil {
+	req.Host = strings.Join([]string{address, h.Config.WebEndpointsDomain}, ".")
+
+	// NOTE: When the endpoint is configured with TLS-to-backend, wrap the raw
+	// tunnel connection with a TLS client so the proxied HTTP request reaches
+	// the device as a TLS handshake plus encrypted payload. The SNI and the
+	// outgoing Host header are both set to endpoint.TLS.Domain so the backend
+	// can select the right virtual host and certificate. tls.Verify toggles
+	// system-CA validation.
+	transportConn := conn
+	if endpoint.TLS.Enabled {
+		cfg := &tls.Config{
+			MinVersion: tls.VersionTLS13,
+			ServerName: endpoint.TLS.Domain,
+		}
+
+		if endpoint.TLS.Verify {
+			roots, err := x509.SystemCertPool()
+			if err != nil {
+				logger.WithError(err).Error("failed to load system CA pool")
+
+				return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
+			}
+			cfg.RootCAs = roots
+		} else {
+			cfg.InsecureSkipVerify = true //nolint:gosec // intentional: user opted out of cert verification via TLS.Verify=false
+		}
+
+		tlsConn := tls.Client(conn, cfg)
+		if err := tlsConn.Handshake(); err != nil {
+			logger.WithError(err).Error("tls handshake to device failed")
+
+			return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelConnect))
+		}
+
+		transportConn = tlsConn
+		req.Host = endpoint.TLS.Domain
+	}
+
+	if err := req.Write(transportConn); err != nil {
 		logger.WithError(err).Error("failed to write the request to the agent")
 
 		return c.JSON(http.StatusInternalServerError, NewMessageFromError(ErrDeviceTunnelWriteRequest))
@@ -166,7 +206,7 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	go func() {
 		defer wg.Done()
 
-		if _, err := io.Copy(conn, out); err != nil {
+		if _, err := io.Copy(transportConn, out); err != nil {
 			logger.WithError(err).Debug("in and out done returned a error")
 		}
 
@@ -176,7 +216,7 @@ func (h *Handlers) HandleHTTPProxy(c echo.Context) error {
 	go func() {
 		defer wg.Done()
 
-		if _, err := io.Copy(out, conn); err != nil {
+		if _, err := io.Copy(out, transportConn); err != nil {
 			logger.WithError(err).Debug("out and in done returned a error")
 		}
 
