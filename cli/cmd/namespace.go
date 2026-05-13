@@ -252,24 +252,23 @@ cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')
 				return fmt.Errorf("owner %s not found", ns.Owner)
 			}
 
-			totalDevices := ns.DevicesAcceptedCount +
-				ns.DevicesPendingCount +
-				ns.DevicesRejectedCount +
-				ns.DevicesRemovedCount
+			counts, err := service.NamespaceDeviceCounts(cmd.Context(), ns.TenantID)
+			if err != nil {
+				return err
+			}
 
 			fmt.Fprintf(out, `Namespace:
-  Name:        %s
-  Type:        %s
-  Owner:       %s
-  Tenant ID:   %s
-  Created At:  %s
+  Name         %s
+  Type         %s
+  Owner        %s
+  Tenant ID    %s
+  Created At   %s
 
 Devices:
-  Accepted:    %d
-  Pending:     %d
-  Rejected:    %d
-  Removed:     %d
-  Total:       %d
+  Accepted     %d
+  Online       %d
+  Pending      %d
+  Rejected     %d
 
 Members: %d
 `,
@@ -278,11 +277,10 @@ Members: %d
 				owner.Username,
 				ns.TenantID,
 				ns.CreatedAt.Format("2006-01-02"),
-				ns.DevicesAcceptedCount,
-				ns.DevicesPendingCount,
-				ns.DevicesRejectedCount,
-				ns.DevicesRemovedCount,
-				totalDevices,
+				counts.RegisteredDevices,
+				counts.OnlineDevices,
+				counts.PendingDevices,
+				counts.RejectedDevices,
 				len(ns.Members),
 			)
 
@@ -296,9 +294,9 @@ Members: %d
 
 			fmt.Fprintln(out, "\nLimits:")
 			if ns.MaxDevices == -1 {
-				fmt.Fprintln(out, "  Max Devices: unlimited")
+				fmt.Fprintln(out, "  Max Devices  unlimited")
 			} else {
-				fmt.Fprintf(out, "  Max Devices: %d\n", ns.MaxDevices)
+				fmt.Fprintf(out, "  Max Devices  %d\n", ns.MaxDevices)
 			}
 
 			return nil

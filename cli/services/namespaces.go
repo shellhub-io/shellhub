@@ -178,3 +178,8 @@ func (s *service) NamespaceResolve(ctx context.Context, resolver NamespaceResolv
 
 	return namespace, nil
 }
+
+// NamespaceDeviceCounts returns the actual device counts for a namespace.
+func (s *service) NamespaceDeviceCounts(ctx context.Context, tenantID string) (*models.Stats, error) {
+	return s.store.GetStats(ctx, tenantID)
+}
