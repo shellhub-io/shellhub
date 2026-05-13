@@ -49,6 +49,8 @@ type Services interface {
 	NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error)
 	// NamespaceRemoveMember removes a member from a namespace.
 	NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error)
+	// NamespaceDeviceCounts returns the actual device counts for a namespace.
+	NamespaceDeviceCounts(ctx context.Context, tenantID string) (*models.Stats, error)
 }
 
 // service is an internal struct that implements the Services interface.
