@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
@@ -271,7 +273,7 @@ Devices:
   Removed:     %d
   Total:       %d
 
-Members: %d
+Members (%d):
 `,
 				ns.Name,
 				ns.Type,
@@ -286,13 +288,19 @@ Members: %d
 				len(ns.Members),
 			)
 
+			slices.SortFunc(ns.Members, func(a, b models.Member) int {
+				return strings.Compare(userMap[a.ID].Email, userMap[b.ID].Email)
+			})
+
+			w := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
 			for _, m := range ns.Members {
 				user, ok := userMap[m.ID]
 				if !ok {
 					return fmt.Errorf("member %s not found", m.ID)
 				}
-				fmt.Fprintf(out, "  %-12s (%s)\n", user.Username, m.Role)
+				fmt.Fprintf(w, "  %s\t%s\n", user.Email, m.Role)
 			}
+			w.Flush()
 
 			fmt.Fprintln(out, "\nLimits:")
 			if ns.MaxDevices == -1 {
