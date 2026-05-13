@@ -361,8 +361,8 @@ function EndpointDrawer({
       ? "Port must be 1-65535"
       : undefined;
   const tlsDomainError =
-    tlsEnabled && tlsDomain && !isValidFQDN(tlsDomain)
-      ? "Enter a valid domain (e.g. example.com)"
+    tlsDomain && !isValidFQDN(tlsDomain)
+      ? "Enter a valid hostname (e.g. app.example.com)"
       : undefined;
 
   const confirmDisabled =
@@ -372,7 +372,8 @@ function EndpointDrawer({
     !port.trim() ||
     !!portError ||
     !!ttlError ||
-    (tlsEnabled && tlsDomain.trim() !== "" && !!tlsDomainError);
+    !!tlsDomainError ||
+    (tlsEnabled && !tlsDomain.trim());
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -380,18 +381,20 @@ function EndpointDrawer({
     setError(null);
     setSubmitting(true);
     try {
+      const domain = tlsDomain.trim();
+      const hasTlsConfig = tlsEnabled || domain !== "";
       await createEndpoint.mutateAsync({
         body: {
           uid: device.uid,
           host: host.trim(),
           port: portNum,
           ttl: parseInt(ttl, 10),
-          ...(tlsEnabled
+          ...(hasTlsConfig
             ? {
                 tls: {
-                  enabled: true,
+                  enabled: tlsEnabled,
                   verify: tlsVerify,
-                  domain: tlsDomain.trim(),
+                  domain,
                 },
               }
             : {}),
@@ -603,10 +606,11 @@ function EndpointDrawer({
 
         {/* TLS Section */}
         <div className="border border-border rounded-lg p-4 space-y-3">
+          <label className={LABEL}>TLS</label>
           <div className="flex items-center justify-between">
-            <label className={LABEL + " !mb-0"}>
-              Device service uses HTTPS
-            </label>
+            <span className="text-sm text-text-secondary">
+              Service on the device uses HTTPS
+            </span>
             <button
               type="button"
               onClick={() => setTlsEnabled(!tlsEnabled)}
@@ -618,13 +622,13 @@ function EndpointDrawer({
             </button>
           </div>
           <p className="text-2xs text-text-muted leading-relaxed">
-            Enable this if the service running on the device listens over HTTPS.
-            The agent will connect using TLS instead of plain HTTP.
+            Enable when the service on the device listens over HTTPS. The
+            proxy will complete a TLS handshake to that service before
+            forwarding the request.
           </p>
 
           {tlsEnabled && (
-            <div className="space-y-3 pt-3 border-t border-border/50">
-              {/* Verify */}
+            <div className="pt-3 border-t border-border/50">
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
@@ -637,33 +641,38 @@ function EndpointDrawer({
                     Verify device certificate
                   </span>
                   <p className="text-2xs text-text-muted mt-0.5">
-                    Reject connections if the device's TLS certificate is
-                    invalid or self-signed.
+                    Reject connections if the device's certificate is
+                    untrusted or expired. Disable only for self-signed
+                    certificates.
                   </p>
                 </div>
               </label>
-
-              {/* Domain */}
-              <div>
-                <label className={LABEL}>Server Name (SNI)</label>
-                <input
-                  type="text"
-                  value={tlsDomain}
-                  onChange={(e) => setTlsDomain(e.target.value)}
-                  placeholder="e.g. myservice.local"
-                  className={INPUT_MONO}
-                />
-                <p className="mt-1 text-2xs text-text-muted">
-                  Domain sent during the TLS handshake with the device service.
-                </p>
-                {tlsDomainError && (
-                  <p className="mt-1 text-2xs text-accent-red">
-                    {tlsDomainError}
-                  </p>
-                )}
-              </div>
             </div>
           )}
+
+          {/* Service hostname (Host override + SNI when TLS is on) */}
+          <div className="pt-3 border-t border-border/50">
+            <label className={LABEL}>
+              Service hostname {tlsEnabled && <span className="text-accent-red">*</span>}
+            </label>
+            <input
+              type="text"
+              value={tlsDomain}
+              onChange={(e) => setTlsDomain(e.target.value)}
+              placeholder="e.g. app.example.com"
+              className={INPUT_MONO}
+            />
+            <p className="mt-1 text-2xs text-text-muted">
+              Sent as the Host header. Useful when the service validates
+              Host or redirects to a canonical hostname. Also used as SNI
+              when TLS is on (then required).
+            </p>
+            {tlsDomainError && (
+              <p className="mt-1 text-2xs text-accent-red">
+                {tlsDomainError}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Error */}
@@ -739,11 +748,11 @@ function EndpointCard({
                 {endpoint.host}:{endpoint.port}
               </span>
 
-              {/* Device-side TLS indicator */}
+              {/* TLS-to-device indicator */}
               {endpoint.tls?.enabled && (
                 <span
                   className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-accent-green/10 text-accent-green text-2xs rounded font-medium"
-                  title="The device service uses HTTPS"
+                  title="The service on the device uses HTTPS"
                 >
                   <LockClosedIcon className="w-2.5 h-2.5" strokeWidth={2} />
                   TLS
@@ -912,7 +921,7 @@ function WebEndpointsContent() {
                     icon: <LockClosedIcon className="w-5 h-5" />,
                     title: "Device-side TLS",
                     description:
-                      "Connect to HTTPS services on your devices — the agent handles the TLS handshake locally.",
+                      "Connect to HTTPS services on your devices. The agent handles the TLS handshake locally.",
                   },
                   {
                     icon: <ClockIcon className="w-5 h-5" />,
