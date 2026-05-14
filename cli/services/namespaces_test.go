@@ -42,30 +42,6 @@ func TestNamespaceCreate(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description:   "fails when namespace is not valid",
-			namespace:     "",
-			username:      "john_doe",
-			tenant:        "00000000-0000-4000-0000-000000000000",
-			typeNamespace: "",
-			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
-				envs.DefaultBackend = envMock
-			},
-			expected: Expected{nil, ErrNamespaceInvalid},
-		},
-		{
-			description:   "fails when namespace is not valid due name",
-			namespace:     "invalid_namespace",
-			username:      "john_doe",
-			tenant:        "00000000-0000-4000-0000-000000000000",
-			typeNamespace: "",
-			requiredMocks: func() {
-				envMock := &env_mocks.Backend{}
-				envs.DefaultBackend = envMock
-			},
-			expected: Expected{nil, ErrNamespaceInvalid},
-		},
-		{
 			description:   "fails when could not find a user",
 			namespace:     "namespace",
 			username:      "john_doe",

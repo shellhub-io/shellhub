@@ -50,14 +50,18 @@ The owner must be a valid username within the system. If a tenant ID is provided
 			}
 
 			input := inputs.NamespaceCreate{
-				Namespace: args[0],
-				Owner:     args[1],
+				Namespace: strings.ToLower(args[0]),
+				Owner:     strings.ToLower(args[1]),
 				TenantID:  "",
-				Type:      namespaceType,
+				Type:      strings.ToLower(namespaceType),
 			}
 
 			if len(args) == 3 {
 				input.TenantID = args[2]
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
 			}
 
 			namespace, err := service.NamespaceCreate(cmd.Context(), &input)
@@ -89,7 +93,11 @@ func namespaceDelete(service services.Services) *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.NamespaceDelete{
-				Namespace: args[0],
+				Namespace: strings.ToLower(args[0]),
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
 			}
 
 			if err := service.NamespaceDelete(cmd.Context(), &input); err != nil {
@@ -231,7 +239,7 @@ cli namespace inspect --tenant-id $(cli namespace ls -q tenant-id | sed -n '2p')
 				resolver = services.NamespaceResolverTenantID
 				value = tenantID
 			} else {
-				value = args[0]
+				value = strings.ToLower(args[0])
 			}
 
 			ns, err := service.NamespaceResolve(cmd.Context(), resolver, value)
@@ -348,9 +356,13 @@ and the role indicates the permissions that the member will have within that nam
 			}
 
 			input := inputs.MemberAdd{
-				Username:  args[0],
-				Namespace: args[1],
+				Username:  strings.ToLower(args[0]),
+				Namespace: strings.ToLower(args[1]),
 				Role:      role,
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
 			}
 
 			namespace, err := service.NamespaceAddMember(cmd.Context(), &input)
@@ -379,8 +391,12 @@ The username identifies the member to be removed, and the namespace specifies wh
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.MemberRemove{
-				Username:  args[0],
-				Namespace: args[1],
+				Username:  strings.ToLower(args[0]),
+				Namespace: strings.ToLower(args[1]),
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
 			}
 
 			namespace, err := service.NamespaceRemoveMember(cmd.Context(), &input)
