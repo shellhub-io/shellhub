@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
@@ -42,10 +43,15 @@ The username must be unique, and the password must meet the system's security re
 cli user create john_doe Secret123!- john.doe@test.com --admin`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.UserCreate{
-				Username: args[0],
+				// Normalize username and email to lowercase to avoid case-sensitive duplicates.
+				Username: strings.ToLower(args[0]),
 				Password: args[1],
-				Email:    args[2],
+				Email:    strings.ToLower(args[2]),
 				Admin:    admin,
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
 			}
 
 			user, err := service.UserCreate(cmd.Context(), &input)
@@ -75,8 +81,12 @@ func userResetPassword(service services.Services) *cobra.Command {
 		Example: `cli user password john_doe Secret123!-`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.UserUpdate{
-				Username: args[0],
+				Username: strings.ToLower(args[0]),
 				Password: args[1],
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
 			}
 
 			if err := service.UserUpdate(cmd.Context(), &input); err != nil {
@@ -100,7 +110,11 @@ func userDelete(service services.Services) *cobra.Command {
 		Example: `cli user delete john_doe`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input := inputs.UserDelete{
-				Username: args[0],
+				Username: strings.ToLower(args[0]),
+			}
+
+			if err := validateInput(input); err != nil {
+				return err
 			}
 
 			if err := service.UserDelete(cmd.Context(), &input); err != nil {

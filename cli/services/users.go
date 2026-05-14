@@ -14,16 +14,10 @@ import (
 // UserCreate adds a new user based on the provided user's data. This method validates data and
 // checks for conflicts.
 func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*models.User, error) {
-	// TODO: convert username and email to lower case.
 	userData := models.UserData{
 		Name:     input.Username,
 		Email:    input.Email,
 		Username: input.Username,
-	}
-
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(userData); !ok || err != nil {
-		return nil, ErrUserDataInvalid
 	}
 
 	if conflicts, has, _ := s.store.UserConflicts(ctx, &models.UserConflicts{Email: userData.Email, Username: userData.Username}); has {
@@ -44,11 +38,6 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 	password, err := models.HashUserPassword(input.Password)
 	if err != nil {
-		return nil, ErrUserPasswordInvalid
-	}
-
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
 		return nil, ErrUserPasswordInvalid
 	}
 
@@ -82,10 +71,6 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 
 // UserDelete removes a user and cleans up related data based on the provided username.
 func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) error {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return ErrUserDataInvalid
-	}
-
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return ErrUserNotFound
@@ -121,10 +106,6 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 
 // UserUpdate updates a user's data based on the provided username.
 func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) error {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return ErrUserDataInvalid
-	}
-
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return ErrUserNotFound
@@ -132,11 +113,6 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 
 	password, err := models.HashUserPassword(input.Password)
 	if err != nil {
-		return ErrUserPasswordInvalid
-	}
-
-	// TODO: validate this at cmd layer
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
 		return ErrUserPasswordInvalid
 	}
 

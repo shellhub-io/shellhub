@@ -42,24 +42,6 @@ func TestUserCreate(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when email is invalid",
-			username:    "john_doe",
-			email:       "invalidmail.com",
-			password:    "secret",
-			requiredMocks: func() {
-			},
-			expected: Expected{nil, ErrUserDataInvalid},
-		},
-		{
-			description: "fails when username is invalid",
-			username:    "",
-			email:       "john.doe@test.com",
-			password:    "secret",
-			requiredMocks: func() {
-			},
-			expected: Expected{nil, ErrUserDataInvalid},
-		},
-		{
 			description: "fails when email is duplicated",
 			username:    "john_doe",
 			email:       "john.doe@test.com",

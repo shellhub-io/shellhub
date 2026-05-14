@@ -32,10 +32,6 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		input.TenantID = uuid.Generate()
 	}
 
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return nil, ErrNamespaceInvalid
-	}
-
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Owner))
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -80,10 +76,6 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 
 // NamespaceAddMember adds a new member with a specified role to a namespace.
 func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error) {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return nil, ErrInvalidFormat
-	}
-
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -107,10 +99,6 @@ func (s *service) NamespaceAddMember(ctx context.Context, input *inputs.MemberAd
 
 // NamespaceRemoveMember removes a member from a namespace.
 func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error) {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return nil, ErrInvalidFormat
-	}
-
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Username))
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -135,10 +123,6 @@ func (s *service) NamespaceRemoveMember(ctx context.Context, input *inputs.Membe
 
 // NamespaceDelete deletes a namespace based on the provided namespace name.
 func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDelete) error {
-	if ok, err := s.validator.Struct(input); !ok || err != nil {
-		return ErrNamespaceInvalid
-	}
-
 	ns, err := s.store.NamespaceResolve(ctx, store.NamespaceNameResolver, strings.ToLower(input.Namespace))
 	if err != nil {
 		return ErrNamespaceNotFound

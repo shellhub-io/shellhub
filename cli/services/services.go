@@ -6,7 +6,6 @@ import (
 	"github.com/shellhub-io/shellhub/api/store"
 	"github.com/shellhub-io/shellhub/cli/pkg/inputs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/validator"
 )
 
 const (
@@ -54,13 +53,11 @@ type Services interface {
 }
 
 // service is an internal struct that implements the Services interface.
-// It contains a store, which provides a mechanism to interact with the data store.
 type service struct {
-	store     store.Store
-	validator *validator.Validator
+	store store.Store
 }
 
 // NewService creates and returns a new instance of the service with the provided store.
 func NewService(store store.Store) Services {
-	return &service{store, validator.New()}
+	return &service{store}
 }
