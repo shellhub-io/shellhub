@@ -31,6 +31,10 @@ type config struct {
 	PostgresPassword string `env:"POSTGRES_PASSWORD,default=admin"`
 	// PostgresDatabase especifica o nome do banco de dados PostgreSQL a ser utilizado.
 	PostgresDatabase string `env:"POSTGRES_DATABASE,default=main"`
+	// PostgresLogLevel specifies the log level for PostgresSQL query logging.
+	PostgresLogLevel string `env:"POSTGRES_LOG_LEVEL,default=INFO"`
+	// PostgresLogVerbose specifies whether to enable verbose PostgreSQL query logging.
+	PostgresLogVerbose bool `env:"POSTGRES_LOG_VERBOSE,default=false"`
 
 	RedisURI string `env:"REDIS_URI,default=redis://redis:6379"`
 }
@@ -44,7 +48,7 @@ func main() {
 
 	cfg, err := envs.ParseWithPrefix[config]("CLI_")
 	if err != nil {
-		log.Error(err.Error())
+		log.WithError(err).Fatal("failed to parse config envs")
 	}
 
 	log.Info("Connecting to Redis")
@@ -70,7 +74,7 @@ func main() {
 			cfg.PostgresPassword,
 			cfg.PostgresDatabase,
 		)
-		store, err = pg.New(ctx, uri, pgoptions.Log("INFO", true)) // TODO: Log envs
+		store, err = pg.New(ctx, uri, pgoptions.Log(cfg.PostgresLogLevel, cfg.PostgresLogVerbose))
 	default:
 		log.WithField("database", cfg.Database).Fatal("invalid database")
 	}
