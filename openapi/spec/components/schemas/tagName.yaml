@@ -1,0 +1,6 @@
+description: A tag's name.
+type: string
+minLength: 3
+maxLength: 255
+pattern: ^[a-zA-Z0-9]+$
+example: prod

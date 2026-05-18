@@ -8,29 +8,6 @@ import {
 import { getPublicKeysQueryKey } from "../client/@tanstack/react-query.gen";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 
-export interface PublicKeyFilter {
-  hostname?: string;
-  tags?: string[];
-}
-
-export interface PublicKey {
-  data: string;
-  fingerprint: string;
-  created_at: string;
-  tenant_id: string;
-  name: string;
-  filter: PublicKeyFilter;
-  username: string;
-}
-
-function normalizePublicKey(pk: PublicKeyResponse): PublicKey {
-  const filter: PublicKeyFilter = "tags" in pk.filter
-    ? { tags: pk.filter.tags }
-    : { hostname: pk.filter.hostname };
-
-  return { ...pk, filter };
-}
-
 interface UsePublicKeysParams {
   page?: number;
   perPage?: number;
@@ -48,7 +25,7 @@ export function usePublicKeys({
   });
 
   const publicKeys = useMemo(
-    () => result.data?.data.map(normalizePublicKey) ?? [],
+    () => result.data?.data ?? [],
     [result.data],
   );
 

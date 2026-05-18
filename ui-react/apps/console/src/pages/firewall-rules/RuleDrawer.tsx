@@ -5,7 +5,7 @@ import {
   useUpdateFirewallRule,
 } from "@/hooks/useFirewallRuleMutations";
 import type { FirewallRule } from "@/hooks/useFirewallRules";
-import type { FirewallRulesRequest, Tag } from "@/client";
+import type { FirewallRulesRequest } from "@/client";
 import Drawer from "@/components/common/Drawer";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
@@ -111,12 +111,9 @@ export default function RuleDrawer({
     setError(null);
   });
 
-  // The OpenAPI spec types filter.tags as Tag[] (full objects),
-  // but the server accepts objects with just the name field.
   const buildFilter = (): FirewallRulesRequest["filter"] => {
     if (filterOption === "hostname" && hostname) return { hostname };
-    if (filterOption === "tags" && selectedTags.length > 0)
-      return { tags: selectedTags.map((name) => ({ name })) as Tag[] };
+    if (filterOption === "tags" && selectedTags.length > 0) return { tags: selectedTags };
     return { hostname: ".*" };
   };
 

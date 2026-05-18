@@ -7,7 +7,7 @@ import {
   useUpdatePublicKey,
 } from "@/hooks/usePublicKeyMutations";
 import KeyDrawer from "../KeyDrawer";
-import type { PublicKey } from "@/hooks/usePublicKeys";
+import { PublicKeyResponse as PublicKey } from "@/client";
 
 vi.mock("@/hooks/usePublicKeyMutations", () => ({
   useCreatePublicKey: vi.fn(),
@@ -122,9 +122,18 @@ function makeKey(overrides: Partial<PublicKey> = {}): PublicKey {
     created_at: "2024-01-01T00:00:00Z",
     tenant_id: "tenant-1",
     data: btoa("ssh-rsa AAAAB3 test"),
-    filter: { hostname: ".*" },
+    filter: { hostname: ".*", tags: [] },
     username: ".*",
     ...overrides,
+  };
+}
+
+function makeTag(name: string) {
+  return {
+    name,
+    tenant_id: "tenant-1",
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   };
 }
 
@@ -220,7 +229,7 @@ describe("KeyDrawer", () => {
 
   describe("filter initialization from editKey", () => {
     it("selects 'all devices' when hostname is '.*'", () => {
-      renderDrawer({ editKey: makeKey({ filter: { hostname: ".*" } }) });
+      renderDrawer({ editKey: makeKey({ filter: { hostname: ".*", tags: [] } }) });
       // hostname input should not be visible — "all" is selected
       expect(
         screen.queryByPlaceholderText(/e\.g\. \.\*/i),
@@ -228,22 +237,20 @@ describe("KeyDrawer", () => {
     });
 
     it("selects hostname filter when editKey has a non-wildcard hostname", () => {
-      renderDrawer({ editKey: makeKey({ filter: { hostname: "^prod-.*" } }) });
-      expect(screen.getByPlaceholderText(/e\.g\. \.\*/i)).toHaveValue(
-        "^prod-.*",
-      );
+      renderDrawer({ editKey: makeKey({ filter: { hostname: "^prod-.*", tags: [] } }) });
+      expect(screen.getByPlaceholderText(/e\.g\. \.\*/i)).toHaveValue("^prod-.*");
     });
 
     it("selects tags filter and pre-populates tags when editKey has tags", () => {
       renderDrawer({
-        editKey: makeKey({ filter: { tags: ["production", "linux"] } }),
+        editKey: makeKey({ filter: { tags: [makeTag("production"), makeTag("linux")] } }),
       });
       expect(screen.getByTestId("tag-production")).toBeInTheDocument();
       expect(screen.getByTestId("tag-linux")).toBeInTheDocument();
     });
 
     it("selects 'all' when editKey has no tags and hostname is '.*'", () => {
-      renderDrawer({ editKey: makeKey({ filter: { hostname: ".*" } }) });
+      renderDrawer({ editKey: makeKey({ filter: { hostname: ".*", tags: [] } }) });
       // Neither hostname input nor tags should be visible
       expect(
         screen.queryByPlaceholderText(/e\.g\. \.\*/i),
@@ -353,7 +360,7 @@ describe("KeyDrawer", () => {
     it("sends { hostname } when updating with hostname filter", async () => {
       mockUpdateMutateAsync.mockResolvedValue(undefined);
       renderDrawer({
-        editKey: makeKey({ filter: { hostname: "old-host" } }),
+        editKey: makeKey({ filter: { hostname: "old-host", tags: [] } }),
       });
 
       const hostnameInput = screen.getByPlaceholderText(/e\.g\. \.\*/i);
@@ -375,7 +382,7 @@ describe("KeyDrawer", () => {
     it("sends { tags: string[] } when updating with tags filter", async () => {
       mockUpdateMutateAsync.mockResolvedValue(undefined);
       renderDrawer({
-        editKey: makeKey({ filter: { tags: ["production"] } }),
+        editKey: makeKey({ filter: { tags: [makeTag("production")] } }),
       });
 
       await userEvent.click(screen.getByTestId("add-tag-linux"));

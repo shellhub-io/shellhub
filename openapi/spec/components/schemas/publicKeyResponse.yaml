@@ -16,7 +16,7 @@ properties:
     type: string
     example: example
   filter:
-    $ref: publicKeyFilter.yaml
+    $ref: publicKeyFilterResponse.yaml
   username:
     $ref: publicKeyUsername.yaml
 required:

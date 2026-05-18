@@ -10,14 +10,7 @@ post:
     - api-key: []
   parameters:
     - $ref: ../components/parameters/path/deviceUIDPath.yaml
-    - name: name
-      description: Tag name to associate
-      schema:
-        type: string
-        pattern: ^[a-zA-Z0-9]+$
-        example: prod
-      required: true
-      in: path
+    - $ref: ../components/parameters/path/tagNamePath.yaml
   responses:
     '204':
       description: Tag successfully associated with container
@@ -43,14 +36,7 @@ delete:
     - api-key: []
   parameters:
     - $ref: ../components/parameters/path/deviceUIDPath.yaml
-    - name: name
-      description: Tag name to remove
-      schema:
-        type: string
-        pattern: ^[a-zA-Z0-9]+$
-        example: prod
-      required: true
-      in: path
+    - $ref: ../components/parameters/path/tagNamePath.yaml
   responses:
     '204':
       description: Tag successfully removed from container

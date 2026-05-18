@@ -1,0 +1,7 @@
+description: A list of tag names.
+type: array
+items:
+  $ref: tagName.yaml
+minItems: 1
+maxItems: 3
+uniqueItems: true

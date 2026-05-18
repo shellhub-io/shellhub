@@ -11,14 +11,7 @@ patch:
     - api-key: []
   parameters:
     - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
-    - name: name
-      description: Current tag name
-      schema:
-        type: string
-        pattern: ^[a-zA-Z0-9]+$
-        example: prod
-      required: true
-      in: path
+    - $ref: ../components/parameters/path/tagNamePath.yaml
   requestBody:
     required: true
     content:
@@ -29,12 +22,7 @@ patch:
             - name
           properties:
             name:
-              type: string
-              minLength: 3
-              maxLength: 255
-              pattern: ^[a-zA-Z0-9]+$
-              example: dev
-              description: New tag name
+              $ref: ../components/schemas/tagName.yaml
   responses:
     '200':
       description: Tag successfully updated
@@ -67,14 +55,7 @@ delete:
     - api-key: []
   parameters:
     - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
-    - name: name
-      description: Tag name to delete
-      schema:
-        type: string
-        pattern: ^[a-zA-Z0-9]+$
-        example: prod
-      required: true
-      in: path
+    - $ref: ../components/parameters/path/tagNamePath.yaml
   responses:
     '204':
       description: Tag successfully deleted

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { PublicKey } from "@/hooks/usePublicKeys";
+import { PublicKeyResponse as PublicKey } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -73,7 +73,7 @@ function makeKey(overrides: Partial<PublicKey> = {}): PublicKey {
     created_at: "2024-01-01T00:00:00Z",
     tenant_id: "tenant-abc",
     name: "my-key",
-    filter: { hostname: ".*" },
+    filter: { hostname: ".*", tags: [] },
     username: ".*",
     ...overrides,
   };
