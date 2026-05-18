@@ -1,0 +1,6 @@
+name: name
+description: The tag's name.
+schema:
+  $ref: ../../schemas/tagName.yaml
+required: true
+in: path

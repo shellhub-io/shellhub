@@ -1,0 +1,19 @@
+description: |
+  Public key's filter rule.
+
+  `tags` is always present; it is an empty array when the public key filters by `hostname`.
+type: object
+properties:
+  hostname:
+    description: Public key's regex hostname.
+    type: string
+    example: .*
+  tags:
+    description: Public key's tags.
+    type: array
+    items:
+      $ref: tag.yaml
+    minItems: 0
+    maxItems: 3
+required:
+  - tags

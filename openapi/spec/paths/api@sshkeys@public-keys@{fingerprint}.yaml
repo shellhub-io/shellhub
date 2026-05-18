@@ -24,7 +24,7 @@ put:
               type: string
               example: example
             filter:
-              $ref: ../components/schemas/publicKeyFilter.yaml
+              $ref: ../components/schemas/publicKeyFilterRequest.yaml
           required:
             - name
             - username

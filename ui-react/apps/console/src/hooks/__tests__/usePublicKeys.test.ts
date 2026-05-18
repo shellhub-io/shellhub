@@ -40,9 +40,18 @@ function makeKey(overrides: Partial<PublicKeyResponse> = {}): PublicKeyResponse 
     created_at: "2024-01-01T00:00:00Z",
     tenant_id: "tenant-1",
     data: "c3NoLXJzYQ==",
-    filter: { hostname: ".*" },
+    filter: { hostname: ".*", tags: [] },
     username: ".*",
     ...overrides,
+  };
+}
+
+function makeTag(name: string) {
+  return {
+    name,
+    tenant_id: "tenant-1",
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
   };
 }
 
@@ -51,77 +60,11 @@ beforeEach(() => {
 });
 
 describe("usePublicKeys", () => {
-  describe("normalizePublicKey — hostname filter", () => {
-    it("sets filter.hostname from response", async () => {
-      const key = makeKey({ filter: { hostname: "^prod-.*" } });
-      mockGetPublicKeysFn.mockResolvedValue({ data: [key], totalCount: 1 });
-
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.publicKeys[0].filter).toEqual({ hostname: "^prod-.*" });
-    });
-
-    it("sets filter with hostname '.*' for the catch-all case", async () => {
-      const key = makeKey({ filter: { hostname: ".*" } });
-      mockGetPublicKeysFn.mockResolvedValue({ data: [key], totalCount: 1 });
-
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.publicKeys[0].filter).toEqual({ hostname: ".*" });
-    });
-  });
-
-  describe("normalizePublicKey — tags filter", () => {
-    it("sets filter.tags as string array directly from response", async () => {
-      const key = makeKey({ filter: { tags: ["production", "linux"] } });
-      mockGetPublicKeysFn.mockResolvedValue({ data: [key], totalCount: 1 });
-
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.publicKeys[0].filter).toEqual({
-        tags: ["production", "linux"],
-      });
-    });
-
-    it("preserves a single-element tags array", async () => {
-      const key = makeKey({ filter: { tags: ["web"] } });
-      mockGetPublicKeysFn.mockResolvedValue({ data: [key], totalCount: 1 });
-
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.publicKeys[0].filter.tags).toEqual(["web"]);
-    });
-
-    it("does not set filter.hostname when tags are present", async () => {
-      const key = makeKey({ filter: { tags: ["api"] } });
-      mockGetPublicKeysFn.mockResolvedValue({ data: [key], totalCount: 1 });
-
-      const { result } = renderHook(() => usePublicKeys(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.publicKeys[0].filter.hostname).toBeUndefined();
-    });
-  });
-
   describe("returns", () => {
     it("returns publicKeys from the paginated result", async () => {
       const keys = [
-        makeKey({ name: "key-1", filter: { hostname: ".*" } }),
-        makeKey({ name: "key-2", filter: { tags: ["prod"] } }),
+        makeKey({ name: "key-1", filter: { hostname: ".*", tags: [] } }),
+        makeKey({ name: "key-2", filter: { tags: [makeTag("prod")] } }),
       ];
       mockGetPublicKeysFn.mockResolvedValue({ data: keys, totalCount: 2 });
 

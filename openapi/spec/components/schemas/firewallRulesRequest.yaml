@@ -25,12 +25,7 @@ properties:
       - type: object
         properties:
           tags:
-            description: Firewall's rule tags
-            type: array
-            items:
-              $ref: tag.yaml
-            minItems: 1
-            maxItems: 3
+            $ref: tagNameArray.yaml
         required:
           - tags
   priority:

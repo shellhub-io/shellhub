@@ -3,7 +3,7 @@ properties:
   data:
     $ref: publicKeyData.yaml
   filter:
-    $ref: publicKeyFilter.yaml
+    $ref: publicKeyFilterRequest.yaml
   name:
     description: Public key's name.
     type: string

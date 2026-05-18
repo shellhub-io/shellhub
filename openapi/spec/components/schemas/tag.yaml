@@ -9,10 +9,7 @@ required:
   - updated_at
 properties:
   name:
-    type: string
-    description: The display name of the tag
-    minLength: 3
-    maxLength: 255
+    $ref: tagName.yaml
   tenant_id:
     type: string
     description: The tenant ID that owns this tag

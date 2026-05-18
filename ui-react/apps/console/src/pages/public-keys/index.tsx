@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePublicKeys, type PublicKey } from "@/hooks/usePublicKeys";
+import { usePublicKeys } from "@/hooks/usePublicKeys";
 import { useDeletePublicKey } from "@/hooks/usePublicKeyMutations";
 import PageHeader from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -21,6 +21,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { PublicKeyResponse as PublicKey } from "@/client";
 
 const PER_PAGE = 10;
 

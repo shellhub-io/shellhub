@@ -9,12 +9,8 @@ import {
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import { DevicesIcon } from "@/components/icons";
-import {
-  useCreatePublicKey,
-  useUpdatePublicKey,
-} from "@/hooks/usePublicKeyMutations";
-import type { PublicKey } from "@/hooks/usePublicKeys";
-import type { PublicKeyRequest } from "@/client";
+import { useCreatePublicKey, useUpdatePublicKey } from "@/hooks/usePublicKeyMutations";
+import type { PublicKeyFilterResponse, PublicKeyRequest, PublicKeyResponse } from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
@@ -30,7 +26,7 @@ function KeyDrawer({
   onClose,
 }: {
   open: boolean;
-  editKey: PublicKey | null;
+  editKey: PublicKeyResponse | null;
   onClose: () => void;
 }) {
   const createKey = useCreatePublicKey();
@@ -51,6 +47,8 @@ function KeyDrawer({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const mapTagsNames = (tags: PublicKeyFilterResponse["tags"]) => tags.map((t) => t.name);
 
   useResetOnOpen(open, () => {
     const decodedKeyData = editKey
@@ -78,14 +76,8 @@ function KeyDrawer({
     );
     setUsername(editKey && editKey.username !== ".*" ? editKey.username : "");
     setFilterOption(filterInit);
-    setHostname(
-      editKey && filterInit === "hostname"
-        ? (editKey.filter.hostname ?? "")
-        : "",
-    );
-    setSelectedTags(
-      editKey && filterInit === "tags" ? (editKey.filter.tags ?? []) : [],
-    );
+    setHostname(editKey && filterInit === "hostname" ? (editKey.filter.hostname ?? "") : "");
+    setSelectedTags(editKey && filterInit === "tags" ? mapTagsNames(editKey.filter.tags) : []);
     setSubmitting(false);
     setError(null);
   });
