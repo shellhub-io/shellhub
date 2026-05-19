@@ -1,5 +1,6 @@
 services:
   agent:
+    profiles: [agent]
     image: agent
     restart: unless-stopped
     build:

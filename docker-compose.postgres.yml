@@ -1,5 +1,6 @@
 services:
   postgres:
+    profiles: [postgres]
     image: postgres:18.0
     command: postgres -c io_method=io_uring
     restart: unless-stopped
@@ -23,3 +24,4 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false

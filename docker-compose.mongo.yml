@@ -1,5 +1,6 @@
 services:
   mongo:
+    profiles: [mongo]
     image: mongo:4.4.29
     restart: unless-stopped
     healthcheck:
@@ -13,3 +14,4 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+        required: false
