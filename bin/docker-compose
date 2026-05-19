@@ -1,9 +1,56 @@
 #!/bin/sh
+set -eu
 
-. "$(dirname "$0")/utils"
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
+cd "$SCRIPT_DIR/.."
 
-WORKDIR=$(dirname $(readlink_f $0))/../
+peek() {
+    var=$1; default=$2
+    result=$(. ./.env 2>/dev/null; [ -f .env.override ] && . ./.env.override; eval "printf '%s' \"\${${var}:-${default}}\"")
+    printf '%s' "$result"
+}
 
-cd $WORKDIR
+SHELLHUB_CLOUD=$(peek SHELLHUB_CLOUD false)
+SHELLHUB_ENTERPRISE=$(peek SHELLHUB_ENTERPRISE false)
+SHELLHUB_ENV=$(peek SHELLHUB_ENV production)
+SHELLHUB_AUTO_SSL=$(peek SHELLHUB_AUTO_SSL false)
+SHELLHUB_DATABASE=$(peek SHELLHUB_DATABASE mongo)
+
+COMPOSE_ENV_FILES=".env"
+[ -f .env.override ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,.env.override"
+if [ "$SHELLHUB_CLOUD" = "true" ]; then
+    [ -f ../cloud/.env ]          && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env"
+    [ -f ../cloud/.env.override ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env.override"
+fi
+export COMPOSE_ENV_FILES
+
+PROFILES=""
+[ "$SHELLHUB_ENV" = "development" ] && PROFILES="$PROFILES,agent"
+case "$SHELLHUB_DATABASE" in
+    mongo|postgres) PROFILES="$PROFILES,$SHELLHUB_DATABASE" ;;
+    migrate)        PROFILES="$PROFILES,mongo,postgres" ;;
+    *)
+        echo "❌ ERROR: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Valid values: mongo, postgres, migrate."
+        exit 1
+        ;;
+esac
+export COMPOSE_PROFILES="${PROFILES#,}"
+
+[ "$SHELLHUB_ENV" = "development" ] && export SHELLHUB_INCLUDE_DEV=docker-compose.dev.yml
+[ "$SHELLHUB_AUTO_SSL" = "true" ]   && export SHELLHUB_INCLUDE_AUTOSSL=docker-compose.autossl.yml
+[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] \
+    && export SHELLHUB_INCLUDE_ENTERPRISE=docker-compose.enterprise.yml
+
+if [ "$SHELLHUB_CLOUD" = "true" ] && [ -d ../cloud ]; then
+    [ -f ../cloud/docker-compose.yml ] \
+        && export SHELLHUB_INCLUDE_CLOUD_BASE=../cloud/docker-compose.yml
+    [ "$SHELLHUB_ENV" = "development" ] && [ -f ../cloud/docker-compose.dev.yml ] \
+        && export SHELLHUB_INCLUDE_CLOUD_DEV=../cloud/docker-compose.dev.yml
+fi
+
+if [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -d ../cloud ]; then
+    [ -f ../cloud/docker-compose.enterprise.dev.yml ] \
+        && export SHELLHUB_INCLUDE_CLOUD_ENTERPRISE_DEV=../cloud/docker-compose.enterprise.dev.yml
+fi
 
 exec docker compose "$@"

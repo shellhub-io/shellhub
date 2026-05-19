@@ -1,6 +1,9 @@
 #!/bin/sh
 
-. "$(dirname "$0")/utils"
+set -eu
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
+cd "$SCRIPT_DIR/.."
 
 open_url() {
   url="$1"
@@ -26,7 +29,8 @@ open_url() {
 echo "🌟 Welcome to the ShellHub Setup Script"
 echo ""
 
-exit_if_not_running
+SERVICES=$(docker compose ps -q | grep -v INFO: | xargs docker inspect -f '{{.State.Running}}' 2>/dev/null | grep -c 'true' || true)
+[ "$SERVICES" -le 0 ] && { echo "🚫 ERROR: ShellHub is not running. Exiting."; exit 1; }
 
 if curl -s http://localhost/info | grep -q '"setup":true'; then
   echo "✅ Setup has already been completed. No further action is required."
