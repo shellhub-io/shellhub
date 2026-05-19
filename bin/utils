@@ -72,13 +72,5 @@ case "$SHELLHUB_DATABASE" in
         ;;
 esac
 
-PROFILES=""
-[ "$SHELLHUB_ENV" = "development" ] && PROFILES="$PROFILES,agent"
-case "$SHELLHUB_DATABASE" in
-    mongo|postgres) PROFILES="$PROFILES,$SHELLHUB_DATABASE" ;;
-    migrate)        PROFILES="$PROFILES,mongo,postgres" ;;
-esac
-export COMPOSE_PROFILES="${PROFILES#,}"
-
 [ -f "$EXTRA_COMPOSE_FILE" ] && COMPOSE_FILE="${COMPOSE_FILE}:${EXTRA_COMPOSE_FILE}"
 export COMPOSE_FILE
