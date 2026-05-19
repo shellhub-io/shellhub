@@ -110,9 +110,9 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 	internalAPI.POST(KeepAliveSessionURL, gateway.Handler(handler.KeepAliveSession))
 	internalAPI.PATCH(UpdateSessionURL, gateway.Handler(handler.UpdateSession))
 
-	internalAPI.GET(GetPublicKeyURL, gateway.Handler(handler.GetPublicKey))
+	internalAPI.GET(GetPublicKeyURL, gateway.Handler(handler.GetPublicKey), routesmiddleware.DecodeParam(ParamPublicKeyFingerprint))
 	internalAPI.POST(CreatePrivateKeyURL, gateway.Handler(handler.CreatePrivateKey))
-	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey))
+	internalAPI.POST(EvaluateKeyURL, gateway.Handler(handler.EvaluateKey), routesmiddleware.DecodeParam(ParamPublicKeyFingerprint))
 	internalAPI.GET(EventsSessionsURL, gateway.Handler(handler.EventSession))
 
 	// Internal namespace lookup used by other services (ssh, cloud) to resolve
@@ -175,8 +175,8 @@ func NewRouter(service services.Service, opts ...Option) *echo.Echo {
 
 	publicAPI.POST(CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyCreate))
 	publicAPI.GET(GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
-	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyEdit))
-	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyRemove))
+	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), routesmiddleware.DecodeParam(ParamPublicKeyFingerprint), routesmiddleware.RequiresPermission(authorizer.PublicKeyEdit))
+	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), routesmiddleware.DecodeParam(ParamPublicKeyFingerprint), routesmiddleware.RequiresPermission(authorizer.PublicKeyRemove))
 
 	publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace))
 	publicAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
