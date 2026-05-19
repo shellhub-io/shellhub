@@ -66,26 +66,50 @@ func (pg *Pg) PublicKeyList(ctx context.Context, opts ...store.QueryOption) ([]m
 }
 
 func (pg *Pg) PublicKeyUpdate(ctx context.Context, publicKey *models.PublicKey) error {
-	db := pg.GetConnection(ctx)
+	return pg.WithTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
 
-	a := entity.PublicKeyFromModel(publicKey)
-	a.UpdatedAt = clock.Now()
+		a := entity.PublicKeyFromModel(publicKey)
+		a.UpdatedAt = clock.Now()
 
-	// Filter by both fingerprint and namespace_id to match MongoDB behavior
-	r, err := db.NewUpdate().
-		Model(a).
-		Where("fingerprint = ?", publicKey.Fingerprint).
-		Where("namespace_id = ?", publicKey.TenantID).
-		Exec(ctx)
-	if err != nil {
-		return fromSQLError(err)
-	}
+		// Filter by both fingerprint and namespace_id to match MongoDB behavior
+		r, err := db.NewUpdate().
+			Model(a).
+			Where("fingerprint = ?", publicKey.Fingerprint).
+			Where("namespace_id = ?", publicKey.TenantID).
+			Exec(ctx)
+		if err != nil {
+			return fromSQLError(err)
+		}
 
-	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
-		return store.ErrNoDocuments
-	}
+		if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+			return store.ErrNoDocuments
+		}
 
-	return nil
+		// Sync the many-to-many tag relationships: drop the existing junction
+		// entries and re-insert the current set so removed tags don't linger.
+		if _, err := db.NewDelete().
+			Model((*entity.PublicKeyTag)(nil)).
+			Where("public_key_fingerprint = ?", a.Fingerprint).
+			Where("public_key_namespace_id = ?", a.NamespaceID).
+			Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
+		for _, tag := range a.Tags {
+			pkTag := entity.NewPublicKeyTag(tag.ID, a.Fingerprint, a.NamespaceID)
+			pkTag.CreatedAt = a.UpdatedAt
+
+			if _, err := db.NewInsert().
+				Model(pkTag).
+				On("CONFLICT (public_key_fingerprint, public_key_namespace_id, tag_id) DO NOTHING").
+				Exec(ctx); err != nil {
+				return fromSQLError(err)
+			}
+		}
+
+		return nil
+	})
 }
 
 func (pg *Pg) PublicKeyResolve(ctx context.Context, resolver store.PublicKeyResolver, value string, opts ...store.QueryOption) (*models.PublicKey, error) {
