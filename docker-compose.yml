@@ -1,5 +1,20 @@
 name: shellhub
 
+include:
+  - docker-compose.agent.yml
+  - docker-compose.mongo.yml
+  - docker-compose.postgres.yml
+  # The following includes are controlled by bin/docker-compose, which exports
+  # these variables based on the active feature flags. Unset variables default
+  # to /dev/null, which Compose treats as empty YAML, effectively a no-op.
+  - ${SHELLHUB_INCLUDE_DEV:-/dev/null}
+  - ${SHELLHUB_INCLUDE_EXTRA:-/dev/null}
+  - ${SHELLHUB_INCLUDE_AUTOSSL:-/dev/null}
+  - ${SHELLHUB_INCLUDE_ENTERPRISE:-/dev/null}
+  - ${SHELLHUB_INCLUDE_CLOUD_BASE:-/dev/null}
+  - ${SHELLHUB_INCLUDE_CLOUD_DEV:-/dev/null}
+  - ${SHELLHUB_INCLUDE_CLOUD_ENTERPRISE_DEV:-/dev/null}
+
 services:
   ssh:
     image: shellhubio/ssh:${SHELLHUB_VERSION}
