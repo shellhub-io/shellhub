@@ -159,7 +159,7 @@ export default function AddDevice() {
     if (hostname.trim()) parts.push(`PREFERRED_HOSTNAME=${hostname.trim()}`);
     if (identity.trim()) parts.push(`PREFERRED_IDENTITY=${identity.trim()}`);
     if (keepaliveInterval.trim() && !keepaliveIntervalError)
-      parts.push(`KEEPALIVE_INTERVAL=${keepaliveInterval.trim()}`);
+      parts.push(`KEEPALIVE_INTERVAL=${parseInt(keepaliveInterval, 10)}`);
     parts.push("sh");
     return parts.join(" ");
   };
