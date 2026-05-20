@@ -34,6 +34,8 @@ export default function Setup() {
 
   const errors = validate({ name, username, email, password, confirmPassword });
 
+  const disableCreateAccountButton = loading || Object.keys(errors).length > 0;
+
   const onboardingUrl = (() => {
     if (!config.onboardingUrl) return "";
     const params = new URLSearchParams({
@@ -284,7 +286,7 @@ export default function Setup() {
                 )}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={disableCreateAccountButton}
                   className={`${showOnboarding ? "flex-[2]" : "w-full"} bg-primary hover:bg-primary-600 text-white py-2.5 px-4 rounded-md text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200`}
                 >
                   {loading ? (
