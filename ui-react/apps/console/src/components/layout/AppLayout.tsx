@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import AppBar from "./AppBar";
 import TerminalManager from "../terminal/TerminalManager";
 import ConnectivityBanner from "../common/ConnectivityBanner";
+import LicenseBanner from "../common/LicenseBanner";
 import WelcomeWizardTrigger from "../wizard/WelcomeWizardTrigger";
 import AnnouncementModalTrigger from "../announcements/AnnouncementModalTrigger";
 import DeviceChooserTrigger from "../billing/DeviceChooserTrigger";
@@ -30,6 +31,7 @@ export default function AppLayout() {
         className={`flex flex-col h-screen bg-background ${hasVisibleTerminal ? "overflow-hidden" : ""}`}
       >
         <ConnectivityBanner />
+        <LicenseBanner />
         <div className="flex flex-1 min-h-0">
           {showSidebar && isDesktop && (
             <div
