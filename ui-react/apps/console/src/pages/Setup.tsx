@@ -231,6 +231,7 @@ export default function Setup() {
                 error={showError("name")}
                 placeholder="Your name"
                 autoFocus
+                maxLength={64}
               />
 
               <InputField
@@ -241,6 +242,7 @@ export default function Setup() {
                 onBlur={() => handleBlur("username")}
                 error={showError("username")}
                 placeholder="username"
+                maxLength={32}
               />
 
               <InputField
