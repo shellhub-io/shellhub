@@ -106,6 +106,10 @@ export default function Login() {
   const { display: countdownDisplay, expired: lockoutExpired } =
     useLoginCountdown(lockoutEndEpoch);
 
+  const trimmedUsername = username.trim();
+
+  const disableSubmit = trimmedUsername === "" || password === "" || loading;
+
   useEffect(() => {
     if (!queryToken) return;
 
@@ -136,7 +140,7 @@ export default function Login() {
     setError(null);
     setLockoutEndEpoch(null);
     try {
-      await login(username, password);
+      await login(trimmedUsername, password);
 
       const state = useAuthStore.getState();
       const params = new URLSearchParams(location.search);
@@ -165,7 +169,7 @@ export default function Login() {
           break;
         case 403:
           void navigate(
-            `/confirm-account?username=${encodeURIComponent(username)}`,
+            `/confirm-account?username=${encodeURIComponent(trimmedUsername)}`,
           );
           break;
         case 429: {
@@ -323,7 +327,7 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={disableSubmit}
               className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
             >
               {loading ? (

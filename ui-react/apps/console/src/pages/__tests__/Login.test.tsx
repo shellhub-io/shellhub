@@ -173,6 +173,37 @@ describe("Login", () => {
       renderLogin();
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
+
+    it("trims username before submitting", async () => {
+      renderLogin();
+      await fillAndSubmit("  admin  ", "secret");
+
+      expect(mockedLogin).toHaveBeenCalledWith(expect.objectContaining({ body: { username: "admin", password: "secret" } }));
+    });
+
+    it("does not trim password", async () => {
+      renderLogin();
+      await fillAndSubmit("admin", "  secret  ");
+
+      expect(mockedLogin).toHaveBeenCalledWith(expect.objectContaining({ body: { username: "admin", password: "  secret  " } }));
+    });
+
+    it("disables the submit button when username or password is empty", async () => {
+      const user = userEvent.setup();
+      renderLogin();
+
+      const submitButton = screen.getByRole("button", { name: /sign in/i });
+      expect(submitButton).toBeDisabled();
+
+      await user.type(screen.getByLabelText(/username/i), "admin");
+      expect(submitButton).toBeDisabled();
+
+      await user.type(screen.getByLabelText(/^password$/i), "secret");
+      expect(submitButton).toBeEnabled();
+
+      await user.clear(screen.getByLabelText(/username/i));
+      expect(submitButton).toBeDisabled();
+    });
   });
 
   describe("successful login", () => {
