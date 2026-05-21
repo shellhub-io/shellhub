@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import type { FirewallRule } from "@/hooks/useAdminFirewallRules";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -26,10 +25,20 @@ vi.mock("@/components/common/CopyButton", () => ({
 
 import { useAdminFirewallRule } from "@/hooks/useAdminFirewallRules";
 import AdminFirewallRuleDetails from "../AdminFirewallRuleDetails";
+import { FirewallRulesResponse } from "@/client";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeRule(overrides: Partial<FirewallRule> = {}): FirewallRule {
+function makeTag(name: string) {
+  return {
+    name,
+    tenant_id: "tenant-abc",
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+  };
+}
+
+function makeRule(overrides: Partial<FirewallRulesResponse> = {}): FirewallRulesResponse {
   return {
     id: "rule-1",
     tenant_id: "tenant-abc",
@@ -38,7 +47,7 @@ function makeRule(overrides: Partial<FirewallRule> = {}): FirewallRule {
     active: true,
     source_ip: ".*",
     username: ".*",
-    filter: { hostname: ".*" },
+    filter: { hostname: ".*", tags: [] },
     ...overrides,
   };
 }
@@ -233,7 +242,7 @@ describe("AdminFirewallRuleDetails", () => {
   describe("rule data — device filter", () => {
     it("renders hostname FilterBadge when filter has a specific hostname", () => {
       vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ filter: { hostname: "my-server" } }),
+        data: makeRule({ filter: { hostname: "my-server", tags: [] } }),
         isLoading: false,
         error: null,
       } as ReturnType<typeof useAdminFirewallRule>);
@@ -244,7 +253,7 @@ describe("AdminFirewallRuleDetails", () => {
 
     it("renders tag FilterBadge when filter has tags", () => {
       vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ filter: { tags: ["production", "web"] } }),
+        data: makeRule({ filter: { tags: [makeTag("production"), makeTag("web")] } }),
         isLoading: false,
         error: null,
       } as ReturnType<typeof useAdminFirewallRule>);

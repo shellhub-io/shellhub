@@ -13,9 +13,6 @@ import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
 
-import { normalizeFirewallRule } from "./useFirewallRules";
-export type { FirewallRule, FirewallFilter } from "./useFirewallRules";
-
 interface UseAdminFirewallRulesParams {
   page?: number;
   perPage?: number;
@@ -44,16 +41,7 @@ export function useAdminFirewallRules({
     refetchOnWindowFocus: false,
   });
 
-  const rules = useMemo(
-    () =>
-      result.data?.data
-        .filter(
-          (r): r is FirewallRulesResponse & { id: string } =>
-            r.id !== undefined,
-        )
-        .map(normalizeFirewallRule) ?? [],
-    [result.data],
-  );
+  const rules = useMemo(() => result.data?.data ?? [], [result.data]);
 
   return {
     rules,
@@ -73,12 +61,5 @@ export function useAdminFirewallRule(id: string) {
     retry: (count, err) =>
       isSdkError(err) && err.status === 401 ? false : count < 1,
     refetchOnWindowFocus: false,
-    select: (data) => {
-      const rule = data;
-      if (!rule.id) return undefined;
-      return normalizeFirewallRule(
-        rule as FirewallRulesResponse & { id: string },
-      );
-    },
   });
 }

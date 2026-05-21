@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { FirewallRule } from "@/hooks/useFirewallRules";
+import { FirewallRulesResponse } from "@/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -66,7 +66,7 @@ import FirewallRules from "../index";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeRule(overrides: Partial<FirewallRule> = {}): FirewallRule {
+function makeRule(overrides: Partial<FirewallRulesResponse> = {}): FirewallRulesResponse {
   return {
     id: "rule-1",
     tenant_id: "tenant-abc",
@@ -75,7 +75,7 @@ function makeRule(overrides: Partial<FirewallRule> = {}): FirewallRule {
     active: true,
     source_ip: ".*",
     username: ".*",
-    filter: { hostname: ".*" },
+    filter: { hostname: ".*", tags: [] },
     ...overrides,
   };
 }
