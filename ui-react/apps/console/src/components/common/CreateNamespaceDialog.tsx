@@ -6,27 +6,16 @@ import {
 } from "@heroicons/react/24/outline";
 import BaseDialog from "./BaseDialog";
 import CopyButton from "./CopyButton";
-import InputField from "./fields/InputField";
+import NamespaceNameField from "./fields/NamespaceNameField";
+import {
+  NAMESPACE_NAME_MIN_LENGTH,
+  NAMESPACE_NAME_RULES,
+  validateNamespaceName,
+} from "@/utils/validation";
 import { getConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
 
 const CLI_COMMAND = "./bin/cli namespace create <namespace> <owner>";
-
-const NAME_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
-
-function validate(name: string): string | null {
-  if (name.length < 3) return "Name must be at least 3 characters";
-  if (name.length > 30) return "Name must be at most 30 characters";
-  if (!NAME_REGEX.test(name))
-    return "Only lowercase letters, numbers, and hyphens (cannot start or end with hyphen)";
-  return null;
-}
-
-const rules = [
-  "3–30 characters",
-  "Lowercase letters, numbers, and hyphens only",
-  "Cannot begin or end with a hyphen",
-];
 
 const FORM_ID = "create-namespace-form";
 
@@ -47,18 +36,14 @@ function CloudForm({
 }) {
   return (
     <form id={FORM_ID} onSubmit={onSubmit}>
-      <InputField
+      <NamespaceNameField
         id={inputId}
-        label="Namespace Name"
         value={name}
         onChange={(v) => {
-          setName(v.toLowerCase());
+          setName(v);
           resetError();
         }}
-        placeholder="my-namespace"
-        error={displayError ?? undefined}
-        hint="3–30 characters · lowercase letters, numbers, and hyphens only"
-        maxLength={30}
+        error={displayError}
         autoFocus
       />
     </form>
@@ -100,7 +85,7 @@ function CeInstructions({ descriptionId }: { descriptionId: string }) {
           Naming rules
         </p>
         <ul className="space-y-1.5" aria-label="Namespace naming rules">
-          {rules.map((rule) => (
+          {NAMESPACE_NAME_RULES.map((rule) => (
             <li
               key={rule}
               className="flex items-start gap-2 text-xs text-text-muted"
@@ -148,7 +133,7 @@ export default function CreateNamespaceDialog({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const err = validate(name);
+    const err = validateNamespaceName(name);
     if (err) {
       setValidationError(err);
       return;
@@ -229,7 +214,9 @@ export default function CreateNamespaceDialog({
             <button
               type="submit"
               form={FORM_ID}
-              disabled={createNs.isPending || name.length < 3}
+              disabled={
+                createNs.isPending || name.length < NAMESPACE_NAME_MIN_LENGTH
+              }
               className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
             >
               {createNs.isPending ? (

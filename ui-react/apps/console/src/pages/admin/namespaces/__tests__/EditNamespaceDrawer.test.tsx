@@ -72,7 +72,7 @@ describe("EditNamespaceDrawer", () => {
 
     it("renders the Name input", () => {
       renderDrawer();
-      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
+      expect(screen.getByLabelText("Namespace Name")).toBeInTheDocument();
     });
 
     it("renders the Max Devices input", () => {
@@ -103,7 +103,9 @@ describe("EditNamespaceDrawer", () => {
   describe("form pre-filling", () => {
     it("pre-fills the Name field with the namespace name", () => {
       renderDrawer();
-      expect(screen.getByLabelText(/^name$/i)).toHaveValue("my-namespace");
+      expect(screen.getByLabelText("Namespace Name")).toHaveValue(
+        "my-namespace",
+      );
     });
 
     it("pre-fills the Max Devices field with the namespace max_devices", () => {
@@ -144,7 +146,7 @@ describe("EditNamespaceDrawer", () => {
 
     it("disables submit button when name is cleared", async () => {
       renderDrawer();
-      await userEvent.clear(screen.getByLabelText(/^name$/i));
+      await userEvent.clear(screen.getByLabelText("Namespace Name"));
       expect(
         screen.getByRole("button", { name: /save changes/i }),
       ).toBeDisabled();
@@ -152,7 +154,7 @@ describe("EditNamespaceDrawer", () => {
 
     it("re-enables submit button when name is typed back in", async () => {
       renderDrawer();
-      const nameInput = screen.getByLabelText(/^name$/i);
+      const nameInput = screen.getByLabelText("Namespace Name");
       await userEvent.clear(nameInput);
       await userEvent.type(nameInput, "new-name");
       expect(
@@ -166,7 +168,7 @@ describe("EditNamespaceDrawer", () => {
       mockMutateAsync.mockResolvedValue(undefined);
       renderDrawer();
 
-      const nameInput = screen.getByLabelText(/^name$/i);
+      const nameInput = screen.getByLabelText("Namespace Name");
       await userEvent.clear(nameInput);
       await userEvent.type(nameInput, "updated-namespace");
 
@@ -331,7 +333,7 @@ describe("EditNamespaceDrawer", () => {
     it("reloads namespace data when drawer is closed then reopened", async () => {
       const { rerender } = renderDrawer({ namespace: mockNamespace });
 
-      const nameInput = screen.getByLabelText(/^name$/i);
+      const nameInput = screen.getByLabelText("Namespace Name");
       await userEvent.clear(nameInput);
       await userEvent.type(nameInput, "changed-name");
 
@@ -350,7 +352,9 @@ describe("EditNamespaceDrawer", () => {
         />,
       );
 
-      expect(screen.getByLabelText(/^name$/i)).toHaveValue("my-namespace");
+      expect(screen.getByLabelText("Namespace Name")).toHaveValue(
+        "my-namespace",
+      );
     });
 
     it("clears any error when closed then reopened", async () => {
@@ -384,7 +388,7 @@ describe("EditNamespaceDrawer", () => {
   describe("null namespace", () => {
     it("renders the drawer with empty name field when namespace is null", () => {
       renderDrawer({ namespace: null });
-      expect(screen.getByLabelText(/^name$/i)).toHaveValue("");
+      expect(screen.getByLabelText("Namespace Name")).toHaveValue("");
     });
 
     it("renders the drawer with max_devices of -1 when namespace is null", () => {
