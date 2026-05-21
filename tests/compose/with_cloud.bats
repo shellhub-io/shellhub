@@ -40,8 +40,8 @@ load helpers
     [[ "$out" != *"../cloud/docker-compose.dev.yml"* ]]
 }
 
-@test "enterprise: COMPOSE_ENV_FILES loads cloud/.env when cloud/ is present" {
+@test "enterprise-only: COMPOSE_ENV_FILES does NOT load cloud/.env" {
     require_cloud
     out=$(capture_with SHELLHUB_ENTERPRISE=true)
-    [[ "$out" == *"../cloud/.env"* ]]
+    [[ "$out" != *"../cloud/.env"* ]]
 }

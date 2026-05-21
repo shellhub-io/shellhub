@@ -31,7 +31,7 @@ COMPOSE_ENV_FILES="./.env"
 [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ -f ./.env.enterprise ] \
     && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,./.env.enterprise"
 [ -f "$env_override" ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,$env_override"
-if [ "$SHELLHUB_ENTERPRISE" = "true" ]; then
+if [ "$SHELLHUB_CLOUD" = "true" ]; then
     [ -f ../cloud/.env ]          && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env"
     [ -f ../cloud/.env.override ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env.override"
 fi
