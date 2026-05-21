@@ -88,8 +88,8 @@ upgrade_mongodb:
 		# Convert version to suitable format for 'setFeatureCompatibilityVersion'
 		SERIES_VERSION=$$(echo $$1 | sed 's,\.[0-9]\+$$,,g')
 
-		export SHELLHUB_INCLUDE_EXTRA=$$(mktemp)
-		echo "$$COMPOSE_TEMPLATE" | sed "s,_VERSION_,$$1,g" > $$SHELLHUB_INCLUDE_EXTRA
+		export EXTRA_COMPOSE_FILE=$$(mktemp)
+		echo "$$COMPOSE_TEMPLATE" | sed "s,_VERSION_,$$1,g" > $$EXTRA_COMPOSE_FILE
 
 		$(DOCKER_COMPOSE) stop mongo
 		$(DOCKER_COMPOSE) up -d mongo
