@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import type { FirewallRule } from "@/hooks/useAdminFirewallRules";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -21,17 +20,18 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import AdminFirewallRules from "../index";
+import { FirewallRulesResponse } from "@/client";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const defaultHookState = {
-  rules: [] as FirewallRule[],
+  rules: [],
   totalCount: 0,
   isLoading: false,
   error: null,
 };
 
-function makeRule(overrides: Partial<FirewallRule> = {}): FirewallRule {
+function makeRule(overrides: Partial<FirewallRulesResponse> = {}): FirewallRulesResponse {
   return {
     id: "rule-1",
     tenant_id: "tenant-abc",
@@ -40,7 +40,7 @@ function makeRule(overrides: Partial<FirewallRule> = {}): FirewallRule {
     active: true,
     source_ip: ".*",
     username: ".*",
-    filter: { hostname: ".*" },
+    filter: { hostname: ".*", tags: [] },
     ...overrides,
   };
 }

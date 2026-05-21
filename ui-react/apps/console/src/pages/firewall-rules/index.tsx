@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFirewallRules, type FirewallRule } from "@/hooks/useFirewallRules";
+import { useFirewallRules } from "@/hooks/useFirewallRules";
 import { useDeleteFirewallRule } from "@/hooks/useFirewallRuleMutations";
 import PageHeader from "@/components/common/PageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -18,6 +18,7 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { type FirewallRulesResponse as FirewallRule } from "@/client";
 
 const PER_PAGE = 10;
 

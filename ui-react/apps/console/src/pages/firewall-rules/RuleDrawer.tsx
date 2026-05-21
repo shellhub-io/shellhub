@@ -4,8 +4,7 @@ import {
   useCreateFirewallRule,
   useUpdateFirewallRule,
 } from "@/hooks/useFirewallRuleMutations";
-import type { FirewallRule } from "@/hooks/useFirewallRules";
-import type { FirewallRulesRequest } from "@/client";
+import type { FirewallRulesRequest, FirewallRulesResponse } from "@/client";
 import Drawer from "@/components/common/Drawer";
 import RadioCard from "@/components/common/fields/RadioCard";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
@@ -48,7 +47,7 @@ export default function RuleDrawer({
   onClose,
 }: {
   open: boolean;
-  editRule: FirewallRule | null;
+  editRule: FirewallRulesResponse | null;
   onClose: () => void;
 }) {
   const createRule = useCreateFirewallRule();
@@ -76,7 +75,7 @@ export default function RuleDrawer({
 
   useResetOnOpen(open, () => {
     const filterInit = editRule
-      ? editRule.filter.tags && editRule.filter.tags.length > 0
+      ? editRule.filter.tags.length > 0
         ? "tags"
         : editRule.filter.hostname && editRule.filter.hostname !== ".*"
           ? "hostname"
@@ -105,7 +104,9 @@ export default function RuleDrawer({
         : "",
     );
     setSelectedTags(
-      editRule && filterInit === "tags" ? (editRule.filter.tags ?? []) : [],
+      editRule && filterInit === "tags"
+        ? editRule.filter.tags.map((t) => t.name)
+        : [],
     );
     setSubmitting(false);
     setError(null);
@@ -113,7 +114,8 @@ export default function RuleDrawer({
 
   const buildFilter = (): FirewallRulesRequest["filter"] => {
     if (filterOption === "hostname" && hostname) return { hostname };
-    if (filterOption === "tags" && selectedTags.length > 0) return { tags: selectedTags };
+    if (filterOption === "tags" && selectedTags.length > 0)
+      return { tags: selectedTags };
     return { hostname: ".*" };
   };
 
@@ -207,7 +209,9 @@ export default function RuleDrawer({
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
         {/* Status toggle */}
         <div>
-          <span id="rule-status-label" className={LABEL}>Status</span>
+          <span id="rule-status-label" className={LABEL}>
+            Status
+          </span>
           <button
             type="button"
             role="switch"

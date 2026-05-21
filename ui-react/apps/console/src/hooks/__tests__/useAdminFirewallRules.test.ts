@@ -64,7 +64,7 @@ describe("useAdminFirewallRules", () => {
           active: true,
           source_ip: ".*",
           username: ".*",
-          filter: { hostname: ".*" },
+          filter: { hostname: ".*", tags: [] },
         },
         {
           id: "rule-2",
@@ -74,7 +74,7 @@ describe("useAdminFirewallRules", () => {
           active: false,
           source_ip: "192.168.1.0/24",
           username: "admin",
-          filter: { hostname: "my-host" },
+          filter: { hostname: "my-host", tags: [] },
         },
       ];
       mockGetFirewallRulesAdminFn.mockResolvedValue({
@@ -90,86 +90,6 @@ describe("useAdminFirewallRules", () => {
       expect(result.current.rules).toHaveLength(2);
       expect(result.current.rules[0].id).toBe("rule-1");
       expect(result.current.rules[1].id).toBe("rule-2");
-    });
-
-    it("normalizes hostname filter from raw rule", async () => {
-      const rules = [
-        {
-          id: "rule-1",
-          tenant_id: "tenant-abc",
-          priority: 1,
-          action: "allow",
-          active: true,
-          source_ip: ".*",
-          username: ".*",
-          filter: { hostname: "my-host" },
-        },
-      ];
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: rules,
-        totalCount: 1,
-      });
-
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.rules[0].filter).toEqual({ hostname: "my-host" });
-    });
-
-    it("normalizes tags filter from raw rule", async () => {
-      const rules = [
-        {
-          id: "rule-1",
-          tenant_id: "tenant-abc",
-          priority: 1,
-          action: "allow",
-          active: true,
-          source_ip: ".*",
-          username: ".*",
-          filter: { tags: [{ name: "production" }, "staging"] },
-        },
-      ];
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: rules,
-        totalCount: 1,
-      });
-
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.rules[0].filter).toEqual({
-        tags: ["production", "staging"],
-      });
-    });
-
-    it("treats empty tags array as wildcard hostname filter", async () => {
-      const rules = [
-        {
-          id: "rule-1",
-          tenant_id: "t",
-          priority: 1,
-          action: "allow",
-          active: true,
-          source_ip: ".*",
-          username: ".*",
-          filter: { tags: [] },
-        },
-      ];
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: rules,
-        totalCount: 1,
-      });
-
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.rules[0].filter).toEqual({ hostname: ".*" });
     });
 
     it("returns totalCount from the paginated query result", async () => {
@@ -188,7 +108,7 @@ describe("useAdminFirewallRules", () => {
 
     it("defaults rules to empty array while loading", () => {
       // Never resolves — stays in loading state
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => { }));
+      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminFirewallRules(), {
         wrapper: createWrapper(),
@@ -198,7 +118,7 @@ describe("useAdminFirewallRules", () => {
     });
 
     it("defaults totalCount to 0 while loading", () => {
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => { }));
+      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminFirewallRules(), {
         wrapper: createWrapper(),
@@ -208,7 +128,7 @@ describe("useAdminFirewallRules", () => {
     });
 
     it("returns isLoading true initially", () => {
-      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => { }));
+      mockGetFirewallRulesAdminFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminFirewallRules(), {
         wrapper: createWrapper(),
@@ -227,43 +147,6 @@ describe("useAdminFirewallRules", () => {
 
       await waitFor(() => expect(result.current.error).toBeTruthy());
       expect(result.current.error).toBe(networkError);
-    });
-
-    it("filters out rules without an id", async () => {
-      const rules = [
-        {
-          id: "rule-1",
-          tenant_id: "tenant-abc",
-          priority: 1,
-          action: "allow",
-          active: true,
-          source_ip: ".*",
-          username: ".*",
-          filter: { hostname: ".*" },
-        },
-        // Rule without an id — should be filtered out
-        {
-          tenant_id: "tenant-abc",
-          priority: 2,
-          action: "deny",
-          active: false,
-          source_ip: ".*",
-          username: ".*",
-          filter: { hostname: ".*" },
-        },
-      ];
-      mockGetFirewallRulesAdminFn.mockResolvedValue({
-        data: rules,
-        totalCount: 2,
-      });
-
-      const { result } = renderHook(() => useAdminFirewallRules(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.rules).toHaveLength(1);
-      expect(result.current.rules[0].id).toBe("rule-1");
     });
   });
 
@@ -334,7 +217,7 @@ describe("useAdminFirewallRule", () => {
         active: true,
         source_ip: ".*",
         username: ".*",
-        filter: { hostname: ".*" },
+        filter: { hostname: ".*", tags: [] },
       };
       mockGetFirewallRuleAdminFn.mockResolvedValue(rawRule);
 
@@ -346,7 +229,7 @@ describe("useAdminFirewallRule", () => {
       expect(result.current.data?.id).toBe("rule-1");
     });
 
-    it("applies normalization via select — returns FirewallRule shape", async () => {
+    it("passes through the filter unchanged", async () => {
       const rawRule = {
         id: "rule-1",
         tenant_id: "tenant-abc",
@@ -355,7 +238,7 @@ describe("useAdminFirewallRule", () => {
         active: true,
         source_ip: ".*",
         username: ".*",
-        filter: { hostname: "my-host" },
+        filter: { hostname: "my-host", tags: [] },
       };
       mockGetFirewallRuleAdminFn.mockResolvedValue(rawRule);
 
@@ -364,11 +247,14 @@ describe("useAdminFirewallRule", () => {
       });
 
       await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.data?.filter).toEqual({ hostname: "my-host" });
+      expect(result.current.data?.filter).toEqual({
+        hostname: "my-host",
+        tags: [],
+      });
     });
 
     it("is loading initially when id is provided", () => {
-      mockGetFirewallRuleAdminFn.mockReturnValue(new Promise(() => { }));
+      mockGetFirewallRuleAdminFn.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useAdminFirewallRule("rule-1"), {
         wrapper: createWrapper(),

@@ -7,13 +7,11 @@ import {
   CheckCircleIcon,
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
-import {
-  useAdminFirewallRules,
-  type FirewallRule,
-} from "@/hooks/useAdminFirewallRules";
+import { useAdminFirewallRules } from "@/hooks/useAdminFirewallRules";
 import PageHeader from "@/components/common/PageHeader";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import FilterBadge from "@/components/common/FilterBadge";
+import { type FirewallRulesResponse as FirewallRule } from "@/client";
 
 const PER_PAGE = 10;
 
