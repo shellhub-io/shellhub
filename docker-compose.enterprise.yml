@@ -55,9 +55,6 @@ services:
   cli:
     image: registry.infra.ossystems.io/cache/shellhubio/cli:${SHELLHUB_VERSION}
 
-  mongo:
-    image: registry.infra.ossystems.io/cache/mongo:4.4.8
-
   redis:
     image: registry.infra.ossystems.io/cache/redis
 

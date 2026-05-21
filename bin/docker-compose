@@ -4,53 +4,65 @@ set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 cd "$SCRIPT_DIR/.."
 
-peek() {
+env_override=${ENV_OVERRIDE:-./.env.override}
+
+# Read a single shellhub flag from .env / .env.override in a subshell, without
+# polluting the wrapper's env. Container env loading is delegated to Compose
+# via COMPOSE_ENV_FILES below.
+env_var() {
     var=$1; default=$2
-    result=$(. ./.env 2>/dev/null; [ -f .env.override ] && . ./.env.override; eval "printf '%s' \"\${${var}:-${default}}\"")
-    printf '%s' "$result"
+    (. ./.env 2>/dev/null; [ -f "$env_override" ] && . "$env_override"; eval "printf '%s' \"\${${var}:-${default}}\"")
 }
 
-SHELLHUB_CLOUD=$(peek SHELLHUB_CLOUD false)
-SHELLHUB_ENTERPRISE=$(peek SHELLHUB_ENTERPRISE false)
-SHELLHUB_ENV=$(peek SHELLHUB_ENV production)
-SHELLHUB_AUTO_SSL=$(peek SHELLHUB_AUTO_SSL false)
-SHELLHUB_DATABASE=$(peek SHELLHUB_DATABASE mongo)
+SHELLHUB_CLOUD=$(env_var SHELLHUB_CLOUD false)
+SHELLHUB_ENTERPRISE=$(env_var SHELLHUB_ENTERPRISE false)
+SHELLHUB_ENV=$(env_var SHELLHUB_ENV production)
+SHELLHUB_AUTO_SSL=$(env_var SHELLHUB_AUTO_SSL false)
+SHELLHUB_DATABASE=$(env_var SHELLHUB_DATABASE postgres)
 
-COMPOSE_ENV_FILES=".env"
-[ -f .env.override ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,.env.override"
-if [ "$SHELLHUB_CLOUD" = "true" ]; then
+if [ "$SHELLHUB_CLOUD" = "true" ] && [ "$SHELLHUB_ENTERPRISE" != "true" ]; then
+    echo "🚫 ERROR: SHELLHUB_CLOUD=true requires SHELLHUB_ENTERPRISE=true. Set it in .env.override." >&2
+    exit 1
+fi
+
+# COMPOSE_ENV_FILES — last file wins.
+# Order: CE defaults → enterprise defaults → user override → cloud defaults → cloud override.
+COMPOSE_ENV_FILES="./.env"
+[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ -f ./.env.enterprise ] \
+    && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,./.env.enterprise"
+[ -f "$env_override" ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,$env_override"
+if [ "$SHELLHUB_ENTERPRISE" = "true" ]; then
     [ -f ../cloud/.env ]          && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env"
     [ -f ../cloud/.env.override ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env.override"
 fi
 export COMPOSE_ENV_FILES
 
-PROFILES=""
-[ "$SHELLHUB_ENV" = "development" ] && PROFILES="$PROFILES,agent"
+COMPOSE_FILE="docker-compose.yml"
+[ "$SHELLHUB_AUTO_SSL" = "true" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.autossl.yml"
+[ "$SHELLHUB_ENV" = "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.dev.yml:docker-compose.agent.yml"
+[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.enterprise.yml"
+[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -f ../cloud/docker-compose.enterprise.dev.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:../cloud/docker-compose.enterprise.dev.yml"
+[ "$SHELLHUB_CLOUD" = "true" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -f ../cloud/docker-compose.dev.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:../cloud/docker-compose.dev.yml"
+[ "$SHELLHUB_CLOUD" = "true" ] && [ -f ../cloud/docker-compose.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:../cloud/docker-compose.yml"
+
 case "$SHELLHUB_DATABASE" in
-    mongo|postgres) PROFILES="$PROFILES,$SHELLHUB_DATABASE" ;;
-    migrate)        PROFILES="$PROFILES,mongo,postgres" ;;
+    mongo|postgres)
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.${SHELLHUB_DATABASE}.yml"
+        ;;
+    migrate)
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.mongo.yml:docker-compose.postgres.yml"
+        ;;
     *)
-        echo "❌ ERROR: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Valid values: mongo, postgres, migrate."
-        exit 1
+        echo "⚠️ WARNING: Unknown SHELLHUB_DATABASE '$SHELLHUB_DATABASE'. Defaulting to postgres." >&2
+        SHELLHUB_DATABASE="postgres"
+        COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.postgres.yml"
         ;;
 esac
-export COMPOSE_PROFILES="${PROFILES#,}"
 
-[ "$SHELLHUB_ENV" = "development" ] && export SHELLHUB_INCLUDE_DEV=docker-compose.dev.yml
-[ "$SHELLHUB_AUTO_SSL" = "true" ]   && export SHELLHUB_INCLUDE_AUTOSSL=docker-compose.autossl.yml
-[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] \
-    && export SHELLHUB_INCLUDE_ENTERPRISE=docker-compose.enterprise.yml
-
-if [ "$SHELLHUB_CLOUD" = "true" ] && [ -d ../cloud ]; then
-    [ -f ../cloud/docker-compose.yml ] \
-        && export SHELLHUB_INCLUDE_CLOUD_BASE=../cloud/docker-compose.yml
-    [ "$SHELLHUB_ENV" = "development" ] && [ -f ../cloud/docker-compose.dev.yml ] \
-        && export SHELLHUB_INCLUDE_CLOUD_DEV=../cloud/docker-compose.dev.yml
-fi
-
-if [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -d ../cloud ]; then
-    [ -f ../cloud/docker-compose.enterprise.dev.yml ] \
-        && export SHELLHUB_INCLUDE_CLOUD_ENTERPRISE_DEV=../cloud/docker-compose.enterprise.dev.yml
-fi
+# docker-compose.override.yml must come after the database overlays so user
+# customizations win (Compose applies later files with higher precedence).
+[ -f docker-compose.override.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.override.yml"
+[ -f "${EXTRA_COMPOSE_FILE:-}" ] && COMPOSE_FILE="${COMPOSE_FILE}:${EXTRA_COMPOSE_FILE}"
+export COMPOSE_FILE
 
 exec docker compose "$@"
