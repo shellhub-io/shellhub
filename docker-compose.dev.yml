@@ -1,5 +1,6 @@
 services:
   ssh:
+    pull_policy: build
     image: ssh
     build:
       context: .
@@ -17,6 +18,7 @@ services:
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   api:
+    pull_policy: build
     image: api
     build:
       context: .
@@ -37,6 +39,7 @@ services:
       - SHELLHUB_CLOUD=${SHELLHUB_CLOUD}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
   ui:
+    pull_policy: build
     image: ui
     build:
       context: .
@@ -49,6 +52,7 @@ services:
       - ./ui:/src
       - ui_node_modules:/src/node_modules
   ui-react:
+    pull_policy: build
     image: ui-react
     build:
       context: .
@@ -61,6 +65,7 @@ services:
       - ./ui-react:/src
       - ./openapi:/openapi:ro
   gateway:
+    pull_policy: build
     image: gateway
     build:
       context: .
@@ -76,6 +81,7 @@ services:
       - SHELLHUB_ENV=${SHELLHUB_ENV}
       - SHELLHUB_GATEWAY_ACCESS_LOGS=${SHELLHUB_GATEWAY_ACCESS_LOGS}
   cli:
+    pull_policy: build
     image: cli
     build:
       context: .
@@ -90,6 +96,7 @@ services:
       - ./api:/go/src/github.com/shellhub-io/shellhub/api
       - ./.golangci.yaml:/.golangci.yaml
   openapi:
+    pull_policy: build
     image: openapi
     build:
       context: .

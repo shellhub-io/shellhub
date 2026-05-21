@@ -1,5 +1,6 @@
 services:
   agent:
+    pull_policy: build
     profiles: [agent]
     image: agent
     restart: unless-stopped
