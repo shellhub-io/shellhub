@@ -1,0 +1,38 @@
+name: Compose Wrapper Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  test:
+    name: bats (no-cloud scenarios)
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            wrapper:
+              - 'bin/docker-compose'
+              - '.env'
+              - '.env.enterprise'
+              - 'docker-compose*.yml'
+              - 'tests/compose/**'
+              - '.github/workflows/compose-tests.yml'
+
+      - name: Install bats
+        if: steps.filter.outputs.wrapper == 'true'
+        uses: bats-core/bats-action@3.0.0
+
+      - name: Run wrapper.bats (no-cloud scenarios + guard)
+        if: steps.filter.outputs.wrapper == 'true'
+        run: bats tests/compose/wrapper.bats
