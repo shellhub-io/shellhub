@@ -30,18 +30,9 @@ import Drawer from "../components/common/Drawer";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import BillingSection from "../components/billing/BillingSection";
 import InputField from "@/components/common/fields/InputField";
+import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
+import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
-
-const NAME_REGEX = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
-
-function validateName(name: string): string | null {
-  if (name.length < 3) return "Name must be at least 3 characters";
-  if (name.length > 30) return "Name must be at most 30 characters";
-  if (name.includes(".")) return "Name cannot contain dots";
-  if (!NAME_REGEX.test(name))
-    return "Only lowercase letters, numbers, and hyphens allowed";
-  return null;
-}
 
 /* ─── Settings Card ─── */
 
@@ -127,17 +118,14 @@ function EditNameDrawer({
     setError("");
   });
 
-  const validationError = name !== currentName ? validateName(name) : null;
+  const validationError =
+    name !== currentName ? validateNamespaceName(name) : null;
+  const canSubmit = name !== currentName && !validationError && !submitting;
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
-    const err = validateName(name);
-    if (err) {
-      setError(err);
-      return;
-    }
+    if (!canSubmit) return;
     setSubmitting(true);
-    setError("");
     try {
       await editNs.mutateAsync({ path: { tenant: tenantId }, body: { name } });
       onClose();
@@ -165,12 +153,7 @@ function EditNameDrawer({
           </button>
           <button
             onClick={() => void handleSubmit()}
-            disabled={
-              !name.trim() ||
-              name === currentName ||
-              !!validationError ||
-              submitting
-            }
+            disabled={!canSubmit}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {submitting ? (
@@ -184,16 +167,18 @@ function EditNameDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <InputField
+        <NamespaceNameField
           id="edit-ns-name"
-          label="Namespace Name"
           value={name}
-          onChange={(v) => setName(v.toLowerCase())}
+          onChange={setName}
           autoFocus={open}
-          hint="3-30 characters, lowercase letters, numbers, and hyphens. No dots."
-          error={validationError ?? undefined}
+          error={validationError}
         />
-        {error && <p className="text-2xs text-accent-red">{error}</p>}
+        {error && (
+          <p role="alert" className="text-2xs text-accent-red">
+            {error}
+          </p>
+        )}
       </form>
     </Drawer>
   );

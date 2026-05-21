@@ -13,17 +13,11 @@ import {
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
 import AmbientBackground from "./AmbientBackground";
-import InputField from "@/components/common/fields/InputField";
-
-const NAME_REGEX = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
-
-function validate(name: string): string | null {
-  if (name.length < 3) return "Name must be at least 3 characters";
-  if (name.length > 30) return "Name must be at most 30 characters";
-  if (!NAME_REGEX.test(name))
-    return "Only lowercase letters, numbers, and hyphens (cannot start or end with hyphen)";
-  return null;
-}
+import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
+import {
+  NAMESPACE_NAME_MIN_LENGTH,
+  validateNamespaceName,
+} from "@/utils/validation";
 
 /* ─── Cloud/Enterprise form ─── */
 function CloudForm() {
@@ -33,7 +27,7 @@ function CloudForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const err = validate(name);
+    const err = validateNamespaceName(name);
     if (err) {
       setValidationError(err);
       return;
@@ -46,31 +40,29 @@ function CloudForm() {
     }
   };
 
-  const displayError = validationError || (createNs.error?.message ?? null);
+  const displayError = validationError ?? (createNs.error?.message ?? null);
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="w-full">
       <div className="flex items-center gap-2">
         <div className="flex-1">
-          <InputField
+          <NamespaceNameField
             id="create-namespace-name"
-            label="Namespace Name"
             value={name}
             onChange={(v) => {
-              setName(v.toLowerCase());
+              setName(v);
               setValidationError(null);
+              createNs.reset();
             }}
-            placeholder="my-namespace"
-            maxLength={30}
             autoFocus
-            variant="mono"
-            error={displayError || undefined}
-            hint="3–30 characters · lowercase letters, numbers, and hyphens only"
+            error={displayError}
           />
         </div>
         <button
           type="submit"
-          disabled={createNs.isPending || name.length < 3}
+          disabled={
+            createNs.isPending || name.length < NAMESPACE_NAME_MIN_LENGTH
+          }
           className="px-6 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 shrink-0"
         >
           {createNs.isPending ? (

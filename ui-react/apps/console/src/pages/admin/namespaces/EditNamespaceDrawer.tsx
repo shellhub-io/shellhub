@@ -3,9 +3,10 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAdminEditNamespace } from "@/hooks/useAdminNamespaceMutations";
 import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
-import InputField from "@/components/common/fields/InputField";
+import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import NumericInput from "@/components/common/fields/NumericInput";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import { validateNamespaceName } from "@/utils/validation";
 import type { Namespace } from "@/client";
 
 interface EditNamespaceDrawerProps {
@@ -38,7 +39,9 @@ export default function EditNamespaceDrawer({
   });
 
   const isMaxDevicesValid = parseInt(maxDevices, 10) >= -1;
-  const canSubmit = name.trim().length > 0 && isMaxDevicesValid;
+  const nameValidationError =
+    name !== namespace?.name ? validateNamespaceName(name) : null;
+  const canSubmit = !nameValidationError && isMaxDevicesValid;
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -107,12 +110,12 @@ export default function EditNamespaceDrawer({
       }
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <InputField
+        <NamespaceNameField
           id="edit-ns-name"
-          label="Name"
           value={name}
           onChange={setName}
           autoFocus={open}
+          error={nameValidationError}
         />
 
         <NumericInput

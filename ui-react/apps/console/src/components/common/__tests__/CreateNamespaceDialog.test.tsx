@@ -93,9 +93,9 @@ describe("CreateNamespaceDialog", () => {
   });
 
   describe("naming rules", () => {
-    it("displays the '3–30 characters' rule", () => {
+    it("displays the '3-30 characters' rule", () => {
       renderDialog(true);
-      expect(screen.getByText("3–30 characters")).toBeInTheDocument();
+      expect(screen.getByText("3-30 characters")).toBeInTheDocument();
     });
 
     it("displays the 'Lowercase letters, numbers, and hyphens only' rule", () => {
