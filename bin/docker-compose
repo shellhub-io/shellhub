@@ -5,45 +5,69 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 cd "$SCRIPT_DIR/.."
 
 env_override=${ENV_OVERRIDE:-./.env.override}
+cloud_dir=${CLOUD_DIR:-../cloud}
 
-# Read a single shellhub flag from .env / .env.override in a subshell, without
-# polluting the wrapper's env. Container env loading is delegated to Compose
-# via COMPOSE_ENV_FILES below.
+# Peek ENTERPRISE first using only the shellhub-side files; the result
+# decides whether env_var() should also source cloud/.env. This mirrors
+# COMPOSE_ENV_FILES (which gates cloud/.env on ENTERPRISE=true) so the
+# wrapper's view of every other flag matches what containers will see.
+SHELLHUB_ENTERPRISE=$(
+    . ./.env 2>/dev/null
+    [ -f "$env_override" ] && . "$env_override"
+    eval "printf '%s' \"\${SHELLHUB_ENTERPRISE:-false}\""
+)
+
+# Read a single shellhub flag in a subshell, without polluting the wrapper's
+# env. Sources the same files Compose loads via COMPOSE_ENV_FILES.
 env_var() {
     var=$1; default=$2
-    (. ./.env 2>/dev/null; [ -f "$env_override" ] && . "$env_override"; eval "printf '%s' \"\${${var}:-${default}}\"")
+    # Snapshot the parent's view before `. ./.env` (which declares
+    # SHELLHUB_ENTERPRISE=false as the CE default) clobbers it in the subshell.
+    is_enterprise=$SHELLHUB_ENTERPRISE
+    (
+        . ./.env 2>/dev/null
+        [ "$is_enterprise" = "true" ] && [ -f "$cloud_dir/.env" ] \
+            && . "$cloud_dir/.env"
+        [ -f "$env_override" ] && . "$env_override"
+        eval "printf '%s' \"\${${var}:-${default}}\""
+    )
 }
 
 SHELLHUB_CLOUD=$(env_var SHELLHUB_CLOUD false)
-SHELLHUB_ENTERPRISE=$(env_var SHELLHUB_ENTERPRISE false)
 SHELLHUB_ENV=$(env_var SHELLHUB_ENV production)
 SHELLHUB_AUTO_SSL=$(env_var SHELLHUB_AUTO_SSL false)
 SHELLHUB_DATABASE=$(env_var SHELLHUB_DATABASE postgres)
+SHELLHUB_BILLING=$(env_var SHELLHUB_BILLING "")
 
 if [ "$SHELLHUB_CLOUD" = "true" ] && [ "$SHELLHUB_ENTERPRISE" != "true" ]; then
     echo "🚫 ERROR: SHELLHUB_CLOUD=true requires SHELLHUB_ENTERPRISE=true. Set it in .env.override." >&2
     exit 1
 fi
 
-# COMPOSE_ENV_FILES — last file wins.
-# Order: CE defaults → enterprise defaults → user override → cloud defaults → cloud override.
+# COMPOSE_ENV_FILES — last file wins. Order chosen so that:
+#   - CE defaults are the base
+#   - enterprise defaults augment when ENTERPRISE=true
+#   - cloud defaults augment when cloud/ is loaded (gate: ENTERPRISE=true)
+#   - shellhub/.env.override is ALWAYS LAST: user customizations win over
+#     every preceding default. There is no cloud/.env.override anymore —
+#     dev customizations live in shellhub/.env.override only.
 COMPOSE_ENV_FILES="./.env"
 [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ -f ./.env.enterprise ] \
     && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,./.env.enterprise"
+[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ -f "$cloud_dir/.env" ] \
+    && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,$cloud_dir/.env"
 [ -f "$env_override" ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,$env_override"
-if [ "$SHELLHUB_ENTERPRISE" = "true" ]; then
-    [ -f ../cloud/.env ]          && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env"
-    [ -f ../cloud/.env.override ] && COMPOSE_ENV_FILES="$COMPOSE_ENV_FILES,../cloud/.env.override"
-fi
 export COMPOSE_ENV_FILES
 
 COMPOSE_FILE="docker-compose.yml"
 [ "$SHELLHUB_AUTO_SSL" = "true" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.autossl.yml"
 [ "$SHELLHUB_ENV" = "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.dev.yml:docker-compose.agent.yml"
 [ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" != "development" ] && COMPOSE_FILE="${COMPOSE_FILE}:docker-compose.enterprise.yml"
-[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -f ../cloud/docker-compose.enterprise.dev.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:../cloud/docker-compose.enterprise.dev.yml"
-[ "$SHELLHUB_CLOUD" = "true" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -f ../cloud/docker-compose.dev.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:../cloud/docker-compose.dev.yml"
-[ "$SHELLHUB_CLOUD" = "true" ] && [ -f ../cloud/docker-compose.yml ] && COMPOSE_FILE="${COMPOSE_FILE}:../cloud/docker-compose.yml"
+[ "$SHELLHUB_ENTERPRISE" = "true" ] && [ "$SHELLHUB_ENV" = "development" ] && [ -f "$cloud_dir/docker-compose.enterprise.dev.yml" ] && COMPOSE_FILE="${COMPOSE_FILE}:$cloud_dir/docker-compose.enterprise.dev.yml"
+[ "$SHELLHUB_CLOUD" = "true" ] && [ -f "$cloud_dir/docker-compose.yml" ] && COMPOSE_FILE="${COMPOSE_FILE}:$cloud_dir/docker-compose.yml"
+
+# Activate the profile matching the configured billing provider.
+[ -n "$SHELLHUB_BILLING" ] && export COMPOSE_PROFILES="$SHELLHUB_BILLING"
 
 case "$SHELLHUB_DATABASE" in
     mongo|postgres)
