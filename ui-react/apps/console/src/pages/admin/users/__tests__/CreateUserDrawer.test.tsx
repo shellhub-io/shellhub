@@ -374,6 +374,73 @@ describe("CreateUserDrawer", () => {
     });
   });
 
+  describe("client-side validation", () => {
+    it("marks username invalid on blur for an uppercase value", async () => {
+      renderDrawer();
+      const usernameInput = screen.getByLabelText(/^username$/i);
+      await userEvent.type(usernameInput, "Alice");
+      await userEvent.tab();
+      expect(usernameInput).toHaveAttribute("aria-invalid", "true");
+    });
+
+    it("marks email invalid on blur for a malformed value", async () => {
+      renderDrawer();
+      const emailInput = screen.getByLabelText(/^email$/i);
+      await userEvent.type(emailInput, "not-an-email");
+      await userEvent.tab();
+      expect(emailInput).toHaveAttribute("aria-invalid", "true");
+      expect(
+        await screen.findByText(/enter a valid email address/i),
+      ).toBeInTheDocument();
+    });
+
+    it("marks password invalid on blur for a too-short value", async () => {
+      renderDrawer();
+      const passwordInput = screen.getByLabelText(/^password$/i);
+      await userEvent.type(passwordInput, "abc");
+      await userEvent.tab();
+      expect(passwordInput).toHaveAttribute("aria-invalid", "true");
+      expect(await screen.findByText(/5–32 characters/i)).toBeInTheDocument();
+    });
+
+    it("blocks submit when fields are non-empty but format is invalid", async () => {
+      mockMutateAsync.mockResolvedValue(undefined);
+      renderDrawer();
+      // All fields non-empty (so isSubmittable=true, button enabled) but
+      // format-invalid. validateAll must block the mutation.
+      await fillForm({ username: "Alice", email: "bad", password: "abc" });
+
+      const submit = screen.getByRole("button", { name: /create user/i });
+      expect(submit).not.toBeDisabled();
+      await userEvent.click(submit);
+
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(screen.getByLabelText(/^username$/i)).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+      expect(screen.getByLabelText(/^email$/i)).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+      expect(screen.getByLabelText(/^password$/i)).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      );
+    });
+
+    it("clears the invalid state when the user edits the field again", async () => {
+      renderDrawer();
+      const usernameInput = screen.getByLabelText(/^username$/i);
+      await userEvent.type(usernameInput, "Alice");
+      await userEvent.tab();
+      expect(usernameInput).toHaveAttribute("aria-invalid", "true");
+
+      await userEvent.type(usernameInput, "x");
+      expect(usernameInput).not.toHaveAttribute("aria-invalid");
+    });
+  });
+
   describe("cancel", () => {
     it("calls onClose when Cancel is clicked", async () => {
       const { onClose } = renderDrawer();

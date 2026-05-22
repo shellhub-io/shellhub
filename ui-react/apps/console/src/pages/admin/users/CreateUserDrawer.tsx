@@ -4,11 +4,8 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useCreateUser } from "@/hooks/useAdminUserMutations";
 import { isSdkError } from "@/api/errors";
 import Drawer from "@/components/common/Drawer";
-import InputField from "@/components/common/fields/InputField";
-import PasswordField from "@/components/common/fields/PasswordField";
-import CheckboxField from "@/components/common/fields/CheckboxField";
-import NamespaceLimitFields from "./NamespaceLimitFields";
-import { isMaxNamespacesValid } from "@/utils/validation";
+import UserFormFields from "./UserFormFields";
+import { useUserForm } from "./useUserForm";
 
 interface CreateUserDrawerProps {
   open: boolean;
@@ -20,63 +17,26 @@ export default function CreateUserDrawer({
   onClose,
 }: CreateUserDrawerProps) {
   const createUser = useCreateUser();
-
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [admin, setAdmin] = useState(false);
-  const [limitEnabled, setLimitEnabled] = useState(false);
-  const [limitDisabled, setLimitDisabled] = useState(false);
-  const [maxNamespaces, setMaxNamespaces] = useState("1");
-  const [error, setError] = useState("");
+  const form = useUserForm({ mode: "create" });
+  const [submitError, setSubmitError] = useState("");
 
   useResetOnOpen(open, () => {
-    setName("");
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setAdmin(false);
-    setLimitEnabled(false);
-    setLimitDisabled(false);
-    setMaxNamespaces("1");
-    setError("");
+    form.reset();
+    setSubmitError("");
   });
-
-  const computeMaxNamespaces = (): number | undefined => {
-    if (!limitEnabled) return undefined;
-    if (limitDisabled) return 0;
-    return parseInt(maxNamespaces, 10);
-  };
-
-  const canSubmit =
-    name.trim() &&
-    username.trim() &&
-    email.trim() &&
-    password.trim() &&
-    isMaxNamespacesValid(limitEnabled, limitDisabled, maxNamespaces);
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
-    if (!canSubmit) return;
-    setError("");
+    if (!form.validateAll()) return;
+    setSubmitError("");
     try {
-      await createUser.mutateAsync({
-        body: {
-          name: name.trim(),
-          username: username.trim(),
-          email: email.trim(),
-          password,
-          admin,
-          max_namespaces: computeMaxNamespaces(),
-        },
-      });
+      await createUser.mutateAsync({ body: form.buildPayload() });
       onClose();
     } catch (err) {
       if (isSdkError(err) && err.status === 409) {
-        setError("A user with this email or username already exists.");
+        setSubmitError("A user with this email or username already exists.");
       } else {
-        setError("Failed to create user. Please try again.");
+        setSubmitError("Failed to create user. Please try again.");
       }
     }
   };
@@ -97,7 +57,7 @@ export default function CreateUserDrawer({
           </button>
           <button
             onClick={() => void handleSubmit()}
-            disabled={!canSubmit || createUser.isPending}
+            disabled={!form.isSubmittable || createUser.isPending}
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {createUser.isPending ? (
@@ -113,67 +73,19 @@ export default function CreateUserDrawer({
         </>
       }
     >
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5">
-        <InputField
-          id="create-user-name"
-          label="Name"
-          value={name}
-          onChange={setName}
-          placeholder="John Doe"
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        className="space-y-5"
+        noValidate
+      >
+        <UserFormFields
+          form={form}
+          idPrefix="create-user"
           autoFocus={open}
         />
-
-        <InputField
-          id="create-user-username"
-          label="Username"
-          value={username}
-          onChange={setUsername}
-          placeholder="johndoe"
-          hint="3-30 characters, letters, numbers, hyphens, dots, underscores, @"
-        />
-
-        <InputField
-          id="create-user-email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          placeholder="john@example.com"
-        />
-
-        <PasswordField
-          id="create-user-password"
-          label="Password"
-          value={password}
-          onChange={setPassword}
-          placeholder="Enter password"
-          hint="5-30 characters"
-          suppressPasswordManager
-        />
-
-        {/* Namespace Limit */}
-        <NamespaceLimitFields
-          idPrefix="create-user"
-          limitEnabled={limitEnabled}
-          onLimitEnabledChange={setLimitEnabled}
-          limitDisabled={limitDisabled}
-          onLimitDisabledChange={setLimitDisabled}
-          maxNamespaces={maxNamespaces}
-          onMaxNamespacesChange={setMaxNamespaces}
-        />
-
-        {/* Admin */}
-        <CheckboxField
-          id="create-user-admin"
-          label="Admin user"
-          checked={admin}
-          onChange={setAdmin}
-        />
-
-        {/* Error */}
-        {error && (
+        {submitError && (
           <p role="alert" className="text-2xs text-accent-red">
-            {error}
+            {submitError}
           </p>
         )}
       </form>

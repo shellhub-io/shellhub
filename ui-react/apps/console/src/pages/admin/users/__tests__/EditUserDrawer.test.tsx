@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import EditUserDrawer, { type EditableUser } from "../EditUserDrawer";
+import EditUserDrawer from "../EditUserDrawer";
 import { useUpdateUser } from "@/hooks/useAdminUserMutations";
 import { useAuthStore } from "@/stores/authStore";
+import type { UserAdminResponse } from "@/client";
 vi.mock("@/hooks/useAdminUserMutations", () => ({
   useUpdateUser: vi.fn(),
 }));
@@ -14,16 +15,18 @@ vi.mock("@/components/common/Drawer", async () => ({
 
 const mockMutateAsync = vi.fn();
 
-const mockUser: EditableUser = {
+const mockUser: UserAdminResponse = {
   id: "u1",
   name: "Alice Smith",
   username: "alice",
   email: "alice@example.com",
   admin: false,
   status: "not-confirmed",
+  created_at: "2024-01-01T00:00:00Z",
+  last_login: "2024-01-01T00:00:00Z",
 };
 
-const confirmedUser: EditableUser = {
+const confirmedUser: UserAdminResponse = {
   ...mockUser,
   status: "confirmed",
 };
@@ -40,7 +43,7 @@ function renderDrawer(
   overrides: Partial<{
     open: boolean;
     onClose: () => void;
-    user: EditableUser | null;
+    user: UserAdminResponse | null;
   }> = {},
 ) {
   const defaults = { open: true, onClose: vi.fn(), user: mockUser };
@@ -177,7 +180,7 @@ describe("EditUserDrawer", () => {
     });
 
     it("recognises status='confirmed' as a confirmed user", () => {
-      const userWithStatus: EditableUser = {
+      const userWithStatus: UserAdminResponse = {
         ...mockUser,
         status: "confirmed",
       };
@@ -189,14 +192,14 @@ describe("EditUserDrawer", () => {
   describe("admin checkbox — self-demotion constraint", () => {
     it("admin checkbox is disabled when editing your own admin account", () => {
       useAuthStore.setState({ username: "alice" } as never);
-      const selfAdmin: EditableUser = { ...mockUser, admin: true };
+      const selfAdmin: UserAdminResponse = { ...mockUser, admin: true };
       renderDrawer({ user: selfAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).toBeDisabled();
     });
 
     it("admin checkbox is enabled when editing another admin", () => {
       useAuthStore.setState({ username: "admin" } as never);
-      const otherAdmin: EditableUser = {
+      const otherAdmin: UserAdminResponse = {
         ...mockUser,
         username: "bob",
         admin: true,
@@ -207,7 +210,7 @@ describe("EditUserDrawer", () => {
 
     it("admin checkbox is enabled for a non-admin self user", () => {
       useAuthStore.setState({ username: "alice" } as never);
-      const selfNonAdmin: EditableUser = { ...mockUser, admin: false };
+      const selfNonAdmin: UserAdminResponse = { ...mockUser, admin: false };
       renderDrawer({ user: selfNonAdmin });
       expect(screen.getByLabelText(/^admin user$/i)).not.toBeDisabled();
     });
@@ -387,6 +390,45 @@ describe("EditUserDrawer", () => {
 
       await waitFor(() => screen.getByRole("alert"));
       expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("client-side validation", () => {
+    it("allows submit with a blank password (password kept as-is)", async () => {
+      mockMutateAsync.mockResolvedValue(undefined);
+      renderDrawer();
+      // Default state: pre-filled valid mockUser with empty password.
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+      await waitFor(() => expect(mockMutateAsync).toHaveBeenCalled());
+    });
+
+    it("rejects a too-short password on edit when the user is changing it", async () => {
+      mockMutateAsync.mockResolvedValue(undefined);
+      renderDrawer();
+      const passwordInput = screen.getByLabelText(/^password$/i);
+      await userEvent.type(passwordInput, "abc");
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(passwordInput).toHaveAttribute("aria-invalid", "true");
+    });
+
+    it("blocks submit when an existing field is edited to an invalid value", async () => {
+      mockMutateAsync.mockResolvedValue(undefined);
+      renderDrawer();
+      const usernameInput = screen.getByLabelText(/^username$/i);
+      await userEvent.clear(usernameInput);
+      await userEvent.type(usernameInput, "Invalid Username!");
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /save changes/i }),
+      );
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+      expect(usernameInput).toHaveAttribute("aria-invalid", "true");
     });
   });
 

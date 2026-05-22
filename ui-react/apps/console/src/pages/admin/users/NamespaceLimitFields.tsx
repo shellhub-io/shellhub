@@ -1,6 +1,6 @@
 import NumericInput from "@/components/common/fields/NumericInput";
 import CheckboxField from "@/components/common/fields/CheckboxField";
-import { isMaxNamespacesValid } from "@/utils/validation";
+import { MAX_NAMESPACES_ERROR, isMaxNamespacesValid } from "@/utils/validation";
 
 interface NamespaceLimitFieldsProps {
   idPrefix: string;
@@ -49,11 +49,7 @@ export default function NamespaceLimitFields({
               label="Max namespaces"
               value={maxNamespaces}
               onChange={onMaxNamespacesChange}
-              error={
-                valid
-                  ? undefined
-                  : "Max namespaces must be a number greater than or equal to 1"
-              }
+              error={valid ? undefined : MAX_NAMESPACES_ERROR}
             />
           )}
         </div>
