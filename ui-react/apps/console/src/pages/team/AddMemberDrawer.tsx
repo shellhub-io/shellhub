@@ -4,10 +4,9 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { useAddMember } from "@/hooks/useMemberMutations";
 import Drawer from "@/components/common/Drawer";
 import InputField from "@/components/common/fields/InputField";
+import { EMAIL_REGEX } from "@/utils/validation";
 import { RoleSelector } from "./constants";
 import { type AssignableRole } from "./helpers";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /* --- Add Member Drawer --- */
 

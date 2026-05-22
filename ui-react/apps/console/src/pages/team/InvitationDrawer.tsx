@@ -18,8 +18,7 @@ import CheckboxField from "@/components/common/fields/CheckboxField";
 import { RoleSelector } from "./constants";
 import { type AssignableRole } from "./helpers";
 import { LABEL } from "@/utils/styles";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { EMAIL_REGEX } from "@/utils/validation";
 
 interface InvitationDrawerProps {
   open: boolean;
