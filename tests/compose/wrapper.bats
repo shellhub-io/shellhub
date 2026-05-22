@@ -59,3 +59,16 @@ load helpers
     [ "$status" -ne 0 ]
     [[ "$output" == *"requires SHELLHUB_ENTERPRISE=true"* ]]
 }
+
+@test "precedence: env_override is loaded LAST so user wins over cloud defaults" {
+    make_cloud_stub
+    echo "SHELLHUB_FROM=cloud" > "$CLOUD_DIR_OVERRIDE/.env"
+    out=$(capture_with SHELLHUB_ENTERPRISE=true)
+    files=$(echo "$out" | grep '^COMPOSE_ENV_FILES=' | sed 's|.*=||')
+    # The last entry must be the override tmpfile (lives in BATS_TEST_TMPDIR).
+    last=$(echo "$files" | awk -F',' '{print $NF}')
+    [[ "$last" == "$BATS_TEST_TMPDIR/"* ]]
+    # And cloud/.env must appear earlier in the chain.
+    [[ "$files" == *"$CLOUD_DIR_OVERRIDE/.env,"* ]]
+}
+
