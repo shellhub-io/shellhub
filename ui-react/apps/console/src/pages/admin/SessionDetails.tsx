@@ -9,7 +9,7 @@ import { useAdminSessionDetail } from "@/hooks/useAdminSessionDetail";
 import PageHeader from "@/components/common/PageHeader";
 import { formatDateFull } from "@/utils/date";
 import { sessionType } from "@/utils/session";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -39,9 +39,7 @@ export default function AdminSessionDetails() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Spinner size="lg" aria-label="Loading session" />
-      </div>
+      <PageLoader label="Loading session" padding="fill" />
     );
   }
 

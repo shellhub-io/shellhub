@@ -30,6 +30,7 @@ import MfaEnableDrawer from "../components/mfa/MfaEnableDrawer";
 import MfaDisableDialog from "../components/mfa/MfaDisableDialog";
 import { hasMfaSupport } from "../utils/features";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const USERNAME_REGEX = /^[a-z0-9_.@-]+$/;
 
@@ -618,11 +619,7 @@ export default function Profile() {
   }, [fetchUser]);
 
   if (!name && !username) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <PageLoader label="Loading profile" padding="lg" />;
   }
 
   const openEdit = () => setEditDrawerOpen(true);

@@ -34,7 +34,7 @@ import DistroIcon from "../components/common/DistroIcon";
 import { formatDateFull, formatRelative, formatDuration } from "../utils/date";
 import type { Session } from "../client";
 import RestrictedAction from "../components/common/RestrictedAction";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 /* ── timeline builder ────────────────────────────── */
 
@@ -340,11 +340,7 @@ export default function SessionDetails() {
   };
 
   if (isLoading || !session) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner size="lg" aria-label="Loading session" />
-      </div>
-    );
+    return <PageLoader label="Loading session" />;
   }
 
   if (error) {

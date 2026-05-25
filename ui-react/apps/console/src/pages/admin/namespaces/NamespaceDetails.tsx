@@ -15,7 +15,7 @@ import EditNamespaceDrawer from "./EditNamespaceDrawer";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
 import { formatDateFull } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -34,9 +34,7 @@ export default function NamespaceDetails() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner size="lg" aria-label="Loading namespace details" />
-      </div>
+      <PageLoader label="Loading namespace details" />
     );
   }
 

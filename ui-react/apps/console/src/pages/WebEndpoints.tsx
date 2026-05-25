@@ -34,6 +34,7 @@ import {
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 /* ─── Constants ─── */
 
@@ -875,14 +876,7 @@ function WebEndpointsContent() {
     <div>
       {/* Content */}
       {isLoading && webEndpoints.length === 0 && !isSearching ? (
-        <div
-          className="flex items-center justify-center py-16"
-          role="status"
-          aria-live="polite"
-          aria-label="Loading web endpoints"
-        >
-          <Spinner size="lg" />
-        </div>
+        <PageLoader label="Loading web endpoints" />
       ) : isTrulyEmpty ? (
         /* Empty state */
         <div className="relative -mx-8 -mt-8 min-h-[calc(100vh-3.5rem)] flex flex-col">

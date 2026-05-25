@@ -22,7 +22,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { formatRelative } from "@/utils/date";
 import { RoleBadge } from "@/pages/team/constants";
 import { isInvitationExpired } from "@/utils/invitations";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 function InvitationCard({
   invitation,
@@ -195,16 +195,7 @@ export default function InvitationsMenu() {
 
             <div className="max-h-[360px] overflow-y-auto">
               {isLoading ? (
-                <div
-                  className="flex items-center justify-center gap-2 py-8"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <Spinner />
-                  <span className="text-2xs font-mono text-text-muted">
-                    Loading...
-                  </span>
-                </div>
+                <PageLoader label="Loading..." showLabel padding="sm" />
               ) : count === 0 ? (
                 <div className="px-3.5 py-10 text-center">
                   <InboxIcon

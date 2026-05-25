@@ -33,6 +33,7 @@ import FieldLabel from "@/components/common/fields/FieldLabel";
 import InputField from "@/components/common/fields/InputField";
 import BillingIcon from "./BillingIcon";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const ELEMENTS_OPTIONS: StripeElementsOptions = {
   appearance: { theme: "night" },
@@ -254,16 +255,7 @@ function BillingPaymentInner({
   }
 
   if (bootstrapping || customerLoading) {
-    return (
-      <div
-        className="flex items-center justify-center py-10"
-        role="status"
-        aria-live="polite"
-      >
-        <Spinner size="lg" tone="onSurface" />
-        <span className="sr-only">Loading payment methods…</span>
-      </div>
-    );
+    return <PageLoader label="Loading payment methods…" padding="sm" />;
   }
 
   return (
@@ -413,9 +405,7 @@ function BillingPaymentInner({
               disabled={!stripe || !cardComplete || submitting}
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
-              {submitting && (
-                <Spinner tone="onPrimary" />
-              )}
+              {submitting && <Spinner tone="onPrimary" />}
               Save card
             </button>
           </div>

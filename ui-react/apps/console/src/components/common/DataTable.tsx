@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@/utils/cn";
 import Pagination from "./Pagination";
-import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const TH_CLASS =
   "px-4 py-3 text-left text-2xs font-mono font-semibold uppercase tracking-compact text-text-muted whitespace-nowrap";
@@ -165,16 +165,7 @@ export default function DataTable<T>({
           {isLoading && data.length === 0 ? (
             <tr>
               <td colSpan={columns.length} className="px-4 py-16 text-center">
-                <div
-                  className="flex items-center justify-center gap-3"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <Spinner />
-                  <span className="text-xs font-mono text-text-muted">
-                    {loadingMessage}
-                  </span>
-                </div>
+                <PageLoader label={loadingMessage} showLabel padding="none" />
               </td>
             </tr>
           ) : data.length === 0 ? (

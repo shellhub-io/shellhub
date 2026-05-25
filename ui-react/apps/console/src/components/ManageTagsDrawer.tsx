@@ -14,6 +14,7 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
 
@@ -202,9 +203,7 @@ export default function ManageTagsDrawer({
         <div className="flex-1 overflow-y-auto">
           {isLoading && tags.length === 0
             ? (
-              <div className="flex items-center justify-center py-12">
-                <Spinner size="lg" tone="onSurface" />
-              </div>
+              <PageLoader label="Loading tags" padding="sm" />
             )
             : tags.length === 0
               ? (

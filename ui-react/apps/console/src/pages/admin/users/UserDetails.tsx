@@ -19,6 +19,7 @@ import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
 import Spinner from "@/components/common/Spinner";
+import PageLoader from "@/components/common/PageLoader";
 
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -74,9 +75,7 @@ export default function UserDetails() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner size="lg" aria-label="Loading user details" />
-      </div>
+      <PageLoader label="Loading user details" />
     );
   }
 
