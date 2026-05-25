@@ -38,7 +38,9 @@ function makeTag(name: string) {
   };
 }
 
-function makeRule(overrides: Partial<FirewallRulesResponse> = {}): FirewallRulesResponse {
+function makeRule(
+  overrides: Partial<FirewallRulesResponse> = {},
+): FirewallRulesResponse {
   return {
     id: "rule-1",
     tenant_id: "tenant-abc",
@@ -72,7 +74,7 @@ describe("AdminFirewallRuleDetails", () => {
   });
 
   describe("loading state", () => {
-    it('renders a loading spinner with sr-only "Loading firewall rule details" while loading', () => {
+    it('announces "Loading firewall rule details" while loading', () => {
       vi.mocked(useAdminFirewallRule).mockReturnValue({
         data: undefined,
         isLoading: true,
@@ -81,9 +83,8 @@ describe("AdminFirewallRuleDetails", () => {
 
       renderPage();
 
-      expect(screen.getByRole("status")).toBeInTheDocument();
       expect(
-        screen.getByText("Loading firewall rule details"),
+        screen.getByRole("status", { name: "Loading firewall rule details" }),
       ).toBeInTheDocument();
     });
   });
@@ -253,7 +254,9 @@ describe("AdminFirewallRuleDetails", () => {
 
     it("renders tag FilterBadge when filter has tags", () => {
       vi.mocked(useAdminFirewallRule).mockReturnValue({
-        data: makeRule({ filter: { tags: [makeTag("production"), makeTag("web")] } }),
+        data: makeRule({
+          filter: { tags: [makeTag("production"), makeTag("web")] },
+        }),
         isLoading: false,
         error: null,
       } as ReturnType<typeof useAdminFirewallRule>);

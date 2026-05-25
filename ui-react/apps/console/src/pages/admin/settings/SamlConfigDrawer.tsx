@@ -11,6 +11,7 @@ import InputField from "@/components/common/fields/InputField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { INPUT } from "@/utils/styles";
 import FieldLabel from "@/components/common/fields/FieldLabel";
+import Spinner from "@/components/common/Spinner";
 
 type SamlSettings = NonNullable<GetAuthenticationSettingsResponse>["saml"];
 
@@ -218,7 +219,7 @@ export default function SamlConfigDrawer({
         className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
       >
         {saving && (
-          <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <Spinner size="sm" tone="onPrimary" />
         )}
         Save Configuration
       </button>

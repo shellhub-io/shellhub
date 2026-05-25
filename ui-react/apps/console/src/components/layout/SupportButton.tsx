@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LifebuoyIcon } from "@heroicons/react/24/outline";
 import { useChatwootContext } from "@/hooks/useChatwoot";
 import SupportPaywallDialog from "./SupportPaywallDialog";
+import Spinner from "@/components/common/Spinner";
 
 const GITHUB_ISSUE_URL = "https://github.com/shellhub-io/shellhub/issues/new";
 
@@ -60,10 +61,7 @@ export default function SupportButton() {
         }`}
       >
         {isLoading ? (
-          <span
-            aria-hidden="true"
-            className="block w-3.5 h-3.5 border-2 border-text-muted/30 border-t-text-secondary rounded-full animate-spin"
-          />
+          <Spinner size="sm" tone="subtle" className="block" />
         ) : (
           <LifebuoyIcon className="w-[18px] h-[18px]" aria-hidden="true" />
         )}

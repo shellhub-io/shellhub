@@ -26,6 +26,7 @@ import {
 } from "@/hooks/useDeviceChooser";
 import { isSdkError } from "@/api/errors";
 import { FREE_TIER_DEVICE_LIMIT } from "./DeviceChooserTrigger";
+import Spinner from "@/components/common/Spinner";
 
 const PER_PAGE = 5;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -286,10 +287,7 @@ export default function DeviceChooserDialog({
           className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all bg-primary text-white hover:bg-primary-600 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary disabled:active:scale-100"
         >
           {choice.isPending && (
-            <span
-              aria-hidden="true"
-              className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"
-            />
+            <Spinner size="sm" tone="onPrimary" />
           )}
           {choice.isPending ? "Saving…" : "Accept"}
         </button>

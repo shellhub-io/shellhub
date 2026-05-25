@@ -33,6 +33,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import Spinner from "@/components/common/Spinner";
 
 /* ─── Constants ─── */
 
@@ -430,13 +431,13 @@ function EndpointDrawer({
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={submitting || confirmDisabled}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {submitting ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <>
+                <Spinner size="sm" tone="onPrimary" />
                 Creating...
-              </span>
+              </>
             ) : (
               "Create Endpoint"
             )}
@@ -880,7 +881,7 @@ function WebEndpointsContent() {
           aria-live="polite"
           aria-label="Loading web endpoints"
         >
-          <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <Spinner size="lg" />
         </div>
       ) : isTrulyEmpty ? (
         /* Empty state */

@@ -14,6 +14,7 @@ import {
 } from "@/utils/validation";
 import { getConfig } from "@/env";
 import { useCreateNamespace } from "@/hooks/useNamespaceMutations";
+import Spinner from "@/components/common/Spinner";
 
 const CLI_COMMAND = "./bin/cli namespace create <namespace> <owner>";
 
@@ -220,7 +221,7 @@ export default function CreateNamespaceDialog({
               className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
             >
               {createNs.isPending ? (
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                <Spinner size="sm" tone="onPrimary" className="inline-block" />
               ) : (
                 "Create"
               )}

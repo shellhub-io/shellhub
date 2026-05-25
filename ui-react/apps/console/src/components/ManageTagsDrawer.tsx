@@ -13,6 +13,7 @@ import {
   TrashIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
+import Spinner from "@/components/common/Spinner";
 
 const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
 
@@ -158,7 +159,7 @@ export default function ManageTagsDrawer({
             >
               {submitting
                 ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin block" />
+                  <Spinner tone="onPrimary" className="block" />
                 )
                 : (
                   <PlusIcon className="w-4 h-4" strokeWidth={2} />
@@ -202,7 +203,7 @@ export default function ManageTagsDrawer({
           {isLoading && tags.length === 0
             ? (
               <div className="flex items-center justify-center py-12">
-                <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <Spinner size="lg" tone="onSurface" />
               </div>
             )
             : tags.length === 0

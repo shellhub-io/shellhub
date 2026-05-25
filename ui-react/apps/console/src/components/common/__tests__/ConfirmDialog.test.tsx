@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, cleanup, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  cleanup,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "./helpers/setup-dialog";
 
@@ -124,12 +131,16 @@ describe("ConfirmDialog", () => {
 
     it("renders a custom confirmLabel", () => {
       renderDialog(true, { confirmLabel: "Delete" });
-      expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Delete" }),
+      ).toBeInTheDocument();
     });
 
     it("renders a custom cancelLabel", () => {
       renderDialog(true, { cancelLabel: "Go back" });
-      expect(screen.getByRole("button", { name: "Go back" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Go back" }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -166,7 +177,10 @@ describe("ConfirmDialog", () => {
       const user = userEvent.setup();
       let resolve!: () => void;
       const onConfirm = vi.fn(
-        () => new Promise<void>((res) => { resolve = res; }),
+        () =>
+          new Promise<void>((res) => {
+            resolve = res;
+          }),
       );
       renderDialog(true, { onConfirm });
 
@@ -174,9 +188,11 @@ describe("ConfirmDialog", () => {
 
       const confirmBtn = screen.getByRole("button", { name: "Confirm" });
       expect(confirmBtn).toBeDisabled();
-      expect(screen.getByTestId("confirm-spinner")).toBeInTheDocument();
+      expect(confirmBtn.querySelector(".animate-spin")).not.toBeNull();
 
-      act(() => { resolve(); });
+      act(() => {
+        resolve();
+      });
     });
 
     it("re-enables the confirm button after onConfirm resolves", async () => {
@@ -187,7 +203,9 @@ describe("ConfirmDialog", () => {
       await user.click(screen.getByRole("button", { name: "Confirm" }));
 
       await waitFor(() =>
-        expect(screen.getByRole("button", { name: "Confirm" })).not.toBeDisabled(),
+        expect(
+          screen.getByRole("button", { name: "Confirm" }),
+        ).not.toBeDisabled(),
       );
     });
 
@@ -199,7 +217,9 @@ describe("ConfirmDialog", () => {
       await user.click(screen.getByRole("button", { name: "Confirm" }));
 
       await waitFor(() =>
-        expect(screen.getByRole("button", { name: "Confirm" })).not.toBeDisabled(),
+        expect(
+          screen.getByRole("button", { name: "Confirm" }),
+        ).not.toBeDisabled(),
       );
     });
 

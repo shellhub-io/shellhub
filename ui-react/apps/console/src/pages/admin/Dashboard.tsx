@@ -20,6 +20,7 @@ import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { formatDate } from "@/utils/date";
 import { sessionType } from "@/utils/session";
 import type { Session } from "@/client";
+import Spinner from "@/components/common/Spinner";
 
 export default function AdminDashboard() {
   const {
@@ -41,10 +42,7 @@ export default function AdminDashboard() {
         role="status"
         aria-label="Loading dashboard statistics"
       >
-        <span
-          className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"
-          aria-hidden="true"
-        />
+        <Spinner size="lg" />
       </div>
     );
   }

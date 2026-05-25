@@ -18,6 +18,7 @@ import EditUserDrawer from "./EditUserDrawer";
 import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
 import { formatDateFull } from "@/utils/date";
+import Spinner from "@/components/common/Spinner";
 
 const LABEL
   = "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -73,9 +74,8 @@ export default function UserDetails() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-24" role="status">
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-        <span className="sr-only">Loading user details</span>
+      <div className="flex items-center justify-center py-24">
+        <Spinner size="lg" aria-label="Loading user details" />
       </div>
     );
   }
@@ -173,10 +173,7 @@ export default function UserDetails() {
             }`}
           >
             {loginAsId === id ? (
-              <span
-                aria-hidden="true"
-                className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
-              />
+              <Spinner tone="onPrimary" />
             ) : (
               <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
             )}

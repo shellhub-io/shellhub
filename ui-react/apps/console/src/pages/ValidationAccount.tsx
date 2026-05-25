@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { useSignUpStore } from "../stores/signUpStore";
+import Spinner from "@/components/common/Spinner";
 
 export default function ValidationAccount() {
   const navigate = useNavigate();
@@ -44,9 +42,7 @@ export default function ValidationAccount() {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-8 py-12 flex flex-col items-center">
-      <div
-        className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm text-center animate-slide-up"
-      >
+      <div className="w-full max-w-sm bg-card/80 border border-border rounded-2xl p-8 backdrop-blur-sm text-center animate-slide-up">
         <h1 className="text-lg font-semibold text-text-primary mb-5">
           Account Verification
         </h1>
@@ -58,7 +54,7 @@ export default function ValidationAccount() {
         >
           {validationStatus === "processing" || validationStatus === "idle" ? (
             <>
-              <span className="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+              <Spinner size="2xl" className="mb-4" />
               <p className="text-sm text-text-secondary">
                 Processing your account activation...
               </p>
@@ -66,7 +62,10 @@ export default function ValidationAccount() {
           ) : validationStatus === "success" ? (
             <>
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-green/10 border border-accent-green/20 mb-4">
-                <CheckCircleIcon className="w-7 h-7 text-accent-green" strokeWidth={1.5} />
+                <CheckCircleIcon
+                  className="w-7 h-7 text-accent-green"
+                  strokeWidth={1.5}
+                />
               </div>
               <p className="text-sm text-text-secondary leading-relaxed">
                 Congratulations! Your account has been activated successfully.
@@ -76,7 +75,10 @@ export default function ValidationAccount() {
           ) : validationStatus === "failed-token" ? (
             <>
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-red/10 border border-accent-red/20 mb-4">
-                <XCircleIcon className="w-7 h-7 text-accent-red" strokeWidth={1.5} />
+                <XCircleIcon
+                  className="w-7 h-7 text-accent-red"
+                  strokeWidth={1.5}
+                />
               </div>
               <p className="text-sm text-text-secondary leading-relaxed">
                 Your account activation token has expired. Go to the login page
@@ -86,7 +88,10 @@ export default function ValidationAccount() {
           ) : (
             <>
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-red/10 border border-accent-red/20 mb-4">
-                <XCircleIcon className="w-7 h-7 text-accent-red" strokeWidth={1.5} />
+                <XCircleIcon
+                  className="w-7 h-7 text-accent-red"
+                  strokeWidth={1.5}
+                />
               </div>
               <p className="text-sm text-text-secondary leading-relaxed">
                 There was a problem activating your account. Go to the login

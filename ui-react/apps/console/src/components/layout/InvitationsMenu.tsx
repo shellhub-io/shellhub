@@ -22,6 +22,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { formatRelative } from "@/utils/date";
 import { RoleBadge } from "@/pages/team/constants";
 import { isInvitationExpired } from "@/utils/invitations";
+import Spinner from "@/components/common/Spinner";
 
 function InvitationCard({
   invitation,
@@ -199,7 +200,7 @@ export default function InvitationsMenu() {
                   role="status"
                   aria-live="polite"
                 >
-                  <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <Spinner />
                   <span className="text-2xs font-mono text-text-muted">
                     Loading...
                   </span>

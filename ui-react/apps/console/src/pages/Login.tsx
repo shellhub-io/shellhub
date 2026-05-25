@@ -19,6 +19,7 @@ import AuthFooterLinks from "../components/common/AuthFooterLinks";
 import { getInfo, getSamlAuthUrl } from "../client";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
+import Spinner from "@/components/common/Spinner";
 
 interface CountdownState {
   display: string;
@@ -196,7 +197,7 @@ export default function Login() {
   if (tokenLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <span className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner size="xl" />
       </div>
     );
   }
@@ -328,13 +329,13 @@ export default function Login() {
             <button
               type="submit"
               disabled={disableSubmit}
-              className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
+              className="w-full bg-primary hover:bg-primary-600 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
             >
               {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span className="font-mono text-xs">Authenticating...</span>
-                </span>
+                <>
+                  <Spinner size="sm" tone="onPrimary" />
+                  Authenticating...
+                </>
               ) : (
                 "Sign In"
               )}
@@ -371,9 +372,7 @@ export default function Login() {
             }`}
           >
             {ssoLoading ? (
-              <span
-                className={`w-3.5 h-3.5 border-2 rounded-full animate-spin ${ssoOnly ? "border-white/30 border-t-white" : "border-primary/30 border-t-primary"}`}
-              />
+              <Spinner size="sm" tone={ssoOnly ? "onPrimary" : "onSurface"} />
             ) : (
               <ArrowRightEndOnRectangleIcon className="w-4 h-4" />
             )}

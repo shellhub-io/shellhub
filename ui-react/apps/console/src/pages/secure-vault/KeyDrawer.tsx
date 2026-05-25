@@ -12,6 +12,7 @@ import KeyFileInput from "@/components/common/fields/KeyFileInput";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import type { VaultKeyEntry } from "@/types/vault";
+import Spinner from "@/components/common/Spinner";
 
 interface Props {
   open: boolean;
@@ -174,13 +175,13 @@ export default function KeyDrawer({ open, editKey, onClose }: Props) {
             type="submit"
             onClick={() => void handleSubmit()}
             disabled={!canSubmit}
-            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
+            className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {submitting ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <>
+                <Spinner size="sm" tone="onPrimary" />
                 Saving...
-              </span>
+              </>
             ) : isEdit ? (
               "Save Changes"
             ) : (

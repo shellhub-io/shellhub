@@ -18,6 +18,7 @@ import {
   NAMESPACE_NAME_MIN_LENGTH,
   validateNamespaceName,
 } from "@/utils/validation";
+import Spinner from "@/components/common/Spinner";
 
 /* ─── Cloud/Enterprise form ─── */
 function CloudForm() {
@@ -40,7 +41,7 @@ function CloudForm() {
     }
   };
 
-  const displayError = validationError ?? (createNs.error?.message ?? null);
+  const displayError = validationError ?? createNs.error?.message ?? null;
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="w-full">
@@ -66,7 +67,7 @@ function CloudForm() {
           className="px-6 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 shrink-0"
         >
           {createNs.isPending ? (
-            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+            <Spinner tone="onPrimary" className="block" />
           ) : (
             "Create"
           )}
@@ -181,7 +182,7 @@ function CommunityInstructions() {
           "You're in! Go to dashboard"
         ) : (
           <>
-            <span className="w-4 h-4 border-2 border-white/20 border-t-white/50 rounded-full animate-spin" />
+            <Spinner size="md" tone="onPrimary" />
             Waiting for namespace access...
           </>
         )}

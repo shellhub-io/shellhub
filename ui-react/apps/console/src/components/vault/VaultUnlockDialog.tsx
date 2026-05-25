@@ -3,6 +3,7 @@ import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { useVaultStore } from "@/stores/vaultStore";
 import BaseDialog from "@/components/common/BaseDialog";
 import PasswordField from "@/components/common/fields/PasswordField";
+import Spinner from "@/components/common/Spinner";
 
 interface Props {
   open: boolean;
@@ -93,10 +94,7 @@ function UnlockForm({ open, onClose, onReset, instanceId }: FormProps) {
               className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {loading && (
-                <span
-                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
-                  aria-hidden="true"
-                />
+                <Spinner tone="onPrimary" />
               )}
               Unlock
             </button>

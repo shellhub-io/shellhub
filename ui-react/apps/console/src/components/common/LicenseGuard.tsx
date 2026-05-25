@@ -1,5 +1,6 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
+import Spinner from "@/components/common/Spinner";
 
 export default function LicenseGuard() {
   const { data: license, isLoading, isError } = useAdminLicense();
@@ -12,7 +13,7 @@ export default function LicenseGuard() {
         aria-label="Loading license information"
       >
         <div className="flex items-center gap-3">
-          <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <Spinner />
           <span className="text-xs font-mono text-text-muted">
             Checking license...
           </span>

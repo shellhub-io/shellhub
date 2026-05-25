@@ -11,6 +11,7 @@ import AccountCreated from "../components/auth/AccountCreated";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import Spinner from "@/components/common/Spinner";
 
 const SERVER_FIELD_MAP: Record<string, keyof FormErrors> = {
   username: "username",
@@ -311,13 +312,13 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={signUpLoading || !isFormValid}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-2"
+              className="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-2 flex items-center justify-center gap-2"
             >
               {signUpLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span className="font-mono text-xs">Creating account...</span>
-                </span>
+                <>
+                  <Spinner size="sm" tone="onPrimary" />
+                  Creating account...
+                </>
               ) : (
                 "Create Account"
               )}

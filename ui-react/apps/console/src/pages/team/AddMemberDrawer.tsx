@@ -7,6 +7,7 @@ import InputField from "@/components/common/fields/InputField";
 import { EMAIL_REGEX } from "@/utils/validation";
 import { RoleSelector } from "./constants";
 import { type AssignableRole } from "./helpers";
+import Spinner from "@/components/common/Spinner";
 
 /* --- Add Member Drawer --- */
 
@@ -78,7 +79,7 @@ function AddMemberDrawer({
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {submitting ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <Spinner tone="onPrimary" />
             ) : (
               <PlusIcon className="w-4 h-4" strokeWidth={2} />
             )}

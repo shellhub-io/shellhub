@@ -1,16 +1,23 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  ExclamationCircleIcon,
-  KeyIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon, KeyIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "../stores/authStore";
 import { disableMfa } from "../client";
 import MfaRecoveryTimeoutModal from "../components/mfa/MfaRecoveryTimeoutModal";
 import AuthFooterLinks from "../components/common/AuthFooterLinks";
+import Spinner from "@/components/common/Spinner";
 
 export default function MfaRecover() {
-  const { recoverWithCode, loading, error, mfaRecoveryExpiry, updateMfaStatus, user, username, mfaToken } = useAuthStore();
+  const {
+    recoverWithCode,
+    loading,
+    error,
+    mfaRecoveryExpiry,
+    updateMfaStatus,
+    user,
+    username,
+    mfaToken,
+  } = useAuthStore();
   const navigate = useNavigate();
 
   const identifier = user || username;
@@ -49,7 +56,10 @@ export default function MfaRecover() {
 
   const handleDisableMfa = async () => {
     // Use the recovery code that was just entered
-    await disableMfa({ body: { recovery_code: recoveryCode }, throwOnError: true });
+    await disableMfa({
+      body: { recovery_code: recoveryCode },
+      throwOnError: true,
+    });
     updateMfaStatus(false);
     setShowTimeoutModal(false);
     void navigate("/dashboard");
@@ -81,7 +91,8 @@ export default function MfaRecover() {
           Recover Your Account
         </h1>
         <p className="text-sm text-text-muted max-w-md mx-auto leading-relaxed">
-          Enter one of your recovery codes for <span className="font-semibold text-text-primary">{identifier}</span>.
+          Enter one of your recovery codes for{" "}
+          <span className="font-semibold text-text-primary">{identifier}</span>.
         </p>
       </div>
 
@@ -126,13 +137,13 @@ export default function MfaRecover() {
           <button
             type="submit"
             disabled={loading || !recoveryCode.trim()}
-            className="w-full bg-accent-yellow hover:bg-accent-yellow/80 text-background py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1"
+            className="w-full bg-accent-yellow hover:bg-accent-yellow/80 text-background py-3 px-4 rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all duration-200 mt-1 flex items-center justify-center gap-2"
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
-                <span className="font-mono text-xs">Recovering...</span>
-              </span>
+              <>
+                <Spinner size="sm" tone="onPrimary" />
+                Recovering...
+              </>
             ) : (
               "Recover Account"
             )}

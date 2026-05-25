@@ -2,6 +2,7 @@ import { ReactNode, useId, useState } from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import BaseDialog from "./BaseDialog";
+import Spinner from "@/components/common/Spinner";
 
 interface ConfirmDialogProps {
   /** Controls open/close state. */
@@ -149,13 +150,7 @@ export default function ConfirmDialog({
           disabled={confirming || confirmDisabled}
           className={`px-5 py-2.5 ${VARIANT_CLASSES[variant]} rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2`}
         >
-          {confirming && (
-            <span
-              data-testid="confirm-spinner"
-              aria-hidden="true"
-              className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
-            />
-          )}
+          {confirming && <Spinner tone="onPrimary" />}
           {confirmLabel}
         </button>
       </div>

@@ -76,7 +76,7 @@ describe("AdminDeviceDetails", () => {
   });
 
   describe("loading state", () => {
-    it('renders an sr-only "Loading device details" message while loading', () => {
+    it('announces "Loading device details" while loading', () => {
       vi.mocked(useAdminDevice).mockReturnValue({
         data: undefined,
         isLoading: true,
@@ -85,8 +85,9 @@ describe("AdminDeviceDetails", () => {
 
       renderPage();
 
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText("Loading device details")).toBeInTheDocument();
+      expect(
+        screen.getByRole("status", { name: "Loading device details" }),
+      ).toBeInTheDocument();
     });
   });
 

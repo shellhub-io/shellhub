@@ -25,6 +25,7 @@ import {
   getLicenseAlertConfig,
 } from "@/utils/license";
 import type { GetLicenseResponse } from "@/client/types.gen";
+import Spinner from "@/components/common/Spinner";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -342,7 +343,7 @@ function LicenseUpload() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all"
           >
             {upload.isPending
-              ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
+              ? <Spinner size="md" tone="onPrimary" />
               : <ArrowUpTrayIcon className="w-4 h-4" aria-hidden="true" />}
             {upload.isPending ? "Uploading..." : "Upload"}
           </button>
@@ -374,7 +375,7 @@ export default function AdminLicense() {
         role="status"
         aria-label="Loading license information"
       >
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner size="lg" />
       </div>
     );
   }

@@ -38,6 +38,7 @@ import { formatDateFull, formatRelative } from "../utils/date";
 import { buildSshid } from "../utils/sshid";
 import { useHasPermission } from "../hooks/useHasPermission";
 import RestrictedAction from "../components/common/RestrictedAction";
+import Spinner from "@/components/common/Spinner";
 
 /* ─── Shared styles ─── */
 const LABEL =
@@ -342,7 +343,7 @@ export default function ContainerDetails() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner size="lg" />
       </div>
     );
   }

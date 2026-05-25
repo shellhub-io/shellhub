@@ -32,6 +32,7 @@ import { stripeErrorMessage } from "@/utils/stripeErrors";
 import FieldLabel from "@/components/common/fields/FieldLabel";
 import InputField from "@/components/common/fields/InputField";
 import BillingIcon from "./BillingIcon";
+import Spinner from "@/components/common/Spinner";
 
 const ELEMENTS_OPTIONS: StripeElementsOptions = {
   appearance: { theme: "night" },
@@ -259,7 +260,7 @@ function BillingPaymentInner({
         role="status"
         aria-live="polite"
       >
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner size="lg" tone="onSurface" />
         <span className="sr-only">Loading payment methods…</span>
       </div>
     );
@@ -413,10 +414,7 @@ function BillingPaymentInner({
               className="px-5 py-2 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {submitting && (
-                <span
-                  aria-hidden="true"
-                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
-                />
+                <Spinner tone="onPrimary" />
               )}
               Save card
             </button>

@@ -33,6 +33,7 @@ import InputField from "@/components/common/fields/InputField";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { validateNamespaceName } from "@/utils/validation";
 import { getConfig } from "../env";
+import Spinner from "@/components/common/Spinner";
 
 /* ─── Settings Card ─── */
 
@@ -157,7 +158,7 @@ function EditNameDrawer({
             className="px-5 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg text-sm font-semibold disabled:opacity-dim disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             {submitting ? (
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <Spinner tone="onPrimary" />
             ) : (
               <CheckIcon className="w-4 h-4" strokeWidth={2} />
             )}
@@ -445,7 +446,7 @@ export default function Settings() {
   if (!ns) {
     return (
       <div className="flex items-center justify-center py-32">
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner size="lg" />
       </div>
     );
   }

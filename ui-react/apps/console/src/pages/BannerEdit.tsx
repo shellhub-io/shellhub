@@ -6,6 +6,7 @@ import type { Namespace } from "../hooks/useNamespaces";
 import { useEditNamespace } from "../hooks/useNamespaceMutations";
 import { useAuthStore } from "../stores/authStore";
 import { useHasPermission } from "../hooks/useHasPermission";
+import Spinner from "@/components/common/Spinner";
 
 const MAX_LENGTH = 4096;
 
@@ -106,7 +107,7 @@ function BannerEditor({ ns, canEdit }: { ns: Namespace; canEdit: boolean }) {
             >
               {saving
                 ? (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <Spinner tone="onPrimary" />
                 )
                 : (
                   <CheckIcon className="w-4 h-4" strokeWidth={2} />
@@ -130,7 +131,7 @@ export default function BannerEdit() {
   if (!ns) {
     return (
       <div className="flex items-center justify-center py-32">
-        <span className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Spinner size="lg" />
       </div>
     );
   }
